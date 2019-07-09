@@ -302,6 +302,7 @@ protected:
 			VectorHandler& out, const VectorHandler& in) const;
 
 public:
+    virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const;
 };
 
 #endif /* SpMapMatrixHandler_hh */

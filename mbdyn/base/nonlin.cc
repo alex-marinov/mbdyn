@@ -449,6 +449,10 @@ dSumCond(0.)
 #endif /* USE_EXTERNAL */
 {
 	std::memset(dTimeCPU, 0, sizeof(dTimeCPU));
+        std::memset(&oSolverHints, 0, sizeof(oSolverHints));
+
+        SetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX, 1.0);
+        SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, 1.0);
 }
 
 void

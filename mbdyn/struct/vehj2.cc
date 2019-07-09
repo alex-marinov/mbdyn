@@ -361,27 +361,16 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(GetF().pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec((pNode1->GetRCurr()*(tilde_R1h*GetF())).pGetVec(), 
-					OH.GetCurrentStep());
-			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_tilde_d->put_rec(tilde_d.pGetVec(), OH.GetCurrentStep());
-			Var_d->put_rec((pNode1->GetRCurr()*(tilde_R1h*tilde_d)).pGetVec(), 
-					OH.GetCurrentStep());
+			Joint::NetCDFOutput(OH, GetF(), Zero3, pNode1->GetRCurr()*(tilde_R1h*GetF()), Zero3);
+			OH.WriteNcVar(Var_tilde_d, tilde_d);
+			OH.WriteNcVar(Var_d, (pNode1->GetRCurr()*(tilde_R1h*tilde_d)));
 			if (GetConstLawType() & ConstLawType::VISCOUS) {
-				Var_tilde_dPrime->put_rec(tilde_dPrime.pGetVec(), 
-						OH.GetCurrentStep());
-				Var_dPrime->put_rec((pNode1->GetRCurr()*(tilde_R1h*tilde_dPrime)).pGetVec(),
-						OH.GetCurrentStep());
+				OH.WriteNcVar(Var_tilde_dPrime, tilde_dPrime);
+				OH.WriteNcVar(Var_dPrime, (pNode1->GetRCurr()*(tilde_R1h*tilde_dPrime)));
 			} else {
-				Var_tilde_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-				Var_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_tilde_dPrime, Zero3);
+				OH.WriteNcVar(Var_dPrime, Zero3);
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

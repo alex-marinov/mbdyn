@@ -328,8 +328,6 @@ ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
 bScale(false),
 bTrueNewtonRaphson(true),
-bKeepJac(false),
-iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
 /* for matrix-free solvers */
 MFSolverType(MatrixFreeSolver::UNKNOWN),
@@ -1571,7 +1569,7 @@ IfStepIsToBeRepeated:
 
 	if (outputMsg()) {
 		Out << "Step " << lStep
-			<< " " << dTime + dCurrTimeStep
+                        << " " << std::setprecision(16) << dTime + dCurrTimeStep
 			<< " " << dCurrTimeStep
 			<< " " << iStIter
 			<< " " << dTest
@@ -1825,8 +1823,8 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 	default :
 		out << "  nonlinear solver: newton raphson";
 		if (!bTrueNewtonRaphson) {
-			out << ", modified, " << iIterationsBeforeAssembly;
-			if (bKeepJac) {
+			out << ", modified, " << LineSearch.iIterationsBeforeAssembly;
+			if (LineSearch.bKeepJac) {
 				out << ", keep jacobian matrix";
 			}
 			if (bHonorJacRequest) {
@@ -2841,14 +2839,14 @@ Solver::ReadData(MBDynParser& HP)
 			if (bAutoDerivCoef || HP.IsKeyWord("auto")) {
 				if (HP.IsKeyWord("max" "iterations")) {
 					iDerivativesCoefMaxIter = HP.GetInt();
+                                } else {
+                                        iDerivativesCoefMaxIter = 6;
+                                }
+                            
 					if (iDerivativesCoefMaxIter < 0) {
 						silent_cerr("number of iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
-
-				} else {
-					iDerivativesCoefMaxIter = 6;
-				}
 
 				if (HP.IsKeyWord("factor")) {
 					dDerivativesCoefFactor = HP.GetReal();
@@ -2873,15 +2871,15 @@ Solver::ReadData(MBDynParser& HP)
 			case MODIFIED:
 				bTrueNewtonRaphson = 0;
 				if (HP.IsArg()) {
-					iIterationsBeforeAssembly = HP.GetInt();
+					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
 				} else {
-					iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
+					LineSearch.iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
 						"matrix will be assembled "
 						"at most after "
-						<< iIterationsBeforeAssembly
+						<< LineSearch.iIterationsBeforeAssembly
 						<< " iterations" << std::endl);
 				break;
 
@@ -2892,7 +2890,7 @@ Solver::ReadData(MBDynParser& HP)
 			/* no break: fall-thru to next case */
 			case NR_TRUE:
 				bTrueNewtonRaphson = 1;
-				iIterationsBeforeAssembly = 0;
+				LineSearch.iIterationsBeforeAssembly = 0;
 				break;
 			}
 			break;
@@ -3144,7 +3142,8 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // !USE_JDQZ
-
+                                } else if (HP.IsKeyWord("use" "external")) {
+                                        EigAn.uFlags |= EigenAnalysis::EIG_USE_EXTERNAL;
 				} else if (HP.IsKeyWord("balance")) {
 					if (HP.IsKeyWord("no")) {
 						EigAn.uFlags &= ~EigenAnalysis::EIG_BALANCE;
@@ -3237,7 +3236,16 @@ Solver::ReadData(MBDynParser& HP)
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
 				}
 				break;
+                        case EigenAnalysis::EIG_USE_EXTERNAL:
+                                if (!(EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES_MASK)) {
+                                        silent_cerr("external eigenanalysis is not possible without output of matrices" << std::endl);
+                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                }
 
+                                if ((EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) && !(EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES)) {
+                                        EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
+                                }
+                                break;
 			default:
 				break;
 			}
@@ -3324,8 +3332,8 @@ Solver::ReadData(MBDynParser& HP)
 			case NonlinearSolver::NEWTONRAPHSON:
 			case NonlinearSolver::LINESEARCH:
 				bTrueNewtonRaphson = true;
-				bKeepJac = false;
-				iIterationsBeforeAssembly = 0;
+				LineSearch.bKeepJac = false;
+				LineSearch.iIterationsBeforeAssembly = 0;
 
 				if (NonlinearSolverType == NonlinearSolver::NEWTONRAPHSON && HP.IsKeyWord("true")) {
 					break;
@@ -3333,15 +3341,15 @@ Solver::ReadData(MBDynParser& HP)
 
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
-					iIterationsBeforeAssembly = HP.GetInt();
+					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
 
 					if (HP.IsKeyWord("keep" "jacobian")) {
 						pedantic_cout("Use of deprecated \"keep jacobian\" "
 							"at line " << HP.GetLineData() << std::endl);
-						bKeepJac = true;
+						LineSearch.bKeepJac = true;
 
 					} else if (HP.IsKeyWord("keep" "jacobian" "matrix")) {
-						bKeepJac = true;
+						LineSearch.bKeepJac = true;
 					}
 
 					DEBUGLCOUT(MYDEBUG_INPUT, "modified "
@@ -3350,7 +3358,7 @@ Solver::ReadData(MBDynParser& HP)
 							"matrix will be "
 							"assembled at most "
 							"after "
-							<< iIterationsBeforeAssembly
+							<< LineSearch.iIterationsBeforeAssembly
 							<< " iterations"
 							<< std::endl);
 					if (HP.IsKeyWord("honor" "element" "requests")) {
@@ -3365,7 +3373,24 @@ Solver::ReadData(MBDynParser& HP)
 
 				if (NonlinearSolver::LINESEARCH == NonlinearSolverType) {
 					while (HP.IsArg()) {
-						if (HP.IsKeyWord("tolerance" "x")) {
+                                                if (HP.IsKeyWord("default" "solver" "options")) {
+                                                        LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                                                        LineSearch.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
+                                                        LineSearch.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+                                                        LineSearch.uFlags |= LineSearchParameters::DIVERGENCE_CHECK;
+                                                        LineSearch.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
+                                                
+                                                        if (HP.IsKeyWord("moderate" "nonlinear")) {
+                                                               LineSearch.dLambdaMin = 0.1;
+                                                               LineSearch.dDivergenceCheck = 10;
+                                                        } else if (HP.IsKeyWord("heavy" "nonlinear")) {
+                                                               LineSearch.dLambdaMin = 1e-4;
+                                                               LineSearch.dDivergenceCheck = 1.5;
+                                                        } else {
+                                                                silent_cerr("keyword \"moderate nonlinear\" or \"heavy nonlinear\" expected at line " << HP.GetLineData() << std::endl);
+                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                        }
+                                                } else if (HP.IsKeyWord("tolerance" "x")) {
 							LineSearch.dTolX = HP.GetReal();
 							if (LineSearch.dTolX < 0.) {
 								silent_cerr("tolerance x must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
@@ -3383,10 +3408,16 @@ Solver::ReadData(MBDynParser& HP)
 								silent_cerr("max iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
 								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 							}
-						} else if (HP.IsKeyWord("alpha")) {
-							LineSearch.dAlpha = HP.GetReal();
-							if (LineSearch.dAlpha < 0.) {
-								silent_cerr("alpha must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+						} else if (HP.IsKeyWord("alpha") || HP.IsKeyWord("alpha" "full")) {
+                                                        LineSearch.dAlphaFull = HP.GetReal();
+							if (LineSearch.dAlphaFull < 0.) {
+								silent_cerr("alpha full must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+                                                } else if (HP.IsKeyWord("alpha" "modified")) {
+                                                        LineSearch.dAlphaModified = HP.GetReal();
+							if (LineSearch.dAlphaModified < 0.) {
+								silent_cerr("alpha modified must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
 								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 							}
 						} else if (HP.IsKeyWord("lambda" "min")) {
@@ -3434,8 +3465,9 @@ Solver::ReadData(MBDynParser& HP)
 							}
 							if (HP.IsKeyWord("factor")) {
 								LineSearch.dDivergenceCheck = HP.GetReal();
-								if (LineSearch.dDivergenceCheck <= 0.) {
-									silent_cerr("divergence check factor must be greater than zero at line " << HP.GetLineData() << std::endl);
+								if (LineSearch.dDivergenceCheck < 1.) {
+									silent_cerr("divergence check factor must be greater than one at line "
+                                                                                    << HP.GetLineData() << std::endl);
 									throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 								}
 							}
@@ -3486,13 +3518,31 @@ Solver::ReadData(MBDynParser& HP)
 							} else {
 								LineSearch.uFlags &= ~LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
 							}
+                                                } else if (HP.IsKeyWord("time" "step" "tolerance")) {
+                                                    LineSearch.dTimeStepTol = HP.GetReal();
+
+                                                    if (LineSearch.dTimeStepTol < 0) {
+                                                        silent_cerr("time step tolerance must not be smaller than zero at line "
+                                                                    << HP.GetLineData()
+                                                                    << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                    }
+                                                } else if (HP.IsKeyWord("update" "ratio")) {
+                                                    LineSearch.dUpdateRatio = HP.GetReal();
+
+                                                    if (LineSearch.dUpdateRatio >= 1 || LineSearch.dUpdateRatio <= 0) {
+                                                        silent_cerr("update ratio must be a value between zero and one at line "
+                                                                    << HP.GetLineData()
+                                                                    << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                    }
 						} else {
-							silent_cerr("Keyword \"tolerance x\", "
+							silent_cerr("Keyword \"default solver options\", \"tolerance x\", "
 								"\"tolerance min\", \"max iterations\", \"alpha\", "
 								"\"lambda min\" \"lambda factor min\", \"max step\" "
 								"\"divergence check\", \"algorithm\", \"scale newton step\" "
 								"\"print convergence info\", \"verbose\", "
-								"\"abort at lambda min\" "
+								"\"abort at lambda min\", \"time step tolerance\", \"update ratio\" "
 								"or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
@@ -4958,7 +5008,11 @@ Solver::Eig(bool bNewLine)
 		eig_jdqz(pMatA, pMatB, pDM, &EigAn, bNewLine, uCurr);
 		break;
 #endif // USE_JDQZ
-
+        case EigenAnalysis::EIG_USE_EXTERNAL:
+                if (EigAn.uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
+                    pDM->OutputEigGeometry(uCurr, EigAn.iResultsPrecision);
+                }
+                break;
 	default:
 		// only output matrices, use external eigenanalysis
 		break;
@@ -5109,16 +5163,40 @@ Solver::AllocateNonlinearSolver()
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
 				NewtonRaphsonSolver(bTrueNewtonRaphson,
-					bKeepJac,
-					iIterationsBeforeAssembly,
+					LineSearch.bKeepJac,
+					LineSearch.iIterationsBeforeAssembly,
 					*this));
 		break;
 	case NonlinearSolver::LINESEARCH:
+            switch (CurrLinearSolver.GetSolver()) {
+            case LinSol::UMFPACK_SOLVER:
+            case LinSol::KLU_SOLVER:
+            case LinSol::PASTIX_SOLVER:
+                break;
+                
+            default:
+                if (!bTrueNewtonRaphson) {
+                    pedantic_cout("warning: linear solver \""
+                                  << CurrLinearSolver.GetSolverName()
+                                  << "\" not supported by modified line search\n");
+                }
+                
+                bTrueNewtonRaphson = true;
+            }
+            
+            if (bTrueNewtonRaphson) {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
-				LineSearchSolver,
-				LineSearchSolver(pDM,
+				LineSearchFull,
+				LineSearchFull(pDM, 
                                  *this,
                                  LineSearch));
+            } else {                
+                SAFENEWWITHCONSTRUCTOR(pNLS,
+                                       LineSearchModified,
+                                       LineSearchModified(pDM, 
+                                                          *this,
+                                                          LineSearch));
+            }
 		break;
 	}
 	return pNLS;
@@ -5203,7 +5281,7 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*th
 	}
 
 	if (dErr > dMaxResidual) {
-            if (dCurrTimeStep > 2 * dMinTimeStep) { // FIXME
+            if (dCurrTimeStep > 2 * dMinTimeStep) {
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -5220,7 +5298,7 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*th
 	}
 
 	if (dErrDiff > dMaxResidualDiff) {
-            if (dCurrTimeStep > 2 * dMinTimeStep) { // FIXME
+            if (dCurrTimeStep > 2 * dMinTimeStep) {
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -5241,7 +5319,7 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*th
 		break;
 
 	case TS_HARD_LIMIT: {
-		const doublereal dMaxTS = MaxTimeStep.dGet();
+                const doublereal dMaxTS = MaxTimeStep.dGet() * (1 + sqrt(std::numeric_limits<doublereal>::epsilon()));
 
 		if (dCurrTimeStep > dMaxTS && dCurrTimeStep > dMinTimeStep) {
 			if (outputIters()) {
@@ -5255,7 +5333,6 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*th
 						<< dMaxTS << std::endl);
 				}
 			}
-
 			throw NonlinearSolver::TimeStepLimitExceeded(MBDYN_EXCEPT_ARGS);
 		}
 		} break;

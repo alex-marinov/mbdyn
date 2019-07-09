@@ -67,14 +67,18 @@ HydraulicFluid::~HydraulicFluid(void)
 doublereal
 HydraulicFluid::dGetPres0(void) const
 {
+#ifdef DEBUG_HYDR_FLUID
 	ASSERT(dPres0 != -1.);
+#endif
 	return dPres0;
 }
 
 doublereal
 HydraulicFluid::dGetTemp0(void) const
 {
+#ifdef DEBUG_HYDR_FLUID
 	ASSERT(dTemp0 != -1.);
+#endif
 	return dTemp0;
 }
 
@@ -123,9 +127,13 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 	switch (CurrKeyWord) {
 	case UNCOMPRESSIBLE:	/* deprecated (typo) */
 	case INCOMPRESSIBLE: {
-		doublereal dDensity(0.);
+                doublereal dDensity(0.), dAlpha(0.);
 		if (HP.IsKeyWord("density")) {
 			dDensity = HP.GetReal();
+                        
+                        if (HP.IsKeyWord("thermal" "expansion")) {
+                            dAlpha = HP.GetReal();
+                        }
 		}
 
 		if (dDensity < std::numeric_limits<doublereal>::epsilon()) {
@@ -173,7 +181,8 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 				dDensity,
 				dViscosity,
 				dPres0,
-				dTemp0));
+                                dTemp0,
+                                dAlpha));
 		} break;
 
 	case LINEARCOMPRESSIBLE:
@@ -196,6 +205,10 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 
 				dBeta = sound*sound*dDensity;
 			} else {
+                                if (HP.IsKeyWord("bulk" "modulus")) {
+                                    NO_OP;
+                                }
+                            
 				dBeta = HP.GetReal();
 				if (std::abs(dBeta) < std::numeric_limits<doublereal>::epsilon()) {
 					silent_cerr("line " << HP.GetLineData()
@@ -211,6 +224,10 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 					<< " for hydraulic fluid " << uLabel << std::endl);
 			}
 
+                        if (HP.IsKeyWord("pressure")) {
+                            NO_OP;
+                        }
+                        
 			dPres0 = HP.GetReal();
 			if (dPres0 < 0.) {
 				silent_cerr("line " << HP.GetLineData()
@@ -305,6 +322,9 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 				dBeta = sound*sound*dDensity;
 
 			} else {
+                                if (HP.IsKeyWord("bulk" "modulus")) {
+                                    NO_OP;
+                                }
 				dBeta = HP.GetReal();
 				if (std::abs(dBeta) < std::numeric_limits<doublereal>::epsilon()) {
 					silent_cerr("line " << HP.GetLineData()
@@ -320,6 +340,10 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 					<< " for hydraulic fluid " << uLabel << std::endl);
 			}
 
+                        if (HP.IsKeyWord("pressure")) {
+                            NO_OP;
+                        }
+                        
 			dPres0 = HP.GetReal();
 			if (dPres0 < 0.) {
 				silent_cerr("line " << HP.GetLineData()
@@ -327,8 +351,16 @@ ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel)
 					<< " for hydraulic fluid " << uLabel << std::endl);
 			}
 
+                        if (HP.IsKeyWord("thermal" "expansion")) {
+                            NO_OP;
+                        }
+                        
 			dAlpha = HP.GetReal();
 
+                        if (HP.IsKeyWord("temperature")) {
+                            NO_OP;
+                        }
+                        
 			dTemp0 = HP.GetReal();
 			if (dTemp0 < 0.) {
 				silent_cerr("line " << HP.GetLineData()

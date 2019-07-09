@@ -17,8 +17,6 @@ libmbmath \
 libmbwrap \
 libann
 
-if BUILD_MBC
 SUBDIRS += libmbc
-endif
 
 include $(top_srcdir)/build/bot.mk

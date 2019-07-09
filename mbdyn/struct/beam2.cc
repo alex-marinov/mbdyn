@@ -103,7 +103,7 @@ bFirstIDRes(true)
 	const_cast<Vec3&>(f[NODE2]) = F2;
 	const_cast<Mat3x3&>(RNode[NODE1]) = R1;
 	const_cast<Mat3x3&>(RNode[NODE2]) = R2;
-	RPrev = RRef = R = (Mat3x3&)r;
+	RPrev = RRef = R = r;
 
 	pD = NULL;
 	SAFENEWWITHCONSTRUCTOR(pD,
@@ -715,12 +715,14 @@ Beam2::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
-#if defined(USE_NETCDFC)
-			if (Var_X) {
-				Var_X->put_rec(p.pGetVec(), OH.GetCurrentStep());
+
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
+			if (uOutputFlags & Beam::OUTPUT_EP_X) {
+				OH.WriteNcVar(Var_X, p);
 			}
 
-			if (Var_Phi) {
+			if (uOutputFlags & Beam::OUTPUT_EP_R) {
 				Vec3 E;
 				switch (od) {
 				case EULER_123:
@@ -753,11 +755,11 @@ Beam2::Output(OutputHandler& OH) const
 				case EULER_313:
 				case EULER_321:
 				case ORIENTATION_VECTOR:
-					Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+					OH.WriteNcVar(Var_Phi, E);
 					break;
 
 				case ORIENTATION_MATRIX:
-					Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+					OH.WriteNcVar(Var_Phi, R);
 					break;
 
 				default:
@@ -766,32 +768,29 @@ Beam2::Output(OutputHandler& OH) const
 				}
 			}
 
-			if (Var_F) {
-				Var_F->put_rec(AzLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_F) {
+				OH.WriteNcVar(Var_F, AzLoc.GetVec1());
 			}
 
-			if (Var_M) {
-				Var_M->put_rec(AzLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_M) {
+				OH.WriteNcVar(Var_M, AzLoc.GetVec2());
 			}
 
-			if (Var_Nu) {
-				Var_Nu->put_rec(DefLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
+				OH.WriteNcVar(Var_Nu, DefLoc.GetVec1());
 			}
 
-			if (Var_K) {
-				Var_K->put_rec(DefLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_K) {
+				OH.WriteNcVar(Var_K, DefLoc.GetVec2());
 			}
 
-			if (Var_NuP) {
-				Var_NuP->put_rec(DefPrimeLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
+				OH.WriteNcVar(Var_NuP, DefPrimeLoc.GetVec1());
 			}
 
-			if (Var_KP) {
-				Var_KP->put_rec(DefPrimeLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
+			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
+				OH.WriteNcVar(Var_KP, DefPrimeLoc.GetVec2());
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif /* USE_NETCDF */
 

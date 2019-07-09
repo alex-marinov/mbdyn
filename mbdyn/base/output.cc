@@ -777,13 +777,75 @@ OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar) {
 	Var_Var->put_rec(pGetVar.pGetMat(), (long) ncStart1[0]);
 }
 void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar,
+		const size_t& ncStart) 
+{
+	Var_Var->put_rec(pGetVar.pGetMat(), std::vector<long>(1,ncStart)[0]);
+}
+void
 OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar) {
 	Var_Var->put_rec(pGetVar.pGetVec(), (long) ncStart1[0]);
+}
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar,
+		const size_t& ncStart) 
+{
+	Var_Var->put_rec(pGetVar.pGetVec(), std::vector<long>(1,ncStart)[0]);
 }
 template <class Tvar>
 void
 OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar) {
 	Var_Var->put_rec(&pGetVar, (long) ncStart1[0]);
+}
+template <class Tvar, class Tstart>
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar,
+		const Tstart& ncStart) 
+{
+	Var_Var->put_rec(&pGetVar, ncStart);
+}
+template <class Tvar>
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar,
+		const std::vector<size_t>& ncStart, 
+		const std::vector<size_t>& ncCount)
+{
+	switch (ncStart.size()) {
+		case 1:
+		{
+			Var_Var->set_cur(ncStart[0]);
+			Var_Var->put(&pGetVar, ncCount[0]);
+		}
+		break;
+		case 2:
+			Var_Var->set_cur(ncStart[0], ncStart[1]);
+			Var_Var->put(&pGetVar, ncCount[0], ncCount[1]);
+		{
+		}
+		break;
+		case 3:
+			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2]);
+			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2]);
+		{
+		}
+		break;
+		case 4:
+			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2], ncStart[3]);
+			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2], ncCount[3]);
+		{
+		}
+		break;
+		case 5:
+			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2], ncStart[3], ncStart[4]);
+			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2], ncCount[3], ncCount[4]);
+		{
+		}
+		break;
+		default:
+		{
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 }
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 void
@@ -791,18 +853,57 @@ OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar) {
 	Var_Var.putVar(ncStart1x3x3, ncCount1x3x3, pGetVar.pGetMat());
 }
 void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar,
+		const size_t& ncStart) 
+{
+	std::vector<size_t> ncStart1x3x3Tmp = ncStart1x3x3;
+	ncStart1x3x3Tmp[0] = ncStart;
+	Var_Var.putVar(ncStart1x3x3Tmp, ncCount1x3x3, pGetVar.pGetMat());
+}
+void
 OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar) {
 	Var_Var.putVar(ncStart1x3, ncCount1x3, pGetVar.pGetVec());
+}
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar,
+		const size_t& ncStart) 
+{
+	std::vector<size_t> ncStart1x3Tmp = ncStart1x3;
+	ncStart1x3Tmp[0] = ncStart;
+	Var_Var.putVar(ncStart1x3Tmp, ncCount1x3, pGetVar.pGetVec());
 }
 template <class Tvar>
 void
 OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar) {
 	Var_Var.putVar(ncStart1, ncCount1, &pGetVar);
 }
+template <class Tvar, class Tstart>
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar, 
+		const Tstart& ncStart) 
+{
+	Var_Var.putVar(std::vector<size_t>(1,ncStart), ncCount1, &pGetVar);
+}
+template <class Tvar, class Tstart>
+void
+OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar, 
+		const std::vector<Tstart>& ncStart,
+		const std::vector<size_t>& count) 
+{
+	Var_Var.putVar(ncStart, count, &pGetVar);
+}
 #endif  /* USE_NETCDF4 */
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&);
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&);
-//// TODO: add all necessary type templates (char, etc..)
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const size_t&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const unsigned int&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const size_t&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const unsigned int&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&,
+		const std::vector<size_t>&, const std::vector<size_t>&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&,
+		const std::vector<size_t>&, const std::vector<size_t>&);
 
 MBDynNcVar 
 OutputHandler::CreateVar(const std::string& name, const MBDynNcType& type,

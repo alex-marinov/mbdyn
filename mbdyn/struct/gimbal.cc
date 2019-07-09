@@ -51,7 +51,12 @@ GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
-M(Zero3), dTheta(0.), dPhi(0.), od(od)
+M(Zero3), dTheta(0.), dPhi(0.), 
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_Theta(0),
+Var_Phi(0),
+#endif // USE_NETFCDF
+od(od)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -81,6 +86,24 @@ GimbalRotationJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+GimbalRotationJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#if USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Gimbal rotation", OH, name);
+
+			Var_Theta = OH.CreateVar<doublereal>(name + "Theta", "rad",
+					"relative angle Theta");
+
+			Var_Phi = OH.CreateVar<doublereal>(name + "Phi", "rad",
+					"relative angle Phi");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 GimbalRotationJoint::Output(OutputHandler& OH) const
@@ -91,39 +114,50 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 		// TODO: allow to customize orientation description
 		Mat3x3 R(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr());
 
-		std::ostream& out = OH.Joints();
 
-		Joint::Output(out, "Gimbal", GetLabel(),
-				Zero3, M, Zero3, Ra*M)
-			<< " " << dTheta << " " << dPhi << " ";
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream& out = OH.Joints();
 
-		switch (od) {
-		case EULER_123:
-			out << MatR2EulerAngles123(R)*dRaDegr;
-			break;
+			Joint::Output(out, "Gimbal", GetLabel(),
+					Zero3, M, Zero3, Ra*M)
+				<< " " << dTheta << " " << dPhi << " ";
 
-		case EULER_313:
-			out << MatR2EulerAngles313(R)*dRaDegr;
-			break;
+			switch (od) {
+				case EULER_123:
+					out << MatR2EulerAngles123(R)*dRaDegr;
+					break;
 
-		case EULER_321:
-			out << MatR2EulerAngles321(R)*dRaDegr;
-			break;
+				case EULER_313:
+					out << MatR2EulerAngles313(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_VECTOR:
-			out << RotManip::VecRot(R);
-			break;
+				case EULER_321:
+					out << MatR2EulerAngles321(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_MATRIX:
-			out << R;
-			break;
+				case ORIENTATION_VECTOR:
+					out << RotManip::VecRot(R);
+					break;
 
-		default:
-			/* impossible */
-			break;
+				case ORIENTATION_MATRIX:
+					out << R;
+					break;
+
+				default:
+					/* impossible */
+					break;
+			}
+
+			out << std::endl;
 		}
 
-		out << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, Zero3, M, Zero3, Ra*M);
+			OH.WriteNcVar(Var_Theta, dTheta);
+			OH.WriteNcVar(Var_Phi, dPhi);
+		}
+#endif // USE_NETCDF
 	}
 }
 

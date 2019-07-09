@@ -31,7 +31,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2011(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -94,7 +94,7 @@ begin: initial value;
 	derivatives coefficient: 1.e-3;
     #output: residual;
     #output: jacobian;
-
+    output: iterations;
     linear solver: naive;
 
 	eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,

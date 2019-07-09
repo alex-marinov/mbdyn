@@ -30,7 +30,7 @@
 # 
 #################################################################
 ##
-## AUTHOR: Reinhard Resch <r.resch@secop.com>
+## AUTHOR: Reinhard Resch <r.resch@a1.net>
 ##        Copyright (C) 2011(-2012) all rights reserved.
 ##
 ##        The copyright of this code is transferred

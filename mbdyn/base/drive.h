@@ -518,6 +518,9 @@ public:
 	inline void dGet(doublereal x, doublereal& y) const;
 	template <int N>
 	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
+        inline void dGetP(doublereal x, doublereal& yP) const;
+        template <int N>
+        inline void dGetP(const grad::Gradient<N>& gx, grad::Gradient<N>& gyP) const;
 #endif
 
 	/* this is about drives that are differentiable */
@@ -570,6 +573,17 @@ inline void DriveCaller::dGet(const grad::Gradient<N>& gx, grad::Gradient<N>& gy
 	for (index_type i = gx.iGetStartIndexLocal(); i < gx.iGetEndIndexLocal(); ++i) {
 		gy.SetDerivativeLocal(i, dy_dx * gx.dGetDerivativeLocal(i));
 	}
+}
+
+inline void DriveCaller::dGetP(doublereal x, doublereal& yP) const
+{
+	yP = dGetP(x);
+}
+
+template <int N>
+inline void DriveCaller::dGetP(const grad::Gradient<N>& gx, grad::Gradient<N>& gyP) const
+{
+	gyP.SetValue(dGetP(gx.dGetValue()));
 }
 
 inline void DriveOwner::dGet(doublereal x, doublereal& y) const

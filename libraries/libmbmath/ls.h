@@ -69,7 +69,7 @@ public:
 	};
 
 protected:
-	SolutionManager *pSM;
+	class SolutionManager *pSM;
 	mutable bool bHasBeenReset;
 	doublereal *pdRhs;
 	doublereal *pdSol;
@@ -93,7 +93,7 @@ public:
 	doublereal *pdSetResVec(doublereal* pd);
 	doublereal *pdSetSolVec(doublereal* pd);
 
-	virtual void MakeCompactForm(SparseMatrixHandler& mh,
+	virtual void MakeCompactForm(class SparseMatrixHandler& mh,
 			std::vector<doublereal>& Ax,
 			std::vector<integer>& Ar,
 			std::vector<integer>& Ac,

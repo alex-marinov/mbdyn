@@ -30,6 +30,8 @@ superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
+pastixwrap.cc \
+pastixwrap.h \
 taucswrap.cc \
 taucswrap.h \
 y12wrap.cc \
@@ -62,6 +64,7 @@ libmbwrap_la_LIBADD = \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
 @WSMP_LIBS@ \
+@PASTIX_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
 @METIS_LIBS@ \

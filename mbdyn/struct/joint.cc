@@ -157,6 +157,19 @@ Joint::Output(std::ostream& out, const char* /* sJointName */ ,
 		<< " " << FGlobal << " " << MGlobal;
 }
 
+#ifdef USE_NETCDF
+/* Default NetCDF output for joints */
+void
+Joint::NetCDFOutput(OutputHandler &OH,
+	const Vec3& FLocal, const Vec3& MLocal,
+	const Vec3& FGlobal, const Vec3& MGlobal) const
+{
+	OH.WriteNcVar(Var_F_local, FLocal);
+	OH.WriteNcVar(Var_M_local, MLocal);
+	OH.WriteNcVar(Var_F_global, FGlobal);
+	OH.WriteNcVar(Var_M_global, MGlobal);
+}
+#endif // USE_NETCDF
 /* Inverse Dynamics update */
 
 void
@@ -1929,7 +1942,8 @@ ReadJoint(DataManager* pDM,
 
 
 		/* Legame costitutivo */
-		ConstLawType::Type CLType;
+                ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+
 		ConstitutiveLaw1D* pCL1 = 0;
 		ConstitutiveLaw3D* pCL3 = 0;
 		unsigned iCLNumDof = 0;

@@ -37,7 +37,7 @@
   */
 
  /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2011(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -50,6 +50,7 @@
 
 #include <unistd.h>
 #include "clock_time.h"
+#include "ls.h"
 #include "solver.h"
 #include "linesearch.h"
 #ifdef USE_MPI
@@ -67,8 +68,6 @@
 #include <iomanip>
 #include <limits>
 
-//#define DEBUG
-
 #ifdef DEBUG
 #undef ASSERT
 #define ASSERT(expr) assert(expr)
@@ -77,15 +76,16 @@
 #define TRACE(expr) static_cast<void>(0)
 #endif
 
-#define TRACE_VAR(varname) TRACE(#varname "=" << (varname) << std::endl)
-#define TRACE_FLAG(varname, flag) TRACE(#varname "&" #flag "=" << ((varname) & (flag)) << std::endl)
+#define TRACE_VAR(varname) TRACE(#varname "=" << (varname) << '\n')
+#define TRACE_FLAG(varname, flag) TRACE(#varname "&" #flag "=" << ((varname) & (flag)) << '\n')
 
 LineSearchParameters::LineSearchParameters(void)
 : dTolX(1e-7),
 dTolMin(1e-8),
 iMaxIterations(200),
 dMaxStep(100.),
-dAlpha(1e-4),
+      dAlphaFull(1e-4),
+      dAlphaModified(0.6),
 dLambdaMin(1e-2),
 dLambdaFactMin(1e-1),
 dDivergenceCheck(1.),
@@ -94,7 +94,11 @@ uFlags(DIVERGENCE_CHECK
 	| ALGORITHM_CUBIC
 	| RELATIVE_LAMBDA_MIN
 	| SCALE_NEWTON_STEP
-	| ABORT_AT_LAMBDA_MIN)
+             | ABORT_AT_LAMBDA_MIN),
+      iIterationsBeforeAssembly(0),
+      bKeepJac(false),
+      dTimeStepTol(0.1),
+      dUpdateRatio(0.05)
 {
 	NO_OP;
 }
@@ -104,18 +108,22 @@ LineSearchSolver::LineSearchSolver(DataManager* pDM,
 	const struct LineSearchParameters& param)
 : NonlinearSolver(options),
 LineSearchParameters(param),
+      lambda2(std::numeric_limits<doublereal>::max()),
+      f2(std::numeric_limits<doublereal>::max()),
 pRes(0),
 pSol(0),
 pNLP(0),
 pS(0),
-pDM(pDM)
+      pSM(0),
+      pDM(pDM),
+      iRebuildJac(0)
 {
 	TRACE_VAR(dTolX);
-	// TRACE_VAR(dTolF);
 	TRACE_VAR(dTolMin);
 	TRACE_VAR(iMaxIterations);
 	TRACE_VAR(dMaxStep);
-	TRACE_VAR(dAlpha);
+    TRACE_VAR(dAlphaFull);
+    TRACE_VAR(dAlphaModified);
 	TRACE_VAR(dLambdaMin);
 	TRACE_VAR(dLambdaFactMin);
 	TRACE_VAR(dMinStepScale);
@@ -136,6 +144,306 @@ LineSearchSolver::~LineSearchSolver(void)
 	NO_OP;
 }
 
+void LineSearchSolver::Attach(const NonlinearProblem* pNLP, Solver* pS)
+{
+    ASSERT(pNLP != NULL);
+    ASSERT(pS != NULL);
+    
+    if (this->pNLP != pNLP) {
+        ResetCond();
+    }
+    
+    pSM = pS->pGetSolutionManager();
+    this->pS = pS;
+    this->pNLP = pNLP;
+    pRes = pSM->pResHdl();
+    pSol = pSM->pSolHdl();
+    Size = pRes->iGetSize();
+
+    if (g.iGetSize() != Size) {
+        TRACE("Resize temporary vectors ...\n");
+        g.Resize(Size);
+        p.Resize(Size);
+    }
+}
+
+doublereal LineSearchSolver::dGetMinNewtonInc(const VectorHandler& dX) const {
+    const VectorHandler& X = *pDM->GetpXCurr();
+    const VectorHandler& XP = *pDM->GetpXPCurr();
+    doublereal dTest = 0.;
+    
+    for (integer i = 1; i <= Size; ++i) {
+        const doublereal dTemp = std::abs(dX(i)) / std::max(std::max(std::abs(X(i)),
+                                                                     std::abs(XP(i))), 1.);
+        if (dTemp > dTest) {
+            dTest = dTemp;
+        }
+    }
+
+    return std::min(dTolX / dTest, 1.);
+}
+
+doublereal LineSearchSolver::dGetLambdaNext(doublereal lambda, const doublereal dSlope, const doublereal fPrev, const doublereal fCurr) {
+    TRACE_VAR(dSlope);
+    TRACE_VAR(fPrev);
+    TRACE_VAR(fCurr);
+    TRACE("dLambdaPrev=" << lambda << "\n");
+    
+    if (uFlags & ALGORITHM_CUBIC && std::isfinite(fCurr)) {
+        doublereal tmplam;
+        
+        TRACE("Calculate new value for lambda ...\n");
+        
+        if (lambda == 1.) {
+            tmplam = -dSlope / (2 * (fCurr - fPrev - dSlope));
+            TRACE_VAR(tmplam);
+        } else {
+            const doublereal rhs1 = fCurr - fPrev - lambda * dSlope;
+            const doublereal rhs2 = f2 - fPrev - lambda2 * dSlope;
+            const doublereal a = (rhs1 / (lambda * lambda) - rhs2 / (lambda2 * lambda2)) / (lambda - lambda2);
+            const doublereal b = (-lambda2 * rhs1 / (lambda * lambda) + lambda * rhs2 / (lambda2 * lambda2)) / (lambda - lambda2);
+
+            if (a == 0.) {
+                tmplam = -dSlope / (2. * b);
+                TRACE_VAR(tmplam);
+            } else {
+                const doublereal disc = b * b - 3. * a * dSlope;
+
+                if (disc < 0.) {
+                    tmplam = 0.5 * lambda;
+                    TRACE_VAR(tmplam);
+                } else if (b <= 0.) {
+                    tmplam = (-b + sqrt(disc)) / (3. * a);
+                    TRACE_VAR(tmplam);
+                } else {
+                    tmplam = -dSlope / (b + sqrt(disc));
+                    TRACE_VAR(tmplam);
+                }
+
+                if (tmplam > 0.5 * lambda) {
+                    tmplam = 0.5 * lambda;
+                    TRACE_VAR(tmplam);
+                }
+            }
+        }
+        lambda2 = lambda;
+        f2 = fCurr;
+        TRACE_VAR(tmplam);
+        lambda = std::max(tmplam, dLambdaFactMin * lambda);
+    } else {
+        lambda *= dLambdaFactMin;
+    }
+
+    TRACE("dLambda=" << lambda << "\n");
+    
+    return lambda;
+}
+
+bool LineSearchSolver::bCheckZeroGradient(doublereal fCurr,
+                                          doublereal dErr,
+                                          doublereal dTol,
+                                          integer iIterCnt) const {
+    const VectorHandler& X = *pDM->GetpXCurr();
+    const VectorHandler& XP = *pDM->GetpXPCurr();
+    
+    doublereal test = 0.;
+    const doublereal den = std::max(fCurr, 0.5 * Size);
+
+    for (integer i = 1; i <= Size; ++i) {
+        const doublereal absX = std::max(std::abs(X(i)),
+                                         std::abs(XP(i)));
+        const doublereal temp = std::abs(g(i)) * std::max(absX, 1.) / den;
+        
+        if (temp > test) {
+            test = temp;
+        }
+    }
+
+    if (test < dTolMin) { // we are at a local minimum of the function f
+        if (uFlags & VERBOSE_MODE) {
+            silent_cerr("line search warning: Zero gradient detected at time step "
+                        << pDM->dGetTime() << " at iteration "
+                        << iIterCnt << " (spurious convergence) test=" << test
+                        << " < tol=" << dTolMin
+                        << "\tErr(n)=" << dErr
+                        << " > Tol = " << dTol << '\n');
+        }
+
+        if (uFlags & ZERO_GRADIENT_CONTINUE) {
+            return true;
+        } else {
+            throw ZeroGradient(MBDYN_EXCEPT_ARGS);
+        }
+    } else {
+        if (uFlags & VERBOSE_MODE) {
+            silent_cerr("line search warning: lambda min"
+                        " has been reached at time step " << pDM->dGetTime() 
+                        << " at iteration " << iIterCnt
+                        << " but the gradient is not zero" << '\n');
+        }
+
+        if (uFlags & ABORT_AT_LAMBDA_MIN) {
+            throw NoConvergence(MBDYN_EXCEPT_ARGS);
+        }
+    }
+
+    return false;
+}
+
+bool LineSearchSolver::bCheckDivergence(const doublereal dErrFactor, const doublereal dErrPrev, const doublereal dErr, const integer iIterCnt) const
+{
+    const bool bDivergence = dErrFactor > dDivergenceCheck;
+    
+    if (bDivergence) {
+        if (uFlags & DIVERGENCE_CHECK) {
+            if (uFlags & VERBOSE_MODE) {
+                silent_cerr("line search warning: The residual could not be decreased"
+                            " at time step " << pDM->dGetTime() 
+                            << " at iteration " << iIterCnt << '\n');
+
+                if (iIterCnt > 1) {
+                    silent_cerr("Err(n-1)=" << dErrPrev
+                                << "\tErr(n)=" << dErr
+                                << "\tErr(n)/Err(n-1)=" << dErr/dErrPrev
+                                << "\tErr(n)/Err(1)=" << dErrFactor << '\n');
+                }
+            }
+            throw ResidualNotDecreased(MBDYN_EXCEPT_ARGS);
+        }
+    }
+
+    return bDivergence;
+}
+
+doublereal LineSearchSolver::dGetLambdaMin(doublereal& dSlope, const bool bRebuildJac, const VectorHandler& p, const integer iIterCnt) const {
+    TRACE_VAR(dSlope);
+
+    doublereal dLambdaMinCurr = -1.;
+
+    if (dSlope >= 0.) {
+        if (uFlags & VERBOSE_MODE) {
+            silent_cerr("line search warning: slope = " << dSlope << " >= 0"
+                        " at time step " << pDM->dGetTime()
+                        << " at iteration " << iIterCnt << '\n'
+                        << "This could be a roundoff problem" << '\n');
+        }
+        
+        if (uFlags & NON_NEGATIVE_SLOPE_CONTINUE) {
+            // It seems to be a numerical problem.
+            // Line search may not work in this situation.
+            // Resort to the ordinary Newton Raphson algorithm
+            dSlope = 0.;
+            dLambdaMinCurr = 1.;
+        } else {
+            throw SlopeNotNegative(MBDYN_EXCEPT_ARGS);
+        }
+    }
+
+    if (bRebuildJac) {
+        if (dLambdaMinCurr < 0) {
+            // dLambdaMinCurr has to be detected
+            if (uFlags & RELATIVE_LAMBDA_MIN) {
+                dLambdaMinCurr = std::max(dLambdaMin, dGetMinNewtonInc(p));
+            } else {
+                dLambdaMinCurr = dLambdaMin;
+            }
+        }
+    } else {
+        dLambdaMinCurr = 1.;
+    }
+    
+    return dLambdaMinCurr;
+}
+
+doublereal LineSearchSolver::dGetMaxNewtonStep(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr) const
+{
+    return (uFlags & SCALE_NEWTON_STEP)
+        ? dMaxStep * std::max(sqrt(XPrimeCurr.Dot() + XCurr.Dot()), static_cast<doublereal>(Size))
+        : std::numeric_limits<doublereal>::max();    
+}
+
+void LineSearchSolver::ScaleNewtonStep(const doublereal stpmax, VectorHandler& dX, const integer iIterCnt) const
+{
+    if (uFlags & SCALE_NEWTON_STEP) {
+        const doublereal dNormSol = dX.Norm();
+
+        if (dNormSol > stpmax) {
+            const doublereal dScale = std::max(dMinStepScale, stpmax / dNormSol);
+            if (uFlags & VERBOSE_MODE) {
+                silent_cerr("line search warning: "
+                            "Newton increment is reduced by factor " << dScale
+                            << " at time step " << pDM->dGetTime()
+                            << " at iteration " << iIterCnt
+                            << " The time step is probably too large" << '\n');
+            }
+            ASSERT(stpmax >= 0);
+            ASSERT(dScale <= 1.);
+            ASSERT(dScale > 0.);
+            dX *= dScale;
+        }
+    }
+}
+
+void LineSearchSolver::OutputIteration(const doublereal dErr, const integer iIterCnt, const bool bRebuildJac, const CPUTime& oCPU)
+{
+#ifdef USE_MPI
+    if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+    {
+        if (outputIters() || outputSolverConditionNumber()) {
+            if (outputIters()) {
+                silent_cout("\tIteration(" << iIterCnt << ") "
+                            << std::setw(12) << dErr
+                            << ' ' << (bRebuildJac ? 'J' : ' '));
+            }
+
+            if (outputSolverConditionNumber()) {
+                silent_cout(" cond=");
+                doublereal dCond;
+                if (pSM->bGetConditionNumber(dCond)) {
+                    silent_cout(dCond);
+                    if (outputSolverConditionStat()) {
+                        AddCond(dCond);
+                        silent_cout(" " << dGetCondMin() << " " << dGetCondMax() << " " << dGetCondAvg());
+                    }
+                } else {
+                    silent_cout("NA");
+                }
+            }
+
+            if (outputCPUTime()) {
+                silent_cout(" CPU:" << oCPU.Residual
+                            << '+' << oCPU.Jacobian 
+                            << '+' << oCPU.LinearSolver);
+            }
+
+            silent_cout(std::endl); // Flush stdout only once per iteration
+        }
+    }
+}
+
+void LineSearchSolver::OutputLineSearch(const integer iIterCnt,
+                                        const integer iLineSearchIter,
+                                        const doublereal fCurr,
+                                        const doublereal dErr,
+                                        const doublereal dLambda,
+                                        const doublereal dSlope) const
+{
+    if (outputIters() && (uFlags & PRINT_CONVERGENCE_INFO)) {
+#ifdef USE_MPI
+        if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+        {
+            silent_cout("\t\tf(" << iIterCnt << ":"
+                        << iLineSearchIter << ")="
+                        << std::setw(12) << fCurr
+                        << "\tErr=" << std::setw(12) << dErr
+                        << "\tlambda=" << std::setw(12) << dLambda
+                        <<"\tslope=" << dSlope << '\n');
+        }
+    }
+}
+
 void
 LineSearchSolver::Residual(doublereal& f, integer iIterCnt)
 {
@@ -146,10 +454,13 @@ LineSearchSolver::Residual(doublereal& f, integer iIterCnt)
 	pRes->Reset();
 
 	try {
+        TRACE("Assemble residual\n");
     	pNLP->Residual(pRes);
 	}
 	catch (const SolutionDataManager::ChangedEquationStructure&) {
-		// The Jacobian will be rebuilt anyway
+        if (bHonorJacRequest) {
+            iRebuildJac = 0;
+        }
 	}
 
 	if (outputRes()) {
@@ -171,11 +482,12 @@ LineSearchSolver::Jacobian()
 
 	do {
 		try {
+            TRACE("Assemble Jacobian\n");
 			pNLP->Jacobian(pSM->pMatHdl());
 		} catch (const MatrixHandler::ErrRebuildMatrix&) {
-			silent_cout("NewtonRaphsonSolver: "
+            silent_cout("LineSearchSolver: "
 					"rebuilding matrix..."
-					<< std::endl);
+                        << '\n');
 
 			/* need to rebuild the matrix... */
 			pSM->MatrInitialize();
@@ -185,7 +497,7 @@ LineSearchSolver::Jacobian()
 	} while (++iIter < iMaxIterRebuild);
 
 	if (iIter >= iMaxIterRebuild) {
-		silent_cerr("Maximum number of iterations exceeded when rebuilding the Jacobian matrix" << std::endl);
+        silent_cerr("Maximum number of iterations exceeded when rebuilding the Jacobian matrix" << '\n');
 		throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -196,208 +508,134 @@ LineSearchSolver::Jacobian()
 #endif /* USE_MPI */
 	{
 		if (outputJac()) {
-			silent_cout("Jacobian:" << std::endl
-					<< *(pSM->pMatHdl()));
+            silent_cout("Jacobian:" << '\n');
+
+            if (silent_out) {
+                pSM->pMatHdl()->Print(std::cout, MatrixHandler::MAT_PRINT_TRIPLET);
+            }
 		}
 
 		if (outputMatrixConditionNumber()) {
-			silent_cout(" cond=" << pSM->pMatHdl()->ConditionNumber(GetCondMatNorm()) << std::endl);
+            silent_cout(" cond=" << pSM->pMatHdl()->ConditionNumber(GetCondMatNorm()) << '\n');
 		}
 	}
 }
 
-void
-LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
-	doublereal& f, bool& check, const integer& iIterCnt)
+LineSearchFull::LineSearchFull(DataManager* pDM,
+                               const NonlinearSolverOptions& options,
+                               const struct LineSearchParameters& param)
+    :LineSearchSolver(pDM, options, param)
 {
-	check = false;
-
-	if (uFlags & SCALE_NEWTON_STEP) {
-		const doublereal dNormSol = pSol->Norm();
-
-		if (dNormSol > stpmax) {
-			const doublereal dScale = std::max(dMinStepScale, stpmax / dNormSol);
-			if (uFlags & VERBOSE_MODE) {
-				silent_cerr("line search warning: "
-	    				"Newton increment is reduced by factor " << dScale
-                        << " at time step " << pDM->dGetTime()
-	    				<< " at iteration " << iIterCnt
-	    				<< " The time step is probably too large" << std::endl);
-			}
-			ASSERT(stpmax >= 0);
-			ASSERT(dScale <= 1.);
-			ASSERT(dScale > 0.);
-			*pSol *= dScale;
 		}
+
+LineSearchFull::~LineSearchFull(void)
+{
 	}
 
+bool
+LineSearchFull::LineSearch(const doublereal dMaxStep,
+                           const doublereal fPrev,
+                           doublereal& fCurr,
+                           const integer iIterCnt)
+{
+    ScaleNewtonStep(dMaxStep, *pSol, iIterCnt);
+    
 	p = *pSol; // save the Newton increment
 
-	doublereal slope = g.InnerProd(p);
+    doublereal dSlope = g.InnerProd(p);
 
-	TRACE_VAR(slope);
+    const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, true, p, iIterCnt);
 
-	doublereal dLambdaMinEff = -1.;
+    doublereal dLambda = 1., dLambdaPrev = 0;
+    integer iLineSearchIter = 0;
+    doublereal dLambdaMax = 1.;
 
-	if (slope >= 0.) {
-		if (uFlags & VERBOSE_MODE) {
-			silent_cerr("line search warning: slope=" << slope << " >= 0"
-                        " at time step " << pDM->dGetTime()
-						<< " at iteration " << iIterCnt << std::endl
-						<< "This could be a roundoff problem" << std::endl);
-		}
+    SetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX, dLambdaMax);
 
-		if (uFlags & NON_NEGATIVE_SLOPE_CONTINUE) {
-			// It seems to be a numerical problem.
-			// Line search may not work in this situation.
-			// Resort to the ordinary Newton Raphson algorithm
-			slope = 0.;
-			dLambdaMinEff = 1.;
-		} else {
-			throw SlopeNotNegative(MBDYN_EXCEPT_ARGS);
-		}
-	}
+    TRACE_VAR(dLambdaMinCurr);
 
-	if (dLambdaMinEff < 0) {
-		// dLambdaMinEff has to be detected
-		if (uFlags & RELATIVE_LAMBDA_MIN) {
-			doublereal test = 0.;
+    do {
+        if (iLineSearchIter > 0) {
+            TRACE("Start new step from Xold, XPold with lambda = " << dLambda << " ...\n");
 
+            // scale the Newton increment by lambda and restore previous state
 			for (integer i = 1; i <= Size; ++i) {
-				const doublereal temp = std::abs(p(i)) / std::max(std::max(std::abs((*pDM->GetpXCurr())(i)), std::abs((*pDM->GetpXPCurr())(i))), 1.);
-				if (temp > test) {
-					test = temp;
-				}
-			}
-
-			dLambdaMinEff = std::max(dLambdaMin, std::min(dTolX / test, 1.));
-		} else {
-			dLambdaMinEff = dLambdaMin;
+                (*pSol)(i) = (dLambda - dLambdaPrev) * p(i); 
 		}
 	}
 
-	doublereal lambda = 1.;
-	doublereal tmplam;
-	doublereal lambda2 = 0; //f2, lambda2 initialized to silence g++ possible uninitialized warning
-	doublereal f2 = 0.;
+        TRACE("Update the nonlinear problem ... pSol->Norm()=" << pSol->Norm() << '\n');
+        SetNonlinearSolverHint(LINESEARCH_ITERATION_CURR, iLineSearchIter);
+        SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, dLambda);
 
-#ifdef DEBUG
-	lambda2 = f2 = NAN;
-#endif
+        pNLP->Update(pSol);
 
-	integer iIter = 0;
+        Residual(fCurr, iIterCnt);
 
-	TRACE_VAR(dLambdaMinEff);
+        if (iLineSearchIter == 0) {
+            dLambdaMax = GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX);
 
-	do {
-		// FIXME: dLambdaMax not defined
-		// ASSERT(lambda <= dLambdaMax);
-
-		if (iIter > 0) {
-			TRACE("Start new step from Xold, XPold with lambda = " << lambda << " ..." << std::endl);
-			pNLP->Update(&dXneg); // restore the previous state
-
-			pSol->Reset();
-			pSol->ScalarMul(p, lambda); // scale the Newton increment by lambda
+            ASSERT(dLambdaMax <= 1.);
+            ASSERT(dLambdaMax >= 0.);
 		}
 
-		for (integer i = 1; i <= Size; ++i)
-			dXneg(i) = -(*pSol)(i); // save the increment; so we can restore the previous state
+        ++iLineSearchIter;
 
-		TRACE("Update the nonlinear problem ... pSol->Norm()=" << pSol->Norm() << std::endl);
-
-		pNLP->Update(pSol);
-		Residual(f, iIter);
-
-		++iIter;
-
-		TRACE("New value for f:" << f << std::endl);
+        TRACE("New value for f:" << fCurr << '\n');
 
 		doublereal dErr = 0., dErrDiff = 0.;
-		MakeResTest(pS, pNLP, *pRes, 0., dErr, dErrDiff);
+        bool bResTestFinite = false;
 
-		if (outputIters() && (uFlags & PRINT_CONVERGENCE_INFO)) {
-#ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0)
-#endif /* USE_MPI */
-			{
-				silent_cout("\t\tf(" << iIterCnt << ":" << iIter << ")=" << std::setw(12) << f
-					<< "\tErr=" << std::setw(12) << dErr
-					<< "\tlambda=" << std::setw(12) << lambda
-					<<"\tslope=" << slope << std::endl);
+        try {
+            MakeResTest(pS, pNLP, *pRes, 0., dErr, dErrDiff);
+            bResTestFinite = true;
+        } catch (const NonlinearSolver::ErrSimulationDiverged&) {
+            if (uFlags & VERBOSE_MODE) {
+                silent_cerr("line search warning: residual test failed (residual=" << dErr << ")!"  << std::endl);
 			}
 		}
 
-		pS->CheckTimeStepLimit(dErr, dErrDiff);
+        OutputLineSearch(iIterCnt, iLineSearchIter, fCurr, dErr, dLambda, dSlope);
 
-		if (f <= fold + dAlpha * lambda * slope) {
-			TRACE("Sufficient decrease in f: backtrack" << std::endl);
-			return;
-		} else if (lambda <= dLambdaMinEff) {
-			TRACE("Checking for convergence: lambda=" << lambda << " < lambdaMin=" << dLambdaMinEff << std::endl);
-			check = true; // check for convergence
-			return;
-		} else {
-			if (uFlags & ALGORITHM_CUBIC) {
-				TRACE("Calculate new value for alam ..." << std::endl);
-				if (lambda == 1.) {
-					tmplam = -slope / (2 * (f - fold - slope));
-					TRACE_VAR(tmplam);
-				} else {
-					const doublereal rhs1 = f - fold - lambda * slope;
-					const doublereal rhs2 = f2 - fold - lambda2 * slope;
-					const doublereal a = (rhs1 / (lambda * lambda) - rhs2 / (lambda2 * lambda2)) / (lambda - lambda2);
-					const doublereal b = (-lambda2 * rhs1 / (lambda * lambda) + lambda * rhs2 / (lambda2 * lambda2)) / (lambda - lambda2);
+        if (bResTestFinite) {
+            pS->CheckTimeStepLimit(dErr, dErrDiff);
 
-					if (a == 0.) {
-						tmplam = -slope / (2. * b);
-						TRACE_VAR(tmplam);
-					} else {
-						const doublereal disc = b * b - 3. * a * slope;
-
-						if (disc < 0.) {
-							tmplam = 0.5 * lambda;
-							TRACE_VAR(tmplam);
-						} else if (b <= 0.) {
-							tmplam = (-b + sqrt(disc)) / (3. * a);
-							TRACE_VAR(tmplam);
-						} else {
-							tmplam = -slope / (b + sqrt(disc));
-							TRACE_VAR(tmplam);
-						}
-
-						if (tmplam > 0.5 * lambda) {
-							tmplam = 0.5 * lambda;
-							TRACE_VAR(tmplam);
-						}
-					}
-				}
-				lambda2 = lambda;
-				f2 = f;
-				TRACE_VAR(tmplam);
-				lambda = std::max(tmplam, dLambdaFactMin * lambda);
-			} else {
-				lambda *= dLambdaFactMin;
+            if (fCurr <= fPrev + dAlphaFull * dLambda * dSlope) {
+                TRACE("Sufficient decrease in f: backtrack\n");
+                return false;
+            } else if (dLambda <= dLambdaMinCurr) {
+                TRACE("Checking for convergence: lambda=" << dLambda << " < lambdaMin=" << dLambdaMinCurr << '\n');
+                return true; // check for convergence
 			}
 		}
 
 		if (mbdyn_stop_at_end_of_iteration()) {
 			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 		}
-	} while (iIter < iMaxIterations);
+
+        dLambdaPrev = dLambda; // save lambda; so we can restore the previous state
+        dLambda = dGetLambdaNext(dLambdaPrev, dSlope, fPrev, fCurr);
+
+        if (dLambdaMax < dLambda) {
+            pedantic_cout("lambda reduced from " << dLambda << " to " << dLambdaMax
+                          << " because of element request" << std::endl);
+            dLambda = dLambdaMax;
+        }
+        
+    } while (iLineSearchIter < iMaxIterations);
 
 	if (uFlags & VERBOSE_MODE) {
 		silent_cerr("line search warning: Maximum number of line search iterations="
 			<< iMaxIterations
 			<< " exceeded in line search at time step " << pDM->dGetTime() 
-            << " at iteration " << iIterCnt << std::endl);
+                    << " at iteration " << iIterCnt << '\n');
 	}
 
 	throw MaxIterations(MBDYN_EXCEPT_ARGS);
 }
 
 void
-LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
+LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
 		Solver *pS,
 		const integer iMaxIter,
 		const doublereal& Tol,
@@ -406,49 +644,25 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		const doublereal& SolTol,
 		doublereal& dSolErr)
 {
-	ASSERT(pS != NULL);
-	SolutionManager *const pSM = pS->pGetSolutionManager();
-	this->pS = pS;
-	pNLP = pNonLinProblem;
-	pRes = pSM->pResHdl();
-	pSol = pSM->pSolHdl();
-	Size = pRes->iGetSize();
-
-	if (g.iGetSize() != Size) {
-		TRACE("Resize temporary vectors ..." << std::endl);
-		g.Resize(Size);
-		p.Resize(Size);
-		dXneg.Resize(Size);
-	}
-
-	bool check = false;
+    Attach(pNonLinProblem, pS);
 	iIterCnt = 0;
 	dSolErr = 0.;
 	dErr = 0.;
 	doublereal dErrDiff = 0.;
-	doublereal f;
-	Residual(f, iIterCnt);
+    doublereal fCurr;
+    CPUTime oCPU(*this);
 
-	TRACE("\t\tf(0) = " << f << std::endl);
+    oCPU.Residual.Tic();
 
-	bool bTest = MakeResTest(pS, pNLP, *pRes, 1e-2 * Tol, dErr, dErrDiff); // use a more stringent test for the first iteration
-	doublereal dPrevErr = std::numeric_limits<doublereal>::max(); // disable error test for the first iteration
-	doublereal dErrFactor = 1.;
+    Residual(fCurr, iIterCnt);
 
-	if (outputIters()) {
-#ifdef USE_MPI
-		if (!bParallel || MBDynComm.Get_rank() == 0)
-#endif /* USE_MPI */
-		{
-			silent_cout("\tIteration(" << iIterCnt << ") " << std::setw(12) << dErr);
+    TRACE("\t\tf(0) = " << fCurr << '\n');
 
-			if (uFlags & PRINT_CONVERGENCE_INFO) {
-				silent_cout(" f=" << std::setw(12) << f);
-			}
+    bool bTest = MakeResTest(pS, pNLP, *pRes, 1e-2 * Tol, dErr, dErrDiff); // use a more stringent test for the first iteration
+    doublereal dErrPrev = std::numeric_limits<doublereal>::max(); // disable error test for the first iteration
+    const doublereal dErr0 = dErr;
 
-			silent_cout(std::endl);
-		}
-	}
+    OutputIteration(dErr, iIterCnt, false, oCPU);
 
 	pS->CheckTimeStepLimit(dErr, dErrDiff);
 
@@ -456,18 +670,13 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		return;
 	}
 
-	const doublereal stpmax = (uFlags & SCALE_NEWTON_STEP)
-		? dMaxStep * std::max(sqrt(pDM->GetpXPCurr()->Dot() + pDM->GetpXCurr()->Dot()), static_cast<doublereal>(Size))
-		: std::numeric_limits<doublereal>::max();
+    const doublereal dMaxStep = dGetMaxNewtonStep(*pDM->GetpXCurr(), *pDM->GetpXPCurr());
 
-	TRACE_VAR(stpmax);
-
-	doublereal dStartTimeCPU, dEndTimeCPU, dJacobianCPU, dResidualCPU, dLinSolveCPU;
+    TRACE_VAR(dMaxStep);
         
+    try {   
 	while (true) {
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+            oCPU.Jacobian.Tic(oCPU.Residual);
 
 		Jacobian();
 
@@ -475,217 +684,426 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		ASSERT(pSM->pMatHdl()->iGetNumCols() == pRes->iGetSize());
 		ASSERT(pSM->pMatHdl()->iGetNumRows() == pRes->iGetSize());
 
+            oCPU.Residual.Tic(oCPU.Jacobian);
+
+            // compute gradient g = \nabla f = fjac^T \, fvec = -Jac^T \, pRes
 		g.Reset();
-		pSM->pMatHdl()->MatTVecDecMul(g, *pRes); // compute gradient g = \nabla f = fjac^T \, fvec = -Jac^T \, pRes
+            pSM->pMatHdl()->MatTVecDecMul(g, *pRes); // Attention: must be called before Solve() if row scaling is used
 
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dJacobianCPU = dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dJacobianCPU, CPU_JACOBIAN);
-			dStartTimeCPU = dEndTimeCPU;
-		}
+            const doublereal fPrev = fCurr;
 
-		const doublereal fold = f;
+            oCPU.LinearSolver.Tic(oCPU.Residual);
 
 		pSM->Solve();
 
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dLinSolveCPU = dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dLinSolveCPU, CPU_LINEAR_SOLVER);
-		}
+            ++iIterCnt;
 
    		if (outputSol()) {
 			pS->PrintSolution(*pSol, iIterCnt);
 		}
 
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+            oCPU.Residual.Tic(oCPU.LinearSolver);
 
-		LineSearch(stpmax, fold, f, check, iIterCnt);
+            const bool bCheck = LineSearch(dMaxStep, fPrev, fCurr, iIterCnt);
 
 		bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dResidualCPU = dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dResidualCPU, CPU_RESIDUAL);
+            const doublereal dErrFactor = dErr / dErr0;
+
+            OutputIteration(dErr, iIterCnt, true, oCPU);
+        
+            if (bTest) {
+                return;
 		}
 
-		if (iIterCnt > 0) {
-			dErrFactor *= dErr / dPrevErr;
-		}
+            bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
 
-		iIterCnt++;
-
+            if (outputIters()) {
 #ifdef USE_MPI
 		if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
 		{
-			if (outputIters() || outputSolverConditionNumber()) {
-				if (outputIters()) {
-					silent_cout("\tIteration(" << iIterCnt << ") " << std::setw(12) << dErr << " J");
+                    silent_cout("\t\tSolErr "
+                                << dSolErr << '\n');
+                }
 				}
 
-				if (outputSolverConditionNumber()) {
-					silent_cout(" cond=");
-					doublereal dCond;
-					if (pSM->bGetConditionNumber(dCond)) {
-						silent_cout(dCond);
-						if (outputSolverConditionStat()) {
-							AddCond(dCond);
-							silent_cout(" " << dGetCondMin() << " " << dGetCondMax() << " " << dGetCondAvg());
+            if (bTest) {
+                if (uFlags & VERBOSE_MODE) {
+                    silent_cerr("line search warning: Convergence on solution "
+                                "at time step " << pDM->dGetTime()
+                                << "at iteration " << iIterCnt
+                                << "\tErr(n)=" << dErr);
+
+                    if (iIterCnt >= 1) {
+                        silent_cerr("\tErr(n-1)=" << dErrPrev
+                                    << "\tErr(n)/Err(n-1)=" << dErr/dErrPrev
+                                    << "\tErr(n)/Err(1) " << dErrFactor);
 						}
-					} else {
-						silent_cout("NA");
+
+                    silent_cerr('\n');
 					}
+                throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (outputCPUTime()) {
-					silent_cout(" CPU:" << dResidualCPU << "/" << dGetTimeCPU(CPU_RESIDUAL)
-						<< "+" << dJacobianCPU << "/" << dGetTimeCPU(CPU_JACOBIAN)
-						<< "+" << dLinSolveCPU << "/" << dGetTimeCPU(CPU_LINEAR_SOLVER));
+            if (bCheck) { // lambda <= dLambdaMinCurr: check for gradient zero
+                bCheckZeroGradient(fCurr, dErr, Tol, iIterCnt);
 				}
 
-				if (uFlags & PRINT_CONVERGENCE_INFO) {
-					silent_cout(" f=" << std::setw(12) << f);
+            bCheckDivergence(dErrFactor, dErrPrev, dErr, iIterCnt);
 
-					if (iIterCnt > 1) {
-						silent_cout(" Err(n-1)=" << std::setw(12) << dPrevErr
-								 << " Err(n)/Err(n-1)=" << std::setw(12) << dErr / dPrevErr
-								 << " Err(n)/Err(1)=" << std::setw(12) << dErrFactor);
+            if (iIterCnt >= std::abs(iMaxIter)) {
+                if (iMaxIter < 0 && dErrFactor < 1.) {
+                    return;
 					}
+                if (outputBailout()) {
+                    pS->PrintResidual(*pRes, iIterCnt);
+                }
+                throw NoConvergence(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (outputIters()
-						|| outputSolverConditionNumber()
-						|| (uFlags & PRINT_CONVERGENCE_INFO)) {
-					silent_cout(std::endl);
+            dErrPrev = dErr;
+
+            // allow to bail out in case of multiple CTRL^C
+            if (mbdyn_stop_at_end_of_iteration()) {
+                throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+            }
 				}
+    } catch (LinearSolver::ErrNoPivot) {
+        throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
-		if (bTest) {
-			return;
+LineSearchModified::LineSearchModified(DataManager* pDM,
+                                       const NonlinearSolverOptions& options,
+                                       const struct LineSearchParameters& param)
+    :LineSearchSolver(pDM, options, param),
+     dTimePrev(pDM->dGetTime()), dTimeStepPrev(0.)
+{
 		}
 
-		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
+LineSearchModified::~LineSearchModified(void)
+{
 
-		if (outputIters()) {
-#ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0)
-#endif /* USE_MPI */
+}
+	
+void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
+                               Solver* const pS,
+                               const integer iMaxIter,
+                               const doublereal& Tol,
+                               integer& iIterCnt,
+                               doublereal& dErr,
+                               const doublereal& SolTol,
+                               doublereal& dSolErr)
 			{
-				silent_cout("\t\tSolErr "
-					<< dSolErr << std::endl);
+    if (this->pNLP != pNLP) {
+        // Force update of Jacobian matrix in order to avoid problems when scaling an empty matrix
+        iRebuildJac = 0;
 			}
+
+    Attach(pNLP, pS);
+    dSolErr = 0.;
+    dErr = 0.;
+    
+    if (!bKeepJac) {
+        iRebuildJac = 0;
 		}
 
-		if (bTest) {
+    const doublereal dTimeCurr = pDM->dGetTime();
+    const doublereal dTimeStepCurr = dTimeCurr - dTimePrev;
+    const doublereal dTimeStepDiff = (dTimeStepCurr - dTimeStepPrev) / dTimeStepPrev;
+    
+    TRACE_VAR(dTimeCurr);
+    TRACE_VAR(dTimePrev);
+    TRACE_VAR(dTimeStepPrev);
+    TRACE_VAR(dTimeStepCurr);
+    TRACE_VAR(dTimeStepDiff);
+    TRACE_VAR(dTimeStepTol);
+    
+    if (std::abs(dTimeStepDiff) > dTimeStepTol) {
+        TRACE("Time step changed too much: force rebuild of Jacobian\n");
+        iRebuildJac = 0;
+    }
+    
+    CPUTime oCPU(*this);
+    
+    oCPU.Residual.Tic();
+
+    iIterCnt = 0;
+    bool bRebuildJac = false;
+    bool bSolConverged = false;
+    bool bUpdateResidual = true;
+    bool bResConverged = false;
+    bool bDivergence = false;
+    doublereal fCurr, dErrDiff, dErr0 = 0;
+    const doublereal dMaxStep = dGetMaxNewtonStep(*pDM->GetpXCurr(), *pDM->GetpXPCurr());
+
+    try {
+        while (true) {
+            if (bUpdateResidual) {
+                TRACE_VAR(fCurr);
+            
+                Residual(fCurr, iIterCnt);
+            
+                TRACE_VAR(fCurr);
+            
+                bUpdateResidual = false;
+            
+                bResConverged = MakeResTest(pS, pNLP, *pRes, iIterCnt > 0 ? Tol : 1e-2 * Tol, dErr, dErrDiff);
+    
+                OutputIteration(dErr, iIterCnt, bRebuildJac, oCPU);
+
+                pS->CheckTimeStepLimit(dErr, dErrDiff);
+            
+                if (bResConverged) {
+                    goto exit_success;
+                }
+
+                if (iIterCnt == 0) {
+                    dErr0 = dErr;
+                }
+            }
+
+            TRACE_VAR(fCurr);
+        
+            const doublereal fPrev = fCurr;
+            const doublereal dErrPrev = dErr;
+        
+            oCPU.Jacobian.Tic(oCPU.Residual);
+        
+            doublereal dAlphaCurr;
+                
+            bRebuildJac = iRebuildJac <= 0 || bDivergence;
+
+            if (bRebuildJac) {
+                Jacobian();
+                iRebuildJac = bDivergence ? 0 : iIterationsBeforeAssembly;
+                dTimeStepPrev = dTimeStepCurr;
+                dAlphaCurr = dAlphaFull;
+            } else {
+                TRACE("Reuse Jacobian, update of Jacobian after " << iRebuildJac << " iterations\n");
+                --iRebuildJac;
+                dAlphaCurr = dAlphaModified;
+            }
+
+            // Attention: must be called before Solve() if row scaling is used
+            // Attention: Jacobian matrix must not be replaced by LU factors during a previous Solve()
+            g.Reset();
+            pSM->pMatHdl()->MatTVecDecMul(g, *pRes);
+
+            TRACE("Solving system of linear equations ...\n");
+#ifdef DEBUG
+            std::cout << "\n\nJac=[\n";
+            for (integer i = 1; i <= pSM->pMatHdl()->iGetNumRows(); ++i) {
+                for (integer j = 1; j <= pSM->pMatHdl()->iGetNumCols(); ++j) {
+                    doublereal d = pSM->pMatHdl()->dGetCoef(i, j);
+                    ASSERT(std::isfinite(d));
+                    if (d) {
+                        std::cout << i << ", " << j << ", " << d << ";" << std::endl;
+                    }
+                }
+            }
+            std::cout << "];\n\n";
+#endif
+            oCPU.LinearSolver.Tic(oCPU.Jacobian);
+        
+            pSM->Solve();
+
+            TRACE("Linear solver completed\n");
+        
+            ++iIterCnt;
+        
+            if (outputSol()) {
+                pS->PrintSolution(*pSol, iIterCnt);
+            }
+        
+            bSolConverged = MakeSolTest(pS, *pSol, SolTol, dSolErr);
+        
+            if (bSolConverged) {
 			if (uFlags & VERBOSE_MODE) {
 				silent_cerr("line search warning: Convergence on solution "
                     "at time step " << pDM->dGetTime()
 					<< "at iteration " << iIterCnt
-					<< "\tErr(n)=" << dErr);
+                                << "\tErr(n)=" << dSolErr);
+                }
 
-				if (iIterCnt >= 1) {
-					silent_cerr("\tErr(n-1)=" << dPrevErr
-					<< "\tErr(n)/Err(n-1)=" << dErr/dPrevErr
-					<< "\tErr(n)/Err(1) " << dErrFactor);
+                pNLP->Update(pSol);
+            
+                goto exit_success;
 				}
 
-				silent_cerr(std::endl);
+            oCPU.Residual.Tic(oCPU.LinearSolver);
+        
+            doublereal dSlope = g.InnerProd(*pSol);
+
+            TRACE_VAR(dSlope);
+        
+            if (dSlope >= 0) {            
+                if (!bRebuildJac) {
+                    TRACE("Slope is not negative: Jacobian or gradient might be out of date\n");
+                    iRebuildJac = 0;
+                    bUpdateResidual = true; // Attention: If we are using automatic row scaling, the residual will be destroyed during Solve()
+                    continue;
+                } else {
+                    TRACE("Jacobian has been updated but slope is still not negative\n");
+                    bDivergence = true; // Not sure if strictly required but should be safe
 			}
-			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (check) { // lambda <= dLambdaMinEff: check for gradient zero
-			doublereal test = 0.;
-			const doublereal den = std::max(f, 0.5 * Size);
+            ScaleNewtonStep(dMaxStep, *pSol, iIterCnt);
 
+            p = *pSol;
+        
+            doublereal dLambda = 1., dLambdaPrev = 0.;
+            const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, bRebuildJac, p, iIterCnt);
+        
+            TRACE_VAR(dLambdaMinCurr);
+        
+            integer iLineSearchIter = 0;
+
+            doublereal dLambdaMax = 1.;
+    
+            SetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX, dLambdaMax);
+
+            while (true) {
+                TRACE_VAR(dLambda);
+                TRACE_VAR(dLambdaPrev);
+            
+                if (iLineSearchIter > 0) {
 			for (integer i = 1; i <= Size; ++i) {
-				const doublereal absX = std::max(std::abs((*pDM->GetpXCurr())(i)),
-						 	 	 	 	 	 	 std::abs((*pDM->GetpXPCurr())(i)));
-				const doublereal temp = std::abs(g(i)) * std::max(absX, 1.) / den;
-				if (temp > test) {
-					test = temp;
+                        (*pSol)(i) = (dLambda - dLambdaPrev) * p(i);
 				}
 			}
 
-			if (test < dTolMin) { // we are at a local minimum of the function f
+                SetNonlinearSolverHint(LINESEARCH_ITERATION_CURR, iLineSearchIter);
+                SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, dLambda);
+
+                pNLP->Update(pSol);
+            
+                Residual(fCurr, iIterCnt);
+
+                if (iLineSearchIter == 0) {
+                    dLambdaMax = GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX);
+            
+                    ASSERT(dLambdaMax <= 1.);
+                    ASSERT(dLambdaMax >= 0.);
+                }
+            
+                ++iLineSearchIter;
+            
+                TRACE_VAR(fCurr);
+                TRACE_VAR(fPrev);
+                TRACE_VAR(dAlphaCurr);
+                TRACE_VAR(dSlope);
+
+                bool bResTestFinite = false;
+            
+                try {
+                    bResConverged = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
+                    bResTestFinite = true;
+                } catch (const NonlinearSolver::ErrSimulationDiverged&) {
+                    bResConverged = false;
+                
 				if (uFlags & VERBOSE_MODE) {
-					silent_cerr("line search warning: Zero gradient detected at time step "
-                        << pDM->dGetTime() << " at iteration "
-						<< iIterCnt << " (spurious convergence) test=" << test
-						<< " < tol=" << dTolMin
-						<< "\tErr(n)=" << dErr
-						<< " > Tol = " << Tol << std::endl);
+                        silent_cerr("line search warning: residual test failed (residual=" << dErr << ")!"  << std::endl);
+                    }
 				}
 
-				if (uFlags & ZERO_GRADIENT_CONTINUE) {
-					return;
-				} else {
-					throw ZeroGradient(MBDYN_EXCEPT_ARGS);
+                OutputLineSearch(iIterCnt, iLineSearchIter, fCurr, dErr, dLambda, dSlope);
+            
+                if (bResConverged) {
+                    break;
 				}
+
+                if (!bRebuildJac && sqrt(fCurr / fPrev) > dUpdateRatio) {
+                    // Force update of Jacobian because convergence is too slow!
+                    iRebuildJac = 0;
+                }
+            
+                if (bResTestFinite && fCurr < dAlphaCurr * dSlope + fPrev) {
+                    TRACE("Sufficient decrease in f: backtrack\n");
+                    break;
 			} else {
+                    bDivergence = true;
+                
+                    if (!bRebuildJac) {
 				if (uFlags & VERBOSE_MODE) {
-					silent_cerr("line search warning: lambda min"
-						" has been reached at time step " << pDM->dGetTime() 
-                        << " at iteration " << iIterCnt
-						<< " but the gradient is not zero" << std::endl);
+                            silent_cerr("line search warning: Divergent solution detected!\n");
 				}
 
-				if (uFlags & ABORT_AT_LAMBDA_MIN) {
-					throw NoConvergence(MBDYN_EXCEPT_ARGS);
+                        iRebuildJac = 0;
+                
+                        for (integer i = 1; i <= Size; ++i) {
+                            (*pSol)(i) = -dLambda * p(i);
 				}
+                
+                        pNLP->Update(pSol);
+                        bUpdateResidual = true;
+                        break;
 			}
-		} else if (dErr > dPrevErr) { // f <= fold + dAlpha * lambda * slope
-			// We should not get here since f was decreased also Err should be decreased
-			// If not it could be a numerical problem (e.g. the tolerance could be too small)
-			if (uFlags & VERBOSE_MODE) {
-				silent_cerr("line search warning: f has been reduced during line search but the residual could not be reduced at time step "
-						<< pDM->dGetTime()
-						<< " at iteration " << iIterCnt << std::endl);
 			}
 
-			// Do not throw an exception here because if we specify for example
-			//		tolerance: <<Tol>>, test, minmax;
-			// it could happen that the the norm of the residual vector is decreased
-			// but the maximum residual is not!
+                if (dLambda <= dLambdaMinCurr) {
+                    break;
+                }
 
-			// In any case we will check for divergence if DIVERGENCE_CHECK is enabled.
+                if (iLineSearchIter >= iMaxIterations) {
+                    throw MaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (dErrFactor > dDivergenceCheck) {
-			if (uFlags & DIVERGENCE_CHECK) {
-				if (uFlags & VERBOSE_MODE) {
-					silent_cerr("line search warning: The residual could not be decreased"
-            					" at time step " << pDM->dGetTime() 
-                                << " at iteration " << iIterCnt << std::endl);
+                dLambdaPrev = dLambda;
+                dLambda = dGetLambdaNext(dLambdaPrev, dSlope, fPrev, fCurr);
 
-					if (iIterCnt > 1) {
-						silent_cerr("Err(n-1)=" << dPrevErr
-									<< "\tErr(n)=" << dErr
-									<< "\tErr(n)/Err(n-1)=" << dErr/dPrevErr
-									<< "\tErr(n)/Err(1)=" << dErrFactor << std::endl);
+                if (dLambdaMax < dLambda) {
+                    pedantic_cout("lambda reduced from " << dLambda << " to " << dLambdaMax
+                                  << " because of element request" << std::endl);
+                    dLambda = dLambdaMax;
 					}
 				}
-				throw ResidualNotDecreased(MBDYN_EXCEPT_ARGS);
+        
+            TRACE_VAR(dErr);
+            TRACE_VAR(dErrDiff);
+            TRACE_VAR(Tol);
+            TRACE_VAR(bResConverged);
+
+            OutputIteration(dErr, iIterCnt, bRebuildJac, oCPU);
+
+            if (bResConverged) {
+                goto exit_success;
 			}
+
+            if (dLambda < dLambdaMinCurr) {
+                bCheckZeroGradient(fCurr, dErr, Tol, iIterCnt);
 		}
 
-		if (iIterCnt >= std::abs(iMaxIter)) {
-			if (iMaxIter < 0 && dErrFactor < 1.) {
-				return;
+            if (bRebuildJac) {
+                bCheckDivergence(dErr / dErr0, dErrPrev, dErr, iIterCnt);
 			}
+        
+            pS->CheckTimeStepLimit(dErr, dErrDiff);
+
+            if (iIterCnt >= std::abs(iMaxIter)) {
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}
 			throw NoConvergence(MBDYN_EXCEPT_ARGS);
 		}
 
-		dPrevErr = dErr;
+            // allow to bail out in case of multiple CTRL^C
+            if (mbdyn_stop_at_end_of_iteration()) {
+                throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 	}
 }
+    } catch (LinearSolver::ErrNoPivot) {
+        throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+    }
+    
+exit_success:
+    dTimePrev = dTimeCurr;
+    TRACE_VAR(dTimePrev);
 
+    if (bSolConverged) {
+        TRACE("convergence on solution\n");
+        throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
+    }
+}

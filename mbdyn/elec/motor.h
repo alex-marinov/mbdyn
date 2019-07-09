@@ -124,6 +124,7 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
 
+        
 	virtual void SetInitialValue(VectorHandler& X);
 
 	virtual void SetValue(DataManager *pDM,

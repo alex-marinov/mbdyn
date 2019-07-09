@@ -40,6 +40,7 @@
 #ifndef NONLIN_H
 #define NONLIN_H
 
+#include "clock_time.h"
 #include "solverdiagnostics.h"
 #include "external.h"
 #include "nonlinpb.h"
@@ -276,10 +277,79 @@ protected:
 	doublereal dGetCondMin()const { return dMinCond; }
 	doublereal dGetCondAvg()const { return dSumCond / iNumCond; }
 	inline doublereal dGetTimeCPU(CPUTimeType eType) const;
-
 	inline void AddCond(doublereal dCond);
+        inline void ResetCond();
 	inline void AddTimeCPU(doublereal dTime, CPUTimeType eType);
 
+    friend class CPUStopWatch;
+                
+    class CPUStopWatch  {
+    public:
+        explicit CPUStopWatch(NonlinearSolver& oSolver, CPUTimeType eType)
+            :oSolver(oSolver),
+             eType(eType),
+             dStartTimeCPU(-1),
+             dElapsedCPU(0) {
+        }
+
+        ~CPUStopWatch() {
+            Toc();
+        }
+        
+        doublereal Tic() {
+            if (oSolver.outputCPUTime()) {
+                dStartTimeCPU = mbdyn_clock_time();
+            }
+
+            return dStartTimeCPU;
+        }
+
+        doublereal Tic(CPUStopWatch& oOther) {
+            ASSERT(&oSolver == &oOther.oSolver);
+            dStartTimeCPU = oOther.Toc();
+            
+            return dStartTimeCPU;
+        }
+        
+        doublereal Toc() {
+            doublereal dEndTimeCPU;
+            
+            if (oSolver.outputCPUTime()) {
+                dEndTimeCPU = mbdyn_clock_time();
+                
+                if (dStartTimeCPU >= 0) {
+                    dElapsedCPU = dEndTimeCPU - dStartTimeCPU;
+                    oSolver.AddTimeCPU(dElapsedCPU, eType);
+                    dStartTimeCPU = -1;
+                }
+            } else {
+                dEndTimeCPU = -1;
+            }
+
+            return dEndTimeCPU;
+        }
+
+        doublereal dGetElapsedCPU() const {
+            if (dStartTimeCPU >= 0) {
+                return mbdyn_clock_time() - dStartTimeCPU;
+            } else {
+                return dElapsedCPU;
+            }
+        }
+                   
+        friend inline std::ostream& operator<<(std::ostream& os, const CPUStopWatch& oWatch) {
+            return oWatch.Print(os);
+        }
+    private:
+        std::ostream& Print(std::ostream& os) const {
+            return os << dGetElapsedCPU() << '/' << oSolver.dGetTimeCPU(eType);
+        }
+                   
+        NonlinearSolver& oSolver;
+        const CPUTimeType eType;
+        doublereal dStartTimeCPU, dElapsedCPU;
+    };
+    
 private:
 	integer iNumCond;
 	doublereal dMaxCond;
@@ -319,12 +389,59 @@ public:
 	virtual NonlinearSolverTest* pGetSolTest(void)	{
 		return pSolTest;
 	}
+
+        enum NonlinearSolverHintReal {
+                LINESEARCH_LAMBDA_MAX,
+                LINESEARCH_LAMBDA_CURR,
+                NONLINEAR_SOLVER_LAST_HINT_REAL
+        };
+
+        enum NonlinearSolverHintInteger {
+                LINESEARCH_ITERATION_CURR,
+                NONLINEAR_SOLVER_LAST_HINT_INTEGER
+        };
+
+
+    void SetNonlinearSolverHint(NonlinearSolverHintReal eType, doublereal dHint) {
+        ASSERT(eType >= 0);
+        ASSERT(eType < NONLINEAR_SOLVER_LAST_HINT_REAL);
+
+        oSolverHints.rgRealVal[eType] = dHint;
+    }
+    
+    doublereal GetNonlinearSolverHint(NonlinearSolverHintReal eType) const {
+        ASSERT(eType >= 0);
+        ASSERT(eType < NONLINEAR_SOLVER_LAST_HINT_REAL);
+        
+        return oSolverHints.rgRealVal[eType];
+    }
+
+    void SetNonlinearSolverHint(NonlinearSolverHintInteger eType, integer iHint) {
+        ASSERT(eType >= 0);
+        ASSERT(eType < NONLINEAR_SOLVER_LAST_HINT_INTEGER);
+
+        oSolverHints.rgIntegerVal[eType] = iHint;
+    }
+    
+    integer GetNonlinearSolverHint(NonlinearSolverHintInteger eType) const {
+        ASSERT(eType >= 0);
+        ASSERT(eType < NONLINEAR_SOLVER_LAST_HINT_INTEGER);
+        
+        return oSolverHints.rgIntegerVal[eType];
+    }
+                
 #ifdef USE_EXTERNAL
 	void SetExternal(const External::ExtMessage Ty);
 	
 protected:
 	void SendExternal(void);
 #endif /* USE_EXTERNAL */
+
+private:
+        struct SolverHints {
+           doublereal rgRealVal[NONLINEAR_SOLVER_LAST_HINT_REAL];
+           integer rgIntegerVal[NONLINEAR_SOLVER_LAST_HINT_INTEGER];
+        } oSolverHints;
 };
 
 inline void
@@ -342,6 +459,15 @@ NonlinearSolver::AddCond(doublereal dCond)
 	}
 }
 
+inline void
+NonlinearSolver::ResetCond()
+{
+    iNumCond = 0;
+    dSumCond = 0;
+    dMaxCond = 0;
+    dMinCond = std::numeric_limits<doublereal>::max();
+}
+        
 inline doublereal
 NonlinearSolver::dGetTimeCPU(CPUTimeType eType) const
 {

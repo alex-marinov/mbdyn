@@ -202,6 +202,9 @@ OL_ARG_ENABLE(mbc,[  --enable-mbc            enable MBC - multibody communicatio
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto,[auto yes no legacy netcdf4])dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
+AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile],[
+	ol_with_mkoctfile_exec="$withval"
+],[ol_with_mkoctfile_exec=mkoctfile])
 OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
 OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
@@ -244,6 +247,7 @@ OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math li
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
+OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
@@ -379,6 +383,7 @@ WSMP_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
+PASTIX_LIBS=
 ARPACK_LIBS=
 JDQZ_LIBS=
 SECURITY_LIBS=
@@ -391,6 +396,7 @@ BULLET_LIBS=
 PYTHON_NUMPY_HEADERS=
 OCTAVE_LIBS=
 OCTAVE_INCLUDE=
+OCTAVE_MKOCTFILE=
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
@@ -748,14 +754,18 @@ dnl
 use_octave=no
 if test "$ol_enable_octave" != no ; then
 	have_mkoctfile=no
-	which mkoctfile > /dev/null 2>&1
+      	AC_MSG_CHECKING(for mkoctfile)
+   	$ol_with_mkoctfile_exec --help > /dev/null 2>&1
 	RC=$?
 	if test "$RC" = 0 ; then
+   	   	AC_MSG_RESULT([yes])
 		have_mkoctfile=yes
-     	try_OCTAVE_LIBS="`mkoctfile -p OCTAVE_LIBS` `mkoctfile -p LFLAGS`"
-     	try_OCTAVE_INCLUDE="`mkoctfile -p INCFLAGS`"
-       export LD_LIBRARY_PATH="`mkoctfile -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
+	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LFLAGS` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR`"
+	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS`"
+       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
     else
+		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
     	try_OCTAVE_INCLUDE=
 	fi
@@ -1225,6 +1235,23 @@ if test $ol_with_rtai != no ; then
 		RTAI_LDFLAGS=`$RTAI_CONFIG --lxrt-ldflags`
 	fi
 fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks for noexcept
+dnl
+AC_LANG_CPLUSPLUS
+have_noexcept=no
+AC_MSG_CHECKING([for noexcept])
+AC_TRY_COMPILE([int pippo() noexcept {return 1;}],[],[have_noexcept=yes],[have_noexcept=no])
+if test $have_noexcept != no ; then
+	AC_DEFINE(HAVE_NOEXCEPT,1, [define if the compiler accept noexcept])
+	AC_MSG_RESULT([yes])
+else
+	dnl AC_MSG_RESULT([no])
+	AC_MSG_ERROR([The C++ compiler does not support the noexcept keyword. You should upgrade to a more recent compiler supporting c++11.])
+fi
+AC_LANG_C
 
 dnl ----------------------------------------------------------------
 dnl
@@ -2630,6 +2657,39 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for Pastix
+dnl
+ol_link_pastix=no
+if test $ol_with_pastix != no ; then
+	AC_CHECK_HEADERS(pastix.h)
+
+	if test "$ac_cv_header_pastix_h" = "yes" ; then
+		AC_MSG_CHECKING([for Pastix library])
+		try_pastix_LIBS="-lpastix"
+		save_LIBS="$LIBS"
+		have_pastix="no"
+	        LIBS="$try_pastix_LIBS $save_LIBS -lm"
+			AC_TRY_LINK([
+#include <pastix.h>
+],[
+                pastix(0,0,0,0,0,0,0,0,0,0,0,0);
+			],[have_pastix="yes"])
+
+                LIBS="$save_LIBS"
+                
+                if test "$have_pastix" = "yes"; then
+                   AC_MSG_RESULT([yes])
+                   ol_link_pastix=yes
+                   PASTIX_LIBS="$try_pastix_LIBS"
+                   AC_DEFINE(USE_PASTIX,1,[define if you want to use Pastix])
+                else
+                   AC_MSG_RESULT([no])
+		fi
+        fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Harwell
 dnl
 ol_link_harwell=no
@@ -3254,6 +3314,7 @@ AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
+AC_SUBST(PASTIX_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
@@ -3272,6 +3333,7 @@ AC_SUBST(BULLET_LIBS)
 AC_SUBST(PYTHON_NUMPY_HEADERS)
 AC_SUBST(OCTAVE_LIBS)
 AC_SUBST(OCTAVE_INCLUDE)
+AC_SUBST(OCTAVE_MKOCTFILE)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 AC_SUBST(wl)
@@ -3291,6 +3353,7 @@ AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
 AM_CONDITIONAL(NEW_METIS_INTERFACE,[test "$new_metis_interface" = yes])
+AM_CONDITIONAL(USE_NETCDF4,[test "$have_libnetcdf4" = yes])
 AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])

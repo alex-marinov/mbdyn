@@ -43,10 +43,10 @@ DirCColMatrixHandler<off>::DirCColMatrixHandler(std::vector<doublereal>& x,
 		const std::vector<integer>& p)
 : CompactSparseMatrixHandler_tpl<off>(p.size() - 1, p.size() - 1, x, i, p),
   pindices(SparseMatrixHandler::iGetNumCols() + 1),
-indices(SparseMatrixHandler::iGetNumRows()*SparseMatrixHandler::iGetNumCols(), -1)
+  indices(static_cast<size_t>(SparseMatrixHandler::iGetNumRows())*SparseMatrixHandler::iGetNumCols(), -1)
 {
 	for (integer col = 1; col <= SparseMatrixHandler::iGetNumCols(); col++) {
-		pindices[col] = &indices[(col - 1)*SparseMatrixHandler::iGetNumRows()] - 1;
+                pindices[col] = &indices[static_cast<size_t>(col - 1)*SparseMatrixHandler::iGetNumRows()] - 1;
 
 		integer row_begin = p[col - 1] - off, row_end = p[col] - off;
 

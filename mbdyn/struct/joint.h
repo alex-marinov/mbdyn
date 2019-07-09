@@ -203,6 +203,13 @@ public:
 		const Vec3& FLocal, const Vec3& MLocal,
 		const Vec3& FGlobal, const Vec3& MGlobal) const;
 
+#ifdef USE_NETCDF
+	/* Default NetCDF output for joints */
+	void
+	NetCDFOutput(OutputHandler &OH,
+		const Vec3& FLocal, const Vec3& MLocal,
+		const Vec3& FGlobal, const Vec3& MGlobal) const;
+#endif
 	/* Derivate da ElemWith Dofs */
 
 	/* Setta il valore iniziale delle proprie variabili */

@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -40,12 +40,13 @@
 */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
+#include <algorithm>
 #include <cassert>
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
+#include <set>
 #include <typeinfo>
 
 #ifdef HAVE_BLITZ
@@ -76,6 +77,7 @@
 #include "matvec3.h"
 #include "Rot.hh"
 #include "matvecass.h"
+#include "spmapmh.h"
 
 using namespace grad;
 
@@ -89,6 +91,45 @@ doublereal random1() {
 	return 2 * (doublereal(rand()) / RAND_MAX) - 1;
 }
 
+template <typename T>
+bool bCompare(const T& a, const T& b, doublereal dTolRel = 0.) {
+    assert(!std::isnan(a));
+    assert(!std::isnan(b));
+    doublereal dTolAbs = std::max<T>(1., std::max<T>(std::abs(a), std::abs(b))) * dTolRel;
+    return std::abs(a - b) <= dTolAbs;
+}
+
+template <index_type N_SIZE>
+bool bCompare(const Gradient<N_SIZE>& a, const Gradient<N_SIZE>& b, doublereal dTolRel = 0.) {
+    assert(!std::isnan(a.dGetValue()));
+    assert(!std::isnan(b.dGetValue()));
+    doublereal dTolAbs = std::max(1., std::max(std::abs(a.dGetValue()), std::abs(b.dGetValue()))) * dTolRel;
+
+    if (std::abs(a.dGetValue() - b.dGetValue()) > dTolAbs) {
+        std::cerr << "a = " << a.dGetValue() << " != b = " << b.dGetValue() << std::endl;
+        return false;
+    }
+
+    index_type iStart = std::min(a.iGetStartIndexLocal(), b.iGetStartIndexLocal());
+    index_type iEnd = std::max(a.iGetEndIndexLocal(), b.iGetEndIndexLocal());
+
+    for (index_type i = iStart; i < iEnd; ++i) {
+        doublereal dTolAbs = std::max<scalar_deriv_type>(1., std::max<scalar_deriv_type>(std::abs(a.dGetDerivativeLocal(i)), std::abs(b.dGetDerivativeLocal(i)))) * dTolRel;
+        assert(!std::isnan(a.dGetDerivativeLocal(i)));
+        assert(!std::isnan(b.dGetDerivativeLocal(i)));
+        if (std::abs(a.dGetDerivativeLocal(i) - b.dGetDerivativeLocal(i)) > dTolAbs) {
+            std::cerr << "ad(" << i << ") = " << a.dGetDerivativeLocal(i) << " != bd(" << i << ") = " << b.dGetDerivativeLocal(i) << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+#define TEST_GROUP1
+#define TEST_GROUP2
+
+#ifdef TEST_GROUP1
 void testScalarTypeTraits() {
 	typedef ScalarBinaryExpressionTraits<FuncPlus, doublereal, doublereal, doublereal>::ExpressionType Expr001;
 	typedef ScalarBinaryExpressionTraits<FuncPlus, Gradient<0>, Gradient<0>, Gradient<0> >::ExpressionType Expr002;
@@ -363,40 +404,6 @@ void func3<doublereal>(const Matrix<doublereal, 3, 3>& R1, const Matrix<doublere
 template
 void func3<Gradient<0> >(const Matrix<Gradient<0> , 3, 3>& R1, const Matrix<Gradient<0> , 3, 3>& R2, const Vector<Gradient<0> , 3>& a, const Vector<Gradient<0> , 3>& b, Vector<Gradient<0> , 3>& c, doublereal e);
 
-template <typename T>
-bool bCompare(const T& a, const T& b, doublereal dTolRel = 0.) {
-    assert(!std::isnan(a));
-    assert(!std::isnan(b));
-	doublereal dTolAbs = std::max<T>(1., std::max<T>(std::abs(a), std::abs(b))) * dTolRel;
-	return std::abs(a - b) <= dTolAbs;
-}
-
-template <index_type N_SIZE>
-bool bCompare(const Gradient<N_SIZE>& a, const Gradient<N_SIZE>& b, doublereal dTolRel = 0.) {
-    assert(!std::isnan(a.dGetValue()));
-    assert(!std::isnan(b.dGetValue()));
-	doublereal dTolAbs = std::max(1., std::max(std::abs(a.dGetValue()), std::abs(b.dGetValue()))) * dTolRel;
-
-	if (std::abs(a.dGetValue() - b.dGetValue()) > dTolAbs) {
-		std::cerr << "a = " << a.dGetValue() << " != b = " << b.dGetValue() << std::endl;
-		return false;
-	}
-
-	index_type iStart = std::min(a.iGetStartIndexLocal(), b.iGetStartIndexLocal());
-	index_type iEnd = std::max(a.iGetEndIndexLocal(), b.iGetEndIndexLocal());
-
-	for (index_type i = iStart; i < iEnd; ++i) {
-		doublereal dTolAbs = std::max<scalar_deriv_type>(1., std::max<scalar_deriv_type>(std::abs(a.dGetDerivativeLocal(i)), std::abs(b.dGetDerivativeLocal(i)))) * dTolRel;
-        assert(!std::isnan(a.dGetDerivativeLocal(i)));
-        assert(!std::isnan(b.dGetDerivativeLocal(i)));
-		if (std::abs(a.dGetDerivativeLocal(i) - b.dGetDerivativeLocal(i)) > dTolAbs) {
-			std::cerr << "ad(" << i << ") = " << a.dGetDerivativeLocal(i) << " != bd(" << i << ") = " << b.dGetDerivativeLocal(i) << std::endl;
-			return false;
-		}
-	}
-
-	return true;
-}
 
 template <typename T, index_type N>
 void callFunc(LocalDofMap* pDofMap, const Vector<T, N>& a, const Vector<T, N>& b, Vector<T, N>& c, Vector<T, N>& c1) {
@@ -452,8 +459,8 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
 
     std::cerr << "F77 (" << typeid(T).name() << "): " << dtF << "s" << std::endl;
 
-    std::cerr << "overhead matvec:" << dtMatVec / std::max(std::numeric_limits<double>::epsilon(), dtF) << std::endl;
-    std::cerr << "overhead C:" << dtC / std::max(std::numeric_limits<double>::epsilon(), dtF) << std::endl;
+    std::cerr << "overhead matvec:" << dtMatVec / std::max(std::numeric_limits<doublereal>::epsilon(), dtF) << std::endl;
+    std::cerr << "overhead C:" << dtC / std::max(std::numeric_limits<doublereal>::epsilon(), dtF) << std::endl;
 
     std::cout << "A=" << std::endl << A << std::endl;
     std::cout << "b=" << std::endl << b << std::endl;
@@ -1261,7 +1268,7 @@ doublereal der[1][12];
 {{17624000, 2486000, 3586000, 18428000, 2712000, 3912000, 19232000, 2938000, 4238000, 20036000, 3164000, 4564000}}};
 
 static const struct test_norm_g {
-double val[1];
+        doublereal val[1];
 doublereal der[1][12];
 } oct_norm_g = {
 {20810.33397137105},
@@ -3738,10 +3745,1333 @@ void MatManip_test(int NLoops) {
         const Vector<doublereal, 3> g2(VecRotMat(R2));
         
         for (index_type i = 1; i <= 3; ++i) {
-            assert(bCompare(g1(i), g2(i), std::numeric_limits<doublereal>::epsilon()) || bCompare(fabs(g1(i) - g2(i)), 2 * M_PI, std::numeric_limits<doublereal>::epsilon()));
+            assert(bCompare(g1(i),
+                            g2(i),
+                            std::numeric_limits<doublereal>::epsilon())
+                   || bCompare(fabs(g1(i) - g2(i)),
+                               2 * M_PI,
+                               2 * M_PI * std::numeric_limits<doublereal>::epsilon()));
         }
     }
 }
+
+doublereal MatIndexValGen(index_type i, index_type j, index_type k) {
+    return 100. * i + 10. * j + k;
+}
+
+doublereal MatRandValGen(index_type, index_type, index_type) {
+    return 2. * (static_cast<doublereal>(rand()) / RAND_MAX) - 1.;
+}
+
+template<index_type N_rows_lhs, index_type N_cols_lhs, index_type N_cols_rhs, doublereal (*f)(index_type, index_type, index_type)>
+void MatrixMatrixProduct_test(index_type iNumRowsLhs, index_type iNumColsLhs, index_type iNumColsRhs)
+{
+    assert(N_rows_lhs == DYNAMIC_SIZE || N_rows_lhs == iNumRowsLhs);
+    assert(N_cols_lhs == DYNAMIC_SIZE || N_cols_lhs == iNumColsLhs);
+    assert(N_cols_rhs == DYNAMIC_SIZE || N_cols_rhs == iNumColsRhs);
+    
+    Matrix<doublereal, N_rows_lhs, N_cols_lhs> A(iNumRowsLhs, iNumColsLhs);
+    Matrix<doublereal, N_cols_lhs, N_cols_rhs> B(iNumColsLhs, iNumColsRhs);
+    Matrix<doublereal, N_rows_lhs, N_cols_rhs> D(iNumRowsLhs, iNumColsRhs);
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = f(i, j, 1);
+        }
+    }
+
+    for (index_type i = 1; i <= B.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= B.iGetNumCols(); ++j) {
+            B(i, j) = f(i, j, 2);
+        }
+    }
+
+    for (index_type i = 1; i <= D.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= D.iGetNumCols(); ++j) {
+            D(i, j) = f(i, j, 2);
+        }
+    }
+    
+    Matrix<doublereal, N_rows_lhs, N_cols_rhs> C = A * B + D;
+
+    Matrix<doublereal, N_rows_lhs, N_cols_rhs> C2(iNumRowsLhs, iNumColsRhs);
+
+    for (index_type i = 1; i <= C2.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= C2.iGetNumCols(); ++j) {
+            C2(i, j) = D(i, j);
+            
+            for (index_type k = 1; k <= A.iGetNumCols(); ++k) {
+                C2(i, j) += A(i, k) * B(k, j);
+            }
+        }
+    }
+
+    assert(C2.iGetNumRows() == C.iGetNumRows());
+    assert(C2.iGetNumCols() == C.iGetNumCols());
+
+    bool bOk = true;
+    
+    for (index_type i = 1; i <= C.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= C.iGetNumCols(); ++j) {
+            bOk = bOk && bCompare(C2(i, j), C(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
+        }
+    }
+    
+    std::cerr << "A=\n" << Tabular(A) << std::endl;
+    std::cerr << "B=\n" << Tabular(B) << std::endl;
+    std::cerr << "C=\n" << Tabular(C) << std::endl;
+    std::cerr << "D=\n" << Tabular(D) << std::endl;    
+    std::cerr << "C2=\n" << Tabular(C2) << std::endl;
+
+    if (!bOk) {
+        std::cerr << "test failed: " << __FILE__ << ":" << __LINE__ << std::endl;        
+        assert(bOk);
+    }
+}
+#endif
+
+#ifdef TEST_GROUP2
+void ComplianceModelTest(const index_type iNumNodes, const index_type iNumModes)
+{
+    std::cerr << "ComplianceModelTest(" << iNumNodes << ")\n";
+    
+    LocalDofMap oDofPress, oDofPressAsp, oDofDef;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> p(iNumNodes), paspn(iNumNodes), pasp(iNumNodes), w(iNumNodes), a(iNumModes);
+
+    const index_type iFirstDofX = 3;
+    const index_type iFirstDofPress = iFirstDofX + 12 + 5;
+    const index_type iFirstDofDef = iFirstDofPress + iNumNodes + 3;
+    const index_type iFirstDofMod = iFirstDofDef + iNumNodes + 3;
+    const index_type iNumDofTotal = iFirstDofMod + iNumModes - 1;
+    
+    Vector<Gradient<0>, 12> X;
+    std::vector<bool> bPasp(iNumNodes);
+
+    for (index_type i = 0; i < iNumNodes; ++i) {
+        bPasp[i] = random1() >= 0;
+    }
+
+    std::vector<bool> bCav(iNumNodes);
+
+    for (index_type i = 0; i < iNumNodes; ++i) {
+        bCav[i] = random1() >= -0.2;
+    }
+    
+    doublereal pEnv = 0.1;
+    doublereal dScale = 10.;
+    doublereal dScaleP = 5;
+
+    std::vector<index_type> perm(iNumNodes), iperm(iNumNodes);
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        perm[i - 1] = i;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        iperm[perm[i - 1] - 1] = i;
+    }
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        assert(iperm[perm[i - 1] - 1] == i);
+    }
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        std::cerr << i << "->" << perm[i - 1] << std::endl;
+    }
+    
+    for (index_type i = 1; i <= X.iGetNumRows(); ++i) {
+        X(i).SetValuePreserve(i);
+        X(i).DerivativeResizeReset(&oDofDef, iFirstDofX + i - 1, MapVectorBase::GLOBAL, -1.);
+    }
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        p(i).SetValuePreserve(perm[i - 1] * 100);
+        p(i).DerivativeResizeReset(&oDofPress, iFirstDofPress + perm[i - 1] - 1, MapVectorBase::GLOBAL, -1.);
+
+        if (bCav[i - 1]) {
+            p(i) = 0.;
+        }
+        
+        p(i) -= pEnv;
+        p(i) *= dScaleP;
+    }
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        w(i).SetValuePreserve(perm[i - 1] * 10);
+        w(i).DerivativeResizeReset(&oDofDef, iFirstDofDef + perm[i - 1] - 1, MapVectorBase::GLOBAL, -1.);
+    }
+
+    for (index_type i = 1; i <= iNumModes; ++i) {
+        a(i).SetValuePreserve(i * 100);
+        a(i).DerivativeResizeReset(&oDofPress, iFirstDofMod + i - 1, MapVectorBase::GLOBAL, -1.);
+    }
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        if (bPasp[i - 1]) {
+            for (index_type j = 1; j <= 12; ++j) {
+                paspn(i) += 1e-6 * pow(w(i) + X(j), 2.0);
+            }
+        }
+    }
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        pasp(i).Copy(paspn(i), &oDofPressAsp);
+        pasp(i) -= pEnv;
+        pasp(i) *= dScaleP;
+    }
+
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> C(iNumNodes, iNumNodes), D(iNumNodes, iNumModes);
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        for (index_type j = 1; j <= iNumNodes; ++j) {
+            C(i, j) = random1();
+        }
+
+        for (index_type j = 1; j <= iNumModes; ++j) {
+            D(i, j) = random1();
+        }
+    }
+
+    SparseSubMatrixHandler mh(4 * iNumNodes * (iNumNodes + iNumModes));
+    GradientAssVec<Gradient<0> > WorkVec(mh);
+
+    Gradient<0> f;
+
+    index_type iEqIndex = 0;
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        f.SetValuePreserve(perm[iEqIndex] * 10);
+        f.DerivativeResizeReset(&oDofPress, iFirstDofDef + perm[iEqIndex] - 1, MapVectorBase::GLOBAL, -1.);
+
+        f *= dScale;
+
+        for (index_type j = 1; j <= iNumNodes; ++j) {
+            const doublereal Cij = dScale * C(i, j);
+            f -= Cij * p(j);
+            f -= Cij * pasp(j);
+        }
+
+        for (index_type j = 1; j <= iNumModes; ++j) {
+            f -= dScale * D(i, j) * a(j);
+        }
+        
+        WorkVec.AddItem(perm[iEqIndex++], f);
+    }
+
+    SpMapMatrixHandler A(iNumNodes, iNumDofTotal);
+
+    A += mh;
+
+    Matrix<doublereal, DYNAMIC_SIZE, 12> dpasp_dX(iNumNodes, 12);
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        if (bPasp[i - 1]) {
+            for (index_type j = 1; j <= 12; ++j) {
+                dpasp_dX(i, j) = 2e-6 * (w(i).dGetValue() + X(j).dGetValue());
+            }
+        }
+    }
+
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> dpasp_dw(iNumNodes, iNumNodes);
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        if (bPasp[i - 1]) {
+            for (index_type j = 1; j <= 12; ++j) {
+                dpasp_dw(i, i) += 2e-6 * (w(i).dGetValue() + X(j).dGetValue());
+            }
+        }
+    }
+
+    Matrix<doublereal, DYNAMIC_SIZE, 12> df_dX = C * dpasp_dX * (-dScale * dScaleP);
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> df_dp = C * (-dScale * dScaleP);
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> df_dw = C * dpasp_dw * (-dScale * dScaleP);
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> df_da = D * (-dScale);
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        df_dw(i, i) += dScale;
+    }
+
+    for (index_type j = 1; j <= iNumNodes; ++j) {
+        if (bCav[j - 1]) {
+            for (index_type i = 1; i <= iNumNodes; ++i) {
+                df_dp(i, j) = 0;
+            }
+        }
+    }
+
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> Aref(iNumNodes, iNumDofTotal);
+
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        for (index_type j = 1; j <= 12; ++j) {
+            Aref(perm[i - 1], j - 1 + iFirstDofX) = -df_dX(i, j);
+        }
+
+        for (index_type j = 1; j <= iNumNodes; ++j) {
+            Aref(perm[i - 1], perm[j - 1] - 1 + iFirstDofPress) = -df_dp(i, j);
+        }
+
+        for (index_type j = 1; j <= iNumNodes; ++j) {
+            Aref(perm[i - 1], perm[j - 1] - 1 + iFirstDofDef) = -df_dw(i, j);
+        }
+
+        for (index_type j = 1; j <= iNumModes; ++j) {
+            Aref(perm[i - 1], j - 1 + iFirstDofMod) = -df_da(i, j);
+        }
+    }
+    
+    const SpMapMatrixHandler& Aro = A;
+    
+    std::cerr << "A=[" << std::endl;
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        for (index_type j = 1; j <= iNumDofTotal; ++j) {
+            std::cerr << Aro(i, j) << " ";
+        }
+
+        std::cerr << std::endl;
+    }
+
+    std::cerr << "];" << std::endl;
+
+    std::cerr << "Aref=[" << std::endl;
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        for (index_type j = 1; j <= iNumDofTotal; ++j) {
+            std::cerr << Aref(i, j) << " ";
+        }
+
+        std::cerr << std::endl;
+    }
+    
+    std::cerr << "];" << std::endl;
+
+    const doublereal rtol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    const doublereal atol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= iNumNodes; ++i) {
+        for (index_type j = 1; j <= iNumDofTotal; ++j) {
+            assert(fabs(Aref(i, j) - Aro(i, j)) <= rtol * fabs(Aref(i, j)) + atol);
+        }
+    }
+}
+
+void ComplianceModelTest2(index_type iNumDeriv)
+{
+    doublereal dVal = 0.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+    Gradient<0> g;
+
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const doublereal si = random1();
+        const doublereal dvi_dx = random1();
+        const index_type idx = rand() + 1;
+        s(i) = si;
+        dVal += si * vi;
+        oValMap[idx] += si * dvi_dx;
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, idx, MapVectorBase::GLOBAL, dvi_dx);        
+    }
+
+    std::vector<index_type> perm(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm[i] = i + 1;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm[i - 1]) * v(perm[i - 1]);
+    }
+
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+    
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+}
+
+void ComplianceModelTest3(index_type iNumDeriv)
+{
+    doublereal dVal = 0.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const doublereal si = random1();
+        const doublereal dvi_dx = random1();
+        const index_type idx = rand() + 1;
+        s(i) = si;
+        dVal += si * vi;
+        oValMap[idx] += si * dvi_dx;
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap2, idx, MapVectorBase::GLOBAL, dvi_dx);        
+    }
+
+    std::vector<index_type> perm(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm[i] = i + 1;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+
+    Gradient<0> g(0., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm[i - 1]) * v(perm[i - 1]);
+    }
+
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+    
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+}
+
+void ComplianceModelTest4(index_type iNumDeriv)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const doublereal si = random1();
+        const doublereal dvi_dx = random1();
+        const index_type idx = rand() + 1;
+        s(i) = si;
+        dVal += si * vi;
+        oValMap[idx] += si * dvi_dx;
+
+        LocalDofMap* pDofMap = random1() > 0. ? &oDofMap : &oDofMap2;
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(pDofMap, idx, MapVectorBase::GLOBAL, dvi_dx);        
+    }
+
+    std::vector<index_type> perm(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm[i] = i + 1;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm[i - 1]) * v(perm[i - 1]);
+    }
+
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+    
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+}
+
+void ComplianceModelTest5(const index_type iNumDeriv, const index_type iSliceLen)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    std::vector<index_type> idx(iSliceLen);
+    std::vector<doublereal> dvi_dx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const index_type idx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dvi_dx[j] = random1();
+            idx[j] = idx0 + j;
+        }
+        
+        const doublereal si = random1();
+                
+        s(i) = si;
+        dVal += si * vi;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[idx[j]] += si * dvi_dx[j];
+        }
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, idx[0], idx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            v(i).SetDerivativeGlobal(idx[j], dvi_dx[j]);
+        }
+    }
+    
+    std::vector<index_type> perm(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm[i] = i + 1;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm[i - 1]) * v(perm[i - 1]);
+    }
+
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+    
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+}
+
+void ComplianceModelTest6(const index_type iNumDeriv, const index_type iSliceLen)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> u(iNumDeriv), v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    std::vector<index_type> vidx(iSliceLen);
+    std::vector<doublereal> dvi_dx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const index_type vidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dvi_dx[j] = random1();
+            vidx[j] = vidx0 + j;
+        }
+        
+        const doublereal si = random1();
+                
+        s(i) = si;
+        dVal += si * vi;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[vidx[j]] += si * dvi_dx[j];
+        }
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, vidx[0], vidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            v(i).SetDerivativeGlobal(vidx[j], dvi_dx[j]);
+        }
+    }
+
+    std::vector<doublereal> dui_dx(iSliceLen);
+    std::vector<index_type> uidx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal ui = random1();
+        const index_type uidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dui_dx[j] = random1();
+            uidx[j] = uidx0 + j;
+        }
+                        
+        dVal += s(i) * ui;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[uidx[j]] += s(i) * dui_dx[j];
+        }
+        
+        u(i).SetValuePreserve(ui);
+        u(i).DerivativeResizeReset(&oDofMap2, uidx[0], uidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            u(i).SetDerivativeGlobal(uidx[j], dui_dx[j]);
+        }
+        }
+    
+    std::vector<index_type> perm(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm[i] = i + 1;
+    }
+
+    std::random_shuffle(perm.begin(), perm.end());
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm[i - 1]) * v(perm[i - 1]);
+        g += s(perm[i - 1]) * u(perm[i - 1]);
+}
+
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+    
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+}
+
+void ComplianceModelTest7(const index_type iNumDeriv, const index_type iSliceLen)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> u(iNumDeriv), v(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    std::vector<index_type> vidx(iSliceLen);
+    std::vector<doublereal> dvi_dx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const index_type vidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dvi_dx[j] = random1();
+            vidx[j] = vidx0 + j;
+        }
+        
+        const doublereal si = random1();
+                
+        s(i) = si;
+        dVal += si * vi;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[vidx[j]] += si * dvi_dx[j];
+        }
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, vidx[0], vidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            v(i).SetDerivativeGlobal(vidx[j], dvi_dx[j]);
+        }
+    }
+
+    std::vector<doublereal> dui_dx(iSliceLen);
+    std::vector<index_type> uidx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal ui = random1();
+        const index_type uidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dui_dx[j] = random1();
+            uidx[j] = uidx0 + j;
+        }
+                        
+        dVal += s(i) * ui;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[uidx[j]] += s(i) * dui_dx[j];
+        }
+        
+        u(i).SetValuePreserve(ui);
+        u(i).DerivativeResizeReset(&oDofMap2, uidx[0], uidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            u(i).SetDerivativeGlobal(uidx[j], dui_dx[j]);
+        }
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            doublereal wi = random1();
+            doublereal dwi_dx = random1();
+            index_type widx = rand() + 1;
+        
+            dVal += s(i) * wi;
+            oValMap[widx] += s(i) * dwi_dx;
+
+            Gradient<0> w;
+
+            w.SetValuePreserve(wi);
+            w.DerivativeResizeReset(&oDofMap2, widx, MapVectorBase::GLOBAL, dwi_dx);
+            u(i) += w;
+        }
+    }
+    
+    std::vector<index_type> perm1(iNumDeriv), perm2(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm1[i] = perm2[i] = i + 1;
+    }
+
+    std::random_shuffle(perm1.begin(), perm1.end());
+    std::random_shuffle(perm2.begin(), perm2.end());
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm1[i - 1]) * v(perm1[i - 1]);
+        g += s(perm2[i - 1]) * u(perm2[i - 1]);
+    }
+    
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+}
+
+void ComplianceModelTest8(const index_type iNumDeriv, const index_type iSliceLen)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2, oDofMap3;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> u(iNumDeriv), v(iNumDeriv), u2(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    std::vector<index_type> vidx(iSliceLen);
+    std::vector<doublereal> dvi_dx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const index_type vidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dvi_dx[j] = random1();
+            vidx[j] = vidx0 + j;
+        }
+        
+        const doublereal si = random1();
+                
+        s(i) = si;
+        dVal += si * vi;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[vidx[j]] += si * dvi_dx[j];
+        }
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, vidx[0], vidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            v(i).SetDerivativeGlobal(vidx[j], dvi_dx[j]);
+        }
+    }
+
+    std::vector<doublereal> dui_dx(iSliceLen);
+    std::vector<index_type> uidx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal ui = random1();
+        const index_type uidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dui_dx[j] = random1();
+            uidx[j] = uidx0 + j;
+        }
+                        
+        dVal += s(i) * ui;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[uidx[j]] += s(i) * dui_dx[j];
+        }
+        
+        u(i).SetValuePreserve(ui);
+        u(i).DerivativeResizeReset(&oDofMap2, uidx[0], uidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            u(i).SetDerivativeGlobal(uidx[j], dui_dx[j]);
+        }
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            doublereal wi = random1();
+            doublereal dwi_dx = random1();
+            index_type widx = rand() + 1;
+        
+            dVal += s(i) * wi;
+            oValMap[widx] += s(i) * dwi_dx;
+
+            Gradient<0> w;
+
+            w.SetValuePreserve(wi);
+            w.DerivativeResizeReset(&oDofMap2, widx, MapVectorBase::GLOBAL, dwi_dx);
+            u(i) += w;
+        }
+    }
+
+    std::vector<index_type> perm1(iNumDeriv), perm2(iNumDeriv), perm3(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm1[i] = perm2[i] = perm3[i] = i + 1;
+    }
+
+    std::random_shuffle(perm1.begin(), perm1.end());
+    std::random_shuffle(perm2.begin(), perm2.end());
+    std::random_shuffle(perm3.begin(), perm3.end());
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        u2(perm3[i - 1]).Copy(u(perm3[i - 1]), &oDofMap3);
+    }
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm1[i - 1]) * v(perm1[i - 1]);
+        g += s(perm2[i - 1]) * u2(perm2[i - 1]);
+    }
+    
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+}
+
+void ComplianceModelTest9(const index_type iNumDeriv, const index_type iSliceLen)
+{
+    doublereal dVal = 1.;
+    std::map<index_type, doublereal> oValMap;
+
+    LocalDofMap oDofMap, oDofMap2, oDofMap3, oDofMap4;
+
+    Vector<Gradient<0>, DYNAMIC_SIZE> u(iNumDeriv), u2(iNumDeriv), v(iNumDeriv), v2(iNumDeriv);
+    Vector<doublereal, DYNAMIC_SIZE> s(iNumDeriv);
+
+    std::vector<index_type> vidx(iSliceLen);
+    std::vector<doublereal> dvi_dx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal vi = random1();
+        const index_type vidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dvi_dx[j] = random1();
+            vidx[j] = vidx0 + j;
+        }
+        
+        const doublereal si = random1();
+                
+        s(i) = si;
+        dVal += si * vi;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[vidx[j]] += si * dvi_dx[j];
+        }
+        
+        v(i).SetValuePreserve(vi);
+        v(i).DerivativeResizeReset(&oDofMap, vidx[0], vidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            v(i).SetDerivativeGlobal(vidx[j], dvi_dx[j]);
+        }
+    }
+
+    std::vector<doublereal> dui_dx(iSliceLen);
+    std::vector<index_type> uidx(iSliceLen);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        const doublereal ui = random1();
+        const index_type uidx0 = rand() + 1;
+        
+        for (index_type j = 0; j < iSliceLen; ++j) {            
+            dui_dx[j] = random1();
+            uidx[j] = uidx0 + j;
+        }
+                        
+        dVal += s(i) * ui;
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            oValMap[uidx[j]] += s(i) * dui_dx[j];
+        }
+        
+        u(i).SetValuePreserve(ui);
+        u(i).DerivativeResizeReset(&oDofMap2, uidx[0], uidx[iSliceLen - 1] + 1, MapVectorBase::GLOBAL, 0.);
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            u(i).SetDerivativeGlobal(uidx[j], dui_dx[j]);
+        }
+
+        for (index_type j = 0; j < iSliceLen; ++j) {
+            doublereal wi = random1();
+            doublereal dwi_dx = random1();
+            index_type widx = rand() + 1;
+        
+            dVal += s(i) * wi;
+            oValMap[widx] += s(i) * dwi_dx;
+
+            Gradient<0> w;
+
+            w.SetValuePreserve(wi);
+            w.DerivativeResizeReset(&oDofMap2, widx, MapVectorBase::GLOBAL, dwi_dx);
+            u(i) += w;
+        }
+    }
+
+    std::vector<index_type> perm1(iNumDeriv), perm2(iNumDeriv), perm3(iNumDeriv);
+
+    for (index_type i = 0; i < iNumDeriv; ++i) {
+        perm1[i] = perm2[i] = perm3[i] = i + 1;
+    }
+
+    std::random_shuffle(perm1.begin(), perm1.end());
+    std::random_shuffle(perm2.begin(), perm2.end());
+    std::random_shuffle(perm3.begin(), perm3.end());
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        u2(perm3[i - 1]).Copy(u(perm3[i - 1]), &oDofMap3);
+        v2(perm1[i - 1]).Copy(v(perm1[i - 1]), &oDofMap4);
+    }
+    
+    Gradient<0> g(1., &oDofMap);
+    
+    for (index_type i = 1; i <= iNumDeriv; ++i) {
+        g += s(perm1[i - 1]) * v2(perm1[i - 1]);
+        g += s(perm2[i - 1]) * u2(perm2[i - 1]);
+    }
+    
+    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+    std::cerr << "scalar value = " << dVal << std::endl;
+
+    std::cerr << "map derivatives:\n";
+    
+    for (auto i = oValMap.begin(); i != oValMap.end(); ++i) {
+        std::cerr << i->first << "->" << i->second << std::endl;
+    }
+
+    std::cerr << "gradient:\n";
+    std::cerr << "value = " << g.dGetValue() << std::endl;
+    std::cerr << "derivatives:\n";    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        
+        if (dDeriv) {
+            std::cerr << iDofIndex << "->" << dDeriv << std::endl;
+        }
+    }
+
+    const std::map<index_type, doublereal>& oValMapRef = oValMap;
+    
+    for (auto i = oValMapRef.begin(); i != oValMapRef.end(); ++i) {
+        const index_type iDof = i->first;
+        const doublereal dDeriv = i->second;
+        const doublereal dg_dxi = g.dGetDerivativeGlobal(iDof);
+        assert(fabs(dg_dxi - dDeriv) < dTol);
+    }
+    
+    for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
+        const doublereal dDeriv = g.dGetDerivativeLocal(i);
+        const index_type iDofIndex = g.iGetGlobalDof(i);
+        const auto j = oValMapRef.find(iDofIndex);
+        doublereal dDerivRef = 0;
+        
+        if (j != oValMapRef.end()) {
+            dDerivRef = j->second;
+        }
+        assert(fabs(dDeriv - dDerivRef) < dTol);
+    }
+
+    assert(fabs(g.dGetValue() - dVal) < dTol);
+}
+
+void RangeVectorTest1(index_type N)
+{
+    RangeVector<doublereal, 0> oRange;
+
+    for (index_type k = 0; k < N; ++k) {
+        index_type j = rand() % 1000;
+        index_type m = std::min(j, rand() % 100);
+        index_type n = rand() % 100;
+        
+        oRange.ResizeReset(j, j + 1, 1);
+
+        std::cerr << "range=";
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            std::cerr << i << ":" << oRange.GetValue(i) << std::endl;
+        }
+        std::cerr << std::endl;
+    
+        oRange.ResizePreserve(j - m, j + n + 1);
+
+        std::cerr << "range=";
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            std::cerr << i << ":" << oRange.GetValue(i) << std::endl;
+        }
+        std::cerr << std::endl;
+
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            if (i == j) {
+                assert(oRange.GetValue(i) == 1);
+            } else {
+                assert(oRange.GetValue(i) == 0);
+            }
+        }
+    }
+}
+
+void RangeVectorTest2(index_type N)
+{
+    RangeVector<doublereal, 0> oRange;
+
+    for (index_type k = 0; k < N; ++k) {
+        index_type o = std::max(1, rand() % 100);
+
+        std::set<index_type> sidx;
+        
+        for (index_type l = 0; l < o; ++l) {
+            sidx.insert(rand() % 1000);
+        }
+
+        o = sidx.size();
+        
+        std::vector<index_type> idx;
+        std::vector<doublereal> v;
+
+        idx.reserve(o);
+        v.reserve(o);
+        
+        for (auto l = sidx.begin(); l != sidx.end(); ++l) {
+            idx.push_back(*l);
+            v.push_back(random1());
+        }        
+        
+        index_type jmin = *std::min_element(idx.begin(), idx.end());
+        index_type jmax = *std::max_element(idx.begin(), idx.end());
+        index_type m = std::min(jmin, rand() % 100);
+        index_type n = rand() % 100;
+        
+        oRange.ResizeReset(jmin, jmax + 1, 0.);
+
+        for (index_type l = 0; l < o; ++l) {
+            oRange.SetValue(idx[l], v[l]);
+        }
+
+        std::cerr << "range=";
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            std::cerr << i << ":" << oRange.GetValue(i) << std::endl;
+        }
+        std::cerr << std::endl;
+    
+        oRange.ResizePreserve(jmin - m, jmax + n + 1);
+
+        std::cerr << "range=";
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            std::cerr << i << ":" << oRange.GetValue(i) << std::endl;
+        }
+        std::cerr << std::endl;
+
+        for (index_type i = oRange.iGetStartIndex(); i < oRange.iGetEndIndex(); ++i) {
+            bool bFound = false;
+            
+            for (index_type l = 0; l < o; ++l) {
+                if (idx[l] == i) {
+                    bFound = true;
+                    assert(oRange.GetValue(i) == v[l]);
+                }
+            }
+
+            if (!bFound) {
+                assert(oRange.GetValue(i) == 0.);
+            }
+        }
+    }
+}
+#endif
 
 int main(int argc, char* argv[]) {
 #ifdef HAVE_FEENABLEEXCEPT
@@ -3763,6 +5093,7 @@ int main(int argc, char* argv[]) {
         NLoopsAss = 1;
     }
 
+#ifdef TEST_GROUP1
     std::cerr << "MatManip_test()\n";
     
     MatManip_test(NLoops);
@@ -3985,6 +5316,193 @@ int main(int argc, char* argv[]) {
     MatDynamicT_test_grad<0, DYNAMIC_SIZE, 20>(5, 10, 20, NLoops);
     MatDynamicT_test_grad<0, 10, DYNAMIC_SIZE>(5, 10, 20, NLoops);
     MatDynamicT_test_grad<0, DYNAMIC_SIZE, DYNAMIC_SIZE>(5, 10, 20, NLoops);
+    
+    
+    MatrixMatrixProduct_test<2, 3, 4, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, 2, 3, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, 4, 2, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, 8, 7, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<2, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, DYNAMIC_SIZE, DYNAMIC_SIZE, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 3, DYNAMIC_SIZE, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 2, DYNAMIC_SIZE, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 4, DYNAMIC_SIZE, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 8, DYNAMIC_SIZE, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 4, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 3, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 2, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 7, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<2, 3, DYNAMIC_SIZE, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, 2, DYNAMIC_SIZE, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, 4, DYNAMIC_SIZE, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, 8, DYNAMIC_SIZE, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 3, 4, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 2, 3, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 4, 2, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 8, 7, MatIndexValGen>(10, 8, 7);
+
+    
+    MatrixMatrixProduct_test<2, DYNAMIC_SIZE, 4, MatIndexValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, DYNAMIC_SIZE, 3, MatIndexValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, DYNAMIC_SIZE, 2, MatIndexValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, DYNAMIC_SIZE, 7, MatIndexValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<2, 3, 4, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, 2, 3, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, 4, 2, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, 8, 7, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<2, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, DYNAMIC_SIZE, DYNAMIC_SIZE, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 3, DYNAMIC_SIZE, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 2, DYNAMIC_SIZE, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 4, DYNAMIC_SIZE, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 8, DYNAMIC_SIZE, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 4, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 3, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 2, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, DYNAMIC_SIZE, 7, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<2, 3, DYNAMIC_SIZE, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, 2, DYNAMIC_SIZE, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, 4, DYNAMIC_SIZE, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, 8, DYNAMIC_SIZE, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 3, 4, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 2, 3, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 4, 2, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<DYNAMIC_SIZE, 8, 7, MatRandValGen>(10, 8, 7);
+
+    srand(0);
+    
+    MatrixMatrixProduct_test<2, DYNAMIC_SIZE, 4, MatRandValGen>(2, 3, 4);
+    MatrixMatrixProduct_test<4, DYNAMIC_SIZE, 3, MatRandValGen>(4, 2, 3);
+    MatrixMatrixProduct_test<3, DYNAMIC_SIZE, 2, MatRandValGen>(3, 4, 2);
+    MatrixMatrixProduct_test<10, DYNAMIC_SIZE, 7, MatRandValGen>(10, 8, 7);
+#endif
+    
+#ifdef TEST_GROUP2
+    std::cerr << "ComplianceModelTest:\n";
+    srand(0);
+    ComplianceModelTest(11, 20);
+    srand(0);
+    ComplianceModelTest(117, 25);
+    srand(0);
+    ComplianceModelTest(239, 30);
+
+    std::cerr << "ComplianceModelTest2:\n";
+    srand(0);
+    ComplianceModelTest2(5);
+    ComplianceModelTest2(17);
+    ComplianceModelTest2(128);
+    ComplianceModelTest2(17384);
+
+    std::cerr << "ComplianceModelTest3:\n";
+    srand(0);
+    ComplianceModelTest3(5);
+    ComplianceModelTest3(17);
+    ComplianceModelTest3(128);
+    ComplianceModelTest3(17384);
+
+    std::cerr << "ComplianceModelTest4:\n";
+    srand(0);
+    ComplianceModelTest4(5);
+    ComplianceModelTest4(17);
+    ComplianceModelTest4(128);
+    ComplianceModelTest4(17384);
+
+    std::cerr << "ComplianceModelTest5:\n";
+    srand(0);
+    ComplianceModelTest5(5, 2);
+    ComplianceModelTest5(17, 5);
+    ComplianceModelTest5(128, 6);
+    ComplianceModelTest5(17384, 3);
+
+    std::cerr << "ComplianceModelTest6:\n";
+    srand(0);
+    ComplianceModelTest6(5, 2);
+    ComplianceModelTest6(17, 5);
+    ComplianceModelTest6(128, 6);
+    ComplianceModelTest6(17384, 3);
+
+    std::cerr << "ComplianceModelTest7:\n";
+    srand(0);
+    ComplianceModelTest7(5, 2);
+    ComplianceModelTest7(17, 5);
+    ComplianceModelTest7(35, 5);
+    ComplianceModelTest7(1200, 12);
+
+    std::cerr << "ComplianceModelTest8:\n";
+    srand(0);
+    ComplianceModelTest8(5, 2);
+    ComplianceModelTest8(17, 5);
+    ComplianceModelTest8(35, 5);
+    ComplianceModelTest8(1200, 12);
+
+    std::cerr << "ComplianceModelTest9:\n";
+    srand(0);
+    ComplianceModelTest9(5, 2);
+    ComplianceModelTest9(17, 5);
+    ComplianceModelTest9(35, 5);
+    ComplianceModelTest9(1200, 12);
+
+    std::cerr << "RangeVectorTest1():\n";
+    srand(0);
+    RangeVectorTest1(1000);
+
+    std::cerr << "RangeVectorTest2():\n";
+    srand(0);
+    RangeVectorTest2(100);
+#endif
+    
+#ifdef TEST_GROUP1
+    std::cerr << "TEST_GROUP1 executed" << std::endl;
+#endif
+
+#ifdef TEST_GROUP2
+    std::cerr << "TEST_GROUP2 executed" << std::endl;
+#endif
     
 #ifdef NDEBUG
     std::cerr << "\nNo tests have been done" << std::endl;

@@ -26,8 +26,8 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% AUTHOR: Reinhard Resch <r.resch@secop.com>
-%        Copyright (C) 2011(-2017) all rights reserved.
+% AUTHOR: Reinhard Resch <r.resch@a1.net>
+%        Copyright (C) 2011(-2019) all rights reserved.
 %
 %        The copyright of this code is transferred
 %        to Pierangelo Masarati and Paolo Mantegazza
@@ -67,30 +67,6 @@ function f = ComputeResidual(elem, dCoef, XCurr, XPrimeCurr)
     omega1 = G1 * g1P + RDelta1 * w1_0;
     omega2 = G2 * g2P + RDelta2 * w2_0;
 
-    switch( typeinfo(R1) )
-        case "matrix"
-            assert(R1, elem.pNode1.GetRCurr(), sqrt(eps));
-            assert(R2, elem.pNode2.GetRCurr(), sqrt(eps));
-        case "gradient"
-        otherwise
-            error("unexpected type: %s", typeinfo(R1));
-    endswitch
-%{%}
-%{
-    elem.pNode2.GetgCurr()
-    elem.pNode2.GetWRef()
-    elem.pNode2.GetWCurr()
-%}
-
-    switch( typeinfo(omega1) )
-        case "matrix"
-            assert(omega1, elem.pNode1.GetWCurr(), sqrt(eps));
-            assert(omega2, elem.pNode2.GetWCurr(), sqrt(eps));
-        case "gradient"
-        otherwise
-            error("unexpected type: %s", typeinfo(W1));
-    endswitch
-%{%}
     DeltaX = X2 + R2 * elem.o2 - X1 - R1 * elem.o1;
     DeltaXP = X2P + cross(omega2, R2 * elem.o2) - X1P - cross(omega1, R1 * elem.o1);
 
@@ -114,26 +90,6 @@ function f = ComputeResidual(elem, dCoef, XCurr, XPrimeCurr)
     M2 = cross(R2 * elem.o2, F2);
 
     c = elem.e3.' * ( R1.' * ( X2 + R2 * elem.o2 - X1 ) - elem.o1 );
-%{    
-    switch (typeinfo(c))
-        case "matrix"
-            c/dCoef
-        case "gradient"
-            c.x/dCoef
-    endswitch
-%}
-%{
-    switch ( typeinfo(c) )
-        case "matrix"
-            disp("AssRes:");
-            disp("X2 + R2 * elem.o2 - X1="); disp(X2 + R2 * elem.o2 - X1);
-            X1
-            X2
-            R1
-            R2
-            c
-    endswitch
-%}
 
     f = [ F1;
           M1;

@@ -58,6 +58,9 @@ RRef(Eye3),
 ThetaRef(Zero3),
 ThetaCurr(Zero3),
 M(Zero3),
+#ifdef USE_NETCDFC
+Var_Phi(0),
+#endif // USE_NETCDFC
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -89,6 +92,21 @@ DriveHingeJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+DriveHingeJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Drive Hinge", OH, name);
+
+			Var_Phi = OH.CreateVar<Vec3>(name + "Theta", "rad",
+				"Relative orientation");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 DriveHingeJoint::Output(OutputHandler& OH) const
@@ -96,10 +114,21 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		Mat3x3 R1(pNode1->GetRCurr()*R1h);
 		Vec3 d(MatR2EulerAngles(R1.Transpose()*(pNode2->GetRCurr()*R2h)));
-		Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
-				Zero3, M, Zero3, R1*M)
-			<< " " << d*dRaDegr
-			<< " " << ThetaCurr << std::endl;
+		
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
+					Zero3, M, Zero3, R1*M)
+				<< " " << d*dRaDegr
+				<< " " << ThetaCurr << std::endl;
+		}
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R1*M);
+			OH.WriteNcVar(Var_Phi, ThetaCurr);
+		}
+#endif // USE_NETCDF
+
 	}
 }
 
