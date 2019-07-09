@@ -4,8 +4,8 @@
  *
  * Copyright (C) 1996-2017
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati	<pierangelo.masarati@polimi.it>
+ * Paolo Mantegazza	<paolo.mantegazza@polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -24,8 +24,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program; If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 /* Copyright Marco Morandini */
 
@@ -311,8 +311,8 @@ static char doc[] = "MbdynPost -- another Mbdyn result parser\n"
 "\n"
 " Copyright (C) 1996-2017\n"
 "\n"
-" Pierangelo Masarati	<masarati@aero.polimi.it>\n"
-" Paolo Mantegazza	<mantegazza@aero.polimi.it>\n"
+" Pierangelo Masarati	<pierangelo.masarati@polimi.it>\n"
+" Paolo Mantegazza	<paolo.mantegazza@polimi.it>\n"
 "\n"
 " Changing this copyright notice is forbidden.\n"
 "\n"
