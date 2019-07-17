@@ -364,13 +364,13 @@ UseSocket::recv(void *buf, size_t len, int flags, bool bMsgDontWait)
 			<< std::endl);
 		//throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	} else {
-		fprintf (stdout, "UseSocket: recv() succeeded, result: %d, buf size: %d", result, sizeof(buf));
-//        silent_cout("UseSocket: recv() succeeded"
-//        << "(" << result
-//        << ": buf size: "
-//        << sizeof(buf)
-//        << ")"
-//        << std::endl);
+//		fprintf (stdout, "UseSocket: recv() succeeded, result: %d, buf size: %d", result, sizeof(buf));
+        DEBUGCOUT("UseSocket: recv() succeeded"
+        << "(" << result
+        << ": buf size: "
+        << sizeof(buf)
+        << ")"
+        << std::endl);
 	}
 
 
