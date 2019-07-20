@@ -2043,10 +2043,10 @@ DynamicInflowRotor::GetInducedVelocity(Elem::Type type,
 	Wait();
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
-	doublereal dr, dp;
-	GetPos(X, dr, dp);
+	doublereal dr, dpsi;
+	GetPos(X, dr, dpsi);
 
-	return RRot3*((dVConst + dr*(dVCosine*cos(dp) + dVSine*sin(dp)))*dRadius*dOmega);
+	return RRot3*((dVConst + dr*(dVCosine*cos(dpsi) + dVSine*sin(dpsi)))*dRadius*dOmega);
 };
 
 /* DynamicInflowRotor - end */
