@@ -34,7 +34,9 @@ MBDyn 1.X-Devel
 		- fix "reference" to drive callers in drive caller hints
 		- fix inconsistency in rod constitutive law docs
 		- fix total pin joint initial assembly (Eduardo Okabe)
-		- fix output at Gauss points (noted by Roberta Cumbo)
+		- fix aerodynamic elements output at Gauss points
+		  (noted by Roberta Cumbo)
+		- fix sign in dynamic inflow (noted by Neda Taymourtash)
 
 MBDyn 1.7.3
 	Enhancements:
