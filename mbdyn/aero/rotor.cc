@@ -1870,8 +1870,10 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	/* Thrust, roll and pitch coefficients */
 		 	dCT = dT/dDim;
 		 	dDim *= dRadius;
+			// Note: Neda Taymourtash noted a possible sign error in the Cm; however, a sign error in the Cl is more likely
 		 	dCl = - M(1)/dDim;
-		 	dCm = - M(2)/dDim;
+		 	// dCm = - M(2)/dDim;
+		 	dCm = M(2)/dDim;
 
 			if (dVT > std::numeric_limits<doublereal>::epsilon()
 				&& dVm > std::numeric_limits<doublereal>::epsilon())
