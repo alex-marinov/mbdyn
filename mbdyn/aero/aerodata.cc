@@ -35,7 +35,9 @@
 #include "aerodata_impl.h"
 #include "gauss.h"
 #include "submat.h"
+#ifdef USE_AEROD2_F
 #include "aerod2.h"
+#endif // USE_AEROD2_F
 #include "dataman.h"
 #include "drive_.h"
 
@@ -60,7 +62,9 @@ AeroMemory::~AeroMemory(void)
 	}
 }
 
+#ifdef USE_AEROD2_F
 #define USE_POLCOE
+#endif // USE_AEROD2_F
 void
 AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 {
@@ -664,6 +668,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 					<< std::endl);
 
  		case NACA0012: {
+#ifdef USE_AEROD2_F
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
 				   "airfoil is NACA0012" << std::endl);
 
@@ -676,10 +681,16 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
 				STAHRAeroData(*piNumber, iDim, eInst, 1, ptime));
+#else // !USE_AEROD2_F
+	  		silent_cerr("legacy airfoil data NACA0012 not supported at line " << HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_AEROD2_F
 	  		break;
  		}
 
  		case RAE9671: {
+#ifdef USE_AEROD2_F
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
 				"airfoil is RAE9671" << std::endl);
 
@@ -692,6 +703,11 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
 				STAHRAeroData(*piNumber, iDim, eInst, 2, ptime));
+#else // !USE_AEROD2_F
+	  		silent_cerr("legacy airfoil data RAE9671 not supported at line " << HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_AEROD2_F
 	  		break;
  		}
 
@@ -777,6 +793,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 		}
 
 	} else {
+#ifdef USE_AEROD2_F
 		/* FIXME: better abort! */
 		silent_cerr("missing airfoil type at line "
 				<< HP.GetLineData()
@@ -786,6 +803,11 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 		AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 		SAFENEWWITHCONSTRUCTOR(*aerodata,
 			STAHRAeroData, STAHRAeroData(*piNumber, iDim, eInst, 1));
+#else // !USE_AEROD2_F
+  		silent_cerr("legacy airfoil data NACA0012 not supported at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_AEROD2_F
 	}
 }
 

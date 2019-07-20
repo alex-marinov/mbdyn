@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- added support for NetCDF4 (Louis Gagnon)
 	Backward compatibility issues:
 		- now escape sequences are honored in "hints"
+		- conditional compilation of aerod2.f
 	Known issues:
 		- gravity not used in assembly
 	Bug fixes:

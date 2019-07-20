@@ -41,7 +41,9 @@
 #include "aerodata.h"
 
 #include "gauss.h"
+#ifdef USE_AEROD2_F
 #include "aerod2.h"
+#endif // USE_AEROD2_F
 #include "shape.h"
 
 class AerodynamicOutput {

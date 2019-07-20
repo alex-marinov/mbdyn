@@ -35,8 +35,12 @@
 #include "aerodata_impl.h"
 #include "gauss.h"
 #include "submat.h"
+#ifdef USE_AEROD2_F
 #include "aerod2.h"
+#endif // USE_AEROD2_F
 #include "c81data.h"
+
+#ifdef USE_AEROD2_F
 
 /* STAHRAeroData - begin */
 
@@ -102,6 +106,8 @@ STAHRAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6&
 }
 
 /* STAHRAeroData - end */
+
+#endif // USE_AEROD2_F
 
 /* C81AeroData - begin */
 

@@ -5,8 +5,6 @@ include $(top_srcdir)/build/top.mk
 # Build libaero.a library
 noinst_LTLIBRARIES = libaero.la
 libaero_la_SOURCES = \
-aerod2.f \
-aerod2.h \
 aerodata.cc \
 aerodata.h \
 aerodata_impl.cc \
@@ -36,6 +34,12 @@ rotor.cc \
 rotor.h \
 windprof.cc \
 windprof.h
+
+if BUILD_AEROD2_F
+libaero_la_SOURCES += \
+aerod2.f \
+aerod2.h
+endif
 
 nodist_libaero_la_SOURCES =
 

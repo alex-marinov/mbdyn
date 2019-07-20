@@ -307,16 +307,24 @@ AC_PROG_FC
 AC_FC_DUMMY_MAIN
 AC_FC_LIBRARY_LDFLAGS
 AC_PROG_F77
+have_fc_f77=no
 if test "x$FC" = "x" ; then
 	if test "x$F77" = "x" ; then
 		AC_MSG_ERROR([Need a working Fortran compiler])
 	fi
 	AC_F77_LIBRARY_LDFLAGS
 	LIBS="$LIBS $F77LIBS"
+	have_fc_f77=yes
 else
 	F77="$FC"
 	F77LIBS="$FCLIBS"
 	LIBS="$LIBS $FCLIBS"
+	have_fc_f77=yes
+fi
+
+if test "$have_fc_f77" = "yes" ; then
+	AC_DEFINE(HAVE_FC_F77, 1, [define if a Fortran 77 compiler is available])
+	AC_DEFINE(USE_AEROD2_F, 1, [define Fortran 77 aerodynamic routines can be used])
 fi
 
 if test "$GCC" = "yes" ; then
@@ -2644,7 +2652,7 @@ dnl Check for Y12
 dnl
 ol_link_y12=no
 if test $ol_with_y12 != no ; then
-	if test "x$F77" = "x" ; then
+	if test "x$have_fc_f77" = "x" ; then
 		if test $ol_with_y12 = yes ; then
 			AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
 		fi
@@ -3364,6 +3372,8 @@ AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
+
+AM_CONDITIONAL(BUILD_AEROD2_F,[test "$have_fc_f77" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
 AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])
