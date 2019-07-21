@@ -304,6 +304,8 @@ void func2(const T *A, const T *b, const T *c__, T *d__, const doublereal& e, do
     dt += stop - start;
 } /* func2_ */
 
+
+#ifdef HAVE_FC_F77
 /*
 	  SUBROUTINE FUNC2AD(A, b, c, d, e)
       IMPLICIT NONE
@@ -348,7 +350,7 @@ inline void func2ad(const Matrix<doublereal, 3, 3>& A, const Vector<doublereal, 
 	doublereal start, stop;
 
 	tic(start);
-	func2ad_(A_F, b.pGetVec(), c.pGetVec(), d.pGetVec(), e);
+	__FC_DECL__(func2ad)(A_F, b.pGetVec(), c.pGetVec(), d.pGetVec(), e);
 	tic(stop);
 
 	dt += stop - start;
@@ -380,7 +382,7 @@ inline void func2ad(const Matrix<Gradient<N_SIZE>, 3, 3>& A, const Vector<Gradie
 
 	doublereal start, stop;
 	tic(start);
-	func2ad_dv_(A_F, Ad_F, b_F, bd_F, c_F, cd_F, d_F, dd_F, e, N_SIZE);
+	__FC_DECL__(func2ad_dv)(A_F, Ad_F, b_F, bd_F, c_F, cd_F, d_F, dd_F, e, N_SIZE);
 	tic(stop);
 	dt += stop - start;
 
@@ -392,6 +394,7 @@ inline void func2ad(const Matrix<Gradient<N_SIZE>, 3, 3>& A, const Vector<Gradie
 		}
 	}
 }
+#endif // HAVE_FC_F77
 
 template <typename T>
 void func3(const Matrix<T, 3, 3>& R1, const Matrix<T, 3, 3>& R2, const Vector<T, 3>& a, const Vector<T, 3>& b, Vector<T, 3>& c, doublereal e) {
@@ -438,7 +441,7 @@ void callFunc(LocalDofMap* pDofMap, const Vector<T, N>& a, const Vector<T, N>& b
 template <typename T>
 void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3>& b, const Vector<T, 3>& c, Vector<T, 3>& d, Vector<T, 3>& d_C, Vector<T, 3>& d_F) {
 	srand(0);
-    doublereal dtMatVec = 0., dtC = 0., dtF = 0.;
+    doublereal dtMatVec = 0., dtC = 0.;
     for (int i = 0; i < NLoops; ++i) {
     	func2(A, b, c, d, random1(), dtMatVec);
     }
@@ -452,6 +455,8 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
 
     std::cerr << "C (" << typeid(T).name() << "): " << dtC << "s" << std::endl;
 
+#ifdef HAVE_FC_F77
+    doublereal dtF = 0.;
     srand(0);
     for (int i = 0; i < NLoops; ++i) {
     	func2ad(A, b, c, d_F, random1(), pDofMap, dtF);
@@ -461,6 +466,7 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
 
     std::cerr << "overhead matvec:" << dtMatVec / std::max(std::numeric_limits<doublereal>::epsilon(), dtF) << std::endl;
     std::cerr << "overhead C:" << dtC / std::max(std::numeric_limits<doublereal>::epsilon(), dtF) << std::endl;
+#endif // HAVE_FC_F77
 
     std::cout << "A=" << std::endl << A << std::endl;
     std::cout << "b=" << std::endl << b << std::endl;
@@ -473,7 +479,9 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
 
     for (int i = 1; i <= 3; ++i) {
     	assert(bCompare(d(i), d_C(i), dTol));
+#ifdef HAVE_FC_F77
     	assert(bCompare(d(i), d_F(i), dTol));
+#endif // HAVE_FC_F77
     }
 }
 
@@ -1282,6 +1290,7 @@ Norm_1(const Vector<T, N_rows>& u) {
 	return sqrt(Dot(u, u));
 }
 
+#ifdef HAVE_FC_F77
 extern "C" void __FC_DECL__(func2addad_dv)(const doublereal x[],
 										   const doublereal xd[],
 										   const doublereal y[],
@@ -1299,6 +1308,7 @@ extern "C" void __FC_DECL__(func2mulad_dv)(const doublereal x[],
 										   doublereal zd[],
 										   const integer& n,
 										   const integer& nbdirs);
+#endif // HAVE_FC_F77
 
 template <typename T, index_type iRowCount>
 void doVecAdd(const Vector<T, iRowCount>& x, const Vector<T, iRowCount>& y, Vector<T, iRowCount>& z)
@@ -5219,7 +5229,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "----------------------------\ncppad_benchmark3<12>()\n";
     cppad_benchmark3<12>(NLoops);
       
-
+#ifdef HAVE_FC_F77
     testVecOp<3, 2>(NLoops, 2, doVecAdd<Gradient<2>, 3>, __FC_DECL__(func2addad_dv), "add");
 	testVecOp<3, 4>(NLoops, 4, doVecAdd<Gradient<4>, 3>, __FC_DECL__(func2addad_dv), "add");
 	testVecOp<3, 8>(NLoops, 8, doVecAdd<Gradient<8>, 3>, __FC_DECL__(func2addad_dv), "add");
@@ -5271,6 +5281,7 @@ int main(int argc, char* argv[]) {
     testVecOp<12, 0>(NLoops, 256, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
     testVecOp<12, 0>(NLoops, 512, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
     testVecOp<12, 0>(NLoops, 1024, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+#endif // HAVE_FC_F77
 
     Mat3xN_test(3, NLoops);
     Mat3xN_test(10, NLoops);

@@ -239,7 +239,7 @@ OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
                           (ginac-config must be in $PATH)],auto,[auto yes no])
 OL_ARG_WITH(y12,[
        optional linear algebra solvers (naive is enabled by default):
-  --with-y12              with Y12 sparse math library],yes,[auto yes no])
+  --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
 OL_ARG_WITH(klu,[  --with-klu          with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
@@ -2652,7 +2652,7 @@ dnl Check for Y12
 dnl
 ol_link_y12=no
 if test $ol_with_y12 != no ; then
-	if test "x$have_fc_f77" = "x" ; then
+	if test "$have_fc_f77" = "no" ; then
 		if test $ol_with_y12 = yes ; then
 			AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
 		fi
@@ -3371,8 +3371,9 @@ AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
-AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
+AM_CONDITIONAL(USE_FORTRAN,[test "$have_fc_f77" = yes])
+AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 AM_CONDITIONAL(BUILD_AEROD2_F,[test "$have_fc_f77" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])

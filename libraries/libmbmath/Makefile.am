@@ -22,7 +22,6 @@ interp.h \
 interp.cc \
 JacSubMatrix.cc \
 JacSubMatrix.h \
-ldl.f \
 ldl.h \
 ls.cc \
 ls.h \
@@ -49,8 +48,6 @@ RotCoeff.hc \
 RotCoeff.hh \
 solman.cc \
 solman.h \
-spdata.h \
-spdata_.f \
 spmapmh.cc \
 spmapmh.h \
 spmh.cc \
@@ -71,6 +68,16 @@ schsolman.cc \
 schsolman.h \
 schurmh.h \
 schurmh.cc
+endif
+
+if USE_FORTRAN
+libmbmath_la_SOURCES += \
+ldl.f \
+spdata.h \
+spdata_.f
+else
+libmbmath_la_SOURCES += \
+ldl_.c
 endif
 
 libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
@@ -180,7 +187,14 @@ libmbmath.la \
 @LIBS@ \
 @RT_LIBS@
 
-matvectest_SOURCES = matvectest.cc matvectestfor.f
+matvectest_SOURCES = \
+matvectest.cc
+
+if USE_FORTRAN
+matvectest_SOURCES += \
+matvectestfor.f
+endif
+
 matvectest_LDADD = \
 libmbmath.la \
 ../libmbutil/libmbutil.la \

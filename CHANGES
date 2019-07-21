@@ -23,6 +23,9 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- now escape sequences are honored in "hints"
 		- conditional compilation of aerod2.f
+		- C replacement of ldl.f
+		- conditional compilation of Y12 sparse solver
+		- all core F77 dependencies conditionally compiled
 	Known issues:
 		- gravity not used in assembly
 	Bug fixes:
