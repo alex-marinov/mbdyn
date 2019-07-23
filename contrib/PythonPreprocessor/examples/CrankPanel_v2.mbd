@@ -156,7 +156,7 @@ for j in range(NY):
 	[BeamOrientationrr], [elastic_beam_rr1]))
 	for i in range(2):
 		bodies.append(Body(IDX3 + IDX2 * j  + i, beams[len(beams)-1].nodes[i], Arr1 * rho * L / NY / 2, RelNodeNull, ['diag', 0., 0., 0.]))
-	beams.append(Beam(IDX2 + j, [IDX + (NX  - 1) * (NY + 1) + j, IDX + (NX  - 1) * (NY + 1) + j + 1], [RelNodeNull, RelNodeNull], [RelNodeEye, RelNodeEye],
+	beams.append(Beam(IDX2 + j, [IDX + NX * (NY + 1) + j, IDX + NX * (NY + 1) + j + 1], [RelNodeNull, RelNodeNull], [RelNodeEye, RelNodeEye],
 	[BeamOrientationrr], [elastic_beam_rr2]))
 	for i in range(2):
 		bodies.append(Body(IDX3 + IDX2 * j  + 2 + i, beams[len(beams)-1].nodes[i], Arr2 * rho * L / NY / 2, RelNodeNull, ['diag', 0., 0., 0.]))
@@ -237,3 +237,5 @@ joint: JDX + 5, angular velocity,
 
 #endpreprocess
 end: elements;
+
+# vim:ft=mbd
