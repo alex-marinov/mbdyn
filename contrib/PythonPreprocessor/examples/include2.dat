@@ -35,7 +35,7 @@ for i in range(NX):
 
 elastic_beam_cl = ['linear elastic generic', 'diag', EA, kGA, kGA, GJ, EJ, EJ]
 for j in range(NY):
-        beams.append(Beam(IDX1 + j, [IDX + (NY + 1) * (NX - 1) + j, IDX + (NY + 1) * (NX - 1) + j + 1], [RelNodeNull, RelNodeNull], [RelNodeEye, RelNodeEye],
+        beams.append(Beam(IDX1 + j, [IDX + (NY + 1) * NX + j, IDX + (NY + 1) * NX + j + 1], [RelNodeNull, RelNodeNull], [RelNodeEye, RelNodeEye],
         [BeamOrientation], [elastic_beam_cl]))
 
 for i in range(len(shells)):
