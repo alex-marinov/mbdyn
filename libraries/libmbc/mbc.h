@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -378,6 +378,8 @@ typedef struct {
 	double		*n_d_f;
 	double		*n_d_m;
 
+	double		*n_t;
+
 #define MBC_N_K_LABELS(mbc)		((mbc)->n_k_labels)
 #define MBC_N_X(mbc)			((mbc)->n_k_x)
 #define MBC_N_THETA(mbc)		((mbc)->n_k_theta)
@@ -395,6 +397,7 @@ typedef struct {
 #define MBC_N_KINEMATICS(mbc)		((void *)(mbc)->n_ptr)
 #define MBC_N_DYNAMICS(mbc)		((void *)(MBC_N_KINEMATICS(mbc) + MBC_N_KINEMATICS_SIZE(mbc)))
 #define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
+#define MBC_N_TIME(mbc)			((mbc)->n_t)
 } mbc_nodal_t;
 
 /** \brief Initialize nodal data.

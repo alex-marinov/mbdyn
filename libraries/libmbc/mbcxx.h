@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -123,6 +123,7 @@ public:
 	const double& XPP(uint8_t idx) const;
 	const double& OmegaP(uint8_t idx) const;
 
+
 	uint32_t GetRefNodeDynamicsLabel(void) const;
 	const uint32_t& DynamicsLabel(void) const;
 	uint32_t& DynamicsLabel(void);
@@ -187,6 +188,7 @@ public:
 	const double * GetOmega(void) const;
 	const double * GetXPP(void) const;
 	const double * GetOmegaP(void) const;
+	const double * GetTime(void) const;
 
 	const double& X(uint32_t n, uint8_t idx) const;
 	const double& R(uint32_t n, uint8_t ir, uint8_t ic) const;
@@ -196,6 +198,7 @@ public:
 	const double& Omega(uint32_t n, uint8_t idx) const;
 	const double& XPP(uint32_t n, uint8_t idx) const;
 	const double& OmegaP(uint32_t n, uint8_t idx) const;
+	const double& Time(void) const;
 
 	uint32_t GetKinematicsLabel(uint32_t n) const;
 	uint32_t KinematicsLabel(uint32_t n) const;

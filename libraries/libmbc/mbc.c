@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -386,7 +386,7 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned refnode,
 	mbc->r_d_label = -1;
 	mbc->r_d_f = -1;
 	mbc->r_d_m = -1;
-	
+
 	if (!refnode) {
 		return 0;
 	}
@@ -535,7 +535,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 			if (rc == SOCKET_ERROR){
 				int save_errno = WSAGetLastError();
 				char* msg = sock_err_string(save_errno);
-				fprintf(stderr, "recv(%lu) x, theta, xP, omega failed with error code %d, msg: \"%s\"\n",
+				fprintf(stderr, "recv(%lu) x, theta, xP, omega, t failed with error code %d, msg: \"%s\"\n",
 					(unsigned long)MBC_N_KINEMATICS_SIZE(mbc), save_errno, msg);
 				return -1;
 			}
@@ -545,13 +545,13 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
             ioctlresult = ioctlsocket(mbc->mbc.sock, FIONBIO, &mode);
 #endif
 			if (rc != MBC_N_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%lu) x, theta, xP, omega failed (%ld)\n",
+				fprintf(stderr, "recv(%lu) x, theta, xP, omega, t failed (%ld)\n",
 					(unsigned long)MBC_N_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 			else if (mbc->mbc.verbose)
 			{
-				fprintf(stderr, "recv(%lu) x, theta, xP, omega succeeded, received (%ld) bytes\n",
+				fprintf(stderr, "recv(%lu) x, theta, xP, omega, t succeeded, received (%ld) bytes\n",
 					(unsigned long)MBC_N_KINEMATICS_SIZE(mbc), (long)rc);
 			}
 		}
@@ -700,7 +700,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 		return -1;
 	}
 	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
-	
+
 	mbc->n_ptr = NULL;
 	mbc->n_k_labels = NULL;
 	mbc->n_k_x = NULL;
@@ -714,6 +714,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	mbc->n_d_labels = NULL;
 	mbc->n_d_f = NULL;
 	mbc->n_d_m = NULL;
+	mbc->n_t = NULL;
 
 	if (mbc->nodes > 0) {
 		char *ptr;
@@ -752,6 +753,9 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 			mbc->k_size += mbc->nodes*sizeof(uint32_t);
 			mbc->d_size += mbc->nodes*sizeof(uint32_t);
 		}
+
+		// add space for the time
+		mbc->k_size += 1*sizeof (double);
 
 		mbc->n_ptr = (void *)malloc(MBC_N_SIZE(mbc));
 		if (mbc->n_ptr == NULL) {
@@ -806,6 +810,9 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 				ptr += 3*sizeof(double)*nodes;
 			}
 		}
+
+		mbc->n_t = (double *)ptr;
+		ptr += 1*sizeof(double);
 
 		if (MBC_F_LABELS(mbc)) {
 			mbc->n_d_labels = (uint32_t *)ptr;

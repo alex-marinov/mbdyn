@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -56,6 +56,8 @@ protected:
 	Vec3 F2, M2;
 	unsigned uOutputFlags;
 
+	DataManager* _pDM;
+
 public:
 	struct PointData {
 		unsigned uLabel;
@@ -82,6 +84,7 @@ protected:
 	unsigned node_kinematics_nbytes;
 	unsigned labels_size;
 	unsigned labels_nbytes;
+	unsigned time_nbytes;
 	std::vector<char> iobuf;
 	uint32_t *iobuf_labels;
 	doublereal *iobuf_x;
@@ -94,17 +97,18 @@ protected:
 	doublereal *iobuf_omegap;
 	doublereal *iobuf_f;
 	doublereal *iobuf_m;
+	doublereal *iobuf_t;
 
 	bool CheckProblemsMatch (unsigned  uNodal, bool bRef, unsigned  uR, bool bL, bool bA, unsigned uN);
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
-   
+
 	virtual void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
 	virtual void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
 	virtual void RecvFromStream(std::istream& inf);
 	virtual void RecvFromFileDes(int infd);
-   
+
 public:
 	/* Costruttore */
 	StructExtForce(unsigned int uL,
@@ -128,20 +132,20 @@ public:
 	virtual ~StructExtForce(void);
 
 	/* Tipo di forza */
-	virtual Force::Type GetForceType(void) const { 
-		return Force::EXTERNALSTRUCTURAL; 
+	virtual Force::Type GetForceType(void) const {
+		return Force::EXTERNALSTRUCTURAL;
 	};
- 
+
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);     
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	virtual void Output(OutputHandler& OH) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
@@ -155,8 +159,8 @@ class DataManager;
 class MBDynParser;
 
 extern Elem*
-ReadStructExtForce(DataManager* pDM, 
-       MBDynParser& HP, 
+ReadStructExtForce(DataManager* pDM,
+       MBDynParser& HP,
        unsigned int uLabel);
 
 #endif // STREXT_H

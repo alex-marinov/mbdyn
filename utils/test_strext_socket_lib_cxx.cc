@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -227,7 +227,7 @@ test_init(int argc, char *argv[])
 				usage();
 			}
 			break;
-		
+
 		case 'i' : {
 
 			int size = 6;
@@ -256,12 +256,12 @@ test_init(int argc, char *argv[])
 				usage();
 			}
 
-			inputfile = fopen(optarg, "r");	
+			inputfile = fopen(optarg, "r");
 			if (inputfile == NULL) {
 				fprintf(stderr,  "test_strext_socket: "
 					"-i unable to open input file %s\n", optarg);
-				usage(); 
-			}	
+				usage();
+			}
 
 			if (nodes <= 0) {
 				fprintf(stderr, "test_strext_socket: "
@@ -271,7 +271,7 @@ test_init(int argc, char *argv[])
 
 			if (nomoments) {
 				size = 3;
-		  	}	
+		  	}
 
 			f0 = fx;
 
@@ -281,8 +281,8 @@ test_init(int argc, char *argv[])
 					"malloc for nodal force values failed\n");
 				exit(EXIT_FAILURE);
 			}
-			
-			
+
+
 			inpfile = 1;
 			} break;
 
@@ -314,7 +314,7 @@ test_init(int argc, char *argv[])
 			}
 			break;
 
-		case 'o': 
+		case 'o':
 
 			if (optarg == NULL) {
 				fprintf(stderr, "test_strext_socket: "
@@ -322,10 +322,10 @@ test_init(int argc, char *argv[])
 				usage();
 			}
 
-			outputfile = fopen(optarg, "w");	
+			outputfile = fopen(optarg, "w");
 			if (outputfile == NULL) {
 				fprintf(stderr, "unable to open output file %s\n", optarg);
-				usage(); 
+				usage();
 			}
 
 			outfile = 1;
@@ -527,6 +527,7 @@ test_run(void)
 
 			if (outfile)  {
 				fprintf(outputfile, "STEP %u ITERATION %d\n", steps, iter);
+				fprintf(outputfile, "SIMULATION TIME %+16.8e\n", mbc->Time());
 			}
 
 			if (refnode) {
@@ -540,7 +541,7 @@ test_run(void)
 
 					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
 						mbc->X(1), mbc->X(2), mbc->X(3));
-		
+
 					switch (mbc->GetRefNodeRot()) {
 					default:
 						fprintf(outputfile, "R %+16.8e %+16.8e %+16.8e",
@@ -560,7 +561,7 @@ test_run(void)
 							mbc->Euler123(1), mbc->Euler123(2), mbc->Euler123(3));
 						break;
 					}
-	
+
 					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
 						mbc->XP(1), mbc->XP(2), mbc->XP(3));
 					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n\n",
@@ -598,7 +599,7 @@ test_run(void)
 						mbc->XP(1), mbc->XP(2), mbc->XP(3));
 					fprintf(stdout, "w={%+16.8e,%+16.8e,%+16.8e}\n",
 						mbc->Omega(1), mbc->Omega(2), mbc->Omega(3));
-				} 
+				}
 			}
 			if (mbc->GetNodes() > 0) {
 				if (outfile) {
@@ -606,7 +607,7 @@ test_run(void)
 					for (unsigned n = 1; n <= mbc->GetNodes(); n++) {
 						if (labels) {
 							fprintf(outputfile,"%d ", mbc->KinematicsLabel(n));
-						} 
+						}
 						fprintf(outputfile,"%+16.8e %+16.8e %+16.8e\n",
 							 mbc->X(n, 1), mbc->X(n, 2), mbc->X(n, 3));
 					}
@@ -615,7 +616,7 @@ test_run(void)
 						for (unsigned n = 1; n <= mbc->GetNodes(); n++) {
 							if (labels) {
 								fprintf(outputfile, "%d ", mbc->KinematicsLabel(n));
-							}	
+							}
 							switch (mbc->GetRot()) {
 							default:
 								fprintf(outputfile,
@@ -637,7 +638,7 @@ test_run(void)
 									mbc->Euler123(n, 1), mbc->Euler123(n, 2), mbc->Euler123(n, 3));
 								break;
 							}
-						}	
+						}
 					}
 					fprintf(outputfile, "VEL %u\n", mbc->GetNodes());
 					for (unsigned n = 1; n <= mbc->GetNodes(); n++) {
@@ -652,7 +653,7 @@ test_run(void)
 						for (unsigned n = 1; n <= mbc->GetNodes(); n++) {
 							if (labels) {
 								fprintf(outputfile, "%d ", mbc->KinematicsLabel(n));
-							}	
+							}
 							fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
 								mbc->Omega(n, 1), mbc->Omega(n, 2), mbc->Omega(n, 3));
 						}
@@ -697,7 +698,7 @@ test_run(void)
 						}
 					}
 				}
-			}	
+			}
 
 			if (sleeptime) {
 				sleep(sleeptime);
@@ -711,14 +712,14 @@ test_run(void)
 					fprintf(stderr, "Step: %u. Error while reading step"
 						" number from input file\n", steps);
 					exit(EXIT_FAILURE);
-				} 
+				}
 				if (i != steps) {
-					fprintf(stderr, "Error wrong step number from input file," 
+					fprintf(stderr, "Error wrong step number from input file,"
 						" is %u and shoul be %u\n", i, steps);
 					exit(EXIT_FAILURE);
 				}
 				if (refnode) {
-					if (fscanf(inputfile, "REF %lg %lg %lg %lg %lg %lg\n", 
+					if (fscanf(inputfile, "REF %lg %lg %lg %lg %lg %lg\n",
 						&f0[0], &f0[1], &f0[2], &f0[3], &f0[4], &f0[5]) != 6) {
 						fprintf(stderr, "Step: %u. Error while reading Reference Node"
 							" forces from input file\n", steps);
@@ -731,23 +732,23 @@ test_run(void)
 				}
 				for (unsigned n = 0; n < mbc->GetNodes(); n++) {
 					if (nomoments == 0) {
-						if (fscanf(inputfile, "%lg %lg %lg %lg %lg %lg\n", 
+						if (fscanf(inputfile, "%lg %lg %lg %lg %lg %lg\n",
 							&p0[size*n], &p0[size*n +1], &p0[size*n + 2],
 							&p0[size*n + 3], &p0[size*n +4], &p0[size*n + 5]) != 6) {
-							fprintf(stderr, "Step: %u. Error while reading Force & Moments" 
+							fprintf(stderr, "Step: %u. Error while reading Force & Moments"
  								" for Node %u from input file\n", steps, n);
 							exit(EXIT_FAILURE);
 						}
 					} else {
-						if (fscanf(inputfile, "%lg %lg %lg\n", 
+						if (fscanf(inputfile, "%lg %lg %lg\n",
 							&p0[size*n], &p0[size*n + 1], &p0[size*n + 2]) != 3) {
 							fprintf(stderr, "Step: %u. Error while reading Forces for Node %u"
 								" from input file\n", steps, n);
 							exit(EXIT_FAILURE);
 						}
 					}
-				}	
-			} 
+				}
+			}
 			if (refnode) {
 				if (f0 != NULL) {
 					mbc->F(1) = f0[0];

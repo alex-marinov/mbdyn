@@ -644,6 +644,13 @@ MBCNodal::GetOmegaP(void) const
 	return MBC_N_OMEGAP(&mbc);
 }
 
+const double *
+MBCNodal::GetTime(void) const
+{
+	assert(GetStatus() == READY);
+	return MBC_N_TIME(&mbc);
+}
+
 const double&
 MBCNodal::X(uint32_t n, uint8_t idx) const
 {
@@ -713,6 +720,13 @@ MBCNodal::OmegaP(uint32_t n, uint8_t idx) const
 	assert(bAccelerations());
 	if (idx < 1 || idx > 3 || n < 1 || n > GetNodes()) throw;
 	return (MBC_N_OMEGAP(&mbc))[3*(n - 1) + idx - 1];
+}
+
+const double &
+MBCNodal::Time(void) const
+{
+	assert(GetStatus() == READY);
+	return MBC_N_TIME(&mbc)[0];
 }
 
 uint32_t

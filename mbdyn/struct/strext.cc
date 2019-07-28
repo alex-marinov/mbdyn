@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -65,8 +65,8 @@ StructExtForce::StructExtForce(unsigned int uL,
 	int iCoupling,
 	unsigned uOutputFlags,
 	flag fOut)
-: Elem(uL, fOut), 
-ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
+: Elem(uL, fOut),
+ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
@@ -88,7 +88,9 @@ iobuf_omega(0),
 iobuf_xpp(0),
 iobuf_omegap(0),
 iobuf_f(0),
-iobuf_m(0)
+iobuf_m(0),
+iobuf_t(0),
+_pDM(pDM)
 {
 	ASSERT(nodes.size() == offsets.size());
 	ASSERT((!bLabels) || (nodes.size() == offsets.size()));
@@ -200,7 +202,8 @@ iobuf_m(0)
 		// all data is transmitted as a string of chars first put in
 		// a vector, iobuf
 		node_kinematics_nbytes = node_kinematics_size * sizeof(doublereal);
-		iobuf.resize(node_kinematics_nbytes + labels_nbytes);
+		time_nbytes = sizeof (doublereal);
+		iobuf.resize(node_kinematics_nbytes + labels_nbytes+ time_nbytes);
 		dynamics_nbytes = dynamics_size * sizeof(doublereal) + labels_nbytes;
 
 		char *ptr = &iobuf[0];
@@ -249,6 +252,9 @@ iobuf_m(0)
 				ptr += 3*sizeof(doublereal)*m_Points.size();
 			}
 		}
+
+        iobuf_t = (doublereal *)ptr;
+		ptr += 1*sizeof(doublereal);
 
 		ptr = (char *)iobuf_x;
 
@@ -593,7 +599,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 			outf
 				<< " " << RRef.MulTV(Dv);
-			
+
 			if (uRot != MBC_ROT_NONE) {
 				outf
 					<< " " << RRef.MulTV(w - wRef);
@@ -865,6 +871,9 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 		}
 	}
+
+	doublereal time = _pDM->dGetTime ();
+	memcpy(&iobuf_t[0], &time, 1*sizeof(doublereal));
 
 	send(outfd, &iobuf[0], iobuf.size(), 0);
 #else // ! USE_SOCKET
@@ -1196,7 +1205,7 @@ StructExtForce::RecvFromFileDes(int infd)
 SubVectorHandler&
 StructExtForce::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
-	const VectorHandler& XCurr, 
+	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
@@ -1410,7 +1419,7 @@ StructExtForce::Output(OutputHandler& OH) const
 		/* TODO: NetCDF */
 	}
 }
- 
+
 void
 StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(m_Points.size());
@@ -1420,8 +1429,8 @@ StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) con
 }
 
 Elem*
-ReadStructExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
+ReadStructExtForce(DataManager* pDM,
+	MBDynParser& HP,
 	unsigned int uLabel)
 {
 	ExtFileHandlerBase *pEFH = 0;
@@ -1538,7 +1547,7 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bGotRot = true;	
+			bGotRot = true;
 
 		} else if (HP.IsKeyWord("accelerations")) {
 			if (bGotAccels) {
@@ -1570,7 +1579,7 @@ ReadStructExtForce(DataManager* pDM,
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			
+
 			if (!HP.GetYesNo(bUseReferenceNodeForces)) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
 					"\"use reference node forces\" must be either \"yes\" or \"no\" at line "
@@ -1617,7 +1626,7 @@ ReadStructExtForce(DataManager* pDM,
 
 	for (int i = 0; i < n; i++ ) {
 		Nodes[i] = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		
+
 		ReferenceFrame RF(Nodes[i]);
 
 		if (bLabels) {
