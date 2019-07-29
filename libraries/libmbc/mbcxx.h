@@ -265,11 +265,13 @@ public:
 	double& F(uint8_t idx);
 	const double& M(uint8_t idx) const;
 	double& M(uint8_t idx);
+	const double& Time(void) const;
 
 	uint32_t GetModes(void) const;
 
 	const double * GetQ(void) const;
 	const double * GetQP(void) const;
+	const double * GetTime(void) const;
 
 	const double& Q(uint32_t m) const;
 	const double& QP(uint32_t m) const;

@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -247,7 +247,8 @@ ExtRigidForceEDGE::Send(
 	unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
-	const std::vector<doublereal>& qP)
+	const std::vector<doublereal>& qP,
+	const doublereal& t)
 {
 	std::ostream& fout = *pEFH->GetOutStream();
 	ASSERT((uFlags & ExtModalForceBase::EMF_RIGID) != 0);
@@ -463,7 +464,8 @@ ExtModalForceEDGE::Send(
 	unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
-	const std::vector<doublereal>& qP)
+	const std::vector<doublereal>& qP,
+    const doublereal& t)
 {
 	std::ostream& fout = *pEFH->GetOutStream();
 	ASSERT((uFlags & ExtModalForceBase::EMF_MODAL) != 0);

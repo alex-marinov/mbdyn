@@ -92,7 +92,8 @@ public:
 	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
-		const std::vector<doublereal>& qP) = 0;
+		const std::vector<doublereal>& qP,
+		const doublereal &t) = 0;
 };
 
 /* ExtModalForceBase - end */
@@ -115,7 +116,8 @@ public:
 	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
-		const std::vector<doublereal>& qP);
+		const std::vector<doublereal>& qP,
+		const doublereal &t);
 
 protected:
 	virtual unsigned
@@ -134,7 +136,8 @@ protected:
 	SendToFileDes(int outfd, int send_flags, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
-		const std::vector<doublereal>& qP);
+		const std::vector<doublereal>& qP,
+		const doublereal &t);
 };
 
 /* ExtModalForce - end */

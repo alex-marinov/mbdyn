@@ -210,7 +210,8 @@ void
 ExtModalForce::Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
-	const std::vector<doublereal>& qP)
+	const std::vector<doublereal>& qP,
+	const doublereal& t)
 {
 	std::ostream *outfp = pEFH->GetOutStream();
 	if (outfp) {
@@ -218,7 +219,7 @@ ExtModalForce::Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 
 	} else {
 		return SendToFileDes(pEFH->GetOutFileDes(), pEFH->GetSendFlags(),
-			uFlags, uLabel, x, R, v, w, q, qP);
+			uFlags, uLabel, x, R, v, w, q, qP, t);
 	}
 }
 
@@ -308,19 +309,23 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 	unsigned uFlags, unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
-	const std::vector<doublereal>& qP)
+	const std::vector<doublereal>& qP,
+	const doublereal& t)
 {
+
 #ifdef USE_SOCKET
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
 		send(outfd, (const char*)x.pGetVec(), 3*sizeof(doublereal), send_flags);
 		send(outfd, (const char*)R.pGetMat(), 9*sizeof(doublereal), send_flags);
 		send(outfd, (const char*)v.pGetVec(), 3*sizeof(doublereal), send_flags);
 		send(outfd, (const char*)w.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)(&t), 1*sizeof(doublereal), send_flags);
 	}
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
 		send(outfd, (const char*)&q[0], q.size()*sizeof(doublereal), send_flags);
 		send(outfd, (const char*)&qP[0], qP.size()*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)(&t), 1*sizeof(doublereal), send_flags);
 	}
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -430,7 +435,8 @@ ModalExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when)
 		}
 	}
 
-	pEMF->Send(pEFH, uFlags, GetLabel(), x, R, v, w, q, qP);
+	doublereal t = this->pDM->dGetTime ();
+	pEMF->Send(pEFH, uFlags, GetLabel(), x, R, v, w, q, qP, t);
 
 #if 0
 	if (uFlags & ExtModalForceBase::EMF_RIGID) {
@@ -617,7 +623,7 @@ ReadModalExtForce(DataManager* pDM,
 	ExtModalForceBase::BitMask bm = ExtModalForceBase::EMF_ALL;
 	if (pNode == 0) {
 		bm = ExtModalForceBase::EMF_MODAL;
-		
+
 	} else if (pModal == 0) {
 		bm = ExtModalForceBase::EMF_RIGID;
 	}

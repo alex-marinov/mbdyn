@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -201,6 +201,7 @@ class ExtForce : virtual public Elem, public Force {
 protected:
 	Converged c;
 	ExtFileHandlerBase *pEFH;
+	DataManager *pDM;
 
 	// exchange after predict?
 	bool bSendAfterPredict;
@@ -234,7 +235,7 @@ protected:
 	virtual bool Prepare(ExtFileHandlerBase *pEFH) = 0;
 	virtual void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when) = 0;
 	virtual void Recv(ExtFileHandlerBase *pEFH) = 0;
-   
+
 public:
 	/* Costruttore */
 	ExtForce(unsigned int uL,
@@ -249,27 +250,27 @@ public:
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints* h = 0);
-	virtual void Update(const VectorHandler& XCurr, 
+	virtual void Update(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
-	
+
 	/*
 	 * Elaborazione stato interno dopo la convergenza
 	 */
-	virtual void AfterConvergence(const VectorHandler& X, 
+	virtual void AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP);
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
+
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr);
 };
@@ -280,8 +281,8 @@ class DataManager;
 class MBDynParser;
 
 extern void
-ReadExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
+ReadExtForce(DataManager* pDM,
+	MBDynParser& HP,
 	unsigned int uLabel,
 	ExtFileHandlerBase*& pEFH,
 	bool& bSendAfterPredict,
@@ -289,7 +290,7 @@ ReadExtForce(DataManager* pDM,
 
 extern void
 ReadExtFileParams(DataManager* pDM,
-	MBDynParser& HP, 
+	MBDynParser& HP,
 	unsigned int uLabel,
 	mbsleep_t& SleepTime,
 	std::streamsize& Precision);

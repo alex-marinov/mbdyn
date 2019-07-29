@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -61,8 +61,8 @@ StructMappingExtForce::StructMappingExtForce(unsigned int uL,
 	bool bSendAfterPredict,
 	int iCoupling,
 	flag fOut)
-: Elem(uL, fOut), 
-ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
+: Elem(uL, fOut),
+ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
@@ -216,7 +216,7 @@ m_p(3*uMappedPoints)
 
 		m_xPP.resize(3*uPoints);
 		m_qPP.resize(3*uMappedPoints);
-		
+
 	}
 }
 
@@ -498,7 +498,7 @@ StructMappingExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::Send
 
 			outf
 				<< " " << RRef.MulTV(Dv);
-			
+
 			if (uRot != MBC_ROT_NONE) {
 				outf
 					<< " " << RRef.MulTV(w - wRef);
@@ -986,7 +986,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 SubVectorHandler&
 StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
-	const VectorHandler& XCurr, 
+	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
@@ -1121,7 +1121,7 @@ StructMappingExtForce::Output(OutputHandler& OH) const
 		/* TODO: NetCDF */
 	}
 }
- 
+
 void
 StructMappingExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
@@ -1164,7 +1164,7 @@ StructMembraneMappingExtForce::StructMembraneMappingExtForce(unsigned int uL,
 	bool bSendAfterPredict,
 	int iCoupling,
 	flag fOut)
-: Elem(uL, fOut), 
+: Elem(uL, fOut),
 StructMappingExtForce(uL, pDM,
 	pRefNode, bUseReferenceNodeForces, bRotateReferenceNodeForces,
 	nodes, offsets, labels, pH, mappedlabels,
@@ -1259,7 +1259,7 @@ StructMembraneMappingExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBa
 
 			outf
 				<< " " << RRef.MulTV(Dv);
-			
+
 			if (uRot != MBC_ROT_NONE) {
 				outf
 					<< " " << RRef.MulTV(w - wRef);
@@ -1566,6 +1566,10 @@ StructMembraneMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::Send
 		}
 	}
 
+	doublereal time = this->pDM->dGetTime ();
+	send(outfd, (const char *)&time, sizeof(double), 0);
+
+
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
@@ -1801,8 +1805,8 @@ StructMembraneMappingExtForce::RecvFromFileDes(int infd)
 
 
 Elem*
-ReadStructMappingExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
+ReadStructMappingExtForce(DataManager* pDM,
+	MBDynParser& HP,
 	unsigned int uLabel)
 {
 	ExtFileHandlerBase *pEFH = 0;
@@ -1886,7 +1890,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bGotRot = true;	
+			bGotRot = true;
 
 		} else if (HP.IsKeyWord("accelerations")) {
 			if (bGotAccels) {
@@ -1918,7 +1922,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			
+
 			if (!HP.GetYesNo(bUseReferenceNodeForces)) {
 				silent_cerr("StructMappingExtForce(" << uLabel << "): "
 					"\"use reference node forces\" must be either \"yes\" or \"no\" at line "
@@ -2106,7 +2110,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 	output: blade1H.dat
 	order: 2
 	basenode: 12
-	weight: 2 
+	weight: 2
 
 	*/
 
@@ -2249,7 +2253,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 			xRef = pRefNode->GetXCurr();
 			RRef = pRefNode->GetRCurr();
 
-			out 
+			out
 				<< "# reference: " << pRefNode->GetLabel() << std::endl
 			    	<< "# position: " << xRef << std::endl
 			    	<< "# orientation: " << MatR2EulerAngles123(RRef)*dRaDegr << std::endl;

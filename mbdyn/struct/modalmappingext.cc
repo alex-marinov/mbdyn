@@ -194,7 +194,8 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 	pH->MatVecMul(q, x);
 	pH->MatVecMul(qP, xP);
 
-	pEMF->Send(pEFH, uFlags, GetLabel(), X, R, V, W, q, qP);
+	doublereal t = this->pDM->dGetTime ();
+	pEMF->Send(pEFH, uFlags, GetLabel(), X, R, V, W, q, qP, t);
 }
 
 void
@@ -424,7 +425,7 @@ ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
+
 	const char *sFileName = HP.GetFileName();
 	if (sFileName == 0) {
 		silent_cerr("unable to read mapping file name "
@@ -466,7 +467,7 @@ ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols)
 					if (ir > nRows) {
 						nRows = ir;
 					}
-	
+
 				} else {
 					if (ir > nRows) {
 						silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
@@ -479,7 +480,7 @@ ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols)
 					if (ic > nCols) {
 						nCols = ic;
 					}
-	
+
 				} else {
 					if (ic > nCols) {
 						silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "

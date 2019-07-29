@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -236,8 +236,8 @@ ExtFileHandler::Recv_pre(void)
 	for (int cnt = 0; !inf; cnt++) {
 		silent_cout("input file \"" << fin.c_str() << "\" missing, "
 			"try #" << cnt << "; "
-			"sleeping " << SleepTime << " s" << std::endl); 
-               
+			"sleeping " << SleepTime << " s" << std::endl);
+
 		if (mbdyn_stop_at_end_of_iteration()) {
 			inf.setstate(std::ios_base::badbit);
 			return (bOK = false);
@@ -440,7 +440,7 @@ ExtForce::ExtForce(unsigned int uL,
 	bool bSendAfterPredict,
 	int iCoupling,
 	flag fOut)
-: Elem(uL, fOut), 
+: Elem(uL, fOut),
 Force(uL, fOut),
 c(iCoupling > COUPLING_LOOSE ? pDM : NULL),
 pEFH(pEFH),
@@ -448,7 +448,8 @@ bSendAfterPredict(bSendAfterPredict),
 iCoupling(iCoupling),
 iCouplingCounter(0),
 bFirstSend(true),
-bFirstRecv(true)
+bFirstRecv(true),
+pDM(pDM)
 {
 	NO_OP;
 }
@@ -483,7 +484,7 @@ ExtForce::SetValue(DataManager *pDM,
 }
 
 void
-ExtForce::Update(const VectorHandler& XCurr, 
+ExtForce::Update(const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
 	/* If running tight coupling, send kinematics every iteration */
@@ -527,7 +528,7 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
  * Elaborazione stato interno dopo la convergenza
  */
 void
-ExtForce::AfterConvergence(const VectorHandler& X, 
+ExtForce::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	/* If not running tight coupling, send kinematics only at convergence */
@@ -579,12 +580,12 @@ ExtForce::Recv(void)
 void
 ExtForce::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = 0; 
-	*piNumCols = 0; 
+	*piNumRows = 0;
+	*piNumCols = 0;
 }
-   
+
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 ExtForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
@@ -592,8 +593,8 @@ ExtForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 ExtForce::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
@@ -603,7 +604,7 @@ ExtForce::InitialAssRes(SubVectorHandler& WorkVec,
 
 void
 ReadExtFileParams(DataManager* pDM,
-	MBDynParser& HP, 
+	MBDynParser& HP,
 	unsigned int uLabel,
 	mbsleep_t& SleepTime,
 	std::streamsize& Precision)
@@ -640,7 +641,7 @@ ReadExtFileParams(DataManager* pDM,
 
 static ExtFileHandlerBase *
 ReadExtFileHandler(DataManager* pDM,
-	MBDynParser& HP, 
+	MBDynParser& HP,
 	unsigned int uLabel)
 {
 	if (HP.IsKeyWord("EDGE")) {
@@ -698,8 +699,8 @@ ReadExtFileHandler(DataManager* pDM,
 }
 
 void
-ReadExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
+ReadExtForce(DataManager* pDM,
+	MBDynParser& HP,
 	unsigned int uLabel,
 	ExtFileHandlerBase*& pEFH,
 	bool& bSendAfterPredict,

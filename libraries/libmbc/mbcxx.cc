@@ -1071,6 +1071,13 @@ MBCModal::M(uint8_t idx)
 	return MBCBase::M(idx);
 }
 
+const double&
+MBCModal::Time(void) const
+{
+    assert(GetStatus() == READY);
+	return MBC_M_TIME(&mbc)[0];
+}
+
 uint32_t
 MBCModal::GetModes(void) const
 {
@@ -1090,6 +1097,13 @@ MBCModal::GetQP(void) const
 {
 	assert(GetStatus() == READY);
 	return MBC_QP(&mbc);
+}
+
+const double *
+MBCModal::GetTime(void) const
+{
+	assert(GetStatus() == READY);
+	return MBC_M_TIME(&mbc);
 }
 
 const double&

@@ -89,8 +89,7 @@ iobuf_xpp(0),
 iobuf_omegap(0),
 iobuf_f(0),
 iobuf_m(0),
-iobuf_t(0),
-_pDM(pDM)
+iobuf_t(0)
 {
 	ASSERT(nodes.size() == offsets.size());
 	ASSERT((!bLabels) || (nodes.size() == offsets.size()));
@@ -872,7 +871,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		}
 	}
 
-	doublereal time = _pDM->dGetTime ();
+	doublereal time = this->pDM->dGetTime ();
 	memcpy(&iobuf_t[0], &time, 1*sizeof(doublereal));
 
 	send(outfd, &iobuf[0], iobuf.size(), 0);

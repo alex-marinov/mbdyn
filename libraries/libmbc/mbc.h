@@ -349,6 +349,7 @@ typedef struct {
  * - MBC_N_SIZE(mbc): returns the cumulative size of the buffers
  * - MBC_N_KINEMATICS(mbc): returns a (void *) pointer to the input buffer
  * - MBC_N_DYNAMICS(mbc): returns a (void *) pointer to the output buffer
+ * - MBC_N_TIME(mbc): returns a (double *) pointer to the current simulation time
  */
 typedef struct {
 	mbc_t		mbc;
@@ -512,7 +513,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last);
 
 
 /**
- * \brief nodal stuff (partially opaque).
+ * \brief modal stuff (partially opaque).
  *
  * Users do not need to access members directly;
  * macros documented in the following should be used instead.
@@ -527,6 +528,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last);
  * - MBC_M_SIZE(mbc): returns the cumulative size of the buffers
  * - MBC_M_KINEMATICS(mbc): returns a (void *) pointer to the input buffer
  * - MBC_M_DYNAMICS(mbc): returns a (void *) pointer to the output buffer
+ * - MBC_M_TIME(mbc): returns a (double *) pointer to the current simulation time
  */
 typedef struct {
 	mbc_t		mbc;
@@ -540,9 +542,10 @@ typedef struct {
 #define MBC_P(mbc)			(&(mbc)->m[2*(mbc)->modes])
 #define MBC_M_KINEMATICS(mbc)		MBC_Q((mbc))
 #define MBC_M_DYNAMICS(mbc)		MBC_P((mbc))
-#define MBC_M_KINEMATICS_SIZE(mbc)	(2*(mbc)->modes*sizeof(double))
+#define MBC_M_KINEMATICS_SIZE(mbc)	((2*(mbc)->modes+1)*sizeof(double))
 #define MBC_M_DYNAMICS_SIZE(mbc)	((mbc)->modes*sizeof(double))
 #define MBC_M_SIZE(mbc)			(3*(mbc)->modes*sizeof(double))
+#define MBC_M_TIME(mbc)			(&(mbc)->m[2*(mbc)->modes+1])
 } mbc_modal_t;
 
 /** \brief Initialize modal data.

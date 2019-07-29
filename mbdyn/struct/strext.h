@@ -56,8 +56,6 @@ protected:
 	Vec3 F2, M2;
 	unsigned uOutputFlags;
 
-	DataManager* _pDM;
-
 public:
 	struct PointData {
 		unsigned uLabel;
