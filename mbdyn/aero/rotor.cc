@@ -2928,6 +2928,7 @@ ReadRotor(DataManager* pDM,
 			if (dTolerance == std::numeric_limits<double>::max()) {
 				silent_cerr("Rotor(" << uLabel << "): "
 					"warning, \"max iterations\" is meaningless with default tolerance"
+					" at line " << HP.GetLineData()
 					<< std::endl);
 			}
 		}
