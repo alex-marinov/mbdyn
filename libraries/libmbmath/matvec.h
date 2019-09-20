@@ -2716,6 +2716,63 @@ private:
 	const VectorExpression<VectorExpr, 3> g;
 };
 
+
+    template <typename T, typename VectorExpr>
+    class MatRotVecInit {
+    public:
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = 3;
+
+        MatRotVecInit(const VectorExpression<VectorExpr, 3>& Phi)
+            :p(Phi) {
+        }
+
+        void Initialize(Matrix<T, 3, 3>& R) const {
+            const index_type cid = RotCoeff::COEFF_B;
+            using std::sqrt;
+            using std::sin;
+            using std::cos;
+            
+            T phip[10];
+            T phi2(Dot(p, p));
+            T pd(sqrt(phi2));
+            T cf[RotCoeff::COEFF_B];
+            index_type k, j;
+
+            if (pd < RotCoeff::SerThrsh[cid-1]) {
+                phip[0] = 1.;
+                for (j = 1; j <= 9; j++) {
+                    phip[j] = phip[j-1]*phi2;
+                }
+                for (k = 0; k < cid; k++) {
+                    cf[k] = 0.;
+                    for (j = 0; j < RotCoeff::SerTrunc[k]; j++) {
+                        cf[k] += phip[j]/RotCoeff::SerCoeff[k][j];
+                    }
+                }
+            } else {
+                cf[0] = sin(pd) / pd;                 // a = sin(phi)/phi
+                cf[1]=(1. - cos(pd)) / phi2;           // b = (1.-cos(phi))/phi2
+            }
+
+            R(1,1) = cf[1]*((-p(3)*p(3))-p(2)*p(2))+1.;
+            R(1,2) = cf[1]*p(1)*p(2)-cf[0]*p(3);
+            R(1,3) = cf[1]*p(1)*p(3)+cf[0]*p(2);
+            R(2,1) = cf[0]*p(3)+cf[1]*p(1)*p(2);
+            R(2,2) = cf[1]*((-p(3)*p(3))-p(1)*p(1))+1.;
+            R(2,3) = cf[1]*p(2)*p(3)-cf[0]*p(1);
+            R(3,1) = cf[1]*p(1)*p(3)-cf[0]*p(2);
+            R(3,2) = cf[1]*p(2)*p(3)+cf[0]*p(1);
+            R(3,3) = cf[1]*((-p(2)*p(2))-p(1)*p(1))+1.;
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }
+        
+    private:
+	const VectorExpression<VectorExpr, 3> p;
+    };
+        
 template <typename T, typename VectorExpr>
 class MatCrossCrossInit {
 public:
@@ -2846,6 +2903,18 @@ MatGVec(const VectorExpression<VectorExpr, 3>& g) {
 	return MatrixInit<MatRInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(g);
     }    
     
+    template <typename T>
+    inline MatrixInit<MatRotVecInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>
+    MatRotVec(const Vector<T, 3>& Phi) {
+	return MatrixInit<MatRotVecInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>(Direct(Phi));
+    }
+
+    template <typename VectorExpr>
+    inline MatrixInit<MatRotVecInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>
+    MatRotVec(const VectorExpression<VectorExpr, 3>& Phi) {
+	return MatrixInit<MatRotVecInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(Phi);
+    }
+            
     template <typename T, typename MatrixExpr>
     class VecRotInit {
     public:

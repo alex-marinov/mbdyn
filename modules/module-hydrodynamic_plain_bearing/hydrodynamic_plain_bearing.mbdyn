@@ -223,7 +223,7 @@ begin: initial value;
         derivatives tolerance: 1e-6;
         derivatives max iterations: 1000;
         derivatives coefficient: 1e-6;
-	
+        threads: assembly, 1;	
 	linear solver: naive, colamd, mt, 1;
         nonlinear solver: newton raphson;
 end: initial value;

@@ -40,6 +40,8 @@ mbdyn_LDADD += \
 $(GINACLIB_LIBS) \
 @Y12_LIBS@ \
 @PASTIX_LIBS@ \
+@QRUPDATE_LIBS@ \
+@SUITESPARSEQR_LIBS@ \
 @HARWELL_LIBS@ \
 @ARPACK_LIBS@ \
 @JDQZ_LIBS@ \
@@ -76,7 +78,7 @@ AM_CPPFLAGS = \
 -I$(srcdir)/../libraries/libmbc \
 -I$(srcdir)/../mbdyn/base \
 -I$(srcdir)/../mbdyn/struct \
--I../mbdyn/thermo \
+-I$(srcdir)/../mbdyn/thermo \
 -I$(srcdir)/../mbdyn/aero \
 -I$(srcdir)/../mbdyn/elec \
 -I$(srcdir)/../mbdyn/hydr \

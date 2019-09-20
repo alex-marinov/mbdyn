@@ -62,6 +62,7 @@ extern "C" {
 #include "parnaivewrap.h"
 #include "wsmpwrap.h"
 #include "pastixwrap.h"
+#include "qrwrap.h"
 
 const char *solvers[] = {
 #if defined(USE_Y12)
@@ -91,6 +92,10 @@ const char *solvers[] = {
 #if defined(USE_PASTIX)
                 "pastix",
 #endif                
+                "qr",
+#if defined(USE_SUITESPARSE_QR)
+                "spqr",
+#endif
 		"naive",
 		NULL
 };
@@ -117,6 +122,8 @@ void SetupSystem(
 	std::ofstream ofile;
 	int size = 3;
 	
+        srand(0);
+        
 	if (filename == 0) {
 		if (random) {
 			int size = (*pM).iGetNumRows();
@@ -171,7 +178,7 @@ void SetupSystem(
 							"<activcol> "
 							"from -r args"
 							<< std::endl;
-						exit(EXIT_FAILURE);
+                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 				} else {
@@ -199,7 +206,7 @@ void SetupSystem(
 							"<sprfct> "
 							"from -r args"
 							<< std::endl;
-						exit(EXIT_FAILURE);
+                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);                                                
 					}
 
 				} else {
@@ -281,12 +288,13 @@ void SetupSystem(
 		integer row, col;
 		doublereal x;
 		while (ifile >> row >> col >> x) {
-			if (row > size || col > size) {
+                        if (row < 1 || row > size || col < 1 || col > size) {
 				std::cerr << "Fatal read error of file" << filename << std::endl;
 				std::cerr << "size: " << size << std::endl;
 				std::cerr << "row:  " << row << std::endl;
 				std::cerr << "col:  " << col << std::endl;
 				std::cerr << "x:    " << x << std::endl;
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			(*pM)(row, col) = x;
 			count++;
@@ -799,6 +807,16 @@ main(int argc, char *argv[])
                                 << std::endl;
                         usage(EXIT_FAILURE);
 #endif /* !USE_PASTIX */
+                } else if (strcasecmp(solver, "qr") == 0) {
+                        std::cerr << "qr solver" << std::endl;
+                        SAFENEWWITHCONSTRUCTOR(pSM, QrDenseSolutionManager,
+                                               QrDenseSolutionManager(size));
+#if defined(USE_SUITESPARSE_QR)                
+                } else if (strcasecmp(solver, "spqr") == 0) {
+                        std::cerr << "spqr solver" << std::endl;
+                        SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager,
+                                               QrSparseSolutionManager(size, 0u));
+#endif                        
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (dpivot == -1.) {
@@ -848,6 +866,13 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
+                // NOTE: SetupSystem should be called only once since it uses files and random numbers
+                SpMapMatrixHandler M(size); 
+                MyVectorHandler V(size), F(size);
+                
+                SetupSystem(random, random_args, singular,
+                            matrixfilename, filename, &M, &V);
+                
 	pSM->MatrReset();
 	
 	MatrixHandler *pM = pSM->pMatHdl();
@@ -856,8 +881,11 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(random, random_args, singular,
-			matrixfilename, filename, pM, pV);
+                for (const auto& e: M) {
+                        pM->PutCoef(e.iRow + 1, e.iCol + 1, e.dCoef);
+                }
+                
+                *pV = V;
 	
 #ifdef HAVE_TIMES
 	clock_t ct = 0;
@@ -896,6 +924,15 @@ main(int argc, char *argv[])
 #endif // HAVE_TIMES
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
+                F = V;
+
+                if (transpose) {
+                        M.MatTVecDecMul(F, *px);
+                } else {
+                        M.MatVecDecMul(F, *px);
+                }
+
+                std::cout << "Residual: " << F.Norm() << std::endl;
 
 	std::cout << "\nSecond solve:\n";
 	
@@ -904,7 +941,11 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(random, random_args, singular, 0, filename, pM, pV);
+                for (const auto& e: M) {
+                        pM->PutCoef(e.iRow + 1, e.iCol + 1, e.dCoef);
+                }
+                
+                *pV = V;                
 	
 		start = clock();
 		tf = rd_CPU_ts();
@@ -940,6 +981,19 @@ main(int argc, char *argv[])
 #endif // HAVE_TIMES
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
+                F = V;
+
+                if (transpose) {
+                        M.MatTVecDecMul(F, *px);
+                } else {
+                        M.MatVecDecMul(F, *px);
+                }
+
+                std::cout << "Residual: " << F.Norm() << std::endl;
+
+                
+                SAFEDELETE(pSM);
+                
 	return 0;
 
         } catch (const std::exception& err) {

@@ -93,14 +93,16 @@ private:
 	mutable integer *Aip;
 	mutable integer *App;
 
-	klu_symbolic *Symbolic;
+        mutable klu_symbolic *Symbolic;
 	mutable klu_common Control;
 	mutable klu_numeric *Numeric;
+        mutable integer iNumNonZeros;
 
 	bool bPrepareSymbolic(void);
 	
 	void Factor(void);
-
+        void ResetSymbolic(void) const;
+        void ResetNumeric(void) const;
 public:
 	enum Scale {
 		SCALE_NONE = 0,

@@ -450,7 +450,7 @@ void test_func2(index_type N) {
               e,
               f_tmp);
 
-        assert(bCompare(f.dGetValue(), f_tmp, std::numeric_limits<doublereal>::epsilon()));
+        assert(bCompare(f.dGetValue(), f_tmp, sqrt(std::numeric_limits<doublereal>::epsilon())));
 
         std::cout << "f=" << f.dGetValue() << std::endl;
         std::cout << "f_tmp=" << f_tmp << std::endl;

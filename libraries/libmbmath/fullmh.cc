@@ -30,11 +30,10 @@
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
 #include <cstring>	/* for memset() */
 #include <iostream>
 #include <iomanip>
-
+#include <ac/lapack.h>
 #include <fullmh.h>
 #include <submat.h>
 
@@ -460,108 +459,6 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 
 #ifdef USE_LAPACK
 /*
-NAME
-       DGEMM - one of the matrix-matrix operations   C := alpha*op( A )*op( B ) + beta*C,
-
-SYNOPSIS
-       SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-
-           DOUBLE                                                         PRECISION ALPHA,BETA
-
-           INTEGER                                                        K,LDA,LDB,LDC,M,N
-
-           CHARACTER                                                      TRANSA,TRANSB
-
-           DOUBLE                                                         PRECISION A(LDA,*),B(LDB,*),C(LDC,*)
-
-PURPOSE
-       DGEMM  performs one of the matrix-matrix operations
-
-       where  op( X ) is one of
-
-          op( X ) = X   or   op( X ) = X',
-
-       alpha  and beta are scalars, and A, B and C are matrices, with op( A ) an m by k matrix,  op( B )  a  k by
-       n matrix and  C an m by n matrix.
-
-ARGUMENTS
-       TRANSA - CHARACTER*1.  On entry, TRANSA specifies the form of op( A ) to be used in the matrix multiplica-
-       tion as follows:
-
-       TRANSA = 'N' or 'n',  op( A ) = A.
-
-       TRANSA = 'T' or 't',  op( A ) = A'.
-
-       TRANSA = 'C' or 'c',  op( A ) = A'.
-
-       Unchanged on exit.
-
-       TRANSB - CHARACTER*1.  On entry, TRANSB specifies the form of op( B ) to be used in the matrix multiplica-
-       tion as follows:
-
-       TRANSB = 'N' or 'n',  op( B ) = B.
-
-       TRANSB = 'T' or 't',  op( B ) = B'.
-
-       TRANSB = 'C' or 'c',  op( B ) = B'.
-
-       Unchanged on exit.
-
-       M      - INTEGER.
-              On entry,  M  specifies  the number  of rows  of the  matrix op( A )  and of  the   matrix   C.   M
-              must  be at least  zero.  Unchanged on exit.
-
-       N      - INTEGER.
-              On  entry,   N  specifies the number  of columns of the matrix op( B ) and the number of columns of
-              the matrix C. N must be at least zero.  Unchanged on exit.
-
-       K      - INTEGER.
-              On entry,  K  specifies  the number of columns of the matrix op( A ) and the number of rows of  the
-              matrix op( B ). K must be at least  zero.  Unchanged on exit.
-
-       ALPHA  - DOUBLE PRECISION.
-              On entry, ALPHA specifies the scalar alpha.  Unchanged on exit.
-
-       A      - DOUBLE PRECISION array of DIMENSION ( LDA, ka ), where ka is
-              k   when  TRANSA = 'N' or 'n',  and is  m  otherwise.  Before entry with  TRANSA = 'N' or 'n',  the
-              leading  m by k part of the array  A  must contain the matrix  A,  otherwise the leading   k  by  m
-              part of the array  A  must contain  the matrix A.  Unchanged on exit.
-
-       LDA    - INTEGER.
-              On  entry,  LDA  specifies  the first dimension of A as declared in the calling (sub) program. When
-              TRANSA = 'N' or 'n' then LDA must be at least  max( 1, m ), otherwise  LDA must be at  least   max(
-              1, k ).  Unchanged on exit.
-
-       B      - DOUBLE PRECISION array of DIMENSION ( LDB, kb ), where kb is
-              n   when  TRANSB = 'N' or 'n',  and is  k  otherwise.  Before entry with  TRANSB = 'N' or 'n',  the
-              leading  k by n part of the array  B  must contain the matrix  B,  otherwise the leading   n  by  k
-              part of the array  B  must contain  the matrix B.  Unchanged on exit.
-
-       LDB    - INTEGER.
-              On  entry,  LDB  specifies  the first dimension of B as declared in the calling (sub) program. When
-              TRANSB = 'N' or 'n' then LDB must be at least  max( 1, k ), otherwise  LDB must be at  least   max(
-              1, n ).  Unchanged on exit.
-
-       BETA   - DOUBLE PRECISION.
-              On  entry,   BETA   specifies the scalar  beta.  When  BETA  is supplied as zero then C need not be
-              set on input.  Unchanged on exit.
-
-       C      - DOUBLE PRECISION array of DIMENSION ( LDC, n ).
-              Before entry, the leading  m by n  part of the array  C must contain the matrix   C,   except  when
-              beta   is zero, in which case C need not be set on entry.  On exit, the array  C  is overwritten by
-              the  m by n  matrix ( alpha*op( A )*op( B ) + beta*C ).
-
-       LDC    - INTEGER.
-              On entry, LDC specifies the first dimension of C as declared  in   the   calling   (sub)   program.
-              LDC  must  be  at  least max( 1, m ).  Unchanged on exit.
-
-              Level 3 Blas routine.
-
-              --  Written  on 8-February-1989.  Jack Dongarra, Argonne National Laboratory.  Iain Duff, AERE Har-
-              well.  Jeremy Du Croz, Numerical Algorithms Group Ltd.  Sven Hammarling, Numerical Algorithms Group
-              Ltd.
- */
-/*
    Note: dgemm performs
 
        C := alpha*op( A )*op( B ) + beta*C,
@@ -587,14 +484,88 @@ ARGUMENTS
    out -= op( A ) * B 	requires alpha = -1, beta = 1
  */
 
-extern "C" int
-__FC_DECL__(dgemm)(const char *const TRANSA, const char *const TRANSB,
-	const integer *const M, const integer *const N, const integer *const K,
-	const doublereal *const ALPHA,
-	const doublereal *const A, const integer *const LDA,
-	const doublereal *const B, const integer *const LDB,
-	const doublereal *const BETA,
-	doublereal *const C, const integer *const LDC);
+void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+                                       const char* TRANSB,
+                                       doublereal* pout,
+                                       integer out_nr,
+                                       integer out_nc,
+                                       const doublereal* pin,
+                                       integer in_nr,
+                                       doublereal ALPHA,
+                                       doublereal BETA) const
+{
+        ASSERT((strcmp("N", TRANSA) == 0 && out_nr == iGetNumRows() && in_nr == iGetNumCols()) ||
+               (strcmp("T", TRANSA) == 0 && out_nr == iGetNumCols() && in_nr == iGetNumRows()));
+        
+        __FC_DECL__(dgemm)(TRANSA,
+                           TRANSB,
+                           &out_nr,
+                           &out_nc,
+                           &in_nr,
+                           &ALPHA,
+                           pdGetMat(),
+                           &out_nr,
+                           pin,
+                           &in_nr,
+                           &BETA,
+                           pout,
+                           &out_nr);        
+}
+        
+void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+                                       const char* TRANSB,
+                                       doublereal* pout,
+                                       integer out_nr,
+                                       integer out_nc,
+                                       const doublereal* pin,
+                                       integer in_nr,
+                                       VectorOperation op) const
+{        
+        doublereal ALPHA, BETA;
+        
+        if (op == &VectorHandler::IncCoef) {
+                BETA = 1.;
+                ALPHA = 1.;
+        } else if (op == &VectorHandler::DecCoef) {
+                BETA = 1.;
+                ALPHA = -1.;
+
+        } else if (op == &VectorHandler::PutCoef) {
+                BETA = 0.;
+                ALPHA = 1.;
+        } else {
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+
+        LapackMatrixOp(TRANSA, TRANSB, pout, out_nr, out_nc, pin, in_nr, ALPHA, BETA);
+}
+
+void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+                                       const char* TRANSB,
+                                       doublereal* pout,
+                                       integer out_nr,
+                                       integer out_nc,
+                                       const doublereal* pin,
+                                       integer in_nr,
+                                       MatrixOperation op) const
+{        
+        doublereal ALPHA, BETA;
+        
+        if (op == &MatrixHandler::IncCoef) {
+                BETA = 1.;
+                ALPHA = 1.;
+        } else if (op == &MatrixHandler::DecCoef) {
+                BETA = 1.;
+                ALPHA = -1.;
+        } else if (op == &MatrixHandler::PutCoef) {
+                BETA = 0.;
+                ALPHA = 1.;
+        } else {
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+
+        LapackMatrixOp(TRANSA, TRANSB, pout, out_nr, out_nc, pin, in_nr, ALPHA, BETA);
+}
 #endif // USE_LAPACK
 
 MatrixHandler&
@@ -660,32 +631,7 @@ FullMatrixHandler::MatMatMul_base(
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
 #ifdef USE_LAPACK
-	doublereal ALPHA, BETA;
-	if (op == &MatrixHandler::IncCoef) {
-		BETA = 1.;
-		ALPHA = 1.;
-
-	} else if (op == &MatrixHandler::DecCoef) {
-		BETA = 1.;
-		ALPHA = -1.;
-
-	} else if (op == &MatrixHandler::PutCoef) {
-		BETA = 0.;
-		ALPHA = 1.;
-
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	const char *TRANSA = "N";
-	const char *TRANSB = "N";
-	__FC_DECL__(dgemm)(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
-		&ALPHA,
-		this->pdRaw, &out_nr,
-		pin->pdRaw, &in_nr,
-		&BETA,
-		pout->pdRaw, &out_nr);
-
+        LapackMatrixOp("N", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
 #else // ! USE_LAPACK
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
@@ -803,32 +749,7 @@ FullMatrixHandler::MatTMatMul_base(
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
 #ifdef USE_LAPACK
-	doublereal ALPHA, BETA;
-	if (op == &MatrixHandler::IncCoef) {
-		BETA = 1.;
-		ALPHA = 1.;
-
-	} else if (op == &MatrixHandler::DecCoef) {
-		BETA = 1.;
-		ALPHA = -1.;
-
-	} else if (op == &MatrixHandler::PutCoef) {
-		BETA = 0.;
-		ALPHA = 1.;
-
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	const char *TRANSA = "T";
-	const char *TRANSB = "N";
-	__FC_DECL__(dgemm)(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
-		&ALPHA,
-		this->pdRaw, &in_nr,
-		pin->pdRaw, &in_nr,
-		&BETA,
-		pout->pdRaw, &out_nr);
-
+        LapackMatrixOp("T", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
 #else // ! USE_LAPACK
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
@@ -888,6 +809,19 @@ FullMatrixHandler::MatVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
+        integer out_nr = out.iGetSize();
+        integer in_nr = in.iGetSize();
+
+        if (out_nr != iGetNumRows() || in_nr != iGetNumCols()) {
+                ASSERT(0);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+        
+        // if all matrices are FullMatrixHandler,
+        // either use LAPACK or optimize coefficient computation and store
+#ifdef USE_LAPACK               
+        LapackMatrixOp("N", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
+#else
 	integer nr = iGetNumRows();
 	integer nc = iGetNumCols();
 
@@ -955,7 +889,7 @@ FullMatrixHandler::MatVecMul_base(
 	} else {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-
+#endif
 	return out;
 }
 
@@ -964,6 +898,17 @@ FullMatrixHandler::MatTVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
+        integer out_nr = out.iGetSize();
+        integer in_nr = in.iGetSize();
+
+        if (out_nr != iGetNumCols() || in_nr != iGetNumRows()) {
+                ASSERT(0);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+        
+#ifdef USE_LAPACK        
+        LapackMatrixOp("T", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
+#else
 	integer nr = iGetNumCols();
 	integer nc = iGetNumRows();
 
@@ -1031,7 +976,7 @@ FullMatrixHandler::MatTVecMul_base(
 	} else {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-
+#endif
 	return out;
 }
 

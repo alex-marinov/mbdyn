@@ -1,9 +1,9 @@
-/* $Header: /home/reinhard/CVS/mbdyn/libraries/libmbwrap/qrwrap.cc,v 2.13 2019/08/25 20:12:14 reinhard Exp $ */
+/* $Header$ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2017
+ * Copyright (C) 1996-2019
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  * Paolo Mantegazza     <mantegazza@aero.polimi.it>

@@ -1942,6 +1942,7 @@ Solver::ReadData(MBDynParser& HP)
 			"default",
 			"newton" "raphson",
 			"line" "search",
+                        "bfgs",
 			"matrix" "free",
 				"bicgstab",
 				"gmres",
@@ -2051,6 +2052,7 @@ Solver::ReadData(MBDynParser& HP)
 			DEFAULT,
 			NEWTONRAPHSON,
 			LINESEARCH,
+                        BFGS,
 			MATRIXFREE,
 				BICGSTAB,
 				GMRES,
@@ -3317,6 +3319,10 @@ Solver::ReadData(MBDynParser& HP)
 				NonlinearSolverType = NonlinearSolver::LINESEARCH;
 				break;
 
+                        case BFGS:
+                                NonlinearSolverType = NonlinearSolver::BFGS;
+                                break;
+
 			case MATRIXFREE:
 				NonlinearSolverType = NonlinearSolver::MATRIXFREE;
 				break;
@@ -3331,6 +3337,7 @@ Solver::ReadData(MBDynParser& HP)
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
 			case NonlinearSolver::LINESEARCH:
+                        case NonlinearSolver::BFGS:
 				bTrueNewtonRaphson = true;
 				LineSearch.bKeepJac = false;
 				LineSearch.iIterationsBeforeAssembly = 0;
@@ -3371,7 +3378,10 @@ Solver::ReadData(MBDynParser& HP)
 					}
 				}
 
-				if (NonlinearSolver::LINESEARCH == NonlinearSolverType) {
+                                switch (NonlinearSolverType) {
+                                case NonlinearSolver::BFGS:
+                                        LineSearch.dAlphaModified = LineSearch.dAlphaFull; // Lower number of jacobians achieved with this settings
+                                case NonlinearSolver::LINESEARCH:
 					while (HP.IsArg()) {
                                                 if (HP.IsKeyWord("default" "solver" "options")) {
                                                         LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
@@ -3530,8 +3540,8 @@ Solver::ReadData(MBDynParser& HP)
                                                 } else if (HP.IsKeyWord("update" "ratio")) {
                                                     LineSearch.dUpdateRatio = HP.GetReal();
 
-                                                    if (LineSearch.dUpdateRatio >= 1 || LineSearch.dUpdateRatio <= 0) {
-                                                        silent_cerr("update ratio must be a value between zero and one at line "
+                                                    if (LineSearch.dUpdateRatio <= 0) {
+                                                        silent_cerr("update ratio must be a value larger than zero at line "
                                                                     << HP.GetLineData()
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3547,6 +3557,9 @@ Solver::ReadData(MBDynParser& HP)
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 					}
+                                        break;
+                                default:
+                                        NO_OP;
 				}
 				break;
 
@@ -5198,6 +5211,20 @@ Solver::AllocateNonlinearSolver()
                                                           LineSearch));
             }
 		break;
+        case NonlinearSolver::BFGS:
+                switch (CurrLinearSolver.GetSolver()) {
+                case LinSol::QR_SOLVER:
+                case LinSol::SPQR_SOLVER:
+                        SAFENEWWITHCONSTRUCTOR(pNLS,
+                                               LineSearchBFGS,
+                                               LineSearchBFGS(pDM,
+                                                              *this,
+                                                              LineSearch));
+                        break;
+                default:
+                        silent_cerr("nonlinear solver \"bfgs\" can be used only with linear solver \"qr\" or \"spqr\"\n");
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }            
 	}
 	return pNLS;
 }

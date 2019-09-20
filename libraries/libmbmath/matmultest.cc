@@ -118,6 +118,7 @@ main(void)
 	SpMapMatrixHandler spm(5, 5);
 	NaiveMatrixHandler nm(5);
 	NaivePermMatrixHandler npm(5, perm, invperm);
+        FullMatrixHandler fm(5, 5);
 
 	for (int r = 0; r < 5; r++) {
 		for (int c = 0; c < 5; c++) {
@@ -125,6 +126,7 @@ main(void)
 				spm(r + 1, c + 1) = mat[r][c];
 				nm(r + 1, c + 1) = mat[r][c];
 				npm(r + 1, c + 1) = mat[r][c];
+                                fm(r + 1, c + 1) = mat[r][c];
 			}
 		}
 	}
@@ -138,6 +140,9 @@ main(void)
 	std::cout << "matrix in naive permuted form: " << std::endl
 		<< npm << std::endl;
 
+        std::cout << "matrix in full form: " << std::endl
+                << fm << std::endl;
+        
 	std::vector<doublereal> Ax0;
 	std::vector<integer> Ai0, Ap0;
 	spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
@@ -303,6 +308,20 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
+                fm.MatVecMul(out, v);
+                std::cout << "fm*v(" << i << ")=" << std::endl
+                        << out << std::endl;
+                if (check_vec(out, i)) {
+                        std::cerr << "*** failed!" << std::endl;
+                }
+
+                fm.MatTVecMul(out, v);
+                std::cout << "fm^T*v(" << i << ")=" << std::endl
+                        << out << std::endl;
+                if (check_vec_transpose(out, i)) {
+                        std::cerr << "*** failed!" << std::endl;
+                }
+                
 		v(i) = 0.;
 	}
 
@@ -413,6 +432,20 @@ main(void)
 		std::cerr << "*** failed!" << std::endl;
 	}
 
+        fm.MatMatMul(fmout, fmin);
+        std::cout << "fm*eye=" << std::endl
+                << fmout << std::endl;
+        if (check_mat(fmout)) {
+                std::cerr << "*** failed!" << std::endl;
+        }
+        
+        fm.MatTMatMul(fmout, fmin);
+        std::cout << "fm^T*eye=" << std::endl
+                << fmout << std::endl;
+        if (check_mat_transpose(fmout)) {
+                std::cerr << "*** failed!" << std::endl;
+        }
+        
 	return 0;
 }
 

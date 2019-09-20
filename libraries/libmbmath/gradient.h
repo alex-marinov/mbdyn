@@ -52,7 +52,13 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#if USE_DENSE_HASH_MAP == 1
+#include <dense_hash_map>
+#elif __cplusplus >= 201103L
+#include <unordered_map>
+#else
 #include <map>
+#endif
 #include <new>
 #include <stdexcept>
 #include <typeinfo>
@@ -177,8 +183,7 @@ public:
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Inc(n);
 #endif
-
-            const pointer pMem = std::allocator<T>::allocate(n, p);
+            const pointer pMem = allocate_aligned(GRADIENT_VECTOR_REGISTER_SIZE, n);
 
 #if GRADIENT_DEBUG > 0
             std::memset(pMem, 0xFF, n);
@@ -188,7 +193,7 @@ public:
 
     void
         deallocate(pointer p, size_type n) {
-    	std::allocator<T>::deallocate(p, n);
+            deallocate_aligned(p, n);
 
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Dec(n);
@@ -206,7 +211,7 @@ public:
     	GRADIENT_ASSERT(alignment % sizeof(void*) == 0);
 
 #if defined(HAVE_POSIX_MEMALIGN)
-            if (0 != posix_memalign(&p, alignment, byte_size)) {
+        if (0 != posix_memalign(&p, alignment, byte_size)) {
     		p = 0;
     	}
 #elif defined(HAVE_MEMALIGN)
@@ -1069,17 +1074,34 @@ public:
     typedef std::vector<index_type, GradientAllocator<index_type> > VectorType;
     typedef VectorType::size_type size_type;
     typedef VectorType::const_iterator LocalIterator;
+#if USE_DENSE_HASH_MAP == 1
+        typedef google::dense_hash_map<index_type,
+                                       index_type,
+                                       std::hash<index_type>,
+                                       std::equal_to<index_type>,
+                                       GradientAllocator<std::pair<const index_type, index_type> > > MapType;
+#elif __cplusplus >= 201103L
+        typedef std::unordered_map<index_type,
+                                   index_type,
+                                   std::hash<index_type>,
+                                   std::equal_to<index_type>,
+                                   GradientAllocator<std::pair<const index_type, index_type> > > MapType;
+                
+#else            
     typedef std::map<index_type,
     				 index_type,
     				 std::less<index_type>,
-    				 GradientAllocator<std::pair<index_type, index_type> > >
-    				 MapType;
+                         GradientAllocator<std::pair<index_type, index_type> > > MapType;
+#endif
     typedef MapType::const_iterator GlobalIterator;
     static const index_type INVALID_INDEX = -1;
 
     explicit LocalDofMap(index_type iMaxSize=0)
     	:eLastCall(UNKNOWN_FUNC) {
-
+#if USE_DENSE_HASH_MAP == 1
+            oGlobalToLocal.set_empty_key(-1);
+            oGlobalToLocal.set_deleted_key(-2);
+#endif
         if (iMaxSize > 0) {
             oLocalToGlobal.reserve(iMaxSize);
         }
