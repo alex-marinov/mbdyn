@@ -997,7 +997,7 @@ OutputHandler::CreateRotationVar(const std::string& name_prefix,
 		dim[1] = DimV3();
 
 		attrs.resize(3);
-		attrs[0] = AttrVal("units", "radian");
+		attrs[0] = AttrVal("units", "deg");
 		attrs[1] = AttrVal("type", "Vec3");
 
 		std::string etype;
