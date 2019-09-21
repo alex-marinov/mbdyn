@@ -96,36 +96,22 @@ begin: initial value;
 	initial time: 0.;
 	final time: 10;
 	time step: 1e-3;
-    min time step: 0.1;
-    max time step: 1e-2;
+
 	max iterations: 1000;
-#	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
 	tolerance: 1e-8;
-#    method: implicit euler;
     method: ms, 0.6;
     derivatives tolerance: 2e-5;
     derivatives max iterations: 100;
 	derivatives coefficient: 2e-6;
-#    output: residual;
-    #output: jacobian;
-#    output: counter;
-#    linear solver: umfpack, colamd, pivot factor, 0.1, scale, /*lapack,*/ iterative, scale tolerance, 1e-8, always, print condition number, no, max iterations, 100;
-#    linear solver: naive, colamd, pivot factor, 0.1, scale, iterative, scale tolerance, 1e-8, always;
     linear solver: naive, colamd, pivot factor, 0.1;
-#    nonlinear solver: line search, verbose, yes, print convergence info, no, abort at lambda min, no, scale newton step, no, divergence check, yes, factor, 10., lambda min, 1e-16;
-#    linear solver: naive, colamd, pivot factor, 0.1;
     nonlinear solver: newton raphson;
-#    abort after: assembly;
-#    abort after: derivatives;   
 	eigenanalysis: list, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+        suffix width, 2,
     output matrices, 
 	parameter, 0.01,
 	output eigenvectors, output geometry,	
     use lapack, balance, permute;
-    #output: solver condition number, stat, yes;
-    #output: jacobian;
-    #output: iterations;
-    #abort after: assembly;
+    threads: assembly, 1;
 end: initial value;
 
 include: "inline_joint_ad_2_parameters.set";

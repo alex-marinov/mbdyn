@@ -171,5 +171,5 @@ set: real gravity_tau = 0.01;
 #########################################################
 
 set: real initial_time = 0;
-set: real final_time = 1;
-set: integer number_of_time_steps = 10000;
+set: real final_time = 10;
+set: integer number_of_time_steps = 100000;
