@@ -86,7 +86,7 @@ public:
 
 	/* Tipo dell'elemento (usato solo per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const {
-		return Elem::BODY;
+		return Elem::ADDEDMASS;
 	};
 
 	/* Numero gdl durante l'assemblaggio iniziale */
@@ -317,7 +317,7 @@ public:
 
 	/* Tipo dell'elemento (usato solo per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const {
-		return Elem::BODY;
+		return Elem::ADDEDMASS;
 	};
 
 	/* Numero gdl durante l'assemblaggio iniziale */
@@ -346,9 +346,9 @@ public:
 /* Body - end */
 
 
-/* DynamicBody - begin */
+/* DynamicAddedMassAndInertia - begin */
 
-class DynamicBody :
+class DynamicAddedMassAndInertia :
 virtual public Elem, public Body {
 private:
 
@@ -359,17 +359,15 @@ private:
 	 * autovalori e per lo jacobiano */
 	void AssMats(FullSubMatrixHandler& WorkMatA,
 		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef,
-		bool bGravity,
-		const Vec3& GravityAcceleration);
+		doublereal dCoef);
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp,
+	DynamicAddedMassAndInertia(unsigned int uL, const DynamicStructNode* pNodeTmp,
 		Vec3 AddedMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
 		flag fOut);
 
-	virtual ~DynamicBody(void);
+	virtual ~DynamicAddedMassAndInertia(void);
 
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
@@ -414,13 +412,13 @@ public:
 		SimulationEntity::Hints *ph = 0);
 };
 
-/* DynamicBody - end */
+/* DynamicAddedMassAndInertia - end */
 
 
-/* ModalBody - begin */
+/* ModalAddedMassAndInertia - begin */
 
-class ModalBody :
-virtual public Elem, public DynamicBody {
+class ModalAddedMassAndInertia :
+virtual public Elem, public DynamicAddedMassAndInertia {
 private:
 	Vec3 XPP, WP;
 
@@ -430,17 +428,15 @@ private:
 		FullSubMatrixHandler& WorkMatB,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr,
-		bool bGravity,
-		const Vec3& GravityAcceleration);
+		const VectorHandler& XPrimeCurr);
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	ModalBody(unsigned int uL, const ModalNode* pNodeTmp,
+	ModalAddedMassAndInertia(unsigned int uL, const ModalNode* pNodeTmp,
 		Vec3 AddedMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
 		flag fOut);
 
-	virtual ~ModalBody(void);
+	virtual ~ModalAddedMassAndInertia(void);
 
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
@@ -462,12 +458,12 @@ public:
 		const VectorHandler& XPrimeCurr);
 };
 
-/* ModalBody - end */
+/* ModalAddedMassAndInertia - end */
 
 
-/* StaticBody - begin */
+/* StaticAddedMassAndInertia - begin */
 
-class StaticBody :
+class StaticAddedMassAndInertia :
 virtual public Elem, public Body {
 private:
 	/* Assembla le due matrici necessarie per il calcolo degli
@@ -478,11 +474,11 @@ private:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	StaticBody(unsigned int uL, const StaticStructNode* pNode,
+	StaticAddedMassAndInertia(unsigned int uL, const StaticStructNode* pNode,
 		Vec3 AddedMass, const Vec3& Xgc, const Mat3x3& J,
 		flag fOut);
 
-	virtual ~StaticBody(void);
+	virtual ~StaticAddedMassAndInertia(void);
 
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 6;
@@ -543,12 +539,12 @@ public:
 		SimulationEntity::Hints *ph = 0);
 };
 
-/* StaticBody - end */
+/* StaticAddedMassAndInertia - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+extern Elem* ReadAddedMass(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
 #endif /* ADDEDMASS_H */
 
