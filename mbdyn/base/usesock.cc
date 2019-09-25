@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -177,7 +177,7 @@ UseSocket::PostConnect(void)
 	lin.l_onoff = 1;
 	lin.l_linger = 0;
 	int status = -1;
-	
+
 #ifdef _WIN32
 	status = setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, (const char*)&lin, sizeof(lin));
 #else
@@ -211,7 +211,7 @@ UseSocket::Connect(void)
 		int rc = connect(sock, GetSockaddr(), GetSocklen());
 
 		if (rc == SOCKET_ERROR) {
-		
+
 			int save_errno = WSAGetLastError();
 
 			switch (save_errno) {
@@ -427,10 +427,10 @@ UseInetSocket::UseInetSocket_int(void)
 
 	if (create) {
 		int			save_errno;
-		
+
    		serr = mbdyn_make_inet_socket_type(&sock, 0, host.c_str(), port, socket_type,
 			1, &save_errno);
-		
+
 		if (serr == -1) {
 			const char	*err_msg = sock_err_string(save_errno);
 
@@ -510,7 +510,7 @@ UseInetSocket::Connect(void)
 		silent_cerr("UseSocket(): unknown host "
 				"\"" << host << ":" << port << "\""
 				<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);	
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif
 
@@ -527,18 +527,18 @@ UseInetSocket::Connect(void)
 	}
 
 	pedantic_cout("connecting to inet socket "
-			"\"" << inet_ntoa(addr.sin_addr) 
+			"\"" << inet_ntoa(addr.sin_addr)
 			<< ":" << ntohs(addr.sin_port)
 			<< "\" ..." << std::endl);
 
 	UseSocket::Connect();
 }
-	
+
 void
 UseInetSocket::ConnectSock(int s)
 {
 	UseSocket::ConnectSock(s);
-	
+
 	silent_cout("INET connection to port=" << port << " by client "
 			<< "\"" << inet_ntoa(addr.sin_addr)
 			<< ":" << ntohs(addr.sin_port) << "\""
@@ -550,7 +550,21 @@ UseInetSocket::GetSockaddr(void) const
 {
 	return (struct sockaddr *)&addr;
 }
-	
+
+std::string
+UseInetSocket::GetSockaddrStr (void) const
+{
+
+    std::string s;
+
+    s = "INET Socket, host: ";
+    s += host;
+    s += " Port: ";
+    s += port;
+
+    return s;
+}
+
 #ifndef _WIN32
 UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 : UseSocket(c), path(p)
@@ -570,12 +584,12 @@ UseLocalSocket::UseLocalSocket_int(void)
 	ASSERT(!path.empty());
 
 	socklen = sizeof(addr);
-	
+
 	if (create) {
 		int		save_errno;
 
 		sock = mbdyn_make_named_socket_type(0, path.c_str(), socket_type, 1, &save_errno);
-		
+
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
 
@@ -608,7 +622,7 @@ UseLocalSocket::UseLocalSocket_int(void)
    			}
 		}
 
-	}	 
+	}
 }
 
 UseLocalSocket::~UseLocalSocket(void)
@@ -659,7 +673,7 @@ void
 UseLocalSocket::ConnectSock(int s)
 {
 	UseSocket::ConnectSock(s);
-	
+
 	silent_cout("LOCAL connection to path=\"" << path << "\""
 		<< std::endl);
 }
@@ -669,6 +683,19 @@ UseLocalSocket::GetSockaddr(void) const
 {
 	return (struct sockaddr *)&addr;
 }
-#endif /* _WIN32 */
+
+std::string
+UseLocalSocket::GetSockaddrStr (void) const
+{
+
+    std::string s;
+
+    s = "UNIX Socket, path: ";
+    s += path;
+
+    return s;
+}
+
+#endif /* !_WIN32 */
 
 #endif // USE_SOCKET
