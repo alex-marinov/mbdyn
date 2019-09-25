@@ -1784,9 +1784,9 @@ StaticAddedMassAndInertia::SetValue(DataManager *pDM,
 
 /* Legge un corpo rigido */
 Elem*
-ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+ReadAddedMass(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
-	DEBUGCOUTFNAME("ReadBody");
+	DEBUGCOUTFNAME("ReadAddedMass");
 
 	const char* sKeyWords[] = {
 		NULL
@@ -2065,5 +2065,5 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	return pEl;
-} /* End of ReadBody() */
+} /* End of ReadAddedMass() */
 
