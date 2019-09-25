@@ -38,7 +38,6 @@
 
 #include "elem.h"
 #include "strnode.h"
-#include "gravity.h"
 
 /* AddedMass - begin */
 
