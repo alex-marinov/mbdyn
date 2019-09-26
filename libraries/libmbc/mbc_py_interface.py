@@ -2,7 +2,7 @@
 # MBDyn (C) is a multibody analysis code. 
 # http://www.mbdyn.org
 # 
-# Copyright (C) 1996-2017
+# Copyright (C) 1996-2019
 # 
 # Pierangelo Masarati	<masarati@aero.polimi.it>
 # Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -34,20 +34,20 @@ from numpy import *
 try:
         import mbc_py
 except ImportError:
-        print "Import Error: mbc_py module"
+        print("Import Error: mbc_py module")
 
 class mbcNodal:
 	def __init__(self, path, host, port, timeout, verbose, data_and_next, refnode, nodes, labels, rot, accels):
 		""" initialize the module """
 		self.id = mbc_py.mbc_py_nodal_initialize(path, host, port, timeout, verbose, data_and_next, refnode, nodes, labels, rot, accels);
 		if self.id < 0:
-			print "mbc_py_nodal_initialize: error";
+			print("mbc_py_nodal_initialize: error");
 			raise Exception;
 
 	def negotiate(self):
 		""" set pointers """
 		if (mbc_py.mbc_py_nodal_negotiate(self.id) < 0):
-			print "mbc_py_nodal_negotiate: error";
+			print("mbc_py_nodal_negotiate: error");
 			raise Exception;
 
 		self.r_k_label = mbc_py.cvar.mbc_r_k_label;
@@ -119,13 +119,13 @@ class mbcModal:
 		""" initialize the module """
 		self.id = mbc_py.mbc_py_modal_initialize(path, host, port, timeout, verbose, data_and_next, refnode, modes);
 		if self.id < 0:
-			print "mbc_py_modal_initialize: error";
+			print("mbc_py_modal_initialize: error");
 			raise Exception;
 
 	def negotiate(self):
 		""" set pointers """
 		if (mbc_py.mbc_py_modal_negotiate(self.id) < 0):
-			print "mbc_py_modal_negotiate: error";
+			print("mbc_py_modal_negotiate: error");
 			raise Exception;
 
 		self.r_k_label = mbc_py.cvar.mbc_r_k_label;
