@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -66,7 +66,7 @@ public:
 	UseSocket(bool c);
 	UseSocket(int t, bool c);
 	virtual ~UseSocket(void);
-	
+
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	SOCKET GetSock(void) const;
@@ -81,6 +81,7 @@ public:
 
 	socklen_t& GetSocklen(void) const;
 	virtual struct sockaddr *GetSockaddr(void) const = 0;
+	virtual std::string GetSockaddrStr (void) const = 0;
 
 	ssize_t send(const void *buf, size_t len, int flags);
 	ssize_t recv(void *buf, size_t len, int flags, bool bMsgDontWait);
@@ -98,12 +99,13 @@ public:
 	UseInetSocket(const std::string& h, unsigned short p, bool c);
 	UseInetSocket(const std::string& h, unsigned short p, int t, bool c);
 	virtual ~UseInetSocket(void);
-	
+
 	std::ostream& Restart(std::ostream& out) const;
 
 	void Connect(void);
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
+	std::string GetSockaddrStr (void) const;
 };
 
 #ifndef _WIN32
@@ -118,12 +120,13 @@ public:
 	UseLocalSocket(const std::string& p, bool c);
 	UseLocalSocket(const std::string& p, int t, bool c);
 	virtual ~UseLocalSocket(void);
-	
+
 	std::ostream& Restart(std::ostream& out) const;
 
 	void Connect(void);
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
+	std::string GetSockaddrStr (void) const;
 };
 #endif /* _WIN32 */
 

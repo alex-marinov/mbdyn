@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -86,7 +86,7 @@ DataManager::WaitSocketUsers(void)
 	if (SocketUsersTimeout != 0) {
 		finalTime = time(NULL) + SocketUsersTimeout;
 	}
-	
+
 	/* declare two sets of sockets, zeroing them out with FD_ZERO */
 	fd_set	active_set, read_set;
 	FD_ZERO(&active_set);
@@ -101,6 +101,11 @@ DataManager::WaitSocketUsers(void)
 
 	/* wait for all registered */
 	while (nactive > 0) {
+
+        pedantic_cout ("DataManager::WaitSocketUsers(): "
+						"In connection loop with " << nactive
+						<< " active sockets to process (nactive)" << std::endl);
+
 		struct timeval	timeout, *timeoutp = NULL;
         /* check if user specified timeout for connection to be made
            successfully has passed. If finalTime is zero, there is
@@ -121,8 +126,13 @@ do_timeout:;
 		}
 
 		read_set = active_set;
+
 		/* FD_SETSIZE determines the maximum number of descriptors in a set. */
 		int a = select(FD_SETSIZE, &read_set, 0, 0, timeoutp);
+
+        pedantic_cout ("DataManager::WaitSocketUsers(): "
+						"Called select on all active sockets. 'a' is " << a << std::endl);
+
 		switch (a) {
 		case SOCKET_ERROR: {
 			int save_errno = WSAGetLastError();
@@ -137,14 +147,28 @@ do_timeout:;
 			 goto do_timeout;
 		}
 
+		pedantic_cout ("DataManager::WaitSocketUsers(): "
+						   "Looping on active to see if connection is possible" << std::endl);
+
 		/* loop on active to see what is being connected */
 		for (int i = 0; i < nactive && a != SOCKET_ERROR; i++) {
-				
+
 			UseSocket *pUS = SocketUsers[i];
-            
+
 			int isset = FD_ISSET(pUS->GetSock(), &read_set);
 
+            pedantic_cout ("DataManager::WaitSocketUsers(): "
+						   "Socket: " << i
+						   << " Info: " << pUS->GetSockaddrStr()
+						   << " isset: " << isset
+						   << std::endl);
+
 			if (isset) {
+
+                pedantic_cout ("DataManager::WaitSocketUsers(): "
+						   "Attempting to accept socket: " << i
+						   << " Info: " << pUS->GetSockaddrStr()
+						   << std::endl);
 
 				SOCKET sock;
 
@@ -180,6 +204,9 @@ do_timeout:;
 			}
 		}
 	}
+
+    pedantic_cout ("DataManager::WaitSocketUsers(): "
+					"Leaving processing loop with " << nactive << " active sockets" << std::endl);
 }
 
 #endif // USE_SOCKET
