@@ -471,7 +471,7 @@ This nonlinear solver is well tested.
 \end{itemize}
 
 \subparagraph{Brief description of the solver}
-The line search solver should be used mainly if the Newton Raphson solver diverges and further reduction of the time step is not possible or not available (for example in the initial assembly phase). In many situations this solver is able to handle larger time steps or load increments than the ordinary Newton Raphson solver. However the total number of iterations can increase for large time steps.
+The line search solver should be used mainly if the Newton Raphson solver diverges and further reduction of the time step is not possible or not available. In many situations this solver is able to handle larger time steps or load increments than the ordinary Newton Raphson solver. However the total number of iterations can increase for large time steps.
 
 \subparagraph{The ordinary Newton Raphson strategy}
 The Newton Raphson Solver solves a problem of the form $\boldsymbol{F}\left(\boldsymbol{x}\right)=\boldsymbol{0}$ by means of the iteration $\delta\boldsymbol{x}=\boldsymbol{J}^{-1}\,\boldsymbol{F}$.
@@ -571,9 +571,12 @@ Like for other nonlinear solvers, the convergence can be printed to the standard
 \subparagraph{General notes}
 If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
 
-The \kw{bfgs} line search solver can be used ony together with the \kw{qr} or the \kw{spqr} linear solver.
-
-
+\subparagraph{Matrix free line search variant}
+A matrix free variant of the line search algorithm is based on the Broyden~Fletcher~Goldfarb~Shanno
+algorithm and QR updates of the Jacobian. The \kw{bfgs} algorithm has also been adapted from \cite{NUMERICAL-RECIPES-IN-C}.
+It can be used only together with the \kw{qr} or the \kw{spqr} linear solvers. If the solution is highly nonlinear but
+sufficiently continuous, then the number of Jacobian evaluations of the \kw{bfgs} solver is usually significanlty lower
+than the \kw{line search} solver.
 
 
 \paragraph{Matrix free.}
@@ -890,7 +893,11 @@ usually output.
         [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
         [ , \kw{drop tolerance} , \bnt{drop\_tolerance} ]
         [ , \kw{block size} , \bnt{block_size} ]
-        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{max} | \kw{sum} \} ]
+        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{row max} | \kw{row sum} | \kw{column max} | \kw{column sum} | \kw{lapack} | \kw{iterative} | \kw{row max column max} \}
+          [ , \kw{scale tolerance}, (\ty{real}) \btn{scale_tolerance} ]
+          [ , \kw{scale iterations}, (\ty{integer}) \btn{scale_max_iter} ]
+        ]
+        [ , \kw{max iterations}, (\ty{integer}) \btn{refine_max_iter} ]
     ;
 \end{Verbatim}
 %\end{verbatim}
@@ -998,6 +1005,27 @@ the keyword \kw{mt} allows to enforce the desired number of \nt{threads}.
 See also the \kw{threads} keyword for more details on multi-threaded
 solution.
 
+\paragraph{PaStiX}
+The \kw{pastix} linear solver from the Institut~National~de~Recherche~en~informatique~et~Automatique
+is a high performance parallel solver for very large sparse linear systems based on direct methods.
+It is recommended to enable iterative refinement for this solver because it uses static pivoting.
+
+\paragraph{QR}
+The \kw{qr} linear solver is a dense linear solver based on $Q\,R$~decomposition instead of $L\,U$.
+See the book Numerical~Recipes~in~{C}~\cite{NUMERICAL-RECIPES-IN-C} for further information.
+It should be used mainly in combination with the \kw{bfgs} nonlinear solver for small Jacobian
+matrices but can be used like any other linear solver.
+
+\paragraph{SPQR}
+The SuiteSparseQR solver \kw{spqr} from \cite{SUITESPARSE-QR-2011} is an implementation
+of the multifrontal sparse $Q\,R$ factorization method. It can be used in combination
+with the \kw{bfgs} nonlinear solver for larger Jacobian matrices which cannot be
+handled efficiently by \kw{qr}. The \kw{spqr} solver is using a sparse representation
+of the Jacobian and it's $Q\,R$ factors as long as no BFGS update is applied.
+Once an BFGS update is applied to the $Q\,R$ factors, a dense upper triangular solver
+from Lapack is used until the Jacobian is rebuild. However, usually the most expensive
+part is the $Q\,R$ decomposition of the sparse Jacobian.
+
 \begin{comment}
 Another linear solver, that is available mostly for historical reasons, 
 is \kw{harwell}, with a \nt{workspace\_size}
@@ -1045,16 +1073,17 @@ of \kw{cc} is quite limited ($\log_2\plbr{\bnt{nz}}$, where
 \nt{nz} is the number of non-zeroes in a column) so it is definitely
 comparable to that of \kw{cc}.
 \end{itemize}
-Only \kw{umfpack}, \kw{klu}, \kw{y12} and \kw{superlu}
+Only \kw{umfpack}, \kw{klu}, \kw{y12}, \kw{superlu} and \kw{pastix}
 linear solvers allow these settings.
 
-The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU linear solvers;
+The keyword \kw{colamd} is honored by the \kw{naive}, \kw{spqr} and SuperLU linear solvers;
 it enables the column rearrangement that minimizes the sparsity
 of the factored matrix, as implemented in \texttt{libcolamd}
 (part of University of Florida's SparseSuite package).
 The keyword \kw{mmdata} is honored by 
 the scalar SuperLU linear solver only; it enables column rearrangement
 based on the MMD ordering of the symmetric matrix $A^T A$.
+Additional options are \kw{amd}, \kw{metis} and \kw{given} ordering which are supported by the \kw{spqr} linear solver.
 
 
 The \nt{pivot\_factor} is a real number, which in a heuristic sense 
@@ -1072,11 +1101,22 @@ Only \kw{umfpack} allows this setting.
 The keyword \kw{block size} is specific to \kw{umfpack}.
 See the related documentation for the meaning.
 
-The keyword \kw{scale} indicates whether the matrix and the right-hand side
-must be scaled before linear solution.
+The keyword \kw{scale} indicates whether the matrix, the right-hand side and the solution
+must be scaled before/after linear solution.
 By default no scaling takes place (\kw{no}).
-Only \kw{naive} allows this setting.
-It is experimental; it should only be used for development purposes.
+Only \kw{naive}, \kw{klu}, \kw{umfpack} and \kw{pastix} allows this setting.
+It can be used in order to improve the condition number of the Jacobian matrix.
+See also section~\ref{sec:PROBLEMS:OUTPUT}. If one of the keywords \kw{row max},
+\kw{column max}, \kw{row sum} or \kw{column sum} is used, either rows or columns
+of the Jacobian are scaled by their maximum absolute value or sum of absolute values.
+In order to scale rows and columns of the Jacobian at the same time, one can choose
+between Lapacks dgeequ algorithm (\kw{lapack}), the Sinkhorn-Knopp algorithm
+\cite{SINKHORN-KNOPP-1967} (\kw{row max column max}) and the algorithm from Amestoy et.al.
+\cite{PATRICK-AMESTOY-2008} (\kw{iterative}).
+
+In case of a high condition number of the Jacobian matrix, one should enable iterative
+refinement by means of the \btn{refine_max_iter} option. It is supported by the \kw{umfpack} and
+\kw{pastix} solvers.
 
 Table~\ref{tab:linear-solvers-props} summarizes the properties that can be set
 for each type of linear solver; Table~\ref{tab:linear-solvers-memory}
@@ -1146,7 +1186,7 @@ summarizes how each linear solver deals with pivoting policies.
 	TAUCS		&			& ?		&		\\
 	Watson		&			& dynamic	&		\\
 	Pastix		&			& dynamic	&		\\
-	QR		&			& ?		&		\\
+	QR		&			& full		&		\\
 	SpQR		&			& dynamic	&		\\
 \hline
 \end{tabular}
