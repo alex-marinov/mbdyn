@@ -84,7 +84,8 @@ Axp(0),
 Aip(0),
 App(0),
 Symbolic(0),
-Numeric(0)
+Numeric(0),
+iNumNonZeros(-1)
 {
 	klu_defaults(&Control);
 
@@ -123,23 +124,31 @@ KLUSolver::~KLUSolver(void)
 }
 
 void
-KLUSolver::Reset(void)
+KLUSolver::ResetSymbolic(void) const
 {
 	if (Symbolic) {
-		// FIXME: This code might be an performance issue!
-		// However if we do not reset the symbolic object
-		// the code will fail if zero entries become nonzero
-		// during simulation.
 		klu_free_symbolic(&Symbolic, &Control);
 		ASSERT(Symbolic == 0);
 	}
 
+        ResetNumeric();
+}
+
+void
+KLUSolver::ResetNumeric(void) const
+{
 	if (Numeric) {
 		klu_free_numeric(&Numeric, &Control);
 		ASSERT(Numeric == 0);
 	}
 
 	bHasBeenReset = true;
+}
+
+void
+KLUSolver::Reset(void)
+{
+        ResetNumeric();
 }
 
 void
@@ -232,6 +241,10 @@ KLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 	
 	mh.MakeCompressedColumnForm(Ax, Ai, Ap, 0);
 
+        if (iNumNonZeros != mh.Nz()) {
+                ResetSymbolic();
+        }
+        
 	Axp = &(Ax[0]);
 	Aip = &(Ai[0]);
 	App = &(Ap[0]);

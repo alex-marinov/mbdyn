@@ -41,6 +41,7 @@ begin: initial value;
 	linear solver: naive, colamd, pivot factor, 0.1, scale, iterative, never;
     nonlinear solver: newton raphson;
     method: ms, 0.6;
+    threads: assembly, 1;
     #method: implicit euler;
 	max iterations: 20;
 	tolerance: 1e-6;

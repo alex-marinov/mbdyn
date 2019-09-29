@@ -51,6 +51,7 @@
 #include "naivewrap.h"
 #include "parnaivewrap.h"
 #include "pastixwrap.h"
+#include "qrwrap.h"
 
 #include "linsol.h"
 
@@ -137,6 +138,19 @@ const LinSol::solver_t solver[] = {
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
 		-1., -1. },
+        { "QR", NULL,
+                LinSol::QR_SOLVER,
+                LinSol::SOLVER_FLAGS_NONE,
+                LinSol::SOLVER_FLAGS_NONE,
+                -1., -1. },
+        { "SPQR", NULL,
+                LinSol::SPQR_SOLVER,
+                LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+                LinSol::SOLVER_FLAGS_ALLOWS_AMD |
+                LinSol::SOLVER_FLAGS_ALLOWS_METIS |
+                LinSol::SOLVER_FLAGS_ALLOWS_GIVEN,
+                LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+                -1., -1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -242,6 +256,14 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif /* USE_MESCHACH */
         case LinSol::PASTIX_SOLVER:
 #ifdef USE_PASTIX
+                currSolver = t;
+                return true;
+#endif
+        case LinSol::QR_SOLVER:
+                currSolver = t;
+                return true;
+#ifdef USE_SUITESPARSE_QR
+        case LinSol::SPQR_SOLVER:
                 currSolver = t;
                 return true;
 #endif
@@ -737,7 +759,18 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable Pastix solver" << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_PASTIX */
-                
+        case LinSol::QR_SOLVER:
+                SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                       QrDenseSolutionManager,
+                                       QrDenseSolutionManager(iNLD));
+                break;
+#ifdef USE_SUITESPARSE_QR
+        case LinSol::SPQR_SOLVER:
+                SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                       QrSparseSolutionManager,
+                                       QrSparseSolutionManager(iNLD, solverFlags));
+                break;
+#endif
 	case LinSol::NAIVE_SOLVER:
 		if (perm == LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			if (nThreads == 1) {

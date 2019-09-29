@@ -75,6 +75,7 @@ begin: initial value;
     derivatives tolerance: 1e-5;
     derivatives max iterations: 10;
     output: counter;
+    threads: assembly, 1;
 #    output: residual;
 end: initial value;
 

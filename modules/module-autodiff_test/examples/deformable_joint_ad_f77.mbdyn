@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -38,8 +38,6 @@
         for use in the software MBDyn as described
         in the GNU Public License version 2.1
 */
-
-module load: "module-autodiff_test";
 
 include: "deformable_joint_ad.set";
 

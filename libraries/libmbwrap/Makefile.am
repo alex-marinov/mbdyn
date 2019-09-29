@@ -37,7 +37,9 @@ taucswrap.h \
 y12wrap.cc \
 y12wrap.h \
 wsmpwrap.cc \
-wsmpwrap.h
+wsmpwrap.h \
+qrwrap.h \
+qrwrap.cc
 
 if USE_CHACO
 libmbwrap_la_SOURCES += \
@@ -65,6 +67,8 @@ libmbwrap_la_LIBADD = \
 @TAUCS_LIBS@ \
 @WSMP_LIBS@ \
 @PASTIX_LIBS@ \
+@QRUPDATE_LIBS@ \
+@SUITESPARSEQR_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
 @METIS_LIBS@ \

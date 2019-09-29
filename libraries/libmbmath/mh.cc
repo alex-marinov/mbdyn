@@ -143,9 +143,14 @@ std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) con
 			os << std::endl;
 		}
 	} else if (eFormat == MAT_PRINT_TRIPLET) {
+                // Not very efficient but may be overwritten by any sparse matrix handler
 		for (integer i = 1; i <= nr; i++) {
 			for (integer j = 1; j <= nc; j++) {
-				os << i << "\t" << j << "\t" << std::setw(16) << (*this)(i, j) << '\n';
+                                doublereal Aij = (*this)(i, j);
+                                
+                                if (Aij) { // Output just nonzero entries of the full matrix
+                                        os << i << '\t' << j << '\t' << std::setw(16) << Aij << '\n';
+                                }
 			}
 		}
 	}

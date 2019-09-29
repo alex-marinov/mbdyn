@@ -3753,7 +3753,7 @@ void MatManip_test(int NLoops) {
         
         const Vec3 g1(RotManip::VecRot(R2_));
         const Vector<doublereal, 3> g2(VecRotMat(R2));
-        
+        const Matrix<doublereal, 3, 3> R2__(MatRotVec(g2));
         for (index_type i = 1; i <= 3; ++i) {
             assert(bCompare(g1(i),
                             g2(i),
@@ -3762,6 +3762,12 @@ void MatManip_test(int NLoops) {
                                2 * M_PI,
                                2 * M_PI * std::numeric_limits<doublereal>::epsilon()));
         }
+
+        for (index_type i = 1; i <= 3; ++i) {
+                for (index_type j = 1; j <= 3; ++j) {
+                        assert(bCompare(R2__(i, j), R2(i, j), std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9)));
+                }
+        }     
     }
 }
 
