@@ -894,10 +894,10 @@ usually output.
         [ , \kw{drop tolerance} , \bnt{drop\_tolerance} ]
         [ , \kw{block size} , \bnt{block_size} ]
         [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{row max} | \kw{row sum} | \kw{column max} | \kw{column sum} | \kw{lapack} | \kw{iterative} | \kw{row max column max} \}
-          [ , \kw{scale tolerance}, (\ty{real}) \btn{scale_tolerance} ]
-          [ , \kw{scale iterations}, (\ty{integer}) \btn{scale_max_iter} ]
+          [ , \kw{scale tolerance}, (\ty{real}) \bnt{scale_tolerance} ]
+          [ , \kw{scale iterations}, (\ty{integer}) \bnt{scale_max_iter} ]
         ]
-        [ , \kw{max iterations}, (\ty{integer}) \btn{refine_max_iter} ]
+        [ , \kw{max iterations}, (\ty{integer}) \bnt{refine_max_iter} ]
     ;
 \end{Verbatim}
 %\end{verbatim}
@@ -1115,7 +1115,7 @@ between Lapacks dgeequ algorithm (\kw{lapack}), the Sinkhorn-Knopp algorithm
 \cite{PATRICK-AMESTOY-2008} (\kw{iterative}).
 
 In case of a high condition number of the Jacobian matrix, one should enable iterative
-refinement by means of the \btn{refine_max_iter} option. It is supported by the \kw{umfpack} and
+refinement by means of the \bnt{refine\_max\_iter} option. It is supported by the \kw{umfpack} and
 \kw{pastix} solvers.
 
 Table~\ref{tab:linear-solvers-props} summarizes the properties that can be set
