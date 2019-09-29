@@ -433,7 +433,7 @@ This nonlinear solver is well tested.
 \paragraph{Line search.}
 \emph{Author: Reinhard Resch}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_name} ::= \kw{line search}
+    \bnt{nonlinear_solver_name} ::= \kw{line search | bfgs}
 
     \bnt{nonlinear_solver_data} ::= 
         [ \{ \kw{true}
@@ -570,6 +570,8 @@ Like for other nonlinear solvers, the convergence can be printed to the standard
 
 \subparagraph{General notes}
 If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
+
+The \kw{bfgs} line search solver can be used ony together with the \kw{qr} or the \kw{spqr} linear solver.
 
 
 
@@ -880,9 +882,9 @@ usually output.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{linear solver} :
-            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} \}
+            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr}\}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
-        [ , \{ \kw{colamd} | \kw{mmdata} \} ]
+        [ , \{ \kw{colamd} | \kw{mmdata} | \kw{amd} | \kw{given} | \kw{metis} \} ]
         [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
         [ , \kw{workspace size} , \bnt{workspace_size} ] 
         [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
@@ -1111,6 +1113,9 @@ summarizes how each linear solver deals with pivoting policies.
 	SuperLU		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 	TAUCS		& ?       & ?       & ?       & ?         & ?       & ?       & $\surd$ \\
 	Watson		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
+	Pastix		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         &         &	        \\
+	QR		&         &         &         &           &         &         &	        \\
+	SpQR		& $\surd$ &         &         &           &         &         &	        \\
 \hline
 \end{tabular}
 \end{table}
@@ -1140,6 +1145,9 @@ summarizes how each linear solver deals with pivoting policies.
 	SuperLU		& 			& dynamic 	&		\\
 	TAUCS		&			& ?		&		\\
 	Watson		&			& dynamic	&		\\
+	Pastix		&			& dynamic	&		\\
+	QR		&			& ?		&		\\
+	SpQR		&			& dynamic	&		\\
 \hline
 \end{tabular}
 \end{table}
