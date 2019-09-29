@@ -249,7 +249,7 @@ OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXper
 OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
 OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],no,[auto yes no])
-OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],no,[auto yes no])
+OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],auto,[auto yes no])
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
