@@ -248,6 +248,8 @@ OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - his
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
+OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],no,[auto yes no])
+OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],auto,[auto yes no])
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
@@ -392,6 +394,8 @@ HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
 PASTIX_LIBS=
+QRUPDATE_LIBS=
+SUITESPARSEQR_LIBS=
 ARPACK_LIBS=
 JDQZ_LIBS=
 SECURITY_LIBS=
@@ -858,6 +862,39 @@ fi
 
 if test "$ol_enable_autodiff" != no ; then
 	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
+
+        AC_LANG_SAVE
+        AC_LANG_CPLUSPLUS
+        AC_CHECK_HEADERS(dense_hash_map)
+        if test "$ac_cv_header_dense_hash_map" = "yes" ; then
+                AC_MSG_CHECKING([for dense_hash_map])
+                AC_TRY_COMPILE([#include <dense_hash_map>
+                                #include <functional>],[
+                                google::dense_hash_map<int,
+                                int,
+                                std::hash<int>,
+                                std::equal_to<int>,
+                                std::allocator<std::pair<const int, int> > > dhm;
+                                dhm.set_empty_key(-1);
+                                dhm.set_deleted_key(-2);
+                                dhm[1] = 1;
+                                for (auto i = dhm.begin(); i != dhm.end(); ++i) {
+                                i->first;
+                                i->second;
+                                }
+                                auto i = dhm.find(1);
+                                i->first;
+                                i->second;
+                                dhm.clear();
+                ], [have_dense_hash_map=yes], [have_dense_hash_map=no])
+                if test $have_dense_hash_map = yes ; then
+                        AC_DEFINE(USE_DENSE_HASH_MAP, 1, [define if google::dense_hash_map can be used])
+                        AC_MSG_RESULT([yes])
+                else
+                        AC_MSG_RESULT([no])
+                fi
+        fi
+        AC_LANG_RESTORE
 
 	AC_MSG_CHECKING([for posix_memalign])
 	AC_TRY_LINK([
@@ -1992,8 +2029,11 @@ if test $ol_with_lapack != no ; then
 	AC_MSG_CHECKING([for lapack])
 
 	save_LIBS="$LIBS"
-	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
+        
+        dnl Some optimized BLAS libraries like OpenBLAS already contain LAPACK
+        try_lapack_LIBS="$BLAS_LIBS"
+        
+        LIBS="$try_lapack_LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -2009,12 +2049,10 @@ if test $ol_with_lapack != no ; then
 		],[have_lapack=yes
 		   have_lapack_=yes],[have_lapack=no
 				      have_lapack_=no])])
-	LIBS=$save_LIBS
 
 	if test "$have_lapack" == "no"; then
-        if test "$have_lapack_" == "no"; then
-            save_LIBS="$LIBS"
-            try_lapack_LIBS="-lopenblas"
+            LIBS=$save_LIBS
+            try_lapack_LIBS="-llapack"
             LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
             AC_TRY_LINK([
             extern double dgesvd(double *);
@@ -2031,8 +2069,6 @@ if test $ol_with_lapack != no ; then
                 ],[have_lapack=yes
                    have_lapack_=yes],[have_lapack=no
                               have_lapack_=no])])
-            LIBS=$save_LIBS
-        fi
 	fi
 
     if test "$have_lapack" != "no" ; then
@@ -2054,7 +2090,7 @@ if test $ol_with_lapack != no ; then
 			],[
 	double i = 1., o;
 	o = dggev(&i);
-			],[AC_DEFINE(HAVE_DGGEV_,1,[define to use LAPACK's dggev in Eig])])
+                        ],[AC_DEFINE(HAVE_DGGEV,1,[define to use LAPACK's dggev in Eig])])
 	fi
 
 	if test "$have_lapack_" = "yes" ; then
@@ -2063,7 +2099,7 @@ if test $ol_with_lapack != no ; then
 			],[
 	double i = 1., o;
 	o = dgecon_(&i);
-			],[AC_DEFINE(HAVE_DGECON_,1,[define to use LAPACK's dgecon in newton raphson solver])])
+                        ],[AC_DEFINE(HAVE_DGECON,1,[define to use LAPACK's dgecon in newton raphson solver])])
 	elif test "$have_lapack" = "yes" ; then
 		AC_TRY_LINK([
 	extern double dgecon(double *);
@@ -2079,7 +2115,7 @@ if test $ol_with_lapack != no ; then
 			],[
 	double o;
 	o = dlamch_("S");
-			],[AC_DEFINE(HAVE_DLAMCH_,1,[define to use LAPACK's dlamch in dgeequ])])
+                        ],[AC_DEFINE(HAVE_DLAMCH,1,[define to use LAPACK's dlamch in dgeequ])])
 	elif test "$have_lapack" = "yes" ; then
 		AC_TRY_LINK([
 	extern double dlamch(const char *);
@@ -2095,7 +2131,7 @@ if test $ol_with_lapack != no ; then
 			],[
 	double i = 1., o;
 	o = dgetrf_(&i);
-			],[AC_DEFINE(HAVE_DGETRF_,1,[define to use LAPACK's dgetrf in newton raphson solver])])
+                        ],[AC_DEFINE(HAVE_DGETRF,1,[define to use LAPACK's dgetrf in newton raphson solver])])
 	elif test "$have_lapack" = "yes" ; then
 		AC_TRY_LINK([
 	extern double dgetrf(double *);
@@ -2118,7 +2154,25 @@ if test $ol_with_lapack != no ; then
 			],[
 	double i = 1., o;
 	o = dgegv(&i);
-			],[AC_DEFINE(HAVE_DGEGV_,1,[define to use LAPACK's dgegv in Eig])])
+                        ],[AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])])
+        fi
+
+        if test "$have_lapack_" = "yes" ; then
+                AC_TRY_LINK([
+        extern double dtrtrs_(double *);
+                        ],[
+        double i = 1., o;
+        o = dtrtrs_(&i);
+                        ],[have_dtrtrs=yes
+                           AC_DEFINE(HAVE_DTRTRS,1,[define to use LAPACK's dtrtrs in SPQR])])
+        elif test "$have_lapack" = "yes" ; then
+                AC_TRY_LINK([
+        extern double dtrtrs(double *);
+                        ],[
+        double i = 1., o;
+        o = dtrtrs(&i);
+                        ],[have_dtrtrs=yes
+                           AC_DEFINE(HAVE_DTRTRS,1,[define to use LAPACK's dtrtrs in SPQR])])
 	fi
 
 	if test "$have_lapack" = "yes" ; then
@@ -2127,6 +2181,7 @@ if test $ol_with_lapack != no ; then
 	else
 		AC_MSG_RESULT([no])
 	fi
+        
 	LIBS="$save_LIBS"
 fi
 
@@ -2678,9 +2733,33 @@ if test $ol_with_pastix != no ; then
 		have_pastix="no"
 	        LIBS="$try_pastix_LIBS $save_LIBS -lm"
 			AC_TRY_LINK([
+#include <stdint.h>
 #include <pastix.h>
 ],[
-                pastix(0,0,0,0,0,0,0,0,0,0,0,0);
+                pastix_data_t* pastix_data;
+                pastix_int_t* colptr;
+                pastix_int_t* rows;
+                pastix_float_t* avals;
+                pastix_int_t* perm;
+                pastix_int_t* iperm;
+                pastix_int_t ncols;
+                pastix_float_t* x;
+                pastix_int_t iparm[IPARM_SIZE];
+                double dparm[DPARM_SIZE];
+                iparm[IPARM_START_TASK] = API_TASK_INIT;
+                iparm[IPARM_END_TASK] = API_TASK_REFINE;
+                pastix(&pastix_data,
+                       0,
+                       ncols,
+                       colptr,
+                       rows,
+                       avals,
+                       perm,
+                       iperm,
+                       x,
+                       1,
+                       iparm,
+                       dparm);
 			],[have_pastix="yes"])
 
                 LIBS="$save_LIBS"
@@ -2693,6 +2772,112 @@ if test $ol_with_pastix != no ; then
                 else
                    AC_MSG_RESULT([no])
 		fi
+        fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for QRUPDATE
+dnl
+ol_link_qrupdate=no
+if test $ol_with_qrupdate != no ; then
+   AC_MSG_CHECKING([for qrupdate library])
+   try_qrupdate_LIBS="-lqrupdate"
+   save_LIBS="$LIBS"
+   have_qrupdate="no"
+   LIBS="$try_qrupdate_LIBS $save_LIBS -lm"
+   AC_TRY_LINK([
+        extern int dqr1up(double*);
+   ],[
+        double i = 1;
+        int o;
+        o = dqr1up(&i);
+   ],[have_qrupdate="yes"])
+
+   if test "$have_qrupdate" = "no"; then
+      AC_TRY_LINK([
+        extern int dqr1up_(double*);
+      ],[
+        double i = 1;
+        int o;
+        o = dqr1up_(&i);
+      ],[have_qrupdate="yes"])
+   fi
+
+   LIBS="$save_LIBS"
+
+   if test "$have_qrupdate" = "yes"; then
+      AC_MSG_RESULT([yes])
+      ol_link_qrupdate=yes
+      QRUPDATE_LIBS="$try_qrupdate_LIBS"
+      AC_DEFINE(USE_QRUPDATE,1,[define if you want to use QRUPDATE])
+   else
+      AC_MSG_RESULT([no])
+   fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for SuiteSparseQr
+dnl
+ol_link_suitesparseqr=no
+if test $ol_with_suitesparseqr != no ; then
+        AC_LANG_CPLUSPLUS
+        AC_CHECK_HEADERS(SuiteSparseQR.hpp)
+
+        if test "$ac_cv_header_SuiteSparseQR_hpp" = "yes" ; then
+                AC_MSG_CHECKING([for SuiteSparseQR library])
+                try_suitesparseqr_LIBS="-lspqr -lcholmod"
+                save_LIBS="$LIBS"
+                have_suitesparseqr="no"
+                LIBS="$try_suitesparseqr_LIBS $save_LIBS -lm"
+                AC_TRY_LINK([
+                        #include <SuiteSparseQR.hpp>
+                        ],[
+                        cholmod_sparse *A, *Q, *R;
+                        SuiteSparse_long *E;
+                        cholmod_common oCommon;
+                        cholmod_l_start(&oCommon);
+                        A = cholmod_l_speye(100, 100, CHOLMOD_REAL, &oCommon);
+                        SuiteSparseQR<double>(SPQR_ORDERING_DEFAULT,
+                                              SPQR_NO_TOL,
+                                              A->ncol,
+                                              A,
+                                              &Q,
+                                              &R,
+                                              &E,
+                                              &oCommon);
+                        cholmod_l_free_sparse(&A, &oCommon);
+                        cholmod_l_free_sparse(&Q, &oCommon);
+                        cholmod_l_free_sparse(&R, &oCommon);
+                        cholmod_l_free(A->nrow, sizeof(*E), E, &oCommon);
+                        cholmod_l_finish(&oCommon);
+                ],[have_suitesparseqr="yes"])
+
+                LIBS="$save_LIBS"
+
+                if test "$have_suitesparseqr" = "yes"; then
+                   AC_MSG_RESULT([yes])
+
+                   if test "$have_qrupdate" = "yes" && test "$have_dtrtrs" = "yes" ; then
+                     ol_link_suitesparseqr=yes
+                     SUITESPARSEQR_LIBS="$try_suitesparseqr_LIBS"
+                     AC_DEFINE(USE_SUITESPARSE_QR,1,[define if you want to use SuiteSparseQR])
+                   fi
+                else
+                   AC_MSG_RESULT([no])
+                fi
+        fi
+
+        AC_LANG_C
+        if test "$have_fc_f77" = "no" ; then
+                if test $ol_with_y12 = yes ; then
+                        AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+                fi
+        else
+                ol_link_y12=yes
+                AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
+                Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
         fi
 fi
 
@@ -3323,6 +3508,8 @@ AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(PASTIX_LIBS)
+AC_SUBST(QRUPDATE_LIBS)
+AC_SUBST(SUITESPARSEQR_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)

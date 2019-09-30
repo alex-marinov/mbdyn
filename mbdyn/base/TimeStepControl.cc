@@ -275,7 +275,7 @@ Factor::Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& 
 	}
 
 	if (dMinTimeStep == dInitialMaxTimeStep) {
-		silent_cerr("warning: minimum time step " << dMinTimeStep << "is equal to (initial) maximum time step " << dInitialMaxTimeStep << "; no time step adaptation will take place" << std::endl);
+		silent_cerr("warning: minimum time step " << dMinTimeStep << " is equal to (initial) maximum time step " << dInitialMaxTimeStep << "; no time step adaptation will take place" << std::endl);
 
 	} else if (dMinTimeStep == dInitialMaxTimeStep) {
 		silent_cerr("error: minimum time step " << dMinTimeStep << "is greater than (initial) maximum time step " << dInitialMaxTimeStep << std::endl);

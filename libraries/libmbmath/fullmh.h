@@ -96,6 +96,38 @@ public:
 	};
 
 private:
+#ifdef USE_LAPACK
+        typedef void (VectorHandler::*VectorOperation)(integer iRow, const doublereal& dCoef);
+        typedef void (MatrixHandler::*MatrixOperation)(integer iRow, integer iCol, const doublereal& dCoef);
+        
+        void LapackMatrixOp(const char* TRANSA,
+                            const char* TRANSB,
+                            doublereal* pout,
+                            integer out_nr,
+                            integer out_nc,
+                            const doublereal* pin,
+                            integer in_nr,
+                            doublereal ALPHA,
+                            doublereal BETA) const;
+        
+        void LapackMatrixOp(const char* TRANSA,
+                            const char* TRANSB,
+                            doublereal* pout,
+                            integer out_nr,
+                            integer out_nc,
+                            const doublereal* pin,
+                            integer in_nr,
+                            VectorOperation op) const;
+        
+        void LapackMatrixOp(const char* TRANSA,
+                            const char* TRANSB,
+                            doublereal* pout,
+                            integer out_nr,
+                            integer out_nc,
+                            const doublereal* pin,
+                            integer in_nr,
+                            MatrixOperation op) const;
+#endif
 	const_iterator m_end;
 
 public:

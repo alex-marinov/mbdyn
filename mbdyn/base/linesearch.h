@@ -38,13 +38,19 @@
 
  /*
  AUTHOR: Reinhard Resch <r.resch@a1.net>
-        Copyright (C) 2011(-2017) all rights reserved.
+        Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
         for use in the software MBDyn as described
         in the GNU Public License version 2.1
   */
+
+/*
+  References: 
+  Numerical recipes in C: the art of scientific computing / William H. Press [et al.]. – 2nd ed.
+  ISBN 0-521-43108-5
+*/
 
 #ifndef LINE_SEARCH_H
 #define LINE_SEARCH_H
@@ -227,5 +233,26 @@ public:
                        doublereal& dSolErr);
 };
 
-#endif /* LINE_SEARCH_H */
+class LineSearchBFGS: public LineSearchSolver
+{
+private:
+        void Attach(const NonlinearProblem* pNLP, Solver* pS);
+        MyVectorHandler s, t, w, FCurr, FPrev;
 
+public:
+        LineSearchBFGS(DataManager* pDM,
+                       const NonlinearSolverOptions& options,
+                       const struct LineSearchParameters& param);
+        ~LineSearchBFGS(void);
+
+        virtual void Solve(const NonlinearProblem *pNLP,
+                           Solver *pS,
+                           const integer iMaxIter,
+                           const doublereal& Tol,
+                           integer& iIterCnt,
+                           doublereal& dErr,
+                           const doublereal& SolTol,
+                           doublereal& dSolErr);
+};
+
+#endif /* LINE_SEARCH_H */

@@ -52,6 +52,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
+                ::solver[LinSol::QR_SOLVER].s_name,
+                ::solver[LinSol::SPQR_SOLVER].s_name,
 		NULL
 	};
 
@@ -68,6 +70,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		KLU,
 		Y12,
                 PASTIX,
+                QR,
+                SPQR,
 
 		LASTKEYWORD
 	};
@@ -192,7 +196,22 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 				"Using pastix sparse LU solver" << std::endl);
 #ifdef USE_PASTIX
 		bGotIt = true;
-#endif /* USE_Y12 */
+#endif /* USE_PASTIX */
+                break;
+
+        case QR:
+                cs.SetSolver(LinSol::QR_SOLVER);
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using dense QR solver" << std::endl);
+                bGotIt = true;
+                break;                
+        case SPQR:
+                cs.SetSolver(LinSol::SPQR_SOLVER);
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using sparse QR solver" << std::endl);
+#ifdef USE_SUITESPARSE_QR
+                bGotIt = true;
+#endif
 		break;
                 
 	default:
@@ -357,6 +376,42 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif //USE_METIS
+        } else if (HP.IsKeyWord("amd")) {
+                if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_AMD) {
+                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_AMD);
+                        pedantic_cout("using amd preordering for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+
+                } else {
+                        pedantic_cerr("amd preordering is meaningless for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+                }                
+        } else if (HP.IsKeyWord("given")) {
+                if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_GIVEN) {
+                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_GIVEN);
+                        pedantic_cout("using givens preordering for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+
+                } else {
+                        pedantic_cerr("givens preordering is meaningless for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+                }                
+        } else if (HP.IsKeyWord("metis")) {
+                if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_METIS) {
+                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_METIS);
+                        pedantic_cout("using metis preordering for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+
+                } else {
+                        pedantic_cerr("metis preordering is meaningless for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+                }                
 	}
 
 	/* multithread? */

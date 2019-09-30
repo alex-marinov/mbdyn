@@ -445,7 +445,9 @@ std::ostream& SpMapMatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat
 {
     if (eFormat == MAT_PRINT_TRIPLET) {
         for (auto i = begin(); i != end(); ++i) {
-            os << i->iRow + 1 << '\t' << i->iCol + 1 << '\t' << i->dCoef << '\n';
+                if (i->dCoef) { // Output only nonzero entries
+                        os << i->iRow + 1 << '\t' << i->iCol + 1 << '\t' << i->dCoef << '\n';
+                }
         }
         
         return os;

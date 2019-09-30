@@ -111,3 +111,10 @@ bool SolutionManager::bGetConditionNumber(doublereal& dCond) const
 
 /* SolutionManager - end */
 
+QrSolutionManager::QrSolutionManager(void)
+{
+}
+
+QrSolutionManager::~QrSolutionManager(void)
+{
+}
