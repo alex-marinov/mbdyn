@@ -1018,77 +1018,48 @@ EndOfUse:
 					bOutputFrames = true;
 					break;
 
-				case ACCELERATIONS:
-					bOutputAccels = true;
-					break;
-
 				case DRIVECALLERS:
 					bOutputDriveCaller = true;
-					break;
-
-				case STRUCTURALNODES:
-					NodeData[Node::STRUCTURAL].DefaultOut(true);
-					break;
-
-				case ELECTRICNODES:
-					NodeData[Node::ELECTRIC].DefaultOut(true);
-					break;
-
-				case THERMALNODES:
-					NodeData[Node::THERMAL].DefaultOut(true);
 					break;
 
 				case ABSTRACTNODES:
 					NodeData[Node::ABSTRACT].DefaultOut(true);
 					break;
 
+				case ELECTRICNODES:
+					NodeData[Node::ELECTRIC].DefaultOut(true);
+					break;
+
 				case HYDRAULICNODES:
 					NodeData[Node::HYDRAULIC].DefaultOut(true);
 					break;
 
-				case GRAVITY:
-					ElemData[Elem::GRAVITY].DefaultOut(true);
+				case STRUCTURALNODES:
+					NodeData[Node::STRUCTURAL].DefaultOut(true);
 					break;
 
-				case RIGIDBODIES:
-					ElemData[Elem::BODY].DefaultOut(true);
+				case ACCELERATIONS:
+					bOutputAccels = true;
 					break;
 
-				case JOINTS:
-					ElemData[Elem::JOINT].DefaultOut(true);
-					break;
-
-				case BEAMS:
-					ElemData[Elem::BEAM].DefaultOut(true);
-					break;
-
-				case PLATES:
-					ElemData[Elem::PLATE].DefaultOut(true);
-					break;
-
-				case AIRPROPERTIES:
-					ElemData[Elem::AIRPROPERTIES].DefaultOut(true);
-					break;
-
-				case ROTORS:
-				case INDUCEDVELOCITYELEMENTS:
-					ElemData[Elem::INDUCEDVELOCITY].DefaultOut(true);
-					break;
-
-				case AEROMODALS:
-					ElemData[Elem::AEROMODAL].DefaultOut(true);
+				case THERMALNODES:
+					NodeData[Node::THERMAL].DefaultOut(true);
 					break;
 
 				case AERODYNAMICELEMENTS:
 					ElemData[Elem::AERODYNAMIC].DefaultOut(true);
 					break;
 
-				case FORCES:
-					ElemData[Elem::FORCE].DefaultOut(true);
+				case AEROMODALS:
+					ElemData[Elem::AEROMODAL].DefaultOut(true);
 					break;
 
-				case GENELS:
-					ElemData[Elem::GENEL].DefaultOut(true);
+				case AIRPROPERTIES:
+					ElemData[Elem::AIRPROPERTIES].DefaultOut(true);
+					break;
+
+				case BEAMS:
+					ElemData[Elem::BEAM].DefaultOut(true);
 					break;
 
 				case ELECTRICBULKELEMENTS:
@@ -1099,21 +1070,52 @@ EndOfUse:
 					ElemData[Elem::ELECTRIC].DefaultOut(true);
 					break;
 
-				case THERMALELEMENTS:
-					ElemData[Elem::THERMAL].DefaultOut(true);
-					break;
-
-				case HYDRAULICELEMENTS:
-					ElemData[Elem::HYDRAULIC].DefaultOut(true);
-					break;
-				case LOADABLEELEMENTS:
-					ElemData[Elem::LOADABLE].DefaultOut(true);
-					break;
 #ifdef USE_EXTERNAL
 				case EXTERNALELEMENTS:
 					ElemData[Elem::EXTERNAL].DefaultOut(true);
 					break;
 #endif /* USE_EXTERNAL */
+
+				case FORCES:
+					ElemData[Elem::FORCE].DefaultOut(true);
+					break;
+
+				case GENELS:
+					ElemData[Elem::GENEL].DefaultOut(true);
+					break;
+
+				case GRAVITY:
+					ElemData[Elem::GRAVITY].DefaultOut(true);
+					break;
+
+				case HYDRAULICELEMENTS:
+					ElemData[Elem::HYDRAULIC].DefaultOut(true);
+					break;
+
+				case INDUCEDVELOCITYELEMENTS:
+				case ROTORS:
+					ElemData[Elem::INDUCEDVELOCITY].DefaultOut(true);
+					break;
+
+				case JOINTS:
+					ElemData[Elem::JOINT].DefaultOut(true);
+					break;
+
+				case LOADABLEELEMENTS:
+					ElemData[Elem::LOADABLE].DefaultOut(true);
+					break;
+
+				case PLATES:
+					ElemData[Elem::PLATE].DefaultOut(true);
+					break;
+
+				case RIGIDBODIES:
+					ElemData[Elem::BODY].DefaultOut(true);
+					break;
+
+				case THERMALELEMENTS:
+					ElemData[Elem::THERMAL].DefaultOut(true);
+					break;
 
 				case UNKNOWN:
 					silent_cerr("warning: unknown output case at line "

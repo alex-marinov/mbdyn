@@ -219,21 +219,31 @@ By default, no timeout is used, so \texttt{select(2)} waits forever.
 
     \bnt{output_item} ::=
         \{ \kw{reference frames}
+        | \kw{drive callers}
+        ----
         | \kw{abstract nodes}
         | \kw{electric nodes}
         | \kw{hydraulic nodes}
         | \kw{structural nodes} [ | \kw{accelerations} ]
+        | \kw{thermal nodes}
+        ----
         | \kw{aerodynamic elements}
+        | \kw{aeromodals}
         | \kw{air properties}
         | \kw{beams}
+        | \kw{electric bulk elements}
         | \kw{electric elements}
+        | \kw{external elements}
         | \kw{forces}
         | \kw{genels}
         | \kw{gravity}
         | \kw{hydraulic elements}
+        | \kw{induced velocity elements}
         | \kw{joints}
+        | \kw{loadable}
+        | \kw{plates}
         | \kw{rigid bodies}
-        | \kw{induced velocity elements} \}
+        | \kw{thermal elements} \}
 \end{Verbatim}
 %\end{verbatim}
 Here the default output flag for a type of node or element can be set.
