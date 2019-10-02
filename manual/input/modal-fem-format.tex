@@ -160,8 +160,8 @@ because modes are treated in a generalized manner,
 so there is no need to consider the different types of shapes
 in a specific manner.
 Typically, one should set all numbers to 0, except for
-\nt{NNORMAL} which should be set to the number of modes
-actually present in the data set.
+\nt{NNORMAL}, which should be set equal to the total number of modes
+actually present in the data set, regardless of their type.
 Remember that MBDyn can still select a subset of the available 
 modes to be used in the analysis, so that there is no need 
 to further edit this file.
@@ -198,10 +198,14 @@ for readability;
 
 \item \kw{RECORD GROUP 9} contains the modal mass matrix,
 i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
-the reduced mass $\sqbr{m}$ resulting from the multiplication
+the reduced mass
+%$\sqbr{m}$
+$\TT{m}$
+resulting from the multiplication
 \begin{equation}
 	\label{eq:modal-mass-constraint}
-	\sqbr{m} = \cubr{X}^T \sqbr{M} \cubr{X}
+	%\sqbr{m} = \sqbr{X}^T \sqbr{M} \sqbr{X}
+	\TT{m} = \TT{X}^T \TT{M} \TT{X}
 \end{equation}
 When only normal modes are used, it is diagonal.
 It can be semi-definite positive, or even zero, if a partially 
@@ -209,9 +213,13 @@ or entirely static model is considered.
 
 \item \kw{RECORD GROUP 10} contains the modal stiffness matrix,
 i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
-the reduced stiffness $\sqbr{k}$ resulting from the multiplication
+the reduced stiffness
+% $\sqbr{k}$
+$\TT{k}$
+resulting from the multiplication
 \begin{equation}
-	\sqbr{k} = \cubr{X}^T \sqbr{K} \cubr{X}
+	%\sqbr{k} = \sqbr{X}^T \sqbr{K} \sqbr{X}
+	\TT{k} = \TT{X}^T \TT{K} \TT{X}
 \end{equation}
 When only normal modes are used, it is diagonal; in that case,
 the diagonal contains the modal mass times the square 
@@ -243,9 +251,13 @@ if the model is static).
 
 \item \kw{RECORD GROUP 13} contains the modal damping matrix,
 i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
-the reduced damping $\sqbr{c}$ resulting from the multiplication
+the reduced damping
+%$\sqbr{c}$
+$\TT{c}$
+resulting from the multiplication
 \begin{equation}
-	\sqbr{c} = \cubr{X}^T \sqbr{C} \cubr{X}
+	%\sqbr{c} = \sqbr{X}^T \sqbr{C} \sqbr{X}
+	\TT{c} = \TT{X}^T \TT{C} \TT{X}
 \end{equation}
 It can be semi-definite positive, or even zero, if no damping is considered.
 This record is optional.
@@ -401,7 +413,7 @@ The corresponding global inertia properties are:
 		0 \\
 		0
 	}} \\
-	\T{J}		&= \sqbr{\matr{ccc}{
+	\TT{J}		&= \sqbr{\matr{ccc}{
 		11 &  0 &  0 \\
 		 0 &  3 &  0 \\
 		 0 &  0 & 11
