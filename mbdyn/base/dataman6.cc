@@ -151,29 +151,36 @@ do_timeout:;
 						   "Looping on active to see if connection is possible" << std::endl);
 
 		/* loop on active to see what is being connected */
-		for (int i = 0; i < nactive && a != SOCKET_ERROR; i++) {
+		// for (int i = 0; i < nactive && a != SOCKET_ERROR; i++) {
+		//for(ri = SocketUsers.begin(); ri != SocketUsers.end() && a != SOCKET_ERROR; ri++) {
+		ri = SocketUsers.begin();
+		while (ri != SocketUsers.end() && a != SOCKET_ERROR) {
 
-			UseSocket *pUS = SocketUsers[i];
+			// UseSocket *pUS = SocketUsers[i];
+			UseSocket *pUS = ri->second;
 
 			int isset = FD_ISSET(pUS->GetSock(), &read_set);
 
-            pedantic_cout ("DataManager::WaitSocketUsers(): "
-						   "Socket: " << i
-						   << " Info: " << pUS->GetSockaddrStr()
+            		pedantic_cout ("DataManager::WaitSocketUsers(): "
+						   "Socket: " << ri->first
+						   // << " Info: " << pUS->GetSockaddrStr()
+						   << "Info: " << ri->second->GetSockaddrStr()
 						   << " isset: " << isset
 						   << std::endl);
 
 			if (isset) {
 
-                pedantic_cout ("DataManager::WaitSocketUsers(): "
-						   "Attempting to accept socket: " << i
-						   << " Info: " << pUS->GetSockaddrStr()
+		                pedantic_cout ("DataManager::WaitSocketUsers(): "
+						   //"Attempting to accept socket: " << i
+						   // << " Info: " << pUS->GetSockaddrStr()
+						   "Attempting to accept socket: " << ri->first
+						   << "Info: " << ri->second->GetSockaddrStr()
 						   << std::endl);
 
 				SOCKET sock;
-
-				sock = accept(pUS->GetSock(), pUS->GetSockaddr(),
-						&pUS->GetSocklen());
+				sock = accept(pUS->GetSock(), 
+					      pUS->GetSockaddr(),
+					      &pUS->GetSocklen());
 
 				if (sock == INVALID_SOCKET) {
 					int save_errno = WSAGetLastError();
@@ -195,12 +202,15 @@ do_timeout:;
 				close(pUS->GetSock());
 #endif /* _WIN32 */
 
-				SocketUsers.erase(i);
+				// SocketUsers.erase(i);
+				ri = SocketUsers.erase(ri);
 
 				/* register as connected */
 				pUS->ConnectSock(sock);
 				nactive--;
 				a--;
+			} else {
+				ri++;
 			}
 		}
 	}
