@@ -995,6 +995,101 @@ struct DivSFR: public ScalarFunctionRead {
 	};
 };
 
+
+// SineScalarFunction
+SineScalarFunction::SineScalarFunction(
+	const doublereal amplitude,
+	const doublereal frequency,
+	const doublereal phase) : amp(amplitude), freq(frequency), theta(phase)
+{
+	ASSERTMSGBREAK(frequency != 0., "SineScalarFunction error, null frequency");
+}
+
+SineScalarFunction::~SineScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+SineScalarFunction::operator()(const doublereal x) const
+{
+	return amp*sin(freq*x + theta);
+}
+
+doublereal
+SineScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >=0, "Error in SineScalarFunction::ComputeDiff, order<0");
+	switch (order) {
+	case 0:
+		return this->operator()(x);
+
+	default:
+		return amp*pow(freq,order)*sin(freq*x + theta + order*M_PI_2);
+
+	}
+}
+
+// ScalarFunction parsing functional object
+struct SineSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+
+		doublereal amplitude = HP.GetReal();
+		doublereal frequency = HP.GetReal();
+		doublereal phase = HP.GetReal();
+
+		return new SineScalarFunction(amplitude, frequency, phase);
+	};
+};
+
+// CosineScalarFunction
+CosineScalarFunction::CosineScalarFunction(
+	const doublereal amplitude,
+	const doublereal frequency,
+	const doublereal phase) : amp(amplitude), freq(frequency), theta(phase)
+{
+	ASSERTMSGBREAK(frequency != 0., "CosineScalarFunction error, null frequency");
+}
+
+CosineScalarFunction::~CosineScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+CosineScalarFunction::operator()(const doublereal x) const
+{
+	return amp*cos(freq*x + theta);
+}
+
+doublereal
+CosineScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >=0, "Error in CosineScalarFunction::ComputeDiff, order<0");
+	switch (order) {
+	case 0:
+		return this->operator()(x);
+
+	default:
+		return amp*pow(freq,order)*sin(freq*x + theta + (order+1)*M_PI_2);
+
+	}
+}
+
+// ScalarFunction parsing functional object
+struct CosineSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+
+		doublereal amplitude = HP.GetReal();
+		doublereal frequency = HP.GetReal();
+		doublereal phase = HP.GetReal();
+
+		return new CosineScalarFunction(amplitude, frequency, phase);
+	};
+};
+
 //---------------------------------------
 
 typedef std::map<std::string, const ScalarFunctionRead *, ltstrcase> SFReadType;
@@ -1437,6 +1532,10 @@ InitSF(void)
 	b = SetSF("multilinear", new MultiLinearSFR);
 	ASSERT(b);
 	b = SetSF("chebychev", new ChebychevSFR);
+	ASSERT(b);
+	b = SetSF("sin", new SineSFR);
+	ASSERT(b);
+	b = SetSF("cos", new CosineSFR);
 	ASSERT(b);
 
 	/* this is about initializing the scalar function drive */
