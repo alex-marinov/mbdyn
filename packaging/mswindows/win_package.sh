@@ -55,9 +55,9 @@ source ${thisfiledir}/win_package_config.sh
 echo host contains: ${host}
 
 # make sure all the required dependancies are in MXE
-mxedeps="boost libltdl suitesparse lapack hdf5 hdf4"
+mxedeps="boost libltdl suitesparse lapack hdf5 hdf4 nettle gnutls"
 
-if [ "${use_netcdf}" = true]; then
+if [ "${use_netcdf}" = true ]; then
 
   # add netcdf to the mxe build
   mxedeps="${mxedeps} netcdf"
