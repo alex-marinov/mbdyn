@@ -100,6 +100,10 @@ mkdir -p ${install_dir}
 # clear out any previous installation
 rm -rf ${install_dir}/*
 
+if [ -f "Makefile" ]; then
+  make clean
+fi
+
 ./bootstrap.sh
 
 # The following prevents wine from automatically running .exe files
@@ -121,11 +125,13 @@ fi
             --enable-install_test_progs=yes \
             --with-umfpack \
             --with-metis=no \
-            --enable-netcdf=${configure_enable_netcdf} \
-            `# --with-module=fabricate` \
+            --with-ginac=no \
+             --enable-netcdf=${configure_enable_netcdf} \
+            --with-static-modules \
+            --with-module=fabricate \
             LINKFLAGS="$LINKFLAGS -L${mxedir}/usr/x86_64-w64-mingw32.static/lib/" \
             CXXFLAGS="$CXXFLAGS -std=c++11 -D_USE_MATH_DEFINES" \
-            LIBS="$LIBS -lstdc++ -lgcc -lgfortran -lamd -lcurl -lsuitesparseconfig -lcholmod  -lportablexdr -lws2_32 -lnetcdf -lhdf5_hl -lhdf5 -lmfhdf -ldf -lz -lm -ljpeg  -lcurl -lgomp -lgnutls -lidn2 -lssh2 -lnettle -lmetis -lcolamd -lccolamd -lcamd " \
+            LIBS="$LIBS -lgcc -lgfortran -lamd -lsuitesparseconfig -lcholmod  -lportablexdr -lws2_32 -lnetcdf -lhdf5_hl -lhdf5 -lmfhdf -ldf -lz -lm -ljpeg  -lcurl -lgomp -lgnutls -lidn2 -lssh2 -lnettle -lmetis -lcolamd -lccolamd -lcamd `x86_64-w64-mingw32.static-pkg-config --libs libcurl` -lcurl -lssp -lstdc++ " \
             CPPFLAGS="$CPPFLAGS -I${mxedir}/usr/x86_64-w64-mingw32.static/include/suitesparse -I${mxedir}/usr/x86_64-w64-mingw32.static/include/"
 
 if hash wine 2>/dev/null; then
