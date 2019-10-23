@@ -35,6 +35,8 @@ the function as well. Currently implemented scalar functions are
 \item \kw{exp}: $f(x)=m\cdot b^{c\cdot{x}}$
 \item \kw{log}: $f(x)=m\cdot\textrm{log}_b(c\cdot{x})$
 \item \kw{pow}: $f(x)=x^p$
+\item \kw{sin}: $f(x)=\sin(x)$
+\item \kw{cos}: $f(x)=\cos(x)$
 \item \kw{linear}: linear interpolation between the two points $(x_1,y_1)$
 and $(x_2,y_2)$
 \item \kw{cubicspline}: cubic natural spline interpolation between the 
@@ -152,6 +154,30 @@ The argument must be positive, otherwise an exception is thrown.
 \begin{verbatim}
     scalar function: "pow_function", pow, 3.; # x^3.
 \end{verbatim}
+
+\subsubsection{Sine Scalar Function}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{sin}
+\end{Verbatim}
+%\end{verbatim}
+\begin{align}
+        f\plbr{x}
+        &=
+        \sin(x)
+\end{align}
+
+\subsubsection{Cosine Scalar Function}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{cos}
+\end{Verbatim}
+%\end{verbatim}
+\begin{align}
+        f\plbr{x}
+        &=
+        \cos(x)
+\end{align}
 
 \subsubsection{Linear Scalar Function}
 %\begin{verbatim}
@@ -368,4 +394,6 @@ Note: division by zero is checked, and an exception is thrown.
     scalar function: "second_function", const, 2.;
     scalar function: "div_function", div, "first_function", "second_function";
 \end{verbatim}
+
+
 
