@@ -14,7 +14,7 @@
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (version 2 of the License).
-% 
+%
 %
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,13 +35,15 @@ the function as well. Currently implemented scalar functions are
 \item \kw{exp}: $f(x)=m\cdot b^{c\cdot{x}}$
 \item \kw{log}: $f(x)=m\cdot\textrm{log}_b(c\cdot{x})$
 \item \kw{pow}: $f(x)=x^p$
+\item \kw{sin}: $f(x)=A \cdot \sin(\omega \cdot x + \theta)$
+\item \kw{cos}: $f(x)=A \cdot \cos(\omega \cdot x + \theta)$
 \item \kw{linear}: linear interpolation between the two points $(x_1,y_1)$
 and $(x_2,y_2)$
-\item \kw{cubicspline}: cubic natural spline interpolation between the 
+\item \kw{cubicspline}: cubic natural spline interpolation between the
 set of points $\{(x_i,y_i), i\in[1,k\geq3]\}$
-\item \kw{multilinear}: multilinear interpolation between the 
+\item \kw{multilinear}: multilinear interpolation between the
 set of points $\{(x_i,y_i), i\in[1,k\geq2]\}$
-\item \kw{chebychev}: Chebychev interpolation between the 
+\item \kw{chebychev}: Chebychev interpolation between the
 set of points $\{a,b\}$
 \item \kw{sum}: $f(x)=f_1(x) + f_2(x)$
 \item \kw{sub}: $f(x)=f_1(x) - f_2(x)$
@@ -53,7 +55,7 @@ set of points $\{a,b\}$
 Every \hty{ScalarFunction} card follows the format
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} :: = \kw{scalar function} : " \bnt{unique_scalar_func_name} " , 
+    \bnt{card} :: = \kw{scalar function} : " \bnt{unique_scalar_func_name} " ,
         \bnt{scalar_func_type} ,
         \bnt{scalar_func_args}
 \end{Verbatim}
@@ -62,7 +64,7 @@ The name of the scalar function is a string, thus it needs to be enclosed
 in double quotes.
 
 The type of scalar function,
-\nt{scalar\_func\_type}, together 
+\nt{scalar\_func\_type}, together
 with relevant arguments, \nt{scalar\_func\_args},
 are as follows:
 \subsubsection{Const Scalar Function}
@@ -153,6 +155,43 @@ The argument must be positive, otherwise an exception is thrown.
     scalar function: "pow_function", pow, 3.; # x^3.
 \end{verbatim}
 
+\subsubsection{Sine Scalar Function}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{sin}
+
+    \bnt{scalar_func_args} ::=
+        \bnt{amplitude_coeff},
+        \bnt{angular_frequency},
+        \bnt{phase_offset}
+\end{Verbatim}
+%\end{verbatim}
+\begin{align}
+        f\plbr{x}
+        &=
+        \nt{amplitude\_coeff} \cdot \sin(\nt{angular\_frequency} \cdot x + \nt{phase\_offset})
+\end{align}
+Note: The value \nt{phase\_offset} is in radians and \nt{angular\_frequency} is in rad$\cdot$s$^{-1}$.
+
+\subsubsection{Cosine Scalar Function}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{cos}
+
+    \bnt{scalar_func_args} ::=
+        \bnt{amplitude_coeff},
+        \bnt{angular_frequency},
+        \bnt{phase_offset}
+
+\end{Verbatim}
+%\end{verbatim}
+\begin{align}
+        f\plbr{x}
+        &=
+        \nt{amplitude\_coeff} \cdot \cos(\nt{angular\_frequency} \cdot x + \nt{phase\_offset})
+\end{align}
+Note: The value \nt{phase\_offset} is in radians and \nt{angular\_frequency} is in rad$\cdot$s$^{-1}$.
+
 \subsubsection{Linear Scalar Function}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -185,7 +224,7 @@ while $\nt{x}_f$, $\nt{y}_f$ are the coordinates of the second point.
     \bnt{scalar_func_type} ::= \kw{cubic spline}
 
     \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
-        \bnt{point} , 
+        \bnt{point} ,
         \bnt{point}
         [ , ... ]
         [ , \kw{end} ]
@@ -204,7 +243,7 @@ right after the last point.
     \bnt{scalar_func_type} ::= \kw{multilinear}
 
     \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
-        \bnt{point} , 
+        \bnt{point} ,
         \bnt{point}
         [ , ... ]
         [ , \kw{end} ]
@@ -221,7 +260,7 @@ of the nearest point pair.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{chebychev}
 
-    \bnt{scalar_func_args} ::= 
+    \bnt{scalar_func_args} ::=
         \bnt{lower_bound} , \bnt{upper_bound} ,
         [ \kw{do not extrapolate} , ]
         \bnt{coef_0} [ , \bnt{coef_1} [ , ... ] ]
@@ -262,7 +301,7 @@ The first derivative of the series is obtained by considering
 	\frac{\mathrm{d}}{\mathrm{d}\xi}T_0\plbr{\xi} &= 0 \\
 	\frac{\mathrm{d}}{\mathrm{d}\xi}T_1\plbr{\xi} &= 1 \\
 	\ldots \nonumber \\
-	\frac{\mathrm{d}}{\mathrm{d}\xi}T_n\plbr{\xi} &= 
+	\frac{\mathrm{d}}{\mathrm{d}\xi}T_n\plbr{\xi} &=
 		2 T_{n-1}\plbr{\xi}
 		+ 2 \xi \frac{\mathrm{d}}{\mathrm{d}\xi}T_{n-1}\plbr{\xi}
 		- \frac{\mathrm{d}}{\mathrm{d}\xi}T_{n-2}\plbr{\xi} ,
@@ -273,14 +312,12 @@ so the first derivative of the scalar function is
 \end{equation}
 Subsequent derivatives follow the rule
 \begin{equation}
-	\frac{\mathrm{d}^i}{\mathrm{d}\xi^i}T_n\plbr{\xi} = 
+	\frac{\mathrm{d}^i}{\mathrm{d}\xi^i}T_n\plbr{\xi} =
 		2 i \frac{\mathrm{d}^{i-1}}{\mathrm{d}\xi^{i-1}}T_{n-1}\plbr{\xi}
 		+ 2 \xi \frac{\mathrm{d}^i}{\mathrm{d}\xi^i}T_{n-1}\plbr{\xi}
 		- \frac{\mathrm{d}^i}{\mathrm{d}\xi^i}T_{n-2}\plbr{\xi} .
 \end{equation}
 Differentiation of order higher than 1 is not currently implemented.
-
-
 
 
 \subsubsection{Sum Scalar Function}
@@ -368,4 +405,6 @@ Note: division by zero is checked, and an exception is thrown.
     scalar function: "second_function", const, 2.;
     scalar function: "div_function", div, "first_function", "second_function";
 \end{verbatim}
+
+
 
