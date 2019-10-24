@@ -79,7 +79,7 @@ void _Assert(const char* file, const int line, const char* msg)
 #endif   
    
 #if !defined(NDEBUG) && defined(__GNUC__)
-   _assert(msg, file, line);
+   assert(msg, file, line);
 #endif
    
    return;
