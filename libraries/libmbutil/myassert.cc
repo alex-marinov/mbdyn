@@ -78,9 +78,9 @@ void _Assert(const char* file, const int line, const char* msg)
    throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif   
    
-#if !defined(NDEBUG) && defined(__GNUC__)
-   assert(msg, file, line);
-#endif
+//#if !defined(NDEBUG) && defined(__GNUC__)
+//   assert(msg, file, line);
+//#endif
    
    return;
 }
