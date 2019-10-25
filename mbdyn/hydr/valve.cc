@@ -1295,7 +1295,7 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.PutCoef(4, 3, Jac43);
    WM.PutCoef(4, 4, Jac44);
    WM.PutCoef(4, 7, Jac47);
-   WM.PutCoef(5, 7, Jac67);
+   WM.PutCoef(5, 7, Jac57); // (nearly) blind fix; was Jac67
    WM.PutCoef(6, 7, Jac67);
    WM.PutCoef(7, 1, Jac71);
    WM.PutCoef(7, 2, Jac72);
