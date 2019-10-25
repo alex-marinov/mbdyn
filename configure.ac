@@ -187,7 +187,7 @@ AC_SUBST(mbdyn_subdir)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
-OL_ARG_ENABLE(Werror,[  --enable-Werror          enable building with -Werror], no)dnl
+OL_ARG_ENABLE(Werror,[  --enable-Werror          enable building with -Werror], yes)dnl
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}] with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
