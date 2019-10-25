@@ -97,9 +97,9 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 : StreamDrive(uL, pDH, sFileName, nd, v0, c, pMod),
 InputEvery(ie), bReceiveFirst(bReceiveFirst), InputCounter(ie - 1),
 pUS(pUS), recv_flags(flags),
+bMsgDontWait(bMsgDontWait),
 SocketTimeout(st),
-pSDE(pSDE),
-bMsgDontWait(bMsgDontWait)
+pSDE(pSDE)
 {
 	// NOTE: InputCounter is set to InputEvery - 1 so that input
 	// is expected at initialization (initial time) and then every

@@ -575,10 +575,11 @@ PinJoint::PinJoint(unsigned int uL, const DofOwner* pDO,
 		   const Vec3& X0Tmp, const Vec3& dTmp, flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), 
-#ifdef USE_NETCDFC
-Var_Phi(0),
-#endif // USE_NETCDFC
 F(Zero3)
+#ifdef USE_NETCDFC
+,
+Var_Phi(0)
+#endif // USE_NETCDFC
 {
    NO_OP;
 }

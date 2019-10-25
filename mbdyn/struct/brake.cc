@@ -61,13 +61,15 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr), 
+brakeForce(pdc) 
 #ifdef USE_NETCDFC
+,
 Var_Phi(0),
 Var_Omega(0),
 Var_fc(0),
-Var_Fb(0),
+Var_Fb(0)
 #endif // USE_NTECDFC
-brakeForce(pdc) /* ,
+/* ,
 isForce(isforce), Dir(dir) */
 {
 	NO_OP;

@@ -134,7 +134,7 @@ main(int argc, char* argv[])
 {
 	unsigned size = 1000;
 	unsigned nt = 1;
-	unsigned loops = 1;
+	//unsigned loops = 1;
 
 	if (argc == 1) {
 usage:;
@@ -147,7 +147,7 @@ usage:;
 		}
 
 		std::cout << "usage: " << s << " [lnsSt]" << std::endl
-			<< "\t-l <loops>" << std::endl
+			//<< "\t-l <loops>" << std::endl
 			<< "\t-n <size>" << std::endl
 			<< "\t-s <sleeptime>" << std::endl
 			<< "\t-S <random sleeptime>" << std::endl
@@ -157,17 +157,18 @@ usage:;
 
 	while (true) {
 		char	*next;
-		int	opt = getopt(argc, argv, "l:n:s:S:t:");
+		//int	opt = getopt(argc, argv, "l:n:s:S:t:");
+		int	opt = getopt(argc, argv, "n:s:S:t:");
 
 		if (opt == EOF) {
 			break;
 		}
 
 		switch (opt) {
-		case 'l':
-			loops = strtoul(optarg, &next, 10);
-			break;
-
+// 		case 'l':
+// 			loops = strtoul(optarg, &next, 10);
+// 			break;
+// 
 		case 'n':
 			size = strtoul(optarg, &next, 10);
 			break;

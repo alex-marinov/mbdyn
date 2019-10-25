@@ -136,7 +136,7 @@ mbc_get_cmd(mbc_t *mbc)
 #ifdef _WIN32
 		winsock_err_string(err, msg);
 #else
-		*msg = "\0";
+		*msg = '0';
 #endif /* _WIN32 */
 
 		fprintf(stderr, "recv(cmd=%lu) failed, rc: %d, sizeof(mbc->cmd): %d, errno: %d, err msg: %s\n",
@@ -312,6 +312,10 @@ mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port)
 	}
 
 	int serr = mbdyn_make_inet_socket(&mbc->sock, &addr, host, port, 0, NULL);
+	if (!serr) {
+		fprintf(stderr, "unable to make inet socket\n");
+		return -1;
+	}
 
 	return mbc_init(mbc, (struct sockaddr *)&addr, sizeof(addr));
 }

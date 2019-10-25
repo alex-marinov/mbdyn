@@ -56,11 +56,12 @@ tilde_f(tilde_f),
 tilde_Rh(tilde_Rh),
 od(od),
 tilde_kPrime(Zero6),
-#ifdef USE_NETCDFC
-Var_v(0),
-Var_omega(0),
-#endif // USE_NETCDFC
 bFirstRes(false)
+#ifdef USE_NETCDFC
+,
+Var_v(0),
+Var_omega(0)
+#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);

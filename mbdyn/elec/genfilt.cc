@@ -452,7 +452,7 @@ pdX(0), pdXP(0)
 #ifdef USE_LAPACK
 	// try balancing the matrix?
 	if (bBalance) {
-		int rc;
+		int rc; (void)rc; //silence set but not used warning
 		char JOB = 'S';
 		integer N = Order;
 		integer LDA = Order;

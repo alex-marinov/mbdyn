@@ -234,7 +234,7 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		iNInput = HP.GetInt(1, HighParser::range_gt<integer>(0));
 	
-	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+	} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): number of input must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -303,7 +303,7 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		m_iN = HP.GetInt(2, HighParser::range_gt<integer>(0));
 
-	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+	} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): N must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -317,7 +317,7 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		m_dOmega0 = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
-	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+	} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): initial frequency must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -330,7 +330,7 @@ m_OutputFormat(Out_COMPLEX)
 			try {
 				m_dOmegaMax = HP.GetReal(m_dOmega0, HighParser::range_gt<doublereal>(m_dOmega0));
 
-			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+			} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum frequency must be greater than initial frequency " << m_dOmega0 << ", at line " << HP.GetLineData() << std::endl);
 				throw e;
 			}
@@ -355,7 +355,7 @@ m_OutputFormat(Out_COMPLEX)
 		try {
 			m_dOmegaAddInc = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
-		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+		} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): frequency additive increment must be positive, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
@@ -365,7 +365,7 @@ m_OutputFormat(Out_COMPLEX)
 		try {
 			m_dOmegaMulInc = HP.GetReal(1., HighParser::range_gt<doublereal>(1.));
 
-		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+		} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): frequency multiplicative increment must be greater than 1, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
@@ -384,7 +384,7 @@ m_OutputFormat(Out_COMPLEX)
 			try {
 				dOmega = HP.GetReal(1., HighParser::range_gt<doublereal>(dOmega));
 
-			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+			} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): Omega[" << i << "] must be greater than Omega[" << i - 1 << "] = " << m_Omega[i-1] << ", at line " << HP.GetLineData() << std::endl);
 				throw e;
 			}
@@ -411,7 +411,7 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		m_dTol = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
-	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+	} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): tolerance must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -425,7 +425,7 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		m_iMinPeriods = HP.GetInt(2, HighParser::range_gt<integer>(1));
 
-	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+	} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): minimum number of periods must be greater than 1, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -435,7 +435,7 @@ m_OutputFormat(Out_COMPLEX)
 		try {
 			m_iMaxPeriods = HP.GetInt(m_iMinPeriods + 1, HighParser::range_gt<integer>(m_iMinPeriods));
 
-		} catch (HighParser::ErrValueOutOfRange<integer> e) {
+		} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum number of periods must be greater than minimum number of periods " << m_iMinPeriods << ", at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
@@ -462,7 +462,7 @@ m_OutputFormat(Out_COMPLEX)
 		try {
 			uTSLabel = HP.GetInt(0, HighParser::range_ge<integer>(0));
 
-		} catch (HighParser::ErrValueOutOfRange<integer> e) {
+		} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): timestep label must be non-negative, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
@@ -491,7 +491,7 @@ m_OutputFormat(Out_COMPLEX)
 
 		try {
 			(void)HP.SetDrive(uTSLabel, pDC);
-		} catch (MBDynParser::ErrGeneric e) {
+		} catch (const MBDynParser::ErrGeneric& e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): unable to create timestep driver: " << e.what() << " at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}

@@ -495,6 +495,14 @@ done:	{
 
 }
 
+void check_fgets(char*a){
+	if (a == NULL){
+        	fprintf( stderr, "ERROR READING FROM FILE\n");
+	        exit(EXIT_FAILURE);
+	}
+	return;
+}
+
 int GPCdataRead( GPC_data_struct *data, char *FileName ){
 
 char line[MAX_STR_LENGTH], name[MAX_STR_LENGTH];
@@ -509,120 +517,120 @@ if (fh == NULL){
 }
 
 /* Read MODEL ORDER n */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->n);
 if ( data->n == 0 ){
 	fprintf( stderr, "Model order must be different from zero \nerror: n = %d\n", data->n);
 	return 0;
 } 
 /* Read SYSTEM INPUTS NUMBER m */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->m);
 if ( data->m <= 0 ){
 	fprintf( stderr, "Inputs number must be positive \nerror: m = %d\n", data->m);
 	return 0;
 } 
 /* Read SYSTEM OUTPUTS NUMBER p */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->p);
 if ( data->p <= 0 ){
 	fprintf( stderr, "Outputs number must be positive \nerror: p = %d\n", data->p);
 	return 0;
 } 
 /* Read FLAG SIMPLY PROPER  FlagSimplyProper*/
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->FlagSimplyProper);
 if ( (data->FlagSimplyProper != 0) && (data->FlagSimplyProper != 1) ){
 	fprintf( stderr, "FlagSimplyProper must be equal to 1 (simply proper model) or 0 (strictly proper model) \nerror: FlagSimplyProper = %d\n", data->FlagSimplyProper);
 	return 0;
 } 
 /* Read CONTROL FREQUENCY fc */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->fc);
 if ( data->fc <= 0 ){
 	fprintf( stderr, "Control frequency must be positive \nerror: fc = %le\n", data->fc);
 	return 0;
 }
 /* Read RLS FORGETTING FACTOR mu */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->mu);
 if ( (data->mu <= 0.) || (data->mu > 1.) ){
 	fprintf( stderr, "RLS forgetting factor must be 0<mu<=1 \nerror: mu = %le\n", data->mu);
 	return 0;
 } 
 /* Read DELTA delta */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->delta);
 if ( data->delta <= 0 ){
 	fprintf( stderr, "Delta number must be positive \nerror: delta = %le\n", data->delta);
 	return 0;
 }
 /* Read LENGTH OF THE WINDOW USED TO COMPUTE THE MEASURES AVERAGE PreConditioningWindowLength*/
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->PreConditioningWindowLength);
 if ( data->PreConditioningWindowLength <= 0 ){
 	fprintf( stderr, "WARNING: No measures pre-conditioning.");
 } 
 /* Read CONTROL HORIZON LENGTH s */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->s);
 if ( data->s <= 0 ){
 	fprintf( stderr, "Control horizon must be positive \nerror: s = %d\n", data->s);
 	return 0;
 } 
 /* Read INITIAL CONTROL PENALTY FUNCTION rho1 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->rho1);
 if ( data->rho1 <= 0 ){
 	fprintf( stderr, "Control penalty function must be positive \nerror: rho1 = %le\n", data->rho1);
 	return 0;
 }
 /* Read FINAL CONTROL PENALTY FUNCTION rho2 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->rho2);
 if ( data->rho2 <= 0 ){
 	fprintf( stderr, "Control penalty function must be positive \nerror: rho2 = %le\n", data->rho2);
 	return 0;
 }
 /* Read LENGTH OF CONTROL PENALTY FUNCTION VARIATION INTERVAL rhoLength */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->rhoLength);
 if ( data->rhoLength <= 0 ){
 	fprintf( stderr, "The length of the interval within the penalty function changes must be positive \nerror: rhoLength = %d\n", data->rhoLength);
 	return 0;
 }
 /* Read IDENTIFICATION ON IdentificationON */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->IdentificationON);
 /* Read IDENTIFICATION OFF IdentificationOFF */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->IdentificationOFF);
 /* Read CONTROL ON ControlON1 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlON1);
 /* Read CONTROL OFF ControlOFF1 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlOFF1);
 /* Read CONTROL ON ControlON2 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlON2);
 /* Read CONTROL OFF ControlOFF2 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlOFF2);
 /* Read CONTROL ON ControlON3 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlON3);
 /* Read CONTROL OFF ControlOFF3 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlOFF3);
 /* Read CONTROL ON ControlON4 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlON4);
 /* Read CONTROL OFF ControlOFF4 */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->ControlOFF4);
 /* Read IDENTIFICATION INPUT FILE NAME IDinputFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->IDinputFileName);
 fh1 = fopen(data->IDinputFileName, "r");
 if ( fh1 == NULL ){
@@ -631,17 +639,17 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read IDENTIFICATION INPUT FILE LENGTH IDinputLength */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->IDinputLength);
 if ( data->IDinputLength <= 0 ){
 	fprintf( stderr, "The length of the identification input file must be positive \nerror: IDinputLength = %d\n", data->IDinputLength);
 	return 0;
 }
-/* Read IDENTIFICATION INPUT SCALE FACTOR  IDNTIFICATIONINPUT_AMPLITUDE */
-a = fgets(line, MAX_STR_LENGTH, fh);
+/* Read IDENTIFICATION INPUT SCALE FACTOR  IDENTIFICATIONINPUT_AMPLITUDE */
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->IDENTIFICATIONINPUT_AMPLITUDE);
 /* Read MEASUREMENT NOISE FILE NAME NoiseFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->NoiseFileName);
 fh1 = fopen(data->NoiseFileName, "r");
 if ( fh1 == NULL ){
@@ -650,7 +658,7 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read NOISE FILE LENGTH NoiseLength */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->NoiseLength);
 if ( data->NoiseLength <= 0 ){
 	fprintf( stderr, "The length of the noise file must be positive \nerror: NoiseLength = %d\n", data->NoiseLength);
@@ -660,29 +668,29 @@ if ( data->NoiseLength <= 0 ){
 a = fgets(line, MAX_STR_LENGTH, fh);
 sscanf(line,"%s%le", name, &data->NOISE_AMPLITUDE);
 /* Read MEASURES SOCKET NAME MeasuresSocketPath */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->MeasuresSocketPath);
 /* Read CONTROLS SOCKET NAME ControlsSocketPath */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->ControlsSocketPath);
 /* Read FLAG SAVe OUTPUTS  FlagSaveOutputs*/
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->FlagSaveOutputs);
 if ( (data->FlagSaveOutputs != 0) && (data->FlagSaveOutputs != 1) ){
 	fprintf( stderr, "FlagSaveOutputs must be equal to 1 (save) or 0 (do not save) \nerror: FlagSaveOutputs = %d\n", data->FlagSaveOutputs);
 	return 0;
 } 
 /* Read COMPUTED CONTROL INPUTS FILE NAME ComputedControlInputsFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->ComputedControlInputsFileName);
 /* Read IDENTIFIED OUTPUTS FILE NAME IdentifiedOutputsFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->IdentifiedOutputsFileName);
 /* Read MEASURED OUTPUTS FILE NAME MeasuredOutputsFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->MeasuredOutputsFileName);
 /* Read ARX PARAMETERS FILE NAME ARXParametersFileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->ARXParametersFileName);
 
 fclose(fh);

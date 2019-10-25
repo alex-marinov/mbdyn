@@ -3491,9 +3491,9 @@ dnl otherwise all the tests during configure would fail
 LDFLAGS="$LDFLAGS $EXPORT_DYNAMIC_FLAG_SPEC"
 
 if test "$ol_enable_Werror" != no ; then
-	CFLAGS="$CFLAGS -Werror"
-	CXXFLAGS="$CXXFLAGS -Werror"
-	FFLAGS="$FFLAGS -Werror"
+	CFLAGS="$CFLAGS -Werror -Wno-error=cpp -Wno-error=format-truncation"
+	CXXFLAGS="$CXXFLAGS -Werror -Wno-error=cpp -Wno-error=format-truncation"
+	FFLAGS="$FFLAGS"
 fi
 
 

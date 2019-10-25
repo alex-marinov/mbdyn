@@ -277,7 +277,7 @@ main(int argc, char *const argv[])
 		}
 	}
 
-   	int rc = 0;
+   	int rc = 0; (void)rc; //silence set but not used warning
    	switch (curr_method) {
     	case METHOD_MULTISTEP :
       		rc = method_multistep(module, &d, method_data, user_defined);

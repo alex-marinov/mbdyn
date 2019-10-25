@@ -268,7 +268,7 @@ GPC_ResT ARMAX_UpdatePhi( ARMAX_Model *ARMAX, vector *y, vector *u, vector *eps)
 
 GPC_ResT ARX_RLS( ARX_Model *ARX, vector *y){
 
-	double r, a, tr;
+	double r, a;
 	unsigned i;
 	
 	a = 0.;
@@ -299,7 +299,7 @@ GPC_ResT ARX_RLS( ARX_Model *ARX, vector *y){
 	matrix_sum( &ARX->P, &ARX->DeltaP, &ARX->P, -1. );
 	matrix_copy( &ARX->P, &ARX->P, 1./ARX->mu );
 
-	//tr = matrix_trace( &ARX->P );
+	//double tr = matrix_trace( &ARX->P );
 	//printf("traccia P %e\n", tr);
 	//if ( (matrix_trace(&ARX->P)) < 1.e5) {
 		//matrix_copy( &ARX->P, &ARX->P, 1.e5 );
@@ -357,7 +357,7 @@ GPC_ResT ARMAX_ELS( ARMAX_Model *ARMAX, vector *y){
 
 GPC_ResT ARMAX_RML( ARMAX_Model *ARMAX, vector *y){
 
-	double a, c_rr_kk;
+	double c_rr_kk;
 	unsigned r, k, i, j, q;
 	double alpha, beta, delta;
 	unsigned na, nb, nc, p, m, FlagSimplyProper;
@@ -368,9 +368,6 @@ GPC_ResT ARMAX_RML( ARMAX_Model *ARMAX, vector *y){
 	m = ARMAX->m;
 	p = ARMAX->p;
 	FlagSimplyProper = ARMAX->SimplyProper;
-
-	a = 0.;
-
 
 	matrix_vector_prod( &ARMAX->theta, &ARMAX->phi, &ARMAX->yp );
 	vector_sum( y, &ARMAX->yp, &ARMAX->eps, -1. );
@@ -475,7 +472,8 @@ GPC_ResT ARMAX_RML( ARMAX_Model *ARMAX, vector *y){
 	//getchar();
 	//matrix_vector_prod( &ARMAX->theta, &ARMAX->phi, &ARMAX->yp );
 	//vector_sum( y, &ARMAX->yp, &ARMAX->eps, -1. );
-
+	
+	return GPC_OK;
 }
 					
 
@@ -485,7 +483,7 @@ GPC_ResT GPC_Initialize( GPC_Model *GPC, unsigned na, unsigned nb, unsigned nc,
 				unsigned m, unsigned p, unsigned s,
 				double lambda ){
 
-	unsigned i;
+	//unsigned i;
 
 	GPC->na = na;
 	GPC->nb = nb;
@@ -742,14 +740,13 @@ GPC_ResT GPC_PredictionFunction( GPC_Model *GPC, matrix *theta, unsigned FlagSim
 GPC_ResT GPC_VectorUpdate( GPC_Model *GPC, vector *y_k, vector *u_k, vector *e_k ){
 
 	unsigned i;
-	unsigned na, nb, p, m, s, nc;
+	unsigned na, nb, p, m, nc;
 
 	na = GPC->na;
 	nb = GPC->nb;
 	nc = GPC->nc;
 	p = GPC->p;
 	m = GPC->m;
-	s = GPC->s;
 	
 	for( i=0; i<p*(na-1); i++ ){
 		GPC->Yp.vec[p*na-1-i] = GPC->Yp.vec[p*(na-1)-1-i];
@@ -782,14 +779,13 @@ GPC_ResT GPC_VectorUpdate( GPC_Model *GPC, vector *y_k, vector *u_k, vector *e_k
 GPC_ResT GPC_VectorUpdate2( GPC_Model *GPC, vector *y_k, vector *u_k, vector *e_k ){
 
 	unsigned i;
-	unsigned na, nb, nc, p, m, s;
+	unsigned na, nb, nc, p, m;
 
 	na = GPC->na;
 	nb = GPC->nb;
 	nc = GPC->nc;
 	p = GPC->p;
 	m = GPC->m;
-	s = GPC->s;
 	
 	for( i=0; i<p*(na-1); i++ ){
 		GPC->Yp.vec[p*na-1-i] = GPC->Yp.vec[p*(na-1)-1-i];
@@ -822,16 +818,11 @@ GPC_ResT GPC_VectorUpdate2( GPC_Model *GPC, vector *y_k, vector *u_k, vector *e_
 GPC_ResT GPC_ControlW( GPC_Model *GPC, vector *Us_ID ){
 
 	//unsigned i;
-	unsigned na, nb, nc, p, m, s;
-	unsigned i, r, c, j ,k;
+	unsigned nc;
+	//unsigned i, r, c, j ,k;
 	//FILE *fh;
 
-	na = GPC->na;
-	nb = GPC->nb;
 	nc = GPC->nc;
-	p = GPC->p;
-	m = GPC->m;
-	s = GPC->s;
 
 	matrix_null(&GPC->tmp_pp1);
 	matrix_null(&GPC->tmp_pp2);
@@ -900,12 +891,10 @@ GPC_ResT GPC_ControlW( GPC_Model *GPC, vector *Us_ID ){
 GPC_ResT GPC_Control( GPC_Model *GPC, vector *Us_ID ){
 
 	//unsigned i;
-	unsigned na, nb, nc, p, m, s;
+	unsigned nc, p, m, s;
 	unsigned i, r, c, j ,k;
 	//FILE *fh;
 
-	na = GPC->na;
-	nb = GPC->nb;
 	nc = GPC->nc;
 	p = GPC->p;
 	m = GPC->m;
@@ -1027,7 +1016,7 @@ GPC_ResT GPC_Control( GPC_Model *GPC, vector *Us_ID ){
 GPC_ResT GPC_Control2( GPC_Model *GPC, vector *Us_ID ){
 
 	//unsigned i;
-	unsigned na, nb, nc, p, m, s;
+	unsigned nc, p, m, s;
 	unsigned i, r, c, j ,k;
 	/*
 	FILE *fh;
@@ -1038,8 +1027,6 @@ GPC_ResT GPC_Control2( GPC_Model *GPC, vector *Us_ID ){
 	fh = fopen("Time1.txt","a");
 	*/
 	
-	na = GPC->na;
-	nb = GPC->nb;
 	nc = GPC->nc;
 	p = GPC->p;
 	m = GPC->m;
@@ -1443,7 +1430,7 @@ int kalman_destroy2( kalman_t *kalman ){
 }
 int KalmanFilter( kalman_t *kalman, SysEq_t *data ){
 
-	double det;
+	//double det;
 	FILE *fh;
 	//double time1, time2, time3, delta_time1, delta_time2;
 	//double time4, time5, time6, delta_time3, delta_time4;
@@ -1545,11 +1532,9 @@ int KalmanFilter( kalman_t *kalman, SysEq_t *data ){
 }
 int KalmanFilter2( kalman_t *kalman, SysEq_t *data ){
 
-	unsigned i, j, k;
-	unsigned n, m, p;
+	unsigned i;
+	unsigned p;
 	
-	n = data->n;
-	m = data->m;
 	p = data->p;
 
 	for( i=0; i<p; i++){	
@@ -1941,7 +1926,7 @@ int UpdateC_ARX( SysEq_t *data  ,vector *y, vector *u){
 
 int UpdateC_ARX2( SysEq_t *data  ,vector *y, vector *u){
 
-	unsigned n, p, m, i, j;
+	unsigned n, p, m, j;
 
 	n = data->n;
 	p = data->p;

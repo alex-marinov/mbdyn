@@ -164,7 +164,9 @@ Inertia::Inertia(unsigned int uL, const std::string& sN, std::set<const ElemGrav
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 CenterOfMass(elements),
+flags(0), X0(x0), R0(r0)
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+,
 Var_dMass(0),
 Var_X_cm(0),
 Var_V_cm(0),
@@ -172,9 +174,8 @@ Var_Omega_cm(0),
 Var_DX(0),
 Var_dx(0),
 Var_Jp(0),
-Var_Phip(0),
+Var_Phip(0)
 #endif // USE_NETCDFC
-flags(0), X0(x0), R0(r0)
 {
 	this->PutName(sN);
 

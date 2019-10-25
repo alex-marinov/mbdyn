@@ -662,13 +662,25 @@ C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
 
 C	print *,'APHIJ: ',APHIJ
       
-97    IF(APHIJ) 181, 182, 182
+97    IF(APHIJ.lt.0) then
+         goto 181
+      else 
+         goto 182
+      end if
 181   APHIJ = -APHIJ
       NEG = -1*NEG
-182   IF(APHIJ-PG) 184, 184, 183
+182   IF(APHIJ-PG.le.0) then
+         goto 184
+      else
+          goto 183
+      end if
 183   APHIJ = APHIJ-PG*2.D0
       GOTO 97
-184   IF(APHIJ-C2) 185, 187, 187
+184   IF(APHIJ-C2.lt.0) then
+          goto 185
+      else
+          goto 187
+      end if
 185   ASLOP = 5.7296D0/SQT
       CLIFT = ASLOP*APHIJ
       CDRAG = .006D0+.13131D0*APHIJ*APHIJ
@@ -679,7 +691,11 @@ C	print *,'APHIJ: ',APHIJ
       DCDRDM = 0.D0
       DCMDM = CMOME*C5
       GOTO 250
-187   IF(APHIJ-.34906D0) 189, 191, 191
+187   IF(APHIJ-0.34906D0.lt.0) then
+         goto 189
+      else
+         goto 191
+      end if
 189   CLIFT = .29269D0*C1+(1.3D0*EMIJ-.59D0)*APHIJ
       C2 = (.12217D0+.22689D0*EMIJ)*SQT
       CMOME = CLIFT/(4*C2)
@@ -691,7 +707,11 @@ C	print *,'APHIJ: ',APHIJ
      &  .22689D0*SQT))/C2
       DCMDM = .25D0*DCPDM
       GOTO 210
-  191 IF(APHIJ-2.7402D0) 193, 195, 195
+  191 IF(APHIJ-2.7402D0.lt.0) then
+          goto 193
+      else
+          goto 195
+      end if
   193 S = DSIN(APHIJ)
       S2 = DSIN(2.*APHIJ)
       S3 = DSIN(3.*APHIJ)
@@ -712,7 +732,11 @@ CCCCC CLIFT = CLIFT/C2
       DCPDM = CLIFT*C5
       DCMDM = CMOME*C5
       GOTO 210
-195   IF(APHIJ-3.0020D0) 197, 199, 199
+195   IF(APHIJ-3.0020D0.lt.0) then 
+          goto 197
+      else 
+          goto 199
+      endif
 197   CLIFT = -(.4704D0+.10313D0*APHIJ)/SQT
       ASLOP = -.10313D0/SQT
       CMOME = -(.4786D0+.02578D0*APHIJ)/SQT
@@ -720,7 +744,11 @@ CCCCC CLIFT = CLIFT/C2
       DCPDM = CLIFT*C5
       DCMDM = CMOME*C5
       GOTO 210
-199   IF(APHIJ-PG) 200, 200, 260
+199   IF(APHIJ-PG.le.0) then
+          goto 200
+      else
+          goto 260
+      end if
 200   CLIFT = (-17.55D0+5.5864D0*APHIJ)/SQT
       ASLOP = 5.5864D0/SQT
       CMOME = (-12.5109D0+3.9824D0*APHIJ)/SQT
@@ -785,7 +813,11 @@ C     CALCOLO COEFFICIENTI AERODINAMICI PER PROFILO 'NACA0012'
 C
  251  CONTINUE
 
-      IF(NEG) 255, 255, 260
+      IF(NEG.le.0) then
+          goto 255
+      else
+          goto 260
+      end if
 255   CLIFT = -CLIFT
       CMOME = -CMOME
       APHIJ = -APHIJ
@@ -874,9 +906,10 @@ C=    COMPILER (LINK=IBJ$)
         PP(I,1) = 1.D0
   10  CONTINUE
       DO 20 K = 2,NUPIA
-        DO 20 I = 1,NUPIA
+        DO 19 I = 1,NUPIA
           L = (I-1)*NUPIR+1
           PP(I,K) = PP(I,K-1)*PUNTI(2,L)
+ 19   CONTINUE
  20   CONTINUE
       CALL DRUFCT(PP, PERM, NUPIA, 5, INDER)
       DO 50 K = 1,NUPIR
@@ -942,8 +975,10 @@ C=    COMPILER (LINK=IBJ$)
       INTEGER*4 I, K
       
       DO 10 I=1,NR
-      DO 10 K=1,NC
- 10   A(I,K)=A(I,K)+PLUS*B(I,K)
+      DO 9 K=1,NC
+      A(I,K)=A(I,K)+PLUS*B(I,K)
+ 9    end do
+ 10   end do
       RETURN
       END
 
@@ -963,15 +998,21 @@ C
       INTEGER*4 I, K, L
       
       DO 10 I=1,3
-      DO 10 K=1,3
+      DO 9 K=1,3
       D(I,K)=0.D0
-      DO 10 L=1,3
-10    D(I,K)=D(I,K)+A(I,L)*B(L,K)
+      DO 8 L=1,3
+      D(I,K)=D(I,K)+A(I,L)*B(L,K)
+8     end do
+9     end do
+10    end do
       DO 20 I=1,3
-      DO 20 K=1,3
+      DO 19 K=1,3
       B(I,K)=0.D0
-      DO 20 L=1,3
-20    B(I,K)=B(I,K)+D(I,L)*C(K,L)
+      DO 18 L=1,3
+      B(I,K)=B(I,K)+D(I,L)*C(K,L)
+18    end do
+19    end do
+20    end do
       RETURN
       END
 
@@ -1124,29 +1165,37 @@ C
       
       IGO=2*IA+IB+1
       GOTO(10,20,30,40),IGO
-10    DO 11 I=1,NRA
-      DO 11 K=1,NCC
-      DO 11 L=1,NCA
+10    DO 113 I=1,NRA
+      DO 112 K=1,NCC
+      DO 111 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(L,K)
-11    CONTINUE
+111    CONTINUE
+112    CONTINUE
+113    CONTINUE
       RETURN
-20    DO 12 I=1,NRA
-      DO 12 K=1,NCC
-      DO 12 L=1,NCA
+20    DO 120 I=1,NRA
+      DO 121 K=1,NCC
+      DO 122 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(K,L)
-12    CONTINUE
+122   CONTINUE
+121   CONTINUE
+120   CONTINUE
       RETURN
-30    DO 13 I=1,NCA
-      DO 13 K=1,NCC
-      DO 13 L=1,NRA
+30    DO 130 I=1,NCA
+      DO 131 K=1,NCC
+      DO 132 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(L,K)
-13    CONTINUE
+132   CONTINUE
+131   CONTINUE
+130   CONTINUE
       RETURN
-40    DO 14 I=1,NCA
-      DO 14 K=1,NCC
-      DO 14 L=1,NRA
+40    DO 140 I=1,NCA
+      DO 141 K=1,NCC
+      DO 142 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(K,L)
-14    CONTINUE
+142   CONTINUE
+141   CONTINUE
+140   CONTINUE
       RETURN
       END
 
@@ -1179,33 +1228,41 @@ C
       
       IGO=2*IA+IB+1
       GOTO(10,20,30,40),IGO
-10    DO 11 I=1,NRA
-      DO 11 K=1,NCC
+10    DO 110 I=1,NRA
+      DO 111 K=1,NCC
       C(I,K)=0.D0
-      DO 11 L=1,NCA
+      DO 112 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(L,K)
-11    CONTINUE
+112   CONTINUE
+111   CONTINUE
+110   CONTINUE
       RETURN
-20    DO 12 I=1,NRA
-      DO 12 K=1,NCC
+20    DO 120 I=1,NRA
+      DO 121 K=1,NCC
       C(I,K)=0.D0
-      DO 12 L=1,NCA
+      DO 122 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(K,L)
-12    CONTINUE
+122   CONTINUE
+121   CONTINUE
+120   CONTINUE
       RETURN
-30    DO 13 I=1,NCA
-      DO 13 K=1,NCC
+30    DO 130 I=1,NCA
+      DO 131 K=1,NCC
       C(I,K)=0.D0
-      DO 13 L=1,NRA
+      DO 132 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(L,K)
-13    CONTINUE
+132   CONTINUE
+131   CONTINUE
+130   CONTINUE
       RETURN
-40    DO 14 I=1,NCA
-      DO 14 K=1,NCC
+40    DO 140 I=1,NCA
+      DO 141 K=1,NCC
       C(I,K)=0.D0
-      DO 14 L=1,NRA
+      DO 142 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(K,L)
-14    CONTINUE
+142   CONTINUE
+141   CONTINUE
+140   CONTINUE
       RETURN
       END
 
@@ -1231,14 +1288,18 @@ C
 100   DO 20 I=1,NRA
       D=0.D0
       DO 10 K=1,NCA
-10    D=D+A(I,K)*B(K)
-20    C(I)=D
+      D=D+A(I,K)*B(K)
+10    end do
+      C(I)=D
+20    end do
       RETURN
 200   DO 40 I=1,NRA
       D=0.D0
       DO 30 K=1,NCA
-30    D=D+A(K,I)*B(K)
-40    C(I)=D
+      D=D+A(K,I)*B(K)
+30    end do
+      C(I)=D
+40    end do
       RETURN
       END
  
@@ -1279,8 +1340,9 @@ C     ESEGUE IL PRODOTTO DEL VETTORE A PER IL VETTORE B TRASPOSTO
 C     LA MATRICE RISULTANTE VIENE SOMMATA IN C
 C
       DO 20 I=1,NRA
-      DO 20 K=1,NRB
+      DO 21 K=1,NRB
       C(I,K)=C(I,K)+A(I)*B(K)
+ 21   CONTINUE
  20   CONTINUE
 C
       RETURN
@@ -1433,7 +1495,8 @@ C
       DIMENSION X(1),Y(1)
       DSCALL=0.D0
       DO 1 I=1,N
-1     DSCALL=DSCALL+X(I)*Y(I)
+      DSCALL=DSCALL+X(I)*Y(I)
+1     end do
       RETURN
       END
 
@@ -1541,36 +1604,45 @@ C
       NCC=3
       IGO=2*IA+IB+1
       GOTO(10,20,30,40),IGO
-10    DO 11 I=1,NRA
-      DO 11 K=1,NCC
+10    DO 110 I=1,NRA
+      DO 111 K=1,NCC
       D(I,K)=0.D0
-      DO 11 L=1,NCA
+      DO 112 L=1,NCA
       D(I,K)=D(I,K)+A(I,L)*B(L,K)
-11    CONTINUE
+112   CONTINUE
+111   CONTINUE
+110   CONTINUE
       GO TO 50
-20    DO 12 I=1,NRA
-      DO 12 K=1,NCC
+20    DO 120 I=1,NRA
+      DO 121 K=1,NCC
       D(I,K)=0.D0
-      DO 12 L=1,NCA
+      DO 122 L=1,NCA
       D(I,K)=D(I,K)+A(I,L)*B(K,L)
-12    CONTINUE
+122   CONTINUE
+121   CONTINUE
+120   CONTINUE
       GO TO 50
-30    DO 13 I=1,NCA
-      DO 13 K=1,NCC
+30    DO 130 I=1,NCA
+      DO 131 K=1,NCC
       D(I,K)=0.D0
-      DO 13 L=1,NRA
+      DO 132 L=1,NRA
       D(I,K)=D(I,K)+A(L,I)*B(L,K)
-13    CONTINUE
+132   CONTINUE
+131   CONTINUE
+130   CONTINUE
       GO TO 50
-40    DO 14 I=1,NCA
-      DO 14 K=1,NCC
+40    DO 140 I=1,NCA
+      DO 141 K=1,NCC
       D(I,K)=0.D0
-      DO 14 L=1,NRA
+      DO 142 L=1,NRA
       D(I,K)=D(I,K)+A(L,I)*B(K,L)
-14    CONTINUE
+142   CONTINUE
+141   CONTINUE
+140   CONTINUE
    50 DO 60 I=1,3
-      DO 60 K=1,3
+      DO 61 K=1,3
       C(I,K)=D(I,K)
+   61 CONTINUE
    60 CONTINUE
       RETURN
       END

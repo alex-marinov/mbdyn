@@ -1339,15 +1339,15 @@ ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
 
 	CLType = ConstLawType::ELASTIC;
 
-	int n = 0;
+	//int n = 0;
 	if (typeid(T) == typeid(doublereal)) {
-		n = 1;
+		//n = 1;
 
 	} else if (typeid(T) == typeid(Vec3)) {
-		n = 3;
+		//n = 3;
 
 	} else if (typeid(T) == typeid(Vec6)) {
-		n = 6;
+		//n = 6;
 
 	} else {
 		silent_cerr("ScalarFunctionIsotropicCL"
@@ -1507,7 +1507,7 @@ InitSF(void)
 		return;
 	}
 
-	bool b;
+	bool b; (void)b; //silence set but not used warning: b used only with -DDEBUG
 
 	b = SetSF("const", new ConstSFR);
 	ASSERT(b);

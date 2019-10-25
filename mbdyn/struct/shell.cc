@@ -351,7 +351,8 @@ Eshell =
 				dBeta = HP.GetReal();
 
 				// temporary
-				silent_cerr("Shell plane stress orthotropic constitutive law: fiber angle \"beta\" not supported yet" << std::endl);
+				silent_cerr("Shell plane stress orthotropic constitutive law: fiber angle \"beta\" = " <<
+				dBeta << "not supported yet" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (HP.IsKeyWord("thickness")) {

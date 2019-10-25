@@ -52,11 +52,12 @@ GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
 M(Zero3), dTheta(0.), dPhi(0.), 
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Theta(0),
-Var_Phi(0),
-#endif // USE_NETFCDF
 od(od)
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+,
+Var_Theta(0),
+Var_Phi(0)
+#endif // USE_NETFCDF
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

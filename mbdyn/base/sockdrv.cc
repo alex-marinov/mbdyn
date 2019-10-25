@@ -487,7 +487,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				if (strncasecmp(p, "yes", 3) == 0) {
 	  				pFlags[label] |= SocketDrive::INCREMENTAL;
        				} else if (strncasecmp(p, "no", 2) == 0) {
-	  				pFlags[label] &= !SocketDrive::INCREMENTAL;
+	  				pFlags[label] &= !(SocketDrive::INCREMENTAL);
        				} else {
 	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"inc\" line in "
@@ -508,7 +508,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				if (strncasecmp(p, "yes", 3) == 0) {
 	  				pFlags[label] |= SocketDrive::IMPULSIVE;
        				} else if (strncasecmp(p, "no", 2) == 0) {
-	  				pFlags[label] &= !SocketDrive::IMPULSIVE;
+	  				pFlags[label] &= !(SocketDrive::IMPULSIVE);
        				} else {
 	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"imp\" line" " in "

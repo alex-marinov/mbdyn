@@ -41,8 +41,7 @@
 
 #include "crypt.h"
 
-static void
-usage(int rc)
+void usage(int rc)
 {
 	fprintf(stderr, "usage: crypt [-f salt] [-h] [-c asserted] cred\n");
 	exit(rc);

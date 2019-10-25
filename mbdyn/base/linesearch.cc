@@ -777,7 +777,7 @@ LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
                 throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
             }
 				}
-    } catch (LinearSolver::ErrNoPivot) {
+    } catch (const LinearSolver::ErrNoPivot&) {
         throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
 		}
@@ -1102,7 +1102,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                 throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 	}
 }
-    } catch (LinearSolver::ErrNoPivot) {
+    } catch (const LinearSolver::ErrNoPivot&) {
         throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
     }
     
@@ -1465,7 +1465,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
                 throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
             }
         }
-    } catch (LinearSolver::ErrNoPivot) {
+    } catch (const LinearSolver::ErrNoPivot&) {
         throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
     }
 
