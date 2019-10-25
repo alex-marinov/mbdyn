@@ -458,6 +458,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
 					const Vec3& VPrev(pNode->GetVPrev());
+						(void) VPrev; // silence set but not used warning
 					const Vec3& XPrev(pNode->GetXPrev());
 					const Vec3& XCurr(pNode->GetXCurr());
 
@@ -480,6 +481,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					}
 
 					const Vec3& WPrev(pNode->GetWPrev());
+						(void) WPrev; // silence set but not used warning
 					const Mat3x3& RPrev(pNode->GetRPrev());
 					const Mat3x3& RCurr(pNode->GetRCurr());
 
@@ -543,6 +545,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
 					const Vec3& XPPPrev(pNode->GetXPPPrev());
+						(void) XPPPrev; // silence set but not used warning
 					const Vec3& VPrev(pNode->GetVPrev());
 					const Vec3& VCurr(pNode->GetVCurr());
 
@@ -566,6 +569,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					}
 
 					const Vec3& WPPrev(pNode->GetWPPrev());
+						(void) WPPrev; // silence set but not used warning
 					const Vec3& WPrev(pNode->GetWPrev());
 					const Vec3& WCurr(pNode->GetWCurr());
 

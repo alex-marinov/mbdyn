@@ -87,8 +87,8 @@ SocketStreamElem::SocketStreamElem(unsigned int uL,
 StreamOutElem(uL, name, oe),
 pUS(pUS), pSC(pSC), send_flags(flags),
 bSendFirst(bSendFirst), bAbortIfBroken(bAbortIfBroken),
-pSOE(pSOE),
-bMsgDontWait(bMsgDontWait)
+bMsgDontWait(bMsgDontWait),
+pSOE(pSOE)
 {
 	if (pSOE) {
 		pSOE->Init("SocketStreamElem", uLabel, pSC->GetNumChannels());

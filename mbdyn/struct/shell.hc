@@ -319,7 +319,7 @@ static inline doublereal L4(const doublereal xi[2]) {
 };
 
 typedef doublereal (*LI_Type)(const doublereal xi[2]);
-static LI_Type LI[4] = {&L1, &L2, &L3, &L4};
+const static LI_Type LI[4] = {&L1, &L2, &L3, &L4};
 
 
 
@@ -372,14 +372,14 @@ L4_2(const doublereal xi[2])
 }
 
 typedef doublereal (*LI_J_Type)(const doublereal xi[2]);
-static LI_J_Type LI_J[4][2] = {
+const static LI_J_Type LI_J[4][2] = {
 	{&L1_1, &L1_2},
 	{&L2_1, &L2_2},
 	{&L3_1, &L3_2},
 	{&L4_1, &L4_2},	
 };
 
-static Vec3
+static inline Vec3
 Interp(const Vec3*const v, const doublereal xi[2])
 {
 	Vec3 r = v[0] * L1(xi) + 
@@ -389,7 +389,7 @@ Interp(const Vec3*const v, const doublereal xi[2])
 	return r;
 }
 
-static Vec3
+static inline Vec3
 InterpDeriv1(const Vec3*const v, const FullMatrixHandler & der_mat)
 {
 	Vec3 r = v[0] * der_mat(1, 1) + 
@@ -399,7 +399,7 @@ InterpDeriv1(const Vec3*const v, const FullMatrixHandler & der_mat)
 	return r;
 }
 
-static Vec3
+static inline Vec3
 InterpDeriv2(const Vec3*const v, const FullMatrixHandler & der_mat)
 {
 	Vec3 r = v[0] * der_mat(1, 2) + 
@@ -409,7 +409,7 @@ InterpDeriv2(const Vec3*const v, const FullMatrixHandler & der_mat)
 	return r;
 }
 
-static void
+static inline void
 InterpDeriv(const Vec3*const v, 
 	const FullMatrixHandler & der_mat,
 	Vec3 & der1, 
@@ -420,7 +420,7 @@ InterpDeriv(const Vec3*const v,
 	return;
 }
 
-static Vec3
+static inline Vec3
 InterpDeriv_xi1(const Vec3*const v, const doublereal xi[2])
 {
 	Vec3 r = v[0] * L1_1(xi) + 
@@ -430,7 +430,7 @@ InterpDeriv_xi1(const Vec3*const v, const doublereal xi[2])
 	return r;
 }
 
-static Vec3
+static inline Vec3
 InterpDeriv_xi2(const Vec3*const v, const doublereal xi[2])
 {
 	Vec3 r = v[0] * L1_2(xi) + 
@@ -440,7 +440,7 @@ InterpDeriv_xi2(const Vec3*const v, const doublereal xi[2])
 	return r;
 }
 
-static void
+static inline void
 Inv2x2(const FullMatrixHandler& a, FullMatrixHandler & out)
 {
 	//FIXME: Mettere controlli dimensioni matrici In/Out
@@ -455,7 +455,7 @@ Inv2x2(const FullMatrixHandler& a, FullMatrixHandler & out)
 	return;
 }
 
-static void
+static inline void
 Inv3x3(const FullMatrixHandler& a, FullMatrixHandler & out)
 {
 	//FIXME: Mettere controlli dimensioni matrici In/Out
@@ -478,7 +478,7 @@ Inv3x3(const FullMatrixHandler& a, FullMatrixHandler & out)
 	return;
 }
 
-static void
+static inline void
 Inv4x4(const FullMatrixHandler& a, FullMatrixHandler & out)
 {
 	//FIXME: Mettere controlli dimensioni matrici In/Out
@@ -509,7 +509,7 @@ Inv4x4(const FullMatrixHandler& a, FullMatrixHandler & out)
 	return;
 }
 
-static void
+static inline void
 InvBlockDiagonal3_2x3_2(const FullMatrixHandler& a, FullMatrixHandler & out)
 {
 	//FIXME: Mettere controlli dimensioni matrici In/Out
@@ -543,7 +543,7 @@ InvBlockDiagonal3_2x3_2(const FullMatrixHandler& a, FullMatrixHandler & out)
 	return;
 }
 
-static void
+static inline void
 InvBlockDiagonal4_2x4_2(const FullMatrixHandler& a, FullMatrixHandler & out)
 {
 	//FIXME: Mettere controlli dimensioni matrici In/Out

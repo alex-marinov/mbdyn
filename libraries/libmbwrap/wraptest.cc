@@ -440,6 +440,8 @@ main(int argc, char *argv[])
 	int size = 3;
 	long long tf;
 	unsigned preord = COLAMD_PREORD;
+		//silence "set but not used" warning if SUPERLU is not used
+		(void) preord;
 	SolutionManager::ScaleWhen ms = SolutionManager::SCALEW_NEVER;
 	
 	while (1) {

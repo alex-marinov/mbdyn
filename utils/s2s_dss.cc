@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 	matrix matA, matB, matC, matD, vel;
 	matrix *MAT_A, *MAT_B, *MAT_C, *MAT_D;
 	matrix Ad, Bd, Cd, Dd;
-	unsigned i, j, k;
+	int i, j, k;
 	unsigned NumInputs, NumOutputs;
 	double Velocity;
 	int IND;
@@ -257,6 +257,8 @@ main(int argc, char *argv[])
 	double time1, time2, delta_time;
 	time_eval t1;
 	time_eval t2;
+	gettimeofday( &t1, 0 );
+	time1 = ( t1.tv_sec + t1.tv_usec*1e-6 );
 	#endif
 
 	while (true) {
@@ -372,6 +374,14 @@ done:	{
 	}
 }
 
+void check_fgets(char*a){
+        if (a == NULL){
+                fprintf( stderr, "ERROR READING FROM FILE\n");
+                exit(EXIT_FAILURE);
+        }
+        return;
+}
+
 int FCSdataRead( FCS_data_struct *data, char *FileName ){
 
 char line[MAX_STR_LENGTH], name[MAX_STR_LENGTH];
@@ -386,28 +396,28 @@ if (fh == NULL){
 }
 
 /* Read FCS CONTROLLER ORDER n */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->N);
 if ( data->N == 0 ){
 	fprintf( stderr, "Controller order must be different from zero \nerror: n = %d\n", data->N);
 	return 0;
 } 
 /* Read VELOCITY NUMBER m */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%d", name, &data->Nvel);
 if ( data->Nvel <= 0 ){
 	fprintf( stderr, "Velocity number must be positive \nerror: m = %d\n", data->Nvel);
 	return 0;
 } 
 /* Read CONTROL FREQUENCY fc */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%le", name, &data->fc);
 if ( data->fc <= 0 ){
 	fprintf( stderr, "Control frequency must be positive \nerror: fc = %le\n", data->fc);
 	return 0;
 }
 /* Read MATRIX A FileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->matrixA);
 fh1 = fopen(data->matrixA, "r");
 if ( fh1 == NULL ){
@@ -416,7 +426,7 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read MATRIX B FileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->matrixB);
 fh1 = fopen(data->matrixB, "r");
 if ( fh1 == NULL ){
@@ -425,7 +435,7 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read MATRIX C FileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->matrixC);
 fh1 = fopen(data->matrixC, "r");
 if ( fh1 == NULL ){
@@ -434,7 +444,7 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read MATRIX D FileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->matrixD);
 fh1 = fopen(data->matrixD, "r");
 if ( fh1 == NULL ){
@@ -443,7 +453,7 @@ if ( fh1 == NULL ){
 }
 fclose(fh1);
 /* Read Velocity FileName */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->velocity);
 fh1 = fopen(data->velocity, "r");
 if ( fh1 == NULL ){
@@ -453,10 +463,10 @@ if ( fh1 == NULL ){
 fclose(fh1);
 
 /* Read MEASURES SOCKET NAME MeasuresSocketPath */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->MeasuresSocketPath);
 /* Read CONTROLS SOCKET NAME ControlsSocketPath */
-a = fgets(line, MAX_STR_LENGTH, fh);
+a = fgets(line, MAX_STR_LENGTH, fh); check_fgets(a);
 sscanf(line,"%s%s", name, data->ControlsSocketPath);
 
 fclose(fh);
@@ -468,7 +478,7 @@ int SearchInterval( matrix *Vel, double velocity ){
 	int IND;
 
 	IND = -1;
-	for (int i = 0; i<Vel->Nrow-1; i++){
+	for (unsigned int i = 0; i<Vel->Nrow-1; i++){
 		if ( (velocity>=Vel->mat[i][0]) && (velocity<=Vel->mat[i+1][0]) ){
 			IND = i;
 		}

@@ -37,7 +37,7 @@
 
 #include "ann.h"
 
-static int TRAINING_MODE = 1;
+//static int TRAINING_MODE = 1;
 
 void
 print_usage(void)

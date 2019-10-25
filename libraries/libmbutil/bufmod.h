@@ -91,7 +91,7 @@ static T
 mbswap(const T in)
 {
 	const char *pin = (const char *)&in;
-	T out;
+	T out = T();
 	char *pout = (char *)&out;
 
 	for (unsigned int i = 0; i < sizeof(T)/2; i++) {

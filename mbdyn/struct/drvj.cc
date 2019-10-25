@@ -48,11 +48,12 @@ LinearVelocityJoint::LinearVelocityJoint(unsigned int uL,
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC),
 pNode(pN), Dir(TmpDir), 
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_dv(0),
-Var_v(0),
-#endif // USE_NETCDFC
 dF(0.)
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+,
+Var_dv(0),
+Var_v(0)
+#endif // USE_NETCDFC
 {
    NO_OP;
 }
@@ -298,11 +299,12 @@ AngularVelocityJoint::AngularVelocityJoint(unsigned int uL,
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC), 
 pNode(pN), Dir(TmpDir), 
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_dOmega(0),
-Var_w(0),
-#endif // USE_NETCDFC
 dM(0.)
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+,
+Var_dOmega(0),
+Var_w(0)
+#endif // USE_NETCDFC
 {
    NO_OP;
 }

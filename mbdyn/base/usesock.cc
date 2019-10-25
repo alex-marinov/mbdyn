@@ -426,7 +426,7 @@ UseInetSocket::UseInetSocket_int(void)
 	}
 
 	if (create) {
-		int			save_errno;
+		int save_errno;
 
    		serr = mbdyn_make_inet_socket_type(&sock, 0, host.c_str(), port, socket_type,
 			1, &save_errno);
@@ -517,8 +517,8 @@ UseInetSocket::Connect(void)
 	int save_errno;
 	int serr;
 	serr = mbdyn_make_inet_socket_type(&sock, &addr, host.c_str(), port, socket_type, 0, &save_errno);
-	if (sock == INVALID_SOCKET) {
-		const char	*err_msg = sock_err_string(save_errno);
+	if (sock == INVALID_SOCKET || serr) {
+		const char *err_msg = sock_err_string(save_errno);
 
 		silent_cerr("UseInetSocket(" << host << ":" << port << "): socket() failed "
 			"(" << save_errno << ": " << err_msg << ")"

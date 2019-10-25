@@ -351,7 +351,11 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
    DEBUGCOUT("Res_2:                  " << Res_2 << std::endl); 
    DEBUGCOUT("Res_3:                  " << Res_3 << std::endl);
-#endif
+#else
+   //silence set but not used warning for variables that are used only with HYDR_DEVEL
+   (void)x0;
+   (void)x0spring;
+#endif // HYDR_DEVEL
    
    WorkVec.PutItem(1, iNode1RowIndex, Res_1);
    WorkVec.PutItem(2, iFirstIndex+1, Res_2);         

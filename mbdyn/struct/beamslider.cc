@@ -85,12 +85,13 @@ f(fTmp), R(RTmp),
 F(Zero3), M(Zero3),
 sRef(0.), s(0.),
 dL(dl),
+x(Zero3), l(Zero3)
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+,
 Var_Beam(0),
 Var_sRef(0),
-Var_l(0),
+Var_l(0)
 #endif // USE_NETCDFC
-x(Zero3), l(Zero3)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(nBeams > 0);

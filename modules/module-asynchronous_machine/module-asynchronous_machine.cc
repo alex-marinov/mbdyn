@@ -741,7 +741,7 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
     }
 
 	doublereal df1_dy1, df1_dy2, df1_dy5;
-	doublereal df1_dy1_dot, df1_dy2_dot, df1_dy5_dot;
+	doublereal df1_dy1_dot, df1_dy5_dot;
 	doublereal df2_dy1, df2_dy2_dot;
 
 	if (IsMotorOn()) {
@@ -770,7 +770,6 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 		df1_dy2 = 1.;
 		df1_dy5 = 0.;
 		df1_dy1_dot = 0.;
-		df1_dy2_dot = 0.;
 		df1_dy5_dot = 0.;
 
 		df2_dy1 = 1.;

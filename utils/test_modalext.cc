@@ -61,8 +61,7 @@ usage(void)
 		"\t-M <modes>\tmodes number\n"
 		"\t-r\t\tuse reference node data\n"
 		"\t-s <sleeptime>\t\tsleep time between tries\n"
-		"\t-v\t\tverbose\n"
-		"\t-x\t\tdata_and_next\n");
+		);
 	exit(EXIT_FAILURE);
 }
 
@@ -77,14 +76,12 @@ main(int argc, char *argv[])
 	std::string fname_in, fname_out, tmpfname_out;
 	unsigned modes = 0;
 	unsigned refnode = 0;
-	char verbose = 0;
-	char data_and_next = 0;
 
 	double x[3], R[3][3], v[3], w[3], f[3], m[3];
 	double *q = 0, *qp = 0, *p = 0;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:i:M:o:rs:vx");
+		int opt = getopt(argc, argv, "c:i:M:o:rs:");
 
 		if (opt == EOF) {
 			break;
@@ -138,14 +135,6 @@ main(int argc, char *argv[])
 					optarg);
 				usage();
 			}
-			break;
-
-		case 'v':
-			verbose = 1;
-			break;
-
-		case 'x':
-			data_and_next = 1;
 			break;
 
 		default:

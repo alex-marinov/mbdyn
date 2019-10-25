@@ -56,6 +56,8 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 	/* required by METIS_PartGraphVKway API, but otherwise ignored */
 	/* 0: C-style numbering [0..n-1]; 1: F77-style numbering (1..n) */
 	int	numflag = 0;
+		// silence "set but not used warning if METIS_PartGraphVKway is not used
+		(void)numflag; 
 	/* if options[0] == 0, the rest is ignored */
 	int	options[5] = { 0 };
 	/* total communication volume */

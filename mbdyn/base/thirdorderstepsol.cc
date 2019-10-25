@@ -208,7 +208,7 @@ ThirdOrderIntegrator::Predict(void)
 	}
 #endif // USE_SCHUR
 
-   	DataManager::DofIterator_const CurrDof = pDofs->begin();
+   	// DataManager::DofIterator_const CurrDof = pDofs->begin();
 	
    	/* 
 	 * Linear combination of previous step state and derivative 

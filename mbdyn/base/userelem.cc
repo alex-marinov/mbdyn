@@ -120,7 +120,7 @@ InitUDE(void)
 		return;
 	}
 
-	bool b;
+	bool b; (void)b; //silence set but not used warning: b used only wid -DDEBUG
 
 	b = SetUDE("loadable", new LoadableElemRead);
 	ASSERT(b != false);

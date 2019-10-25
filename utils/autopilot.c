@@ -159,6 +159,7 @@ send_message(const char *message)
 #endif /* !_WIN32 */
 	} else {
 		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
+			(void)serr; //silence set but not used warning
 	}
 	if (sock == INVALID_SOCKET) {
 		return -1;
@@ -244,6 +245,7 @@ main(int argc, char *argv[])
 		case 'S':
 			sasl++;
 #ifndef HAVE_SASL2
+			(void)mech; // silence set but not used warning since it's used only if HAVE_SASL2
 			fprintf(stderr, "SASL not supported\n");
 			exit(EXIT_FAILURE);
 #endif /* ! HAVE_SASL2 */

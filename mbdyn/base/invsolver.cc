@@ -115,8 +115,9 @@ InverseSolver::Prepare(void)
 	if (pRTSolver) {
 		pRTSolver->Setup();
 	}
-
+#ifdef USE_MPI
 	int mpi_finalize = 0;
+#endif /* USE_MPI */
 
 #ifdef USE_SCHUR
 	if (bParallel) {
