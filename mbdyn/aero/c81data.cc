@@ -545,6 +545,11 @@ c81_data_merge(
 		}
 	}
 
+	/* NOTE: some compilers complain because we are writing to "header"
+	 * something that potentially is intrinsically larger that twice
+	 * the size of "header".  However, there is nothing wrong in it,
+	 * since snprintf() is specifically intended to only write at most
+	 * the allowable amount of bytes. */
 	snprintf(i_data->header, sizeof(i_data->header),
 		"interpolated (\"%s\"[%e]->\"%s\"[%e]: [%e])",
 		data[from]->header, upper_bounds[from],
