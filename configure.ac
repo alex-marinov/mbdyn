@@ -187,6 +187,7 @@ AC_SUBST(mbdyn_subdir)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
+OL_ARG_ENABLE(Werror,[  --enable-Werror          enable building with -Werror], no)dnl
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}] with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
@@ -205,7 +206,7 @@ OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
 AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile],[
 	ol_with_mkoctfile_exec="$withval"
 ],[ol_with_mkoctfile_exec=mkoctfile])
-OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
+OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
 OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
@@ -3488,6 +3489,12 @@ dnl Add EXPORT_DYNAMIC_FLAG_SPEC to LDFLAGS immediately before exit
 dnl otherwise all the tests during configure would fail
 
 LDFLAGS="$LDFLAGS $EXPORT_DYNAMIC_FLAG_SPEC"
+
+if test "$ol_enable_Werror" != no ; then
+	CFLAGS="$CFLAGS -Werror"
+	CXXFLAGS="$CXXFLAGS -Werror"
+	FFLAGS="$FFLAGS -Werror"
+fi
 
 
 dnl ----------------------------------------------------------------
