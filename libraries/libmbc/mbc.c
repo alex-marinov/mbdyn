@@ -136,7 +136,7 @@ mbc_get_cmd(mbc_t *mbc)
 #ifdef _WIN32
 		winsock_err_string(err, msg);
 #else
-		*msg = '0';
+		msg[0] = '\0';
 #endif /* _WIN32 */
 
 		fprintf(stderr, "recv(cmd=%lu) failed, rc: %d, sizeof(mbc->cmd): %d, errno: %d, err msg: %s\n",
