@@ -451,7 +451,7 @@ TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		SAFENEWARR(d, doublereal, 10*GetNumPoints());
 
 #ifdef HAVE_MEMSET
-		memset(d, '0', 10*GetNumPoints()*sizeof(doublereal));
+		memset(d, '\0', 10*GetNumPoints()*sizeof(doublereal));
 #else // ! HAVE_MEMSET
 		for (int i = 0; i < 10*GetNumPoints(); i++) {
 			d[i] = 0.;

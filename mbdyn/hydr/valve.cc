@@ -1381,8 +1381,9 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
    doublereal Res_3 = -Q13+Q34;
    doublereal Res_4 = -Q34-Q24;
    doublereal Res_5 = valve_area*sp;
-#warning "????????????? Res_6 = -Res_6 ?"
-   doublereal Res_6 = -Res_6;
+//#warning "????????????? Res_6 = -Res_6 ?"
+//   doublereal Res_6 = -Res_6;
+   doublereal Res_6 = -Res_5; // (nearly) blind fix
  
    deltaP = p1;   
    if (deltaP == 0.) {
