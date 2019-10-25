@@ -121,7 +121,7 @@ const doublereal *
 BufferStreamDrive::GetBufRaw(void)
 {
 	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
-	ASSERT(buffer.size() == iNumDrives);
+	ASSERT(buffer.size() == (unsigned)iNumDrives);
 
 	return &buffer[0];
 }
@@ -130,7 +130,7 @@ std::vector<doublereal>&
 BufferStreamDrive::GetBuf(void)
 {
 	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
-	ASSERT(buffer.size() == iNumDrives);
+	ASSERT(buffer.size() == (unsigned)iNumDrives);
 
 	return buffer;
 }
