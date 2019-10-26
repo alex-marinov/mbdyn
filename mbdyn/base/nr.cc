@@ -100,7 +100,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	pPrevNLP = pNLP;
 	dSolErr = 0.;
 
-	doublereal dOldErr;
+	doublereal dOldErr = 0.;
 	doublereal dErrFactor = 1.;
 	doublereal dErrDiff = 0.;
 	bool bJacBuilt = false;
