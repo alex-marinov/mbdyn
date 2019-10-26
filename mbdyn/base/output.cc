@@ -92,13 +92,14 @@ m_DimTime(0),
 m_DimV1(0),
 m_DimV3(0),
 #endif  /* USE_NETCDFC */ // only want to call default constructors if using legacy netcdf
-#endif /* USE_NETCDF */
 m_pBinFile(0),
+#endif /* USE_NETCDF */
 iCurrWidth(iDefaultWidth),
 iCurrPrecision(iDefaultPrecision),
-nCurrRestartFile(0),
-ncStart1(1,0)  // must initialize vectors otherwise can't assign
+nCurrRestartFile(0)
 #ifdef USE_NETCDF
+,
+ncStart1(1,0)  // must initialize vectors otherwise can't assign
 #if defined(USE_NETCDF4)
 ,
 ncCount1(1,1),
@@ -114,25 +115,26 @@ ncCount1x3x3(3,1)
 
 /* Costruttore con inizializzazione */
 OutputHandler::OutputHandler(const char* sFName, int iExtNum)
-: FileName(sFName, iExtNum),
+: FileName(sFName, iExtNum)
 #ifdef USE_NETCDF
+,
 #if defined(USE_NETCDFC)
 m_DimTime(0),
 m_DimV1(0),
 m_DimV3(0),
 #endif  /* USE_NETCDFC */
 m_pBinFile(0),
+iCurrWidth(iDefaultWidth),
 iCurrPrecision(iDefaultPrecision),
 nCurrRestartFile(0),
 ncStart1(1,0)  // must initialize vectors otherwise can't assign
 #if defined(USE_NETCDF4)
 ,
 ncCount1(1,1),
-iCurrWidth(iDefaultWidth),
 ncStart1x3(2,0),
 ncCount1x3(2,1),
 ncStart1x3x3(3,0),
-ncCount1x3x3(3,1),
+ncCount1x3x3(3,1)
 #endif  /* USE_NETCDF4 */
 #endif /* USE_NETCDF */
 {
