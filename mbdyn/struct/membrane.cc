@@ -93,10 +93,10 @@ ReadMembraneConstLaw(MBDynParser& HP, Membrane::fmh& pD, Membrane::vh& PreStress
 		}
 
 	} else if (HP.IsKeyWord("isotropic")) {
-		doublereal dE;
-		doublereal dnu;
-		doublereal dG;
-		doublereal dh;
+		doublereal dE = 0.;
+		doublereal dnu = 0.;
+		doublereal dG = 0.;
+		doublereal dh = 0.;
 		bool bGot_E(false);
 		bool bGot_nu(false);
 		bool bGot_G(false);
