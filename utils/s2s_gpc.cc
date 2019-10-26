@@ -109,7 +109,11 @@ main(int argc, char *argv[])
 	vector Mean;
 	matrix Y_prev;
 	char FileName[MAX_STR_LENGTH];
-	FILE *fh, *fh_ComputedControlInputs, *fh_IdentifiedOutputs, *fh_MeasuredOutputs, *fh_ARXParameters;
+	FILE *fh;
+	FILE *fh_ComputedControlInputs = NULL;
+	FILE *fh_IdentifiedOutputs = NULL;
+	FILE *fh_MeasuredOutputs = NULL;
+	FILE *fh_ARXParameters = NULL;
 	#ifdef COMPUTE_TIME
 	FILE *fh_time;
 	#endif
