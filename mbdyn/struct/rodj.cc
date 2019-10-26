@@ -346,7 +346,7 @@ Rod::Output(OutputHandler& OH) const
 
 			Joint::Output(out, "Rod", GetLabel(),
 					Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-				<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
+				<< " " << dElle << " " << vTmp << " " << dEllePrime,
 				ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
 		}
 	}
@@ -946,7 +946,7 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 		K(iCnt, iCnt) += d;
 	}
 
-	Mat3x3 KPrime;
+	Mat3x3 KPrime(Zero3x3);
 	if (dFDEPrime != 0.) {
 		KPrime = v.Tens(v*((dFDEPrime)/(dL0*dElle*dElle)));
 	}
@@ -1159,7 +1159,7 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		K(iCnt, iCnt) += d;
 	}
 
-	Mat3x3 KPrime;
+	Mat3x3 KPrime(Zero3x3);
 	if (dFDEPrime != 0.) {
 		KPrime = v.Tens(v*((dFDEPrime)/(dL0*dElle*dElle)));
 	}
