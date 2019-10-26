@@ -433,7 +433,6 @@ main(int argc, char *argv[])
 	unsigned nt = 1;
 	unsigned block_size = 0;
 	double dpivot = -1.;
-	double ddroptol = 0.;
 	bool singular(false);
 	bool output_solution(false);
 	bool transpose(false);
@@ -738,11 +737,12 @@ main(int argc, char *argv[])
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
 		std::cerr << "Umfpack solver";
+		double ddroptol = 0.;
 		if (dir) {
 			std::cerr << " with dir matrix";
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, ddroptol, block_size));
-
+	
 		} else if (cc) {
 			std::cerr << " with cc matrix";
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
