@@ -75,6 +75,7 @@ mbdyn_make_salt(char *salt, size_t saltlen, const char *salt_format)
 	} else {
 		strncpy(salt, buf, saltlen);
 	}
+	salt[saltlen - 1] = '\0';
 
 	return salt;
 }

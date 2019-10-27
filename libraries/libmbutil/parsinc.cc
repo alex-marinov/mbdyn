@@ -608,8 +608,8 @@ resolve_filename(const char *filename_in)
 			ll = l + strlen(filename) + 1;
 	 		SAFENEWARR(s, char, ll);
 	 
-			strncpy(s, home, l+1);
-			strncpy(s + l, filename, ll - l);
+			strcpy(s, home);
+			strcpy(s + l, filename);
 	 
 	 		res = s;
 			goto error_return;
@@ -642,7 +642,7 @@ resolve_filename(const char *filename_in)
 			int ll = l + strlen(p) + 1;
 	 		char *s = NULL;
 	 		SAFENEWARR(s, char, ll);
-	 		strncpy(s, pw->pw_dir, l);
+	 		strcpy(s, pw->pw_dir);
 	 		strcpy(s + l, p);
 	 
 	 		res = s;

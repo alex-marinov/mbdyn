@@ -415,22 +415,28 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	    			continue;
 	 		}
       		} else {
-	 		strncpy(buf, nextline, bufsize);
-			ASSERT(strlen(nextline) < bufsize);
-			ASSERT(buf[strlen(nextline)] == '\0');
+			size_t l_nextline = strlen(nextline);
+			if (l_nextline >= bufsize) {
+	 			silent_cerr(
+					"SocketDrive(" << GetLabel() << "): "
+					"nextline too long for buffer" << std::endl);
+	 			fclose(fd);
+	 			continue;
+			}
+	 		strcpy(buf, nextline);
 	 		free(nextline);
       		}
       		nextline = buf;
 
       		/* legge la label */
-      		if (strncasecmp(nextline, "label:", 6) != 0) {
+      		if (strncasecmp(nextline, "label:", STRLENOF("label:")) != 0) {
 	 		silent_cerr("SocketDrive(" << GetLabel() << "): "
 				"missing label" << std::endl);
 	 		fclose(fd);
 	 		continue;
       		}
 
-	 	char *p = nextline + 6;
+	 	char *p = nextline + STRLENOF("label:");
 	 	while (isspace(p[0])) {
 	    		p++;
 	 	}
@@ -465,8 +471,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	       			break;
 	    		}
 
-	    		if (strncasecmp(nextline, "value:", 6) == 0) {
-	       			char *p = nextline+6;
+	    		if (strncasecmp(nextline, "value:", STRLENOF("value:")) == 0) {
+	       			char *p = nextline + STRLENOF("value:");
 	       			while (isspace(p[0])) {
 	 				p++;
 				}
@@ -480,16 +486,18 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 				}
 				got_value = 1;
 
-    			} else if (strncasecmp(nextline, "inc:", 4) == 0) {
-       				char *p = nextline+4;
+    			} else if (strncasecmp(nextline, "inc:", STRLENOF("inc:")) == 0) {
+       				char *p = nextline + STRLENOF("inc:");
        				while (isspace(p[0])) {
 	  				p++;
        				}
 
-       				if (strncasecmp(p, "yes", 3) == 0) {
+       				if (strncasecmp(p, "yes", STRLENOF("yes")) == 0) {
 	  				pFlags[label] |= SocketDrive::INCREMENTAL;
-       				} else if (strncasecmp(p, "no", 2) == 0) {
+
+       				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
 	  				pFlags[label] &= !(SocketDrive::INCREMENTAL);
+
        				} else {
 	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"inc\" line in "
@@ -501,16 +509,18 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				}
        				nextline = NULL;
 
-    			} else if (strncasecmp(nextline, "imp:", 4) == 0) {
-       				char *p = nextline+4;
+    			} else if (strncasecmp(nextline, "imp:", STRLENOF("imp:")) == 0) {
+       				char *p = nextline + STRLENOF("imp:");
        				while (isspace(p[0])) {
 	  				p++;
        				}
 
-       				if (strncasecmp(p, "yes", 3) == 0) {
+       				if (strncasecmp(p, "yes", STRLENOF("yes")) == 0) {
 	  				pFlags[label] |= SocketDrive::IMPULSIVE;
-       				} else if (strncasecmp(p, "no", 2) == 0) {
+
+       				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
 	  				pFlags[label] &= !(SocketDrive::IMPULSIVE);
+
        				} else {
 	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"imp\" line" " in "

@@ -2808,10 +2808,9 @@ Modal::iGetPrivDataIdx(const char *s) const
 		}
 
 		/* buffer per numero (dimensione massima: 32 bit) */
-		char buf[sizeof("18446744073709551615") + 1];
-		size_t		len = end - s;
-
-		ASSERT(len < sizeof(buf));
+		// char buf[sizeof("18446744073709551615") + 1];
+		size_t len = end - s;
+		char buf[len + 1];
 
 		strncpy(buf, s, len);
 		buf[len] = '\0';

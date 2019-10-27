@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 			}
 
-			strncpy(outname, optarg, len + 1);
+			strcpy(outname, optarg);
 			} break;
 
 		default:
@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 			}
 
-			strncpy(outname, argv[optind], len + 1);
+			strcpy(outname, argv[optind]);
 			optind++;
 		}
 	}

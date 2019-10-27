@@ -551,6 +551,9 @@ mdlOutputs(SimStruct *S, int_T tid)
 				len = strlen(path);
 				addrp = malloc(sizeof(struct sockaddr_un) + len + 1);
 				addrp->sun_family = AF_LOCAL;
+				/* Note: sun_path has a fixed length (108 bytes), but it is at the end of sockaddr_un;
+				   by malloc'ing it of the correct size (actually, way in excess), we can use paths
+				   of arbitrary length */
 				strncpy(addrp->sun_path, path, len);
 				mxFree(path);
 
