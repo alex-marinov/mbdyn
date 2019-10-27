@@ -339,12 +339,12 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		} break;
 
 	case ExtFileHandlerBase::NEGOTIATE_SERVER: {
-		unsigned uN;
-		unsigned uNodal;
-		bool bRef;
-		unsigned uR;
-		bool bA;
-		bool bL;
+		unsigned uN = 0;
+		unsigned uNodal = 0;
+		bool bRef = false;
+		unsigned uR = 0;
+		bool bA = false;
+		bool bL = false;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {

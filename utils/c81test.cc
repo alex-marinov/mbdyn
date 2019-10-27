@@ -75,8 +75,8 @@ main(int argc, char *argv[])
 	char		*dump_fname = NULL;
 	bool		dump(false);
 	bool		flip(false);
-	doublereal	alpha;
-	doublereal	mach;
+	doublereal	alpha = 0.;
+	doublereal	mach = 0.;
 	enum {
 		GOT_NONE	= 0x0000U,
 		GOT_ALPHA	= 0x0001U,

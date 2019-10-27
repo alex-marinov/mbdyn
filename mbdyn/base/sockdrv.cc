@@ -416,6 +416,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	 		}
       		} else {
 	 		strncpy(buf, nextline, bufsize);
+			ASSERT(strlen(nextline) < bufsize);
+			ASSERT(buf[strlen(nextline)] == '\0');
 	 		free(nextline);
       		}
       		nextline = buf;

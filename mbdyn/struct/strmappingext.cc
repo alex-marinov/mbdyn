@@ -296,13 +296,13 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		} break;
 
 	case ExtFileHandlerBase::NEGOTIATE_SERVER: {
-		unsigned uN;
-		unsigned uNodal;
-		bool bRef;
-		unsigned uRR;
-		unsigned uR;
-		bool bA;
-		bool bL;
+		unsigned uN = 0;
+		unsigned uNodal = 0;
+		bool bRef = false;
+		unsigned uRR = 0;
+		unsigned uR = 0;
+		bool bA = false;
+		bool bL = false;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
@@ -2112,9 +2112,9 @@ ReadStructMappingExtForce(DataManager* pDM,
 
 		std::string surface;
 		std::string output;
-		int order;
-		int basenode;
-		int weight;
+		int order = 0;
+		int basenode = 0;
+		int weight = 0;
 		bool bWeightInf(false);
 
 		while (true) {

@@ -608,8 +608,8 @@ resolve_filename(const char *filename_in)
 			ll = l + strlen(filename) + 1;
 	 		SAFENEWARR(s, char, ll);
 	 
-	 		strncpy(s, home, l);
-	 		strcpy(s + l, filename);
+			strncpy(s, home, l+1);
+			strncpy(s + l, filename, ll - l);
 	 
 	 		res = s;
 			goto error_return;

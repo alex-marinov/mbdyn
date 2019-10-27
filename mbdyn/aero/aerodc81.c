@@ -254,7 +254,7 @@ c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA,
 	
 	doublereal cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
 	doublereal alpha, gamma, cosgam, mach, q;
-	doublereal dcla;
+	doublereal dcla = 0.;
 	
 	doublereal ca = VAM->force_position;
 	doublereal c34 = VAM->bc_position;
@@ -378,6 +378,7 @@ c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA,
 
 	case 1:
 		return -1;
+		break; // this is really obnoxious!
 
 	case 2: {
 
