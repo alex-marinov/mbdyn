@@ -2812,7 +2812,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 		size_t len = end - s;
 		char buf[len + 1];
 
-		strncpy(buf, s, len);
+		memcpy(buf, s, len);
 		buf[len] = '\0';
 
 		/* leggi il numero */
