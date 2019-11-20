@@ -76,58 +76,46 @@ AerodynamicOutput::SetOutputFlag(flag f, int iNP)
 void
 AerodynamicOutput::ResetIterator(void)
 {
-	if (IsOutput() && IsPGAUSS()) {
+	if (IsOutput()) {
 		ASSERT(!OutputData.empty());
 		OutputIter = OutputData.begin();
 	}
-
-#ifdef USE_NETCDF
-	if (!NetCDFOutputData.empty()) {
-		NetCDFOutputIter = NetCDFOutputData.begin();
-	}
-#endif // USE_NETCDF
 }
 
 void
 AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd,
 	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W, const Vec3& F, const Vec3& M)
 {
-	if (IsPGAUSS()) {
-		ASSERT(!OutputData.empty());
+	if (!OutputData.empty()) {
 		ASSERT(OutputIter >= OutputData.begin());
 		ASSERT(OutputIter < OutputData.end());
 
 		OutputIter->alpha = 180./M_PI*atan2(-v(2), v(1));
-		OutputIter->f = Vec3(pd[1], pd[0], pd[5]);
 
-		// move iterator forward
-		++OutputIter;
-	}
+		if (IsPGAUSS()) {
+			OutputIter->f = Vec3(pd[1], pd[0], pd[5]);
+		}
 
 #ifdef USE_NETCDF
-	if (!NetCDFOutputData.empty()) {
-		ASSERT(NetCDFOutputIter >= NetCDFOutputData.begin());
-		ASSERT(NetCDFOutputIter < NetCDFOutputData.end());
-
 #if defined(USE_NETCDFC)
-		if (NetCDFOutputIter->Var_X) NetCDFOutputIter->X = X;
-		if (NetCDFOutputIter->Var_Phi) NetCDFOutputIter->R = R;
-		if (NetCDFOutputIter->Var_V) NetCDFOutputIter->V = V;
-		if (NetCDFOutputIter->Var_W) NetCDFOutputIter->W = W;
-		if (NetCDFOutputIter->Var_F) NetCDFOutputIter->F = F;
-		if (NetCDFOutputIter->Var_M) NetCDFOutputIter->M = M;
+		if (OutputIter->Var_X) OutputIter->X = X;
+		if (OutputIter->Var_Phi) OutputIter->R = R;
+		if (OutputIter->Var_V) OutputIter->V = V;
+		if (OutputIter->Var_W) OutputIter->W = W;
+		if (OutputIter->Var_F) OutputIter->F = F;
+		if (OutputIter->Var_M) OutputIter->M = M;
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-		if (!NetCDFOutputIter->Var_X.isNull()) NetCDFOutputIter->X = X;
-		if (!NetCDFOutputIter->Var_Phi.isNull()) NetCDFOutputIter->R = R;
-		if (!NetCDFOutputIter->Var_V.isNull()) NetCDFOutputIter->V = V;
-		if (!NetCDFOutputIter->Var_W.isNull()) NetCDFOutputIter->W = W;
-		if (!NetCDFOutputIter->Var_F.isNull()) NetCDFOutputIter->F = F;
-		if (!NetCDFOutputIter->Var_M.isNull()) NetCDFOutputIter->M = M;
+		if (!OutputIter->Var_X.isNull()) OutputIter->X = X;
+		if (!OutputIter->Var_Phi.isNull()) OutputIter->R = R;
+		if (!OutputIter->Var_V.isNull()) OutputIter->V = V;
+		if (!OutputIter->Var_W.isNull()) OutputIter->W = W;
+		if (!OutputIter->Var_F.isNull()) OutputIter->F = F;
+		if (!OutputIter->Var_M.isNull()) OutputIter->M = M;
 #endif  /* USE_NETCDF4 */
-
-		++NetCDFOutputIter;
-	}
 #endif // USE_NETCDF
+
+		++OutputIter;
+	}
 }
 
 AerodynamicOutput::eOutput
@@ -460,6 +448,11 @@ void
 Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
+		int totgp = iNN*GDI.iGetNum();
+		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC) || IsPGAUSS()) {
+			OutputData.resize(totgp);
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -471,12 +464,9 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 			os << '.';
 			std::string name = os.str();
 
-			int totgp = iNN*GDI.iGetNum();
-			NetCDFOutputData.resize(totgp);
-
 			int j = 0;
-			for (std::vector<AeroNetCDFOutput>::iterator i = NetCDFOutputData.begin();
-				i != NetCDFOutputData.end(); ++i, ++j)
+			for (std::vector<Aero_output>::iterator i = OutputData.begin();
+				i != OutputData.end(); ++i, ++j)
 			{
 				os.str("");
 				os << "Gauss point #" << j << "/" << totgp;
@@ -490,6 +480,13 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 				 * as handle for later write accesses.
 				 * Define also variable attributes */
 #if defined(USE_NETCDFC)
+				i->Var_alpha = 0;
+				i->Var_gamma = 0;
+				i->Var_Mach = 0;
+				i->Var_cl = 0;
+				i->Var_cd = 0;
+				i->Var_cm = 0;
+
 				i->Var_X = 0;
 				i->Var_Phi = 0;
 				i->Var_V = 0;
@@ -497,6 +494,54 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 				i->Var_F = 0;
 				i->Var_M = 0;
 #endif  /* USE_NETCDFC */ // netcdf4 has no var pointer...
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "alpha_" << j;
+					i->Var_alpha = OH.CreateVar<doublereal>(os.str(), "deg",
+						gp + " angle of attack");
+				}
+
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "gamma_" << j;
+					i->Var_gamma = OH.CreateVar<doublereal>(os.str(), "deg",
+						gp + " sideslip angle");
+				}
+
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "Mach_" << j;
+					i->Var_Mach = OH.CreateVar<doublereal>(os.str(), "-",
+						gp + " Mach number");
+				}
+
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "cl_" << j;
+					i->Var_cl = OH.CreateVar<doublereal>(os.str(), "-",
+						gp + " lift coefficient");
+				}
+
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "cd_" << j;
+					i->Var_cd = OH.CreateVar<doublereal>(os.str(), "-",
+						gp + " drag coefficient");
+				}
+
+				{
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "cm_" << j;
+					i->Var_cm = OH.CreateVar<doublereal>(os.str(), "-",
+						gp + " moment coefficient");
+				}
+
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_X) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -549,17 +594,26 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 	}
 }
 
+#ifdef USE_NETCDF
 /* output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output */
 template <unsigned iNN>
 void
-Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
+Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 {
-#ifdef USE_NETCDF
 	if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
-		for (std::vector<AeroNetCDFOutput>::const_iterator i = NetCDFOutputData.begin();
-			i != NetCDFOutputData.end(); ++i)
+		int j = 0;
+		for (std::vector<Aero_output>::const_iterator i = OutputData.begin();
+			i != OutputData.end(); ++i, ++j)
 		{
+			{
+				OH.WriteNcVar(i->Var_alpha, OUTA[j].alpha);
+				OH.WriteNcVar(i->Var_gamma, OUTA[j].gamma);
+				OH.WriteNcVar(i->Var_Mach, OUTA[j].mach);
+				OH.WriteNcVar(i->Var_cl, OUTA[j].cl);
+				OH.WriteNcVar(i->Var_cd, OUTA[j].cd);
+				OH.WriteNcVar(i->Var_cm, OUTA[j].cm);
+			}
 #if defined(USE_NETCDFC)
 			if (i->Var_X) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
@@ -650,8 +704,8 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 		}
 	}
-#endif /* USE_NETCDF */
 }
+#endif /* USE_NETCDF */
 
 // only send forces if:
 // 1) an induced velocity model is defined
@@ -819,8 +873,6 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal rho, c, p, T;
 	GetAirProps(Xn, rho, c, p, T);	/* p, T no used yet */
 	aerodata->SetAirData(rho, c);
-
-	ResetIterator();
 
 	integer iNumDof = aerodata->iGetNumDof();
 	integer iFirstEq = -1;
@@ -1201,7 +1253,9 @@ AerodynamicBody::Output(OutputHandler& OH) const
 {
 	/* Output delle forze aerodinamiche F, M su apposito file */
 	if (bToBeOutput()) {
-		Aerodynamic2DElem<1>::Output_int(OH);
+#ifdef USE_NETCDF
+		Aerodynamic2DElem<1>::Output_NetCDF(OH);
+#endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
 			std::ostream& out = OH.Aerodynamic()
@@ -1708,8 +1762,6 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	aerodata->SetAirData(rho, c);
 
 	int iPnt = 0;
-
-	ResetIterator();
 
 	integer iNumDof = aerodata->iGetNumDof();
 	integer iFirstEq = -1;
@@ -2248,7 +2300,9 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 
 	if (bToBeOutput()) {
-		Aerodynamic2DElem<3>::Output_int(OH);
+#ifdef USE_NETCDF
+		Aerodynamic2DElem<3>::Output_NetCDF(OH);
+#endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
 			std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
@@ -2655,8 +2709,6 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	aerodata->SetAirData(rho, c);
 
 	int iPnt = 0;
-
-	ResetIterator();
 
 	integer iNumDof = aerodata->iGetNumDof();
 	integer iFirstEq = -1;
@@ -3147,7 +3199,9 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
 
 	if (bToBeOutput()) {
-		Aerodynamic2DElem<2>::Output_int(OH);
+#ifdef USE_NETCDF
+		Aerodynamic2DElem<2>::Output_NetCDF(OH);
+#endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
 			std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
