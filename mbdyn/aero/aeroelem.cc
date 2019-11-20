@@ -532,7 +532,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "F_" << j;
-					i->Var_F = OH.CreateVar<Vec3>(os.str(), "N",
+					i->Var_F = OH.CreateVar<Vec3>(os.str(), "N/m",
 						gp + " force in local frame (F_X, F_Y, F_Z)");
 				}
 
@@ -540,8 +540,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "M_" << j;
-					i->Var_M = OH.CreateVar<Vec3>(os.str(), "Nm",
-						gp + " force in local frame (M_X, M_Y, M_Z)");
+					i->Var_M = OH.CreateVar<Vec3>(os.str(), "Nm/m",
+						gp + " moment in local frame (M_X, M_Y, M_Z)");
 				}
 			}
 		}
@@ -1243,7 +1243,8 @@ AerodynamicBody::Output(OutputHandler& OH) const
 			}
 
 			out << std::endl;
-	}	}
+		}
+	}
 }
 
 /* AerodynamicBody - end */
