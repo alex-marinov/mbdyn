@@ -222,6 +222,18 @@ The \kw{aerodynamic beam3} outputs at $3 \cdot n$ points.
 
 \paragraph{Output.}
 \begin{itemize}
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.alpha\_}\bnt{i} contains the angle of attack, in degrees
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i} contains the sideslip angle, in degrees
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i} contains the Mach number
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cl\_}\bnt{i} contains the lift coefficient
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cd\_}\bnt{i} contains the drag coefficient
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cm\_}\bnt{i} contains the moment coefficient
+
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.X\_}\bnt{i} contains the location
 of the integration point \nt{i}, in the global reference frame;
 
@@ -245,18 +257,37 @@ of the integration point \nt{i}, in the global reference frame;
 of the integration point \nt{i}, in the global reference frame;
 
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i} contains the force
-at the integration point \nt{i}, in the absolute reference frame;
+at the integration point \nt{i}, in the global reference frame;
 
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} contains the moment
-at the integration point \nt{i}, in the absolute reference frame,
+at the integration point \nt{i}, in the global reference frame,
 referred to the location of the integration point.
 \end{itemize}
 
+\bigskip
+\noindent
 Note: variables \kw{R\_}\bnt{i}, \kw{Phi\_}\bnt{i} and \kw{E\_}\bnt{i}
 are mutually exclusive.
 
-Note: by default, only variables \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i}
-and \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} are output.
+\bigskip
+\noindent
+Note: by default, only variables
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.alpha\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.Mach\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cl\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cd\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cm\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i},
+%and \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} are output.
+\kw{alpha\_}\bnt{i},
+\kw{gamma\_}\bnt{i},
+\kw{Mach\_}\bnt{i},
+\kw{cl\_}\bnt{i},
+\kw{cd\_}\bnt{i},
+\kw{cm\_}\bnt{i},
+\kw{F\_}\bnt{i},
+and \kw{M\_}\bnt{i} are output.
 See Section~\ref{sec:EL:AERO:BODY-BEAM23} for indications
 about how to customize aerodynamic element output in NetCDF format.
 
