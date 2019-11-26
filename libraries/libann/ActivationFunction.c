@@ -67,10 +67,12 @@ w_tanh_read(void *priv, FILE *fh, unsigned flags)
 {
         w_tanh_t        *data = (w_tanh_t *)priv;
 
-        fscanf(fh, "%lf", &data->alpha);
-        fscanf(fh, "%lf", &data->beta);
-
-        return 0;
+	if ( !fscanf(fh, "%lf", &data->alpha) || ! fscanf(fh, "%lf", &data->beta) )
+	{
+        	return 1;
+	} else {
+        	return 0;
+	}
 }
 
 int
@@ -141,10 +143,12 @@ w_linear_read(void *priv, FILE *fh, unsigned flags)
 {
         w_linear_t        *data = (w_linear_t *)priv;
 
-        fscanf(fh, "%lf", &data->m);
-        fscanf(fh, "%lf", &data->q);
-
-        return 0;
+	if ( !fscanf(fh, "%lf", &data->m) || !fscanf(fh, "%lf", &data->q) )
+	{
+		return 1;
+	} else {
+        	return 0;
+	}
 }
 
 int
