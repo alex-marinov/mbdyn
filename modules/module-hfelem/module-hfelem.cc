@@ -880,3 +880,16 @@ hfelem_set(void)
 	return true;
 }
 
+#ifndef STATIC_MODULES
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	if (!hfelem_set()) {
+		silent_cerr("HFElem: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+		return -1;
+	}
+	return 0;
+}
+#endif // ! STATIC_MODULES
