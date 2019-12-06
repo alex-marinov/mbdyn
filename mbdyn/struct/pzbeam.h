@@ -254,5 +254,121 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
 
 /* PiezoActuatorVEBeam - end */
 
+
+
+/* Full Piezo beam */
+
+class PiezoBeam : virtual public ViscoElasticBeam {
+   
+ private:
+   PiezoBeam(const PiezoBeam&);
+   const PiezoBeam& operator = (const PiezoBeam&);
+   
+ protected:
+   int iNumElec;
+   const ScalarDifferentialNode **pvElecDofs;
+   VecN V;
+   Mat3xN PiezoMat[NUMDEFORM][NUMSEZ];
+   Mat3xN PiezoMatQ[NUMDEFORM][NUMSEZ];
+   MatNxN PiezoMatQV[NUMSEZ];
+   
+   /* Funzioni di calcolo delle matrici */
+   virtual void AssStiffnessMat(FullSubMatrixHandler& WMA,
+				FullSubMatrixHandler& WMB,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AssStiffnessVec(SubVectorHandler& WorkVec,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AddInternalForces(Vec6& AzLoc, unsigned int iSez);
+   
+ public:
+   /* Costruttore normale */
+   PiezoBeam(unsigned int uL,
+		       const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
+		       const Vec3& F1, const Vec3& F2, const Vec3& F3,
+		       const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
+		       const Mat3x3& r_I, const Mat3x3& rII,
+		       const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
+		       int iEl,
+		       const ScalarDifferentialNode **pEDof,
+		       const Mat3xN& T_Ie, const Mat3xN& T_Ik,
+		       const Mat3xN& TIIe, const Mat3xN& TIIk,
+		       const Mat3xN& Q_Ie, const Mat3xN& Q_Ik,
+		       const Mat3xN& QIIe, const Mat3xN& QIIk,
+           const MatNxN& QV_I, const MatNxN& QVII,
+		       OrientationDescription ood,
+		       flag fOut);
+   
+   /* Distruttore banale */
+   virtual ~PiezoBeam(void);
+    
+   /* Tipo di trave */
+   virtual Beam::Type GetBeamType(void) const {
+      return Beam::FULLYCOUPLEDPIEZOELECTRICELASTIC; 
+   };
+   
+   /* Contributo al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const;
+    
+   /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
+    *     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
+    *     * della quantita' di moto */
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+    
+   /* Settings iniziali, prima della prima soluzione */
+   void SetValue(DataManager *pDM,
+		   VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+		   SimulationEntity::Hints *ph = 0);
+   
+      /* Prepara i parametri di riferimento dopo la predizione */
+   virtual void AfterPredict(VectorHandler& /* X */ ,
+			     VectorHandler& /* XP */ );
+   
+#if 0
+   /* assemblaggio residuo */
+   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr,
+				    const VectorHandler& XPrimeCurr);
+#endif // 0
+   
+   /* assemblaggio jacobiano */
+   virtual VariableSubMatrixHandler&
+     AssJac(VariableSubMatrixHandler& WorkMat,
+	    doublereal dCoef,
+	    const VectorHandler& XCurr,
+	    const VectorHandler& XPrimeCurr);
+      
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   virtual VariableSubMatrixHandler&
+     InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */
+   virtual SubVectorHandler&
+     InitialAssRes(SubVectorHandler& WorkVec,
+		   const VectorHandler& XCurr);
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
+     ViscoElasticBeam::GetConnectedNodes(connectedNodes);
+     int NumNodes = connectedNodes.size();
+     connectedNodes.resize(NumNodes + iNumElec);
+     for (int i = 0; i < iNumElec; i++) {
+       connectedNodes[NumNodes + i] = pvElecDofs[i];
+     }
+   };
+   /* ************************************************ */
+};
+
+/* Full Piezo beam - end */
+
 #endif /* PZBEAM_H */
 
