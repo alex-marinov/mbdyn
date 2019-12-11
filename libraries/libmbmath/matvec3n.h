@@ -555,6 +555,9 @@ class MatNxN {
    inline void Sub(integer i, integer j, const doublereal& d);
    inline const doublereal& dGet(integer i, integer j) const;
 
+   const MatNxN& operator *= (const doublereal& d);
+   const MatNxN& operator /= (const doublereal& d);
+
    const MatNxN& Copy(const MatNxN& m);
 
    /* *this = m * n */

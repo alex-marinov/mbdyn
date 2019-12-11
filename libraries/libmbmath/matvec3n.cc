@@ -1064,6 +1064,38 @@ MatNxN::Copy(const MatNxN& m)
    return *this;
 }
 
+const MatNxN& MatNxN::operator *= (const doublereal& d) 
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+
+   if (d != 1.) {
+      for (integer j = iNumRows * iNumRows; j-- > 0; ) {
+         pdVec[j] *= d;
+      }
+   }
+   return *this;
+}
+
+
+const MatNxN& MatNxN::operator /= (const doublereal& d) 
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   if (d == 0.) {
+      silent_cerr("division by zero" << std::endl);
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+   }
+   if (d != 1.) {
+      for (integer j = iNumRows * iNumRows; j-- > 0; ) {
+         pdVec[j] /= d;
+      }
+   }
+   return *this;
+}
+
 const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
 {
 #ifdef DEBUG

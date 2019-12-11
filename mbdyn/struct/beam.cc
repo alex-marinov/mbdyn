@@ -2116,11 +2116,11 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Piezoelectric actuator beam is expected" << std::endl);
-	}
-	if (HP.IsKeyWord("piezoelectric" "beam")) {
+	} else if (HP.IsKeyWord("piezoelectric" "beam")) {
 		fPiezo = flag(2);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Fully coupled Piezoelectric beam is expected" << std::endl);
+		
 	}
 	if (fPiezo > 0) {
 		iNumElec = HP.GetInt();
@@ -2154,14 +2154,24 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 		/* leggere le matrici (6xN sez. 1, 6xN sez. 2) */
 		HP.GetMat6xN(PiezoMat[0][0], PiezoMat[1][0], iNumElec);
+		if (fPiezo == 2) {
+			HP.GetMatNx6(PiezoMatQ[0][0], PiezoMatQ[1][0], iNumElec);
+			HP.GetMatNxN(PiezoMatQV[0], iNumElec);
+		}
 		if (HP.IsKeyWord("same")) {
 			PiezoMat[0][1].Copy(PiezoMat[0][0]);
 			PiezoMat[1][1].Copy(PiezoMat[1][0]);
+			if (fPiezo == 2) {
+				PiezoMatQ[0][1].Copy(PiezoMatQ[0][0]);
+				PiezoMatQ[1][1].Copy(PiezoMatQ[1][0]);
+				PiezoMatQV[1].Copy(PiezoMatQV[0]);
+			}
 		} else {
 			HP.GetMat6xN(PiezoMat[0][1], PiezoMat[1][1], iNumElec);
-		}
-		if (fPiezo == 2) {
-			HP.GetMatNx6(PiezoMatQ[0][0], PiezoMatQ[1][0], iNumElec);
+			if (fPiezo == 2) {
+				HP.GetMatNx6(PiezoMatQ[0][1], PiezoMatQ[1][1], iNumElec);
+				HP.GetMatNxN(PiezoMatQV[1], iNumElec);
+			}
 		}
 
 #if 0
@@ -2217,7 +2227,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					R_I, RII,
 					pD_I, pDII,
 					od, fOut));
-		} else {
+		} else if (fPiezo == 1){
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorBeam,
 				PiezoActuatorBeam(uLabel,
@@ -2233,7 +2243,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					od, fOut));
 		}
 
-	} else /* At least one is VISCOUS or VISCOELASTIC */ {
+	} else /* At least one is VISCOUS or VISCOELASTIC or using fully coupled piezo*/ {
 		if (fPiezo == 0) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				ViscoElasticBeam,
@@ -2244,7 +2254,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					R_I, RII,
 					pD_I, pDII,
 					od, fOut));
-		} else {
+		} else if (fPiezo == 1) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorVEBeam,
 				PiezoActuatorVEBeam(uLabel,
@@ -2258,6 +2268,28 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
 					od, fOut));
+		} else if (fPiezo == 2) {
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				PiezoBeam,
+				PiezoBeam(uLabel,
+					pNode1, pNode2, pNode3,
+					f1, f2, f3,
+					Rn1, Rn2, Rn3,
+					R_I, RII,
+					pD_I, pDII,
+					iNumElec,
+					pvElecDofs,
+					PiezoMat[0][0], PiezoMat[1][0],
+					PiezoMat[0][1], PiezoMat[1][1],
+					PiezoMatQ[0][0], PiezoMatQ[1][0],
+					PiezoMatQ[0][1], PiezoMatQ[1][1],
+					PiezoMatQV[0], PiezoMatQV[1],
+					od, fOut));
+		} else {
+			silent_cerr("line " << HP.GetLineData()
+				<< ": Something went wrong reading the beam, flag fPiezo = " << fPiezo
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
