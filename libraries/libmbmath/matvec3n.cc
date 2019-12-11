@@ -811,6 +811,56 @@ void MatNx3::Reset(const doublereal d)
    }
 }
 
+const MatNx3& MatNx3::Copy(const MatNx3& m) 
+{
+#ifdef DEBUG
+   m.IsValid();
+#endif /* DEBUG */
+   Resize(m.iNumRows);
+   for (integer j = m.iNumRows; j-- > 0; ) {
+      pdCols[0][j] = m.pdCols[0][j];
+      pdCols[1][j] = m.pdCols[1][j];
+      pdCols[2][j] = m.pdCols[2][j];
+   }
+   return *this;
+}
+
+const MatNx3& MatNx3::operator *= (const doublereal& d) 
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+
+   if (d != 1.) {
+      for (integer j = iNumRows; j-- > 0; ) {
+         pdCols[0][j] *= d;
+         pdCols[1][j] *= d;
+         pdCols[2][j] *= d;
+      }
+   }
+   return *this;
+}
+
+
+const MatNx3& MatNx3::operator /= (const doublereal& d) 
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   if (d == 0.) {
+      silent_cerr("division by zero" << std::endl);
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+   }
+   if (d != 1.) {
+      for (integer j = iNumRows; j-- > 0; ) {
+         pdCols[0][j] /= d;
+         pdCols[1][j] /= d;
+         pdCols[2][j] /= d;
+      }
+   }
+   return *this;
+}
+
 const MatNx3& MatNx3::RightMult(const MatNx3& n, const Mat3x3& m)
 {
 #ifdef DEBUG

@@ -307,6 +307,7 @@ public:
 
 public:
 	virtual void GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols);
+	virtual void GetMatNx6(MatNx3& m1, MatNx3& m2, integer iNumRows);
 
 	/*
 	 * Lettura di posizioni, vettori e matrici di rotazione

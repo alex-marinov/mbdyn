@@ -2108,16 +2108,24 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2][2];
+	MatNx3 PiezoMatQ[2][2];
+	MatNxN PiezoMatQV[2];
 	integer iNumElec = 0;
 	const ScalarDifferentialNode **pvElecDofs = 0;
 	if (HP.IsKeyWord("piezoelectric" "actuator")) {
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Piezoelectric actuator beam is expected" << std::endl);
-
+	}
+	if (HP.IsKeyWord("piezoelectric" "beam")) {
+		fPiezo = flag(2);
+		DEBUGLCOUT(MYDEBUG_INPUT,
+			"Fully coupled Piezoelectric beam is expected" << std::endl);
+	}
+	if (fPiezo > 0) {
 		iNumElec = HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
-			"piezo actuator " << uLabel << " has " << iNumElec
+			"piezo beam " << uLabel << " has " << iNumElec
 			<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
 			silent_cerr("PiezoElectricBeam(" << uLabel << "): "
@@ -2136,7 +2144,14 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		PiezoMat[1][0].Resize(iNumElec);
 		PiezoMat[0][1].Resize(iNumElec);
 		PiezoMat[1][1].Resize(iNumElec);
-
+		if (fPiezo == 2) {
+			PiezoMatQ[0][0].Resize(iNumElec);
+			PiezoMatQ[1][0].Resize(iNumElec);
+			PiezoMatQ[0][1].Resize(iNumElec);
+			PiezoMatQ[1][1].Resize(iNumElec);
+			PiezoMatQV[0].Resize(iNumElec);
+			PiezoMatQV[1].Resize(iNumElec);
+		}
 		/* leggere le matrici (6xN sez. 1, 6xN sez. 2) */
 		HP.GetMat6xN(PiezoMat[0][0], PiezoMat[1][0], iNumElec);
 		if (HP.IsKeyWord("same")) {
@@ -2144,6 +2159,9 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			PiezoMat[1][1].Copy(PiezoMat[1][0]);
 		} else {
 			HP.GetMat6xN(PiezoMat[0][1], PiezoMat[1][1], iNumElec);
+		}
+		if (fPiezo == 2) {
+			HP.GetMatNx6(PiezoMatQ[0][0], PiezoMatQ[1][0], iNumElec);
 		}
 
 #if 0

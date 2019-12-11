@@ -258,19 +258,17 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
 
 /* Full Piezo beam */
 
-class PiezoBeam : virtual public ViscoElasticBeam {
+class PiezoBeam : virtual public PiezoActuatorVEBeam {
    
  private:
    PiezoBeam(const PiezoBeam&);
    const PiezoBeam& operator = (const PiezoBeam&);
    
  protected:
-   int iNumElec;
-   const ScalarDifferentialNode **pvElecDofs;
-   VecN V;
-   Mat3xN PiezoMat[NUMDEFORM][NUMSEZ];
-   Mat3xN PiezoMatQ[NUMDEFORM][NUMSEZ];
+   
+   MatNx3 PiezoMatQ[NUMDEFORM][NUMSEZ];
    MatNxN PiezoMatQV[NUMSEZ];
+   VecN Vdot, Qdot;
    
    /* Funzioni di calcolo delle matrici */
    virtual void AssStiffnessMat(FullSubMatrixHandler& WMA,
@@ -279,12 +277,17 @@ class PiezoBeam : virtual public ViscoElasticBeam {
 				const VectorHandler& XCurr,
 				const VectorHandler& XPrimeCurr);
    
-   virtual void AssStiffnessVec(SubVectorHandler& WorkVec,
+   virtual void AddInternalForces(Vec6& AzLoc, unsigned int iSez);
+
+   virtual void AssPiezoRes(SubVectorHandler& WorkVec,
 				doublereal dCoef,
 				const VectorHandler& XCurr,
 				const VectorHandler& XPrimeCurr);
    
-   virtual void AddInternalForces(Vec6& AzLoc, unsigned int iSez);
+   virtual void AssPiezoJac(FullSubMatrixHandler& WM,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
    
  public:
    /* Costruttore normale */
@@ -298,8 +301,8 @@ class PiezoBeam : virtual public ViscoElasticBeam {
 		       const ScalarDifferentialNode **pEDof,
 		       const Mat3xN& T_Ie, const Mat3xN& T_Ik,
 		       const Mat3xN& TIIe, const Mat3xN& TIIk,
-		       const Mat3xN& Q_Ie, const Mat3xN& Q_Ik,
-		       const Mat3xN& QIIe, const Mat3xN& QIIk,
+		       const MatNx3& Q_Ie, const MatNx3& Q_Ik,
+		       const MatNx3& QIIe, const MatNx3& QIIk,
            const MatNxN& QV_I, const MatNxN& QVII,
 		       OrientationDescription ood,
 		       flag fOut);
@@ -319,23 +322,12 @@ class PiezoBeam : virtual public ViscoElasticBeam {
     *     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
     *     * della quantita' di moto */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-    
-   /* Settings iniziali, prima della prima soluzione */
-   void SetValue(DataManager *pDM,
-		   VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0);
    
-      /* Prepara i parametri di riferimento dopo la predizione */
-   virtual void AfterPredict(VectorHandler& /* X */ ,
-			     VectorHandler& /* XP */ );
-   
-#if 0
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 				    doublereal dCoef,
 				    const VectorHandler& XCurr,
 				    const VectorHandler& XPrimeCurr);
-#endif // 0
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler&

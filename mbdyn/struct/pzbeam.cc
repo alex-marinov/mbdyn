@@ -33,6 +33,7 @@
 
 #include "dataman.h"
 #include "pzbeam.h"
+#include "shapefnc.h"
 
 /* PiezoActuatorBeam - begin */
 
@@ -557,32 +558,6 @@ void PiezoBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    WMA.Add(16, 19, tmp1);
 }
 
-
-void PiezoBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
-					doublereal dCoef,
-					const VectorHandler& XCurr,
-					const VectorHandler& XPrimeCurr)
-{
-   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssStiffnessVec()" << std::endl);
-   
-   /* Riceve il vettore gia' dimensionato e con gli indici a posto 
-    * per scrivere il residuo delle equazioni di equilibrio dei tre nodi */
-   
-   /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
-    * (ora e' superato) */
-   
-   if (bFirstRes) {
-      /* fFirstRes = flag(0);  AfterPredict ha gia' calcolato tutto */
-   } else {    
-      for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
-	 V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());
-      }
-   }
-   
-   ViscoElasticBeam::AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
-}
-
-
 void PiezoBeam::AddInternalForces(Vec6& AzLoc, unsigned int iSez)
 {
    AzLoc += Vec6(PiezoMat[STRAIN][iSez]*V, PiezoMat[CURVAT][iSez]*V);
@@ -611,31 +586,19 @@ PiezoBeam::PiezoBeam(
 		const Mat3xN& T_Ik,
 		const Mat3xN& TIIe,
 		const Mat3xN& TIIk,
-		const Mat3xN& Q_Ie,
-		const Mat3xN& Q_Ik,
-		const Mat3xN& QIIe,
-		const Mat3xN& QIIk,
+		const MatNx3& Q_Ie,
+		const MatNx3& Q_Ik,
+		const MatNx3& QIIe,
+		const MatNx3& QIIk,
       const MatNxN& QV_I,
       const MatNxN& QVII,
 		OrientationDescription ood,
 		flag fOut
 ) : Elem(uL, fOut),
-ViscoElasticBeam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3,
-		r_I, rII, pD_I, pDII, ood, fOut),
-iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
+   PiezoActuatorVEBeam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3,
+		r_I, rII, pD_I, pDII, iEl, pEDof, T_Ie, T_Ik, TIIe, TIIk, ood, fOut),
+   Qdot(iEl)
 {
-#ifdef DEBUG
-   ASSERT(iNumElec > 0);
-   ASSERT(pvElecDofs != NULL);
-   for (int i = iNumElec; i-- > 0; ) {
-      ASSERT(pvElecDofs[i] != NULL);
-   }   
-#endif /* DEBUG */
-
-   PiezoMat[STRAIN][S_I].Copy(T_Ie);
-   PiezoMat[STRAIN][SII].Copy(TIIe);
-   PiezoMat[CURVAT][S_I].Copy(T_Ik);
-   PiezoMat[CURVAT][SII].Copy(TIIk);  
    PiezoMatQ[STRAIN][S_I].Copy(Q_Ie);
    PiezoMatQ[STRAIN][SII].Copy(QIIe);
    PiezoMatQ[CURVAT][S_I].Copy(Q_Ik);
@@ -675,30 +638,140 @@ PiezoBeam::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
    *piNumCols = 18+iNumElec;
 }
 
-
-/* Settings iniziali, prima della prima soluzione */
-void PiezoBeam::SetValue(DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph)
+SubVectorHandler&
+PiezoBeam::AssRes(SubVectorHandler& WorkVec,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr,
+				    const VectorHandler& XPrimeCurr)
 {
-   /* se proprio non serve, si puo' eliminare */
-   ViscoElasticBeam::SetValue(pDM, X, XP, ph);
+   DEBUGCOUTFNAME("PiezoBeam::AssRes => AssStiffnessVec");
+
+	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+	integer iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+
+   int iNumInerzia = 18;
+   if(bConsistentInertia) {
+      iNumInerzia = 36;
+   }
+
+	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
+	if (bConsistentInertia) {
+		WorkVec.ResizeReset(iNumInerzia+iNumElec);
+	} else {
+		WorkVec.ResizeReset(iNumInerzia+iNumElec);
+	}
+
+	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(12 + iCnt, iNode3FirstMomIndex + iCnt);
+	}
+
+	if (bConsistentInertia) {
+		integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
+		integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
+		integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
+
+		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
+			WorkVec.PutRowIndex(18 + iCnt, iNode1FirstPosIndex + iCnt);
+			WorkVec.PutRowIndex(24 + iCnt, iNode2FirstPosIndex + iCnt);
+			WorkVec.PutRowIndex(30 + iCnt, iNode3FirstPosIndex + iCnt);
+		}
+   }
+
+   for (int iCnt = 1; iCnt <= iNumElec; iCnt++) {
+      WorkVec.PutRowIndex(iNumInerzia+iCnt, pvElecDofs[iCnt-1]->iGetFirstRowIndex()+1);
+   }
+
+   PiezoActuatorVEBeam::AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
+   AssPiezoRes(WorkVec, dCoef, XCurr, XPrimeCurr);
+
+	return WorkVec;
+
 }
 
+void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr) {
+   int iNumInerzia = 18;
+   if(bConsistentInertia) {
+      iNumInerzia = 36;
+   }
 
-/* Prepara i parametri di riferimento dopo la predizione */
-void PiezoBeam::AfterPredict(VectorHandler& X,
-				     VectorHandler& XP)
-{
-   // Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE
-   
+	Vec3 fTmp[NUMNODES];
+	for (unsigned int i = 0; i < NUMNODES; i++) {
+		fTmp[i] = pNode[i]->GetRCurr()*f[i];
+	}
+
+   Mat6x6 DefPrimeTmp[NUMSEZ][NUMNODES];
+	/* per ogni punto di valutazione: */
+	for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+		for (unsigned int node = 0; node < NUMNODES; node++) {
+			/* Delta - deformazioni */
+			DefPrimeTmp[iSez][node]
+				= Mat6x6(mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]),
+					Zero3x3,
+					Mat3x3(MatCross, L[iSez]*dN3[iSez][node] - fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez])),
+					mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]));
+		}
+	} /* end ciclo sui punti di valutazione */
+	for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+		for (int r_el = 0; r_el < iNumElec; r_el++) {
+         for (int c_el = 1; c_el <= iNumElec; c_el++) {
+            WM(iNumInerzia+r_el, 1+c_el) += PiezoMatQV[iSez](r_el, c_el) * dsdxi[iSez]; //FIXME
+         }
+         for (int def_comp = 1; def_comp <= 3; def_comp++) {
+            for (int node = 0; node < NUMNODES; node++) {
+               for (int dof = 1; dof <= 3; dof++) {
+                  WM(iNumInerzia+r_el, 6*node + dof) += PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat11()(def_comp, dof) * dsdxi[iSez];
+                  WM(iNumInerzia+r_el, 6*node + 3 + dof) += PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat12()(def_comp, dof) * dsdxi[iSez];
+                  WM(iNumInerzia+r_el, 6*node + dof) += PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat21()(def_comp, dof) * dsdxi[iSez];
+                  WM(iNumInerzia+r_el, 6*node + 3 + dof) += PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat22()(def_comp, dof) * dsdxi[iSez];
+               }
+            }
+         }
+      }
+   }
+}
+
+void PiezoBeam::AssPiezoRes(SubVectorHandler& WorkVec,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr) {
+
+   int iNumInerzia = 18;
+   if(bConsistentInertia) {
+      iNumInerzia = 36;
+   }
+
    for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
-	 V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());
+	   Vdot.Put(iCnt, pvElecDofs[iCnt-1]->dGetXPrime());
+   }
+
+   Qdot.Reset();
+   for (int iSez = 0; iSez < NUMSEZ; iSez++) {
+      for (int r_el = 1; r_el <= iNumElec; r_el++) {
+         doublereal Qt = 0.;
+         for (int c_el = 1; c_el <= iNumElec; c_el++) {
+            Qt += PiezoMatQV[iSez](r_el, c_el) * Vdot(c_el);
+         }
+         for (int def_component = 1; def_component <= 3; def_component++) {
+            Qt += PiezoMatQ[0][iSez](r_el, def_component) * DefPrimeLoc[iSez].GetVec1()(def_component);
+            Qt += PiezoMatQ[1][iSez](r_el, def_component) * DefPrimeLoc[iSez].GetVec2()(def_component);
+         }
+         Qt *= dsdxi[iSez]; //Gauss weight == 1
+         Qdot(r_el) += Qt;
+      }
    }
    
-   ViscoElasticBeam::AfterPredict(X, XP);
+   for (int r = 1; r <= iNumElec; r++) {
+      // positive current: flowing out
+      // but we need to compute desidual = - sum(flowing out current)
+      WorkVec.IncCoef(iNumInerzia+r, Qdot(r));
+   }
 }
-
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
@@ -739,7 +812,7 @@ PiezoBeam::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutColIndex(18+iCnt, pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
    }
    
-   AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
+   PiezoActuatorVEBeam::AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
    if (bConsistentInertia) {
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -749,6 +822,8 @@ PiezoBeam::AssJac(VariableSubMatrixHandler& WorkMat,
       }
       ViscoElasticBeam::AssInertiaMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    }
+
+   AssPiezoJac(WM, dCoef, XCurr, XPrimeCurr);
   
    return WorkMat;        
 }
