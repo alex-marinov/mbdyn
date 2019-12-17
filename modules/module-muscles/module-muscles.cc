@@ -50,6 +50,7 @@ protected:
 	doublereal F0;
 	DriveOwner Activation;
 	bool bActivationOverflow;
+	bool bActivationOverflowWarn;
 	doublereal a;
 	doublereal aReq;	// requested activation: for output only
 	virtual std::ostream& Restart_int(std::ostream& out) const {
@@ -62,10 +63,10 @@ protected:
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
-		const DriveCaller *pAct, bool bActivationOverflow)
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
 	Li(Li), L0(L0), V0(V0), F0(F0),
-	Activation(pAct), bActivationOverflow(bActivationOverflow)
+	Activation(pAct), bActivationOverflow(bActivationOverflow), bActivationOverflowWarn(bActivationOverflowWarn)
 #ifdef USE_NETCDFC
 	, Var_dAct(0), Var_dActReq(0)
 #endif // USE_NETCDFC
@@ -90,7 +91,8 @@ public:
 				PreStress,
 				Li, L0, V0, F0,
 				Activation.pGetDriveCaller()->pCopy(),
-				bActivationOverflow));
+				bActivationOverflow, 
+				bActivationOverflowWarn));
 		return pCL;
 	};
 
@@ -101,7 +103,8 @@ public:
 			<< ", reference velocity, " << V0
 			<< ", reference force, " << F0
 			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
-			<< ", activation check, " << bActivationOverflow,
+			<< ", activation check, " << bActivationOverflow
+			<< ", warn, " << bActivationOverflowWarn;
 			Restart_int(out)
 			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
 		return out;
@@ -136,13 +139,17 @@ public:
 		aReq = Activation.dGet();
 		a = aReq;
 		if (a < 0.) {
-			silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
+			}
 			if (bActivationOverflow) {
 				a = 0.;
 			}
 
 		} else if (a > 1.) {
-			silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
+			}
 			if (bActivationOverflow) {
 				a = 1.;
 			}
@@ -172,8 +179,8 @@ class MusclePennestriErgoCL
 public:
 	MusclePennestriErgoCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
-		const DriveCaller *pAct, bool bActivationOverflow)
-	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow)
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn)
+	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn)
 	{
 		NO_OP;
 	};
@@ -195,7 +202,8 @@ public:
 				PreStress,
 				Li, L0, V0, F0,
 				Activation.pGetDriveCaller()->pCopy(),
-				bActivationOverflow));
+				bActivationOverflow, 
+				bActivationOverflowWarn));
 		return pCL;
 	};
 
@@ -220,9 +228,9 @@ protected:
 public:
 	MusclePennestriReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
-		const DriveCaller *pAct, bool bActivationOverflow,
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn,
 		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength)
-	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow),
+	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
 	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength)
 	{
 		NO_OP;
@@ -242,6 +250,7 @@ public:
 				Li, L0, V0, F0,
 				Activation.pGetDriveCaller()->pCopy(),
 				bActivationOverflow,
+				bActivationOverflowWarn,
 				Kp.pGetDriveCaller()->pCopy(), Kd.pGetDriveCaller()->pCopy(),
 				ReferenceLength.pGetDriveCaller()->pCopy()));
 		return pCL;
@@ -263,13 +272,17 @@ public:
 		a = aReq;
 
 		if (aReq < 0.) {
-			silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
+			}
 			if (bActivationOverflow) {
 				a = 0.;
 			}
 
 		} else if (aReq > 1.) {
-			silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
+			}
 			if (bActivationOverflow) {
 				a = 1.;
 			}
@@ -316,6 +329,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                reference force , <F0> ,\n"
 				"                activation , (DriveCaller) <activation>\n"
 				"                [ , activation check , (bool)<activation_check> ]\n"
+				"		 [ , warn , (bool)<warn_user> ]\n"
 				"                [ , ergonomy , { yes | no } , ]\n"
 				"                [ , reflexive , # only when ergonomy == no\n"
 				"                        proportional gain , (DriveCaller) <kp> ,\n"
@@ -397,6 +411,11 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflow);
 		}
 
+		bool bActivationOverflowWarn(false);
+		if (HP.IsKeyWord("warn")) {
+			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflowWarn);
+		}
+
 		// FIXME: "ergonomy" must be here
 		if (!bGotErgo && HP.IsKeyWord("ergonomy")) {
 			bErgo = HP.GetYesNoOrBool(bErgo);
@@ -450,20 +469,22 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriErgoCL,
 				MusclePennestriErgoCL(pTplDC, PreStress,
 					Li, L0, V0, F0, pAct,
-					bActivationOverflow));
+					bActivationOverflow, bActivationOverflowWarn));
 
 		} else if (bReflexive) {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCL,
 				MusclePennestriReflexiveCL(pTplDC, PreStress,
 					Li, L0, V0, F0, pAct,
 					bActivationOverflow,
+					bActivationOverflowWarn,
 					pKp, pKd, pRefLen));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
 				MusclePennestriCL(pTplDC, PreStress,
 					Li, L0, V0, F0, pAct,
-					bActivationOverflow));
+					bActivationOverflow, 
+					bActivationOverflowWarn));
 		}
 
 		return pCL;
