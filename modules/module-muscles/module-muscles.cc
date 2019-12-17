@@ -68,7 +68,7 @@ public:
 	Activation(pAct), bActivationOverflow(bActivationOverflow)
 #ifdef USE_NETCDFC
 	, Var_dAct(0), Var_dActReq(0)
-#endif
+#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};
@@ -213,17 +213,17 @@ protected:
 class MusclePennestriReflexiveCL
 : public MusclePennestriCL {
 protected:
-	doublereal dKp;
-	doublereal dKd;
+	DriveOwner Kp;
+	DriveOwner Kd;
 	DriveOwner ReferenceLength;
 	
 public:
 	MusclePennestriReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
 		const DriveCaller *pAct, bool bActivationOverflow,
-		doublereal dKp, doublereal dKd, const DriveCaller *pReferenceLength)
+		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow),
-	dKp(dKp), dKd(dKd), ReferenceLength(pReferenceLength)
+	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength)
 	{
 		NO_OP;
 	};
@@ -242,7 +242,7 @@ public:
 				Li, L0, V0, F0,
 				Activation.pGetDriveCaller()->pCopy(),
 				bActivationOverflow,
-				dKp, dKd,
+				Kp.pGetDriveCaller()->pCopy(), Kd.pGetDriveCaller()->pCopy(),
 				ReferenceLength.pGetDriveCaller()->pCopy()));
 		return pCL;
 	};
@@ -259,7 +259,7 @@ public:
 		doublereal dLRef = ReferenceLength.dGet()/L0;
 
 		doublereal aRef = Activation.dGet();
-		aReq = aRef + dKp*(x - dLRef) + dKd*v;
+		aReq = aRef + Kp.dGet()*(x - dLRef) + Kd.dGet()*v;
 		a = aReq;
 
 		if (aReq < 0.) {
@@ -284,16 +284,16 @@ public:
 		doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
 		ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
-		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*dKp)*f2 + df3dx)*dxdEps;
-		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*dKd)*dvdEpsPrime;
+		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*Kp.dGet())*f2 + df3dx)*dxdEps;
+		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*Kd.dGet())*dvdEpsPrime;
 	};
 	 
 protected:
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		out
 			<< ", reflexive"
-			<< ", proportional gain, " << dKp
-			<< ", derivative gain, " << dKd
+			<< ", proportional gain, ", Kp.pGetDriveCaller()->Restart(out)
+			<< ", derivative gain, ", Kd.pGetDriveCaller()->Restart(out)
 			<< ", reference length, ", ReferenceLength.pGetDriveCaller()->Restart(out);
 		return out;
 	};
@@ -318,8 +318,8 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                [ , activation check , (bool)<activation_check> ]\n"
 				"                [ , ergonomy , { yes | no } , ]\n"
 				"                [ , reflexive , # only when ergonomy == no\n"
-				"                        proportional gain , <kp> ,\n"
-				"                        derivative gain , <kd> ,\n"
+				"                        proportional gain , (DriveCaller) <kp> ,\n"
+				"                        derivative gain , (DriveCaller) <kd> ,\n"
 				"                        reference length, (DriveCaller) <lref> ]\n"
 				"                [ , prestress, <prestress> ]\n"
 				"                [ , prestrain, (DriveCaller) <prestrain> ]\n"
@@ -403,8 +403,8 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		}
 
 		bool bReflexive(false);
-		doublereal dKp(0.);
-		doublereal dKd(0.);
+		DriveCaller* pKp(NULL);
+		DriveCaller* pKd(NULL);
 		const DriveCaller *pRefLen(0);
 		if (HP.IsKeyWord("reflexive")) {
 			if (bErgo) {
@@ -420,14 +420,14 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					"at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			dKp = HP.GetReal();
+			pKp = HP.GetDriveCaller();
 
 			if (!HP.IsKeyWord("derivative" "gain")) {
 				silent_cerr("MusclePennestriCL: \"derivative gain\" expected "
 					"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			dKd = HP.GetReal();
+			pKd = HP.GetDriveCaller();
 
 			if (!HP.IsKeyWord("reference" "length")) {
 				silent_cerr("MusclePennestriCL: \"reference length\" expected "
@@ -457,7 +457,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				MusclePennestriReflexiveCL(pTplDC, PreStress,
 					Li, L0, V0, F0, pAct,
 					bActivationOverflow,
-					dKp, dKd, pRefLen));
+					pKp, pKd, pRefLen));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
