@@ -99,7 +99,11 @@ check_flag(const char *flag, int sleeptime)
 			return 1;
 		}
 
-		fgets(buf, sizeof(buf), f);
+		if ( fgets(buf, sizeof(buf), f) == NULL ) {
+			fprintf(stderr, "test_modalext_edge: unable to read line from file \"%s\"\n", flag);
+			return -1;
+		}
+
 		if (strcmp(buf, "UPDATE,N,0,0,1\n") != 0) {
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
@@ -107,7 +111,10 @@ check_flag(const char *flag, int sleeptime)
 			fclose(f);
 			return -1;
 		}
-		fgets(buf, sizeof(buf), f);
+		if ( fgets(buf, sizeof(buf), f) == NULL ) {
+			fprintf(stderr, "test_modalext_edge: unable to read line from file \"%s\"\n", flag);
+			return -1;
+		}
 		if (strcmp(buf, "FLAG,I,1,1,0\n") != 0) {
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';

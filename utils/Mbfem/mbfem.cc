@@ -82,8 +82,16 @@ main(int argc, char* ingresso[])
 	fin = fopen(ingresso[1],"r");
 	if (fin!=NULL){
 	// Model files
-		fscanf(fin,"%s ",fileMB);
-		fgets(buffer,200,fin);
+		if ( !fscanf(fin,"%s ",fileMB) )
+		{
+			cerr << "Unable to read input file - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if ( fgets(buffer,200,fin) == NULL) {
+			cerr << "Unable to read line - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		istringstream issfilefem(buffer,istringstream::in);
 		if (issfilefem >> fileFEM >> fileMass) {
 			mass_file = true;
@@ -91,9 +99,17 @@ main(int argc, char* ingresso[])
 			mass_file = false;
 		}
 	// Scale factor - apply to mb 
-		fscanf(fin,"%le ",&scale_f);
+		if ( !fscanf(fin,"%le ",&scale_f) )
+		{
+			cerr << "Unable to read scale factor - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	// Step to analize
-		fgets(buffer,100,fin);
+		if ( fgets(buffer,100,fin) == NULL) {
+			cerr << "Unable to read line - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		istringstream isstep(buffer,istringstream::in);
 		isstep >> n_step;
 		char lst_type;		
@@ -121,7 +137,11 @@ main(int argc, char* ingresso[])
 			break;
 		}
 	// Trattamento delle forze
-		fscanf(fin,"%s ",buffer);
+		if ( !fscanf(fin,"%s ",buffer) )
+		{
+			cerr << "Unable to read loads flag - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		if (strcmp(buffer,"loads")==0){
 			loads = true;
 		} else if (strcmp(buffer,"noloads")==0) {
@@ -129,7 +149,10 @@ main(int argc, char* ingresso[])
 		}
 		if (loads) {
 		for (int i_load = 0; i_load < 2; i_load++){
-			fgets(buffer,100,fin);
+			if ( fgets(buffer,100,fin) = NULL) {
+				cerr << "Unable to read line - Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			istringstream issload(buffer,istringstream::in);
 			char load_type;
 			issload >> load_type;
@@ -159,7 +182,10 @@ main(int argc, char* ingresso[])
 		}
 		}
 	// Blocks
-		fscanf(fin,"%d",&N_block);
+		if ( !fscanf(fin,"%d",&N_block) ) {
+			cerr << "Unable to read blocks number - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		// Inizio lettura dei blocchi
 		for (int i_bl = 0; i_bl < N_block; i_bl++){
 			int id_bl,rbf_ord,near_nodes,n_adj;
@@ -167,8 +193,11 @@ main(int argc, char* ingresso[])
 			char linquad,beam;
 			bool lq,bonb;
 			// Lettura del tipo di mappa
-			fscanf(fin,"%d ",&id_bl);
-			fscanf(fin,"%c %d %d %d %le %c ",&linquad,&rbf_ord,&near_nodes,&n_adj,&ref_length,&beam);
+			if ( !fscanf(fin,"%d ",&id_bl) || !fscanf(fin,"%c %d %d %d %le %c ",&linquad,&rbf_ord,&near_nodes,&n_adj,&ref_length,&beam) ) {
+				cerr << "Unable to read from file " << ingresso[1] 
+					<< "- Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			switch (linquad) {
 				case 'q':
 					lq = true;
@@ -200,9 +229,13 @@ main(int argc, char* ingresso[])
 			}		
 			// Reading block limit
 			int fem_l,fem_u,mb_l,mb_u;
-			fscanf(fin,"%d %d ",&iminMb[id_bl],&imaxMb[id_bl]);
-			fscanf(fin,"%d %d ",&iminFem[id_bl],&imaxFem[id_bl]);
-			fscanf(fin,"%d %d ",&iminFem_l[id_bl],&imaxFem_l[id_bl]);
+			if ( !fscanf(fin,"%d %d ",&iminMb[id_bl],&imaxMb[id_bl]) ||
+			     !fscanf(fin,"%d %d ",&iminFem[id_bl],&imaxFem[id_bl]) ||
+			     !fscanf(fin,"%d %d ",&iminFem_l[id_bl],&imaxFem_l[id_bl])
+			   ) {
+				cerr << "Unable to read from file " << ingresso[1] << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			// Creating block
 			BlockList[id_bl] = Block(id_bl,n_adj,ref_length*scale_f,n_step,bonb);
 			BlockList[id_bl].SetInterpMethod(near_nodes,rbf_ord,lq);
@@ -210,7 +243,10 @@ main(int argc, char* ingresso[])
 		}
 	// Output Nastran
 	char nas_out;
-	fscanf(fin,"%c %d %d ",&nas_out,&CID,&start_lc);
+	if ( !fscanf(fin,"%c %d %d ",&nas_out,&CID,&start_lc) ) {
+		cerr << "Unable to read from file " << ingresso[1] << endl;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	if (nas_out=='n'){
 		outnas = true;
 	} else {
@@ -218,7 +254,10 @@ main(int argc, char* ingresso[])
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	// Output
-		fgets(buffer,100,fin);
+		if ( fgets(buffer,100,fin) == NULL ) {
+			cerr << "Unable to read line - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		int n_out = strlen(buffer)-1;
 		for (int i_out = 0; i_out < n_out; i_out++){
 			switch (buffer[i_out]) {

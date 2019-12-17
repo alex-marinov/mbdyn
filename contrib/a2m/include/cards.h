@@ -46,7 +46,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 // ROUTINE DI FONDAMENTALE GESTIONE DELLE CARDS
 #include <defs.h>
 #include <errrec.h>
-#include <mbdyn.h>
+#include <mbdyn_a2m.h>
 #include <mathem.h>
 #include <iostream>
 #include <stdio.h>

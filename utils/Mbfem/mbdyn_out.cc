@@ -30,7 +30,10 @@ map<int,int> read_mov(char* InFileName,map<int,int> iminMb,
 	bool cont = true;
 	while (cont){
 		double x,y,z;
-		fgets(buf,1024,fmov);
+		if ( fgets(buf,1024,fmov) == NULL) {
+			cerr << "Unable to read line - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		istringstream iss(buf,istringstream::in);
 		iss >> label >> x >> y >> z;
 		if (N_mb == 0) n1 = label;
@@ -55,10 +58,19 @@ map<int,int> read_mov(char* InFileName,map<int,int> iminMb,
 	int i_step = 1;
 	for (vector<int>::iterator it_step = step_list.begin(); it_step != step_list.end(); it_step++){
 		int delta_step = (*it_step - ini_step) - 1;
-		for (int i=0;i<delta_step*N_mb;i++) fgets(buf,1024,fmov);
+		for (int i=0;i<delta_step*N_mb;i++) 
+		{
+			if ( fgets(buf,1024,fmov) == NULL ) {
+				cerr << "Unable to read line - Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 		// Inizio la lettura
 		for (int i=0;i<N_mb;i++){
-			fgets(buf,1024,fmov);
+			(if fgets(buf,1024,fmov) == NULL) {
+				cerr << "Unable to read line - Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			istringstream iss(buf,istringstream::in);
 			int label;
 			double dummy;
@@ -110,7 +122,10 @@ void read_frc(char* InFileName,map<int,int> idblock,vector<int> step_list,
 	int label;
 	bool cont = true;
 	while (cont) {
-		fgets(buf,1024,ffrc);
+		if ( fgets(buf,1024,ffrc) == NULL) {
+			cerr << "Unable to read line - Aborting" << endl;
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		istringstream iss(buf,istringstream::in);
 		iss >> label;
 		if (N_load==0) n1 = label;
@@ -124,10 +139,18 @@ void read_frc(char* InFileName,map<int,int> idblock,vector<int> step_list,
 	int i_step = 1;
 	for (vector<int>::iterator it_step = step_list.begin(); it_step != step_list.end(); it_step++){
 		int delta_step = (*it_step - ini_step) - 1;
-		for (int i=0;i<delta_step*N_load;i++) fgets(buf,1024,ffrc);
+		for (int i=0;i<delta_step*N_load;i++) {
+			if ( fgets(buf,1024,ffrc) == NULL ) {
+				cerr << "Unable to read line - Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 		// Inizio la lettura
 		for (int i=0;i<N_load;i++){
-			fgets(buf,1024,ffrc);
+			if ( fgets(buf,1024,ffrc) == NULL ) {
+				cerr << "Unable to read line - Aborting" << endl;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			istringstream iss(buf,istringstream::in);
 			int node_label,lab_force;
 			double dummy;
