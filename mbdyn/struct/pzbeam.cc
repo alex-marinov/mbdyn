@@ -597,6 +597,7 @@ PiezoBeam::PiezoBeam(
 ) : Elem(uL, fOut),
    PiezoActuatorVEBeam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3,
 		r_I, rII, pD_I, pDII, iEl, pEDof, T_Ie, T_Ik, TIIe, TIIk, ood, fOut),
+   Vdot(iEl),
    Qdot(iEl)
 {
    PiezoMatQ[STRAIN][S_I].Copy(Q_Ie);
