@@ -2214,7 +2214,24 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	Elem* pEl = NULL;
 
-	if ((CLType_I == ConstLawType::ELASTIC)
+	if (fPiezo == 2) { //using fully coupled piezo
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				PiezoBeam,
+				PiezoBeam(uLabel,
+					pNode1, pNode2, pNode3,
+					f1, f2, f3,
+					Rn1, Rn2, Rn3,
+					R_I, RII,
+					pD_I, pDII,
+					iNumElec,
+					pvElecDofs,
+					PiezoMat[0][0], PiezoMat[1][0],
+					PiezoMat[0][1], PiezoMat[1][1],
+					PiezoMatQ[0][0], PiezoMatQ[1][0],
+					PiezoMatQ[0][1], PiezoMatQ[1][1],
+					PiezoMatQV[0], PiezoMatQV[1],
+					od, fOut));
+	} else if ((CLType_I == ConstLawType::ELASTIC)
 		&& (CLTypeII == ConstLawType::ELASTIC))
 	{
 		if (fPiezo == 0) {
@@ -2242,8 +2259,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoMat[0][1], PiezoMat[1][1],
 					od, fOut));
 		}
-
-	} else /* At least one is VISCOUS or VISCOELASTIC or using fully coupled piezo*/ {
+	} else /* At least one is VISCOUS or VISCOELASTIC and not fully copled piezo*/ {
 		if (fPiezo == 0) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				ViscoElasticBeam,
@@ -2268,24 +2284,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
 					od, fOut));
-		} else if (fPiezo == 2) {
-			SAFENEWWITHCONSTRUCTOR(pEl,
-				PiezoBeam,
-				PiezoBeam(uLabel,
-					pNode1, pNode2, pNode3,
-					f1, f2, f3,
-					Rn1, Rn2, Rn3,
-					R_I, RII,
-					pD_I, pDII,
-					iNumElec,
-					pvElecDofs,
-					PiezoMat[0][0], PiezoMat[1][0],
-					PiezoMat[0][1], PiezoMat[1][1],
-					PiezoMatQ[0][0], PiezoMatQ[1][0],
-					PiezoMatQ[0][1], PiezoMatQ[1][1],
-					PiezoMatQV[0], PiezoMatQV[1],
-					od, fOut));
-		} else {
+		} else if (fPiezo != 2) {
 			silent_cerr("line " << HP.GetLineData()
 				<< ": Something went wrong reading the beam, flag fPiezo = " << fPiezo
 				<< std::endl);
