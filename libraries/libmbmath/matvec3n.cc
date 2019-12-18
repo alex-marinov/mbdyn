@@ -988,6 +988,7 @@ void MatNxN::Create_(integer ns)
    for (integer i = 1; i < ns; i++) {
       pdMat[i] = pdMat[i-1]+ns;
    }
+   iNumRows = iMaxRows = ns;
 }
  
 
@@ -1000,6 +1001,7 @@ void MatNxN::Destroy_(void)
    if (pdMat != NULL) {
       SAFEDELETEARR(pdMat);
    }
+   iNumRows = iMaxRows = 0;
 }
 
 
@@ -1049,8 +1051,8 @@ MatNxN::Copy(const MatNxN& m)
 #ifdef DEBUG
    m.IsValid();
 #endif /* DEBUG */
-   ASSERT(iMaxRows >= m.iNumRows);
-   iNumRows = m.iNumRows;
+   if (iMaxRows < m.iNumRows) Create_(m.iNumRows);
+   else iNumRows = m.iNumRows;
 	   
    for (integer c = 0; c < iNumRows; c++) {
 #ifdef HAVE_MEMCPY
