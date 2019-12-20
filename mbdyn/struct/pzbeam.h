@@ -277,8 +277,6 @@ class PiezoBeam : virtual public PiezoActuatorVEBeam {
 				const VectorHandler& XCurr,
 				const VectorHandler& XPrimeCurr);
    
-   virtual void AddInternalForces(Vec6& AzLoc, unsigned int iSez);
-
    virtual void AssPiezoRes(SubVectorHandler& WorkVec,
 				doublereal dCoef,
 				const VectorHandler& XCurr,

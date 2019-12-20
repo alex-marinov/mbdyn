@@ -333,7 +333,7 @@ void PiezoActuatorVEBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
       /* fFirstRes = flag(0);  AfterPredict ha gia' calcolato tutto */
    } else {    
       for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
-	 V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());
+         V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());
       }
    }
    
@@ -557,12 +557,6 @@ void PiezoBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    WMA.Sub(10, 19, tmp1);
    WMA.Add(16, 19, tmp1);
 }
-
-void PiezoBeam::AddInternalForces(Vec6& AzLoc, unsigned int iSez)
-{
-   AzLoc += Vec6(PiezoMat[STRAIN][iSez]*V, PiezoMat[CURVAT][iSez]*V);
-}
-      
 
 /* Costruttore normale */
 PiezoBeam::PiezoBeam(
