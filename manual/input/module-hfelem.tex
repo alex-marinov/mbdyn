@@ -51,7 +51,9 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
 
     \bnt{arglist} ::=
         \kw{inputs number} , (\ty{integer}) \bnt{inputs_number} ,
-            (\hty{DriveCaller}) \bnt{input_signal} [ , ... ] , # \nt{inputs_number} occurrences
+            (\hty{DriveCaller}) \bnt{input_signal}
+                    [ \{ \kw{test} | \kw{output} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
+                [ , ... ] , # \nt{inputs_number} occurrences
         \kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
             [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
@@ -68,12 +70,18 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
 \end{Verbatim}
 with
 \begin{itemize}
-\item $\nt{inputs\_number} > 0$; it is suggested that the
+\item $\nt{inputs\_number} > 0$;
+this field indicates the number of signals -- or measures -- that are used to evaluate the first harmonic of the response
+(they are the \emph{inputs} to the harmonic analysis process);
+it is suggested that the
 % \kw{node},
 % \kw{element} 
 \hyperref{\kw{node}}{\kw{node} (see Section~}{)}{sec:DriveCaller:NODE},
 \hyperref{\kw{element}}{\kw{element} (see Section~}{)}{sec:DriveCaller:ELEMENT}
 drive callers, either alone or in combination with other drive callers, are used to extract relevant measures of the output of the system;
+If \kw{test} is \kw{true}, the signal will be used to evaluate convergence, otherwise it will be ignored;
+If \kw{output} is \kw{true}, the fundamental harmonic of the signal will appear in the output, otherwise it will be ignored;
+by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used, the signal is used to test for convergence and appears in the output;
 
 \item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
 \begin{align*}
