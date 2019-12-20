@@ -149,7 +149,7 @@ main(int argc, char* ingresso[])
 		}
 		if (loads) {
 		for (int i_load = 0; i_load < 2; i_load++){
-			if ( fgets(buffer,100,fin) = NULL) {
+			if ( fgets(buffer,100,fin) == NULL) {
 				cerr << "Unable to read line - Aborting" << endl;
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}

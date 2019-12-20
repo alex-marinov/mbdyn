@@ -67,7 +67,7 @@ map<int,int> read_mov(char* InFileName,map<int,int> iminMb,
 		}
 		// Inizio la lettura
 		for (int i=0;i<N_mb;i++){
-			(if fgets(buf,1024,fmov) == NULL) {
+			if (fgets(buf,1024,fmov) == NULL) {
 				cerr << "Unable to read line - Aborting" << endl;
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
