@@ -1651,6 +1651,17 @@ ModalBody::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+ModalBody::SetValue(DataManager *pDM,
+                    VectorHandler& X, VectorHandler& XP,
+                    SimulationEntity::Hints *ph)
+{
+        // Attention! We must overwrite DynamicBody::SetValue here!
+        // Depending on the order of our elements,
+        // it is possible to get an incorrect
+        // initial velocity and initial angular velocity!
+}
+
 /* ModalBody - end */
 
 

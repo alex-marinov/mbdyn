@@ -463,6 +463,11 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
+        
+        virtual void
+        SetValue(DataManager *pDM,
+                 VectorHandler& X, VectorHandler& XP,
+                 SimulationEntity::Hints *ph = 0);
 };
 
 /* ModalBody - end */
