@@ -28,14 +28,14 @@ As the project's maintainers, we only ask interested coders to follow the
 simple steps here presented.  
 Since the main repository was moved to Git, we switched to the branching 
 model described [here](https://nvie.com/posts/a-successful-git-branching-model/), 
-so if you are a new developer, please read the page carefully prior to commiting
+so if you are a new developer, please read the page carefully prior to committing
 and pushing changes.
 
 ## Guidelines for _external_ developers
 As a general rule, before starting to write code, consider opening an 
 [issue](https://gitlab.com/help/user/project/issues/index.md) to start a 
 discussion with other developers. This, at the moment, **requires you to be
-recognised as Project Member**, so pleas ask us to activate your account by 
+recognised as Project Member**, so please ask us to activate your account by 
 writing to the [MBDyn users mailing list](https://www.mbdyn.org/?Mailing_Lists).
 
 Developers that would like to contribute to MBDyn but are not in the project
