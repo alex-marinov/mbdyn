@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # script to cross-build and pack up windows build output requires
-# M Cross Environment (mxe.cc). The location of the mxe installation 
-# (e.g. /opt/mxe) must be set in the "mxedir" variable in 
+# M Cross Environment (mxe.cc). The location of the mxe installation
+# (e.g. /opt/mxe) must be set in the "mxedir" variable in
 # win_package_config.sh
 #
 
@@ -12,32 +12,50 @@ set -ex
 OPTIND=1  # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
-replace_mxe_netcdf=true
-use_netcdf=false
-configure_enable_netcdf=no
+replace_mxe_netcdf=false
+use_netcdf=true
+configure_enable_netcdf=yes
+use_ginac=false
+build_ginac=true
+make_jobs=1
+configure_enable_ginac=no
 
-usage="$(basename "$0") [-h] [-n] -- creates Renewnet Foundry release
+usage="$(basename "$0") [-h] [-n] -- Builds MBDyn for Microsoft Windows
 
 where:
     -h  show this help text
-    -N  enable netcdf (disabled by default)
-    -n  don't replace netcdf makefile in MXE (replacement makefile builds netcdf 4.1.3 instead of default)"
+    -N  disable netcdf (disabled by default)
+    -n  replace netcdf makefile in MXE (replacement makefile builds netcdf 4.1.3 instead of default)
+    -G  enable GiNaC
+    -F  don't download and build GiNaC, assume it's already available
+    -j  Number of jobs to use for make and MXE make
+    -b  branch of mbdyn to checkout"
 
-while getopts "h?nN" opt; do
+while getopts "h?nNGj:F" opt; do
     case "$opt" in
     h|\?)
         echo "$usage"
         exit 0
         ;;
-    n)  replace_mxe_netcdf=false
+    n)  replace_mxe_netcdf=true
         echo "Replace MXE netcdf makefile: $replace_mxe_netcdf"
         ;;
-    N)  use_netcdf=true
-        configure_enable_netcdf=yes
-        echo "Replace MXE netcdf makefile: $replace_mxe_netcdf"
+    N)  use_netcdf=false
+        configure_enable_netcdf=no
+        echo "Use NetCDF: $use_netcdf"
+        ;;
+    G)  use_ginac=true
+        echo "Use GiNaC: $use_ginac"
+        ;;
+    F)  build_ginac=false
+        echo "Build GiNaC: $build_ginac"
+        ;;
+    j)  make_jobs=$OPTARG
+        echo "Make Jobs: $make_jobs"
         ;;
     esac
 done
+shift $((OPTIND -1))
 
 #host=x86_64-w64-mingw32.shared
 
@@ -57,7 +75,7 @@ echo host contains: ${host}
 # make sure all the required dependancies are in MXE
 mxedeps="boost libltdl suitesparse lapack hdf5 hdf4"
 
-if [ "${use_netcdf}" = true]; then
+if [ "${use_netcdf}" = true ]; then
 
   # add netcdf to the mxe build
   mxedeps="${mxedeps} netcdf"
@@ -87,9 +105,65 @@ if [ "${use_netcdf}" = true]; then
 
 fi
 
+remove_mxe_libcln_mk=false
+if [ "${use_ginac}" = true ]; then
+  if [ ! -f "${mxedir}/src/libcln.mk" ]; then
+    cp ${thisfiledir}/libcln.mk ${mxedir}/src/
+    remove_mxe_libcln_mk=true
+  fi
+  mxedeps="${mxedeps} libcln"
+fi
+
 # build the dependancies using MXE
 cd ${mxedir}
-make ${mxedeps}
+make ${mxedeps} JOBS=${make_jobs}
+
+if [ "${remove_mxe_libcln_mk}" = true ]; then
+  rm "${mxedir}/src/libcln.mk"
+fi
+
+if [ "${use_ginac}" = true ]; then
+
+  configure_enable_ginac=yes
+
+  ginactmpdir=/tmp
+
+  cd ${ginactmpdir}
+
+  ginac_git_dir=ginac-git-4-mbdyn
+
+  ginacroot=${ginactmpdir}/${ginac_git_dir}
+
+  ginac_install_dir="${mxedir}/usr/${host}"  # ${ginacroot}/install
+
+
+  if [ "${build_ginac}" = true ]; then
+
+    rm -rf ${ginacroot}
+
+    cd ${ginactmpdir}
+
+    git clone git://www.ginac.de/ginac.git ${ginac_git_dir}
+
+    mkdir -p ${ginac_install_dir}
+
+    cd ${ginacroot}
+
+    # this line fixes the Makefile.am to avoid building the docs etc (which fails)
+    sed -i 's/ginac check ginsh tools doc/ginac/g' Makefile.am
+
+    autoreconf -i
+
+    ./configure --host=x86_64-w64-mingw32.static --enable-static --disable-shared --prefix=${ginac_install_dir}
+
+    make -j${make_jobs}
+
+    make install
+
+  fi
+
+fi
+
 
 srcdir=${thisfiledir}/../..
 
@@ -111,22 +185,47 @@ if hash wine 2>/dev/null; then
     fi
 fi
 
+cppflags="-I${mxedir}/usr/x86_64-w64-mingw32.static/include/suitesparse -I${mxedir}/usr/x86_64-w64-mingw32.static/include/"
+if [ "${use_ginac}" = true ]; then
+  cppflags="${cppflags} -I${ginacroot}/include"
+fi
+
+linkflags="-L${mxedir}/usr/x86_64-w64-mingw32.static/lib/"
+if [ "${use_ginac}" = true ]; then
+  linkflags="${linkflags} -L${ginacroot}/lib"
+fi
+
+libs="-lstdc++ -lgcc -lgfortran -lamd -lcurl -lsuitesparseconfig -lcholmod -lgomp -lgnutls -lnettle -lmetis -lcolamd -lccolamd -lcamd"
+if [ "${use_ginac}" = true ]; then
+  libs="${libs} -lginac"
+fi
+if [ "${use_netcdf}" = true ]; then
+  libs="${libs} -lnetcdf-cxx4 $(/opt/mxe/usr/x86_64-w64-mingw32.static/bin/nc-config  --libs) -lportablexdr -ljpeg $(/opt/mxe/usr/x86_64-w64-mingw32.static/bin/curl-config  --static-libs)"
+  #sed -i 's/netcdf_c++4/netcdf-cxx4/g' configure.ac
+fi
+
+sed -i 's/-Wno-error=format-truncation//g' configure.ac
+
+./bootstrap.sh
+
 # _USE_MATH_DEFINES required for windows to define M_PI etc see:
 #
 # https://stackoverflow.com/questions/26065359/m-pi-flagged-as-undeclared-identifier
 #
 ./configure --host=$host \
+            `# --enable-Werror=no` \
             --with-boost \
             --prefix=${install_dir} \
             --enable-install_test_progs=yes \
             --with-umfpack \
             --with-metis=no \
             --enable-netcdf=${configure_enable_netcdf} \
+            --with-ginac=${configure_enable_ginac} \
             `# --with-module=fabricate` \
-            LINKFLAGS="$LINKFLAGS -L${mxedir}/usr/x86_64-w64-mingw32.static/lib/" \
+            LINKFLAGS="$LINKFLAGS ${linkflags}" \
             CXXFLAGS="$CXXFLAGS -std=c++11 -D_USE_MATH_DEFINES" \
-            LIBS="$LIBS -lstdc++ -lgcc -lgfortran -lamd -lcurl -lsuitesparseconfig -lcholmod  -lportablexdr -lws2_32 -lnetcdf -lhdf5_hl -lhdf5 -lmfhdf -ldf -lz -lm -ljpeg  -lcurl -lgomp -lgnutls -lidn2 -lssh2 -lnettle -lmetis -lcolamd -lccolamd -lcamd " \
-            CPPFLAGS="$CPPFLAGS -I${mxedir}/usr/x86_64-w64-mingw32.static/include/suitesparse -I${mxedir}/usr/x86_64-w64-mingw32.static/include/"
+            LIBS="$LIBS ${libs}" \
+            CPPFLAGS="$CPPFLAGS ${cppflags}"
 
 if hash wine 2>/dev/null; then
     if hash update-binfmts 2>/dev/null; then
@@ -134,7 +233,9 @@ if hash wine 2>/dev/null; then
     fi
 fi
 
-make -j3
+make clean
+
+make -j${make_jobs}
 
 make install
 
