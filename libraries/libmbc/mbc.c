@@ -122,7 +122,7 @@ mbc_get_cmd(mbc_t *mbc)
 		long int errcode = WSAGetLastError();
 		char msg[100];
 		winsock_err_string(errcode, msg);
-		fprintf("ioctlsocket set to blocking failed with error: %ld, msg: %s\n", errcode, msg);
+		fprintf(stderr, "ioctlsocket set to blocking failed with error: %ld, msg: %s\n", errcode, msg);
 	}
 #endif /* _WIN32 */
 
@@ -151,7 +151,7 @@ mbc_get_cmd(mbc_t *mbc)
         long int errcode = WSAGetLastError();
         char msg[100];
         winsock_err_string(errcode, msg);
-        fprintf("ioctlsocket set back to blocking failed with error: %ld, msg: %s\n", errcode, msg);
+        fprintf(stderr, "ioctlsocket set back to blocking failed with error: %ld, msg: %s\n", errcode, msg);
     }
 #endif /* _WIN32 */
 
@@ -245,7 +245,7 @@ mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 
 			/* Connect failed */
 #ifdef _WIN32
-			const char msg[100];
+			char msg[100];
 			winsock_err_string (save_errno, msg);
 #else
 			const char *msg;

@@ -185,6 +185,8 @@ esac
 ])dnl
 AC_SUBST(mbdyn_subdir)dnl
 
+PKG_PROG_PKG_CONFIG
+
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(Werror,[  --enable-Werror          enable building with -Werror], yes)dnl
@@ -602,6 +604,18 @@ dnl checks for netcdf header file (for netcdf4 c++):
 				],[
 					have_libnetcdf4=yes
 					NETCDF_LIBS="$try_NETCDF_LIBS"
+				],[
+				  try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
+			      LIBS="$try_NETCDF_LIBS $save_LIBS"
+				  AC_TRY_LINK([
+	#include <netcdf>
+				  ],[
+		/* test for netcdf */
+		netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
+				  ],[
+					have_libnetcdf4=yes
+					NETCDF_LIBS="$try_NETCDF_LIBS"
+				  ])
 				])
 			AC_TRY_LINK([
 	#include <netcdf>
@@ -665,7 +679,19 @@ dnl checks for netcdf header file (for netcdf4 c++):
 							have_libnetcdfc=yes
 							NETCDF_LIBS="$try_NETCDF_LIBS"
 						],[
+						try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
+					    LIBS="$try_NETCDF_LIBS $save_LIBS"
+                        AC_TRY_LINK([
+		#include <netcdf.h>
+						  ],[
+				/* test for netcdf */
+				NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
+						  ],[
+							have_libnetcdfc=yes
+							NETCDF_LIBS="$try_NETCDF_LIBS"
+						  ],[
 							have_libnetcdfc=no
+						  ])
 						])
 					AC_LANG_C
 					LIBS="$save_LIBS"
@@ -2030,10 +2056,10 @@ if test $ol_with_lapack != no ; then
 	AC_MSG_CHECKING([for lapack])
 
 	save_LIBS="$LIBS"
-        
+
         dnl Some optimized BLAS libraries like OpenBLAS already contain LAPACK
         try_lapack_LIBS="$BLAS_LIBS"
-        
+
         LIBS="$try_lapack_LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
@@ -2182,7 +2208,7 @@ if test $ol_with_lapack != no ; then
 	else
 		AC_MSG_RESULT([no])
 	fi
-        
+
 	LIBS="$save_LIBS"
 fi
 
@@ -2764,7 +2790,7 @@ if test $ol_with_pastix != no ; then
 			],[have_pastix="yes"])
 
                 LIBS="$save_LIBS"
-                
+
                 if test "$have_pastix" = "yes"; then
                    AC_MSG_RESULT([yes])
                    ol_link_pastix=yes
@@ -3346,10 +3372,10 @@ if test $ol_with_ginac != no ; then
 		GINACLIB_CPPFLAGS=`ginac-config --cppflags`
 		have_ginac=yes
 	else
-		pkg-config ginac
+		$PKG_CONFIG ginac
 		if test $? = 0; then
-			GINACLIB_LIBS=`pkg-config --libs ginac`
-			GINACLIB_CPPFLAGS=`pkg-config --cflags ginac`
+			GINACLIB_LIBS=`$PKG_CONFIG --libs ginac`
+			GINACLIB_CPPFLAGS=`$PKG_CONFIG --cflags ginac`
 			have_ginac=yes
 		fi
 	fi
