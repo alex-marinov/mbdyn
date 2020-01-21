@@ -3764,6 +3764,7 @@ this is defined only for scalars. The force is defined as:
         (\ty{real}) \bnt{upper_strain} ,
         (\ty{real}) \bnt{lower_strain} ,
         (\ty{real}) \bnt{stiffness_2}
+        [, \kw{third stiffness} \bnt{stiffness_3}]
 \end{Verbatim}
 %\end{verbatim}
 this is defined for scalar and $3 \times 1$ vectors. In the scalar case the
@@ -3771,7 +3772,8 @@ meaning of the entries is straightforward,
 while in case of $3 \times 1$ vectors the constitutive law is isotropic
 but in the local direction 3, where, in case of strain
 out of the upper or lower bound, the \nt{stiffness\_2} is used.
-
+If \kw{third stiffness} is given, its value is used in the strain region 
+below $\nt{lower\_strain}$.
 \subsection{Isotropic hardening elastic}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]

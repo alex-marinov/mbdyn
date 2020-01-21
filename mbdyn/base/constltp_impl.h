@@ -779,6 +779,7 @@ public:
 			doublereal = 0.,
 			doublereal = 0.,
 			doublereal = 0.,
+			doublereal = 0.,
 			doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
 		throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "double linear elastic constitutive law "
@@ -810,6 +811,7 @@ private:
 	doublereal dUpperLimitStrain;
 	doublereal dLowerLimitStrain;
 	doublereal dSecondStiffness;
+	doublereal dThirdStiffness;
 	flag fSecondStiff;
 
 public:
@@ -818,12 +820,14 @@ public:
 			doublereal dStiff,
 			doublereal dUppLimStrain,
 			doublereal dLowLimStrain,
-			doublereal dSecondStiff)
+			doublereal dSecondStiff,
+			doublereal dThirdStiff)
 	: ElasticConstitutiveLaw1D(pDC, PStress),
 	dStiffness(dStiff),
 	dUpperLimitStrain(dUppLimStrain),
 	dLowerLimitStrain(dLowLimStrain),
-	dSecondStiffness(dSecondStiff) {
+	dSecondStiffness(dSecondStiff),
+	dThirdStiffness(dThirdStiff) {
 		FDE = dStiffness;
 	};
 
@@ -842,7 +846,8 @@ public:
 					dStiffness,
 					dUpperLimitStrain,
 					dLowerLimitStrain,
-					dSecondStiffness));
+					dSecondStiffness,
+					dThirdStiffness));
 
 		return pCL;
 	};
@@ -852,7 +857,8 @@ public:
 			<< dStiffness << ", "
 			<< dUpperLimitStrain << ", "
 			<< dLowerLimitStrain << ", "
-			<< dSecondStiffness;
+			<< dSecondStiffness << ", "
+			<< dThirdStiffness;
 		return Restart_int(out);
 	};
 
@@ -861,19 +867,18 @@ public:
 
 		doublereal dPreStrain = Get();
 		doublereal dCurrStrain = Epsilon-dPreStrain;
-		if (dCurrStrain <= dUpperLimitStrain && dCurrStrain >= dLowerLimitStrain) {
+
+		if (dCurrStrain < dLowerLimitStrain) {
+			FDE = dThirdStiffness;
+			F = PreStress + dStiffness*dLowerLimitStrain
+				+ dThirdStiffness*(dCurrStrain - dLowerLimitStrain);
+		} else if (dCurrStrain >= dLowerLimitStrain && dCurrStrain <= dUpperLimitStrain) {
 			FDE = dStiffness;
 			F = PreStress + dStiffness*dCurrStrain;
-		} else {
+		} else  /* if (dCurrStrain > dUpperLimitStrain */ {
 			FDE = dSecondStiffness;
-
-			if (dCurrStrain > dUpperLimitStrain) {
-				F = PreStress + dStiffness*dUpperLimitStrain
-					+ dSecondStiffness*(dCurrStrain - dUpperLimitStrain);
-			} else /* if (dCurrStrain < dLowerLimitStrain) */ {
-				F = PreStress + dStiffness*dLowerLimitStrain
-					+ dSecondStiffness*(dCurrStrain - dLowerLimitStrain);
-			}
+			F = PreStress + dStiffness*dUpperLimitStrain
+				+ dSecondStiffness*(dCurrStrain - dUpperLimitStrain);
 		}
 	};
 };
@@ -887,6 +892,7 @@ private:
 	doublereal dUpperLimitStrain;
 	doublereal dLowerLimitStrain;
 	doublereal dSecondStiffness;
+	doublereal dThirdStiffness;
 
 public:
 	DoubleLinearElasticConstitutiveLaw(const TplDriveCaller<Vec3>* pDC,
@@ -894,12 +900,14 @@ public:
 			doublereal dStiff,
 			doublereal dUppLimStrain,
 			doublereal dLowLimStrain,
-			doublereal dSecondStiff)
+			doublereal dSecondStiff,
+			doublereal dThirdStiff)
 	: ElasticConstitutiveLaw3D(pDC, PStress),
 	dStiffness(dStiff),
 	dUpperLimitStrain(dUppLimStrain),
 	dLowerLimitStrain(dLowLimStrain),
-	dSecondStiffness(dSecondStiff) {
+	dSecondStiffness(dSecondStiff),
+	dThirdStiffness(dThirdStiff) {
 		Mat3x3DEye.Manipulate(FDE, dStiffness);
 	};
 
@@ -918,7 +926,8 @@ public:
 					dStiffness,
 					dUpperLimitStrain,
 					dLowerLimitStrain,
-					dSecondStiffness));
+					dSecondStiffness,
+					dThirdStiffness));
 
 		return pCL;
 	};
@@ -928,7 +937,8 @@ public:
 			<< dStiffness << ", "
 			<< dUpperLimitStrain << ", "
 			<< dLowerLimitStrain << ", "
-			<< dSecondStiffness;
+			<< dSecondStiffness << ", "
+			<< dThirdStiffness;
 		return Restart_int(out);
 	};
 
@@ -936,26 +946,24 @@ public:
 		Epsilon = Eps;
 
 		Vec3 PreStrain = Get();
-		Vec3 CurrStrain = Epsilon-PreStrain;
+		Vec3 CurrStrain = Epsilon - PreStrain;
 		doublereal dCurrStrain = CurrStrain.dGet(3);
 
-		if (dCurrStrain <= dUpperLimitStrain && dCurrStrain >= dLowerLimitStrain) {
+		if (dCurrStrain < dLowerLimitStrain) {
+			FDE.Put(3, 3, dThirdStiffness);
+			F = PreStress 
+				+ Vec3(CurrStrain.dGet(1)*dStiffness,
+					   CurrStrain.dGet(2)*dStiffness,
+					   dLowerLimitStrain*dStiffness + (dCurrStrain - dLowerLimitStrain)*dThirdStiffness);
+		} else if (dCurrStrain >= dLowerLimitStrain && dCurrStrain <= dUpperLimitStrain) {
 			FDE.Put(3, 3, dStiffness);
-			F = PreStress+CurrStrain*dStiffness;
-		} else {
+			F = PreStress + CurrStrain*dStiffness;
+		} else /* if (dCurrStrain > dUpperLimitStrain)*/ {
 			FDE.Put(3, 3, dSecondStiffness);
-
-			if (dCurrStrain > dUpperLimitStrain) {
-				F = PreStress + Vec3(CurrStrain.dGet(1)*dStiffness,
-						CurrStrain.dGet(2)*dStiffness,
-						dUpperLimitStrain*dStiffness
-						+ (dCurrStrain - dUpperLimitStrain)*dSecondStiffness);
-			} else /* if (dCurrStrain < dLowerLimitStrain) */ {
-				F = PreStress + Vec3(CurrStrain.dGet(1)*dStiffness,
-						CurrStrain.dGet(2)*dStiffness,
-						dLowerLimitStrain*dStiffness
-						+ (dCurrStrain - dLowerLimitStrain)*dSecondStiffness);
-			}
+			F = PreStress 
+				+ Vec3(CurrStrain.dGet(1)*dStiffness,
+					   CurrStrain.dGet(2)*dStiffness,
+					   dUpperLimitStrain*dStiffness + (dCurrStrain - dUpperLimitStrain)*dSecondStiffness);
 		}
 	};
 };
