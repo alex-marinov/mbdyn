@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -311,9 +311,14 @@ mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port)
 		return -1;
 	}
 
-	int serr = mbdyn_make_inet_socket(&mbc->sock, &addr, host, port, 0, NULL);
-	if (!serr) {
-		fprintf(stderr, "unable to make inet socket\n");
+	int sock_err;
+	int serr = mbdyn_make_inet_socket(&mbc->sock, &addr, host, port, 0, &sock_err);
+	if (serr != 0) {
+		fprintf( stderr,
+		         "unable to make inet socket, mbdyn_make_inet_socket Err code was %d\nsocket error code was %d\nSocket error message string is %s\n",
+		         serr,
+		         sock_err,
+		         sock_err_string(sock_err));
 		return -1;
 	}
 
@@ -390,7 +395,7 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned refnode,
 	mbc->r_d_label = -1;
 	mbc->r_d_f = -1;
 	mbc->r_d_m = -1;
-	
+
 	if (!refnode) {
 		return 0;
 	}
@@ -704,7 +709,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 		return -1;
 	}
 	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
-	
+
 	mbc->n_ptr = NULL;
 	mbc->n_k_labels = NULL;
 	mbc->n_k_x = NULL;
