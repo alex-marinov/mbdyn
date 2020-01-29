@@ -80,12 +80,12 @@ If this project interests you, contact the MBDyn mailing list or the mentor to h
 **Keywords**: numerical integration, differential equations   
 **Priority**: High   
 **Difficulty**: Low/Intermediate   
-**Mentors**: Pierangelo Masarati
+**Mentors**: [Pierangelo Masarati](@pierangelo.masarati)
 
 -------------------------------------------------------------------------------------------
 
 ### Improve the cycloidal rotor module
-During the GSoC2016 a double multiple streamtube inflow model for [cycloidal rotors](https://en.wikipedia.org/wiki/Cyclorotor) was implemented into MBDyn. The code can be found [here](https://www.mbdyn.org/?News&id=28). It is desired to improve the current implementation by, for example, mitigating the following limitations:
+During GSoC2016, a double multiple streamtube inflow model for [cycloidal rotors](https://en.wikipedia.org/wiki/Cyclorotor) was implemented into MBDyn. The code can be found [here](https://www.mbdyn.org/?News&id=28). It is desired to improve the current implementation by, for example, mitigating the following limitations:
 
   - eliminate divergence issues by carefully checking and fixing the code;
   - perform validation tests with experimental results;
@@ -108,6 +108,7 @@ It would be nice if every MBDyn joint could optionally add friction to its inter
 A possible to-do list for the project would be:
   - improve the friction model and add it to all joints (suggestion: try a transition force from stick to slip that is higher than slip force);
   - implement contacts with non-flat surfaces.
+  - start from the total joint
 
 **Category**: [Modeling Capabilities](#modeling-capabilities)  
 **Programming Languages**: C++   
