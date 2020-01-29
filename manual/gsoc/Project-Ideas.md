@@ -80,7 +80,7 @@ If this project interests you, contact the MBDyn mailing list or the mentor to h
 **Keywords**: numerical integration, differential equations   
 **Priority**: High   
 **Difficulty**: Low/Intermediate   
-**Mentors**: Pierangelo Masarati
+**Mentors**: [Pierangelo Masarati](@10102934)
 
 -------------------------------------------------------------------------------------------
 
