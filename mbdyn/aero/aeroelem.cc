@@ -562,7 +562,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.seekp(0, std::ios_base::end);
 					os << "V_" << j;
 					i->Var_V = OH.CreateVar<Vec3>(os.str(), "m/s",
-						gp + " global frame (V_X, V_Y, V_Z)");
+						gp + " global velocity vector (V_X, V_Y, V_Z)");
 				}
 
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_W) {
@@ -570,7 +570,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.seekp(0, std::ios_base::end);
 					os << "Omega_" << j;
 					i->Var_W = OH.CreateVar<Vec3>(os.str(), "radian/s",
-						gp + " global frame (Omega_X, Omega_Y, Omega_Z)");
+						gp + " global angular velocity vector (Omega_X, Omega_Y, Omega_Z)");
 				}
 
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_F) {
@@ -578,7 +578,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.seekp(0, std::ios_base::end);
 					os << "F_" << j;
 					i->Var_F = OH.CreateVar<Vec3>(os.str(), "N/m",
-						gp + " force in local frame (F_X, F_Y, F_Z)");
+						gp + " force per unit span in global frame (F_X, F_Y, F_Z)");
 				}
 
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_M) {
@@ -586,7 +586,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.seekp(0, std::ios_base::end);
 					os << "M_" << j;
 					i->Var_M = OH.CreateVar<Vec3>(os.str(), "Nm/m",
-						gp + " moment in local frame (M_X, M_Y, M_Z)");
+						gp + " moment per unit span in global frame (M_X, M_Y, M_Z)");
 				}
 			}
 		}
@@ -614,19 +614,22 @@ Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 				OH.WriteNcVar(i->Var_cd, OUTA[j].cd);
 				OH.WriteNcVar(i->Var_cm, OUTA[j].cm);
 			}
+
 #if defined(USE_NETCDFC)
-			if (i->Var_X) {
+			if (i->Var_X)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_X.isNull()) {
+			if (!i->Var_X.isNull())
 #endif // USE_NETCDF4
+			{
 				OH.WriteNcVar(i->Var_X, i->X);
 			}
 
 #if defined(USE_NETCDFC)
-			if (i->Var_Phi) {
+			if (i->Var_Phi)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_Phi.isNull()) {
+			if (!i->Var_Phi.isNull())
 #endif // USE_NETCDF4
+			{
 				Vec3 E;
 				switch (od) {
 				case EULER_123:
@@ -672,34 +675,38 @@ Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (i->Var_V) {
+			if (i->Var_V)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_V.isNull()) {
+			if (!i->Var_V.isNull())
 #endif // USE_NETCDF4
+			{
 				OH.WriteNcVar(i->Var_V, i->V);
 			}
 
 #if defined(USE_NETCDFC)
-			if (i->Var_W) {
+			if (i->Var_W)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_W.isNull()) {
+			if (!i->Var_W.isNull())
 #endif // USE_NETCDF4
+			{
 				OH.WriteNcVar(i->Var_W, i->W);
 			}
 
 #if defined(USE_NETCDFC)
-			if (i->Var_F) {
+			if (i->Var_F)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_F.isNull()) {
+			if (!i->Var_F.isNull())
 #endif // USE_NETCDF4
+			{
 				OH.WriteNcVar(i->Var_F, i->F);
 			}
 
 #if defined(USE_NETCDFC)
-			if (i->Var_M) {
+			if (i->Var_M)
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_M.isNull()) {
+			if (!i->Var_M.isNull())
 #endif // USE_NETCDF4
+			{
 				OH.WriteNcVar(i->Var_M, i->M);
 			}
 		}
