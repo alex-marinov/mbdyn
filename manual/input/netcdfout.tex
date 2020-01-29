@@ -216,9 +216,9 @@ by REpower Systems AG.}
 The aerodynamic elements allow to define a broad set of variables.
 Values are output at the integration points.
 Each element allows to define $n$ integration points.
-The \kw{aerodynamic body} outputs at $n$ points.
-The \kw{aerodynamic beam2} outputs at $2 \cdot n$ points.
-The \kw{aerodynamic beam3} outputs at $3 \cdot n$ points.
+The \kw{aerodynamic body} outputs at $N = n$ points.
+The \kw{aerodynamic beam2} outputs at $N = 2 \cdot n$ points.
+The \kw{aerodynamic beam3} outputs at $N = 3 \cdot n$ points.
 
 \paragraph{Output.}
 \begin{itemize}
@@ -263,6 +263,7 @@ at the integration point \nt{i}, in the global reference frame;
 at the integration point \nt{i}, in the global reference frame,
 referred to the location of the integration point.
 \end{itemize}
+where $\nt{i} \in [0,N)$.
 
 \bigskip
 \noindent
