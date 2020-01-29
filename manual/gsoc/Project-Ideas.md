@@ -4,6 +4,7 @@ In this page you'll find some ideas for projects to be developed in the context 
 ## Ideas by category
   - **Modeling Capabilities**
     - [Couple MBDyn with OpenFOAM](#couple-mbdyn-with-openfoam)
+    - [Implement new integration schemes](#implement-new-integration-schemes)
     - [Improve the cycloidal rotor module](#improve-the-cycloidal-rotor-module)
     - [Friction in joints](#friction-in-joints)
     - [Embedded Optimization](#embedded-optimization)
@@ -59,6 +60,27 @@ If this project interests you, contact the MBDyn mailing list or the mentor to h
 **Priority**: High   
 **Difficulty**: Intermediate/High   
 **Mentors**: Louis Gagnon, TBD
+
+-------------------------------------------------------------------------------------------
+
+### Implement new integration schemes
+The MBDyn software supports several multi-step integration schemes, which must be written for first-order differential equations.
+
+New single-step, second-order accurate schemes with controllable algorithmic dissipation have been formulated, which can be rearranged for first-order differential equations, and could be implemented in MBDyn without excessive effort.
+
+Requirements:
+  - familiarity with numerical integration
+  - ability to interpret the code (numerical integration is currently buried in the core code)
+
+Documentation:
+If this project interests you, contact the MBDyn mailing list or the mentor to have the proper initial documentation
+
+**Category**: [Modeling Capabilities](#modeling-capabilities)   
+**Programming Languages**: C++
+**Keywords**: numerical integration, differential equations   
+**Priority**: High   
+**Difficulty**: Low/Intermediate   
+**Mentors**: Pierangelo Masarati
 
 -------------------------------------------------------------------------------------------
 
