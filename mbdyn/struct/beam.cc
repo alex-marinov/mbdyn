@@ -1208,11 +1208,9 @@ void
 Beam::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
+	unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
-
-			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
-
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
 					OH.WriteNcVar(Var_X[iSez], p[iSez]);
@@ -1295,8 +1293,28 @@ Beam::Output(OutputHandler& OH) const
 				<< " " << AzLoc[S_I].GetVec1()
 				<< " " << AzLoc[S_I].GetVec2()
 				<< " " << AzLoc[SII].GetVec1()
-				<< " " << AzLoc[SII].GetVec2()
-				<< std::endl;
+				<< " " << AzLoc[SII].GetVec2();
+			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec1()
+					<< " " << DefLoc[SII].GetVec1();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_K) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec2()
+					<< " " << DefLoc[SII].GetVec2();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec1()
+					<< " " << DefLoc[SII].GetVec1();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec2()
+					<< " " << DefLoc[SII].GetVec2();
+			}
+			OH.Beams() << std::endl;
 		}
 	}
 }
@@ -1884,7 +1902,7 @@ ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 		} else if (HP.IsKeyWord("angular" "strain" "rate")) {
 			uFlag = Beam::OUTPUT_EP_KP;
 
-		} else if (HP.IsKeyWord("strain rates")) {
+		} else if (HP.IsKeyWord("strain" "rates")) {
 			uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
 
 		} else if (HP.IsKeyWord("all")) {
