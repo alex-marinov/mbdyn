@@ -1209,6 +1209,7 @@ Beam::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 	unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
@@ -1904,7 +1905,6 @@ ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 
 		} else if (HP.IsKeyWord("strain" "rates")) {
 			uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
-
 		} else if (HP.IsKeyWord("all")) {
 			uFlag = Beam::OUTPUT_EP_ALL;
 
@@ -2135,6 +2135,8 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Piezoelectric actuator beam is expected" << std::endl);
 	} else if (HP.IsKeyWord("piezoelectric" "beam")) {
+		Type = Beam::FULLYCOUPLEDPIEZOELECTRICELASTIC;
+
 		fPiezo = flag(2);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Fully coupled Piezoelectric beam is expected" << std::endl);
