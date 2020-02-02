@@ -4751,12 +4751,15 @@ and orientation of the corresponding FEM nodes.
         [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , (\hty{Vec3}) \bnt{pos} \} , ]
 	\bnt{interface_nodes_number} ,
 	    [ \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_all_interfaces} \} , ]
+            [ \kw{interface tolerance} , \bnt{tolerance} , ]
 	    \bnt{interface_node} [ , ... ]
 
     \bnt{mode_damping} ::= \bnt{mode_index} , \bnt{mode_damping_factor}
 
     \bnt{interface_node} ::=
-        \{ " \bnt{fem_node_label} " | (\ty{integer}) \bnt{fem_node_label} \} ,
+        \{ " \bnt{fem_node_label} "
+                | (\ty{integer}) \bnt{fem_node_label}
+                | \kw{find closest} [ , \kw{interface tolerance} , \bnt{tolerance} ] \} ,
             \bnt{multibody_label} , (\hty{Vec3}) \bnt{offset_of_FEM_node}
 	        [ , \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_this_interface} \} ]
 \end{Verbatim}
