@@ -1918,6 +1918,7 @@ Modal::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Modal();
 
 		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			// element.mode q q' q''
 			out << std::setw(8) << GetLabel() << '.' << uModeNumber[iCnt - 1]
 				<< " " << a(iCnt)
 				<< " " << b(iCnt)
@@ -1925,10 +1926,13 @@ Modal::Output(OutputHandler& OH) const
 				<< std::endl;
 		}
 
+		// TODO: find a way to link modal coordinates of attached modes and the corresponding FEM node, and use FEM node's label
+
 		std::vector<StrNodeData>::const_iterator i = SND.begin();
 		std::vector<StrNodeData>::const_iterator end = SND.end();
 		for (; i != end; ++i) {
 			if (i->bOut) {
+				// element@node_label F M
 				out << std::setw(8) << GetLabel() << "@" << i->pNode->GetLabel()
 					<< " ", i->F.Write(out, " ")
 					<< " ", i->M.Write(out, " ")
