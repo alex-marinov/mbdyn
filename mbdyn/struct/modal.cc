@@ -5716,15 +5716,20 @@ ReadModal(DataManager* pDM,
 						iFirst = iNode;
 						dNorm = d;
 
+						pedantic_cout("Modal(" << uLabel << "): "
+							"FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+							" is close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+							<< " at line " << HP.GetLineData() << std::endl);
+
 					} else {
 						if (d >= dNorm) {
-							silent_cerr("Modal(" << uLabel << "): "
+							pedantic_cerr("Modal(" << uLabel << "): "
 								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
 								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
 								<< " but not as close as FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
 								<< " at line " << HP.GetLineData() << std::endl);
 						} else {
-							silent_cerr("Modal(" << uLabel << "): "
+							pedantic_cerr("Modal(" << uLabel << "): "
 								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
 								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
 								<< " and closer than FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
