@@ -5700,26 +5700,53 @@ ReadModal(DataManager* pDM,
 			// NOTE: the first node whose distance is below tolerance is accepted, not the absolute closest!
 			Vec3 xMBRel(R.MulTV(SND[iStrNode - 1].pNode->GetXCurr() + SND[iStrNode - 1].OffsetMB - X0));
 			
+			bool bGotIt(false);
+			unsigned int iFirst = 0;
+			doublereal dNorm = 2*dCurrTol;
 			for (iNode = 0; iNode < NFEMNodes; iNode++) {
 				Vec3 xFEMRel(pXYZFEMNodes->GetVec(iNode + 1));
-				if ((xFEMRel - xMBRel).Norm() < dCurrTol) {
-					break;
+				doublereal d = (xFEMRel - xMBRel).Norm();
+				if (d < dCurrTol) {
+					if (!bGotIt) {
+						bGotIt = true;
+						iFirst = iNode;
+						dNorm = d;
+
+					} else {
+						if (d >= dNorm) {
+							silent_cerr("Modal(" << uLabel << "): "
+								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+								<< " but not as close as FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
+								<< " at line " << HP.GetLineData() << std::endl);
+						} else {
+							silent_cerr("Modal(" << uLabel << "): "
+								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+								<< " and closer than FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
+								<< " at line " << HP.GetLineData() << std::endl);
+							iFirst = iNode;
+							dNorm = d;
+						}
+					}
 				}
 			}
 
-			if (iNode == NFEMNodes) {
+			if (!bGotIt) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"no FEM node close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\" was found"
 					<< " at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			iNode = iFirst;
+
 			// label of FEM node
 			Node1 = IdFEMNodes[iNode];
 
 			silent_cout("Modal(" << uLabel << "): "
 				"multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\""
-				" matched with FEM node \"" << Node1 << "\""
+				" matched with FEM node \"" << Node1 << "\", distance=" << dNorm
 				<< " at line " << HP.GetLineData() << std::endl);
 
 			iNode++;
