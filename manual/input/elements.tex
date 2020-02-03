@@ -4836,7 +4836,7 @@ since the multibody node will be ``clamped'' to the \kw{modal} joint.
 Each \nt{interface\_node} can be defined using its \nt{FEM\_node\_label} (the FEM node label, either a string or an integer),
 or using the special keyword \kw{find closest}.
 In the latter case, the FEM node which is closest to the multibody node (including the offset)
-is looked up (NOTE: the first occurrence of a node whose distance is less than \nt{interface\_tolerance} will be used).
+is looked up.
 
 If any of \kw{mass threshold}, \kw{damping threshold}, \kw{stiffness threshold} are given,
 matrix elements whose absolute value is lower than the threshold
