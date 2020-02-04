@@ -3,7 +3,7 @@ In this page you'll find some ideas for projects to be developed in the context 
 
 ## Ideas by category
   - **Modeling Capabilities**
-    - [Couple MBDyn with OpenFOAM](#couple-mbdyn-with-openfoam)
+<!--    - [Couple MBDyn with OpenFOAM](#couple-mbdyn-with-openfoam)-->
     - [Implement new integration schemes](#implement-new-integration-schemes)
     - [Improve the cycloidal rotor module](#improve-the-cycloidal-rotor-module)
     - [Friction in joints](#friction-in-joints)
@@ -33,6 +33,7 @@ In this page you'll find some ideas for projects to be developed in the context 
 -------------------------------------------------------------------------------------------
 
 ## Modeling Capabilities
+<!--
 ### Couple MBDyn with OpenFOAM
 The MBDyn software implements basic aerodynamic models which do not allow to properly model complex flow structures. A common approach is to rely on CFD simulations to validate the models used within MBDyn.
 
@@ -60,6 +61,7 @@ If this project interests you, contact the MBDyn mailing list or the mentor to h
 **Priority**: High   
 **Difficulty**: Intermediate/High   
 **Mentors**: Louis Gagnon, TBD
+-->
 
 -------------------------------------------------------------------------------------------
 
