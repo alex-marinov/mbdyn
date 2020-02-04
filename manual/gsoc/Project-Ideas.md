@@ -1,9 +1,10 @@
 # Ideas for Google Summer of Code projects
 In this page you'll find some ideas for projects to be developed in the context of the [Google Summer of Code](https://summerofcode.withgoogle.com/). If you are a student looking forward to apply, please remember that these are just suggestions and general ideas, you are free to propose you own project and **strongly encouraged** to discuss with the regular developers your ideas before submitting an application.
 
+<!--    - [Couple MBDyn with OpenFOAM](#couple-mbdyn-with-openfoam)-->
+
 ## Ideas by category
   - **Modeling Capabilities**
-<!--    - [Couple MBDyn with OpenFOAM](#couple-mbdyn-with-openfoam)-->
     - [Implement new integration schemes](#implement-new-integration-schemes)
     - [Improve the cycloidal rotor module](#improve-the-cycloidal-rotor-module)
     - [Friction in joints](#friction-in-joints)
