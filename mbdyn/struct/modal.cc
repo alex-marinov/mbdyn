@@ -6144,13 +6144,12 @@ ReadModal(DataManager* pDM,
 		}
 	}
 
-#if 1 // def DEBUG
 	if (pedantic_output) {
 		std::ostream &out = std::cout;
 
 		out << "  Total Mass: " << dMass << std::endl;
 		out << "  Inertia Matrix (referred to modal node): " << std::endl
-			<< "    " << JTmp << std::endl;
+			<< "    ", JTmp.Write(out, " ", "\n    ") << std::endl;
 		out << "  Static Moment Vector: " << STmp << std::endl;
 
 		out << "  Generalized Stiffness: " << std::endl;
@@ -6253,7 +6252,6 @@ ReadModal(DataManager* pDM,
 			out << "  Inv9: unused" << std::endl;
 		}
 	}
-#endif /* DEBUG */
 
 	if (HP.IsStringWithDelims()) {
 		const char *sTmp = HP.GetFileName();
