@@ -35,6 +35,7 @@
 #include "extforce.h"
 #include "extedge.h"
 #include "extsocket.h"
+#include "extsharedmem.h"
 #include "except.h"
 #include "solver.h"
 
@@ -77,6 +78,14 @@ ExtFileHandlerBase::GetInStream(void)
 {
 	return 0;
 }
+
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+mbdyn::shared_memory_buffer*
+ExtFileHandlerBase::GetSharedMemBuffer(void)
+{
+	return 0;
+}
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
 
 /* NOTE: getting here Is Bad (TM) */
 int
@@ -648,7 +657,15 @@ ReadExtFileHandler(DataManager* pDM,
 
 	} else if (HP.IsKeyWord("socket")) {
 		return ReadExtSocketHandler(pDM, HP, uLabel);
-	} else {
+
+	}
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	else if (HP.IsKeyWord("shared" "memory")) {
+		return ReadExtSharedMemHandler(pDM, HP, uLabel);
+
+	}
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	else {
 	    silent_cerr("ExtForce(" << uLabel << "): "
 			"unrecognised communicator type "
 			"at line " << HP.GetLineData() << std::endl);
