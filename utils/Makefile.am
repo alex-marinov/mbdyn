@@ -113,6 +113,18 @@ endif
 noinst_LTLIBRARIES += libstrext_socket_f.la
 endif
 
+if USE_BOOST_INTERPROCESS
+if INSTALL_TEST_PROGRAMS
+bin_PROGRAMS += \
+test_sharedmemory_h \
+test_strext_sharedmemory
+else
+noinst_PROGRAMS += \
+test_sharedmemory_h \
+test_strext_sharedmemory
+endif
+endif
+
 MYLIBS = \
 ../libraries/libmbutil/libmbutil.la \
 ../libraries/libmbwrap/libmbwrap.la \
@@ -206,6 +218,9 @@ Mbfem/nas_read.cc \
 Mbfem/nas_read.h \
 Mbfem/node3.h
 
+test_sharedmemory_h_SOURCES = test_sharedmemory_h.cc
+test_strext_sharedmemory_SOURCES = test_strext_sharedmemory.cc
+
 ncprint_SOURCES = ncprint.cc
 
 mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
@@ -276,6 +291,9 @@ test_strext_socket_f_cxx_LDADD = $(MYLIBS) libstrext_socket_f.la
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
+
+test_sharedmemory_h_LDADD = @RT_LIBS@
+test_strext_sharedmemory_LDADD = $(MYLIBS) @RT_LIBS@
 
 # fool linking on MinGW/MSYS (WTF?!?)
 # test_strext_edge_LINK = $(CXXLD) -o $@

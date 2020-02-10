@@ -124,6 +124,12 @@ vehj3.h \
 vehj4.cc \
 vehj4.h
 
+if USE_BOOST_INTERPROCESS
+libstruct_la_SOURCES += \
+strextsharedmem.cc \
+strextsharedmem.h
+endif
+
 nodist_libstruct_la_SOURCES =
 
 if BUILD_STATIC_MODULES
