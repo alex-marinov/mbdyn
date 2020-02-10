@@ -1776,6 +1776,7 @@ dnl
 dnl Check for BOOST
 dnl
 ol_link_boost=no
+have_boost_interprocess=no
 if test $ol_with_boost != no ; then
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADERS(boost/config.hpp)
@@ -1789,6 +1790,7 @@ if test $ol_with_boost != no ; then
 		AC_CHECK_HEADERS(boost/graph/bandwidth.hpp)
 		AC_CHECK_HEADERS(boost/graph/wavefront.hpp)
 		AC_CHECK_HEADERS(boost/graph/minimum_degree_ordering.hpp)
+		AC_CHECK_HEADERS(boost/interprocess/managed_shared_memory.hpp, [have_boost_interprocess=yes], [have_boost_interprocess=no])
 	else
 		if test $ol_with_boost != auto ; then
 			AC_MSG_ERROR([BOOST library headers not available])
@@ -3597,6 +3599,7 @@ AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
+AM_CONDITIONAL(USE_BOOST_INTERPROCESS,[test "$have_boost_interprocess" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 
