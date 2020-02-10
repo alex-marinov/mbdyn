@@ -24,12 +24,25 @@ mbc.h \
 mbcxx.cc \
 mbcxx.h
 
+if USE_BOOST_INTERPROCESS
+libmbc_la_SOURCES += \
+mbcxxshared.cc \
+mbcxxshared.h \
+sharedmem.h
+endif
+
 libmbc_la_LIBADD = libmbc_static.la @LIBS@
 libmbc_la_LDFLAGS =
 
 include_HEADERS = \
 mbc.h \
 mbcxx.h
+
+if USE_BOOST_INTERPROCESS
+include_HEADERS += \
+sharedmem.h \
+mbcxxshared.h
+endif
 
 AM_CPPFLAGS = \
 -I../../include \
