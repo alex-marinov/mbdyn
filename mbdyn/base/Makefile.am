@@ -236,6 +236,12 @@ schurdataman.cc \
 schurdataman.h
 endif
 
+if USE_BOOST_INTERPROCESS
+libbase_la_SOURCES += \
+extsharedmem.cc \
+extsharedmem.h
+endif
+
 libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
 
