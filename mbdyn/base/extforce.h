@@ -46,6 +46,10 @@
 #endif // USE_SOCKET
 #include "mbc.h"
 
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+#include "sharedmem.h"
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+
 /* ExtFileHandlerBase - begin */
 
 class ExtFileHandlerBase {
@@ -76,6 +80,7 @@ public:
 	    TYPE_FILE,
 	    TYPE_SOCKET,
 	    TYPE_EDGE,
+	    TYPE_SHARED_MEMORY
 	};
 
 protected:
@@ -112,6 +117,10 @@ public:
 	virtual int GetSendFlags(void) const;
 	virtual int GetInFileDes(void);
 	virtual int GetRecvFlags(void) const;
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+    virtual mbdyn::shared_memory_buffer* GetSharedMemBuffer(void);
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+
 };
 
 /* ExtFileHandlerBase - end */
