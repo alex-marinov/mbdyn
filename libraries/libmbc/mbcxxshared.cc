@@ -1201,6 +1201,7 @@ MBCSharedMemNodal::Close(void) const
 	int rc = 0;
 	if (GetStatus() == READY) {
 		//rc = mbc_nodal_destroy(&mbc);
+		if (_bVerbose) { std::cout << "[PEER] MBCSharedMemNodal::Close, GetStatus() == READY, sending ES_ABORT"  << std::endl; }
 		PutCmd(ES_ABORT);
 		const_cast<MBCSharedMemNodal *>(this)->SetStatus(FINISHED);
 	}
