@@ -39,6 +39,10 @@
 #include <vector>
 #include <string>
 
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+#include "sharedmem.h"
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+
 #include "extforce.h"
 
 /* StructExtForce - begin */
@@ -105,6 +109,11 @@ protected:
 	virtual void RecvFromStream(std::istream& inf);
 	virtual void RecvFromFileDes(int infd);
    
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	virtual void SendToSharedMem(mbdyn::shared_memory_buffer *buf, ExtFileHandlerBase::SendWhen when);
+	virtual void RecvFromSharedMem(mbdyn::shared_memory_buffer *buf);
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+
 public:
 	/* Costruttore */
 	StructExtForce(unsigned int uL,

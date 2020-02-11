@@ -44,6 +44,11 @@
 #include <algorithm>
 
 #include "sock.h"
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+#include "strextsharedmem.h"
+#include "extsharedmem.h"
+#include "sharedmem.h"
+#endif
 
 /* StructExtForce - begin */
 
@@ -481,6 +486,13 @@ StructExtForce::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when
 
 		break;
     }
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+    case ExtFileHandlerBase::TYPE_SHARED_MEMORY:
+
+        SendToSharedMem(pEFH->GetSharedMemBuffer(), when);
+
+        break;
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
     default:
 
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -872,6 +884,15 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 #endif // ! USE_SOCKET
 }
 
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+void
+StructExtForce::SendToSharedMem(mbdyn::shared_memory_buffer *buf, ExtFileHandlerBase::SendWhen when)
+{
+    // should not get in here
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+
 void
 StructExtForce::Recv(ExtFileHandlerBase *pEFH)
 {
@@ -893,6 +914,13 @@ StructExtForce::Recv(ExtFileHandlerBase *pEFH)
 
         }
         	break;
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	case ExtFileHandlerBase::TYPE_SHARED_MEMORY:
+
+		RecvFromSharedMem(pEFH->GetSharedMemBuffer());
+
+		break;
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
 	default:
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1192,6 +1220,15 @@ StructExtForce::RecvFromFileDes(int infd)
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
 }
+
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+void
+StructExtForce::RecvFromSharedMem(mbdyn::shared_memory_buffer *buf)
+{
+    // should not get in here
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
 
 SubVectorHandler&
 StructExtForce::AssRes(SubVectorHandler& WorkVec,
@@ -1744,7 +1781,19 @@ ReadStructExtForce(DataManager* pDM,
 				bSorted, bLabels, bOutputAccelerations, uRot,
 				pEFH, bSendAfterPredict, iCoupling, uOutputFlags, fOut));
 
-	} else {
+	}
+#ifdef HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	else if (dynamic_cast<ExtSharedMemHandler *>(pEFH)) {
+	    pedantic_cout("Constructing StructExtSharedMemForce" << std::endl);
+		SAFENEWWITHCONSTRUCTOR(pEl, StructExtSharedMemForce,
+			StructExtSharedMemForce(uLabel, pDM, pRefNode,
+				bUseReferenceNodeForces, bRotateReferenceNodeForces,
+				Labels, Nodes, Offsets,
+				bSorted, bLabels, bOutputAccelerations, uRot,
+				pEFH, bSendAfterPredict, iCoupling, uOutputFlags, fOut));
+	}
+#endif // HAVE_BOOST_INTERPROCESS_MANAGED_SHARED_MEMORY_HPP
+	else {
 		SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
 			StructExtForce(uLabel, pDM, pRefNode,
 				bUseReferenceNodeForces, bRotateReferenceNodeForces,
