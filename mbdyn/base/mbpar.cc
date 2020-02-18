@@ -2821,8 +2821,6 @@ MBDynParser::GetMatNx6(MatNx3& m1, MatNx3& m2, integer iNumRows)
 			for (int i = 0; i < 3; i++) {
 				m1.Put(j, vi[i], GetReal());
 			}
-		}
-		for (integer j = 1; j <= iNumRows; j++) {
 			for (int i = 0; i < 3; i++) {
 				m2.Put(j, vi[i], GetReal());
 			}
