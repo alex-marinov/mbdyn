@@ -715,15 +715,15 @@ void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
       for (int r_el = 1; r_el <= iNumElec; r_el++) {
          for (int c_el = 1; c_el <= iNumElec; c_el++) {
-            WM.DecCoef(iNumInerzia+r_el, 18+c_el, PiezoMatQV[iSez](r_el, c_el) * dsdxi[iSez]); //FIXME
+            WM.DecCoef(iNumInerzia+r_el, 18+c_el, PiezoMatQV[iSez](r_el, c_el) / dsdxi[iSez]); //FIXME
          }
          for (int def_comp = 1; def_comp <= 3; def_comp++) {
             for (int node = 0; node < NUMNODES; node++) {
                for (int dof = 1; dof <= 3; dof++) {
-                  WM.DecCoef(iNumInerzia+r_el, 6*node + dof, PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat11()(def_comp, dof) * dsdxi[iSez]);
-                  WM.DecCoef(iNumInerzia+r_el, 6*node + 3 + dof, PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat12()(def_comp, dof) * dsdxi[iSez]);
-                  WM.DecCoef(iNumInerzia+r_el, 6*node + dof, PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat21()(def_comp, dof) * dsdxi[iSez]);
-                  WM.DecCoef(iNumInerzia+r_el, 6*node + 3 + dof, PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat22()(def_comp, dof) * dsdxi[iSez]);
+                  WM.DecCoef(iNumInerzia+r_el, 6*node + dof, PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat11()(def_comp, dof) / dsdxi[iSez]);
+                  WM.DecCoef(iNumInerzia+r_el, 6*node + 3 + dof, PiezoMatQ[0][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat12()(def_comp, dof) / dsdxi[iSez]);
+                  WM.DecCoef(iNumInerzia+r_el, 6*node + dof, PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat21()(def_comp, dof) / dsdxi[iSez]);
+                  WM.DecCoef(iNumInerzia+r_el, 6*node + 3 + dof, PiezoMatQ[1][iSez](r_el, def_comp) * DefPrimeTmp[iSez][node].GetMat22()(def_comp, dof) / dsdxi[iSez]);
                }
             }
          }
@@ -756,7 +756,7 @@ void PiezoBeam::AssPiezoRes(SubVectorHandler& WorkVec,
             Qt += PiezoMatQ[0][iSez](r_el, def_component) * DefPrimeLoc[iSez].GetVec1()(def_component);
             Qt += PiezoMatQ[1][iSez](r_el, def_component) * DefPrimeLoc[iSez].GetVec2()(def_component);
          }
-         Qt *= dsdxi[iSez]; //Gauss weight == 1
+         Qt /= dsdxi[iSez]; //Gauss weight == 1
          Qdot(r_el) += Qt;
       }
    }
