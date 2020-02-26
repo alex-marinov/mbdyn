@@ -630,18 +630,19 @@ public:
 #endif /* USE_NETCDF */
 	}
 
-	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
-#if defined(USE_NETCDF)
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
+		return out << " " << dPressure << " " << dArea
+			<< " " << dFelastic << " " << dFviscous;
+	}
+
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const {
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
 			OH.WriteNcVar(Var_dPressure, dPressure);
 			OH.WriteNcVar(Var_dArea, dArea);
 			OH.WriteNcVar(Var_dFelastic, dFelastic);
 			OH.WriteNcVar(Var_dFviscous, dFviscous);
 		}
-#endif /* USE_NETCDF */
-		return out << " " << dPressure << " " << dArea
-			<< " " << dFelastic << " " << dFviscous;
-	};
+	}
 };
 
 /* ShockAbsorberConstitutiveLaw - begin */

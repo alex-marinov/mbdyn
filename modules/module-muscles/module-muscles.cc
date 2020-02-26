@@ -110,16 +110,16 @@ public:
 		return out;
 	};
 
-	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
-#ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
-		{
-			OH.WriteNcVar(Var_dAct, a);
-			OH.WriteNcVar(Var_dActReq, aReq);
-		}
-#endif // USE_NETCDF
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
 		return out << " " << a << " " << aReq;
 	};
+
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const {
+#ifdef USE_NETCDF
+		OH.WriteNcVar(Var_dAct, a);
+		OH.WriteNcVar(Var_dActReq, aReq);
+#endif // USE_NETCDF
+	}
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
 #ifdef USE_NETCDF

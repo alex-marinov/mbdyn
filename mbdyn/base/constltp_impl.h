@@ -153,11 +153,10 @@ public:
 		return out;
 	};
 	
-	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const {
 		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
-			(*i)->OutputAppend(out, OH);
+			(*i)->NetCDFOutputAppend(OH);
 		}
-		return out;
 	};
 
 };

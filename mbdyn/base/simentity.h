@@ -221,7 +221,7 @@ public:
 	 * Contributes to output on a stream and/or NetCDF
 	 */
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
-	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const;
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
 
 	virtual void ReadInitialState(MBDynParser& HP);

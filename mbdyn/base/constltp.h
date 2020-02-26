@@ -374,8 +374,8 @@ public:
 		return pConstLaw->OutputAppend(out);
 	};
 	
-	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
-		return pConstLaw->OutputAppend(out, OH);
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const {
+		return pConstLaw->NetCDFOutputAppend(OH);
 	};
 	
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {

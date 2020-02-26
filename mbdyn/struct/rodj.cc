@@ -339,6 +339,8 @@ Rod::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_dElle, dElle);
 			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
 			OH.WriteNcVar(Var_v, vTmp);
+
+			ConstitutiveLaw1DOwner::NetCDFOutputAppend(OH);
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -347,7 +349,7 @@ Rod::Output(OutputHandler& OH) const
 			Joint::Output(out, "Rod", GetLabel(),
 					Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
 				<< " " << dElle << " " << vTmp << " " << dEllePrime,
-				ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
+				ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
 		}
 	}
 }

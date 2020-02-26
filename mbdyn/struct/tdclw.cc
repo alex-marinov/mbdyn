@@ -65,6 +65,7 @@ public:
 
 	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mb_zero<T>());
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
 };
 
 template <class T, class Tder>
@@ -164,6 +165,13 @@ std::ostream&
 TDConstitutiveLawWrapper<T, Tder>::OutputAppend(std::ostream& out) const
 {
 	return pCL->OutputAppend(out) << " " << dWCurr;
+}
+
+template <class T, class Tder>
+void
+TDConstitutiveLawWrapper<T, Tder>::NetCDFOutputAppend(OutputHandler& OH) const
+{
+	return pCL->NetCDFOutputAppend(OH);
 }
 
 /* TDConstitutiveLawWrapper - end */
