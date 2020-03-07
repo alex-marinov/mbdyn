@@ -1208,11 +1208,10 @@ void
 Beam::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
+	unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
-
-			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
-
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
 					OH.WriteNcVar(Var_X[iSez], p[iSez]);
@@ -1295,8 +1294,28 @@ Beam::Output(OutputHandler& OH) const
 				<< " " << AzLoc[S_I].GetVec1()
 				<< " " << AzLoc[S_I].GetVec2()
 				<< " " << AzLoc[SII].GetVec1()
-				<< " " << AzLoc[SII].GetVec2()
-				<< std::endl;
+				<< " " << AzLoc[SII].GetVec2();
+			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec1()
+					<< " " << DefLoc[SII].GetVec1();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_K) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec2()
+					<< " " << DefLoc[SII].GetVec2();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec1()
+					<< " " << DefLoc[SII].GetVec1();
+			}
+			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
+				OH.Beams() << std::setw(8) 
+					<< " " << DefLoc[S_I].GetVec2()
+					<< " " << DefLoc[SII].GetVec2();
+			}
+			OH.Beams() << std::endl;
 		}
 	}
 }
@@ -1884,9 +1903,8 @@ ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 		} else if (HP.IsKeyWord("angular" "strain" "rate")) {
 			uFlag = Beam::OUTPUT_EP_KP;
 
-		} else if (HP.IsKeyWord("strain rates")) {
+		} else if (HP.IsKeyWord("strain" "rates")) {
 			uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
-
 		} else if (HP.IsKeyWord("all")) {
 			uFlag = Beam::OUTPUT_EP_ALL;
 
@@ -2108,16 +2126,26 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2][2];
+	MatNx3 PiezoMatQ[2][2];
+	MatNxN PiezoMatQV[2];
 	integer iNumElec = 0;
 	const ScalarDifferentialNode **pvElecDofs = 0;
 	if (HP.IsKeyWord("piezoelectric" "actuator")) {
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Piezoelectric actuator beam is expected" << std::endl);
+	} else if (HP.IsKeyWord("piezoelectric" "beam")) {
+		Type = Beam::FULLYCOUPLEDPIEZOELECTRICELASTIC;
 
+		fPiezo = flag(2);
+		DEBUGLCOUT(MYDEBUG_INPUT,
+			"Fully coupled Piezoelectric beam is expected" << std::endl);
+		
+	}
+	if (fPiezo > 0) {
 		iNumElec = HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
-			"piezo actuator " << uLabel << " has " << iNumElec
+			"piezo beam " << uLabel << " has " << iNumElec
 			<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
 			silent_cerr("PiezoElectricBeam(" << uLabel << "): "
@@ -2136,14 +2164,34 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		PiezoMat[1][0].Resize(iNumElec);
 		PiezoMat[0][1].Resize(iNumElec);
 		PiezoMat[1][1].Resize(iNumElec);
-
+		if (fPiezo == 2) {
+			PiezoMatQ[0][0].Resize(iNumElec);
+			PiezoMatQ[1][0].Resize(iNumElec);
+			PiezoMatQ[0][1].Resize(iNumElec);
+			PiezoMatQ[1][1].Resize(iNumElec);
+			PiezoMatQV[0].Resize(iNumElec);
+			PiezoMatQV[1].Resize(iNumElec);
+		}
 		/* leggere le matrici (6xN sez. 1, 6xN sez. 2) */
 		HP.GetMat6xN(PiezoMat[0][0], PiezoMat[1][0], iNumElec);
+		if (fPiezo == 2) {
+			HP.GetMatNx6(PiezoMatQ[0][0], PiezoMatQ[1][0], iNumElec);
+			HP.GetMatNxN(PiezoMatQV[0], iNumElec);
+		}
 		if (HP.IsKeyWord("same")) {
 			PiezoMat[0][1].Copy(PiezoMat[0][0]);
 			PiezoMat[1][1].Copy(PiezoMat[1][0]);
+			if (fPiezo == 2) {
+				PiezoMatQ[0][1].Copy(PiezoMatQ[0][0]);
+				PiezoMatQ[1][1].Copy(PiezoMatQ[1][0]);
+				PiezoMatQV[1].Copy(PiezoMatQV[0]);
+			}
 		} else {
 			HP.GetMat6xN(PiezoMat[0][1], PiezoMat[1][1], iNumElec);
+			if (fPiezo == 2) {
+				HP.GetMatNx6(PiezoMatQ[0][1], PiezoMatQ[1][1], iNumElec);
+				HP.GetMatNxN(PiezoMatQV[1], iNumElec);
+			}
 		}
 
 #if 0
@@ -2186,7 +2234,24 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	Elem* pEl = NULL;
 
-	if ((CLType_I == ConstLawType::ELASTIC)
+	if (fPiezo == 2) { //using fully coupled piezo
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				PiezoBeam,
+				PiezoBeam(uLabel,
+					pNode1, pNode2, pNode3,
+					f1, f2, f3,
+					Rn1, Rn2, Rn3,
+					R_I, RII,
+					pD_I, pDII,
+					iNumElec,
+					pvElecDofs,
+					PiezoMat[0][0], PiezoMat[1][0],
+					PiezoMat[0][1], PiezoMat[1][1],
+					PiezoMatQ[0][0], PiezoMatQ[1][0],
+					PiezoMatQ[0][1], PiezoMatQ[1][1],
+					PiezoMatQV[0], PiezoMatQV[1],
+					od, fOut));
+	} else if ((CLType_I == ConstLawType::ELASTIC)
 		&& (CLTypeII == ConstLawType::ELASTIC))
 	{
 		if (fPiezo == 0) {
@@ -2199,7 +2264,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					R_I, RII,
 					pD_I, pDII,
 					od, fOut));
-		} else {
+		} else if (fPiezo == 1){
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorBeam,
 				PiezoActuatorBeam(uLabel,
@@ -2214,8 +2279,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoMat[0][1], PiezoMat[1][1],
 					od, fOut));
 		}
-
-	} else /* At least one is VISCOUS or VISCOELASTIC */ {
+	} else /* At least one is VISCOUS or VISCOELASTIC and not fully copled piezo*/ {
 		if (fPiezo == 0) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				ViscoElasticBeam,
@@ -2226,7 +2290,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					R_I, RII,
 					pD_I, pDII,
 					od, fOut));
-		} else {
+		} else if (fPiezo == 1) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorVEBeam,
 				PiezoActuatorVEBeam(uLabel,
@@ -2240,6 +2304,11 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
 					od, fOut));
+		} else if (fPiezo != 2) {
+			silent_cerr("line " << HP.GetLineData()
+				<< ": Something went wrong reading the beam, flag fPiezo = " << fPiezo
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

@@ -1,1 +1,50 @@
 \textbf{TODO}
+\section{Fully coupled piezoelectric beam}
+A fully coupled piezoelectric beam, differently from a piezoelectric beam,
+do contribute to the electri equations of the abstrc nodes it is
+linked to.
+Each abstract node do represent an electrode. The constitutive law
+at any given evaluation point is
+\begin{equation}
+	\cubr{
+		\cvvect{
+			\T{F}\\
+			\T{Q}
+		}
+	}=\sqbr{
+		\matr{cc}{
+			\T{E}_{kk} & \T{E}_{kV}\\
+			\T{E}_{Vk} & \T{E}_{VV}
+		}
+	}
+	\cubr{
+		\cvvect{
+			\T{k}\\
+			\T{V}
+		}
+	}
+\end{equation}
+where $\T{F}$ are the six beam internal actions at the evaluation point, 
+$\T{Q}$ the vector of electrodes charges per unit of beam length,
+$\T{k}$ the six beam generalized deformations and $\T{V}$ the electric difference of potential
+at the electrodes.
+The equation contribution to the structural nodes are the same of the piezoelectric beam.
+The difference with respect to the piezoelectric beam is the equations contribution to the
+asbtract nodes. The unknowns of the abstract nodes do represent the electric difference of potential
+at the electrodes. The equations at the abstract nodes states that the sum of charge flux (the electric
+current) flowing out from each node must be equal to zero:
+\begin{equation}
+	\sum_i I_i = 0
+\end{equation}
+where $I_i$ is the current flowing out from the abstract nodedue to the connected element $i$.
+For this element the current flowing out from the electrodes is
+\begin{equation}
+	\T{I} = -\int_l \dot{\T{Q}} \mathrm{d}s = 
+		-\int_l \T{E}_{Vk}\dot{\T{k}}  + \T{E}_{VV} \dot{\T{V}} \mathrm{d}s
+		\label{eg:piezobeam-current}
+\end{equation}
+The fully copled beam element thus turns out to be viscoelastic, as its contribution to the electric
+equations do depend on the time derivative of the beam generalized measure.
+The integral $\int () \mathrm{d}s$ is computed with the same gauss quadrature scheme
+used for the evaluation of the beam stiffness matrix.
+The assembled residual contribution is equal to Eq.~\eqref{eg:piezobeam-current} with sign changed.

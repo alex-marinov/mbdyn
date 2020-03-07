@@ -2793,6 +2793,74 @@ MBDynParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 	}
 }
 
+void
+MBDynParser::GetMatNx6(MatNx3& m1, MatNx3& m2, integer iNumRows)
+{
+	ASSERT(iNumRows > 0);
+	ASSERT(m1.iGetNumRows() == iNumRows);
+	ASSERT(m2.iGetNumRows() == iNumRows);
+
+	if (IsKeyWord("null")) {
+		m1.Reset();
+		m2.Reset();
+
+	} else {
+		int vi[] = { 1, 2, 3 };
+
+		if (IsKeyWord("anba")) {
+			vi[0] = 2;
+			vi[1] = 3;
+			vi[2] = 1;
+
+		} else if (IsKeyWord("matr")) {
+			/* eat it; not required */
+			NO_OP;
+		}
+
+		for (integer j = 1; j <= iNumRows; j++) {
+			for (int i = 0; i < 3; i++) {
+				m1.Put(j, vi[i], GetReal());
+			}
+			for (int i = 0; i < 3; i++) {
+				m2.Put(j, vi[i], GetReal());
+			}
+		}
+
+		if (IsKeyWord("scale")) {
+			doublereal d = GetReal(1.);
+			m1 *= d;
+			m2 *= d;
+		}
+	}
+}
+
+void
+MBDynParser::GetMatNxN(MatNxN& m, integer iNumRows)
+{
+	ASSERT(iNumRows > 0);
+	ASSERT(m.iGetNumRows() == iNumRows);
+	
+	if (IsKeyWord("null")) {
+		m.Reset();
+
+	} else {
+		if (IsKeyWord("matr")) {
+			/* eat it; not required */
+			NO_OP;
+		}
+
+		for (int i = 1; i <= iNumRows; i++) {
+			for (integer j = 1; j <= iNumRows; j++) {
+				m.Put(i, j, GetReal());
+			}
+		}
+		if (IsKeyWord("scale")) {
+			doublereal d = GetReal(1.);
+			m *= d;
+		}
+	}
+}
+
 Vec3
 MBDynParser::Get(const Vec3& v)
 {
