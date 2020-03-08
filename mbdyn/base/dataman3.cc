@@ -602,10 +602,13 @@ DataManager::ReadControl(MBDynParser& HP,
 				case GRAVITY:
 					// FIXME: to be implemented!
 					ElemData[Elem::GRAVITY].ToBeUsedInAssembly(true);
+#if 0
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						"Gravity will be used "
 						"in initial joint assembly"
 						<< std::endl);
+#endif
+					silent_cerr("using \"gravity\" in assembly is currently not supported at line " << HP.GetLineData() << std::endl);
 					break;
 
 				case FORCES:
