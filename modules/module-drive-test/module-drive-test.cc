@@ -53,15 +53,15 @@ public:
 		doublereal dTimeStep);
 	virtual ~DriveTestCaller(void);
  
-	/* Copia */
+	/* Copy constuctor */
 	virtual DriveCaller* pCopy(void) const;
  
-	/* Scrive il contributo del DriveCaller al file di restart */   
+	/* Writes restart file contribution */   
 	virtual std::ostream& Restart(std::ostream& out) const;
  
 	inline doublereal dGet(const doublereal& dVar) const;
 
-	/* this is about drives that are differentiable */
+	/* This is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
 };
@@ -135,7 +135,7 @@ DriveTestCaller::dGetP(const doublereal& dVar) const
 	return m_pDC->dGetP(dVar);;
 }
 
-/* prototype of the functional object: reads a drive caller */
+/* Prototype of the functional object: reads a drive caller */
 struct DTDCR : public DriveCallerRead {
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) {
