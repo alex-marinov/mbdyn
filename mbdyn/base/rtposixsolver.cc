@@ -135,8 +135,13 @@ RTPOSIXSolver::Wait(void)
 {
 	if (RTWaitPeriod()) {
 		if (RTSteps == 0) {
-			clock_gettime(CLOCK_MONOTONIC, &t0);
-			t = t0;
+			int rc = clock_gettime(CLOCK_MONOTONIC, &t0);
+			if (!rc) {
+				t = t0;
+			} else {
+				silent_cerr("RTPosixSolver: clock_gettime failed "
+					"(rc=" << rc << ")" << std::endl);
+			}
 		}
 
 		t.tv_nsec += lRTPeriod;
