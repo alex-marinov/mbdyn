@@ -72,7 +72,7 @@ RTSolverBase::Init(void)
 	if (bNoOutput) {
 		pS->SetNoOutput();
 	}
-
+	RTSteps = 0;
 	mbdyn_reserve_stack(RTStackSize);
 }
 
