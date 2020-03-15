@@ -50,6 +50,7 @@ RTSolverBase::RTSolverBase(Solver *pS,
 	bool bNoOutput)
 : pS(pS),
 eRTMode(eRTMode),
+RTSteps(0),
 lRTPeriod(lRTPeriod),
 RTStackSize(RTStackSize),
 bRTAllowNonRoot(bRTAllowNonRoot),
@@ -72,7 +73,6 @@ RTSolverBase::Init(void)
 	if (bNoOutput) {
 		pS->SetNoOutput();
 	}
-	RTSteps = 0;
 	mbdyn_reserve_stack(RTStackSize);
 }
 
