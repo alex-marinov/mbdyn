@@ -41,6 +41,7 @@ MBDyn 1.X-Devel
 		- fix aerodynamic elements output at Gauss points
 		  (noted by Roberta Cumbo)
 		- fix sign in dynamic inflow (noted by Neda Taymourtash)
+		- fix initialization of RT(POSIX)solver (Andrea Zanoni)
 
 MBDyn 1.7.3
 	Enhancements:
