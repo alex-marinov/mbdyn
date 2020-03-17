@@ -11,7 +11,7 @@ In this page you'll find some ideas for projects to be developed in the context 
     - [Embedded Optimization](#embedded-optimization)
     - [Ground Vehicle Model Development](#ground-vehicle-model-development)
     - [Improve the tire model](#improve-the-tire-model)
-    - [Implement a PID controller element](#PID-controller-element)
+    - [Implement a PID controller element](#implement-a-pid-controller-element)
     - [Revamp the modal joint](#revamp-the-modal-joint)
   - **IPC/RT**
     - [Improve FMI support](#improve-fmi-support)
@@ -102,7 +102,7 @@ For this project, the student should review the work done during 2016 and come u
 **Keywords**: aeronautics, rotorcraft   
 **Priority**: Medium   
 **Difficulty**: Intermediate   
-**Mentors**: Louis Gagnon, Giuseppe Quaranta
+**Mentors**: [Louis Gagnon](@louis.gagnon), Giuseppe Quaranta
 
 -------------------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ Control forces and moments on overactuated systems can be found using optimizati
 **Keywords**: biomechanics, overactuated systems, optimization       
 **Priority**: Medium    
 **Difficulty**: Intermediate/High    
-**Mentors**: [Andrea Zanoni](@10260632), Louis Gagnon
+**Mentors**: [Andrea Zanoni](@10260632), [Louis Gagnon](@louis.gagnon)
 
 -------------------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ Some possible improvements include: - take the scripting tricks and joints used 
 **Keywords**: vehicle dynamics, mbdyn scripting, modules    
 **Priority**: Low    
 **Difficulty**: Intermediate    
-**Mentors**: Louis Gagnon, [Andrea Zanoni](@10260632)
+**Mentors**: [Louis Gagnon](@louis.gagnon), [Andrea Zanoni](@10260632)
 
 -------------------------------------------------------------------------------------------
 
@@ -168,7 +168,7 @@ Tentative to-do list:
 **Keywords**: vehicle dynamics, modules, tire mechanics    
 **Priority**: Low    
 **Difficulty**: Intermediate/High    
-**Mentors**: Louis Gagnon, [Andrea Zanoni](@10260632)
+**Mentors**: [Louis Gagnon](@louis.gagnon), [Andrea Zanoni](@10260632)
 
 -------------------------------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ The modal joint implementation can be improved in several different ways. For ex
 **Keywords**: lineal algebra, physics, eigenanalysis    
 **Priority**: Low    
 **Difficulty**: Intermediate/High    
-**Mentors**: Giuseppe Quaranta, [Andrea Zanoni](@10260632), Louis Gagnon
+**Mentors**: Giuseppe Quaranta, [Andrea Zanoni](@10260632), [Louis Gagnon](@louis.gagnon)
 
 -------------------------------------------------------------------------------------------
 
@@ -299,7 +299,7 @@ It is simple to use and generates 3D animations that represent the exact model m
 **Keywords**: Blender, UI, post-process    
 **Priority**: High    
 **Difficulty**: Low/Intermediate    
-**Mentors**: [Andrea Zanoni](@10260632), Louis Gagnon    
+**Mentors**: [Andrea Zanoni](@10260632), [Louis Gagnon](@louis.gagnon)    
 **ENTRY TEST**: Complete step 1 of standard MBDyn GSoC [entry test](https://gitlab.polimi.it/Pub/mbdyn/wikis/Google-Summer-of-Code/Entry-Test), then use the Blender Python API (or console) to create a simple Blender model
 
 -------------------------------------------------------------------------------------------
@@ -321,7 +321,7 @@ with the new version.
 **Keywords**: Blender, UI, post-process    
 **Priority**: High 
 **Difficulty**: Low/Intermediate    
-**Mentors**: [Andrea Zanoni](@10260632), Louis Gagnon    
+**Mentors**: [Andrea Zanoni](@10260632), [Louis Gagnon](@louis.gagnon)    
 **ENTRY TEST**: Complete step 1 of standard MBDyn GSoC [entry test](https://gitlab.polimi.it/Pub/mbdyn/wikis/Google-Summer-of-Code/Entry-Test), then use the Blender Python API (or console) to create a simple Blender model
 
 -------------------------------------------------------------------------------------------
@@ -372,7 +372,7 @@ Another functionality which would simplify the generation of input files would b
 **Keywords**: parser, UI     
 **Priority**: Low    
 **Difficulty**: Intermediate    
-**Mentors**: [Pierangelo Masarati](@10102934), [Marco Morandini](@marco.morandini), Louis Gagnon
+**Mentors**: [Pierangelo Masarati](@10102934), [Marco Morandini](@marco.morandini), [Louis Gagnon](@louis.gagnon)
 
 -------------------------------------------------------------------------------------------
 
@@ -422,7 +422,7 @@ Some ideas:
 **Keywords**: software packaging, GNU autotools, software testing, GNU, cmake, Microsoft Windows
 **Priority**: Medium   
 **Difficulty**: Beginner    
-**Mentors**: [Pierangelo Masarati](@10102934), Louis Gagnon   
+**Mentors**: [Pierangelo Masarati](@10102934), [Louis Gagnon](@louis.gagnon)   
 
 -------------------------------------------------------------------------------------------
 
