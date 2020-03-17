@@ -11,6 +11,7 @@ In this page you'll find some ideas for projects to be developed in the context 
     - [Embedded Optimization](#embedded-optimization)
     - [Ground Vehicle Model Development](#ground-vehicle-model-development)
     - [Improve the tire model](#improve-the-tire-model)
+    - [Implement a PID controller element](#PID-controller-element)
     - [Revamp the modal joint](#revamp-the-modal-joint)
   - **IPC/RT**
     - [Improve FMI support](#improve-fmi-support)
@@ -171,6 +172,49 @@ Tentative to-do list:
 
 -------------------------------------------------------------------------------------------
 
+### Implement a PID controller element
+The current method used to implement a PID controller into a MBDyn model usually puts the user in front of two choices:
+
+  - **a** rely on an external software to compute the response of the controller, or
+  - **b** use a combination of abstract nodes, genel elements, and drives to:
+
+    - read the user-requested system response and compare it with the actual system's response, eventually capping the maximum and minimum response
+    - filter the system's response to remove dependency of the PID on the user-chosen timestep
+    - use abstract nodes to store outputs from genel elements which perform filtering and/or integration
+    - use abstract nodes to store outputs from drives which read the velocity of the concerned degree  of freedom
+
+Option (a) requires that the user couples MBDyn to external software.
+The contributions to the Jacobian are in this case also not taken into consideration by MBDyn and that may lead to divergence.
+This also slows down the simulation and adequate software is sometimes not available to the user.
+
+As an alternative, option (b) is proved to work but renders the input files extremely complicated to write and read.
+It also limits implementation to elements which can return a velocity for the D part.
+Finally, the complexity of the input files of option (b) also makes the model highly prone to error which are then difficult to identify.
+
+A dedicated high-level element which could handle multiple degrees of freedom, filter inputs, and provide a response based on the sum of (filtered) contributions of proportional,
+integrated, and derivative errors, each multiplied by their respective coefficients would provide an attractive alternative to (a) and (b).
+
+Depending on the skillset of the student, the element could be coded with Python into the preprocessor or with C++ as a MBDyn module.
+
+List of tasks:
+
+  - implement a 1 degree-of-freedom (DOF) PID element
+  - add option to filter the inputs read by it
+  - add option to filter the individual contributions of P, I, and D
+  - add option to cap the maximum and minimum output values of each P, I, and D contributions
+  - enable proper element-output in both text and NetCDF format
+  - extend the element to be able to handle multiple DOFs.
+
+The ideal candidate will demonstrate resourcefulness and a capacity to resolve most technical problems independently.
+
+**Category**: [Modeling Capabilities](#modeling-capabilities)   
+**Programming Languages**: C++ or Python   
+**Keywords**: system response, control, autopilot, Proportional-Integrative-Derivative    
+**Priority**: Medium    
+**Difficulty**: Intermediate    
+**Mentors**: [Louis Gagnon](@louis.gagnon), [Andrea Zanoni](@10260632)    
+
+-------------------------------------------------------------------------------------------
 ### Revamp the modal joint
 MBDyn's modal joint implements a Component Mode Synthesis (CMS) deformable body. The CMS element interacts with the multibody model only in specific nodes (interface nodes). The full dynamics of the body is condensed into the superposition of the responses of its modes of vibrations, that it outputs in the form of the time histories of its modal coordinates, together with the ridig body motion of a specific node used to define the floating reference frame, the modal node.
 
