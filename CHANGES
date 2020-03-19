@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- added discrete filter drive caller
 		- added drive caller constitutive law wrapper
 		- added support for NetCDF4 (Louis Gagnon)
+		- improve diagnostics when input file cannot be opened
 	Backward compatibility issues:
 		- now escape sequences are honored in "hints"
 		- conditional compilation of aerod2.f
