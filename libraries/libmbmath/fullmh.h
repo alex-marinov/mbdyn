@@ -100,32 +100,41 @@ private:
         typedef void (VectorHandler::*VectorOperation)(integer iRow, const doublereal& dCoef);
         typedef void (MatrixHandler::*MatrixOperation)(integer iRow, integer iCol, const doublereal& dCoef);
         
-        void LapackMatrixOp(const char* TRANSA,
+        void BlasMatrixOp(const char* TRANSA,
                             const char* TRANSB,
+                            integer m,
+                            integer n,
+                            integer k,
+                            integer lda,
                             doublereal* pout,
-                            integer out_nr,
-                            integer out_nc,
+                            integer lda_out,
                             const doublereal* pin,
-                            integer in_nr,
+                            integer lda_in,
                             doublereal ALPHA,
                             doublereal BETA) const;
         
-        void LapackMatrixOp(const char* TRANSA,
+        void BlasMatrixOp(const char* TRANSA,
                             const char* TRANSB,
+                            integer m,
+                            integer n,
+                            integer k,
+                            integer lda,
                             doublereal* pout,
-                            integer out_nr,
-                            integer out_nc,
+                            integer lda_out,
                             const doublereal* pin,
-                            integer in_nr,
+                            integer lda_in,
                             VectorOperation op) const;
         
-        void LapackMatrixOp(const char* TRANSA,
+        void BlasMatrixOp(const char* TRANSA,
                             const char* TRANSB,
+                            integer m,
+                            integer n,
+                            integer k,
+                            integer lda,
                             doublereal* pout,
-                            integer out_nr,
-                            integer out_nc,
+                            integer lda_out,
                             const doublereal* pin,
-                            integer in_nr,
+                            integer lda_in,
                             MatrixOperation op) const;
 #endif
 	const_iterator m_end;

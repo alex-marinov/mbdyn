@@ -459,35 +459,39 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 
 #if defined HAVE_BLAS
 #if defined HAVE_CBLAS
-void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        const char* TRANSB,
+                                       integer m,
+                                       integer n,
+                                       integer k,
+                                       integer lda,
                                        doublereal* pout,
-                                       integer out_nr,
-                                       integer out_nc,
+                                       integer lda_out,
                                        const doublereal* pin,
-                                       integer in_nr,
+                                       integer lda_in,
                                        doublereal ALPHA,
                                        doublereal BETA) const
 {
         ASSERT((strcmp("N", TRANSA) == 0 && out_nr == iGetNumRows() && in_nr == iGetNumCols()) ||
                (strcmp("T", TRANSA) == 0 && out_nr == iGetNumCols() && in_nr == iGetNumRows()));
+
 	CBLAS_TRANSPOSE TA, TB;
 	if (strcmp("N", TRANSA) == 0) TA = CblasNoTrans;
 	else if (strcmp("T", TRANSA) == 0) TA = CblasTrans;
 	if (strcmp("N", TRANSB) == 0) TB = CblasNoTrans;
 	else if (strcmp("T", TRANSB) == 0) TB = CblasTrans;
 	cblas_dgemm(CblasColMajor, TA, TB, 
-                           out_nr,
-                           out_nc,
-                           in_nr,
+                           m,
+                           n,
+                           k,
                            ALPHA,
                            pdGetMat(),
-                           out_nr,
+                           lda,
                            pin,
-                           in_nr,
+                           lda_in,
                            BETA,
                            pout,
-                           out_nr);        
+                           lda_out);
         
 }
 #else /* HAVE_BLAS && !HAVE_CBLAS */
@@ -517,13 +521,16 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
    out -= op( A ) * B 	requires alpha = -1, beta = 1
  */
 
-void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        const char* TRANSB,
+                                       integer m,
+                                       integer n,
+                                       integer k,
+                                       integer lda,
                                        doublereal* pout,
-                                       integer out_nr,
-                                       integer out_nc,
+                                       integer lda_out,
                                        const doublereal* pin,
-                                       integer in_nr,
+                                       integer lda_in,
                                        doublereal ALPHA,
                                        doublereal BETA) const
 {
@@ -532,27 +539,30 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
         
         __FC_DECL__(dgemm)(TRANSA,
                            TRANSB,
-                           &out_nr,
-                           &out_nc,
-                           &in_nr,
+                           &m,
+                           &n,
+                           &k,
                            &ALPHA,
                            pdGetMat(),
-                           &out_nr,
+                           &lda,
                            pin,
-                           &in_nr,
+                           &lda_in,
                            &BETA,
                            pout,
-                           &out_nr);        
+                           &lda_out);
 }
 #endif /* HAVE_CBLAS */
   
-void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        const char* TRANSB,
+                                       integer m,
+                                       integer n,
+                                       integer k,
+                                       integer lda,
                                        doublereal* pout,
-                                       integer out_nr,
-                                       integer out_nc,
+                                       integer lda_out,
                                        const doublereal* pin,
-                                       integer in_nr,
+                                       integer lda_in,
                                        VectorOperation op) const
 {        
         doublereal ALPHA, BETA;
@@ -571,16 +581,19 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-        LapackMatrixOp(TRANSA, TRANSB, pout, out_nr, out_nc, pin, in_nr, ALPHA, BETA);
+        BlasMatrixOp(TRANSA, TRANSB, m, n, k, lda, pout, lda_out, pin, lda_in, ALPHA, BETA);
 }
 
-void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        const char* TRANSB,
+                                       integer m,
+                                       integer n,
+                                       integer k,
+                                       integer lda,
                                        doublereal* pout,
-                                       integer out_nr,
-                                       integer out_nc,
+                                       integer lda_out,
                                        const doublereal* pin,
-                                       integer in_nr,
+                                       integer lda_in,
                                        MatrixOperation op) const
 {        
         doublereal ALPHA, BETA;
@@ -598,7 +611,7 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-        LapackMatrixOp(TRANSA, TRANSB, pout, out_nr, out_nc, pin, in_nr, ALPHA, BETA);
+        BlasMatrixOp(TRANSA, TRANSB, m, n, k, lda, pout, lda_out, pin, lda_in, ALPHA, BETA);
 }
 #endif // HAVE_BLAS
 
@@ -665,7 +678,7 @@ FullMatrixHandler::MatMatMul_base(
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
 #ifdef HAVE_BLAS
-        LapackMatrixOp("N", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
+        BlasMatrixOp("N", "N", out_nr, out_nc, in_nr, out_nr, pout->pdGetMat(), out_nr, pin->pdGetMat(), in_nr, op);
 #else // ! HAVE_BLAS
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
@@ -783,7 +796,7 @@ FullMatrixHandler::MatTMatMul_base(
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
 #ifdef HAVE_BLAS
-        LapackMatrixOp("T", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
+        BlasMatrixOp("T", "N", out_nr, out_nc, in_nr, in_nr, pout->pdGetMat(), out_nr, pin->pdGetMat(), in_nr, op);
 #else // ! HAVE_BLAS
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
@@ -854,7 +867,7 @@ FullMatrixHandler::MatVecMul_base(
         // if all matrices are FullMatrixHandler,
         // either use LAPACK or optimize coefficient computation and store
 #ifdef HAVE_BLAS               
-        LapackMatrixOp("N", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
+        BlasMatrixOp("N", "N", out_nr, 1, in_nr, out_nr, out.pdGetVec(), out_nr, in.pdGetVec(), in_nr, op);
 #else
 	integer nr = iGetNumRows();
 	integer nc = iGetNumCols();
@@ -941,7 +954,7 @@ FullMatrixHandler::MatTVecMul_base(
         }
         
 #ifdef HAVE_BLAS        
-        LapackMatrixOp("T", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
+        BlasMatrixOp("T", "N", out_nr, 1, in_nr, in_nr, out.pdGetVec(), out_nr, in.pdGetVec(), in_nr, op);
 #else
 	integer nr = iGetNumCols();
 	integer nc = iGetNumRows();
