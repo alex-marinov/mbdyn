@@ -457,7 +457,40 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 	}
 }
 
-#ifdef USE_LAPACK
+#if defined HAVE_BLAS
+#if defined HAVE_CBLAS
+void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
+                                       const char* TRANSB,
+                                       doublereal* pout,
+                                       integer out_nr,
+                                       integer out_nc,
+                                       const doublereal* pin,
+                                       integer in_nr,
+                                       doublereal ALPHA,
+                                       doublereal BETA) const
+{
+        ASSERT((strcmp("N", TRANSA) == 0 && out_nr == iGetNumRows() && in_nr == iGetNumCols()) ||
+               (strcmp("T", TRANSA) == 0 && out_nr == iGetNumCols() && in_nr == iGetNumRows()));
+	CBLAS_TRANSPOSE TA, TB;
+	if (strcmp("N", TRANSA) == 0) TA = CblasNoTrans;
+	else if (strcmp("T", TRANSA) == 0) TA = CblasTrans;
+	if (strcmp("N", TRANSB) == 0) TB = CblasNoTrans;
+	else if (strcmp("T", TRANSB) == 0) TB = CblasTrans;
+	cblas_dgemm(CblasColMajor, TA, TB, 
+                           out_nr,
+                           out_nc,
+                           in_nr,
+                           ALPHA,
+                           pdGetMat(),
+                           out_nr,
+                           pin,
+                           in_nr,
+                           BETA,
+                           pout,
+                           out_nr);        
+        
+}
+#else /* HAVE_BLAS && !HAVE_CBLAS */
 /*
    Note: dgemm performs
 
@@ -511,7 +544,8 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
                            pout,
                            &out_nr);        
 }
-        
+#endif /* HAVE_CBLAS */
+  
 void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
                                        const char* TRANSB,
                                        doublereal* pout,
@@ -566,7 +600,7 @@ void FullMatrixHandler::LapackMatrixOp(const char* TRANSA,
 
         LapackMatrixOp(TRANSA, TRANSB, pout, out_nr, out_nc, pin, in_nr, ALPHA, BETA);
 }
-#endif // USE_LAPACK
+#endif // HAVE_BLAS
 
 MatrixHandler&
 FullMatrixHandler::MatMatMul_base(
@@ -630,9 +664,9 @@ FullMatrixHandler::MatMatMul_base(
 
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
-#ifdef USE_LAPACK
+#ifdef HAVE_BLAS
         LapackMatrixOp("N", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
-#else // ! USE_LAPACK
+#else // ! HAVE_BLAS
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
 			for (integer r = 1; r <= out_nr; r++) {
@@ -681,7 +715,7 @@ FullMatrixHandler::MatMatMul_base(
 	} else {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-#endif // ! USE_LAPACK
+#endif // ! HAVE_BLAS
 
 	return out;
 }
@@ -748,9 +782,9 @@ FullMatrixHandler::MatTMatMul_base(
 
 	// if all matrices are FullMatrixHandler,
 	// either use LAPACK or optimize coefficient computation and store
-#ifdef USE_LAPACK
+#ifdef HAVE_BLAS
         LapackMatrixOp("T", "N", pout->pdGetMat(), out_nr, out_nc, pin->pdGetMat(), in_nr, op);
-#else // ! USE_LAPACK
+#else // ! HAVE_BLAS
 	if (op == &MatrixHandler::IncCoef) {
 		for (integer c = 1; c <= out_nc; c++) {
 			for (integer r = 1; r <= out_nr; r++) {
@@ -799,7 +833,7 @@ FullMatrixHandler::MatTMatMul_base(
 	} else {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-#endif // ! USE_LAPACK
+#endif // ! HAVE_BLAS
 
 	return out;
 }
@@ -819,7 +853,7 @@ FullMatrixHandler::MatVecMul_base(
         
         // if all matrices are FullMatrixHandler,
         // either use LAPACK or optimize coefficient computation and store
-#ifdef USE_LAPACK               
+#ifdef HAVE_BLAS               
         LapackMatrixOp("N", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
 #else
 	integer nr = iGetNumRows();
@@ -906,7 +940,7 @@ FullMatrixHandler::MatTVecMul_base(
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
         
-#ifdef USE_LAPACK        
+#ifdef HAVE_BLAS        
         LapackMatrixOp("T", "N", out.pdGetVec(), out_nr, 1, in.pdGetVec(), in_nr, op);
 #else
 	integer nr = iGetNumCols();
