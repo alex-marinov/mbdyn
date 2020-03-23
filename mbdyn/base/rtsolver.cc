@@ -50,12 +50,12 @@ RTSolverBase::RTSolverBase(Solver *pS,
 	bool bNoOutput)
 : pS(pS),
 eRTMode(eRTMode),
-RTSteps(0),
 lRTPeriod(lRTPeriod),
 RTStackSize(RTStackSize),
 bRTAllowNonRoot(bRTAllowNonRoot),
 RTCpuMap(RTCpuMap),
-bNoOutput(bNoOutput)
+bNoOutput(bNoOutput),
+RTSteps(0)
 {
 	ASSERT(RTStackSize > 0);
 	ASSERT(lRTPeriod > 0);
