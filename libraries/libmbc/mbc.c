@@ -758,8 +758,8 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 		}
 
 		if (MBC_F_LABELS(mbc)) {
-			mbc->k_size += mbc->nodes*sizeof(uint32_t);
-			mbc->d_size += mbc->nodes*sizeof(uint32_t);
+			mbc->k_size += (mbc->nodes + mbc->nodes%2)*sizeof(uint32_t);
+			mbc->d_size += (mbc->nodes + mbc->nodes%2)*sizeof(uint32_t);
 		}
 
 		mbc->n_ptr = (void *)malloc(MBC_N_SIZE(mbc));
