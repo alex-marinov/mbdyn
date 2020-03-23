@@ -1907,6 +1907,7 @@ if test $ol_with_blas != no ; then
 	/* test for blas */
 	return cblas_dgemm();
 			],[have_blas="atlas"
+				have_cblas="yes"
 				LIBS="-lcblas -lf77blas -latlas $FCLIBS $F77LIBS -lm $LIBS"
 				AC_TRY_LINK([
 					/* FIXME: some architectures might use different
@@ -1930,11 +1931,14 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-	extern int cblas_dgemm(void);
+	#include<cblas.h>
 			],[
 	/* test for blas */
-	return cblas_dgemm();
-			],[have_blas="cblas"],[
+	cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 1, 1, 1, 1, NULL, 1, NULL, 1, 0., NULL, 1);
+	return 0;
+			],[have_blas="cblas"
+				have_cblas="yes"
+			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "cblas" ; then
 					AC_MSG_ERROR([CBLAS not available])
@@ -1973,6 +1977,9 @@ if test $ol_with_blas != no ; then
 		ol_link_blas="yes"
 		BLAS_LIBS="$try_blas_LIBS"
 		AC_DEFINE(HAVE_BLAS,1,[define if BLAS are available])
+		if test "$have_cblas" == "yes" ; then
+			AC_DEFINE(HAVE_CBLAS,1,[define if CBLAS are available])
+		fi
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
