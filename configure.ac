@@ -771,7 +771,7 @@ if test "$ol_enable_python" != no ; then
 		AC_MSG_ERROR([python needs swig])
 	fi
 	if test "$ol_enable_python" = yes ; then
-	        PYTHON_NUMPY_HEADERS=`$PYTHON -c "import numpy; print numpy.get_include()" 2>/dev/null`
+	        PYTHON_NUMPY_HEADERS=`$PYTHON -c "from __future__ import print_function; import numpy; print(numpy.get_include())" 2>/dev/null`
 		if test x"$PYTHON_NUMPY_HEADERS" = x ; then
 			AC_MSG_ERROR([python needs numpy - including its development packages])
 		else
