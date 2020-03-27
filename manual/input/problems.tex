@@ -639,7 +639,8 @@ This nonlinear solver is experimental.
     \bnt{method} ::=
         \{ \kw{use lapack} [ , \kw{balance} , \{ \kw{no} | \kw{scale} | \kw{permute} | \kw{all} \} ]
             | \kw{use arpack} , \bnt{nev} , \bnt{ncv} , \bnt{tol}
-            | \kw{use jdqz} , \bnt{nev} , \bnt{ncv} , \bnt{tol} \} 
+            | \kw{use jdqz} , \bnt{nev} , \bnt{ncv} , \bnt{tol}
+            | \kw{use external} \} 
 \end{Verbatim}
 %\end{verbatim}
 Performs the direct eigenanalysis of the problem.
@@ -732,6 +733,10 @@ using the \kw{rigid body kinematics} card
 	It requires the same parameters of ARPACK;
 	actually, it allows a lot of tuning, but its input
 	is not formalized yet (experimental).
+\item \kw{use external} is a placeholder to tell MBDyn not to perform any eigenanalysis
+	but rather honor any of the ``output'' statements that can be honored without performing the analysis;
+	for example, writing the matrices (\kw{output matrices}, \kw{output sparse matrices}),
+	the geometry (\kw{output geometry}), and so on;
 \item \kw{lower frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is larger than
 	\nt{lower} Hz;
