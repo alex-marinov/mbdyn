@@ -1209,7 +1209,7 @@ ExpDriveCaller::dGetP(const doublereal& dVar) const
 	}
 
 	doublereal dVal = -dAmplitude/dTimeConst*exp((dStartTime - dVar)/dTimeConst);
-	if (dVal == dStartTime) {
+	if (dVar == dStartTime) {
 		dVal /= 2.;
 	}
 
