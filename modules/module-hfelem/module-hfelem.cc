@@ -74,6 +74,7 @@ private:
 	doublereal m_dTInit;
 	doublereal m_dT0;
 	doublereal m_dDeltaT;
+	doublereal m_dMaxDeltaT;
 	doublereal m_dOmega;
 	doublereal m_dOmega0;
 	doublereal m_dOmegaMax;
@@ -100,6 +101,8 @@ private:
 	integer m_iOmegaCnt;
 	integer m_iPeriod;
 	integer m_iPeriodCnt;
+	integer m_iNumSubSteps;
+	integer m_iCurrentStep;
 	bool m_bStarted;
 	bool m_bConverged;
 	bool m_bDone;
@@ -177,6 +180,7 @@ HarmonicForcingElem::HarmonicForcingElem(
 UserDefinedElem(uLabel, pDO),
 m_pDM(pDM),
 m_dTInit(-std::numeric_limits<doublereal>::max()),
+m_dMaxDeltaT(std::numeric_limits<doublereal>::max()),
 m_dPsi(0.),
 m_dF(0.),
 m_dAmplitude(1.),
@@ -187,6 +191,8 @@ m_dOmegaMulInc(1.),
 m_iOmegaCnt(0),
 m_iPeriod(0),
 m_iPeriodCnt(0),
+m_iNumSubSteps(1),
+m_iCurrentStep(0),
 m_bStarted(false),
 m_bConverged(false),
 m_bDone(false),
@@ -308,6 +314,17 @@ m_OutputFormat(Out_COMPLEX)
 		throw e;
 	}
 
+	// maximum delta t
+	if (HP.IsKeyWord("max" "delta" "t")) {
+		try {
+			m_dMaxDeltaT = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
+
+		} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum Delta t must be positive, at line " << HP.GetLineData() << std::endl);
+			throw e;
+		}
+	}
+
 	// frequency
 	if (!HP.IsKeyWord("initial" "angular" "frequency")) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"initial angular frequency\" expected at line " << HP.GetLineData() << std::endl);
@@ -343,6 +360,13 @@ m_OutputFormat(Out_COMPLEX)
 	m_dOmega = m_dOmega0;
 
 	m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
+	if (m_dDeltaT > m_dMaxDeltaT) {
+		m_iNumSubSteps = std::ceil(m_dDeltaT / m_dMaxDeltaT);
+		m_dDeltaT /= m_iNumSubSteps;
+	} else {
+		m_iNumSubSteps = 1;
+	}
+	std::cerr << m_iNumSubSteps << " " << m_dDeltaT << std::endl;
 
 	// frequency increment
 	if (!HP.IsKeyWord("angular" "frequency" "increment")) {
@@ -537,7 +561,7 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 	// NOTE: output occurs only at convergence,
 	// not with fixed periodicity
 	if (bToBeOutput()) {
-		if (m_bOut && m_iPeriod == 0 && m_iPeriodCnt == 0) {
+		if (m_bOut && m_iPeriod == 0 && m_iPeriodCnt == 0 && m_iCurrentStep == 0) {
 			std::ostream& out = OH.Loadable();
 
 			out << std::setw(8) << GetLabel()	// 1:	label
@@ -646,6 +670,13 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 		return;
 	}
 
+	++m_iCurrentStep;
+	if (m_iCurrentStep != m_iNumSubSteps) {
+		return;
+	}
+	
+	m_iCurrentStep = 0;
+
 	// collect input
 	doublereal dErr = 0.;
 
@@ -728,6 +759,13 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 				}
 
 				m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
+				if (m_dDeltaT > m_dMaxDeltaT) {
+					m_iNumSubSteps = std::ceil(m_dDeltaT / m_dMaxDeltaT);
+					m_dDeltaT /= m_iNumSubSteps;
+				} else {
+					m_iNumSubSteps = 1;
+				}
+				std::cerr << m_iNumSubSteps << " " << m_dDeltaT << std::endl;
 
 			} else if ((m_iMaxPeriods > 0) && (m_iPeriod > m_iMaxPeriods) && (m_NoConvStrategy == NoConv_ABORT)) {
 				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): max periods " << m_iMaxPeriods << " exceeded for frequency " << m_dOmega << "; aborting..." << std::endl);
