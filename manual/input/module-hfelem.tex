@@ -55,6 +55,7 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
                     [ \{ \kw{test} | \kw{output} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
                 [ , ... ] , # \nt{inputs_number} occurrences
         \kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
+        [\kw{max delta t} , (\ty{real}) \bnt{max_delta_t} ,]
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
             [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
             \kw{angular frequency increment} ,
@@ -87,6 +88,11 @@ by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used,
 \begin{align*}
 	\Delta t = \frac{2 \pi}{\omega \cdot \nt{steps\_number}}
 \end{align*}
+
+\item $\nt{max\_delta\_t} > 0.$; the maximum value of the time step $\Delta t$; 
+if the time step computed using $\nt{steps\_number}$ is greater
+than $\nt{max\_delta\_t}$ then the time step is reduced according to 
+$\Delta t = \Delta t / \mathrm{ceil}(\Delta t / \nt{max\_delta\_t})$.
 
 \item $\nt{omega0} > 0$, the initial excitation angular frequency;
 
