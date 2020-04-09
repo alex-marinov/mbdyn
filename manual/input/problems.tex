@@ -845,7 +845,27 @@ to the absolute reference frame;
 \item \texttt{idx}: a vector containing the reference row index
 of each structural node in the eigenvectors;
 \end{itemize}
-The contents of this file may change across versions.
+
+\emph{Caveat: the contents of this file may change across versions.}
+
+\paragraph{Interpretation of linearized problem.}
+The typical interpretation of the linearized problem
+\begin{align}
+	\T{f}_{/\dot{\T{x}}} \Delta\dot{\T{x}} + \T{f}_{/\T{x}} \Delta\T{x} &= \T{0}
+\end{align}
+in descriptor form is
+\begin{align}
+	\TT{E} \Delta\dot{\T{x}} &= \TT{A} \Delta\T{x}
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	\TT{E} &= \T{f}_{/\dot{\T{x}}} = \frac{\TT{J}_{(+c)} + \TT{J}_{(-c)}}{2}
+	\\
+	\TT{A} &= - \T{f}_{/\T{x}} = - \frac{\TT{J}_{(+c)} - \TT{J}_{(-c)}}{2 c}
+\end{align}
+\end{subequations}
+
 
 \paragraph{Example.}
 \begin{verbatim}
@@ -890,7 +910,8 @@ usually output.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{linear solver} :
-            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr}\}
+            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} | \kw{pastix}
+                    | \kw{qr} | \kw{spqr}\}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
         [ , \{ \kw{colamd} | \kw{mmdata} | \kw{amd} | \kw{given} | \kw{metis} \} ]
         [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
@@ -898,9 +919,10 @@ usually output.
         [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
         [ , \kw{drop tolerance} , \bnt{drop\_tolerance} ]
         [ , \kw{block size} , \bnt{block_size} ]
-        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{row max} | \kw{row sum} | \kw{column max} | \kw{column sum} | \kw{lapack} | \kw{iterative} | \kw{row max column max} \}
-          [ , \kw{scale tolerance}, (\ty{real}) \bnt{scale_tolerance} ]
-          [ , \kw{scale iterations}, (\ty{integer}) \bnt{scale_max_iter} ]
+        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{row max} | \kw{row sum} | \kw{column max} | \kw{column sum}
+                | \kw{lapack} | \kw{iterative} | \kw{row max column max} \}
+            [ , \kw{scale tolerance}, (\ty{real}) \bnt{scale_tolerance} ]
+            [ , \kw{scale iterations}, (\ty{integer}) \bnt{scale_max_iter} ]
         ]
         [ , \kw{max iterations}, (\ty{integer}) \bnt{refine_max_iter} ]
     ;
