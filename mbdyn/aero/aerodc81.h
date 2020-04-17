@@ -172,7 +172,7 @@ extern int
 c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_data* data);
 
 extern int 
-c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, 
+c81_aerod2_u(const doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, 
 		const c81_data* data, long unsteadyflag);
 
 #ifdef __cplusplus

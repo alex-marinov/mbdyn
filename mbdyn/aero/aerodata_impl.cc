@@ -146,7 +146,7 @@ C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA
 		break;
 	}
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
 		data, unsteadyflag);
 }
 
@@ -233,7 +233,7 @@ C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa
 	ASSERT(i >= 0);
 	ASSERT(unsigned(i) < data.size());
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
 		data[curr_data], unsteadyflag);
 }
 
@@ -347,7 +347,7 @@ C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, 
 		break;
 	}
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
 		&i_data[i], unsteadyflag);
 }
 
