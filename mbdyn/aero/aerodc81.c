@@ -241,7 +241,7 @@ c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_d
 
 int 
 c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, 
-		c81_data* data, long unsteadyflag)
+		const c81_data* data, long unsteadyflag)
 {
    	/* 
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
