@@ -1,4 +1,3 @@
-/* $Header: /home/reinhard/CVS/mbdyn/modules/module-octave/module-octave.cc,v 2.43 2019/06/20 17:21:17 reinhard Exp $ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
@@ -30,7 +29,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@a1.net>
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
         Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred

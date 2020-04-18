@@ -1,4 +1,3 @@
-/* $Header$ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -30,7 +29,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <R.RESCH@secop.com>
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
         Copyright (C) 2011(-2017) all rights reserved.
 
         The copyright of this code is transferred

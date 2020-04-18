@@ -46,7 +46,7 @@
 
 #===============================================================================
 # LOG:
-# 2016-03-12: Support for Code_Aster 12.5.0 added by r.resch@a1.net
+# 2016-03-12: Support for Code_Aster 12.5.0 added by Reinhard Resch <mbdyn-user@a1.net>
 # 2008-08-30: fix TOUT = 'OUI' using 'ENV_SPHERE' (needs work)
 # 2008-08-25: release with MBDyn 1.3.4-Beta
 # 2008-08-05: optionally prints rigid-body inertia matrix
