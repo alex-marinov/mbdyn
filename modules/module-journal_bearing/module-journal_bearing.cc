@@ -29,7 +29,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <R.Resch@secop.com>
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
         Copyright (C) 2015(-2017) all rights reserved.
 
         The copyright of this code is transferred

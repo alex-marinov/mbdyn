@@ -29,7 +29,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- AUTHOR: Reinhard Resch <r.resch@a1.net>
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
         Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred
