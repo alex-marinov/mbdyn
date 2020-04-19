@@ -800,9 +800,10 @@ if test "$ol_enable_octave" != no ; then
    	   	AC_MSG_RESULT([yes])
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LFLAGS` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
+	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | tr '\\' '/'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`"
+	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | tr '\\' '/'`"
+       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`:${LD_LIBRARY_PATH}"
     else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
