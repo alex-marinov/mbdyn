@@ -384,20 +384,20 @@ pAeroData(pa)
 {
 	ASSERT(pAeroData->Unsteady() == STEADY);
 	ASSERT(pAeroData->iGetNumDof() == 0);
-	SAFENEWARR(cfx_0, doublereal, i_p);
-	SAFENEWARR(cfy_0, doublereal, i_p);
-	SAFENEWARR(cfz_0, doublereal, i_p);
-	SAFENEWARR(cmx_0, doublereal, i_p);
-	SAFENEWARR(cmy_0, doublereal, i_p);
-	SAFENEWARR(cmz_0, doublereal, i_p);
-	SAFENEWARR(alpha_pivot, doublereal, i_p);
-	SAFENEWARR(dot_alpha_pivot, doublereal, i_p);
-	SAFENEWARR(dot_alpha, doublereal, i_p);
-	SAFENEWARR(ddot_alpha, doublereal, i_p);
-	SAFENEWARR(clalpha, doublereal, i_p);
-	SAFENEWARR(prev_alpha_pivot, doublereal, i_p);
-	SAFENEWARR(prev_dot_alpha, doublereal, i_p);
-	for (int i = 0; i < i_p; i++) {
+	SAFENEWARR(cfx_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cfy_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cfz_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmx_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmy_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmz_0, doublereal, i_p * i_dim);
+	SAFENEWARR(alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(dot_alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(dot_alpha, doublereal, i_p * i_dim);
+	SAFENEWARR(ddot_alpha, doublereal, i_p * i_dim);
+	SAFENEWARR(clalpha, doublereal, i_p * i_dim);
+	SAFENEWARR(prev_alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(prev_dot_alpha, doublereal, i_p * i_dim);
+	for (int i = 0; i < i_p * i_dim; i++) {
 		cfx_0[i] = 0.;
 		cfy_0[i] = 0.;
 		cfz_0[i] = 0.;
