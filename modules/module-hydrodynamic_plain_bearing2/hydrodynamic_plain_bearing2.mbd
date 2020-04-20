@@ -12,7 +12,7 @@ begin: initial value;
 	tolerance: 1e-6, test, minmax;
         method: ms, 0.6;
 	enforce constraint equations: constraint violations;
-	derivatives tolerance: 1e-4;
+	derivatives tolerance: 1e-3;
 	derivatives max iterations: 200;
 	derivatives coefficient: 1e-6;
         linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
