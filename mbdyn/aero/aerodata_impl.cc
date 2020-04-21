@@ -568,8 +568,8 @@ TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		ddot_alpha[i] = (dot_alpha[i] - prev_dot_alpha[i])/Delta_t;
 
 	} else {
-		dot_alpha_pivot[0] = 0.;
-		ddot_alpha[0] = 0.;
+		dot_alpha_pivot[i] = 0.;
+		ddot_alpha[i] = 0.;
 	}
 
 	clalpha[i] = OUTA.clalpha;
