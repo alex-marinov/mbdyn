@@ -984,8 +984,8 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 				Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
 				Vec3 cqTmp(Xr.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
 
-				WM.Sub(1, iOffset + iCol, fqTmp);
-				WM.Sub(4, iOffset + iCol, cqTmp);
+				WM.Sub(1, iOffset + iCol, fqTmp * dCoef);
+				WM.Sub(4, iOffset + iCol, cqTmp * dCoef);
 			}
 
 			// first equation
@@ -1933,8 +1933,8 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 					Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
 					Vec3 cqTmp(d.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
 
-					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp);
-					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp);
+					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp * dCoef);
+					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp * dCoef);
 				}
 
 				// first equation
@@ -2865,8 +2865,8 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 					Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
 					Vec3 cqTmp(d.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
 
-					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp);
-					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp);
+					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp * dCoef);
+					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp * dCoef);
 				}
 
 				// first equation
