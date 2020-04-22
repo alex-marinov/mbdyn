@@ -716,8 +716,6 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		doublereal dCl_alpha = (cy_1-cfy_0[i])/dDeltaY1;
 		doublereal dCm_alpha = (cmz_1-cmz_0[i])/dDeltaY1;
 	
-		doublereal C11 = (A1+A2)*b1*b2*d*d;
-		doublereal C12 = (A1*b1+A2*b2)*d;
 	
 		doublereal qDc = qD*chord;
 		/* ATTENZIONE: le derivate aerodinamiche calcolate (vedi tecman)
@@ -725,7 +723,11 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
  		 * le derivate di TNG */
 		doublereal sin_alpha = (W[VY]+d34*W[WZ])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
 		doublereal cos_alpha = (W[VX])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
-	
+
+		#if 1
+		doublereal C11 = (A1+A2)*b1*b2*d*d;
+		doublereal C12 = (A1*b1+A2*b2)*d;
+
 		doublereal D_q1 = qDc*dCd_alpha*C11;
 		doublereal D_q2 = qDc*dCd_alpha*C12;
 		doublereal L_q1 = qDc*dCl_alpha*C11;
@@ -733,7 +735,6 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		
 		doublereal M_q1 = qDc*chord*dCm_alpha*C11;
 		doublereal M_q2 = qDc*chord*dCm_alpha*C12;
-		#if 1
 		fq.Put(1, 1, (-L_q1*sin_alpha -D_q1*cos_alpha));
 		fq.Put(1, 2, (-L_q2*sin_alpha -D_q2*cos_alpha));
 		fq.Put(2, 1, (L_q1*cos_alpha -D_q1*sin_alpha));
