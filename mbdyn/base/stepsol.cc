@@ -496,7 +496,6 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 	ASSERT(pDM != NULL);
 	pDM->AssJac(*pJac, db0Differential);
 
-#ifdef MBDYN_FDJAC
 	// Finite difference check of Jacobian matrix
 	// Uncomment this whenever you need to debug your new Jacobian
 	// NOTE: might not be safe!
@@ -531,7 +530,6 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
  		std::cerr << fdjac << std::endl;
  		std::cerr << "\n===============\n" << std::endl;
 	}
-#endif // MBDYN_FDJAC
 }
 
 void

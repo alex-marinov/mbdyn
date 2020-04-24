@@ -507,6 +507,15 @@ by the related option for the \kw{tolerance} keyword
 in the problem-specific section.
 See Section~\ref{sec:IVP:TOLERANCE} for further details.
 
+\subsection{Finite Difference Jacobian Meter}\label{sec:CONTROLDATA:FDJAC_METER}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{finite difference jacobian meter} : (\hty{DriveCaller}) \bnt{compute_finite_difference};
+\end{Verbatim}
+
+\noindent
+When \nt{compute\_finite\_difference} is true computes the problem Jacobian matrix by means of finite differences, 
+and write on standard output both the analytic and finite difference Jacobian matrices.
+This option makes sense only for debugging, and may lead to really cumbersome screen output.
 
 \subsection{Model}
 \label{sec:CONTROLDATA:MODEL}
