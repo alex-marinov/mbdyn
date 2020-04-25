@@ -57,7 +57,15 @@ public:
 
 /* C81AeroData - begin */
 
-class C81AeroData : public AeroData {
+class C81AeroDataHolder : public AeroData {
+public:
+	C81AeroDataHolder(int i_p, int i_dim,
+		AeroData::UnsteadyModel u, DriveCaller *ptime) : AeroData(i_p, i_dim, u, ptime) {};
+	virtual ~C81AeroDataHolder() {};
+	virtual const c81_data* GetCurData(const int i) const = 0;
+};
+
+class C81AeroData : public C81AeroDataHolder {
 protected:
 	integer profile;
 	const c81_data* data;
@@ -69,6 +77,7 @@ public:
 		DriveCaller *ptime = 0);
 	virtual ~C81AeroData(void);
 
+	virtual const c81_data* GetCurData(const int i) const {return data;};
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual int GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA);
 	virtual int GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
@@ -85,7 +94,7 @@ struct C81AirfoilStation {
 	doublereal upper_bound;
 };
 
-class C81MultipleAeroData : public AeroData {
+class C81MultipleAeroData : public C81AeroDataHolder {
 protected:
 	std::vector<unsigned> profiles;
 	std::vector<doublereal> upper_bounds;
@@ -102,6 +111,7 @@ public:
 		DriveCaller *ptime = 0);
 	~C81MultipleAeroData(void);
 
+	virtual const c81_data* GetCurData(const int i) const {return data[curr_data];};
 	std::ostream& Restart(std::ostream& out) const;
 	void SetSectionData(const doublereal& abscissa,
 		const doublereal& chord,
@@ -118,7 +128,7 @@ public:
 
 /* C81InterpolatedAeroData - begin */
 
-class C81InterpolatedAeroData : public AeroData {
+class C81InterpolatedAeroData : public C81AeroDataHolder  {
 protected:
 	std::vector<unsigned> profiles;
 	std::vector<doublereal> upper_bounds;
@@ -137,6 +147,7 @@ public:
 		DriveCaller *ptime = 0);
 	~C81InterpolatedAeroData(void);
 
+	virtual const c81_data* GetCurData(const int i) const {return &i_data[i];};
 	std::ostream& Restart(std::ostream& out) const;
 	void SetSectionData(const doublereal& abscissa,
 		const doublereal& chord,
@@ -161,17 +172,17 @@ protected:
 	doublereal a;
 	doublereal A1, A2, b1, b2;
 	doublereal *alpha_pivot, *dot_alpha_pivot, *dot_alpha, *ddot_alpha;
-	doublereal *cfx_0, *cfy_0, *cmz_0;
+	doublereal *cfx_0, *cfy_0, *cfz_0, *cmx_0, *cmy_0, *cmz_0;
 	doublereal *clalpha;
 	doublereal *prev_alpha_pivot, *prev_dot_alpha;
 	doublereal prev_time;
 
-	AeroData *pAeroData;
+	C81AeroDataHolder *pAeroData;
 
 public:
 	TheodorsenAeroData(
 		int i_p, int i_dim,
-		AeroData *pa, DriveCaller *ptime = 0);
+		C81AeroDataHolder *pa, DriveCaller *ptime = 0);
 	virtual ~TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;

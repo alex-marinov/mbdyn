@@ -302,7 +302,7 @@ AM_CPPFLAGS = \
 if USE_OCTAVE
 PKG_NAME:=mbdyn_util_oct
 COPYRIGHT:=pierangelo.masarati@polimi.it
-PKG_AUTHOR:=r.resch@a1.net
+PKG_AUTHOR:=mbdyn-user@a1.net
 PKG_DIR:=$(PKG_NAME)
 PKG_FILE:=$(PKG_NAME).tar.gz
 

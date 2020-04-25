@@ -2662,7 +2662,6 @@ DataManager::GetEqType(int i) const
 	return Dofs[i - 1].EqOrder;
 }
 
-#ifdef MBDYN_FDJAC
 bool
 DataManager::bFDJac(void) const
 {
@@ -2672,7 +2671,6 @@ DataManager::bFDJac(void) const
 
 	return true;
 }
-#endif // MBDYN_FDJAC
 
 unsigned
 DataManager::ConvergedRegister(void)

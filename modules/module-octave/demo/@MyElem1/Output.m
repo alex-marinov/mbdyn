@@ -30,7 +30,7 @@
 # 
 #################################################################
 ##
-## AUTHOR: Reinhard Resch <r.resch@a1.net>
+## AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
 ##        Copyright (C) 2011(-2017) all rights reserved.
 ##
 ##        The copyright of this code is transferred

@@ -143,9 +143,7 @@ saveXSol(false),
 solArrFileName(0),
 pOutputMeter(0),
 iOutputCount(0),
-#ifdef MBDYN_FDJAC
 pFDJacMeter(0),
-#endif // MBDYN_FDJAC
 ResMode(RES_TEXT),
 #ifdef USE_NETCDF
 // NetCDF stuff
@@ -641,12 +639,10 @@ DataManager::~DataManager(void)
 		pOutputMeter = 0;
 	}
 
-#ifdef MBDYN_FDJAC
 	if (pFDJacMeter) {
 		SAFEDELETE(pFDJacMeter);
 		pFDJacMeter = 0;
 	}
-#endif // MBDYN_FDJAC
 
 	if (pRBK) {
 		SAFEDELETE(pRBK);

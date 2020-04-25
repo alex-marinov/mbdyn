@@ -1,4 +1,3 @@
-/* $Header: /home/reinhard/CVS/mbdyn/include/ac/qrupdate.h,v 2.1 2019/08/05 11:40:08 reinhard Exp $ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
@@ -30,7 +29,7 @@
  */
 
 /*
-  AUTHOR: Reinhard Resch <r.resch@a1.net>
+  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
   Copyright (C) 2019(-2019) all rights reserved.
 
   The copyright of this code is transferred
