@@ -2669,7 +2669,7 @@ DataManager::bFDJac(void) const
 		return (pFDJacMeter->dGet() != 0.);
 	}
 
-	return true;
+	return false;
 }
 
 unsigned
