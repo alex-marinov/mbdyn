@@ -46,7 +46,7 @@ main(int argn, const char* const argv[])
 	 		std::cerr << std::endl 
 				<< "usage: " << argv[0] << std::endl 
 				<< std::endl
-	   			<< "    reads the Euler angles (in degs)"
+	   			<< "    reads 2 vectors (idx1 v1x v1y v1z idx2 v2x v2y v2z)"
 				" from stdin;" << std::endl
 	   			<< "    writes the rotation matrix"
 				" on standard output" << std::endl
