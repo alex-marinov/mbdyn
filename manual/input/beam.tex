@@ -1334,6 +1334,8 @@ $\T{o}_i$, with $i$=1,2,3, of Figure~\ref{fig:EL:BEAM:beam3}.
 The orientation matrices \nt{orientation\_matrix\_section\_}\bnt{j},
 with \nt{j}=I,II, are the section orientation matrices
 $\TT{R}_j$, with $j$=$I$,$II$, of Figure~\ref{fig:EL:BEAM:beam3}.
+They represent the (absolute) orientation in which the respective
+constitutive properties are expressed.
 
 The first keyword \kw{same}, alternative to the 
 \nt{orientation\_matrix\_section\_II}, means that the same orientation
@@ -1374,10 +1376,12 @@ A more complete input format is
 \end{Verbatim}
 %\end{verbatim}
 This format is a superset of the traditional one, which is extended
-by adding the possibility to set relative node orientations
-that can be subsequently used to interpolate the orientation matrices
+by adding the possibility to set, for each node, the relative orientation
+\nt{relative\_orientation\_}\bnt{i}, with \nt{i}=1,2,3,
+with respect to the node itself.
+Such orientation can be subsequently used to interpolate the orientation matrices
 at the evaluation points, by providing the keyword \kw{from nodes}
-instead of the matrix.
+instead of the orientation matrix.
 If the keyword \kw{same} is used for the second evaluation point,
 the same method is used to compute the orientation matrix.
 
