@@ -2360,6 +2360,13 @@ MBDynParser::GetMatR2vec(void)
 		return RotManip::Rot(Vec3(phi1, phi2, phi3));
 	}
 
+	if (IsKeyWord("null")) {
+		silent_cerr("Line " << GetLineData()
+			<< ": \"null\" is not a valid orientation matrix"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	int i1 = GetInt();
 	Vec3 v1;
 	v1(1) = GetReal();
