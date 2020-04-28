@@ -1706,31 +1706,17 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 	}
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutputHandler::NcDimVec dim2(2);
-		std::stringstream dimname_ss;
-		dimname_ss << "eig_" << uCurrEigSol << "_Aplus_sp_iSize";
-		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), MatB.Nz());
-		dim2[1] = OutHdl.DimV3();
-
-		OutputHandler::AttrValVec attrs3(3);
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
-
-		dimname_ss.str("");
-		dimname_ss.clear();
-		dimname_ss << "eig_" << uCurrEigSol << "_Aminus_sp_iSize";
-		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), MatA.Nz());
-
+		
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-",
+				"F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-",
+				"F/xPrime + dCoef * F/x");
 
 		size_t iCnt = 0;
 		Vec3 v;
@@ -1738,7 +1724,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 				i != MatB.end(); ++i)
 		{
 			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
 				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
 				iCnt++;
 			}
@@ -1749,8 +1735,9 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 				j != MatA.end(); ++j)
 		{
 			if (j->dCoef != 0.) {
-				v = Vec3(j->iRow, j->iCol, j->dCoef);
+				v = Vec3(j->iRow + 1, j->iCol + 1, j->dCoef);
 				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
+				iCnt++;
 			}
 		}
 
@@ -1810,53 +1797,16 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 
-		OutputHandler::NcDimVec dim2(2);
-
-		std::stringstream dimname_ss;
-		dimname_ss << "eig_" << uCurrEigSol << "_Aplus_sp_iSize";
-
-		// FIXME: Is there a more efficient way of doing this??
-		integer iMatBNz = 0;
-		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				iMatBNz++;
-			}
-		}
-
-		integer iMatANz = 0;
-		for (NaiveMatrixHandler::const_iterator j = MatA.begin();
-				j != MatA.end(); ++j)
-		{
-			if(j->dCoef != 0.) {
-				iMatANz++;
-			}
-		}
-
-		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), iMatBNz);
-		dim2[1] = OutHdl.DimV3();
-
-		OutputHandler::AttrValVec attrs3(3);
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
-
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
-
-		dimname_ss.str("");
-		dimname_ss.clear();
-		dimname_ss << "eig_" << uCurrEigSol << "_Aminus_sp_iSize";
-		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), iMatANz);
-
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-", 
+				"F/xPrime + dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-", 
+				"F/xPrime - dCoef * F/x");
 
 		size_t iCnt = 0;
 		Vec3 v;
@@ -1864,7 +1814,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 				i != MatB.end(); ++i)
 		{
 			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
 				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
 				iCnt++;
 			}
@@ -1875,7 +1825,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 				i != MatA.end(); ++i)
 		{
 			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
 				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
 				iCnt++;
 			}
