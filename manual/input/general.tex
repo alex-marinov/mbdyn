@@ -1007,6 +1007,10 @@ The resulting matrix is computed as
 \end{equation}
 \end{enumerate}
 
+The keyword \kw{null} is intercepted, since its conventional usage
+would result in a zero-valued matrix which, by definition, cannot be orthogonal;
+an error is raised.
+
 \subsection{$6 \times 6$ Matrix}
 \label{sec:Mat6x6}
 Implements the type \ty{Mat6x6}.
