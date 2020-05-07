@@ -695,23 +695,42 @@ void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
       iNumInerzia = 36;
    }
 
-	Vec3 fTmp[NUMNODES];
-	for (unsigned int i = 0; i < NUMNODES; i++) {
-		fTmp[i] = pNode[i]->GetRCurr()*f[i];
-	}
+    Vec3 fTmp[NUMNODES];
+    doublereal omegafTmp[NUMNODES];
+    Mat3x3 omega_o_fTmp[NUMNODES];
+    for (unsigned int i = 0; i < NUMNODES; i++) {
+        fTmp[i] = pNode[i]->GetRCurr()*f[i];
+        omegafTmp[i] = pNode[i]->GetWRef() * fTmp[i];
+        omega_o_fTmp[i] = pNode[i]->GetWRef().Tens(fTmp[i]);
+    }
 
-   Mat6x6 DefPrimeTmp[NUMSEZ][NUMNODES];
-	/* per ogni punto di valutazione: */
-	for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-		for (unsigned int node = 0; node < NUMNODES; node++) {
-			/* Delta - deformazioni */
-			DefPrimeTmp[iSez][node]
-				= Mat6x6(mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]),
-					Zero3x3,
-					Mat3x3(MatCross, L[iSez]*dN3[iSez][node] - fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez])),
-					mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]));
-		}
-	} /* end ciclo sui punti di valutazione */
+    Mat6x6 DefPrimeTmp[NUMSEZ][NUMNODES];
+    /* per ogni punto di valutazione: */
+    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+        for (unsigned int node = 0; node < NUMNODES; node++) {
+            /* Delta - deformazioni */
+            DefPrimeTmp[iSez][node]
+                = Mat6x6(mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]),
+                    Zero3x3,
+                    Mat3x3(MatCross, L[iSez]*dN3[iSez][node] - fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez])),
+                    mb_deye<Mat3x3>(dN3P[iSez][node]*dsdxi[iSez]));
+            DefPrimeTmp[iSez][node] +=
+                Mat6x6(Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][node]*dsdxi[iSez]*dCoef)),
+                    Zero3x3,
+//                     (Mat3x3(MatCross, LPrime[iSez]) - 
+//                     Mat3x3(MatCrossCross, Omega[iSez], L[iSez]))*(dN3[iSez][node]*dCoef) //TEMO SIA SBAGLIATO
+                    Mat3x3(MatCross, LPrime[iSez] - Omega[iSez].Cross(L[iSez]))*(dN3[iSez][node]*dCoef) //VERSIONE MIA
+                        + Mat3x3(MatCrossCross, Omega[iSez], fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez]*dCoef))
+                        + Mat3x3(MatCross, fTmp[node].Cross(pNode[node]->GetWCurr()*(dN3P[iSez][node]*dsdxi[iSez]*dCoef)))
+                        - mb_deye<Mat3x3>(omegafTmp[node]*dN3P[iSez][node]*dsdxi[iSez]*dCoef)
+                        + omega_o_fTmp[node] * (dN3P[iSez][node]*dsdxi[iSez]*dCoef)
+                        + mb_deye<Mat3x3>(OmegaRef[iSez]*L[iSez]*dN3[iSez][node]*dCoef)
+                        - OmegaRef[iSez].Tens(L[iSez])*(dN3[iSez][node]*dCoef)    ,
+                    Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][node]*dsdxi[iSez]*dCoef))
+                        + Mat3x3(MatCross, DefPrimeLocRef[iSez].GetVec2() * dN3[iSez][node]*dCoef)
+                );
+        }
+    } /* end ciclo sui punti di valutazione */
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
       for (int r_el = 1; r_el <= iNumElec; r_el++) {
          for (int c_el = 1; c_el <= iNumElec; c_el++) {
