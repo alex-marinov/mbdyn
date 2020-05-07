@@ -729,7 +729,12 @@ void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
                     Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][node]*dsdxi[iSez]*dCoef))
                         + Mat3x3(MatCross, DefPrimeLocRef[iSez].GetVec2() * dN3[iSez][node]*dCoef)
                 );
+            DefPrimeTmp[iSez][node].GetMat11() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat11());
+            DefPrimeTmp[iSez][node].GetMat12() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat12());
+            DefPrimeTmp[iSez][node].GetMat21() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat21());
+            DefPrimeTmp[iSez][node].GetMat22() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat22());
         }
+	
     } /* end ciclo sui punti di valutazione */
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
       for (int r_el = 1; r_el <= iNumElec; r_el++) {
