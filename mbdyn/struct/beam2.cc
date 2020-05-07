@@ -1030,9 +1030,8 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 						- mb_deye<Mat3x3>(omegafTmp[i]*dN2P[i]*dsdxi*dCoef)
 						+ omega_o_fTmp[i] * (dN2P[i]*dsdxi*dCoef)
 						+ mb_deye<Mat3x3>(OmegaRef*L*dN2[i]*dCoef)
-						- OmegaRef.Tens(L)*(dN2[i]*dCoef)	,
+						- OmegaRef.Tens(L)*(dN2[i]*dCoef),
 					Mat3x3(MatCross, Omega*(-dN2P[i]*dsdxi*dCoef))
-						+ Mat3x3(MatCross, DefPrimeLocRef.GetVec2() * dN2[i]*dCoef)
 					);
 			AzTmp[i] += ERef*AzPrimeTmp[i];
 

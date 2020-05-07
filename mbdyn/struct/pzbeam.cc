@@ -725,9 +725,8 @@ void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
                         - mb_deye<Mat3x3>(omegafTmp[node]*dN3P[iSez][node]*dsdxi[iSez]*dCoef)
                         + omega_o_fTmp[node] * (dN3P[iSez][node]*dsdxi[iSez]*dCoef)
                         + mb_deye<Mat3x3>(OmegaRef[iSez]*L[iSez]*dN3[iSez][node]*dCoef)
-                        - OmegaRef[iSez].Tens(L[iSez])*(dN3[iSez][node]*dCoef)    ,
+                        - OmegaRef[iSez].Tens(L[iSez])*(dN3[iSez][node]*dCoef),
                     Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][node]*dsdxi[iSez]*dCoef))
-                        + Mat3x3(MatCross, DefPrimeLocRef[iSez].GetVec2() * dN3[iSez][node]*dCoef)
                 );
             DefPrimeTmp[iSez][node].GetMat11() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat11());
             DefPrimeTmp[iSez][node].GetMat12() = RRef[iSez].MulTM(DefPrimeTmp[iSez][node].GetMat12());

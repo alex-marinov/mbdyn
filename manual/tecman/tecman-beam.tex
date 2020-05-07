@@ -176,20 +176,17 @@ Strain rate linearization at an evaluation point $J$:
 \end{eqnarray*}
 
 \begin{eqnarray*}
-\triangle\dot{\tilde{\kappa}}_{J}(\xi) & = & \triangle R^{T}\left(\cancel{G(\xi)}^{\approx I}\cancel{N_{Jk}'\dot{g}_{k}}^{\dot{g}_{k}\approx0}\cancel{-\omega_{J}\times(\cancel{G(\xi)}^{\approx I}N_{Jk}'g_{k})}^{g\approx0}\right)+\dot{\kappa}_{r}\\
- &  & +R^{T}\cancel{(\Delta G(\xi)N_{Jk}'\dot{g}_{k})}^{\dot{g}\approx0}\\
- &  & +R^{T}(\cancel{G(\xi)}^{\approx I}N_{Jk}'\Delta\dot{g}_{k})\\
- &  & +R^{T}\cancel{(\cancel{G(\xi)}^{\approx I}N_{i}'(\xi)g_{i})}^{g\approx0}\times\Delta\omega\\
- &  & \cancel{+R^{T}(\Delta G(\xi)N_{i}'(\xi)g_{i})\times\omega}^{\Delta g\cdot g\approx0}\\
- &  & +R^{T}(\cancel{G(\xi)}^{\approx I}N_{Ji}'\Delta g_{i})\times\omega\\
- & = & \triangle R^{T}\dot{\kappa}_{r}\\
- &  & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
- &  & +R^{T}(N_{i}'(\xi)\Delta g_{i})\times\omega\\
- & = & R_{r}^{T}\dot{\kappa}_{r}\times(N_{Jm}\Delta g_{m})\\
- &  & +R^{T}(N_{Jk}'\Delta\dot{g}_{k})\\
+\triangle\dot{\tilde{\kappa}}_{J}(\xi) & = & \triangle R^{T}\left(\cancel{G}^{\approx I}\cancel{N_{Jk}'\dot{g}_{k}}^{\dot{g}_{k}\approx0}\cancel{-\omega_{J}\times(\cancel{G}^{\approx I}N_{Jk}'g_{k})}^{g_{k}\approx0}\right)+\dot{\kappa}_{r}\\
+ &  & +R^{T}\cancel{(\Delta GN_{Jk}'\dot{g}_{k})}^{\dot{g_{k}}\approx0}\\
+ &  & +R^{T}(\cancel{G}^{\approx I}N_{Jk}'\Delta\dot{g}_{k})\\
+ &  & +R^{T}\cancel{(\cancel{G}^{\approx I}N_{Ji}'g_{i})}^{g_{i}\approx0}\times\Delta\omega\\
+ &  & \cancel{+R^{T}(\Delta GN_{Ji}'g_{i})\times\omega}^{g_{i}\approx0}\\
+ &  & +R^{T}(\cancel{G}^{\approx I}N_{Ji}'\Delta g_{i})\times\omega\\
+ & = & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
+ &  & +R^{T}(N_{Ji}'\Delta g_{i})\times\omega\\
+ & = & +R^{T}(N_{Jk}'\Delta\dot{g}_{k})\\
  &  & -R^{T}\omega\times(N_{Ji}'\Delta g_{i})\\
- & = & R_{r}^{T}\dot{\kappa}_{r}\times(N_{Jm}\Delta g_{m})\\
- &  & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
+ & = & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
  &  & -R^{T}\omega\times(N_{Jm}'\Delta g_{m})
 \end{eqnarray*}
 
