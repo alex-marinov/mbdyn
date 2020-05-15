@@ -293,7 +293,10 @@ public:
 /** Simple shape coefficient: 1.
  */
 class SimpleShapeCoefficient : public BasicShapeCoefficient {
+private:
+	doublereal shc;
 public:
+	SimpleShapeCoefficient(void) : BasicShapeCoefficient(), shc(1.) {};
 	virtual doublereal Sh_c(void) const;
 	virtual doublereal Sh_c(
 		const doublereal f,
