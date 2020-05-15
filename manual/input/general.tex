@@ -3406,11 +3406,11 @@ Currently implemented shape functions for friction models are:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_function_type} ::= \kw{simple plane hinge}
 
-    \bnt{shape_function_arglist} ::= \bnt{radius}
+    \bnt{shape_function_arglist} ::= 
 \end{Verbatim}
 %\end{verbatim}
-    This is the shape function of a \kw{revolute hinge} with radius equal to 
-    \nt{radius} and subject to small loads.
+    This is the shape function of a \kw{revolute hinge}; the radius will be prescribed from the
+    joint; the \kw{revolute hinge} is assumed to be subject to small loads.
 \end{enumerate}
 
 
