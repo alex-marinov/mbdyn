@@ -162,7 +162,7 @@ public:
 				ConstitutiveLaw<T, Tder>::FDE(i + 1, i + 1) += df1DE;
 			}
 
-			if ((CLType & ConstLawType::ELASTIC) && FDEPrimesc[i]) {
+			if ((CLType & ConstLawType::VISCOUS) && FDEPrimesc[i]) {
 				doublereal dEpsPrime = EpsPrime(i + 1);
 				f += (*FDEPrimesc[i])(dEpsPrime);
 				doublereal df2DEPrime = FDEPrimesc[i]->ComputeDiff(dEpsPrime);
