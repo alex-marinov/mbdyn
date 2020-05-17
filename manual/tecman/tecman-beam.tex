@@ -1,4 +1,197 @@
 \textbf{TODO}
+\section{Generalized strains, strain rates and their linearization}
+\emph{Authors: Marco Morandini and Wenguo Zhu}
+
+This a draft, but hopefully consistent and correct documentation of
+the beam strains, strain rates and of their derivatives. Arbitrary
+point on the beam reference line, and the rotation parameter:
+
+\begin{eqnarray*}
+p(\xi) & = & N_{i}(\xi)(x_{i}+R_{i}\tilde{f_{i}})
+\end{eqnarray*}
+\begin{eqnarray*}
+g(\xi) & = & N_{i}(\xi)g_{i}
+\end{eqnarray*}
+The generalized strain: 
+
+\begin{eqnarray*}
+\varepsilon(\xi) & = & R^{T}(\xi)N_{i}'(\xi)(x_{i}+R_{i}\tilde{f_{i}})-\bar{p}'
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\kappa(\xi) & = & R^{T}(\xi)\left(G(\xi)N_{i}'(\xi)g_{i}\right)+\kappa_{r}
+\end{eqnarray*}
+Rotation:
+\[
+R=R(N_{i}g_{i})R_{r}
+\]
+Derivative of Rotation:
+\begin{eqnarray*}
+\dot{R} & = & \omega\times R
+\end{eqnarray*}
+\[
+\dot{R}^{T}=-R^{T}\omega\times
+\]
+Section angular velocity:
+\[
+\omega=G(\xi)N_{i}'(\xi)\dot{g}_{i}-\omega_{r}\times N_{i}g_{i}
+\]
+And the strain rate can be expressed as:
+
+\begin{eqnarray*}
+l & = & N_{i}'(\xi)(x_{i}+R_{i}\tilde{f_{i}})
+\end{eqnarray*}
+\begin{eqnarray*}
+\dot{l} & = & N_{Jk}'(\dot{x}_{k}+\dot{R}_{k}\tilde{f_{k}})\\
+ & = & N_{Jk}'(\dot{x}_{k}+\omega_{k}\times R_{k}\tilde{f_{k}})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\dot{\tilde{\varepsilon}} & = & R^{T}(\dot{l}-\omega\times l)\\
+ & = & R^{T}N_{Jk}'(\dot{x}_{k}+\omega_{k}\times R_{k}\tilde{f_{k}})\\
+ &  & -R^{T}\omega\times N'_{Ji}(x_{i}+R_{i}\tilde{f_{i}})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\dot{\tilde{\kappa}} & = & R^{T}(G(\xi)N_{i}'(\xi)\dot{g}_{i}-\omega\times(G(\xi)N_{i}'(\xi)g_{i}))+\dot{\kappa}_{r}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\omega & = & G(N_{i}g_{i})N_{i}'\dot{g}_{i}+R(N_{i}g_{i})\omega_{r}
+\end{eqnarray*}
+Angular velocity linearization at an evaluation point $J$:
+
+\begin{eqnarray*}
+\triangle\omega & = & \triangle GN_{Ji}\dot{g}_{i}\\
+ &  & +\cancel{G}^{G\approx I}N_{Ji}\Delta\dot{g}_{i}\\
+ &  & +\Delta R\omega_{r}\\
+ & = & \frac{1}{2}N_{jk}\Delta g_{k}\times N'_{Ji}\dot{g}_{i}\\
+ &  & +N_{Ji}\Delta\dot{g}_{i}\\
+ &  & -\omega_{r}\times N_{Ji}\Delta g_{i}\\
+ & = & \cancel{-\frac{1}{2}N'_{Ji}\dot{g}_{i}\times N_{jk}\Delta g_{k}}^{\dot{g}\approx0}\\
+ &  & +N_{Ji}\Delta\dot{g}_{i}\\
+ &  & -\omega_{r}\times N_{Ji}\Delta g_{i}\\
+ & = & N_{Ji}\Delta\dot{g}_{i}-\omega_{r}\times N_{Ji}\Delta g_{i}
+\end{eqnarray*}
+Rotation linearization at an evaluation point $J$:
+
+\begin{eqnarray*}
+\triangle R & = & \triangle g\times R_{r}\\
+ & = & (N_{Ji}\Delta g_{i})\times R_{r}
+\end{eqnarray*}
+\[
+\Delta R^{T}=-R_{r}^{T}(N_{Ji}\Delta g_{i})\times
+\]
+Rotation rate linearization at an evaluation point $J$:
+
+\begin{eqnarray*}
+\dot{R} & = & \cancel{\dot{R}_{\delta}R_{r}=(G_{\delta}\dot{g})\times R_{r}}\\
+ & = & \omega\times R
+\end{eqnarray*}
+\[
+\dot{R}^{T}=-R^{T}\omega\times
+\]
+\begin{eqnarray*}
+\Delta\dot{R} & = & \Delta\omega\times R\\
+ &  & +\omega\times\Delta R\\
+ & = & \left(N_{Ji}\Delta\dot{g}_{i}-\omega_{r}\times N_{Ji}\Delta g_{i}\right)\times R\\
+ &  & +\omega\times N_{Ji}\Delta g_{i}\times\\
+ & = & N_{Ji}\Delta\dot{g}_{i}\times R\\
+ &  & -N_{Ji}\Delta g_{i}\otimes\omega_{r}R\\
+ &  & +\omega_{r}\otimes N_{Ji}R^{T}\Delta g_{i}\\
+ &  & +\omega\times N_{Ji}\Delta g_{i}\times
+\end{eqnarray*}
+\begin{eqnarray*}
+\Delta\dot{R}_{i} & = & \Delta\dot{g}_{i}\times R_{i}\\
+ &  & -\Delta g_{i}\otimes\omega_{ri}R_{i}\\
+ &  & +\omega_{ri}\otimes R_{i}^{T}\Delta g_{i}\\
+ &  & +\omega_{i}\times\Delta g_{i}\times
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\triangle l & = & N_{Ji}'(\triangle x_{i}+\triangle R_{i}\tilde{f_{i}})\\
+ & = & N_{Ji}'(\triangle x_{i}-(R_{i}\tilde{f_{i}})\times\triangle g_{i})
+\end{eqnarray*}
+Strain linearization at an evaluation point $J$:
+
+\begin{eqnarray*}
+\Delta\varepsilon & = & \triangle R^{T}N_{Jk}'(x_{k}+R_{k}\tilde{f_{k}})\\
+ &  & +R^{T}N_{Jk}'(\Delta x_{k}+\Delta R_{k}\tilde{f_{k}})\\
+ & = & R_{r}^{T}N_{Jk}'(x_{k}+R_{k}\tilde{f_{k}})\times(N_{Jm}\Delta g_{m})\\
+ &  & +R^{T}N_{Jk}'(\Delta x_{k}+\Delta g_{k}\times R_{k}\tilde{f_{k}})\\
+ & = & R_{r}^{T}N_{Jk}'(x_{k}+R_{k}\tilde{f_{k}})\times(N_{Jm}\Delta g_{m})\\
+ &  & +R_{r}^{T}N_{Jk}'(\Delta x_{k}-R_{k}\tilde{f_{k}}\times\Delta g_{k})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\Delta\kappa & = & \cancel{\Delta R^{T}GN'_{Ji}g_{i}}^{g_{i}\approx0}\\
+ &  & \cancel{+R^{T}\Delta GN'_{Ji}g_{i}}^{g_{i}\approx0}\\
+ &  & +R^{T}GN'_{Ji}\Delta g_{i}\\
+ & = & R_{r}^{T}N'_{Ji}\Delta g_{i}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\dot{l} & = & N_{Ji}'(\dot{x}_{i}+\dot{R}_{i}\tilde{f_{i}})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\triangle\dot{l} & = & N_{Ji}'(\triangle\dot{x}_{i}+\triangle\dot{R}_{i}\tilde{f_{i}})\\
+ & = & N_{Ji}'(\triangle\dot{x}_{i}+\left(\Delta\dot{g}_{i}\times R_{i}-\Delta g_{i}\otimes\omega_{ri}R_{i}+\omega_{ri}\otimes R_{i}^{T}\Delta g_{i}+\omega_{i}\times\Delta g_{i}\times\right)\tilde{f_{i}})\\
+ & = & N_{Ji}'\triangle\dot{x}_{i}\\
+ &  & -N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
+ &  & -N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
+ &  & +N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
+ &  & -N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}
+\end{eqnarray*}
+
+Strain rate linearization at an evaluation point $J$:
+\begin{eqnarray*}
+\triangle\dot{\tilde{\varepsilon}}_{J} & = & \Delta R^{T}(\dot{l}-\omega\times l)\\
+ &  & +R^{T}\Delta\dot{l}\\
+ &  & -R^{T}\Delta\omega\times l\\
+ &  & -R^{T}\omega\times\Delta l\\
+ & = & R_{r}^{T}(\dot{l}-\omega\times l)\times N_{Ji}\Delta g_{i}\\
+ &  & R^{T}N_{Ji}'\triangle\dot{x}_{i}+\\
+ &  & -R^{T}N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
+ &  & -R^{T}N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
+ &  & +R^{T}N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
+ &  & -R^{T}N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}\\
+ &  & +R^{T}l\times N_{Ji}\Delta\dot{g}_{i}\\
+ &  & \cancel{+R^{T}(\omega_{r}\times N_{Ji}\Delta g_{i})\times l}^{EXPANDED\ IN\ THE\ TWO\ LINES\ BELOW}\\
+ &  & +(\omega_{r}\cdot l)R^{T}N_{Ji}\Delta g_{i}\\
+ &  & -R^{T}\omega_{r}\otimes l\cdot N_{Ji}\Delta g_{i}\\
+ &  & -R^{T}\omega\times N'_{Ji}\Delta x_{i}\\
+ &  & +R^{T}\omega\times N'_{Ji}(R_{i}\tilde{f_{i}})\times\triangle g_{i}\\
+ & = & R^{T}N_{Ji}'\triangle\dot{x}_{i}\\
+ &  & -R^{T}\omega\times N'_{Ji}\Delta x_{i}\\
+ &  & +R_{r}^{T}(\dot{l}-\omega\times l)\times N_{Ji}\Delta g_{i}\\
+ &  & -R^{T}N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
+ &  & -R^{T}N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
+ &  & +R^{T}N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
+ &  & -R^{T}N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}\\
+ &  & +R^{T}l\times N_{Ji}\Delta\dot{g}_{i}\\
+ &  & +R^{T}(\omega_{r}\cdot l)N_{Ji}\Delta g_{i}\\
+ &  & -R^{T}\omega_{r}\otimes l\cdot N_{Ji}\Delta g_{i}\\
+ &  & +R^{T}\omega\times N'_{Ji}(R_{i}\tilde{f_{i}})\times\triangle g_{i}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\triangle\dot{\tilde{\kappa}}_{J}(\xi) & = & \triangle R^{T}\left(\cancel{G}^{\approx I}\cancel{N_{Jk}'\dot{g}_{k}}^{\dot{g}_{k}\approx0}\cancel{-\omega_{J}\times(\cancel{G}^{\approx I}N_{Jk}'g_{k})}^{g_{k}\approx0}\right)+\dot{\kappa}_{r}\\
+ &  & +R^{T}\cancel{(\Delta GN_{Jk}'\dot{g}_{k})}^{\dot{g_{k}}\approx0}\\
+ &  & +R^{T}(\cancel{G}^{\approx I}N_{Jk}'\Delta\dot{g}_{k})\\
+ &  & +R^{T}\cancel{(\cancel{G}^{\approx I}N_{Ji}'g_{i})}^{g_{i}\approx0}\times\Delta\omega\\
+ &  & \cancel{+R^{T}(\Delta GN_{Ji}'g_{i})\times\omega}^{g_{i}\approx0}\\
+ &  & +R^{T}(\cancel{G}^{\approx I}N_{Ji}'\Delta g_{i})\times\omega\\
+ & = & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
+ &  & +R^{T}(N_{Ji}'\Delta g_{i})\times\omega\\
+ & = & +R^{T}(N_{Jk}'\Delta\dot{g}_{k})\\
+ &  & -R^{T}\omega\times(N_{Ji}'\Delta g_{i})\\
+ & = & +R^{T}N_{Jk}'\Delta\dot{g}_{k}\\
+ &  & -R^{T}\omega\times(N_{Jm}'\Delta g_{m})
+\end{eqnarray*}
+
+
+
 \section{Fully coupled piezoelectric beam}
 A fully coupled piezoelectric beam, differently from a piezoelectric beam,
 do contribute to the electri equations of the abstrc nodes it is
