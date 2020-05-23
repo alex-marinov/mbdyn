@@ -111,24 +111,23 @@ private:
         struct ContactNode {
                 ContactNode(const StructNode* pNode,
                             const Vec3& vOffset,
-                            doublereal dRadius)
+                            doublereal dRadius,
+                            integer iNumFaces)
                         :pContNode(pNode),
                          vOffset(vOffset),
                          dRadius(dRadius)
                 {
-                        Reset();
+                        rgTargetFaces.reserve(iNumFaces);
                 }
 
                 void Reset() {
-                        pTargetFace = nullptr;
-                        dMinDistance = std::numeric_limits<doublereal>::max();
+                        rgTargetFaces.clear();
                 }
 
                 const StructNode* const pContNode;
-                const TargetFace* pTargetFace;
+                std::vector<const TargetFace*> rgTargetFaces;
                 const Vec3 vOffset;
                 const doublereal dRadius;
-                doublereal dMinDistance;
         };
 
         void ContactSearch();
@@ -322,7 +321,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 
-                rgContactMesh.emplace_back(pContNode, o1, dRadius);
+                rgContactMesh.emplace_back(pContNode, o1, dRadius, iNumFaces);
         }
 
         oNodeSet.reserve(iNumContactNodes);
@@ -421,18 +420,8 @@ void TriangSurfContact::ContactSearch()
                                 }
                         }
 
-                        if (!bInsert) {
-                                continue;
-                        }
-
-                        const Vec3& o2i = rFace.rgVert[0].o;
-                        const Mat3x3& R2i = rFace.rgVert[0].R;
-
-                        const doublereal dz = R2i.GetCol(3).Dot(dX - o2i) - pNode->dRadius;
-
-                        if (dz < pNode->dMinDistance) {
-                                pNode->dMinDistance = dz;
-                                pNode->pTargetFace = &rFace;
+                        if (bInsert) {
+                                pNode->rgTargetFaces.push_back(&rFace);
                         }
                 }
         }
@@ -473,12 +462,15 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 
         const integer iFirstIndex2 = pTargetNode->iGetFirstMomentumIndex();
 
+        Vector<T, 3> X1, X2, F1, M1, F2, M2;
+        Matrix<T, 3, 3> R1, R2;
+
         for (const auto& rNode: rgContactMesh) {
+                F1 = M1 = F2 = M2 = ::Zero3;
+                
                 oDofMap.Reset();
 
-                if (rNode.pTargetFace) {
-                        Vector<T, 3> X1, X2;
-                        Matrix<T, 3, 3> R1, R2;
+                for (auto pTargetFace: rNode.rgTargetFaces) {
                         rNode.pContNode->GetXCurr(X1, dCoef, func, &oDofMap);
                         rNode.pContNode->GetRCurr(R1, dCoef, func, &oDofMap);
 
@@ -486,27 +478,28 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
                         pTargetNode->GetRCurr(R2, dCoef, func, &oDofMap);
 
                         const Vec3& o1 = rNode.vOffset;
-                        const Mat3x3& R2i = rNode.pTargetFace->rgVert[0].R;
-                        const Vec3& o2i = rNode.pTargetFace->rgVert[0].o;
+                        const Mat3x3& R2i = pTargetFace->rgVert[0].R;
+                        const Vec3& o2i = pTargetFace->rgVert[0].o;
 
                         const Vector<T, 3> n = R2 * R2i.GetCol(3);
                         const Vector<T, 3> l1 = R1 * o1;
                         const Vector<T, 3> l2 = X1 + l1 - X2;
                         const T dz = Dot(n, l2 - R2 * o2i) - rNode.dRadius;
 
-                        const Vector<T, 3> F2 = n * GetContactForce(dz, &oDofMap);
-                        const Vector<T, 3> M2 = Cross(l2, F2);
+                        const Vector<T, 3> F2i = n * GetContactForce(dz, &oDofMap);
 
-                        const Vector<T, 3> F1 = -F2;
-                        const Vector<T, 3> M1 = Cross(l1, F1);
-
-                        const integer iFirstIndex1 = rNode.pContNode->iGetFirstMomentumIndex();
-
-                        WorkVec.AddItem(iFirstIndex1 + 1, F1);
-                        WorkVec.AddItem(iFirstIndex1 + 4, M1);
-                        WorkVec.AddItem(iFirstIndex2 + 1, F2);
-                        WorkVec.AddItem(iFirstIndex2 + 4, M2);
+                        F2 += F2i;
+                        M2 += Cross(l2, F2i);
+                        F1 -= F2i;
+                        M1 -= Cross(l1, F2i);
                 }
+
+                const integer iFirstIndex1 = rNode.pContNode->iGetFirstMomentumIndex();
+                
+                WorkVec.AddItem(iFirstIndex1 + 1, F1);
+                WorkVec.AddItem(iFirstIndex1 + 4, M1);
+                WorkVec.AddItem(iFirstIndex2 + 1, F2);
+                WorkVec.AddItem(iFirstIndex2 + 4, M2);
         }
 }
 
