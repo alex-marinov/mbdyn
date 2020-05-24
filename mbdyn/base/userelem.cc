@@ -49,6 +49,7 @@
 #include "module-ballbearing_contact/module-ballbearing_contact.h"
 #include "module-journal_bearing/module-journal_bearing.h"
 #include "module-uni_in_plane/module-uni_in_plane.h"
+#include "module-triangular_contact/module-triangular_contact.h"
 #endif
 #include "module-cyclocopter/module-cyclocopter.h"
 #include "module-hfelem/module-hfelem.h"
@@ -148,6 +149,8 @@ InitUDE(void)
         b = journal_bearing_set();
         ASSERT(b != false);
         b = uni_in_plane_set();
+        ASSERT(b != false);
+        b = triangular_contact_set();
         ASSERT(b != false);
 #endif
 	b = mbdyn_cyclocopter_set();

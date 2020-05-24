@@ -162,7 +162,10 @@ $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h 
 $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
 \
 $(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.h \
-$(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.cc
+$(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.cc \
+\
+$(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
+$(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
 endif
 
 # add more...
