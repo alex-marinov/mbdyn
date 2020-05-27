@@ -99,13 +99,13 @@ Rotation rate linearization at an evaluation point $J$:
  & = & N_{Ji}\Delta\dot{g}_{i}\times R\\
  &  & -N_{Ji}\Delta g_{i}\otimes\omega_{r}R\\
  &  & +\omega_{r}\otimes N_{Ji}R^{T}\Delta g_{i}\\
- &  & +\omega\times N_{Ji}\Delta g_{i}\times
+ &  & +\omega\times N_{Ji}\Delta g_{i}\times R_r
 \end{eqnarray*}
 \begin{eqnarray*}
 \Delta\dot{R}_{i} & = & \Delta\dot{g}_{i}\times R_{i}\\
  &  & -\Delta g_{i}\otimes\omega_{ri}R_{i}\\
  &  & +\omega_{ri}\otimes R_{i}^{T}\Delta g_{i}\\
- &  & +\omega_{i}\times\Delta g_{i}\times
+ &  & +\omega_{i}\times\Delta g_{i}\times R_{ri}
 \end{eqnarray*}
 
 \begin{eqnarray*}
@@ -136,12 +136,12 @@ Strain linearization at an evaluation point $J$:
 
 \begin{eqnarray*}
 \triangle\dot{l} & = & N_{Ji}'(\triangle\dot{x}_{i}+\triangle\dot{R}_{i}\tilde{f_{i}})\\
- & = & N_{Ji}'(\triangle\dot{x}_{i}+\left(\Delta\dot{g}_{i}\times R_{i}-\Delta g_{i}\otimes\omega_{ri}R_{i}+\omega_{ri}\otimes R_{i}^{T}\Delta g_{i}+\omega_{i}\times\Delta g_{i}\times\right)\tilde{f_{i}})\\
+ & = & N_{Ji}'(\triangle\dot{x}_{i}+\left(\Delta\dot{g}_{i}\times R_{i}-\Delta g_{i}\otimes\omega_{ri}R_{i}+\omega_{ri}\otimes R_{i}^{T}\Delta g_{i}+\omega_{i}\times\Delta g_{i}\times R_{ri}\right)\tilde{f_{i}})\\
  & = & N_{Ji}'\triangle\dot{x}_{i}\\
  &  & -N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
  &  & -N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
  &  & +N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
- &  & -N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}
+ &  & -N_{Ji}'\omega_{i}\times(R_{ri}\tilde{f}_{i})\times\Delta g_{i}
 \end{eqnarray*}
 
 Strain rate linearization at an evaluation point $J$:
@@ -151,11 +151,11 @@ Strain rate linearization at an evaluation point $J$:
  &  & -R^{T}\Delta\omega\times l\\
  &  & -R^{T}\omega\times\Delta l\\
  & = & R_{r}^{T}(\dot{l}-\omega\times l)\times N_{Ji}\Delta g_{i}\\
- &  & R^{T}N_{Ji}'\triangle\dot{x}_{i}+\\
+ &  & +R^{T}N_{Ji}'\triangle\dot{x}_{i}+\\
  &  & -R^{T}N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
  &  & -R^{T}N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
  &  & +R^{T}N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
- &  & -R^{T}N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}\\
+ &  & -R^{T}N_{Ji}'\omega_{i}\times(R_{ri}\tilde{f}_{i})\times\Delta g_{i}\\
  &  & +R^{T}l\times N_{Ji}\Delta\dot{g}_{i}\\
  &  & \cancel{+R^{T}(\omega_{r}\times N_{Ji}\Delta g_{i})\times l}^{EXPANDED\ IN\ THE\ TWO\ LINES\ BELOW}\\
  &  & +(\omega_{r}\cdot l)R^{T}N_{Ji}\Delta g_{i}\\
@@ -168,7 +168,7 @@ Strain rate linearization at an evaluation point $J$:
  &  & -R^{T}N_{Ji}'(R_{i}\tilde{f}_{i})\times\Delta\dot{g}_{i}\\
  &  & -R^{T}N_{Ji}'(\omega_{ri}R_{i}\tilde{f}_{i})\Delta g_{i}\\
  &  & +R^{T}N_{Ji}'\omega_{ri}\otimes\tilde{f}_{i}R_{i}^{T}\Delta g_{i}\\
- &  & -R^{T}N_{Ji}'\omega_{i}\times\tilde{f}_{i}\times\Delta g_{i}\\
+ &  & -R^{T}N_{Ji}'\omega_{i}\times(R_{ri}\tilde{f}_{i})\times\Delta g_{i}\\
  &  & +R^{T}l\times N_{Ji}\Delta\dot{g}_{i}\\
  &  & +R^{T}(\omega_{r}\cdot l)N_{Ji}\Delta g_{i}\\
  &  & -R^{T}\omega_{r}\otimes l\cdot N_{Ji}\Delta g_{i}\\
