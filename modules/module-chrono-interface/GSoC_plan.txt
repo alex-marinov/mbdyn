@@ -1,0 +1,20 @@
+Objective:
+
+Minimum: interface for single node in MBDyn & in C::E
+MBDyn-side code for MBDyn module
+C::E-side code for MBDyn-C::E interface
+C::E code for example (e.f. a mass, or a mass and a spring, ...)
+Desired: interface for arbitrary number of nodes
+
+
+First step: the minimum objective;
+1. A define element: like the external structural force element, yet without communication tools, such as the sockets or the files; (2-3 weeks)
+2. MBDyn-C::E interfaces; (3 weeks)
+3. a simple C::E system; (1-2 day)
+
+Schedules:
+1. A define element: like the external structural force element, yet without communication tools, such as the sockets or the files; (2-3 weeks)
+	1.a. a loadable element like the structural force;
+	2.a. a loadable element like the external structural force element, with an inputing force or torque;
+
+
