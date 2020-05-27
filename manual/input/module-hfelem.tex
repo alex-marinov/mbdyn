@@ -54,7 +54,8 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
             (\hty{DriveCaller}) \bnt{input_signal}
                     [ \{ \kw{test} | \kw{output} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
                 [ , ... ] , # \nt{inputs_number} occurrences
-        \kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
+        [\kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \},]
+	\kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
         [\kw{max delta t} , (\ty{real}) \bnt{max_delta_t} ,]
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
             [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
@@ -83,6 +84,9 @@ drive callers, either alone or in combination with other drive callers, are used
 If \kw{test} is \kw{true}, the signal will be used to evaluate convergence, otherwise it will be ignored;
 If \kw{output} is \kw{true}, the fundamental harmonic of the signal will appear in the output, otherwise it will be ignored;
 by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used, the signal is used to test for convergence and appears in the output;
+
+\item \kw{output format}; coose the output format: either \kw{complex} (defualt) of \kw{magnitude phase} (see
+\ref{hfelem_output} for the output description);
 
 \item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
 \begin{align*}
@@ -124,7 +128,7 @@ Using this keyword replaces the need to manually define an \kw{element} drive ca
 (see the discussion of the \kw{timestep} private datum).
 \end{itemize}
 
-\paragraph{Output.}
+\paragraph{Output.}\label{hfelem_output}
 Output in text format takes place in the \emph{user-defined} elements output file (the one with the \texttt{.usr} extension).
 
 The output of this element differs a bit from that of regular ones, since it only occurs at convergence for each specific excitation frequency, which in turn can only occur at the end of a period.
@@ -144,7 +148,13 @@ Each output row contains:
 \item[2)] the time at which convergence was reached (real)
 \item[3)] the angular frequency (real)
 \item[4)] how many periods were required to reach convergence (unsigned)
-\item[5--?)] fundamental frequency coefficient of output signals; for each of them, the real and the imaginary part are output (pairs of reals)
+\item[5--?)] fundamental frequency coefficient of output signals; for each of them, 
+\begin{itemize}
+	\item the real and the imaginary part are output (pairs of reals) 
+	if \kw{output format} is either not set or set equal to \kw{complex}
+	\item the magnitude and phase are output (pair of reals)
+	if \kw{output format} is set equal to \kw{magnitude phase}
+\end{itemize}
 \end{itemize}
 For example, to plot the results of the first output signal in Octave (or Matlab), one can use:
 \begin{framed}
