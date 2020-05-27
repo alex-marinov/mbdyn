@@ -1026,7 +1026,7 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 // 					Mat3x3(MatCrossCross, Omega, L))*(dN2[i]*dCoef) //TEMO SIA SBAGLIATO
 					Mat3x3(MatCross, LPrime - Omega.Cross(L))*(dN2[i]*dCoef) //VERSIONE MIA
 						+ Mat3x3(MatCrossCross, Omega, fTmp[i]*(dN2P[i]*dsdxi*dCoef))
-						+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN2P[i]*dsdxi*dCoef)))
+						- Mat3x3(MatCrossCross, pNode[i]->GetWCurr(), fTmp[i]*(dN2P[i]*dsdxi*dCoef))
 						- mb_deye<Mat3x3>(omegafTmp[i]*dN2P[i]*dsdxi*dCoef)
 						+ omega_o_fTmp[i] * (dN2P[i]*dsdxi*dCoef)
 						+ mb_deye<Mat3x3>(OmegaRef*L*dN2[i]*dCoef)
