@@ -1677,7 +1677,7 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 				+ RDelta[iSez]*OmegaRef[iSez];
 			/* rate of MatG */
 			doublereal dtmp1 = 4.+g[iSez].Dot(); //(4./(4.+g.Dot()))
-			doublereal dtmp = dtmp * dtmp;
+			doublereal dtmp = dtmp1 * dtmp1;
 			dtmp = -4. / dtmp;
 			dtmp1 = 2. / dtmp1;
 			GPrime[iSez] = (gPrime[iSez].Tens(g[iSez]) + g[iSez].Tens(gPrime[iSez])) * dtmp 
