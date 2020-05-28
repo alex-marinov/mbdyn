@@ -52,8 +52,20 @@ l & = & N_{i}'(\xi)(x_{i}+R_{i}\tilde{f_{i}})
  &  & -R^{T}\omega\times N'_{Ji}(x_{i}+R_{i}\tilde{f_{i}})
 \end{eqnarray*}
 
+\[
+\boldsymbol{G}	= \frac{4}{4+\boldsymbol{g}^{T}\boldsymbol{g}}(\boldsymbol{I}+\frac{1}{2}\boldsymbol{g}\times)
+\]
+
+\[
+\dot{G}=-\frac{4}{(4+\boldsymbol{g}^{T}\boldsymbol{g})^{2}}(
+		\dot{\boldsymbol{g}}\otimes\boldsymbol{g}+
+		\boldsymbol{g}\otimes\dot{\boldsymbol{g}}
+	)(\boldsymbol{I}+\frac{1}{2}\boldsymbol{g}\times)
+	+\frac{4}{4+\boldsymbol{g}^{T}\boldsymbol{g}}(\frac{1}{2}\dot{\boldsymbol{g}}\times)
+\]
+
 \begin{eqnarray*}
-\dot{\tilde{\kappa}} & = & R^{T}(G(\xi)N_{i}'(\xi)\dot{g}_{i}-\omega\times(G(\xi)N_{i}'(\xi)g_{i}))+\dot{\kappa}_{r}
+\dot{\tilde{\kappa}} & = & R^{T}(G(\xi)N_{i}'(\xi)\dot{g}_{i}+\dot{G}(\xi)N_{i}'(\xi)g_{i}-\omega\times(G(\xi)N_{i}'(\xi)g_{i}))+\dot{\kappa}_{r}
 \end{eqnarray*}
 
 \begin{eqnarray*}
@@ -176,7 +188,7 @@ Strain rate linearization at an evaluation point $J$:
 \end{eqnarray*}
 
 \begin{eqnarray*}
-\triangle\dot{\tilde{\kappa}}_{J}(\xi) & = & \triangle R^{T}\left(\cancel{G}^{\approx I}\cancel{N_{Jk}'\dot{g}_{k}}^{\dot{g}_{k}\approx0}\cancel{-\omega_{J}\times(\cancel{G}^{\approx I}N_{Jk}'g_{k})}^{g_{k}\approx0}\right)+\dot{\kappa}_{r}\\
+\triangle\dot{\tilde{\kappa}}_{J}(\xi) & = & \triangle R^{T}\left(\cancel{G}^{\approx I}\cancel{N_{Jk}'\dot{g}_{k}}^{\dot{g}_{k}\approx0}\cancel{+\Delta\dot{G}N_{Jk}'g_{k}}^{g_{k}\approx0}\cancel{-\omega_{J}\times(\cancel{G}^{\approx I}N_{Jk}'g_{k})}^{g_{k}\approx0}\right)+\dot{\kappa}_{r}\\
  &  & +R^{T}\cancel{(\Delta GN_{Jk}'\dot{g}_{k})}^{\dot{g_{k}}\approx0}\\
  &  & +R^{T}(\cancel{G}^{\approx I}N_{Jk}'\Delta\dot{g}_{k})\\
  &  & +R^{T}\cancel{(\cancel{G}^{\approx I}N_{Ji}'g_{i})}^{g_{i}\approx0}\times\Delta\omega\\
