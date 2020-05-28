@@ -1650,6 +1650,7 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		}
 
 		Mat3x3 RDelta[NUMSEZ];
+		Mat3x3 GPrime[NUMSEZ];
 		Vec3 gGrad[NUMSEZ];
 		Vec3 gPrimeGrad[NUMSEZ];
 
@@ -1674,7 +1675,14 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 				gPrimeNod[NODE3], Beam::Section(iSez));
 			Omega[iSez] = Mat3x3(CGR_Rot::MatG, g[iSez])*gPrime[iSez]
 				+ RDelta[iSez]*OmegaRef[iSez];
-
+			/* rate of MatG */
+			doublereal dtmp1 = 4.+g[iSez].Dot(); //(4./(4.+g.Dot()))
+			doublereal dtmp = dtmp * dtmp;
+			dtmp = -4. / dtmp;
+			dtmp1 = 2. / dtmp1;
+			GPrime[iSez] = (gPrime[iSez].Tens(g[iSez]) + g[iSez].Tens(gPrime[iSez])) * dtmp 
+				+ Mat3x3(MatCross, gPrime[iSez]) * dtmp1;
+			
 			/* Derivate della posizione */
 			L[iSez] = InterpDeriv(xTmp[NODE1],
 				xTmp[NODE2],
@@ -1702,6 +1710,7 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 			/* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
 			DefPrimeLoc[iSez] = Vec6(R[iSez].MulTV(LPrime[iSez] + L[iSez].Cross(Omega[iSez])),
 				R[iSez].MulTV(Mat3x3(CGR_Rot::MatG, g[iSez])*gPrimeGrad[iSez]
+				+ GPrime[iSez] * g[iSez]
 				+ (Mat3x3(CGR_Rot::MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez]))
 				+ DefPrimeLocRef[iSez].GetVec2());
 
