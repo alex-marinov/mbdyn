@@ -309,9 +309,10 @@ const char cDebugFree  = 'F';
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		(pnt) = new item; \
-		if (!(pnt)) { \
+		try{(pnt) = new item;} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__); \
+			throw(ba); \
 		} \
 		(memman).add((void*)(pnt), sizeof(item)); \
 	} while(0)
@@ -321,9 +322,10 @@ const char cDebugFree  = 'F';
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		(pnt) = new constructor; \
-		if (!(pnt)) { \
+		try{(pnt) = new constructor;} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__); \
+			throw(ba); \
            	} \
            	(memman).add((void*)(pnt), sizeof(item)); \
 	} while (0)
@@ -336,9 +338,10 @@ const char cDebugFree  = 'F';
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
 		ASSERT(sz); \
-		(pnt) = new item[sz]; \
-		if (!(pnt)) { \
+		try{(pnt) = new item[sz];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 		(memman).add((void*)(pnt), sizeof(item)*(sz), 1); \
 		_Safenewfill((void*)pnt, sizeof(item)*(sz), cDebugAlloc); \
@@ -350,9 +353,10 @@ const char cDebugFree  = 'F';
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
 		ASSERT(sz); \
-		(pnt) = new item[sz]; \
-		if (!(pnt)) { \
+		try{(pnt) = new item[sz];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 		(memman).add((void*)(pnt), sizeof(item)*(sz), 1); \
 	} while (0)
@@ -362,9 +366,10 @@ const char cDebugFree  = 'F';
 		ASSERT(!(pnt)); \
 		ASSERT((src)); \
 		unsigned int l = strlen((src))+1; \
-		(pnt) = new char[l]; \
-		if ( !(pnt) ) { \
+		try{(pnt) = new char[l];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 		strcpy((char *)(pnt), (src)); \
 		(memman).add((void*)(pnt), l, 1); \
@@ -486,7 +491,7 @@ struct stMemBlock {
 
 /* classe del memory manager */
 class clMemMan {
-	friend ostream& operator << (ostream& rout, const clMemMan& rm);
+	friend std::ostream& operator << (std::ostream& rout, const clMemMan& rm);
 
 public:
 	class ErrGeneric : public MBDynErrBase {
@@ -536,7 +541,7 @@ public:
 	void ClearRefs(void);
 	void PutRef(const void* pvRef);
 	flag fIsRefd(const void* pvIsRefd) const;
-	ostream& DumpRef(ostream& rout) const;
+	std::ostream& DumpRef(std::ostream& rout) const;
        
 	void add(const void* pvIn, size_t sizeIn, flag fArr = 0);
 	inline void remove(const void* pvToRemove, flag fArr = 0, flag fFill = 0) {
@@ -555,7 +560,7 @@ public:
 extern clMemMan defaultMemoryManager;
 
 /* funzione di stream del memory manager */
-extern ostream& operator << (ostream& rout, const clMemMan& rm);
+extern std::ostream& operator << (std::ostream& rout, const clMemMan& rm);
 
 #else /* !DEBUG_MEMMANAGER */
 
@@ -564,9 +569,10 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		(pnt) = new item; \
-		if (!(pnt)) { \
+		try{(pnt) = new item;} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__); \
+			throw(ba); \
 		} \
 	} while (0)
 
@@ -575,9 +581,10 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		(pnt) = new constructor; \
-		if (!(pnt)) { \
+		try{(pnt) = new constructor;} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__); \
+			throw(ba); \
 		} \
 	} while (0)
 
@@ -590,9 +597,10 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
 		ASSERT(sz); \
-		(pnt) = new item[sz]; \
-		if (!(pnt)) { \
+		try{(pnt) = new item[sz];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 		_Safenewfill(pnt, sizeof(item)*(sz), cDebugAlloc); \
 	} while (0) 
@@ -603,9 +611,10 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
 		ASSERT(sz); \
-		(pnt) = new item[sz]; \
-		if (!(pnt)) { \
+		try{(pnt) = new item[sz];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 	} while (0) 
 
@@ -614,9 +623,10 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 		ASSERT(!(pnt)); \
 		ASSERT((src)); \
 		unsigned int l = strlen((src))+1; \
-		(pnt) = new char[l]; \
-		if (!(pnt)) { \
+		try{(pnt) = new char[l];} \
+		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
+			throw(ba); \
 		} \
 		strcpy((char *)(pnt), (src)); \
 	} while (0)
