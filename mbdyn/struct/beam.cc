@@ -1531,7 +1531,7 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 // 					Mat3x3(MatCrossCross, Omega[iSez], L[iSez]))*(dN3[iSez][i]*dCoef) //TEMO SIA SBAGLIATO
 					Mat3x3(MatCross, LPrime[iSez] - Omega[iSez].Cross(L[iSez]))*(dN3[iSez][i]*dCoef) //VERSIONE MIA
 						+ Mat3x3(MatCrossCross, Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
-						+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef)))
+						- Mat3x3(MatCrossCross, pNode[i]->GetWCurr(), fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
 						- mb_deye<Mat3x3>(omegafTmp[i]*dN3P[iSez][i]*dsdxi[iSez]*dCoef)
 						+ omega_o_fTmp[i] * (dN3P[iSez][i]*dsdxi[iSez]*dCoef)
 						+ mb_deye<Mat3x3>(OmegaRef[iSez]*L[iSez]*dN3[iSez][i]*dCoef)
@@ -1650,6 +1650,7 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		}
 
 		Mat3x3 RDelta[NUMSEZ];
+		Mat3x3 GPrime[NUMSEZ];
 		Vec3 gGrad[NUMSEZ];
 		Vec3 gPrimeGrad[NUMSEZ];
 
@@ -1674,7 +1675,14 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 				gPrimeNod[NODE3], Beam::Section(iSez));
 			Omega[iSez] = Mat3x3(CGR_Rot::MatG, g[iSez])*gPrime[iSez]
 				+ RDelta[iSez]*OmegaRef[iSez];
-
+			/* rate of MatG */
+			doublereal dtmp1 = 4.+g[iSez].Dot(); //(4./(4.+g.Dot()))
+			doublereal dtmp = dtmp1 * dtmp1;
+			dtmp = -4. / dtmp;
+			dtmp1 = 2. / dtmp1;
+			GPrime[iSez] = (gPrime[iSez].Tens(g[iSez]) + g[iSez].Tens(gPrime[iSez])) * dtmp 
+				+ Mat3x3(MatCross, gPrime[iSez]) * dtmp1;
+			
 			/* Derivate della posizione */
 			L[iSez] = InterpDeriv(xTmp[NODE1],
 				xTmp[NODE2],
@@ -1702,6 +1710,7 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 			/* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
 			DefPrimeLoc[iSez] = Vec6(R[iSez].MulTV(LPrime[iSez] + L[iSez].Cross(Omega[iSez])),
 				R[iSez].MulTV(Mat3x3(CGR_Rot::MatG, g[iSez])*gPrimeGrad[iSez]
+				+ GPrime[iSez] * g[iSez]
 				+ (Mat3x3(CGR_Rot::MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez]))
 				+ DefPrimeLocRef[iSez].GetVec2());
 

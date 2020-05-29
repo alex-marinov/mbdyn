@@ -292,9 +292,20 @@ DataManager::ReadElems(MBDynParser& HP)
 		}
 	}
 
-	KeyWords CurrDesc;
-	while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
-		if (CurrDesc == OUTPUT) {
+	while (true) {
+		KeyWords CurrDesc;
+		try {
+			CurrDesc = KeyWords(HP.GetDescription());
+		}
+		catch (...) {
+			silent_cerr("Error while expecting \"end: elements;\" at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (CurrDesc == END) {
+			break;
+
+		} else if (CurrDesc == OUTPUT) {
 			DEBUGLCOUT(MYDEBUG_INPUT, "Elements to be output: ");
 			Elem::Type Typ;
 			switch (KeyWords(HP.GetWord())) {

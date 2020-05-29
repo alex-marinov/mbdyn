@@ -721,7 +721,7 @@ void PiezoBeam::AssPiezoJac(FullSubMatrixHandler& WM,
 //                     Mat3x3(MatCrossCross, Omega[iSez], L[iSez]))*(dN3[iSez][node]*dCoef) //TEMO SIA SBAGLIATO
                     Mat3x3(MatCross, LPrime[iSez] - Omega[iSez].Cross(L[iSez]))*(dN3[iSez][node]*dCoef) //VERSIONE MIA
                         + Mat3x3(MatCrossCross, Omega[iSez], fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez]*dCoef))
-                        + Mat3x3(MatCross, fTmp[node].Cross(pNode[node]->GetWCurr()*(dN3P[iSez][node]*dsdxi[iSez]*dCoef)))
+                        - Mat3x3(MatCrossCross, pNode[node]->GetWCurr(), fTmp[node]*(dN3P[iSez][node]*dsdxi[iSez]*dCoef))
                         - mb_deye<Mat3x3>(omegafTmp[node]*dN3P[iSez][node]*dsdxi[iSez]*dCoef)
                         + omega_o_fTmp[node] * (dN3P[iSez][node]*dsdxi[iSez]*dCoef)
                         + mb_deye<Mat3x3>(OmegaRef[iSez]*L[iSez]*dN3[iSez][node]*dCoef)

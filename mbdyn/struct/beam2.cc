@@ -1026,7 +1026,7 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 // 					Mat3x3(MatCrossCross, Omega, L))*(dN2[i]*dCoef) //TEMO SIA SBAGLIATO
 					Mat3x3(MatCross, LPrime - Omega.Cross(L))*(dN2[i]*dCoef) //VERSIONE MIA
 						+ Mat3x3(MatCrossCross, Omega, fTmp[i]*(dN2P[i]*dsdxi*dCoef))
-						+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN2P[i]*dsdxi*dCoef)))
+						- Mat3x3(MatCrossCross, pNode[i]->GetWCurr(), fTmp[i]*(dN2P[i]*dsdxi*dCoef))
 						- mb_deye<Mat3x3>(omegafTmp[i]*dN2P[i]*dsdxi*dCoef)
 						+ omega_o_fTmp[i] * (dN2P[i]*dsdxi*dCoef)
 						+ mb_deye<Mat3x3>(OmegaRef*L*dN2[i]*dCoef)
@@ -1141,6 +1141,7 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		}
 
 		Mat3x3 RDelta;
+		Mat3x3 GPrime;
 		Vec3 gGrad;
 		Vec3 gPrimeGrad;
 
@@ -1159,7 +1160,15 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		/* Velocita' angolare della sezione */
 		gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
 		Omega = Mat3x3(CGR_Rot::MatG, g)*gPrime + RDelta*OmegaRef;
-
+		
+		/* rate of MatG */
+		doublereal dtmp1 = 4.+g.Dot(); //(4./(4.+g.Dot()))
+		doublereal dtmp = dtmp1 * dtmp1;
+		dtmp = -4. / dtmp;
+		dtmp1 = 2. / dtmp1;
+		GPrime = (gPrime.Tens(g) + g.Tens(gPrime)) * dtmp 
+			+ Mat3x3(MatCross, gPrime) * dtmp1;
+		
 		/* Derivate della posizione */
 		L = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
 
@@ -1187,6 +1196,7 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		 */
 		DefPrimeLoc = Vec6(R.MulTV(LPrime + L.Cross(Omega)),
 			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gPrimeGrad
+			+ GPrime * g
 			+ (Mat3x3(CGR_Rot::MatG, g)*gGrad).Cross(Omega))
 			+ DefPrimeLocRef.GetVec2());
 
