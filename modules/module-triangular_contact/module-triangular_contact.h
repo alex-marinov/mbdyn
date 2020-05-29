@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2013
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,12 +30,12 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+	Copyright (C) 2020(-2020) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+	The copyright of this code is transferred
+	to Pierangelo Masarati and Paolo Mantegazza
+	for use in the software MBDyn as described
+	in the GNU Public License version 2.1
 */
 
 #ifndef ___MODULE_TRIANGULAR_CONTACT_H__INCLUDED___
