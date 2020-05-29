@@ -62,32 +62,41 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0), m_end(*thi
 		
 	} else {
 		ASSERT(iSize > 0);
+		try {
+			SAFENEWARR(ppiRows, integer *, iSize);
+			ppiRows[0] = 0;
+			SAFENEWARR(ppiRows[0], integer, iSize*iSize);
 
-		SAFENEWARR(ppiRows, integer *, iSize);
-		ppiRows[0] = 0;
-		SAFENEWARR(ppiRows[0], integer, iSize*iSize);
+			SAFENEWARR(ppiCols, integer *, iSize);
+			ppiCols[0] = 0;
+			SAFENEWARR(ppiCols[0], integer, iSize*iSize);
 
-		SAFENEWARR(ppiCols, integer *, iSize);
-		ppiCols[0] = 0;
-		SAFENEWARR(ppiCols[0], integer, iSize*iSize);
+			SAFENEWARR(ppdRows, doublereal *, iSize);
+			ppdRows[0] = NULL;
+			SAFENEWARR(ppdRows[0], doublereal, iSize*iSize);
 
-		SAFENEWARR(ppdRows, doublereal *, iSize);
-		ppdRows[0] = NULL;
-		SAFENEWARR(ppdRows[0], doublereal, iSize*iSize);
+			SAFENEWARR(ppnonzero, char *, iSize);
+			ppnonzero[0] = NULL;
+			SAFENEWARR(ppnonzero[0], char, iSize*iSize);
 
-		SAFENEWARR(ppnonzero, char *, iSize);
-		ppnonzero[0] = NULL;
-		SAFENEWARR(ppnonzero[0], char, iSize*iSize);
+			SAFENEWARR(piNzr, integer, iSize);
+			SAFENEWARR(piNzc, integer, iSize);
 
+		}
+		catch (std::bad_alloc& ba) {
+			silent_cerr("Error allocating memory from Naive matrix handler\n"
+				"while trying to build a " << iSize << "x" << iSize  << " naive (and full) square matrix.\n"
+				"Consider switching to a linear solver different from naive,\n"
+				"one that handles sparse matrices with sparse storage (possibly column-compressed)\n"
+				"(e.g. umfpack or klu)" << std::endl);
+			throw(ba);
+		}
 		for (integer i = 1; i < iSize; i++) {
 			ppiRows[i] = ppiRows[i - 1] + iSize;
 			ppiCols[i] = ppiCols[i - 1] + iSize;
 			ppdRows[i] = ppdRows[i - 1] + iSize;
 			ppnonzero[i] = ppnonzero[i - 1] + iSize;
 		}
-
-		SAFENEWARR(piNzr, integer, iSize);
-		SAFENEWARR(piNzc, integer, iSize);
 
 #ifdef HAVE_MEMSET
 		memset(ppdRows[0], 0, sizeof(doublereal)*iSize*iSize);
