@@ -1144,11 +1144,11 @@ main(int argc, char* argv[])
 			rc = EXIT_FAILURE;
 		} catch (std::bad_alloc& err) {
 			silent_cerr("An allocation error occurred during the execution of MBDyn (" << err.what() << ");\n"
-				"This means that - somewhere deep into the program - there was an allocation request\\"
-				"for an amount of memory larger than what is currently available in your machine.\n\n\\"
+				"This means that - somewhere deep into the program - there was an allocation request\n"
+				"for an amount of memory larger than what is currently available in your machine.\n\n"
 				"Check your input file\n\n"
 				"As a last resort, and to debug the issue, you can try to re-launch MBDyn \n"
-				"within a debugger and with the run-time option -e .\n\n\\"
+				"within a debugger and with the run-time option -e .\n\n"
 				"Aborting... " << std::endl);
 			rc = EXIT_FAILURE;
 #ifdef DEBUG

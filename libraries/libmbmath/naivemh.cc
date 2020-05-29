@@ -88,7 +88,7 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0), m_end(*thi
 				"while trying to build a " << iSize << "x" << iSize  << " naive (and full) square matrix.\n"
 				"Consider switching to a linear solver different from naive,\n"
 				"one that handles sparse matrices with sparse storage (possibly column-compressed)\n"
-				"(e.g. umfpack or klu)" << std::endl);
+				"(e.g. umfpack or klu)\n" << std::endl);
 			throw(ba);
 		}
 		for (integer i = 1; i < iSize; i++) {
