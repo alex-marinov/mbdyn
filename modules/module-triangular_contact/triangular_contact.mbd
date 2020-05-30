@@ -23,7 +23,7 @@ begin: initial value;
 	derivatives tolerance: 1e-6;
 	derivatives max iterations: 10;
 	derivatives coefficient: 1e-5;
-	linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 100;
+	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
 	nonlinear solver: line search, default solver options, heavy nonlinear;
 	output: iterations;
 	threads: assembly, 1;
