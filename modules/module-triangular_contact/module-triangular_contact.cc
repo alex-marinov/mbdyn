@@ -56,7 +56,7 @@
 
 class LugreFriction
 {
-	public:
+public:
 	LugreFriction(const DataManager* pDM);
 	LugreFriction(const LugreFriction& oFrictModel)=default;
 	~LugreFriction();
@@ -88,6 +88,109 @@ class LugreFriction
 	doublereal beta, vs, gamma;
 	grad::Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
 	doublereal tPrev, tCurr;
+};
+
+class TriangSurfContact: virtual public Elem, public UserDefinedElem
+{
+public:
+	TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
+			  DataManager* pDM, MBDynParser& HP);
+	virtual ~TriangSurfContact(void);
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+	       doublereal dCoef,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+	       doublereal dCoef,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+	template <typename T>
+	inline void
+	AssRes(grad::GradientAssVec<T>& WorkVec,
+	       doublereal dCoef,
+	       const grad::GradientVectorHandler<T>& XCurr,
+	       const grad::GradientVectorHandler<T>& XPrimeCurr,
+	       enum grad::FunctionCall func);
+	template <typename T>
+	inline void
+	InitialAssRes(grad::GradientAssVec<T>& WorkVec,
+		      const grad::GradientVectorHandler<T>& XCurr,
+		      enum grad::FunctionCall func);
+	virtual void AfterConvergence(const VectorHandler& X,
+				      const VectorHandler& XP);
+	int iGetNumConnectedNodes(void) const;
+	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	std::ostream& Restart(std::ostream& out) const;
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		      const VectorHandler& XCurr);
+	SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+	virtual void SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*);
+	virtual unsigned int iGetInitialNumDof() const;
+	
+ private:
+	struct TargetVertex {
+		Mat3x3 R = ::Zero3x3;
+		Vec3 o = ::Zero3;
+	};
+
+	struct TargetFace {
+		static constexpr integer iNumVertices = 3;
+
+		TargetFace(const DataManager* pDM);
+
+		Vec3 oc;
+		std::array<TargetVertex, iNumVertices> rgVert;
+		LugreFriction oFrictionModel;
+	};
+
+	struct ContactNode {
+		ContactNode(const StructNode* pNode,
+			    const Vec3& vOffset,
+			    doublereal dRadius,
+			    integer iNumFaces);
+
+		void Reset();
+
+		const StructNode* const pContNode;
+		std::vector<TargetFace*> rgTargetFaces;
+		const Vec3 vOffset;
+		const doublereal dRadius;
+	};
+
+	void ContactSearch();
+
+	doublereal GetContactForce(doublereal dz, grad::LocalDofMap*) const;
+
+	template <grad::index_type N>
+	grad::Gradient<N> GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const;
+
+	template <typename T>
+	void
+	UnivAssRes(grad::GradientAssVec<T>& WorkVec,
+		   doublereal dCoef,
+		   const grad::GradientVectorHandler<T>& XCurr,
+		   enum grad::FunctionCall func);
+
+	std::vector<TargetFace> rgTargetMesh;
+	std::vector<ContactNode> rgContactMesh;
+	const StructNode* pTargetNode;
+	doublereal dSearchRadius;
+	std::unordered_set<ContactNode*> oNodeSet;
+	grad::LocalDofMap oDofMap;
+	const DifferentiableScalarFunction* pCL;
+	static constexpr grad::index_type iNumDofGradient = 13;
+
+	enum class FrictionModel {
+		None,
+		Lugre
+	} eFrictionModel;
 };
 
 LugreFriction::LugreFriction(const DataManager* pDM)
@@ -315,139 +418,26 @@ void LugreFriction::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
 	// Do Nothing
 }
 
-class TriangSurfContact: virtual public Elem, public UserDefinedElem
+TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
+	:oc(::Zero3),
+	 oFrictionModel(pDM)
 {
-	public:
-	TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
-			  DataManager* pDM, MBDynParser& HP);
-	virtual ~TriangSurfContact(void);
-	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-	VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-	       doublereal dCoef,
-	       const VectorHandler& XCurr,
-	       const VectorHandler& XPrimeCurr);
-	SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-	       doublereal dCoef,
-	       const VectorHandler& XCurr,
-	       const VectorHandler& XPrimeCurr);
-	template <typename T>
-	inline void
-	AssRes(grad::GradientAssVec<T>& WorkVec,
-	       doublereal dCoef,
-	       const grad::GradientVectorHandler<T>& XCurr,
-	       const grad::GradientVectorHandler<T>& XPrimeCurr,
-	       enum grad::FunctionCall func);
-	template <typename T>
-	inline void
-	InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-		      const grad::GradientVectorHandler<T>& XCurr,
-		      enum grad::FunctionCall func);
-	virtual void AfterConvergence(const VectorHandler& X,
-				      const VectorHandler& XP);
-	int iGetNumConnectedNodes(void) const;
-	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	std::ostream& Restart(std::ostream& out) const;
-	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-	VariableSubMatrixHandler&
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		      const VectorHandler& XCurr);
-	SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
-	virtual void SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*);
-	virtual unsigned int iGetInitialNumDof() const;
-	private:
-	struct TargetVertex {
-		Mat3x3 R = ::Zero3x3;
-		Vec3 o = ::Zero3;
-	};
+}
 
-	struct TargetFace {
-		static constexpr integer iNumVertices = 3;
+TriangSurfContact::ContactNode::ContactNode(const StructNode* pNode,
+					    const Vec3& vOffset,
+					    doublereal dRadius,
+					    integer iNumFaces)
+	:pContNode(pNode),
+	 vOffset(vOffset),
+	 dRadius(dRadius)
+{
+	rgTargetFaces.reserve(iNumFaces);
+}
 
-		TargetFace(const DataManager* pDM)
-			:oc(::Zero3),
-			 oFrictionModel(pDM) {
-		}
-
-		Vec3 oc;
-		std::array<TargetVertex, iNumVertices> rgVert;
-		LugreFriction oFrictionModel;
-	};
-
-	struct ContactNode {
-		ContactNode(const StructNode* pNode,
-			    const Vec3& vOffset,
-			    doublereal dRadius,
-			    integer iNumFaces)
-			:pContNode(pNode),
-			 vOffset(vOffset),
-			 dRadius(dRadius)
-			{
-				rgTargetFaces.reserve(iNumFaces);
-			}
-
-		void Reset() {
-			rgTargetFaces.clear();
-		}
-
-		const StructNode* const pContNode;
-		std::vector<TargetFace*> rgTargetFaces;
-		const Vec3 vOffset;
-		const doublereal dRadius;
-	};
-
-	void ContactSearch();
-
-	doublereal GetContactForce(doublereal dz, grad::LocalDofMap*) const {
-		return (*pCL)(dz);
-	}
-
-	template <grad::index_type N>
-	grad::Gradient<N> GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const {
-		using namespace grad;
-
-		Gradient<N> F2n;
-
-		F2n.SetValuePreserve((*pCL)(dz.dGetValue()));
-
-		const doublereal dF_dz = pCL->ComputeDiff(dz.dGetValue());
-
-		const index_type iStartIndex = dz.iGetStartIndexLocal();
-		const index_type iEndIndex = dz.iGetEndIndexLocal();
-
-		F2n.DerivativeResizeReset(pDofMap, iStartIndex, iEndIndex, MapVectorBase::LOCAL, 0.);
-
-		for (index_type i = iStartIndex; i < iEndIndex; ++i) {
-			F2n.SetDerivativeLocal(i, dF_dz * dz.dGetDerivativeLocal(i));
-		}
-
-		return F2n;
-	}
-
-	template <typename T>
-	void
-	UnivAssRes(grad::GradientAssVec<T>& WorkVec,
-		   doublereal dCoef,
-		   const grad::GradientVectorHandler<T>& XCurr,
-		   enum grad::FunctionCall func);
-
-	std::vector<TargetFace> rgTargetMesh;
-	std::vector<ContactNode> rgContactMesh;
-	const StructNode* pTargetNode;
-	doublereal dSearchRadius;
-	std::unordered_set<ContactNode*> oNodeSet;
-	grad::LocalDofMap oDofMap;
-	const DifferentiableScalarFunction* pCL;
-	static constexpr grad::index_type iNumDofGradient = 13;
-
-	enum class FrictionModel {
-		None,
-		Lugre
-	} eFrictionModel;
-};
+void TriangSurfContact::ContactNode::Reset() {
+	rgTargetFaces.clear();
+}
 
 TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 				     DataManager* pDM, MBDynParser& HP)
@@ -618,6 +608,33 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 TriangSurfContact::~TriangSurfContact(void)
 {
 
+}
+
+doublereal TriangSurfContact::GetContactForce(doublereal dz, grad::LocalDofMap*) const {
+	return (*pCL)(dz);
+}
+
+template <grad::index_type N>
+grad::Gradient<N> TriangSurfContact::GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const
+{
+	using namespace grad;
+
+	Gradient<N> F2n;
+
+	F2n.SetValuePreserve((*pCL)(dz.dGetValue()));
+
+	const doublereal dF_dz = pCL->ComputeDiff(dz.dGetValue());
+
+	const index_type iStartIndex = dz.iGetStartIndexLocal();
+	const index_type iEndIndex = dz.iGetEndIndexLocal();
+
+	F2n.DerivativeResizeReset(pDofMap, iStartIndex, iEndIndex, MapVectorBase::LOCAL, 0.);
+
+	for (index_type i = iStartIndex; i < iEndIndex; ++i) {
+		F2n.SetDerivativeLocal(i, dF_dz * dz.dGetDerivativeLocal(i));
+	}
+
+	return F2n;
 }
 
 void TriangSurfContact::SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*)
