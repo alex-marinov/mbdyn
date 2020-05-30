@@ -1,8 +1,11 @@
 set: real h2 = 1.5;
-set: real r2 = 0.8;
-set: real r1 = 0.1;
+set: real r2 = 1.5;
+set: real r1 = 0.5;
 set: real m1 = 1.2;
 set: real J1 = 2. / 5. * m1 * r1^2;
+set: real Phi = atan2(r2, h2);
+set: real mu = 1;
+set: real sigma0 = 1e5;
 
 begin: data;
 	problem: initial value; # the default
@@ -10,13 +13,13 @@ end: data;
 
 begin: initial value;
 	initial time: 0;
-	final time: 10;
+	final time: 0.8;
 
-	time step: 1e-3;
+	time step: 1e-4;
 
 	max iterations: 100;
 	tolerance: 1e-6;
-	method: bdf;
+	method: implicit euler;
 	derivatives tolerance: 1e-6;
 	derivatives max iterations: 10;
 	derivatives coefficient: 1e-5;
@@ -47,6 +50,8 @@ set: integer node_id_cone = 1002;
 set: integer joint_id_clamp = 2001;
 set: integer body_id_sphere = 3001;
 set: integer elem_id_contact = 4001;
+set: integer drive_id_Wkin = 5001;
+set: integer drive_id_Wpot = 5002;
 
 begin: nodes;
 	structural: node_id_cone, static,
@@ -56,7 +61,7 @@ begin: nodes;
 			reference,global,null;
 
 	structural: node_id_sphere, dynamic,
-		    reference, global, 0.0, 0.1, h2,
+		    reference, global, 0.9 * r2 - r1 * cos(Phi), 0, 0.9 * h2 + r1 * sin(Phi),
 		    reference, global, eye,
 		    reference, global, null,
 		    reference, global, null;
@@ -72,14 +77,18 @@ begin: elements;
 	      diag, J1, J1, J1;
 
 	scalar function: "penalty", multilinear,
-	 -1., -1e4,
+	 -1., -1e5,
 	  0., 0.,
 	  1., 0.;
 
 	user defined: elem_id_contact, triangular surface contact,
 		      target node, node_id_cone,
 		      penalty function, "penalty",
-		      search radius, 1.8,
+		      search radius, 10,
+		      friction model, lugre,
+		      method, implicit euler,
+		      coulomb friction coefficient, mu,
+		      micro slip stiffness, sigma0,
 		      number of target vertices, 5,
 		      reference, global, null,
 		      reference, global, r2, r2, h2,
@@ -95,4 +104,7 @@ begin: elements;
 		      node_id_sphere, null, r1;
 
 	gravity: uniform, 0., 0., -1., 9.81;
+
+	drive caller: drive_id_Wkin, element, body_id_sphere, body, string, "E", direct, output, yes;
+	drive caller: drive_id_Wpot, element, body_id_sphere, body, string, "V", direct, output, yes;
 end: elements;
