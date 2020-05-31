@@ -88,7 +88,7 @@ public:
 
 	void AfterConvergence();
 
-	LugreState& operator=(const LugreState& oState) {
+	const LugreState& operator=(const LugreState& oState) const {
 		ASSERT(oState.pData == pData);
 
 		zPrev = oState.zPrev;
@@ -97,6 +97,20 @@ public:
 		zPCurr = oState.zPCurr;
 
 		return *this;
+	}
+
+	void Project(const Mat3x3& R1, const Mat3x3& R2, const LugreState& oState2) const {
+		for (integer i = 1; i <= 2; ++i) {
+			zCurr(i) = zPCurr(i) = 0.;
+		}
+
+		for (integer i = 1; i <= 2; ++i) {
+			for (integer j = 1; j <= 2; ++j) {
+				const doublereal R1TR2ij = R1.GetRow(i).Dot(R2.GetCol(j));
+				zCurr(i) += R1TR2ij * oState2.zCurr(j);
+				zPCurr(i) += R1TR2ij * oState2.zPCurr(j);
+			}
+		}
 	}
 
 private:
@@ -155,9 +169,46 @@ public:
 	virtual unsigned int iGetInitialNumDof() const;
 
  private:
+	struct TargetFace;
+
 	struct TargetVertex {
 		Mat3x3 R = ::Zero3x3;
 		Vec3 o = ::Zero3;
+		integer iVertex = -1;
+		TargetFace* pNeighbor = nullptr;
+	};
+
+	struct TargetEdge {
+		TargetEdge(integer iNode1, integer iNode2)
+			:rgNodeIdx{iNode1 < iNode2 ? iNode1 : iNode2, iNode1 < iNode2 ? iNode2 : iNode1} {
+		}
+
+		TargetEdge(const TargetEdge&) = default;
+
+		bool operator<(const TargetEdge& oEdge) const {
+			if (rgNodeIdx[0] < oEdge.rgNodeIdx[0]) {
+				return true;
+			}
+
+			if (rgNodeIdx[0] == oEdge.rgNodeIdx[0]) {
+				return rgNodeIdx[1] < oEdge.rgNodeIdx[1];
+			}
+
+			return false;
+		}
+
+		bool operator==(const TargetEdge& oEdge) const {
+			return rgNodeIdx[0] == oEdge.rgNodeIdx[0] && rgNodeIdx[1] == oEdge.rgNodeIdx[1];
+		}
+
+		static constexpr integer iNumNodes = 2;
+		const std::array<integer, iNumNodes> rgNodeIdx;
+	};
+
+	struct TargetEdgeHash {
+		std::size_t operator()(const TargetEdge& oEdge) const {
+			return (std::hash<integer>{}(oEdge.rgNodeIdx[0]) << 10) ^ std::hash<integer>{}(oEdge.rgNodeIdx[1]);
+		}
 	};
 
 	struct TargetFace {
@@ -532,6 +583,12 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 
 	rgTargetMesh.reserve(iNumFaces);
 
+	std::unordered_multimap<TargetEdge, TargetFace*, TargetEdgeHash> rgEdgeMap;
+
+	if (eFrictionModel != FrictionModel::None) {
+		rgEdgeMap.reserve(iNumFaces * TargetFace::iNumVertices);
+	}
+
 	for (integer i = 0; i < iNumFaces; ++i) {
 		oCurrFace.oc = ::Zero3;
 
@@ -543,6 +600,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			oCurrFace.rgVert[j].iVertex = iVertex;
 			oCurrFace.rgVert[j].o = rgVertices[iVertex];
 			oCurrFace.oc += rgVertices[iVertex];
 		}
@@ -552,7 +610,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		static const integer rgEdges[3][2] = {{1, 2},{2, 3},{3, 1}};
 
 		oCurrFace.r = 0.;
-		
+
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
 			oCurrFace.r = std::max(oCurrFace.r, (oCurrFace.rgVert[rgEdges[j][1]].o - oCurrFace.rgVert[rgEdges[j][0]].o).Norm());
 		}
@@ -576,6 +634,47 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		}
 
 		rgTargetMesh.emplace_back(oCurrFace);
+
+		if (eFrictionModel != FrictionModel::None) {
+			TargetFace* pFace = &rgTargetMesh.back();
+
+			for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+				TargetEdge oEdge{pFace->rgVert[rgEdges[j][0]].iVertex,
+						 pFace->rgVert[rgEdges[j][1]].iVertex};
+				rgEdgeMap.emplace(oEdge, pFace);
+			}
+		}
+	}
+
+	if (eFrictionModel != FrictionModel::None) {
+		for (std::size_t iBucket = 0; iBucket < rgEdgeMap.bucket_count(); ++iBucket) {
+			auto itFirst = rgEdgeMap.begin(iBucket);
+			auto itLast = rgEdgeMap.end(iBucket);
+
+			if (rgEdgeMap.bucket_size(iBucket) > TargetFace::iNumVertices + 1) {
+				silent_cerr("triangular surface contact(" << uLabel
+					    << "): more than two target faces are connected to the same edge at line "
+					    << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			for (auto itCurr = itFirst; itCurr != itLast; ++itCurr) {
+				auto itNeighbor = itFirst;
+				for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
+					if (itNeighbor == itCurr) {
+						++itNeighbor;
+					}
+
+					if (itNeighbor == itLast) {
+						break;
+					}
+
+					itCurr->second->rgVert[iEdge].pNeighbor = itNeighbor->second;
+
+					++itNeighbor;
+				}
+			}
+		}
 	}
 
 	if (!HP.IsKeyWord("number" "of" "contact" "nodes")) {
@@ -714,29 +813,50 @@ void TriangSurfContact::ContactSearch()
 				const Mat3x3& R2i = rVert.R;
 				const doublereal dy = R2i.GetCol(2).Dot(dX - o2i);
 
-				if (dy > 0) {
+				if (dy > 0.) {
 					bInsert = false;
 					break;
 				}
 			}
 
-			if (!bInsert) {
-				continue;
+			if (bInsert) {
+				rNode.rgContCurr.emplace(&rFace, &rFace.oFrictData);
 			}
+		}
+	}
 
-			auto status = rNode.rgContCurr.insert(std::make_pair(&rFace, &rFace.oFrictData));
+	if (eFrictionModel != FrictionModel::None) {
+		for (const auto& rNode: rgContactMesh) {
+			for (auto itCurr = rNode.rgContCurr.begin(); itCurr != rNode.rgContCurr.end(); ++itCurr) {
+				// Search for current contact face in previous set of contact faces
+				auto itPrev = rNode.rgContPrev.find(itCurr->first);
 
-			if (eFrictionModel == FrictionModel::None || !status.second) {
-				continue;
+				// Did the current contact face already exist in the previous contact set?
+				if (itPrev != rNode.rgContPrev.end()) {
+					// Reuse previous stiction states
+					itCurr->second = itPrev->second;
+				} else {
+					// Check if we can project the stiction states from neighbor faces
+					for (const auto& rVertex: itCurr->first->rgVert) {
+						itPrev = rNode.rgContPrev.find(rVertex.pNeighbor);
+
+						if (itPrev == rNode.rgContPrev.end()) {
+							continue;
+						}
+
+						auto itCurrNeighbor = rNode.rgContCurr.find(itPrev->first);
+
+						if (itCurrNeighbor == rNode.rgContCurr.end()) {
+							// Project previous stiction state from the neighbor
+							const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
+							const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
+
+							itCurr->second.Project(R2iCurr, R2iPrev, itPrev->second);
+							break;
+						}
+					}
+				}
 			}
-
-			auto itPrev = rNode.rgContPrev.find(&rFace);
-
-			if (itPrev == rNode.rgContPrev.end()) {
-				continue;
-			}
-
-			status.first->second = itPrev->second;
 		}
 	}
 }
