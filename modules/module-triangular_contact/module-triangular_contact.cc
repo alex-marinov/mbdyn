@@ -58,13 +58,13 @@ class LugreData
 {
 public:
 	friend class LugreState;
-	
+
 	LugreData(const DataManager* pDM);
 	LugreData(const LugreData& oData)=default;
 
 	void ParseInput(const Elem* pParent,
 			MBDynParser& HP);
-	
+
 	doublereal dGetTime() const {
 		return pDM->dGetTime();
 	}
@@ -79,15 +79,26 @@ class LugreState
 public:
 	LugreState(const LugreData* pData)
 		:pData(pData) {}
-	
+
 	template <typename T>
 	void GetFrictionForce(doublereal dt,
 			      const grad::Vector<T, 2>& U,
 			      const T& p,
 			      grad::Vector<T, 2>& tau) const;
-	
+
 	void AfterConvergence();
-	
+
+	LugreState& operator=(const LugreState& oState) {
+		ASSERT(oState.pData == pData);
+
+		zPrev = oState.zPrev;
+		zCurr = oState.zCurr;
+		zPPrev = oState.zPPrev;
+		zPCurr = oState.zPCurr;
+
+		return *this;
+	}
+
 private:
 	void SaveStictionState(const grad::Vector<doublereal, 2>& z,
 			       const grad::Vector<doublereal, 2>& zP) const;
@@ -142,7 +153,7 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 	virtual void SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*);
 	virtual unsigned int iGetInitialNumDof() const;
-	
+
  private:
 	struct TargetVertex {
 		Mat3x3 R = ::Zero3x3;
@@ -430,9 +441,9 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	 pCL(nullptr),
 	 pDM(pDM),
 	 eFrictionModel(FrictionModel::None)
-{	
+{
 	tCurr = tPrev = pDM->dGetTime();
-	
+
 	if (HP.IsKeyWord("help"))
 	{
 		silent_cout("Module: triangular surface contact\n"
@@ -699,9 +710,23 @@ void TriangSurfContact::ContactSearch()
 				}
 			}
 
-			if (bInsert) {
-				rNode.rgContCurr.insert(std::make_pair(&rFace, &rFace.oFrictData));
+			if (!bInsert) {
+				continue;
 			}
+
+			auto status = rNode.rgContCurr.insert(std::make_pair(&rFace, &rFace.oFrictData));
+
+			if (eFrictionModel == FrictionModel::None || !status.second) {
+				continue;
+			}
+
+			auto itPrev = rNode.rgContPrev.find(&rFace);
+
+			if (itPrev == rNode.rgContPrev.end()) {
+				continue;
+			}
+
+			status.first->second = itPrev->second;
 		}
 	}
 }
@@ -740,8 +765,8 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 	}
 
 	tCurr = pDM->dGetTime();
-	
-	const doublereal dt = tCurr - tPrev;	
+
+	const doublereal dt = tCurr - tPrev;
 	const integer iFirstIndex2 = pTargetNode->iGetFirstMomentumIndex();
 
 	Vector<T, 3> X1, X2, F1, M1, F2, M2;
@@ -757,12 +782,12 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 		for (auto& oContPair: rNode.rgContCurr) {
 			rNode.pContNode->GetXCurr(X1, dCoef, func, &oDofMap);
 			rNode.pContNode->GetRCurr(R1, dCoef, func, &oDofMap);
-			
+
 			pTargetNode->GetXCurr(X2, dCoef, func, &oDofMap);
 			pTargetNode->GetRCurr(R2, dCoef, func, &oDofMap);
 
 			TargetFace* pTargetFace = oContPair.first;
-			
+
 			const Vec3& o1 = rNode.vOffset;
 			const Mat3x3& R2i = pTargetFace->rgVert[0].R;
 			const Vec3& o2i = pTargetFace->rgVert[0].o;
@@ -779,13 +804,15 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 
 			if (eFrictionModel == FrictionModel::Lugre) {
 				const LugreState& oFrictState = oContPair.second;
-				
+
 				pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
 				pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
 				rNode.pContNode->GetVCurr(XP1, dCoef, func, &oDofMap);
 				rNode.pContNode->GetWCurr(omega1, dCoef, func, &oDofMap);
 
-				dV = Transpose(R2) * Vector<T, 3>(XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c));
+				const Vector<T, 3> V = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
+
+				dV = Transpose(R2) * V;
 
 				for (index_type i = 1; i <= 2; ++i) {
 					U(i) = Dot(Direct(R2i.GetCol(i)), dV);
@@ -845,7 +872,7 @@ TriangSurfContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 {
 	using namespace grad;
 
-	GradientAssVec<Gradient<iNumDofGradient> >::InitialAssJac(this, WorkMat.SetSparse(), XCurr, INITIAL_ASS_JAC, &oDofMap);
+	GradientAssVec<Gradient<2 * iNumDofGradient> >::InitialAssJac(this, WorkMat.SetSparse(), XCurr, INITIAL_ASS_JAC, &oDofMap);
 
 	return WorkMat;
 }
@@ -862,10 +889,10 @@ TriangSurfContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler&
 
 void TriangSurfContact::AfterConvergence(const VectorHandler& X,
 					 const VectorHandler& XP)
-{	
+{
 	if (eFrictionModel != FrictionModel::None) {
 		tPrev = tCurr;
-		
+
 		for (auto& oContNode: rgContactMesh) {
 			for (auto& oContPair: oContNode.rgContCurr) {
 				oContPair.second.AfterConvergence();
@@ -873,7 +900,7 @@ void TriangSurfContact::AfterConvergence(const VectorHandler& X,
 
 			oContNode.rgContPrev = std::move(oContNode.rgContCurr);
 		}
-	}	
+	}
 }
 #endif
 
