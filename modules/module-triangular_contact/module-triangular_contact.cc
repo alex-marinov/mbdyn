@@ -84,11 +84,11 @@ public:
 	void GetFrictionForce(doublereal dt,
 			      const grad::Vector<T, 2>& U,
 			      const T& p,
-			      grad::Vector<T, 2>& tau) const;
+			      grad::Vector<T, 2>& tau);
 
 	void AfterConvergence();
 
-	const LugreState& operator=(const LugreState& oState) const {
+	LugreState& operator=(const LugreState& oState) {
 		ASSERT(oState.pData == pData);
 
 		zPrev = oState.zPrev;
@@ -99,7 +99,7 @@ public:
 		return *this;
 	}
 
-	void Project(const Mat3x3& R1, const Mat3x3& R2, const LugreState& oState2) const {
+	void Project(const Mat3x3& R1, const Mat3x3& R2, const LugreState& oState2) {
 		for (integer i = 1; i <= 2; ++i) {
 			zCurr(i) = zPCurr(i) = 0.;
 		}
@@ -115,13 +115,13 @@ public:
 
 private:
 	void SaveStictionState(const grad::Vector<doublereal, 2>& z,
-			       const grad::Vector<doublereal, 2>& zP) const;
+			       const grad::Vector<doublereal, 2>& zP);
 	template <grad::index_type N>
 	void SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>& z,
-			       const grad::Vector<grad::Gradient<N>, 2>& zP) const;
+			       const grad::Vector<grad::Gradient<N>, 2>& zP);
 
 	const LugreData* const pData;
-	mutable grad::Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
+	grad::Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
 };
 
 class TriangSurfContact: virtual public Elem, public UserDefinedElem
@@ -411,7 +411,7 @@ template <typename T>
 void LugreState::GetFrictionForce(const doublereal dt,
 				  const grad::Vector<T, 2>& U,
 				  const T& p,
-				  grad::Vector<T, 2>& tau) const
+				  grad::Vector<T, 2>& tau)
 {
 	using namespace grad;
 
@@ -453,7 +453,7 @@ void LugreState::GetFrictionForce(const doublereal dt,
 }
 
 void LugreState::SaveStictionState(const grad::Vector<doublereal, 2>& z,
-				   const grad::Vector<doublereal, 2>& zP) const
+				   const grad::Vector<doublereal, 2>& zP)
 {
 	zCurr = z;
 	zPCurr = zP;
@@ -461,7 +461,7 @@ void LugreState::SaveStictionState(const grad::Vector<doublereal, 2>& z,
 
 template <grad::index_type N>
 void LugreState::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
-				   const grad::Vector<grad::Gradient<N>, 2>&) const
+				   const grad::Vector<grad::Gradient<N>, 2>&)
 {
 	// Do nothing
 }
@@ -826,7 +826,7 @@ void TriangSurfContact::ContactSearch()
 	}
 
 	if (eFrictionModel != FrictionModel::None) {
-		for (const auto& rNode: rgContactMesh) {
+		for (auto& rNode: rgContactMesh) {
 			for (auto itCurr = rNode.rgContCurr.begin(); itCurr != rNode.rgContCurr.end(); ++itCurr) {
 				// Search for current contact face in previous set of contact faces
 				auto itPrev = rNode.rgContPrev.find(itCurr->first);
@@ -904,7 +904,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 	Vector<T, 2> U, tau;
 	Matrix<T, 3, 3> R1, R2;
 
-	for (const auto& rNode: rgContactMesh) {
+	for (auto& rNode: rgContactMesh) {
 		F1 = M1 = F2 = M2 = ::Zero3;
 
 		oDofMap.Reset();
@@ -933,7 +933,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 			Vector<T, 3> F2i = n3 * F2in;
 
 			if (eFrictionModel == FrictionModel::Lugre) {
-				const LugreState& oFrictState = oContPair.second;
+				LugreState& oFrictState = oContPair.second;
 
 				pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
 				pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
