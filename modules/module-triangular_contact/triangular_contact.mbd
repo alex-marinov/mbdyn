@@ -1,16 +1,17 @@
 set: real g = 9.81;
 set: real h2 = 1.5;
-set: real r2 = 0.5;
+set: real r2 = 30;
 set: real r1 = 0.25;
 set: real m1 = 1.2;
 set: real J1 = 2. / 5. * m1 * r1^2;
 set: real Phi = atan2(r2, h2);
-set: real mu = 100;
-set: real sigma0 = 1e6;
+set: real s1 = 1e6;
+set: real mu = 0.1;
+set: real sigma0 = 1e5;
 set: real sigma1 = 1e3;
 set: real a1 = m1 * g * cos(Phi) / (J1 / r1 + m1);
-set: real s1 = 0.9 * h2 / cos(Phi) - r1;
-set: real t1 = sqrt(2 * s1 / a1);
+set: real l1 = 0.9 * h2 / cos(Phi) - r1;
+set: real t1 = sqrt(2 * l1 / a1);
 
 begin: data;
 	problem: initial value; # the default
@@ -18,7 +19,7 @@ end: data;
 
 begin: initial value;
 	initial time: 0;
-	final time: t1;
+	final time: 2 * t1;
 
 	time step: t1 / 1000;
 
@@ -29,7 +30,7 @@ begin: initial value;
 	derivatives max iterations: 10;
 	derivatives coefficient: 1e-5;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
-	nonlinear solver: line search, default solver options, heavy nonlinear;
+	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
 	output: iterations;
 	threads: assembly, 1;
 end: initial value;
@@ -82,7 +83,7 @@ begin: elements;
 	      diag, J1, J1, J1;
 
 	scalar function: "penalty", multilinear,
-	 -1., -1e5,
+	 -1., -s1,
 	  0., 0.,
 	  1., 0.;
 
