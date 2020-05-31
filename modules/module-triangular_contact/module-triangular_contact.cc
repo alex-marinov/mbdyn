@@ -185,18 +185,6 @@ public:
 
 		TargetEdge(const TargetEdge&) = default;
 
-		bool operator<(const TargetEdge& oEdge) const {
-			if (rgNodeIdx[0] < oEdge.rgNodeIdx[0]) {
-				return true;
-			}
-
-			if (rgNodeIdx[0] == oEdge.rgNodeIdx[0]) {
-				return rgNodeIdx[1] < oEdge.rgNodeIdx[1];
-			}
-
-			return false;
-		}
-
 		bool operator==(const TargetEdge& oEdge) const {
 			return rgNodeIdx[0] == oEdge.rgNodeIdx[0] && rgNodeIdx[1] == oEdge.rgNodeIdx[1];
 		}
@@ -207,7 +195,7 @@ public:
 
 	struct TargetEdgeHash {
 		std::size_t operator()(const TargetEdge& oEdge) const {
-			return (std::hash<integer>{}(oEdge.rgNodeIdx[0]) << 10) ^ std::hash<integer>{}(oEdge.rgNodeIdx[1]);
+			return (std::hash<integer>{}(oEdge.rgNodeIdx[0]) << 1) ^ std::hash<integer>{}(oEdge.rgNodeIdx[1]);
 		}
 	};
 
@@ -219,6 +207,7 @@ public:
 		Vec3 oc;
 		doublereal r;
 		std::array<TargetVertex, iNumVertices> rgVert;
+		integer iNumNeighbors;
 		LugreData oFrictData;
 	};
 
@@ -469,6 +458,7 @@ void LugreState::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
 TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
 	:oc(::Zero3),
 	 r(0.),
+	 iNumNeighbors(0),
 	 oFrictData(pDM)
 {
 }
@@ -607,12 +597,13 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 
 		oCurrFace.oc /= TargetFace::iNumVertices;
 
-		static const integer rgEdges[3][2] = {{1, 2},{2, 3},{3, 1}};
+		static const integer rgEdges[3][2] = {{0, 1}, {1, 2}, {2, 0}};
 
 		oCurrFace.r = 0.;
 
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
-			oCurrFace.r = std::max(oCurrFace.r, (oCurrFace.rgVert[rgEdges[j][1]].o - oCurrFace.rgVert[rgEdges[j][0]].o).Norm());
+			doublereal lj = (oCurrFace.rgVert[rgEdges[j][1]].o - oCurrFace.rgVert[rgEdges[j][0]].o).Norm();
+			oCurrFace.r = std::max(oCurrFace.r, 0.5 * lj);
 		}
 
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
@@ -647,32 +638,19 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	}
 
 	if (eFrictionModel != FrictionModel::None) {
-		for (std::size_t iBucket = 0; iBucket < rgEdgeMap.bucket_count(); ++iBucket) {
-			auto itFirst = rgEdgeMap.begin(iBucket);
-			auto itLast = rgEdgeMap.end(iBucket);
+		for (auto& rCurr: rgEdgeMap) {
+			auto oNeighbors = rgEdgeMap.equal_range(rCurr.first);
 
-			if (rgEdgeMap.bucket_size(iBucket) > TargetFace::iNumVertices + 1) {
-				silent_cerr("triangular surface contact(" << uLabel
-					    << "): more than two target faces are connected to the same edge at line "
-					    << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			for (auto itCurr = itFirst; itCurr != itLast; ++itCurr) {
-				auto itNeighbor = itFirst;
-				for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
-					if (itNeighbor == itCurr) {
-						++itNeighbor;
-					}
-
-					if (itNeighbor == itLast) {
-						break;
-					}
-
-					itCurr->second->rgVert[iEdge].pNeighbor = itNeighbor->second;
-
-					++itNeighbor;
+			for (auto itNeighbor = oNeighbors.first; itNeighbor != oNeighbors.second; ++itNeighbor) {
+				if (itNeighbor->second == rCurr.second) {
+					continue;
 				}
+
+				if (rCurr.second->iNumNeighbors >= TargetFace::iNumVertices) {
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				rCurr.second->rgVert[rCurr.second->iNumNeighbors++].pNeighbor = itNeighbor->second;
 			}
 		}
 	}
@@ -844,16 +822,12 @@ void TriangSurfContact::ContactSearch()
 							continue;
 						}
 
-						auto itCurrNeighbor = rNode.rgContCurr.find(itPrev->first);
+						// Project previous stiction state from the neighbor
+						const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
+						const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
 
-						if (itCurrNeighbor == rNode.rgContCurr.end()) {
-							// Project previous stiction state from the neighbor
-							const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
-							const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
-
-							itCurr->second.Project(R2iCurr, R2iPrev, itPrev->second);
-							break;
-						}
+						itCurr->second.Project(R2iCurr, R2iPrev, itPrev->second);
+						break;
 					}
 				}
 			}
