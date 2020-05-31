@@ -166,6 +166,7 @@ public:
 		TargetFace(const DataManager* pDM);
 
 		Vec3 oc;
+		doublereal r;
 		std::array<TargetVertex, iNumVertices> rgVert;
 		LugreData oFrictData;
 	};
@@ -416,6 +417,7 @@ void LugreState::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
 
 TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
 	:oc(::Zero3),
+	 r(0.),
 	 oFrictData(pDM)
 {
 }
@@ -546,6 +548,14 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		}
 
 		oCurrFace.oc /= TargetFace::iNumVertices;
+
+		static const integer rgEdges[3][2] = {{1, 2},{2, 3},{3, 1}};
+
+		oCurrFace.r = 0.;
+		
+		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+			oCurrFace.r = std::max(oCurrFace.r, (oCurrFace.rgVert[rgEdges[j][1]].o - oCurrFace.rgVert[rgEdges[j][0]].o).Norm());
+		}
 
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
 			static const integer e1_idx[3][2] = {{1, 0}, {2, 1}, {0, 2}};
@@ -689,7 +699,7 @@ void TriangSurfContact::ContactSearch()
 			const Mat3x3& R1 = rNode.pContNode->GetRCurr();
 			const Vec3& o1 = rNode.vOffset;
 			const Vec3 l1 = X1 + R1 * o1 - X2;
-			const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - rNode.dRadius;
+			const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - rNode.dRadius - rFace.r;
 
 			if (dDist > dSearchRadius) {
 				continue;
