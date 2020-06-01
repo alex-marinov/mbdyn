@@ -175,8 +175,8 @@ public:
 	virtual unsigned int iGetInitialNumDof() const;
 
  private:
-	struct TargetFace;			
-		
+	struct TargetFace;
+
 	struct TargetVertex {
 		Mat3x3 R = ::Zero3x3;
 		Vec3 o = ::Zero3;
@@ -219,13 +219,13 @@ public:
 	};
 
 		struct ContactPair {
-				ContactPair(const LugreData* pFrictData, const std::array<doublereal, TargetFace::iNumVertices>& dy)
-					:oFrictState(pFrictData), dy(dy) {
+				ContactPair(const LugreData* pFrictData, const std::array<doublereal, TargetFace::iNumVertices>& vy)
+					:oFrictState(pFrictData), vy(vy) {
 				}
 				ContactPair(const ContactPair&)=default;
 
 				LugreState oFrictState;
-				std::array<doublereal, TargetFace::iNumVertices>  dy;
+				std::array<doublereal, TargetFace::iNumVertices>  vy;
 		};
 
 	struct ContactNode {
@@ -678,7 +678,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 
 						for (integer jEdge = 0; jEdge < TargetFace::iNumVertices; ++jEdge) {
 							TargetEdge oEdgeNeighbor{itNeighbor->second->rgVert[rgEdges[jEdge][0]].iVertex,
-								                                    itNeighbor->second->rgVert[rgEdges[jEdge][1]].iVertex};
+												    itNeighbor->second->rgVert[rgEdges[jEdge][1]].iVertex};
 							if (oEdgeNeighbor == oEdge) {
 								rCurr.second->rgVert[iEdge].iEdgeNeighbor = jEdge;
 								break;
@@ -686,7 +686,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 						}
 
 						rCurr.second->iNumNeighbors++;
-						
+
 						assert(rCurr.second->rgVert[iEdge].iEdgeNeighbor >= 0);
 						assert(rCurr.second->rgVert[iEdge].iEdgeNeighbor < TargetFace::iNumVertices);
 						break;
@@ -805,6 +805,8 @@ void TriangSurfContact::ContactSearch()
 {
 	const Vec3& X2 = pTargetNode->GetXCurr();
 	const Mat3x3& R2 = pTargetNode->GetRCurr();
+	const Vec3& X2P = pTargetNode->GetVCurr();
+	const Vec3& omega2 = pTargetNode->GetWCurr();
 
 	for (auto& rNode: rgContactMesh) {
 		rNode.rgContCurr.clear();
@@ -814,8 +816,11 @@ void TriangSurfContact::ContactSearch()
 		for (auto& rNode: rgContactMesh) {
 			const Vec3& X1 = rNode.pContNode->GetXCurr();
 			const Mat3x3& R1 = rNode.pContNode->GetRCurr();
+			const Vec3& X1P = rNode.pContNode->GetVCurr();
+			const Vec3& omega1 = rNode.pContNode->GetWCurr();
 			const Vec3& o1 = rNode.vOffset;
-			const Vec3 l1 = X1 + R1 * o1 - X2;
+			const Vec3 R1_o1 = R1 * o1;
+			const Vec3 l1 = X1 + R1_o1 - X2;
 			const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - rNode.dRadius - rFace.r;
 
 			if (dDist > dSearchRadius) {
@@ -826,21 +831,31 @@ void TriangSurfContact::ContactSearch()
 
 			bool bInsert = true;
 
-			std::array<doublereal, TargetFace::iNumVertices> dy;
-
 			for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
 				const Vec3& o2i = rFace.rgVert[i].o;
 				const Mat3x3& R2i = rFace.rgVert[i].R;
-				dy[i] = R2i.GetCol(2).Dot(dX - o2i);
+				const doublereal dy = R2i.GetCol(2).Dot(dX - o2i);
 
-				if (dy[i] < 0.) {
+				if (dy < 0.) {
 					bInsert = false;
 					break;
 				}
 			}
 
 			if (bInsert) {
-				rNode.rgContCurr.emplace(&rFace, ContactPair{&rFace.oFrictData, dy});
+				std::array<doublereal, TargetFace::iNumVertices> vy = {0};
+
+				if (eFrictionModel != FrictionModel::None) {
+					const Vec3 l1P = X1P + omega1.Cross(R1_o1) - X2P;
+					const Vec3 dXP = R2.MulTV(l1P - omega2.Cross(l1));
+
+					for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
+						const Mat3x3& R2i = rFace.rgVert[i].R;
+						vy[i] = R2i.GetCol(2).Dot(dXP);
+					}
+				}
+
+				rNode.rgContCurr.emplace(&rFace, ContactPair{&rFace.oFrictData, vy});
 			}
 		}
 	}
@@ -857,16 +872,16 @@ void TriangSurfContact::ContactSearch()
 					itCurr->second.oFrictState = itPrev->second.oFrictState;
 				} else {
 					// Check if we can project the stiction states from neighbor faces
-					doublereal dyminCurr = std::numeric_limits<doublereal>::max();					
+					doublereal vymaxCurr = -std::numeric_limits<doublereal>::max();
 					integer iEdgeCurr = -1;
-					
+
 					for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
-						const doublereal dyCurr = itCurr->second.dy[iEdge];
-						
-						if (dyCurr <= dyminCurr) {
-							dyminCurr = dyCurr;
+						const doublereal vyCurr = itCurr->second.vy[iEdge];
+
+						if (vyCurr >= vymaxCurr) {
+							vymaxCurr = vyCurr;
 							iEdgeCurr = iEdge;
-						}					       
+						}
 					}
 
 					if (iEdgeCurr < 0) {
@@ -887,8 +902,8 @@ void TriangSurfContact::ContactSearch()
 
 					if (pedantic_output) {
 						std::cerr << "transition of stiction states:\n"
-							  << "\tdyminCurr=" << dyminCurr << "\n"
-							  << "\tdyminPrev=" << itPrev->second.dy[itCurr->first->rgVert[iEdgeCurr].iEdgeNeighbor] << "\n"
+							  << "\tvymaxCurr=" << vymaxCurr << "\n"
+							  << "\tvymaxPrev=" << itPrev->second.vy[itCurr->first->rgVert[iEdgeCurr].iEdgeNeighbor] << "\n"
 							  << "\tiEdgeCurr=" << iEdgeCurr << "\n"
 							  << "\tiEdgePrev=" << itCurr->first->rgVert[iEdgeCurr].iEdgeNeighbor << "\n";
 						itPrev->second.oFrictState.Print(std::cerr, R2iPrev, itPrev->first->oc);
