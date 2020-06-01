@@ -5,10 +5,11 @@ set: real Phi = atan2(r2, h2);
 set: real r = alpha * r2 - r1 * cos(Phi);
 set: real z = alpha * h2 + r1 * sin(Phi);
 set: real omega = sqrt(g / (r * (r2 / h2)));
+set: real omega0 = omega;
 set: real omega1 = omega * r / r1;
 set: real F0 = m1 * r * omega^2 / cos(Phi);
 set: real u0 = F0 / s1;
-set: real t1 = 2 * pi * n / omega;
+set: real t1 = 2 * pi * n / abs(omega);
 
 begin: data;
 	problem: initial value; # the default
@@ -18,14 +19,14 @@ begin: initial value;
 	initial time: 0;
 	final time:  t1;
 
-	time step: 2 * pi / omega / 10000;
+	time step: 2 * pi / abs(omega) / 10000;
 
 	max iterations: 100;
 	tolerance: 1e-6;
 	method: bdf;
 	derivatives tolerance: 1e-4;
 	derivatives max iterations: 10;
-	derivatives coefficient: 1e-8;
+	derivatives coefficient: 1e-10;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
 	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
 	output: iterations;
@@ -33,10 +34,12 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
+       rigid body kinematics: const, angular velocity, 0., 0., omega0;
+       skip initial joint assembly;
   #     use: loadable elements, in assembly;
 	output meter: closest next, 0, forever, const, 1e-2;
 	joints: 1;
-	structural nodes: 2;
+	structural nodes: 3;
 	rigid bodies: 1;
 	loadable elements: 1;
 	gravity;
@@ -48,36 +51,69 @@ begin: control data;
 	print: node connection;
 end: control data;
 
-set: integer node_id_sphere = 1001;
-set: integer node_id_cone = 1002;
+set: integer ref_id_sphere = 901;
+set: integer node_id_cone = 1001;
+set: integer node_id_sphere = 1002;
+set: integer node_id_sphere_center = 1003;
 set: integer joint_id_clamp = 2001;
 set: integer body_id_sphere = 3001;
 set: integer elem_id_contact = 4001;
 set: integer drive_id_Wkin = 5001;
 set: integer drive_id_Wpot = 5002;
 
+reference: ref_id_sphere,
+	   reference, global, r, 0, z,
+	   reference, global, eye,
+	   reference, global, 0., (omega - omega0) * r, 0.,
+	   reference, global, 0., 0., -omega1 / cos(Phi) - omega0;
+
 begin: nodes;
 	structural: node_id_cone, static,
 			reference,global, null,
-			reference,global,eye,
-			reference,global,null,
-			reference,global,null;
+			reference,global, eye,
+			reference,global, null,
+			reference,global, 0., 0., -omega0;
 
 	structural: node_id_sphere, dynamic,
-		    reference, global, r, 0, z,
-		    reference, global, eye,
-		    reference, global, 0., omega * r, 0.,
-		    reference, global, 0., 0., -omega1 / cos(Phi);
+		    reference, ref_id_sphere, null,
+		    reference, ref_id_sphere, eye,
+		    reference, ref_id_sphere, null,
+		    reference, ref_id_sphere, null;
+
+        structural: node_id_sphere_center, dummy,
+	           node_id_sphere, offset,
+		   reference, ref_id_sphere, null,
+		   reference, ref_id_sphere, eye;
 end: nodes;
 
 begin: elements;
-	joint: joint_id_clamp, clamp, node_id_cone, node, node;
+	joint: joint_id_clamp, total pin joint, node_id_cone,
+	       position, reference, global, null,
+	       position orientation, reference, global, eye,
+	       rotation orientation, reference, global, eye,
+	       position, reference, global, null,
+	       position orientation, reference, global, eye,
+	       rotation orientation, reference, global, eye,
+	       position constraint,
+	       	       active,
+		       active,
+		       active,
+		       null,
+	       orientation constraint,
+	               active,
+		       active,
+		       angular velocity,
+		       component,
+		       null,
+		       null,
+		       -omega0;
 
 	body: body_id_sphere,
 	      node_id_sphere,
 	      m1,
-	      null,
-	      diag, J1, J1, J1;
+	      reference, ref_id_sphere, null,
+	      diag, J1, J1, J1,
+	      inertial, reference, ref_id_sphere, eye;
 
 scalar function: "penalty", multilinear,
           -1., -F0 - s1,	
