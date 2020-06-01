@@ -1,17 +1,14 @@
-set: real g = 9.81;
-set: real h2 = 1.5;
-set: real r2 = 10;
-set: real r1 = 0.25;
-set: real m1 = 1.2;
+include: "${TRIANGULAR_CONTACT_SET}";
+
 set: real J1 = 2. / 5. * m1 * r1^2;
 set: real Phi = atan2(r2, h2);
-set: real s1 = 1e5;
-set: real mu = 0.5;
-set: real sigma0 = 1e4;
-set: real sigma1 = 1e0;
-set: real a1 = m1 * g * cos(Phi) / (J1 / r1 + m1);
-set: real l1 = 0.9 * h2 / cos(Phi) - r1;
-set: real t1 = sqrt(2 * l1 / a1);
+set: real r = alpha * r2 - r1 * cos(Phi);
+set: real z = alpha * h2 + r1 * sin(Phi);
+set: real omega = sqrt(g / (r * (r2 / h2)));
+set: real omega1 = omega * r / r1;
+set: real F0 = m1 * r * omega^2 / cos(Phi);
+set: real u0 = F0 / s1;
+set: real t1 = 2 * pi * n / omega;
 
 begin: data;
 	problem: initial value; # the default
@@ -19,24 +16,24 @@ end: data;
 
 begin: initial value;
 	initial time: 0;
-	final time: 10 * t1;
+	final time:  t1;
 
-	time step: t1 / 1000;
+	time step: 2 * pi / omega / 10000;
 
 	max iterations: 100;
 	tolerance: 1e-6;
-	method: implicit euler;
+	method: bdf;
 	derivatives tolerance: 1e-4;
 	derivatives max iterations: 10;
-	derivatives coefficient: 1e-5;
+	derivatives coefficient: 1e-8;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
-	nonlinear solver: line search, default solver options, moderate nonlinear, divergence check, no;
-	#output: iterations;
+	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+	output: iterations;
 	threads: assembly, 1;
 end: initial value;
 
 begin: control data;
-       use: loadable elements, in assembly;
+  #     use: loadable elements, in assembly;
 	output meter: closest next, 0, forever, const, 1e-2;
 	joints: 1;
 	structural nodes: 2;
@@ -67,10 +64,10 @@ begin: nodes;
 			reference,global,null;
 
 	structural: node_id_sphere, dynamic,
-		    reference, global, -0.9 * r2 + r1 * cos(Phi), 0, 0.9 * h2 + r1 * sin(Phi) + 0.001,
+		    reference, global, r, 0, z,
 		    reference, global, eye,
-		    reference, global, 0., 3., 0.,
-		    reference, global, null;
+		    reference, global, 0., omega * r, 0.,
+		    reference, global, 0., 0., -omega1 / cos(Phi);
 end: nodes;
 
 begin: elements;
@@ -82,59 +79,13 @@ begin: elements;
 	      null,
 	      diag, J1, J1, J1;
 
-	scalar function: "penalty", multilinear,
-	 -1., -s1,
-	  0., 0.,
-	  1., 0.;
+scalar function: "penalty", multilinear,
+          -1., -F0 - s1,	
+	  0., -F0,
+	  u0, 0.,
+	  u0 + 1., 0.;
 
-	set: real N = 16;
-	
-	user defined: elem_id_contact, triangular surface contact,
-		      target node, node_id_cone,
-		      penalty function, "penalty",
-		      search radius, r1,
-		      friction model, lugre,
-		      method, implicit euler,
-		      coulomb friction coefficient, mu,
-		      micro slip stiffness, sigma0,
-		      micro slip damping, sigma1,
-		      number of target vertices, 17,
-		      reference, global, null,
-      		      reference, global, r2 * cos(2 * pi / N * 0), r2 * sin(2 * pi / N * 0), h2,
-		      reference, global, r2 * cos(2 * pi / N * 1), r2 * sin(2 * pi / N * 1), h2,
-      		      reference, global, r2 * cos(2 * pi / N * 2), r2 * sin(2 * pi / N * 2), h2,
-		      reference, global, r2 * cos(2 * pi / N * 3), r2 * sin(2 * pi / N * 3), h2,
-		      reference, global, r2 * cos(2 * pi / N * 4), r2 * sin(2 * pi / N * 4), h2,
-		      reference, global, r2 * cos(2 * pi / N * 5), r2 * sin(2 * pi / N * 5), h2,
-		      reference, global, r2 * cos(2 * pi / N * 6), r2 * sin(2 * pi / N * 6), h2,
-		      reference, global, r2 * cos(2 * pi / N * 7), r2 * sin(2 * pi / N * 7), h2,
-      		      reference, global, r2 * cos(2 * pi / N * 8), r2 * sin(2 * pi / N * 8), h2,
-		      reference, global, r2 * cos(2 * pi / N * 9), r2 * sin(2 * pi / N * 9), h2,
-      		      reference, global, r2 * cos(2 * pi / N * 10), r2 * sin(2 * pi / N * 10), h2,
-		      reference, global, r2 * cos(2 * pi / N * 11), r2 * sin(2 * pi / N * 11), h2,
-		      reference, global, r2 * cos(2 * pi / N * 12), r2 * sin(2 * pi / N * 12), h2,
-		      reference, global, r2 * cos(2 * pi / N * 13), r2 * sin(2 * pi / N * 13), h2,
-		      reference, global, r2 * cos(2 * pi / N * 14), r2 * sin(2 * pi / N * 14), h2,
-		      reference, global, r2 * cos(2 * pi / N * 15), r2 * sin(2 * pi / N * 15), h2,		      
-		      number of target faces, 16,
-		      2, 3, 1,
-		      3, 4, 1,
-		      4, 5, 1,
-		      5, 6, 1,
-		      6, 7, 1,
-		      7, 8, 1,
-		      8, 9, 1,
-		      9, 10, 1,
-		      10, 11, 1,
-		      11, 12, 1,
-		      12, 13, 1,
-		      13, 14, 1,
-		      14, 15, 1,
-		      15, 16, 1,
-		      16, 17, 1,
-		      17, 2, 1,
-		      number of contact nodes, 1,
-		      node_id_sphere, null, r1;
+	include: "${TRIANGULAR_CONTACT_ELEM}";
 
 	gravity: uniform, 0., 0., -1., g;
 
