@@ -980,13 +980,13 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 			const Vector<T, 3> l1 = R1 * o1;
 			const Vector<T, 3> l2 = X1 + l1 - X2;
 			const T dz = Dot(n3, Vector<T, 3>(l2 - R2 * o2i));
-			const Vector<T, 3> l2c = l2 + n3 * dz;
+			const Vector<T, 3> l2c = l2 - n3 * dz;
 			const Vector<T, 3> l1c = l1 - n3 * dz;
 			const T pz = dz - rNode.dRadius;
 			const T F2in = GetContactForce(pz, &oDofMap);
 			Vector<T, 3> F2i = n3 * F2in;
 
-			if (eFrictionModel == FrictionModel::Lugre) {
+			if (eFrictionModel != FrictionModel::None) {
 				LugreState& oFrictState = oContPair.second.oFrictState;
 
 				pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
