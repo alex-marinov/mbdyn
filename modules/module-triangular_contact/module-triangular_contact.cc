@@ -106,13 +106,19 @@ public:
 
 		for (integer i = 1; i <= 2; ++i) {
 			for (integer j = 1; j <= 2; ++j) {
-				const doublereal R1TR2ij = R1.GetRow(i).Dot(R2.GetCol(j));
+				const doublereal R1TR2ij = R1.GetCol(i).Dot(R2.GetCol(j));
 				zCurr(i) += R1TR2ij * oState2.zCurr(j);
 				zPCurr(i) += R1TR2ij * oState2.zPCurr(j);
 			}
 		}
 	}
 
+		std::ostream& Print(std::ostream& os, const Mat3x3& R, const Vec3& o) const {
+			os << "o=" << o << std::endl;
+			os << "z=" << R.GetCol(1) * zCurr(1) + R.GetCol(2) * zCurr(2) << std::endl;
+			os << "zP=" << R.GetCol(1) * zPCurr(1) + R.GetCol(2) * zPCurr(2) << std::endl;
+			return os;
+		}
 private:
 	void SaveStictionState(const grad::Vector<doublereal, 2>& z,
 			       const grad::Vector<doublereal, 2>& zP);
@@ -169,12 +175,13 @@ public:
 	virtual unsigned int iGetInitialNumDof() const;
 
  private:
-	struct TargetFace;
-
+	struct TargetFace;			
+		
 	struct TargetVertex {
 		Mat3x3 R = ::Zero3x3;
 		Vec3 o = ::Zero3;
 		integer iVertex = -1;
+		integer iEdgeNeighbor = -1;
 		TargetFace* pNeighbor = nullptr;
 	};
 
@@ -211,6 +218,16 @@ public:
 		LugreData oFrictData;
 	};
 
+		struct ContactPair {
+				ContactPair(const LugreData* pFrictData, const std::array<doublereal, TargetFace::iNumVertices>& dy)
+					:oFrictState(pFrictData), dy(dy) {
+				}
+				ContactPair(const ContactPair&)=default;
+
+				LugreState oFrictState;
+				std::array<doublereal, TargetFace::iNumVertices>  dy;
+		};
+
 	struct ContactNode {
 		ContactNode(const StructNode* pNode,
 			    const Vec3& vOffset,
@@ -220,7 +237,7 @@ public:
 		const StructNode* const pContNode;
 		const Vec3 vOffset;
 		const doublereal dRadius;
-		std::unordered_map<TargetFace*, LugreState> rgContCurr, rgContPrev;
+		std::unordered_map<TargetFace*, ContactPair> rgContCurr, rgContPrev;
 	};
 
 	void ContactSearch();
@@ -579,6 +596,8 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		rgEdgeMap.reserve(iNumFaces * TargetFace::iNumVertices);
 	}
 
+	static const integer rgEdges[3][2] = {{0, 1}, {1, 2}, {2, 0}};
+
 	for (integer i = 0; i < iNumFaces; ++i) {
 		oCurrFace.oc = ::Zero3;
 
@@ -597,8 +616,6 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 
 		oCurrFace.oc /= TargetFace::iNumVertices;
 
-		static const integer rgEdges[3][2] = {{0, 1}, {1, 2}, {2, 0}};
-
 		oCurrFace.r = 0.;
 
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
@@ -609,8 +626,8 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
 			static const integer e1_idx[3][2] = {{1, 0}, {2, 1}, {0, 2}};
 			static const integer e2_idx[3][2] = {{2, 0}, {0, 1}, {1, 2}};
-			Vec3 e1 = oCurrFace.rgVert[e1_idx[j][1]].o - oCurrFace.rgVert[e1_idx[j][0]].o;
-			Vec3 e2 = oCurrFace.rgVert[e2_idx[j][1]].o - oCurrFace.rgVert[e2_idx[j][0]].o;
+			Vec3 e1 = oCurrFace.rgVert[e1_idx[j][0]].o - oCurrFace.rgVert[e1_idx[j][1]].o;
+			Vec3 e2 = oCurrFace.rgVert[e2_idx[j][0]].o - oCurrFace.rgVert[e2_idx[j][1]].o;
 			Vec3 e3 = e1.Cross(e2);
 			e2 = e3.Cross(e1);
 
@@ -650,7 +667,31 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				rCurr.second->rgVert[rCurr.second->iNumNeighbors++].pNeighbor = itNeighbor->second;
+				for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
+					TargetEdge oEdge{rCurr.second->rgVert[rgEdges[iEdge][0]].iVertex,
+								      rCurr.second->rgVert[rgEdges[iEdge][1]].iVertex};
+
+					if (oEdge == itNeighbor->first) {
+						ASSERT(rCurr.second->rgVert[iEdge].pNeighbor == nullptr);
+
+						rCurr.second->rgVert[iEdge].pNeighbor = itNeighbor->second;
+
+						for (integer jEdge = 0; jEdge < TargetFace::iNumVertices; ++jEdge) {
+							TargetEdge oEdgeNeighbor{itNeighbor->second->rgVert[rgEdges[jEdge][0]].iVertex,
+								                                    itNeighbor->second->rgVert[rgEdges[jEdge][1]].iVertex};
+							if (oEdgeNeighbor == oEdge) {
+								rCurr.second->rgVert[iEdge].iEdgeNeighbor = jEdge;
+								break;
+							}
+						}
+
+						rCurr.second->iNumNeighbors++;
+						
+						assert(rCurr.second->rgVert[iEdge].iEdgeNeighbor >= 0);
+						assert(rCurr.second->rgVert[iEdge].iEdgeNeighbor < TargetFace::iNumVertices);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -749,16 +790,15 @@ void TriangSurfContact::GetConnectedNodes(std::vector<const Node *>& connectedNo
 
 void TriangSurfContact::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	constexpr integer iNumRes = iNumDofGradient;
-
-	*piNumRows = -(rgContactMesh.size() * iNumRes);
-	*piNumCols = iNumRes;
+	*piNumRows = -(rgContactMesh.size() * iNumDofGradient);
+	*piNumCols = iNumDofGradient;
 }
 
 void
 TriangSurfContact::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	WorkSpaceDim(piNumRows, piNumCols);
+	*piNumRows = -(rgContactMesh.size() * iNumDofGradient);
+	*piNumCols = 2 * iNumDofGradient;
 }
 
 void TriangSurfContact::ContactSearch()
@@ -786,19 +826,21 @@ void TriangSurfContact::ContactSearch()
 
 			bool bInsert = true;
 
-			for (auto& rVert: rFace.rgVert) {
-				const Vec3& o2i = rVert.o;
-				const Mat3x3& R2i = rVert.R;
-				const doublereal dy = R2i.GetCol(2).Dot(dX - o2i);
+			std::array<doublereal, TargetFace::iNumVertices> dy;
 
-				if (dy > 0.) {
+			for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
+				const Vec3& o2i = rFace.rgVert[i].o;
+				const Mat3x3& R2i = rFace.rgVert[i].R;
+				dy[i] = R2i.GetCol(2).Dot(dX - o2i);
+
+				if (dy[i] < 0.) {
 					bInsert = false;
 					break;
 				}
 			}
 
 			if (bInsert) {
-				rNode.rgContCurr.emplace(&rFace, &rFace.oFrictData);
+				rNode.rgContCurr.emplace(&rFace, ContactPair{&rFace.oFrictData, dy});
 			}
 		}
 	}
@@ -812,22 +854,45 @@ void TriangSurfContact::ContactSearch()
 				// Did the current contact face already exist in the previous contact set?
 				if (itPrev != rNode.rgContPrev.end()) {
 					// Reuse previous stiction states
-					itCurr->second = itPrev->second;
+					itCurr->second.oFrictState = itPrev->second.oFrictState;
 				} else {
 					// Check if we can project the stiction states from neighbor faces
-					for (const auto& rVertex: itCurr->first->rgVert) {
-						itPrev = rNode.rgContPrev.find(rVertex.pNeighbor);
+					doublereal dyminCurr = std::numeric_limits<doublereal>::max();					
+					integer iEdgeCurr = -1;
+					
+					for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
+						const doublereal dyCurr = itCurr->second.dy[iEdge];
+						
+						if (dyCurr <= dyminCurr) {
+							dyminCurr = dyCurr;
+							iEdgeCurr = iEdge;
+						}					       
+					}
 
-						if (itPrev == rNode.rgContPrev.end()) {
-							continue;
-						}
+					if (iEdgeCurr < 0) {
+						continue;
+					}
 
-						// Project previous stiction state from the neighbor
-						const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
-						const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
+					itPrev = rNode.rgContPrev.find(itCurr->first->rgVert[iEdgeCurr].pNeighbor);
 
-						itCurr->second.Project(R2iCurr, R2iPrev, itPrev->second);
-						break;
+					if (itPrev == rNode.rgContPrev.end()) {
+						continue;
+					}
+
+					// Project previous stiction state from the neighbor
+					const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
+					const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
+
+					itCurr->second.oFrictState.Project(R2iCurr, R2iPrev, itPrev->second.oFrictState);
+
+					if (pedantic_output) {
+						std::cerr << "transition of stiction states:\n"
+							  << "\tdyminCurr=" << dyminCurr << "\n"
+							  << "\tdyminPrev=" << itPrev->second.dy[itCurr->first->rgVert[iEdgeCurr].iEdgeNeighbor] << "\n"
+							  << "\tiEdgeCurr=" << iEdgeCurr << "\n"
+							  << "\tiEdgePrev=" << itCurr->first->rgVert[iEdgeCurr].iEdgeNeighbor << "\n";
+						itPrev->second.oFrictState.Print(std::cerr, R2iPrev, itPrev->first->oc);
+						itCurr->second.oFrictState.Print(std::cerr, R2iCurr, itCurr->first->oc);
 					}
 				}
 			}
@@ -907,7 +972,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 			Vector<T, 3> F2i = n3 * F2in;
 
 			if (eFrictionModel == FrictionModel::Lugre) {
-				LugreState& oFrictState = oContPair.second;
+				LugreState& oFrictState = oContPair.second.oFrictState;
 
 				pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
 				pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
@@ -999,7 +1064,7 @@ void TriangSurfContact::AfterConvergence(const VectorHandler& X,
 
 		for (auto& oContNode: rgContactMesh) {
 			for (auto& oContPair: oContNode.rgContCurr) {
-				oContPair.second.AfterConvergence();
+				oContPair.second.oFrictState.AfterConvergence();
 			}
 
 			oContNode.rgContPrev = std::move(oContNode.rgContCurr);
