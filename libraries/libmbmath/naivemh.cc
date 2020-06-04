@@ -84,11 +84,19 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0), m_end(*thi
 
 		}
 		catch (std::bad_alloc& ba) {
-			silent_cerr("Error allocating memory from Naive matrix handler\n"
-				"while trying to build a " << iSize << "x" << iSize  << " naive (and full) square matrix.\n"
-				"Consider switching to a linear solver different from naive,\n"
-				"one that handles sparse matrices with sparse storage (possibly column-compressed)\n"
-				"(e.g. umfpack or klu)\n" << std::endl);
+			size_t howmany = sizeof(integer *)*iSize*2
+				+ sizeof(doublereal *)*iSize
+				+ sizeof(char *)*iSize
+				+ sizeof(integer)*2*iSize*iSize
+				+ sizeof(doublereal)*iSize*iSize
+				+ sizeof(char)*iSize*iSize;
+
+			silent_cerr("Error allocating memory for Naive matrix handler\n"
+				"while trying to build a " << iSize << "x" << iSize  << " Naive (and full) square matrix,\n"
+				"requiring " << howmany << " (yes: " << howmany/1024/1024/1024 << " Giga) bytes.\n"
+				"Consider switching to a linear solver different from Naive, one that\n"
+				"handles sparse matrices with sparse storage (possibly column-compressed;\n"
+				"e.g. Umfpack or KLU)\n" << std::endl);
 			throw(ba);
 		}
 		for (integer i = 1; i < iSize; i++) {

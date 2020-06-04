@@ -117,11 +117,6 @@ ChangeStep::dGetNewStepTime(StepIntegrator::StepChange currStep, doublereal iPer
 	doublereal dNewStep = pStrategyChangeDrive->dGet();
 	doublereal dMaxTimeStep = MaxTimeStep.dGet();;
 
-	// are we sure we intend to change the time step if repeat is requested?
-	if (currStep == StepIntegrator::REPEATSTEP && dNewStep == dCurrTimeStep) {
-		return (dCurrTimeStep = dMinTimeStep/2.);
-	}
-
 	return (dCurrTimeStep = std::max(std::min(dNewStep, dMaxTimeStep), dMinTimeStep));
 }
 
