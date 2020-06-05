@@ -45,9 +45,21 @@ typedef void * MBDyn_CE_t *;
 extern MBDyn_CE_t *
 MBDyn_CE_init(void);
 
-// add arguments as needed
+// destroy
+extern void
+MBDyn_CE_destroy(MBDyn_CE_t *);
+
+// add if needed
 extern void
 MBDyn_CE_AfterPredict(MBDyn_CE_t *);
+
+// add arguments as needed
+extern void
+MBDyn_CE_Exchange(MBDyn_CE_t *, double *x, double *R, double *f, double *m);
+
+// add if needed
+extern void
+MBDyn_CE_AfterConvergence(MBDyn_CE_t *);
 
 }
 
