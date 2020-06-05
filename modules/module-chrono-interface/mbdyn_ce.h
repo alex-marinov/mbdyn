@@ -39,11 +39,11 @@
 extern "C" {
 
 // opaque pointer to element's data
-typedef void * MBDyn_CE_t *;
+typedef void * MBDyn_CE_t;
 
 // add arguments as needed
 extern void
-MBDyn_CE_AfterPredict(MBDyn_CE_t *);
+MBDyn_CE_AfterPredict(MBDyn_CE_t);
 
 }
 
