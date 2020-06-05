@@ -1,0 +1,127 @@
+#example.
+#2-dof sliders with structural force
+
+begin: data;
+  problem: initial value;
+end: data;
+
+begin: initial value;
+  initial time: 0.0;
+  time step: 1e-3;
+  final time: 2.0;
+
+  method: ms, 0.56;
+  linear solver: naive, colamd;
+	nonlinear solver: newton raphson, modified, 5;
+
+	tolerance: 1e-10;
+	max iterations: 30;
+
+	#derivatives coefficient: 1e-9;
+	#derivatives tolerance: 1e-6;
+	derivatives max iterations: 100;
+
+end: initial value;
+
+begin: control data;
+  default output: none;#, structural nodes;
+  structural nodes:
+  +1 #GROUND
+  +1 #sliders
+  ;
+
+  rigid bodies:
+  +1 #slider
+  ;
+
+  joints:
+  +1 #clamp
+  +1 #spring between slider and GROUND
+  +1 #constraint between slider and Ground
+  ;
+
+ forces:
+  +1 #external
+  ;
+end: control data;
+
+set: const integer GROUND = 0;
+set: const integer MASS_1 = 1;
+set: const integer SPRING_1 = 1;
+
+set: const real mass=1.0;
+set: const real initial_position = 1.0e0;
+set: const real initial_length=1.0e0;
+set: const real initial_velocity=0.1;
+set: const real K = 5000;#100.0
+set: const real C = 0.0;
+
+reference: GROUND,
+  reference, global, null,
+  reference, global, eye,
+  reference, global, null,
+  reference, global, null;
+
+reference: MASS_1,
+  reference, GROUND, initial_position, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+
+begin: nodes;
+  structural: GROUND,
+    static,
+    reference, GROUND, null,
+    reference, GROUND, eye,
+    reference, GROUND, null,
+    reference, GROUND, null,
+    output, no;
+
+  structural: MASS_1,
+    dynamic,
+    reference, MASS_1, null,
+    reference, MASS_1, eye,
+    reference, MASS_1, initial_velocity,.0,.0,
+    reference, MASS_1, null,
+    accelerations, yes;
+end: nodes;
+
+begin: elements;
+  joint: GROUND,
+    clamp,
+    GROUND,
+    node,
+    node;
+  joint: SPRING_1,
+    rod,
+      GROUND,
+        position, reference, GROUND, null,
+      MASS_1,
+        position, reference, MASS_1, null,
+      initial_length,
+      linear viscoelastic,
+        K*initial_length,
+        C*initial_length;
+
+  joint: 2,
+    prismatic,
+      GROUND,
+        orientation, eye,
+      MASS_1,
+        orientation, eye;
+
+  body: MASS_1, MASS_1,
+    mass,
+    null,
+    diag, 1.0, 1.0, 1.0;
+
+
+  #force using mbdyn as comparision.
+  force: SPRING_1, absolute,
+         MASS_1,
+          position, .0,.0,.0,
+            1,0,0,
+            const, 10.
+            ;
+
+end: elements;

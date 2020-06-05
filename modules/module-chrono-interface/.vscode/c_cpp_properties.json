@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/Downloads/GSoC2020/mbdyn-GSoC2020/**",
+                "~/Downloads/mbdyn-git/mbdyn_test/build/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
