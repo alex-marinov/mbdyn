@@ -39,11 +39,15 @@
 extern "C" {
 
 // opaque pointer to element's data
-typedef void * MBDyn_CE_t;
+typedef void * MBDyn_CE_t *;
+
+// creates a new instance of the element, returning an opaque pointer to its data
+extern MBDyn_CE_t *
+MBDyn_CE_init(void);
 
 // add arguments as needed
 extern void
-MBDyn_CE_AfterPredict(MBDyn_CE_t);
+MBDyn_CE_AfterPredict(MBDyn_CE_t *);
 
 }
 
