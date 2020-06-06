@@ -996,7 +996,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
      using namespace grad;
 
      if (func & RESIDUAL_FLAG) {
-	  ContactSearch();
+     	  ContactSearch();
      }
 
      tCurr = pDM->dGetTime();
