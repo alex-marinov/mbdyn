@@ -120,11 +120,11 @@ public:
 	  os << "zP=" << R.GetCol(1) * zPCurr(1) + R.GetCol(2) * zPCurr(2) << std::endl;
 	  return os;
      }
-		
+
 private:
      void SaveStictionState(const grad::Vector<doublereal, 2>& z,
 			    const grad::Vector<doublereal, 2>& zP);
-		
+
      template <grad::index_type N>
      void SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>& z,
 			    const grad::Vector<grad::Gradient<N>, 2>& zP);
@@ -222,24 +222,36 @@ private:
      };
 
      struct ContactPair {
-	  ContactPair(const LugreData* pFrictData, const std::array<doublereal, TargetFace::iNumVertices>& vy)
-	       :oFrictState(pFrictData), vy(vy) {
+	  ContactPair(const LugreData* pFrictData,
+		      size_t iVertex,
+		      const std::array<doublereal, TargetFace::iNumVertices>& vy)
+	       :oFrictState(pFrictData), iVertex(iVertex), vy(vy) {
 	  }
 	  ContactPair(const ContactPair&)=default;
-			
+
 	  LugreState oFrictState;
+	  const size_t iVertex;
 	  std::array<doublereal, TargetFace::iNumVertices>  vy;
+     };
+
+     struct ContactVertex {
+	  ContactVertex(const Vec3& o1, doublereal r1)
+	       :o1(o1), r1(r1) {
+	  }
+
+	  ContactVertex(const ContactVertex&) = default;
+
+	  Vec3 o1;
+	  doublereal r1;
      };
 
      struct ContactNode {
 	  ContactNode(const StructNode* pNode,
-		      const Vec3& vOffset,
-		      doublereal dRadius,
+		      std::vector<ContactVertex>&& v,
 		      integer iNumFaces);
 
 	  const StructNode* const pContNode;
-	  const Vec3 vOffset;
-	  const doublereal dRadius;
+	  const std::vector<ContactVertex> rgVertices;
 	  std::unordered_map<TargetFace*, ContactPair> rgContCurr, rgContPrev;
      };
 
@@ -484,12 +496,10 @@ TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
 }
 
 TriangSurfContact::ContactNode::ContactNode(const StructNode* pNode,
-					    const Vec3& vOffset,
-					    doublereal dRadius,
+					    std::vector<ContactVertex>&& rgVert,
 					    integer iNumFaces)
      :pContNode(pNode),
-      vOffset(vOffset),
-      dRadius(dRadius)
+      rgVertices(std::move(rgVert))
 {
      rgContCurr.reserve(iNumFaces);
      rgContPrev.reserve(iNumFaces);
@@ -559,55 +569,55 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      if (HP.IsKeyWord("friction" "model")) {
 	  if (HP.IsKeyWord("lugre")) {
 	       eFrictionModel = FrictionModel::Lugre;
-               oCurrFace.oFrictData.ParseInput(this, HP);
-          } else if (!HP.IsKeyWord("none")) {
-               silent_cerr("triangular surface(" << uLabel
-                           << "): keyword \"lugre\" or \"none\" expected at line "
-                           << HP.GetLineData() << std::endl);
-               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-          }
+	       oCurrFace.oFrictData.ParseInput(this, HP);
+	  } else if (!HP.IsKeyWord("none")) {
+	       silent_cerr("triangular surface(" << uLabel
+			   << "): keyword \"lugre\" or \"none\" expected at line "
+			   << HP.GetLineData() << std::endl);
+	       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  }
      }
 
      ReferenceFrame oRefTarget(pTargetNode);
 
      if (!HP.IsKeyWord("number" "of" "target" "vertices")) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): keyword \"number of target vertices\" expected at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): keyword \"number of target vertices\" expected at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
      const integer iNumVertices = HP.GetInt();
 
      if (iNumVertices <= 0) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): at least one vertex is required at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): at least one vertex is required at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     std::vector<Vec3> rgVertices;
+     std::vector<Vec3> rgTargetVert;
 
-     rgVertices.reserve(iNumVertices);
+     rgTargetVert.reserve(iNumVertices);
 
      for (integer i = 0; i < iNumVertices; ++i) {
-          rgVertices.emplace_back(HP.GetPosRel(oRefTarget));
+	  rgTargetVert.emplace_back(HP.GetPosRel(oRefTarget));
      }
 
      if (!HP.IsKeyWord("number" "of" "target" "faces")) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): keyword \"number of target faces\" expected at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): keyword \"number of target faces\" expected at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
      const integer iNumFaces = HP.GetInt();
 
      if (iNumFaces <= 0) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): at least one face is required at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): at least one face is required at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
      rgTargetMesh.reserve(iNumFaces);
@@ -615,148 +625,159 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      std::unordered_multimap<TargetEdge, TargetFace*, TargetEdgeHash> rgEdgeMap;
 
      if (eFrictionModel != FrictionModel::None) {
-          rgEdgeMap.reserve(iNumFaces * TargetFace::iNumVertices);
+	  rgEdgeMap.reserve(iNumFaces * TargetFace::iNumVertices);
      }
 
      static const integer rgEdges[3][2] = {{0, 1}, {1, 2}, {2, 0}};
 
      for (integer i = 0; i < iNumFaces; ++i) {
-          oCurrFace.oc = ::Zero3;
+	  oCurrFace.oc = ::Zero3;
 
-          for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
-               const integer iVertex = HP.GetInt() - 1;
+	  for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+	       const integer iVertex = HP.GetInt() - 1;
 
-               if (iVertex < 0 || iVertex >= iNumVertices) {
-                    silent_cerr("triangular surface contact(" << uLabel
-                                << "): vertex index out of range (1:"
-                                << iNumVertices << ") at line "
-                                << HP.GetLineData() << std::endl);
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-               }
+	       if (iVertex < 0 || iVertex >= iNumVertices) {
+		    silent_cerr("triangular surface contact(" << uLabel
+				<< "): vertex index out of range (1:"
+				<< iNumVertices << ") at line "
+				<< HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	       }
 
-               oCurrFace.rgVert[j].iVertex = iVertex;
-               oCurrFace.rgVert[j].o = rgVertices[iVertex];
-               oCurrFace.oc += rgVertices[iVertex];
-          }
+	       oCurrFace.rgVert[j].iVertex = iVertex;
+	       oCurrFace.rgVert[j].o = rgTargetVert[iVertex];
+	       oCurrFace.oc += rgTargetVert[iVertex];
+	  }
 
-          oCurrFace.oc /= TargetFace::iNumVertices;
+	  oCurrFace.oc /= TargetFace::iNumVertices;
 
-          oCurrFace.r = 0.;
+	  oCurrFace.r = 0.;
 
-          for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
-               doublereal lj = (oCurrFace.rgVert[rgEdges[j][1]].o
-                                - oCurrFace.rgVert[rgEdges[j][0]].o).Norm();
-               oCurrFace.r = std::max(oCurrFace.r, 0.5 * lj);
-          }
+	  for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+	       doublereal lj = (oCurrFace.rgVert[j].o - oCurrFace.oc).Norm();
+	       oCurrFace.r = std::max(oCurrFace.r, lj);
+	  }
 
-          for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
-               static const integer e1_idx[3][2] = {{1, 0}, {2, 1}, {0, 2}};
-               static const integer e2_idx[3][2] = {{2, 0}, {0, 1}, {1, 2}};
-               Vec3 e1 = oCurrFace.rgVert[e1_idx[j][0]].o - oCurrFace.rgVert[e1_idx[j][1]].o;
-               Vec3 e2 = oCurrFace.rgVert[e2_idx[j][0]].o - oCurrFace.rgVert[e2_idx[j][1]].o;
-               Vec3 e3 = e1.Cross(e2);
-               e2 = e3.Cross(e1);
+	  for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+	       static const integer e1_idx[3][2] = {{1, 0}, {2, 1}, {0, 2}};
+	       static const integer e2_idx[3][2] = {{2, 0}, {0, 1}, {1, 2}};
+	       Vec3 e1 = oCurrFace.rgVert[e1_idx[j][0]].o - oCurrFace.rgVert[e1_idx[j][1]].o;
+	       Vec3 e2 = oCurrFace.rgVert[e2_idx[j][0]].o - oCurrFace.rgVert[e2_idx[j][1]].o;
+	       Vec3 e3 = e1.Cross(e2);
+	       e2 = e3.Cross(e1);
 
-               doublereal e1n = e1.Norm(), e2n = e2.Norm(), e3n = e3.Norm();
+	       doublereal e1n = e1.Norm(), e2n = e2.Norm(), e3n = e3.Norm();
 
-               if (!(e1n && e2n && e3n)) {
-                    silent_cerr("triangular surface contact(" << uLabel
-                                << "): singular face geometry detected at line "
-                                << HP.GetLineData() << std::endl);
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-               }
+	       if (!(e1n && e2n && e3n)) {
+		    silent_cerr("triangular surface contact(" << uLabel
+				<< "): singular face geometry detected at line "
+				<< HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	       }
 
-               oCurrFace.rgVert[j].R = Mat3x3(e1 / e1n, e2 / e2n, e3 / e3n);
-          }
+	       oCurrFace.rgVert[j].R = Mat3x3(e1 / e1n, e2 / e2n, e3 / e3n);
+	  }
 
-          rgTargetMesh.emplace_back(oCurrFace);
+	  rgTargetMesh.emplace_back(oCurrFace);
 
-          if (eFrictionModel != FrictionModel::None) {
-               TargetFace* pFace = &rgTargetMesh.back();
+	  if (eFrictionModel != FrictionModel::None) {
+	       TargetFace* pFace = &rgTargetMesh.back();
 
-               for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
-                    TargetEdge oEdge{pFace->rgVert[rgEdges[j][0]].iVertex,
-                                     pFace->rgVert[rgEdges[j][1]].iVertex};
-                    rgEdgeMap.emplace(oEdge, pFace);
-               }
-          }
+	       for (integer j = 0; j < TargetFace::iNumVertices; ++j) {
+		    TargetEdge oEdge{pFace->rgVert[rgEdges[j][0]].iVertex,
+				     pFace->rgVert[rgEdges[j][1]].iVertex};
+		    rgEdgeMap.emplace(oEdge, pFace);
+	       }
+	  }
      }
 
      if (eFrictionModel != FrictionModel::None) {
-          for (auto& rCurr: rgEdgeMap) {
-               auto oNeighbors = rgEdgeMap.equal_range(rCurr.first);
+	  for (auto& rCurr: rgEdgeMap) {
+	       auto oNeighbors = rgEdgeMap.equal_range(rCurr.first);
 
-               for (auto itNeighbor = oNeighbors.first; itNeighbor != oNeighbors.second; ++itNeighbor) {
-                    if (itNeighbor->second == rCurr.second) {
-                         continue;
-                    }
+	       for (auto itNeighbor = oNeighbors.first; itNeighbor != oNeighbors.second; ++itNeighbor) {
+		    if (itNeighbor->second == rCurr.second) {
+			 continue;
+		    }
 
-                    if (rCurr.second->iNumNeighbors >= TargetFace::iNumVertices) {
-                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                    }
+		    if (rCurr.second->iNumNeighbors >= TargetFace::iNumVertices) {
+			 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		    }
 
-                    for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
-                         TargetEdge oEdge{rCurr.second->rgVert[rgEdges[iEdge][0]].iVertex,
-                                          rCurr.second->rgVert[rgEdges[iEdge][1]].iVertex};
+		    for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
+			 TargetEdge oEdge{rCurr.second->rgVert[rgEdges[iEdge][0]].iVertex,
+					  rCurr.second->rgVert[rgEdges[iEdge][1]].iVertex};
 
-                         if (oEdge == itNeighbor->first) {
-                              ASSERT(rCurr.second->rgVert[iEdge].pNeighbor == nullptr);
+			 if (oEdge == itNeighbor->first) {
+			      ASSERT(rCurr.second->rgVert[iEdge].pNeighbor == nullptr);
 
-                              rCurr.second->rgVert[iEdge].pNeighbor = itNeighbor->second;
+			      rCurr.second->rgVert[iEdge].pNeighbor = itNeighbor->second;
 
-                              for (integer jEdge = 0; jEdge < TargetFace::iNumVertices; ++jEdge) {
-                                   TargetEdge oEdgeNeighbor{itNeighbor->second->rgVert[rgEdges[jEdge][0]].iVertex,
-                                                            itNeighbor->second->rgVert[rgEdges[jEdge][1]].iVertex};
+			      for (integer jEdge = 0; jEdge < TargetFace::iNumVertices; ++jEdge) {
+				   TargetEdge oEdgeNeighbor{itNeighbor->second->rgVert[rgEdges[jEdge][0]].iVertex,
+							    itNeighbor->second->rgVert[rgEdges[jEdge][1]].iVertex};
 
-                                   if (oEdgeNeighbor == oEdge) {
-                                        rCurr.second->rgVert[iEdge].iEdgeNeighbor = jEdge;
-                                        break;
-                                   }
-                              }
+				   if (oEdgeNeighbor == oEdge) {
+					rCurr.second->rgVert[iEdge].iEdgeNeighbor = jEdge;
+					break;
+				   }
+			      }
 
-                              rCurr.second->iNumNeighbors++;
+			      rCurr.second->iNumNeighbors++;
 
-                              ASSERT(rCurr.second->rgVert[iEdge].iEdgeNeighbor >= 0);
-                              ASSERT(rCurr.second->rgVert[iEdge].iEdgeNeighbor < TargetFace::iNumVertices);
+			      ASSERT(rCurr.second->rgVert[iEdge].iEdgeNeighbor >= 0);
+			      ASSERT(rCurr.second->rgVert[iEdge].iEdgeNeighbor < TargetFace::iNumVertices);
 
-                              break;
-                         }
-                    }
-               }
-          }
+			      break;
+			 }
+		    }
+	       }
+	  }
      }
 
      if (!HP.IsKeyWord("number" "of" "contact" "nodes")) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): keyword \"number of contact nodes\" expected at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): keyword \"number of contact nodes\" expected at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
      const integer iNumContactNodes = HP.GetInt();
 
      if (iNumContactNodes <= 0) {
-          silent_cerr("triangular surface contact(" << uLabel
-                      << "): invalid number of contact nodes at line "
-                      << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	  silent_cerr("triangular surface contact(" << uLabel
+		      << "): invalid number of contact nodes at line "
+		      << HP.GetLineData() << std::endl);
+	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
      rgContactMesh.reserve(iNumContactNodes);
 
      for (integer i = 0; i < iNumContactNodes; ++i) {
-          const StructNode* pContNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
-          const Vec3 o1 = HP.IsKeyWord("offset") ? HP.GetPosRel(ReferenceFrame(pContNode)) : Zero3;
-          const doublereal dRadius = HP.IsKeyWord("radius") ? HP.GetReal() : 0.;
+	  const StructNode* pContNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
+	  const ReferenceFrame oRefFrame(pContNode);
+	  const integer iNumVertices = HP.IsKeyWord("number" "of" "contact" "vertices") ? HP.GetInt() : 1;
 
-          if (dRadius < 0.) {
-               silent_cerr("triangular surface contact(" << uLabel
-                           << "): invalid value for radius at line "
-                           << HP.GetLineData() << std::endl);
-               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-          }
+	  std::vector<ContactVertex> rgVertices;
 
-          rgContactMesh.emplace_back(pContNode, o1, dRadius, iNumFaces);
+	  rgVertices.reserve(iNumVertices);
+
+	  for (integer j = 1; j <= iNumVertices; ++j) {
+	       const Vec3 o1 = HP.IsKeyWord("offset") ? HP.GetPosRel(oRefFrame) : Zero3;
+
+	       const doublereal r1 = HP.IsKeyWord("radius") ? HP.GetReal() : 0.;
+
+	       if (r1 < 0.) {
+		    silent_cerr("triangular surface contact(" << uLabel
+				<< "): invalid value for radius at line "
+				<< HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	       }
+
+	       rgVertices.emplace_back(o1, r1);
+	  }
+
+	  rgContactMesh.emplace_back(pContNode, std::move(rgVertices), iNumFaces);
      }
 }
 
@@ -786,7 +807,7 @@ grad::Gradient<N> TriangSurfContact::GetContactForce(const grad::Gradient<N>& dz
      F2n.DerivativeResizeReset(pDofMap, iStartIndex, iEndIndex, MapVectorBase::LOCAL, 0.);
 
      for (index_type i = iStartIndex; i < iEndIndex; ++i) {
-          F2n.SetDerivativeLocal(i, dF_dz * dz.dGetDerivativeLocal(i));
+	  F2n.SetDerivativeLocal(i, dF_dz * dz.dGetDerivativeLocal(i));
      }
 
      return F2n;
@@ -820,7 +841,7 @@ void TriangSurfContact::GetConnectedNodes(std::vector<const Node *>& connectedNo
      connectedNodes.push_back(pTargetNode);
 
      for (const auto& rCont: rgContactMesh) {
-          connectedNodes.push_back(rCont.pContNode);
+	  connectedNodes.push_back(rCont.pContNode);
      }
 }
 
@@ -845,109 +866,113 @@ void TriangSurfContact::ContactSearch()
      const Vec3& omega2 = pTargetNode->GetWCurr();
 
      for (auto& rNode: rgContactMesh) {
-          rNode.rgContCurr.clear();
+	  rNode.rgContCurr.clear();
      }
 
      for (auto& rFace: rgTargetMesh) {
-          for (auto& rNode: rgContactMesh) {
-               const Vec3& X1 = rNode.pContNode->GetXCurr();
-               const Mat3x3& R1 = rNode.pContNode->GetRCurr();
-               const Vec3& X1P = rNode.pContNode->GetVCurr();
-               const Vec3& omega1 = rNode.pContNode->GetWCurr();
-               const Vec3& o1 = rNode.vOffset;
-               const Vec3 R1_o1 = R1 * o1;
-               const Vec3 l1 = X1 + R1_o1 - X2;
-               const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - rNode.dRadius - rFace.r;
+	  for (auto& rNode: rgContactMesh) {
+	       const Vec3& X1 = rNode.pContNode->GetXCurr();
+	       const Mat3x3& R1 = rNode.pContNode->GetRCurr();
+	       const Vec3& X1P = rNode.pContNode->GetVCurr();
+	       const Vec3& omega1 = rNode.pContNode->GetWCurr();
 
-               if (dDist > dSearchRadius) {
-                    continue;
-               }
+	       for (size_t iVertex = 0; iVertex < rNode.rgVertices.size(); ++iVertex) {
+		    const Vec3& o1 = rNode.rgVertices[iVertex].o1;
+		    const doublereal r1 = rNode.rgVertices[iVertex].r1;
+		    const Vec3 R1_o1 = R1 * o1;
+		    const Vec3 l1 = X1 + R1_o1 - X2;
+		    const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - r1 - rFace.r;
 
-               const Vec3 dX = R2.MulTV(l1);
+		    if (dDist > dSearchRadius) {
+			 continue;
+		    }
 
-               bool bInsert = true;
+		    const Vec3 dX = R2.MulTV(l1);
 
-               for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
-                    const Vec3& o2i = rFace.rgVert[i].o;
-                    const Mat3x3& R2i = rFace.rgVert[i].R;
-                    const doublereal dy = R2i.GetCol(2).Dot(dX - o2i);
+		    bool bInsert = true;
 
-                    if (dy < 0.) {
-                         bInsert = false;
-                         break;
-                    }
-               }
+		    for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
+			 const Vec3& o2i = rFace.rgVert[i].o;
+			 const Mat3x3& R2i = rFace.rgVert[i].R;
+			 const doublereal dy = R2i.GetCol(2).Dot(dX - o2i);
 
-               if (bInsert) {
-                    std::array<doublereal, TargetFace::iNumVertices> vy = {0};
+			 if (dy < 0.) {
+			      bInsert = false;
+			      break;
+			 }
+		    }
 
-                    if (eFrictionModel != FrictionModel::None) {
-                         const Vec3 l1P = X1P + omega1.Cross(R1_o1) - X2P;
-                         const Vec3 dXP = R2.MulTV(l1P - omega2.Cross(l1));
+		    if (bInsert) {
+			 std::array<doublereal, TargetFace::iNumVertices> vy = {0};
 
-                         for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
-                              const Mat3x3& R2i = rFace.rgVert[i].R;
-                              vy[i] = R2i.GetCol(2).Dot(dXP);
-                         }
-                    }
+			 if (eFrictionModel != FrictionModel::None) {
+			      const Vec3 l1P = X1P + omega1.Cross(R1_o1) - X2P;
+			      const Vec3 dXP = R2.MulTV(l1P - omega2.Cross(l1));
 
-                    rNode.rgContCurr.emplace(&rFace, ContactPair{&rFace.oFrictData, vy});
-               }
-          }
+			      for (integer i = 0; i < TargetFace::iNumVertices; ++i) {
+				   const Mat3x3& R2i = rFace.rgVert[i].R;
+				   vy[i] = R2i.GetCol(2).Dot(dXP);
+			      }
+			 }
+
+			 rNode.rgContCurr.emplace(&rFace, ContactPair{&rFace.oFrictData, iVertex, vy});
+		    }
+	       }
+	  }
      }
 
      if (eFrictionModel != FrictionModel::None) {
-          for (auto& rNode: rgContactMesh) {
-               for (auto itCurr = rNode.rgContCurr.begin(); itCurr != rNode.rgContCurr.end(); ++itCurr) {
-                    // Search for current contact face in previous set of contact faces
-                    auto itPrev = rNode.rgContPrev.find(itCurr->first);
+	  for (auto& rNode: rgContactMesh) {
+	       for (auto itCurr = rNode.rgContCurr.begin(); itCurr != rNode.rgContCurr.end(); ++itCurr) {
+		    // Search for current contact face in previous set of contact faces
+		    auto itPrev = rNode.rgContPrev.find(itCurr->first);
 
-                    // Did the current contact face already exist in the previous contact set?
-                    if (itPrev != rNode.rgContPrev.end()) {
-                         // Reuse previous stiction states
-                         itCurr->second.oFrictState = itPrev->second.oFrictState;
-                    } else {
-                         // Check if we can project the stiction states from neighbor faces
-                         doublereal vymaxCurr = -std::numeric_limits<doublereal>::max();
-                         integer iEdgeCurr = -1;
+		    // Did the current contact face already exist in the previous contact set?
+		    if (itPrev != rNode.rgContPrev.end()) {
+			 // Reuse previous stiction states
+			 itCurr->second.oFrictState = itPrev->second.oFrictState;
+		    } else {
+			 // Check if we can project the stiction states from neighbor faces
+			 doublereal vymaxCurr = -std::numeric_limits<doublereal>::max();
+			 integer iEdgeCurr = -1;
 
-                         for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
-                              const doublereal vyCurr = itCurr->second.vy[iEdge];
+			 for (integer iEdge = 0; iEdge < TargetFace::iNumVertices; ++iEdge) {
+			      const doublereal vyCurr = itCurr->second.vy[iEdge];
 
-                              if (vyCurr >= vymaxCurr) {
-                                   vymaxCurr = vyCurr;
-                                   iEdgeCurr = iEdge;
-                              }
-                         }
+			      if (vyCurr >= vymaxCurr) {
+				   vymaxCurr = vyCurr;
+				   iEdgeCurr = iEdge;
+			      }
+			 }
 
-                         if (iEdgeCurr < 0) {
-                              continue;
-                         }
+			 if (iEdgeCurr < 0) {
+			      continue;
+			 }
 
-                         itPrev = rNode.rgContPrev.find(itCurr->first->rgVert[iEdgeCurr].pNeighbor);
+			 itPrev = rNode.rgContPrev.find(itCurr->first->rgVert[iEdgeCurr].pNeighbor);
 
-                         if (itPrev == rNode.rgContPrev.end()) {
-                              continue;
-                         }
+			 if (itPrev == rNode.rgContPrev.end()) {
+			      continue;
+			 }
 
-                         // Project previous stiction state from the neighbor
-                         const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
-                         const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
+			 // Project previous stiction state from the neighbor
+			 const Mat3x3& R2iPrev = itPrev->first->rgVert[0].R;
+			 const Mat3x3& R2iCurr = itCurr->first->rgVert[0].R;
 
-                         itCurr->second.oFrictState.Project(R2iCurr, R2iPrev, itPrev->second.oFrictState);
-                    }
-               }
-          }
+			 itCurr->second.oFrictState.Project(R2iCurr, R2iPrev, itPrev->second.oFrictState);
+		    }
+	       }
+	  }
      }
 }
 
 template <typename T>
 inline void
 TriangSurfContact::AssRes(grad::GradientAssVec<T>& WorkVec,
-                          doublereal dCoef,
-                          const grad::GradientVectorHandler<T>& XCurr,
-                          const grad::GradientVectorHandler<T>& XPrimeCurr,
-                          enum grad::FunctionCall func)
+			  doublereal dCoef,
+			  const grad::GradientVectorHandler<T>& XCurr,
+			  const grad::GradientVectorHandler<T>& XPrimeCurr,
+			  enum grad::FunctionCall func)
 {
      UnivAssRes(WorkVec, dCoef, XCurr, func);
 }
@@ -955,8 +980,8 @@ TriangSurfContact::AssRes(grad::GradientAssVec<T>& WorkVec,
 template <typename T>
 inline void
 TriangSurfContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-                                 const grad::GradientVectorHandler<T>& XCurr,
-                                 enum grad::FunctionCall func)
+				 const grad::GradientVectorHandler<T>& XCurr,
+				 enum grad::FunctionCall func)
 {
      UnivAssRes(WorkVec, 1., XCurr, func);
 }
@@ -964,14 +989,14 @@ TriangSurfContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
 template <typename T>
 inline void
 TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
-                              doublereal dCoef,
-                              const grad::GradientVectorHandler<T>& XCurr,
-                              enum grad::FunctionCall func)
+			      doublereal dCoef,
+			      const grad::GradientVectorHandler<T>& XCurr,
+			      enum grad::FunctionCall func)
 {
      using namespace grad;
 
      if (func & RESIDUAL_FLAG) {
-          ContactSearch();
+	  ContactSearch();
      }
 
      tCurr = pDM->dGetTime();
@@ -980,81 +1005,84 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
      const integer iFirstIndex2 = pTargetNode->iGetFirstMomentumIndex();
 
      Vector<T, 3> X1, X2, F1, M1, F2, M2;
-     Vector<T, 3> XP1, XP2, omega1, omega2, dV;
+     Vector<T, 3> XP1, XP2, omega1, omega2;
      Vector<T, 2> U, tau;
      Matrix<T, 3, 3> R1, R2;
 
      for (auto& rNode: rgContactMesh) {
-          F1 = M1 = F2 = M2 = ::Zero3;
+	  F1 = M1 = F2 = M2 = ::Zero3;
 
-          oDofMap.Reset();
+	  oDofMap.Reset();
 
-          for (auto& oContPair: rNode.rgContCurr) {
-               rNode.pContNode->GetXCurr(X1, dCoef, func, &oDofMap);
-               rNode.pContNode->GetRCurr(R1, dCoef, func, &oDofMap);
+	  rNode.pContNode->GetXCurr(X1, dCoef, func, &oDofMap);
+	  rNode.pContNode->GetRCurr(R1, dCoef, func, &oDofMap);
 
-               pTargetNode->GetXCurr(X2, dCoef, func, &oDofMap);
-               pTargetNode->GetRCurr(R2, dCoef, func, &oDofMap);
+	  pTargetNode->GetXCurr(X2, dCoef, func, &oDofMap);
+	  pTargetNode->GetRCurr(R2, dCoef, func, &oDofMap);
 
-               TargetFace* pTargetFace = oContPair.first;
+	  if (eFrictionModel != FrictionModel::None) {
+	       rNode.pContNode->GetVCurr(XP1, dCoef, func, &oDofMap);
+	       rNode.pContNode->GetWCurr(omega1, dCoef, func, &oDofMap);
 
-               const Vec3& o1 = rNode.vOffset;
-               const Mat3x3& R2i = pTargetFace->rgVert[0].R;
-               const Vec3& o2i = pTargetFace->rgVert[0].o;
+	       pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
+	       pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
+	  }
 
-               const Vector<T, 3> n3 = R2 * R2i.GetCol(3);
-               const Vector<T, 3> l1 = R1 * o1;
-               const Vector<T, 3> l2 = X1 + l1 - X2;
-               const T dz = Dot(n3, Vector<T, 3>(l2 - R2 * o2i));
-               const Vector<T, 3> l2c = l2 - n3 * dz;
-               const Vector<T, 3> l1c = l1 - n3 * dz;
-               const T pz = dz - rNode.dRadius;
-               const T F2in = GetContactForce(pz, &oDofMap);
-               Vector<T, 3> F2i = n3 * F2in;
+	  for (auto& oContPair: rNode.rgContCurr) {
+	       const TargetFace& oTargetFace = *oContPair.first;
+	       const ContactVertex& oVertex = rNode.rgVertices[oContPair.second.iVertex];
+	       const Vec3& o1 = oVertex.o1;
+	       const doublereal r1 = oVertex.r1;
+	       const Mat3x3& R2i = oTargetFace.rgVert[0].R;
+	       const Vec3& o2i = oTargetFace.rgVert[0].o;
 
-               if (eFrictionModel != FrictionModel::None) {
-                    LugreState& oFrictState = oContPair.second.oFrictState;
+	       const Vector<T, 3> n3 = R2 * R2i.GetCol(3);
+	       const Vector<T, 3> l1 = R1 * o1;
+	       const Vector<T, 3> l2 = X1 + l1 - X2;
+	       const T dz = Dot(n3, Vector<T, 3>(l2 - R2 * o2i));
+	       const Vector<T, 3> l2c = l2 - n3 * dz;
+	       const Vector<T, 3> l1c = l1 - n3 * dz;
+	       const T pz = dz - r1;
+	       const T F2in = GetContactForce(pz, &oDofMap);
+	       Vector<T, 3> F2i = n3 * F2in;
 
-                    pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
-                    pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
-                    rNode.pContNode->GetVCurr(XP1, dCoef, func, &oDofMap);
-                    rNode.pContNode->GetWCurr(omega1, dCoef, func, &oDofMap);
+	       if (eFrictionModel != FrictionModel::None) {
+		    LugreState& oFrictState = oContPair.second.oFrictState;
 
-                    const Vector<T, 3> V = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
+		    const Vector<T, 3> dV = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
+		    const Vector<T, 3> dV_R2 = Transpose(R2) * dV;
 
-                    dV = Transpose(R2) * V;
+		    for (index_type i = 1; i <= 2; ++i) {
+			 U(i) = Dot(Direct(R2i.GetCol(i)), dV_R2);
+		    }
 
-                    for (index_type i = 1; i <= 2; ++i) {
-                         U(i) = Dot(Direct(R2i.GetCol(i)), dV);
-                    }
+		    oFrictState.GetFrictionForce(dt, U, T(fabs(F2in)), tau);
 
-                    oFrictState.GetFrictionForce(dt, U, T(fabs(F2in)), tau);
+		    for (index_type i = 1; i <= 2; ++i) {
+			 F2i += R2 * (Direct(R2i.GetCol(i)) * tau(i));
+		    }
+	       }
 
-                    for (index_type i = 1; i <= 2; ++i) {
-                         F2i += R2 * (Direct(R2i.GetCol(i)) * tau(i));
-                    }
-               }
+	       F2 += F2i;
+	       M2 += Cross(l2c, F2i);
+	       F1 -= F2i;
+	       M1 -= Cross(l1c, F2i);
+	  }
 
-               F2 += F2i;
-               M2 += Cross(l2c, F2i);
-               F1 -= F2i;
-               M1 -= Cross(l1c, F2i);
-          }
+	  const integer iFirstIndex1 = rNode.pContNode->iGetFirstMomentumIndex();
 
-          const integer iFirstIndex1 = rNode.pContNode->iGetFirstMomentumIndex();
-
-          WorkVec.AddItem(iFirstIndex1 + 1, F1);
-          WorkVec.AddItem(iFirstIndex1 + 4, M1);
-          WorkVec.AddItem(iFirstIndex2 + 1, F2);
-          WorkVec.AddItem(iFirstIndex2 + 4, M2);
+	  WorkVec.AddItem(iFirstIndex1 + 1, F1);
+	  WorkVec.AddItem(iFirstIndex1 + 4, M1);
+	  WorkVec.AddItem(iFirstIndex2 + 1, F2);
+	  WorkVec.AddItem(iFirstIndex2 + 4, M2);
      }
 }
 
 VariableSubMatrixHandler&
 TriangSurfContact::AssJac(VariableSubMatrixHandler& WorkMat,
-                          doublereal dCoef,
-                          const VectorHandler& XCurr,
-                          const VectorHandler& XPrimeCurr)
+			  doublereal dCoef,
+			  const VectorHandler& XCurr,
+			  const VectorHandler& XPrimeCurr)
 {
      using namespace grad;
 
@@ -1065,9 +1093,9 @@ TriangSurfContact::AssJac(VariableSubMatrixHandler& WorkMat,
 
 SubVectorHandler&
 TriangSurfContact::AssRes(SubVectorHandler& WorkVec,
-                          doublereal dCoef,
-                          const VectorHandler& XCurr,
-                          const VectorHandler& XPrimeCurr)
+			  doublereal dCoef,
+			  const VectorHandler& XCurr,
+			  const VectorHandler& XPrimeCurr)
 {
      using namespace grad;
 
@@ -1078,7 +1106,7 @@ TriangSurfContact::AssRes(SubVectorHandler& WorkVec,
 
 VariableSubMatrixHandler&
 TriangSurfContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-                                 const VectorHandler& XCurr)
+				 const VectorHandler& XCurr)
 {
      using namespace grad;
 
@@ -1098,18 +1126,18 @@ TriangSurfContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler&
 }
 
 void TriangSurfContact::AfterConvergence(const VectorHandler& X,
-                                         const VectorHandler& XP)
+					 const VectorHandler& XP)
 {
      if (eFrictionModel != FrictionModel::None) {
-          tPrev = tCurr;
+	  tPrev = tCurr;
 
-          for (auto& oContNode: rgContactMesh) {
-               for (auto& oContPair: oContNode.rgContCurr) {
-                    oContPair.second.oFrictState.AfterConvergence();
-               }
+	  for (auto& oContNode: rgContactMesh) {
+	       for (auto& oContPair: oContNode.rgContCurr) {
+		    oContPair.second.oFrictState.AfterConvergence();
+	       }
 
-               oContNode.rgContPrev = std::move(oContNode.rgContCurr);
-          }
+	       oContNode.rgContPrev = std::move(oContNode.rgContCurr);
+	  }
      }
 }
 #endif
@@ -1121,8 +1149,8 @@ bool triangular_contact_set(void)
 
      if (!SetUDE("triangular" "surface" "contact", rf))
      {
-          delete rf;
-          return false;
+	  delete rf;
+	  return false;
      }
 #endif
 
@@ -1136,16 +1164,16 @@ extern "C"
 
      int module_init(const char *module_name, void *pdm, void *php)
      {
-          if (!triangular_contact_set())
-          {
-               silent_cerr("contact: "
-                           "module_init(" << module_name << ") "
-                           "failed" << std::endl);
+	  if (!triangular_contact_set())
+	  {
+	       silent_cerr("contact: "
+			   "module_init(" << module_name << ") "
+			   "failed" << std::endl);
 
-               return -1;
-          }
+	       return -1;
+	  }
 
-          return 0;
+	  return 0;
      }
 
 }
