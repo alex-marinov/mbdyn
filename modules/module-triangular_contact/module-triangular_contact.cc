@@ -223,14 +223,14 @@ private:
 
      struct ContactPair {
 	  ContactPair(const LugreData* pFrictData,
-		      size_t iVertex,
+		      std::size_t iVertex,
 		      const std::array<doublereal, TargetFace::iNumVertices>& vy)
 	       :oFrictState(pFrictData), iVertex(iVertex), vy(vy) {
 	  }
 	  ContactPair(const ContactPair&)=default;
 
 	  LugreState oFrictState;
-	  const size_t iVertex;
+	  const std::size_t iVertex;
 	  std::array<doublereal, TargetFace::iNumVertices>  vy;
      };
 
@@ -876,7 +876,7 @@ void TriangSurfContact::ContactSearch()
 	       const Vec3& X1P = rNode.pContNode->GetVCurr();
 	       const Vec3& omega1 = rNode.pContNode->GetWCurr();
 
-	       for (size_t iVertex = 0; iVertex < rNode.rgVertices.size(); ++iVertex) {
+	       for (std::size_t iVertex = 0; iVertex < rNode.rgVertices.size(); ++iVertex) {
 		    const Vec3& o1 = rNode.rgVertices[iVertex].o1;
 		    const doublereal r1 = rNode.rgVertices[iVertex].r1;
 		    const Vec3 R1_o1 = R1 * o1;
