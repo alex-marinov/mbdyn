@@ -126,12 +126,12 @@ private:
      grad::Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
 };
 
-class TriangSurfContact: virtual public Elem, public UserDefinedElem
+class TriangularContact: virtual public Elem, public UserDefinedElem
 {
 public:
-     TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
+     TriangularContact(unsigned uLabel, const DofOwner *pDO,
 		       DataManager* pDM, MBDynParser& HP);
-     virtual ~TriangSurfContact(void);
+     virtual ~TriangularContact(void);
      virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
      VariableSubMatrixHandler&
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -480,7 +480,7 @@ void LugreState::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
      // Do nothing
 }
 
-TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
+TriangularContact::TargetFace::TargetFace(const DataManager* pDM)
      :oc(::Zero3),
       r(0.),
       iNumNeighbors(0),
@@ -488,7 +488,7 @@ TriangSurfContact::TargetFace::TargetFace(const DataManager* pDM)
 {
 }
 
-TriangSurfContact::ContactNode::ContactNode(const StructNode* pNode,
+TriangularContact::ContactNode::ContactNode(const StructNode* pNode,
 					    std::vector<ContactVertex>&& rgVert,
 					    integer iNumFaces)
      :pContNode(pNode),
@@ -498,7 +498,7 @@ TriangSurfContact::ContactNode::ContactNode(const StructNode* pNode,
      rgContPrev.reserve(iNumFaces);
 }
 
-TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
+TriangularContact::TriangularContact(unsigned uLabel, const DofOwner *pDO,
 				     DataManager* pDM, MBDynParser& HP)
      :Elem(uLabel, flag(0)),
       UserDefinedElem(uLabel, pDO),
@@ -812,17 +812,17 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
 
-TriangSurfContact::~TriangSurfContact(void)
+TriangularContact::~TriangularContact(void)
 {
 
 }
 
-doublereal TriangSurfContact::GetContactForce(doublereal dz, grad::LocalDofMap*) const {
+doublereal TriangularContact::GetContactForce(doublereal dz, grad::LocalDofMap*) const {
      return (*pCL)(dz);
 }
 
 template <grad::index_type N>
-grad::Gradient<N> TriangSurfContact::GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const
+grad::Gradient<N> TriangularContact::GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const
 {
      using namespace grad;
 
@@ -844,27 +844,27 @@ grad::Gradient<N> TriangSurfContact::GetContactForce(const grad::Gradient<N>& dz
      return F2n;
 }
 
-void TriangSurfContact::SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*)
+void TriangularContact::SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*)
 {
 
 }
 
-unsigned int TriangSurfContact::iGetInitialNumDof() const
+unsigned int TriangularContact::iGetInitialNumDof() const
 {
      return 0;
 }
 
-std::ostream& TriangSurfContact::Restart(std::ostream& out) const
+std::ostream& TriangularContact::Restart(std::ostream& out) const
 {
      return out;
 }
 
-int TriangSurfContact::iGetNumConnectedNodes(void) const
+int TriangularContact::iGetNumConnectedNodes(void) const
 {
      return rgContactMesh.size() + 1;
 }
 
-void TriangSurfContact::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+void TriangularContact::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
      connectedNodes.clear();
      connectedNodes.reserve(iGetNumConnectedNodes());
@@ -876,20 +876,20 @@ void TriangSurfContact::GetConnectedNodes(std::vector<const Node *>& connectedNo
      }
 }
 
-void TriangSurfContact::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+void TriangularContact::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
      *piNumRows = -(rgContactMesh.size() * iNumDofGradient);
      *piNumCols = iNumDofGradient;
 }
 
 void
-TriangSurfContact::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+TriangularContact::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
      *piNumRows = -(rgContactMesh.size() * iNumDofGradient);
      *piNumCols = 2 * iNumDofGradient;
 }
 
-void TriangSurfContact::ContactSearch()
+void TriangularContact::ContactSearch()
 {
      const Vec3& X2 = pTargetNode->GetXCurr();
      const Mat3x3& R2 = pTargetNode->GetRCurr();
@@ -999,7 +999,7 @@ void TriangSurfContact::ContactSearch()
 
 template <typename T>
 inline void
-TriangSurfContact::AssRes(grad::GradientAssVec<T>& WorkVec,
+TriangularContact::AssRes(grad::GradientAssVec<T>& WorkVec,
 			  doublereal dCoef,
 			  const grad::GradientVectorHandler<T>& XCurr,
 			  const grad::GradientVectorHandler<T>& XPrimeCurr,
@@ -1010,7 +1010,7 @@ TriangSurfContact::AssRes(grad::GradientAssVec<T>& WorkVec,
 
 template <typename T>
 inline void
-TriangSurfContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
+TriangularContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
 				 const grad::GradientVectorHandler<T>& XCurr,
 				 enum grad::FunctionCall func)
 {
@@ -1019,7 +1019,7 @@ TriangSurfContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
 
 template <typename T>
 inline void
-TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
+TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 			      doublereal dCoef,
 			      const grad::GradientVectorHandler<T>& XCurr,
 			      enum grad::FunctionCall func)
@@ -1110,7 +1110,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 }
 
 VariableSubMatrixHandler&
-TriangSurfContact::AssJac(VariableSubMatrixHandler& WorkMat,
+TriangularContact::AssJac(VariableSubMatrixHandler& WorkMat,
 			  doublereal dCoef,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
@@ -1123,7 +1123,7 @@ TriangSurfContact::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 SubVectorHandler&
-TriangSurfContact::AssRes(SubVectorHandler& WorkVec,
+TriangularContact::AssRes(SubVectorHandler& WorkVec,
 			  doublereal dCoef,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
@@ -1136,7 +1136,7 @@ TriangSurfContact::AssRes(SubVectorHandler& WorkVec,
 }
 
 VariableSubMatrixHandler&
-TriangSurfContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+TriangularContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				 const VectorHandler& XCurr)
 {
      using namespace grad;
@@ -1147,7 +1147,7 @@ TriangSurfContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 SubVectorHandler&
-TriangSurfContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
+TriangularContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 {
      using namespace grad;
 
@@ -1156,7 +1156,7 @@ TriangSurfContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler&
      return WorkVec;
 }
 
-void TriangSurfContact::AfterConvergence(const VectorHandler& X,
+void TriangularContact::AfterConvergence(const VectorHandler& X,
 					 const VectorHandler& XP)
 {
      if (eFrictionModel != FrictionModel::None) {
@@ -1176,7 +1176,7 @@ void TriangSurfContact::AfterConvergence(const VectorHandler& X,
 bool triangular_contact_set(void)
 {
 #ifdef USE_AUTODIFF
-     UserDefinedElemRead *rf = new UDERead<TriangSurfContact>;
+     UserDefinedElemRead *rf = new UDERead<TriangularContact>;
 
      if (!SetUDE("triangular" "contact", rf))
      {
@@ -1197,7 +1197,7 @@ extern "C"
      {
 	  if (!triangular_contact_set())
 	  {
-	       silent_cerr("contact: "
+	       silent_cerr("triangular contact: "
 			   "module_init(" << module_name << ") "
 			   "failed" << std::endl);
 
