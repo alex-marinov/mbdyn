@@ -156,17 +156,8 @@ public:
             :std::allocator<T>(a) {
         }
 
-    pointer
-        allocate(size_type n, const void* p=0) {
-#if GRADIENT_MEMORY_STAT > 0
-    	sMemUsage.Inc(n);
-#endif
-            const pointer pMem = allocate_aligned(GRADIENT_VECTOR_REGISTER_SIZE, n);
-
-#if GRADIENT_DEBUG > 0
-            std::memset(pMem, 0xFF, n);
-#endif      
-            return pMem;
+    pointer allocate(size_type n, const void* p=0) {
+	 return allocate_aligned(GRADIENT_VECTOR_REGISTER_SIZE, n);
     }
 
     void
