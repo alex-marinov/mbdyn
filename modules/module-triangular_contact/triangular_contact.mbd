@@ -29,7 +29,6 @@ begin: initial value;
 	derivatives coefficient: 1e-10;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
 	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
-	output: iterations;
 	threads: assembly, 1;
 end: initial value;
 

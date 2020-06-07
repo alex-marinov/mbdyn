@@ -12,7 +12,7 @@ begin: initial value;
 	initial time: 0;
 	final time:  10 * t1;
 
-	time step: t1 / 3000.;
+	time step: t1 / 1000.;
 
 	max iterations: 100;
 	tolerance: 1e-6;
@@ -22,9 +22,6 @@ begin: initial value;
 	derivatives coefficient: 1e-10;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
 	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
-	#linear solver: qr;
-	#nonlinear solver: bfgs, modified, 10, default solver options, heavy nonlinear, divergence check, no;
-	output: iterations;
 	threads: assembly, 1;
 end: initial value;
 
