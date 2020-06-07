@@ -67,7 +67,7 @@ options.output_file = "";
 
 unwind_protect
   phi = (0:(2 * pi / param.N):(2 * pi * (param.N - 1) / param.N))(:);
-  
+
   n=[zeros(1, 3);
      param.r2 * cos(phi), param.r2 * sin(phi), repmat(param.h2, numel(phi), 1)];
 
@@ -81,9 +81,9 @@ unwind_protect
   mbdyn_pre_write_param_file([options.output_file, ".set"], param);
 
   putenv("TRIANGULAR_CONTACT_SET", [options.output_file, ".set"]);
-  
+
   fd = -1;
- 
+
   unwind_protect
     fd = fopen([options.output_file, ".elm"], "wt");
 
@@ -92,7 +92,7 @@ unwind_protect
     endif
 
     putenv("TRIANGULAR_CONTACT_ELEM", [options.output_file, ".elm"]);
-    
+
     fputs(fd, "user defined: elem_id_contact, triangular surface contact, help,\n");
     fputs(fd, "target node, node_id_cone,\n");
     fputs(fd, "penalty function, \"penalty\",\n");
@@ -115,7 +115,7 @@ unwind_protect
       fclose(fd);
     endif
   end_unwind_protect
-  
+
   options.mbdyn_command = "mbdyn";
   mbdyn_solver_run("triangular_contact.mbd", options);
 
@@ -143,7 +143,7 @@ unwind_protect
     endfor
     mbdyn_post_abs_to_rel(log_dat.vars.node_id_cone, options.output_file, output_file, false);
   endif
-  
+
   [t, traj, def, vel, acc, node_id] = mbdyn_post_load_output_struct(output_file);
   [drive_id, drive_data] = mbdyn_post_load_output_drv(output_file);
 
@@ -168,7 +168,7 @@ unwind_protect
   grid on;
   grid minor on;
   title("trajectory xz-plane");
-  
+
   figure("visible", "off");
   hold on;
   plot(t, drive_data{1}, "-;Wkin;1");
@@ -181,7 +181,7 @@ unwind_protect
   title("energy");
 
   R = euler123_to_rotation_matrix([0; pi / 2 - Phi; 0]);
-  
+
   figure("visible", "off");
   hold on;
   plot(t, vel{log_dat.vars.node_idx_sphere_center}(:, 5) * r1, "-;omega * r1;1");

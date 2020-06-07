@@ -513,14 +513,15 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      if (HP.IsKeyWord("help"))
      {
 	  silent_cout("Module: triangular surface contact\n"
+		      "Author: Reinhard Resch <mbdyn-user@a1.net>\n"
 		      "\n"
 		      "This element implements unilateral contact with friction between an arbitrary rigid body, "
 		      "represented by a triangular mesh, and a set of nodes with arbitrary offsets\n"
 		      "\n"
 		      "triangular surface contact,\n"
-	              "  target node, (label) <node_id_target>,\n"
-                      "  penalty function, (DifferentiableScalarFunction) <function>,\n"
-                      "  [search radius, (real) <radius>,]\n"
+		      "  target node, (label) <node_id_target>,\n"
+		      "  penalty function, (DifferentiableScalarFunction) <function>,\n"
+		      "  [search radius, (real) <radius>,]\n"
 		      "  [friction model, {lugre | none},\n"
 		      "    [method, {implicit euler | trapezoidal rule},]\n"
 		      "    coulomb friction coefficient, (real) <mu>,\n"
@@ -533,19 +534,19 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 		      "number of target faces, (integer) <M>\n"
 		      "  (integer) <vertex1_1>, (integer) <vertex2_1>, (integer) <vertex3_1>,\n"
 		      "  (integer) <vertex1_2>, (integer) <vertex2_2>, (integer) <vertex3_2>, ...\n"
-		      "  (integer) <vertex1_M>, (integer) <vertex2_M>, (integer) <vertex3_M>, ...\n"		      
+		      "  (integer) <vertex1_M>, (integer) <vertex2_M>, (integer) <vertex3_M>, ...\n"
 		      "number of contact nodes, (integer) <O>,\n"
 		      "  (label) <node_id_contact_1>,\n"
 		      "  number of contact vertices, (integer) <P_1>,\n"
 		      "    (Vec3), <offset_1_1>, radius, (real) <r_1_1>,\n"
 		      "    (Vec3), <offset_2_1>, radius, (real) <r_2_1>, ...\n"
 		      "    (Vec3), <offset_P_1>, radius, (real) <r_P_1>,\n"
-	       	      "  (label) <node_id_contact_2>,\n"
+		      "  (label) <node_id_contact_2>,\n"
 		      "  number of contact vertices, (integer) <P_2>,\n"
 		      "    (Vec3), <offset_1_2>, radius, (real) <r_1_2>,\n"
 		      "    (Vec3), <offset_2_2>, radius, (real) <r_2_2>, ...\n"
 		      "    (Vec3), <offset_P_2>, radius, (real) <r_P_2>, ...\n"
-	       	      "  (label) <node_id_contact_O>,\n"
+		      "  (label) <node_id_contact_O>,\n"
 		      "  number of contact vertices, (integer) <P_O>,\n"
 		      "    (Vec3), <offset_1_O>, radius, (real) <r_1_O>,\n"
 		      "    (Vec3), <offset_2_O>, radius, (real) <r_2_O>, ...\n"
@@ -1026,7 +1027,7 @@ TriangSurfContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
      using namespace grad;
 
      if (func & RESIDUAL_FLAG) {
-     	  ContactSearch();
+	  ContactSearch();
      }
 
      tCurr = pDM->dGetTime();
