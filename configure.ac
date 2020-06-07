@@ -801,9 +801,9 @@ if test "$ol_enable_octave" != no ; then
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
 		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | tr '\\' '/'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | tr '\\' '/'`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`:${LD_LIBRARY_PATH}"
+	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/\\\\/\//g'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`"
+	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/\\\\/\//g'`"
+       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`:${LD_LIBRARY_PATH}"
     else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
@@ -811,8 +811,8 @@ if test "$ol_enable_octave" != no ; then
 	fi
 
 	AC_LANG_CPLUSPLUS
-	save_CXXFLAGS="$CXXFLAGS"
-	CXXFLAGS="$CXXFLAGS $try_OCTAVE_INCLUDE"
+	save_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $try_OCTAVE_INCLUDE"
 	AC_CHECK_HEADER(octave/oct.h,[have_octave_oct_h=yes],[have_octave_oct_h=no])
 	AC_CHECK_HEADER(octave/parse.h,[have_octave_parse_h=yes],[have_octave_parse_h=no],[
 #include <octave/oct.h>
@@ -823,7 +823,7 @@ if test "$ol_enable_octave" != no ; then
 	AC_CHECK_HEADER(octave/octave.h,[have_octave_octave_h=yes],[have_octave_octave_h=no],[
 #include <octave/oct.h>
 		])
-	CXXFLAGS="$save_CXXFLAGS"
+	CPPFLAGS="$save_CPPFLAGS"
 	AC_LANG_C
 
 	link_octave="no"
@@ -834,11 +834,11 @@ if test "$ol_enable_octave" != no ; then
 		-a "$have_mkoctfile" = "yes" ; \
 	then
 		OCTAVE_INCLUDE="$try_OCTAVE_INCLUDE"
-		save_CXXFLAGS="$CXXFLAGS"
+		save_CPPFLAGS="$CPPFLAGS"
 		save_LIBS="$LIBS"
 		try_LIBS="$try_OCTAVE_LIBS"
 		LIBS="$try_LIBS $LIBS"
-		CXXFLAGS="$CXXFLAGS $OCTAVE_INCLUDE"
+		CPPFLAGS="$CPPFLAGS $OCTAVE_INCLUDE"
 		AC_LANG_CPLUSPLUS
 		AC_TRY_LINK([
 #include <octave/oct.h>
@@ -868,7 +868,7 @@ if test "$ol_enable_octave" != no ; then
 			],[have_clean_up_and_exit="yes"])
 		AC_LANG_C
 		LIBS="$save_LIBS"
-		CXXFLAGS="$save_CXXFLAGS"
+		CPPFLAGS="$save_CPPFLAGS"
 		OCTAVE_LIBS="$try_LIBS"
 	fi
 
@@ -970,8 +970,8 @@ _aligned_free(p);
 
 	if test "$ol_enable_autodiff_vect" == 0 ; then
 		save_CXXFLAGS="$CXXFLAGS"
-		vector_flags="-O3 -march=native -mtune=native"
-		CXXFLAGS="$CXXFLAGS $vector_flags"
+		VECTOR_FLAGS="-march=native -mtune=native"
+		CXXFLAGS="$CXXFLAGS $VECTOR_FLAGS"
 
 		AC_LANG_CPLUSPLUS
 		AC_TRY_RUN([
@@ -1040,7 +1040,7 @@ public:
         return v[i];
     }
 
-    const vector_type& operator[](int i) const
+    vector_type operator[](int i) const
     {
         return v[i];
     }
@@ -1050,7 +1050,7 @@ public:
         return s[i];
     }
 
-    const scalar_type& operator()(int i) const
+    scalar_type operator()(int i) const
     {
         return s[i];
     }
@@ -1154,10 +1154,16 @@ int main(int argc, char* argv[])
     cout << "result: optimum(vector_size)=" << vec_size << endl;
     return 0;
 }					],
-					[],
-					[printf "[FAILED]\n"])
+					[use_vector_flags=enabled],
+					[use_vector_flags=disabled; printf "[FAILED]\n"])
 
-		if test -f grad_vector_size.dat; then
+		dnl If AVX is working, we must keep -march=native in order to avoid compiler errors.
+		
+		if test $use_vector_flags != enabled; then
+		   CXXFLAGS="$save_CXXFLAGS"
+		fi
+		
+		if test $use_vector_flags == enabled && test -f grad_vector_size.dat; then
 			ol_enable_autodiff_vect=`cat grad_vector_size.dat`
 
 			if test -z "$ol_enable_autodiff_vect"; then
@@ -1167,7 +1173,6 @@ int main(int argc, char* argv[])
 			rm grad_vector_size.dat
 		fi
 
-		CXXFLAGS="$save_CXXFLAGS"
 		AC_LANG_C
 	fi
 
