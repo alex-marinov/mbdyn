@@ -300,7 +300,7 @@ void LugreData::ParseInput(const Elem* pParent, MBDynParser& HP)
 	  } else if (HP.IsKeyWord("custom")) {
 	       beta = HP.GetReal();
 	  } else {
-	       silent_cerr("triangular surface contact("
+	       silent_cerr("triangular contact("
 			   << pParent->GetLabel()
 			   << "): keyword \"explicit euler\", "
 			   "\"implicit euler\", "
@@ -314,7 +314,7 @@ void LugreData::ParseInput(const Elem* pParent, MBDynParser& HP)
 
      if (!(HP.IsKeyWord("coulomb" "friction" "coefficient")
 	   || HP.IsKeyWord("coulomb" "friction" "coefficient" "x"))) {
-	  silent_cerr("triangular surface contact("
+	  silent_cerr("triangular contact("
 		      << pParent->GetLabel()
 		      << "): keyword \"coulomb friction coefficient\""
 		      " or \"coulomb friction coefficient x\" expected at line "
@@ -362,7 +362,7 @@ void LugreData::ParseInput(const Elem* pParent, MBDynParser& HP)
      }
 
      if (!(HP.IsKeyWord("micro" "slip" "stiffness") || HP.IsKeyWord("micro" "slip" "stiffness" "x"))) {
-	  silent_cerr("triangular surface contact("
+	  silent_cerr("triangular contact("
 		      << pParent->GetLabel()
 		      << "): keyword \"micro slip stiffness\" or \"micro slip stiffness x\" expected at line "
 		      << HP.GetLineData() << std::endl);
@@ -512,13 +512,13 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 
      if (HP.IsKeyWord("help"))
      {
-	  silent_cout("Module: triangular surface contact\n"
+	  silent_cout("Module: triangular contact\n"
 		      "Author: Reinhard Resch <mbdyn-user@a1.net>\n"
 		      "\n"
 		      "This element implements unilateral contact with friction between an arbitrary rigid body, "
 		      "represented by a triangular mesh, and a set of nodes with arbitrary offsets\n"
 		      "\n"
-		      "triangular surface contact,\n"
+		      "triangular contact,\n"
 		      "  target node, (label) <node_id_target>,\n"
 		      "  penalty function, (DifferentiableScalarFunction) <function>,\n"
 		      "  [search radius, (real) <radius>,]\n"
@@ -558,7 +558,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      }
 
      if (!HP.IsKeyWord("target" "node")) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): keyword \"target node\" expected at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -567,7 +567,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      pTargetNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
 
      if (!HP.IsKeyWord("penalty" "function")) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): keyword \"penalty function\" expected at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -576,7 +576,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      pCL = dynamic_cast<const DifferentiableScalarFunction*>(ParseScalarFunction(HP, pDM));
 
      if (!pCL) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): scalar function is not differentiable at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -587,7 +587,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      }
 
      if (dSearchRadius <= 0.) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): invalid value for search radius at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -600,7 +600,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	       eFrictionModel = FrictionModel::Lugre;
 	       oCurrFace.oFrictData.ParseInput(this, HP);
 	  } else if (!HP.IsKeyWord("none")) {
-	       silent_cerr("triangular surface(" << uLabel
+	       silent_cerr("triangular contact(" << uLabel
 			   << "): keyword \"lugre\" or \"none\" expected at line "
 			   << HP.GetLineData() << std::endl);
 	       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -610,7 +610,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      ReferenceFrame oRefTarget(pTargetNode);
 
      if (!HP.IsKeyWord("number" "of" "target" "vertices")) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): keyword \"number of target vertices\" expected at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -619,7 +619,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      const integer iNumVertices = HP.GetInt();
 
      if (iNumVertices <= 0) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): at least one vertex is required at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -634,7 +634,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      }
 
      if (!HP.IsKeyWord("number" "of" "target" "faces")) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): keyword \"number of target faces\" expected at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -643,7 +643,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      const integer iNumFaces = HP.GetInt();
 
      if (iNumFaces <= 0) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): at least one face is required at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -666,7 +666,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	       const integer iVertex = HP.GetInt() - 1;
 
 	       if (iVertex < 0 || iVertex >= iNumVertices) {
-		    silent_cerr("triangular surface contact(" << uLabel
+		    silent_cerr("triangular contact(" << uLabel
 				<< "): vertex index out of range (1:"
 				<< iNumVertices << ") at line "
 				<< HP.GetLineData() << std::endl);
@@ -698,7 +698,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	       doublereal e1n = e1.Norm(), e2n = e2.Norm(), e3n = e3.Norm();
 
 	       if (!(e1n && e2n && e3n)) {
-		    silent_cerr("triangular surface contact(" << uLabel
+		    silent_cerr("triangular contact(" << uLabel
 				<< "): singular face geometry detected at line "
 				<< HP.GetLineData() << std::endl);
 		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -765,7 +765,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      }
 
      if (!HP.IsKeyWord("number" "of" "contact" "nodes")) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): keyword \"number of contact nodes\" expected at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -774,7 +774,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
      const integer iNumContactNodes = HP.GetInt();
 
      if (iNumContactNodes <= 0) {
-	  silent_cerr("triangular surface contact(" << uLabel
+	  silent_cerr("triangular contact(" << uLabel
 		      << "): invalid number of contact nodes at line "
 		      << HP.GetLineData() << std::endl);
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -797,7 +797,7 @@ TriangSurfContact::TriangSurfContact(unsigned uLabel, const DofOwner *pDO,
 	       const doublereal r1 = HP.IsKeyWord("radius") ? HP.GetReal() : 0.;
 
 	       if (r1 < 0.) {
-		    silent_cerr("triangular surface contact(" << uLabel
+		    silent_cerr("triangular contact(" << uLabel
 				<< "): invalid value for radius at line "
 				<< HP.GetLineData() << std::endl);
 		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1178,7 +1178,7 @@ bool triangular_contact_set(void)
 #ifdef USE_AUTODIFF
      UserDefinedElemRead *rf = new UDERead<TriangSurfContact>;
 
-     if (!SetUDE("triangular" "surface" "contact", rf))
+     if (!SetUDE("triangular" "contact", rf))
      {
 	  delete rf;
 	  return false;

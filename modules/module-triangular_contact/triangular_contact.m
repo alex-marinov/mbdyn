@@ -93,7 +93,7 @@ unwind_protect
 
     putenv("TRIANGULAR_CONTACT_ELEM", [options.output_file, ".elm"]);
 
-    fputs(fd, "user defined: elem_id_contact, triangular surface contact, help,\n");
+    fputs(fd, "user defined: elem_id_contact, triangular contact, help,\n");
     fputs(fd, "target node, node_id_cone,\n");
     fputs(fd, "penalty function, \"penalty\",\n");
     fputs(fd, "search radius, r1,\n");
