@@ -358,7 +358,7 @@ inline void func2ad(const Matrix<doublereal, 3, 3>& A, const Vector<doublereal, 
 
 template <index_type N_SIZE>
 inline void func2ad(const Matrix<Gradient<N_SIZE>, 3, 3>& A, const Vector<Gradient<N_SIZE>, 3>& b, const Vector<Gradient<N_SIZE>, 3>& c, Vector<Gradient<N_SIZE>, 3>& d, const doublereal& e, LocalDofMap* pDofMap, doublereal& dt) {
-	typedef typename MaxSizeCheck<N_SIZE <= index_type(nbdirsmax)>::CheckType check_nbdirsmax;
+     static_assert(N_SIZE <= index_type(nbdirsmax));
 
 	doublereal A_F[3][3], Ad_F[3][3][nbdirsmax], b_F[3], bd_F[3][nbdirsmax], c_F[3], cd_F[3][nbdirsmax], d_F[3], dd_F[3][nbdirsmax];
 

@@ -31,7 +31,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2017) all rights reserved.
+        Copyright (C) 2013(-2020) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -111,28 +111,6 @@ typedef integer index_type;
 
 template <index_type N_SIZE>
 class Gradient;
-
-/*
- * This structure checks if the data type
- * at the left hand side of an assignment
- * can hold the number of derivatives
- * provided at the right hand side
-*/
-template <bool bSizeOK>
-struct MaxSizeCheck {
-private:
-	/*
-	 * For an expression like
-	 * Gradient<3> a = Gradient<4>(5.);
-	 * one will get an compilation error here!
-	 */
-	enum CheckType {};
-};
-
-template <>
-struct MaxSizeCheck<true> {
-	enum CheckType {};
-};
 
     template <typename T>
     struct IntegerTypeTraits
@@ -562,7 +540,7 @@ private:
     
     template <typename T2, index_type N_SIZE2>
         void Copy(const RangeVector<T2, N_SIZE2>& v) {
-    	typedef typename MaxSizeCheck<iMaxSize >= RangeVector<T2, N_SIZE2>::iMaxSize>::CheckType check_iMaxSize;
+	 static_assert(iMaxSize >= RangeVector<T2, N_SIZE2>::iMaxSize);
 
     	iStart = v.iGetStartIndex();
     	iEnd = v.iGetEndIndex();
@@ -2757,7 +2735,8 @@ private:
     template <typename Expression>
     void ApplyDerivative(const GradientExpression<Expression>& f) {
     	// compile time check for the maximum number of derivatives
-    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+	static_assert(iMaxDerivatives >= Expression::iMaxDerivatives);
+	 
     	const bool bVectorize = sizeof(vector_deriv_type) == sizeof(typename GradientExpression<Expression>::vector_deriv_type)
     							&& GradientExpression<Expression>::bVectorize;
     	GRADIENT_ASSERT(f.iGetMaxDerivatives() <= iGetMaxDerivatives());
@@ -2772,7 +2751,7 @@ private:
 
     template <typename BinFunc, typename Expression>
     void ApplyBinaryFunctionNoAlias(const GradientExpression<Expression>& f, const BinFunc&) {
-    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+	static_assert(iMaxDerivatives >= Expression::iMaxDerivatives);
     	const bool bVectorize = sizeof(vector_deriv_type) == sizeof(typename GradientExpression<Expression>::vector_deriv_type)
     							&& GradientExpression<Expression>::bVectorize;
 
@@ -2925,7 +2904,7 @@ private:
 
     template <typename BinFunc, typename Expression>
     void ApplyBinaryFunctionWithAlias(const GradientExpression<Expression>& f, const BinFunc&) {
-    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+	 static_assert(iMaxDerivatives >= Expression::iMaxDerivatives);
 
         *this = Gradient(GradientExpression<BinaryExpr<BinFunc, DirectExpr<Gradient>, Expression> >(*this, f));
     }
