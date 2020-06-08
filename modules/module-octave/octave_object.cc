@@ -160,6 +160,7 @@ namespace oct {
 
     }
 
+#if ! (OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION >= 5)
     static bool any_arg_is_magic_colon (const octave_value_list& args)
     {
         int nargin = args.length ();
@@ -170,7 +171,8 @@ namespace oct {
 
         return false;
     }
-
+#endif
+        
 #if TRACE_SUBSREF == 1
     static void print_args(const octave_value_list& args)
     {
