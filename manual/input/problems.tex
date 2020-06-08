@@ -50,8 +50,6 @@ of an ordinal parameter.
 
 \item \kw{inverse dynamics}, the computation of the generalized forces
 required to make a generic system perform a given trajectory.
-This problem is currently under development, so it is not discussed
-in detail.
 
 \end{itemize}
 
@@ -1546,11 +1544,50 @@ elements described in Sections~\ref{sec:EL:OUTELEM:STREAM_OUTPUT},
 \ref{sec:EL:OUTELEM:RTAI_out},
 and~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}.
 
-\section{Other Problems}
-Other types of problems are either possible or being developed.
-Typically, static problems can be obtained in terms of a downgrading
-of the initial value problem, by eliminating time-dependent
-interactions and treating time as an ordering parameter.
+\section{Inverse Dynamics}
+An inverse dynamics problem\ldots
+\begin{figure}[htbp]
+  \centering
+  \psfrag{1}{1}
+  \psfrag{2}{2}
+  \psfrag{t_1}{$\theta_1$}
+  \psfrag{t_2}{$\theta_2$}
+  \includegraphics[width=.5\textwidth]{invdyn_2link_fa}
+  \caption{Simple example of an inverse dynamics problem: a planar 2-link robot.}
+  \label{fig:PROBLEMS:INVDYN:2link_fa}
+\end{figure}
+With reference to figure~\ref{fig:PROBLEMS:INVDYN:2link}, consider the simple example of a
+planar 2-link robot\ldots
+\begin{figure}[htbp]
+  \centering
+  \psfrag{1}{1}
+  \psfrag{2}{2}
+  \psfrag{t_1}{$\theta_1$}
+  \psfrag{t_2}{$\theta_2$}
+  \includegraphics[width=.5\textwidth]{invdyn_2link_oa}
+  \caption{Simple example of a kinematically fully determined but overactuated inverse
+    dynamics problem: a planar 2-link robot controlled by three actuators.}
+  \label{fig:PROBLEMS:INVDYN:2link_oa}
+\end{figure}
 
-A special problem that is currently under development
-is \kw{inverse dynamics}.
+\begin{figure}[htbp]
+  \centering
+  \psfrag{1}{1}
+  \psfrag{2}{2}
+  \psfrag{3}{3}
+  \psfrag{t_1}{$\theta_1$}
+  \psfrag{t_2}{$\theta_2$}
+  \psfrag{t_3}{$\theta_3$}
+  \includegraphics[width=.5\textwidth]{invdyn_3link_oa}
+  \caption{Simple example of a kinematically underdetermined, overactuated inverse
+  dynamics problem: a planar 3-link robot controlled by five actuators.}
+  \label{fig:PROBLEMS:INVDYN:3link_oa}
+\end{figure}
+% \section{Other Problems}
+% Other types of problems are either possible or being developed.
+% Typically, static problems can be obtained in terms of a downgrading
+% of the initial value problem, by eliminating time-dependent
+% interactions and treating time as an ordering parameter.
+% 
+% A special problem that is currently under development
+% is \kw{inverse dynamics}.
