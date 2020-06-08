@@ -292,6 +292,46 @@ and \kw{M\_}\bnt{i} are output.
 See Section~\ref{sec:EL:AERO:BODY-BEAM23} for indications
 about how to customize aerodynamic element output in NetCDF format.
 
+\subsubsection{Induced Velocity Elements}
+\label{sec:NetCDF:Elem:InducedVelocity}
+
+The following variables are defined.
+\begin{itemize}
+  \item \kw{elem.inducedvelocity.}\bnt{label}, actually empty, it contains the type of 
+    the induced velocity element in the \kw{type} attribute.
+\end{itemize}
+only \kw{rotor} induced velocity elements are currently supported.
+\paragraph{Rotor}
+\begin{itemize}
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.f} contains the rotor force in $x$, $y$
+    and $z$ directions (longitudinal, lateral and thrust components);
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.m} contains the rotor moment 
+    about $x$, $y$  and $z$ directions (roll, pitch and torque components);
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.UMean} contains the mean inflow velocity,
+    based on momentum theory;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.VRef} contains the rotor center reference
+    velocity, sum of aistream and \nt{craft\_node} velocity;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Alpha} contains the rotor disk angle;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Mu} contains the advance parameter $\mu$;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Lambda} contains the inflow parameter
+    $\lambda$;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Chi} contains the advance/inflow 
+    parameter $\chi = \tan^{-1}(\mu/\lambda)$;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Psi0} contains the reference azimuthal
+    direction $\psi_0$, related to rotor yaw angle;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.UMeanRefConverged} contains a boolean flag
+    indicating convergence in reference induced velocity computation internal iterations;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.Iter} contains the number of iterations
+    required for convergence;
+\end{itemize}
+In the case the inflow model is \kw{dynamic inflow}, the following additional output is
+written
+\begin{itemize}
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.VConst} constant inflow angle;
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.VSine} sine inflow state (lateral);
+  \item \kw{elem.inducedvelocity.}\bnt{label}\kw{.VCosine} cosine inflow state (longitudinal);
+\end{itemize}
+
 
 \subsubsection{Automatic Structural}
 \label{sec:NetCDF:Elem:Automatic Structural}

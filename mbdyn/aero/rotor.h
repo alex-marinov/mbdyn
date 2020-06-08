@@ -46,14 +46,14 @@ protected:
 	const StructNode* pRotor;
 	const StructNode* pGround;
 
-	doublereal dOmegaRef;		// Velocita' di rotazione di riferimento
+	doublereal dOmegaRef;		// Reference angular velocity
 
-	doublereal dRadius;		// Raggio del rotore
-	doublereal dVTipRef;		// Raggio del rotore
-	doublereal dArea;		// Area del disco
-	doublereal dUMean;		// Velocita' indotta media
-	doublereal dUMeanRef;		// Velocita' indotta media (nominale)
-	mutable doublereal dUMeanPrev;	// Vel. indotta media al passo prec.
+	doublereal dRadius;		// Rotor radius
+	doublereal dVTipRef;		// Rotor reference tip velocity
+	doublereal dArea;		// Rotor disk area
+	doublereal dUMean;		// Mean induced velocity 
+	doublereal dUMeanRef;		// Mean induced velocity (nominal)
+	mutable doublereal dUMeanPrev;	// Mean induced velocity, previous step
 
 	// iterations for dUMeanRef
 	unsigned int iMaxIter;
@@ -63,29 +63,42 @@ protected:
 	bool bUMeanRefConverged;
 
 	DriveOwner Weight;
-	// Peso della velocita' indotta media
-	// (peso della V al passo precedente, def = 0.)
+	// Weight of the mean induced velocity
+	// (weight of V at previous step, def = 0.)
 	doublereal dWeight;
-	// Correzione H (scala la velocita' indotta)
+	// Hover correction (scales the induced velocity)
 	doublereal dHoverCorrection;
-	// FF
+	// Forward flight correction
 	doublereal dForwardFlightCorrection;
+	
+	Mat3x3 RRotTranspose;	// Rotor rotation matrix, transposed
+	Mat3x3 RRot;		// Rotor rotation matrix
+	Vec3 RRot3;		// Rotor axis direction 
+	Vec3 VCraft;		// Aicraft velocity
+	doublereal dPsi0;	// Rotor azimuth angle
+	doublereal dSinAlphad;	// Sine of rotor disc angle
+	doublereal dCosAlphad;	// Cosine of rotor disc angle
+	doublereal dMu;		// Advance parameter
+	doublereal dLambda;	// Inflow parameter
+	doublereal dChi;	// tan^{-1}(dMu/dLambda)
 
-	// Trasposta della matrice di rotazione rotore
-	Mat3x3 RRotTranspose;
-	Mat3x3 RRot;
-	Vec3 RRot3;		// Direzione dell'asse del rotore
-	Vec3 VCraft;		// Velocita' di traslazione del velivolo
-	doublereal dPsi0;	// Angolo di azimuth del rotore
-	doublereal dSinAlphad;	// Angolo di incidenza del disco?
-	doublereal dCosAlphad;	// ???
-	doublereal dMu;		// Parametro di'avanzamento
-	doublereal dLambda;	// Parametro di influsso
-	doublereal dChi;	// ???
+	doublereal dVelocity;	// Reference velocity
+	doublereal dOmega;	// Rotor angular velocity
 
-	doublereal dVelocity;	// Velocita' di riferimento
-	doublereal dOmega;	// Velocita' di rotazione di riferimento
-
+#ifdef USE_NETCDF
+	MBDynNcVar Var_f;		// Rotor force in rotor relative frame
+	MBDynNcVar Var_m;		// Rotor moment in rotor relative frame
+	MBDynNcVar Var_dUMean;		// Mean inflow velocity
+	MBDynNcVar Var_dVelocity;	// Reference velocity (craft_node + airstream)
+	MBDynNcVar Var_dAlpha; 		// Rotor disk angle
+	MBDynNcVar Var_dMu; 		// Advance parameter
+	MBDynNcVar Var_dLambda; 	// Inflow parameter
+	MBDynNcVar Var_dChi; 		// tan^{-1}(dMu/dLambda)
+	MBDynNcVar Var_dPsi0; 		// Reference azimuthal direction
+	// boolean flag indicating reference induced velocity computation convergence
+	MBDynNcVar Var_bUMeanRefConverged;
+	MBDynNcVar Var_iCurrIter;	// number of iterations required for convergence
+#endif // USE_NETCDF
 
 
 	// temporaneo
@@ -133,6 +146,7 @@ public:
 
 	// output; si assume che ogni tipo di elemento sappia,
 	// attraverso l'OutputHandler, dove scrivere il proprio output
+	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	// Contributo al file di Restart
@@ -569,6 +583,12 @@ protected:
 		const doublereal& dVCosineTmp,
 		flag fOut);
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dVConst;		// Constant inflow state
+	MBDynNcVar Var_dVSine;		// Sine inflow state (lateral) 
+	MBDynNcVar Var_dVCosine;	// Cosine inflow state (longitudinal)
+#endif // USE_NETCDF
+
 public:
 	DynamicInflowRotor(unsigned int uLabel, const DofOwner* pDO);
 	DynamicInflowRotor(unsigned int uLabel,
@@ -598,6 +618,7 @@ public:
 
 	// output; si assume che ogni tipo di elemento sappia,
 	// attraverso l'OutputHandler, dove scrivere il proprio output
+	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	// Dimensioni del workspace

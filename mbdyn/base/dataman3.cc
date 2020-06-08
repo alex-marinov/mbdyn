@@ -1459,6 +1459,7 @@ EndOfUse:
 		OutHdl.SetNetCDF(OutputHandler::JOINTS);
 		OutHdl.SetNetCDF(OutputHandler::BEAMS);
 		OutHdl.SetNetCDF(OutputHandler::AERODYNAMIC);
+		OutHdl.SetNetCDF(OutputHandler::ROTORS);
 		OutHdl.SetNetCDF(OutputHandler::LOADABLE);
 		OutHdl.SetNetCDF(OutputHandler::FORCES);
 		OutHdl.SetNetCDF(OutputHandler::GRAVITY);

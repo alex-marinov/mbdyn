@@ -71,6 +71,19 @@ Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
 RRotTranspose(::Zero3x3), RRot(::Eye3), RRot3(::Zero3),
 VCraft(::Zero3),
+#ifdef USE_NETCDFC	// netcdfcxx4 has non-pointer vars...
+Var_f(0),
+Var_m(0),
+Var_dUMean(0),
+Var_dVelocity(0),
+Var_dAlpha(0),
+Var_dMu(0),
+Var_dLambda(0),
+Var_dChi(0),
+Var_dPsi0(0),
+Var_bUMeanRefConverged(0),
+Var_iCurrIter(0),
+#endif // USE_NETCDFC
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
@@ -180,95 +193,185 @@ Rotor::AfterConvergence(const VectorHandler& X,
 }
 
 void
+Rotor::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+		std::ostringstream os;
+		os << "elem.inducedvelocity." << GetLabel() << ".";
+		std::string name = os.str();
+		(void)OH.CreateVar(name, "Rotor");
+
+		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			Var_f = OH.CreateVar<Vec3>(name + "f", "N",
+					"rotor force in x, y and z directions (lon, lat, thrust)");
+			Var_m = OH.CreateVar<Vec3>(name + "m", "Nm", 
+					"rotor moment about x, y and z directions (pitch, roll, torque)");
+			Var_dUMean = OH.CreateVar<doublereal>(name + "UMean", "m/s",
+					"mean inflow velocity");
+
+			Var_dVelocity = OH.CreateVar<doublereal>(name + "VRef", "m/s",
+					"reference velocity (craft_node + airstream)");
+			Var_dAlpha = OH.CreateVar<doublereal>(name + "Alpha", "rad",
+					"rotor disk angle");
+			Var_dMu = OH.CreateVar<doublereal>(name + "Mu", "-",
+					"advance parameter");
+			Var_dLambda = OH.CreateVar<doublereal>(name + "Lambda", "-",
+					"inflow parameter");
+			Var_dChi = OH.CreateVar<doublereal>(name + "Chi", "-",
+					"advance/inflow parameter");
+			Var_dPsi0 = OH.CreateVar<doublereal>(name + "Psi0", "rad",
+					"reference azimuthal direction");
+			Var_bUMeanRefConverged = OH.CreateVar<integer>(name + "UMeanRefConverged",
+					"bool", "boolean flag indicating reference induced velocity computation convergence");
+			Var_iCurrIter = OH.CreateVar<integer>(name + "Iter", "-",
+					"number of iterations required for convergence");
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 Rotor::Output(OutputHandler& OH) const
 {
-    	if (bToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_MPI
 		if (is_parallel && IndVelComm.Get_size() > 1) {
-	    		if (IndVelComm.Get_rank() == 0) {
+			if (IndVelComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR);
 				Vec3 TmpM(pTmpVecR+3);
+#ifdef USE_NETCDF
+				if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+					OH.WriteNcVar(Var_f, RRotTranspose*TmpF);
+					OH.WriteNcVar(Var_m, RRotTranspose*TmpM);
+					OH.WriteNcVar(Var_dUMean, dUMean);
+					OH.WriteNcVar(Var_dVelocity, dVelocity);
+					OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+					OH.WriteNcVar(Var_dMu, dMu);
+					OH.WriteNcVar(Var_dLambda, dLambda);
+					OH.WriteNcVar(Var_dChi, dChi);
+					OH.WriteNcVar(Var_dPsi0, dPsi0);
+					OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+					OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+				}
+#endif // USE_NETCDF
+				if (OH.UseText(OutputHandler::ROTORS)) {
+					OH.Rotors()
+						<< std::setw(8) << GetLabel()	/* 1 */
+						<< " " << RRotTranspose*TmpF /* 2-4 */
+						<< " " << RRotTranspose*TmpM /* 5-7 */
+						<< " " << dUMean 	/* 8 */
+						<< " " << dVelocity	/* 9 */
+						<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+						<< " " << dMu		/* 11 */
+						<< " " << dLambda	/* 12 */
+						<< " " << dChi		/* 13 */
+						<< " " << dPsi0		/* 14 */
+						<< " " << bUMeanRefConverged /* 15 */
+						<< " " << iCurrIter	/* 16 */
+						<< std::endl;
 
+					for (int i = 0; ppRes && ppRes[i]; i++) {
+						Vec3 TmpF(pTmpVecR+6+6*i);
+						Vec3 TmpM(pTmpVecR+9+6*i);
+
+						OH.Rotors()
+							<< std::setw(8) << GetLabel()
+							<< ":" << ppRes[i]->GetLabel()
+							<< " " << TmpF
+							<< " " << TmpM
+							<< std::endl;
+					}
+				}
+			}
+		} else {
+#ifdef USE_NETCDF
+			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
+				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
+				OH.WriteNcVar(Var_dUMean, dUMean);
+				OH.WriteNcVar(Var_dVelocity, dVelocity);
+				OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+				OH.WriteNcVar(Var_dMu, dMu);
+				OH.WriteNcVar(Var_dLambda, dLambda);
+				OH.WriteNcVar(Var_dChi, dChi);
+				OH.WriteNcVar(Var_dPsi0, dPsi0);
+				OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+				OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+			}
+#endif // USE_NETCDF
+			if (OH.UseText(OutputHandler::ROTORS)) {
 				OH.Rotors()
 					<< std::setw(8) << GetLabel()	/* 1 */
-					<< " " << RRotTranspose*TmpF /* 2-4 */
-					<< " " << RRotTranspose*TmpM /* 5-7 */
-					<< " " << dUMean 	/* 8 */
-					<< " " << dVelocity	/* 9 */
+					<< " " << RRotTranspose*Res.Force()  /* 2-4 */
+					<< " " << RRotTranspose*Res.Moment() /* 5-7 */
+					<< " " << dUMean		/* 8 */
+					<< " " << dVelocity		/* 9 */
 					<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
-					<< " " << dMu		/* 11 */
-					<< " " << dLambda	/* 12 */
-					<< " " << dChi		/* 13 */
-					<< " " << dPsi0		/* 14 */
-					<< " " << bUMeanRefConverged /* 15 */
-					<< " " << iCurrIter	/* 16 */
+					<< " " << dMu			/* 11 */
+					<< " " << dLambda		/* 12 */
+					<< " " << dChi			/* 13 */
+					<< " " << dPsi0			/* 14 */
+					<< " " << bUMeanRefConverged	/* 15 */
+					<< " " << iCurrIter		/* 16 */
 					<< std::endl;
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
-					Vec3 TmpF(pTmpVecR+6+6*i);
-					Vec3 TmpM(pTmpVecR+9+6*i);
-
 					OH.Rotors()
 						<< std::setw(8) << GetLabel()
 						<< ":" << ppRes[i]->GetLabel()
-						<< " " << TmpF
-						<< " " << TmpM
+						<< " " << ppRes[i]->pRes->Force()
+						<< " " << ppRes[i]->pRes->Moment()
 						<< std::endl;
 				}
-	    		}
-		} else {
-	    		OH.Rotors()
+			}
+		}
+#else /* !USE_MPI */
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
+			OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
+			OH.WriteNcVar(Var_dUMean, dUMean);
+			OH.WriteNcVar(Var_dVelocity, dVelocity);
+			OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+			OH.WriteNcVar(Var_dMu, dMu);
+			OH.WriteNcVar(Var_dLambda, dLambda);
+			OH.WriteNcVar(Var_dChi, dChi);
+			OH.WriteNcVar(Var_dPsi0, dPsi0);
+			OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+			OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::ROTORS)) {	
+			OH.Rotors()
 				<< std::setw(8) << GetLabel()	/* 1 */
-	    			<< " " << RRotTranspose*Res.Force()  /* 2-4 */
-				<< " " << RRotTranspose*Res.Moment() /* 5-7 */
-	    			<< " " << dUMean		/* 8 */
-	    			<< " " << dVelocity		/* 9 */
-	    			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
-	    			<< " " << dMu			/* 11 */
-	    			<< " " << dLambda		/* 12 */
+				<< " " << RRotTranspose*Res.Force()	/* 2-4 */
+				<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
+				<< " " << dUMean		/* 8 */
+				<< " " << dVelocity		/* 9 */
+				<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+				<< " " << dMu			/* 11 */
+				<< " " << dLambda		/* 12 */
 				<< " " << dChi			/* 13 */
-	    			<< " " << dPsi0			/* 14 */
+				<< " " << dPsi0			/* 14 */
 				<< " " << bUMeanRefConverged	/* 15 */
 				<< " " << iCurrIter		/* 16 */
-	    			<< std::endl;
+				<< std::endl;
 
-	    		for (int i = 0; ppRes && ppRes[i]; i++) {
+			/* FIXME: check for parallel stuff ... */
+			for (int i = 0; ppRes && ppRes[i]; i++) {
 				OH.Rotors()
 					<< std::setw(8) << GetLabel()
-	    				<< ":" << ppRes[i]->GetLabel()
-	    				<< " " << ppRes[i]->pRes->Force()
-	    				<< " " << ppRes[i]->pRes->Moment()
-	    				<< std::endl;
-	    		}
-		}
-
-#else /* !USE_MPI */
-		OH.Rotors()
-			<< std::setw(8) << GetLabel()	/* 1 */
-			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
-			<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
-			<< " " << dUMean		/* 8 */
-			<< " " << dVelocity		/* 9 */
-			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
-			<< " " << dMu			/* 11 */
-			<< " " << dLambda		/* 12 */
-			<< " " << dChi			/* 13 */
-			<< " " << dPsi0			/* 14 */
-			<< " " << bUMeanRefConverged	/* 15 */
-			<< " " << iCurrIter		/* 16 */
-			<< std::endl;
-
-		/* FIXME: check for parallel stuff ... */
-		for (int i = 0; ppRes && ppRes[i]; i++) {
-			OH.Rotors()
-				<< std::setw(8) << GetLabel()
-				<< ":" << ppRes[i]->GetLabel()
-				<< " " << ppRes[i]->pRes->Force()
-				<< " " << ppRes[i]->pRes->Moment()
-				<< std::endl;
+					<< ":" << ppRes[i]->GetLabel()
+					<< " " << ppRes[i]->pRes->Force()
+					<< " " << ppRes[i]->pRes->Moment()
+					<< std::endl;
+			}
 		}
 #endif /* !USE_MPI */
-    	}
+	}
 }
 
 /* Calcola la posizione azimuthale di un punto generico.
@@ -1563,6 +1666,11 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	flag fOut)
 : Elem(uLabel, flag(0)),
 Rotor(uLabel, pDO),
+#ifdef USE_NETCDFC	// netcdfcxx4 has non-pointer vars...
+Var_dVConst(0),
+Var_dVSine(0),
+Var_dVCosine(0),
+#endif // USE_NETCDFC
 dVConst(0), dVSine(0), dVCosine(0),
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1646,6 +1754,29 @@ DynamicInflowRotor::~DynamicInflowRotor(void)
 #endif /* USE_MPI */
 }
 
+void
+DynamicInflowRotor::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		/* The first part of the output is the same for Rotor and
+		 * DynamicInflowRotor
+		 */
+		Rotor::OutputPrepare(OH);
+
+		std::ostringstream os;
+		os << "elem.inducedvelocity." << GetLabel() << ".";
+		std::string name = os.str();
+		Var_dVConst = OH.CreateVar<doublereal>(name + "VConst", "m/s",
+				"constant inflow state");
+		Var_dVSine = OH.CreateVar<doublereal>(name + "VSine", "m/s",
+				"sine inflow state (lateral)");
+		Var_dVCosine= OH.CreateVar<doublereal>(name + "VCosine", "m/s",
+				"cosine inflow state (longitudinal)");
+
+#endif // USE_NETCDF
+	}
+}
 
 void
 DynamicInflowRotor::Output(OutputHandler& OH) const
@@ -1659,11 +1790,80 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 		if (is_parallel && IndVelComm.Get_size() > 1) {
 			if (IndVelComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
+#ifdef USE_NETCDF
+				if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+					OH.WriteNcVar(Var_f, RRotTranspose*TmpF);
+					OH.WriteNcVar(Var_m, RRotTranspose*TmpM);
+					OH.WriteNcVar(Var_dUMean, dUMean);
+					OH.WriteNcVar(Var_dVelocity, dVelocity);
+					OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+					OH.WriteNcVar(Var_dMu, dMu);
+					OH.WriteNcVar(Var_dLambda, dLambda);
+					OH.WriteNcVar(Var_dChi, dChi);
+					OH.WriteNcVar(Var_dPsi0, dPsi0);
+					OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+					OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+					OH.WriteNcVar(Var_dConst, dConst);
+					OH.WriteNcVar(Var_dVSine, dVSine);
+					OH.WriteNcVar(Var_dVCosine, dVCosine);
+				}
+#endif // USE_NETCDF
+				if (OH.UseText(OutputHandler::ROTORS)) {
+					OH.Rotors()
+						<< std::setw(8) << GetLabel()	/* 1 */
+						<< " " << RRotTranspose*TmpF /* 2-4 */
+						<< " " << RRotTranspose*TmpM /* 5-7 */
+						<< " " << dUMean	/* 8 */
+						<< " " << dVelocity	/* 9 */
+						<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+						<< " " << dMu		/* 11 */
+						<< " " << dLambda	/* 12 */
+						<< " " << dChi		/* 13 */
+						<< " " << dPsi0		/* 14 */
+						<< " " << bUMeanRefConverged /* 15 */
+						<< " " << iCurrIter	/* 16 */
+						<< " " << dVConst	/* 17 */
+						<< " " << dVSine	/* 18 */
+						<< " " << dVCosine	/* 19 */
+						<< std::endl;
 
+					for (int i = 0; ppRes && ppRes[i]; i++) {
+						Vec3 TmpF(pTmpVecR+6+6*i);
+						Vec3 TmpM(pTmpVecR+9+6*i);
+
+						OH.Rotors()
+							<< std::setw(8) << GetLabel()
+							<< ":" << ppRes[i]->GetLabel()
+							<< " " << TmpF
+							<< " " << TmpM
+							<< std::endl;
+					}
+				}
+			}
+		} else {
+#ifdef USE_NETCDF
+			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
+				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
+				OH.WriteNcVar(Var_dUMean, dUMean);
+				OH.WriteNcVar(Var_dVelocity, dVelocity);
+				OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+				OH.WriteNcVar(Var_dMu, dMu);
+				OH.WriteNcVar(Var_dLambda, dLambda);
+				OH.WriteNcVar(Var_dChi, dChi);
+				OH.WriteNcVar(Var_dPsi0, dPsi0);
+				OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+				OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+				OH.WriteNcVar(Var_dConst, dConst);
+				OH.WriteNcVar(Var_dVSine, dVSine);
+				OH.WriteNcVar(Var_dVCosine, dVCosine);
+			}
+#endif // USE_NETCDF
+			if (OH.UseText(OutputHandler::ROTORS)) {
 				OH.Rotors()
 					<< std::setw(8) << GetLabel()	/* 1 */
-					<< " " << RRotTranspose*TmpF /* 2-4 */
-					<< " " << RRotTranspose*TmpM /* 5-7 */
+					<< " " << RRotTranspose*Res.Force()  /* 2-4 */
+					<< " " << RRotTranspose*Res.Moment() /* 5-7 */
 					<< " " << dUMean	/* 8 */
 					<< " " << dVelocity	/* 9 */
 					<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
@@ -1679,25 +1879,42 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 					<< std::endl;
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
-					Vec3 TmpF(pTmpVecR+6+6*i);
-					Vec3 TmpM(pTmpVecR+9+6*i);
-
 					OH.Rotors()
 						<< std::setw(8) << GetLabel()
 						<< ":" << ppRes[i]->GetLabel()
-						<< " " << TmpF
-						<< " " << TmpM
+						<< " " << ppRes[i]->pRes->Force()
+						<< " " << ppRes[i]->pRes->Moment()
 						<< std::endl;
 				}
 			}
-		} else {
+		}
+#else /* !USE_MPI */
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
+			OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
+			OH.WriteNcVar(Var_dUMean, dUMean);
+			OH.WriteNcVar(Var_dVelocity, dVelocity);
+			OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
+			OH.WriteNcVar(Var_dMu, dMu);
+			OH.WriteNcVar(Var_dLambda, dLambda);
+			OH.WriteNcVar(Var_dChi, dChi);
+			OH.WriteNcVar(Var_dPsi0, dPsi0);
+			OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
+			OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
+			OH.WriteNcVar(Var_dVConst, dVConst);
+			OH.WriteNcVar(Var_dVSine, dVSine);
+			OH.WriteNcVar(Var_dVCosine, dVCosine);
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::ROTORS)) {
 			OH.Rotors()
 				<< std::setw(8) << GetLabel()	/* 1 */
-				<< " " << RRotTranspose*Res.Force()  /* 2-4 */
-				<< " " << RRotTranspose*Res.Moment() /* 5-7 */
+				<< " " << RRotTranspose*Res.Force()	/* 2-4 */
+				<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
 				<< " " << dUMean	/* 8 */
 				<< " " << dVelocity	/* 9 */
-				<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+				<< " " << atan2(dSinAlphad,dCosAlphad)	/* 10 */
 				<< " " << dMu		/* 11 */
 				<< " " << dLambda	/* 12 */
 				<< " " << dChi		/* 13 */
@@ -1712,39 +1929,11 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			for (int i = 0; ppRes && ppRes[i]; i++) {
 				OH.Rotors()
 					<< std::setw(8) << GetLabel()
-	    				<< ":" << ppRes[i]->GetLabel()
+					<< ":" << ppRes[i]->GetLabel()
 					<< " " << ppRes[i]->pRes->Force()
 					<< " " << ppRes[i]->pRes->Moment()
 					<< std::endl;
 			}
-		}
-
-#else /* !USE_MPI */
-		OH.Rotors()
-			<< std::setw(8) << GetLabel()	/* 1 */
-			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
-			<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
-			<< " " << dUMean	/* 8 */
-			<< " " << dVelocity	/* 9 */
-			<< " " << atan2(dSinAlphad,dCosAlphad)	/* 10 */
-			<< " " << dMu		/* 11 */
-			<< " " << dLambda	/* 12 */
-			<< " " << dChi		/* 13 */
-			<< " " << dPsi0		/* 14 */
-			<< " " << bUMeanRefConverged /* 15 */
-			<< " " << iCurrIter	/* 16 */
-			<< " " << dVConst	/* 17 */
-			<< " " << dVSine	/* 18 */
-			<< " " << dVCosine	/* 19 */
-			<< std::endl;
-
-		for (int i = 0; ppRes && ppRes[i]; i++) {
-			OH.Rotors()
-				<< std::setw(8) << GetLabel()
-    				<< ":" << ppRes[i]->GetLabel()
-				<< " " << ppRes[i]->pRes->Force()
-				<< " " << ppRes[i]->pRes->Moment()
-				<< std::endl;
 		}
 #endif /* !USE_MPI */
 	}
