@@ -31,7 +31,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2017) all rights reserved.
+        Copyright (C) 2013(-2020) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -466,30 +466,6 @@ inline void ZeroInit<long double>(long double* first, long double* last) {
         array_fill(first, last, 0.0L);
 }
 
-/**
- * FIXME: In order to reduce the number of matching function calls
- * for template operators, we have to provide the number of rows and columns
- * twice in some situations.
- *
- * In order to check for inconsistent definitions
- * of the number of rows and columns at compile time,
- * the following struct is used.
- */
-template <long DIFF>
-struct IndexCheck {
-private:
-	/* Whenever we get an compilation error here,
-	 * the value of iNumRows or iNumCols in VectorExpression or MatrixExpression
-	 * is not consistent with their template argument Expression
-	 */
-	enum CheckType {INDEX_CHECK};
-};
-
-template <>
-struct IndexCheck<0L> {
-	enum CheckType {INDEX_CHECK};
-};
-
 namespace MatVecHelp
 {
 	template <typename T>
@@ -628,7 +604,7 @@ private:
             MATVEC_ASSERT((Expression::iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && Expression::iGetNumRows() >= 0));
     }
 #endif
-    typedef typename IndexCheck<iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
+     static_assert(iNumRows == Expression::iNumRows);
 };
 
 template <typename Expression, index_type N_rows, index_type N_cols, bool CLEAR_ALIAS=false>
@@ -679,8 +655,8 @@ private:
     }
 #endif
 
-        typedef typename IndexCheck<iNumRows == DYNAMIC_SIZE || Expression::iNumRows == DYNAMIC_SIZE ? 0 : iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
-        typedef typename IndexCheck<iNumCols == DYNAMIC_SIZE || Expression::iNumCols == DYNAMIC_SIZE ? 0 : iNumCols - Expression::iNumCols>::CheckType check_iNumCols;
+     static_assert(iNumRows == DYNAMIC_SIZE || Expression::iNumRows == DYNAMIC_SIZE ? true : iNumRows == Expression::iNumRows);
+     static_assert(iNumCols == DYNAMIC_SIZE || Expression::iNumCols == DYNAMIC_SIZE ? true : iNumCols == Expression::iNumCols);
 };
 
 /**
@@ -829,9 +805,9 @@ public:
     }
 
 private:
-    typedef typename MaxSizeCheck<iEndIndex <= VectorExpr::iNumRows>::CheckType check_iEndIndex;
-    typedef typename MaxSizeCheck<iStartIndex >= 1>::CheckType check_iStartIndex;
-        typedef typename MaxSizeCheck<VectorExpr::iNumRows != DYNAMIC_SIZE>::CheckType check_iStaticSize;
+     static_assert(iEndIndex <= VectorExpr::iNumRows);
+     static_assert(iStartIndex >= 1);
+     static_assert(VectorExpr::iNumRows != DYNAMIC_SIZE);
     const VectorExpr oU;
 };
 
@@ -929,8 +905,8 @@ public:
     private:
         const ScalarType* const pVec;
     
-        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
-        typedef typename MaxSizeCheck<N_offset != DYNAMIC_SIZE>::CheckType check_iOffset;
+        static_assert(iNumRows != DYNAMIC_SIZE);
+        static_assert(N_offset != DYNAMIC_SIZE);
     };
 
     template <typename T, index_type N_rows>
@@ -965,7 +941,7 @@ public:
         const ScalarType* const pVec;
         const index_type iOffset;
     
-        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
+	 static_assert(iNumRows != DYNAMIC_SIZE);
     };
 
     template <typename T, index_type N_offset>
@@ -1000,7 +976,7 @@ public:
         const ScalarType* const pVec;
         const index_type iCurrRows;
     
-        typedef typename MaxSizeCheck<N_offset != DYNAMIC_SIZE>::CheckType check_iOffset;
+	 static_assert(N_offset != DYNAMIC_SIZE);
     };
 
     
@@ -1036,7 +1012,7 @@ private:
         const index_type iCurrRows;
         const index_type iOffset;
     
-        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
+	 static_assert(iNumRows == DYNAMIC_SIZE);
 };
 
 template <typename MatrixExpr>
@@ -1213,12 +1189,12 @@ public:
     }
 
 private:
-    typedef typename MaxSizeCheck<iRowStart >= 1>::CheckType check_iRowStart;
-    typedef typename MaxSizeCheck<iRowEnd <= MatrixExpr::iNumRows>::CheckType check_iRowEnd;
-    typedef typename MaxSizeCheck<iColStart >= 1>::CheckType check_iColStart;
-    typedef typename MaxSizeCheck<iColEnd <= MatrixExpr::iNumCols>::CheckType check_iColEnd;
-        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
-        typedef typename MaxSizeCheck<iNumCols != DYNAMIC_SIZE>::CheckType check_iNumCols;
+     static_assert(iRowStart >= 1);
+     static_assert(iRowEnd <= MatrixExpr::iNumRows);
+     static_assert(iColStart >= 1);
+     static_assert(iColEnd <= MatrixExpr::iNumCols);
+     static_assert(iNumRows != DYNAMIC_SIZE);
+     static_assert(iNumCols != DYNAMIC_SIZE);
 	const MatrixExpr A;
 };
 
@@ -1283,8 +1259,8 @@ private:
     const MatrixRhsExpr oV;
 
     // check if the dimensions of both matrices are the same
-        typedef typename IndexCheck<(MatrixLhsExpr::iNumRows == DYNAMIC_SIZE || MatrixRhsExpr::iNumRows == DYNAMIC_SIZE) ? 0 : MatrixLhsExpr::iNumRows - MatrixRhsExpr::iNumRows>::CheckType check_iNumRows;
-        typedef typename IndexCheck<(MatrixLhsExpr::iNumCols == DYNAMIC_SIZE || MatrixRhsExpr::iNumCols == DYNAMIC_SIZE) ? 0 : MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumCols>::CheckType check_iNumCols;
+     static_assert((MatrixLhsExpr::iNumRows == DYNAMIC_SIZE || MatrixRhsExpr::iNumRows == DYNAMIC_SIZE) ? true : MatrixLhsExpr::iNumRows == MatrixRhsExpr::iNumRows);
+     static_assert((MatrixLhsExpr::iNumCols == DYNAMIC_SIZE || MatrixRhsExpr::iNumCols == DYNAMIC_SIZE) ? true : MatrixLhsExpr::iNumCols == MatrixRhsExpr::iNumCols);
 };
 
 
@@ -1933,8 +1909,8 @@ public:
         Matrix(const T& A11, const T& A21,
                const T& A12, const T& A22)
             :rgMat(iNumRows, iNumCols, false) {
-            typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
-            typedef typename IndexCheck<iNumCols - 2>::CheckType check_iNumCols;
+	     static_assert(iNumRows == 2);
+	     static_assert(iNumCols == 2);
 
             (*this)(1, 1) = A11;
             (*this)(2, 1) = A21;
@@ -1946,8 +1922,8 @@ public:
                const T& A12, const T& A22, const T& A32,
                const T& A13, const T& A23, const T& A33)
             :rgMat(iNumRows, iNumCols, false) {
-            typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
-            typedef typename IndexCheck<iNumCols - 3>::CheckType check_iNumCols;
+	     static_assert(iNumRows == 3);
+	     static_assert(iNumCols == 3);
 
             (*this)(1, 1) = A11;
             (*this)(2, 1) = A21;
@@ -2276,8 +2252,8 @@ template <typename T, index_type N_rows, index_type N_cols>
 template <typename T, index_type N_rows, index_type N_cols>
 inline Matrix<T, N_rows, N_cols>&
 Matrix<T, N_rows, N_cols>::operator=(const Mat3x3& A) {
-        typedef typename MaxSizeCheck<N_rows == 3 || N_rows == DYNAMIC_SIZE>::CheckType check_iNumRows;
-        typedef typename MaxSizeCheck<N_cols == 3 || N_cols == DYNAMIC_SIZE>::CheckType check_iNumCols;
+     static_assert(N_rows == 3 || N_rows == DYNAMIC_SIZE);
+     static_assert(N_cols == 3 || N_cols == DYNAMIC_SIZE);
         
         rgMat.Resize(3, 3);
 
@@ -2310,7 +2286,7 @@ public:
     
         Vector(const T& v1, const T& v2)
             :rgVec(iInitNumRows, false) {
-    	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
+	     static_assert(iNumRows == 2);
 
     	(*this)(1) = v1;
     	(*this)(2) = v2;
@@ -2319,7 +2295,7 @@ public:
     template <typename Expr1, typename Expr2>
     Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2)
             :rgVec(iNumRows, false) {
-    	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
+	 static_assert(iNumRows == 2);
 
     	(*this)(1) = v1;
     	(*this)(2) = v2;
@@ -2327,7 +2303,7 @@ public:
 
         Vector(const T& v1, const T& v2, const T& v3)
             :rgVec(iNumRows, false) {
-    	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+	     static_assert(iNumRows == 3);
 
     	(*this)(1) = v1;
     	(*this)(2) = v2;
@@ -2337,7 +2313,7 @@ public:
     template <typename Expr1, typename Expr2, typename Expr3>
     Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2, const GradientExpression<Expr3>& v3)
             :rgVec(iNumRows, false) {
-    	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+	 static_assert(iNumRows == 3);
 
     	(*this)(1) = v1;
     	(*this)(2) = v2;
@@ -2422,7 +2398,7 @@ public:
 
         Vector& operator+=(const Vec3& v) {
             MATVEC_ASSERT(iGetNumRows() == 3);
-            typedef typename MaxSizeCheck<iNumRows == 3 || iNumRows == DYNAMIC_SIZE>::CheckType check_iNumRows;
+            static_assert(iNumRows == 3 || iNumRows == DYNAMIC_SIZE);
             
     	using namespace MatVecHelp;
 
@@ -2601,7 +2577,7 @@ inline
         :rgVec(iNumRows, false) {
 	using namespace MatVecHelp;
 
-        typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+        static_assert(iNumRows == 3);
         
 	ApplyMatrixFunc<Assign>(Direct(v));
 }
@@ -3297,8 +3273,8 @@ struct CrossTraits {
 												  ExprMult
 												  >::ExpressionType ExpressionType;
 private:
-	typedef typename IndexCheck<VectorLhsExpr::iNumRows - 3>::CheckType check_iNumRowsLhs;
-	typedef typename IndexCheck<VectorRhsExpr::iNumRows - 3>::CheckType check_iNumRowsRhs;
+     static_assert(VectorLhsExpr::iNumRows == 3);
+     static_assert(VectorRhsExpr::iNumRows == 3);
 };
 
 template <typename VectorLhsExpr, typename VectorRhsExpr>
@@ -3345,8 +3321,8 @@ private:
 	const VectorLhsExpr oU;
 	const VectorRhsExpr oV;
 
-	typedef typename IndexCheck<iNumRows - VectorLhsExpr::iNumRows>::CheckType check_VectorLhsExpr;
-	typedef typename IndexCheck<iNumRows - VectorRhsExpr::iNumRows>::CheckType check_VectorRhsExpr;
+     static_assert(iNumRows == VectorLhsExpr::iNumRows);
+     static_assert(iNumRows == VectorRhsExpr::iNumRows);
 };
 
 template <typename VectorLhsExpr, typename VectorRhsExpr>
@@ -3428,11 +3404,10 @@ public:
     }
 
 private:
-        typedef typename IndexCheck<N_rows - MatrixLhsExpr::iNumRows>::CheckType check_iNumRowsLhs;
-        typedef typename IndexCheck<N_cols - MatrixLhsExpr::iNumCols>::CheckType check_iNumColsLhs;
-        typedef typename IndexCheck<N_cols - VectorRhsExpr::iNumRows>::CheckType check_iNumRowsRhs;
-        typedef typename MaxSizeCheck<N_rows != DYNAMIC_SIZE>::CheckType check_iNumRowsDynamic;
-        typedef typename MaxSizeCheck<N_cols != DYNAMIC_SIZE>::CheckType check_iNumColsDynamic;
+	 static_assert(N_rows == MatrixLhsExpr::iNumRows);
+	 static_assert(N_cols == MatrixLhsExpr::iNumCols);
+	 static_assert(N_cols == VectorRhsExpr::iNumRows);
+	 static_assert(N_cols != DYNAMIC_SIZE);
         
         const MatrixLhsExpr A;
         const VectorRhsExpr x;
@@ -3560,10 +3535,10 @@ public:
     }
 
 private:
-        typedef typename IndexCheck<N_rows_Lhs - MatrixLhsExpr::iNumRows>::CheckType CheckNumRowsLhs;
-        typedef typename IndexCheck<N_cols_Lhs - MatrixLhsExpr::iNumCols>::CheckType CheckNumColsLhs;
-        typedef typename IndexCheck<N_cols_Rhs - MatrixRhsExpr::iNumCols>::CheckType CheckNumColsRhs;
-        typedef typename IndexCheck<MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumRows>::CheckType CheckMatrDimLhsRhs;
+	 static_assert(N_rows_Lhs == MatrixLhsExpr::iNumRows);
+	 static_assert(N_cols_Lhs == MatrixLhsExpr::iNumCols);
+	 static_assert(N_cols_Rhs == MatrixRhsExpr::iNumCols);
+	 static_assert(MatrixLhsExpr::iNumCols == MatrixRhsExpr::iNumRows);
         
         const MatrixLhsExpr A;
         const MatrixRhsExpr B;
