@@ -36,6 +36,8 @@
 #include <limits>
 #include <cmath>
 
+#include <sstream>
+
 #ifdef USE_MPI
 #include "mysleep.h"
 const int mysleeptime = 300;
