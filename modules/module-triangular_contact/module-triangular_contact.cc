@@ -38,7 +38,11 @@
   in the GNU Public License version 2.1
 */
 
-#include <unordered_set>
+#include <array>
+#include <functional>
+#include <limits>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #ifdef HAVE_CONFIG_H
