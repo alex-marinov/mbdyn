@@ -297,7 +297,7 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 
    	/* Give the socket a name. */
    	name->sun_family = AF_LOCAL;
-   	strncpy(name->sun_path, path, sizeof(name->sun_path));
+   	strncpy(name->sun_path, path, sizeof(name->sun_path)-1);
 #ifdef HAVE_OFFSETOF
 	size = (offsetof(struct sockaddr_un, sun_path)
 			+ strlen(name->sun_path) + 1);
