@@ -47,6 +47,8 @@ C
       integer ib(4*maxnod)
       equivalence (b(1), ib(1))
       double precision m(maxmod,maxmod)
+      real rm(maxmod,maxmod)
+      equivalence(m, rm)
 
       integer j,i
       integer nword,irtn
@@ -93,7 +95,7 @@ C     GPL BGPDT OUGV1
      *     err=900, iostat=iret)
 
 C     legge la prima matrice in modo da conoscere il numero di modi
-      call GETIDS(m,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
+      call GETIDS(rm,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
       nmodes = nrow
 
       write(outfil,'(A24)') '** MBDyn MODAL DATA FILE'
@@ -160,7 +162,7 @@ C        print*, 'Errors in BGPDT table trailer. Aborting!'
 C        goto 902
 C     endif
 C     legge le posizioni che possono essere al piu' 4000 da errore
-      call IREAD(in2f,sysout,b,4*maxnod,0,nword,irtn)
+      call IREAD(in2f,sysout,ib,4*maxnod,0,nword,irtn)
       if (irtn .ne. 1) then
          print*, 'Node saved by BGPDT are more than ',maxnod,
      *        '. You must recompile with bigger arrays !!'
@@ -186,7 +188,7 @@ C     il secondo record DI BGPDT non serve
       irtn = 0
 
       do while (irtn .eq. 0)
-         call IREAD(in2f,sysout,b,maxnod,0,nword,irtn)
+         call IREAD(in2f,sysout,ib,maxnod,0,nword,irtn)
       enddo
 
 C     legge la tabella delle forme dei modi OUGV1
@@ -201,7 +203,7 @@ C     stampa la matrice di massa
          write(outfil,'(500(1X,1PE17.10))')(m(j,i),i=1,ncol)
       enddo
 C     legge la matrice di rigidezza
-      call GETIDS(m,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
+      call GETIDS(rm,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
 C     stampa la matrice di rigidezza
       write(outfil,'(A2)') '**'
       write(outfil,'(A42)') '** RECORD GROUP 10, MODAL STIFFNESS MATRIX'
@@ -286,7 +288,7 @@ C
       INTEGER SYSOUT, ERR
       DOUBLE PRECISION DB(NRB,NCB)
       DOUBLE PRECISION DA,DD(1)
-      REAL B(NRB,NCB)
+      real B(NRB,NCB)
       CHARACTER*8 CNAME
       REAL DR(2)
 C
@@ -508,7 +510,7 @@ C     ASK FOR 1000 WORDS TO BE TRANSMITTED PER CALL TO IREAD
 C     RETURN UP TO 10000 WORDS IF NORMAL RETURN (IWR = WORDS RETURNED)
 C
 C     legge l'header della tabella
- 30   CALL IREAD(IUN,IOUT,BLOCK,1000,0,IWR,IRTN)
+ 30   CALL IREAD(IUN,IOUT,IBLOCK,1000,0,IWR,IRTN)
       IF (IRTN .EQ. 0)IWR = 10000
       IF (IRTN .GE. 2) GO TO 999
 
@@ -529,12 +531,16 @@ C     istruzioni per i blocchi conteneti i dati relativi agli elementi
             ENDIF
          ENDIF
          NWDS = IBLOCK(10)
-
+      ELSE
+        IF (IRTN .GE. 2) GO TO 999
+        IF (IRTN .EQ. 0) GO TO 32
+        GO TO 30
+      ENDIF
 C     ... GET THE NEXT RECORD BLOCK
 C     ASK FOR 20000 WORDS TO BE TRANSMITTED PER CALL TO IREAD
 C     legge le prime mille parole del record
 
- 32      CALL IREAD(IUN,IOUT,BLOCK,20000,IFLAG,IWR,IRTN)
+ 32      CALL IREAD(IUN,IOUT,IBLOCK,20000,IFLAG,IWR,IRTN)
 C     RETURN UP TO 10000 WORDS IF NORMAL RETURN (IWR = WORDS RETURNED)
          IF (IRTN .EQ. 0) IWR = 20000
 C
@@ -643,7 +649,7 @@ C     ISB - THE LAST OUTPUT FOR THE ELEMENT AND GRID
 
          ENDIF
 
-      ENDIF
+C      ENDIF
       IF (IRTN .GE. 2) GO TO 999
       IF (IRTN .EQ. 0) GO TO 32
       GO TO 30
@@ -712,6 +718,7 @@ C     NAM--BCD--OUTPUT--DATA BLOCK NAME (2 WORDS) (IE EQEXIN)
 C     T--OUTPUT--INTEGER--DATA BLOCK CONTROL BLOCK (7 WORDS IE
 C     TRAILER(1)=T(2)
 C
+      REAL T
       DIMENSION NAM(2),T(7),IH(2)
 C
       COMMON /BUFFER/IN,ICBP,IRL,IZ(200000)
@@ -795,7 +802,13 @@ C     READ RECORD TYPE (TABLES=0, ONLY TABLES ALLOWED)
       IF(KEY .NE. 0) GO TO 9000
  30   READ (IUN) KEY
 C     END-OF-RECORD OR END-OF-FILE OR LENGTH-OF-RECORD INDICATION
-      IF( KEY )160,200,40
+      IF( KEY .LT. 0 ) THEN
+        GO TO 160
+      ELSEIF (KEY .EQ. 0) THEN
+        GO TO 200
+      ELSE
+        GO TO 40
+      ENDIF
  40   IF(KEY.LE.200000)GO TO 60
 C     OUTPUT2 RECORD IS LARGER THAN 20000 DIMENSION OF IZ ARRAY
       WRITE(IOUT,50)
@@ -811,7 +824,13 @@ C
 C     DATA IS IN IZ
 C
  70   CONTINUE
-      IF(NW) 180,170,80
+      IF (NW .LT. 0) THEN
+        GO TO 180
+      ELSEIF (NW .EQ. 0) THEN
+        GO TO 170
+      ELSE
+        Go TO 80
+      ENDIF
 C
 C     ARE ENOUGH WORDS IN BUFFER
 C
