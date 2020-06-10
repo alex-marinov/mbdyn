@@ -157,13 +157,13 @@ StreamContentMotion::GetNumChannels(void) const
 std::vector<const StructNode *>::const_iterator
 StreamContentMotion::nodes_begin(void) const
 {
-	return nodes.begin();
+	return nodes.cbegin();
 }
 
 std::vector<const StructNode *>::const_iterator
 StreamContentMotion::nodes_end(void) const
 {
-	return nodes.end();
+	return nodes.cend();
 }
 
 const unsigned

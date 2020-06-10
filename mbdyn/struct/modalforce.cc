@@ -134,7 +134,7 @@ ModalForce::Output(OutputHandler& OH) const
 			out << " " << F << " " << M;
 		}
 
-		for (std::vector<DriveCaller *>::const_iterator i = f.begin(); i != f.end(); ++i) {
+		for (auto i = f.cbegin(); i != f.cend(); ++i) {
 			out << " " << (*i)->dGet();
 		}
 		out << std::endl;
@@ -175,8 +175,7 @@ ReadModalForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			std::vector<unsigned int>::const_iterator
-				iv = std::find(uModeList.begin(), uModeList.end(), (unsigned int)iM);
+			auto iv = std::find(uModeList.cbegin(), uModeList.cend(), (unsigned int)iM);
 			if (iv == uModeList.end()) {
 				silent_cerr("ModalForce(" << uLabel << "): "
 					"mode " << iM << " not active "

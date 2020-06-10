@@ -473,16 +473,16 @@ ExtModalForceEDGE::Send(
 		"modal_state,N,0,0,2\n"
 		"modal_coordinate,R," << q.size() << ",1,0\n"
 		<< q[0];
-	for (std::vector<doublereal>::const_iterator i = q.begin() + 1;
-		i < q.end(); ++i)
+	for (std::vector<doublereal>::const_iterator i = q.cbegin() + 1;
+		i < q.cend(); ++i)
 	{
 		fout << " " << *i;
 	}
 	fout << "\n"
 		"modal_velocity,R," << qP.size() << ",1,0\n"
 		<< qP[0];
-	for (std::vector<doublereal>::const_iterator i = qP.begin() + 1;
-		i < qP.end(); ++i)
+	for (std::vector<doublereal>::const_iterator i = qP.cbegin() + 1;
+		i < qP.cend(); ++i)
 	{
 		fout << " " << *i;
 	}

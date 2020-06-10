@@ -113,7 +113,7 @@ m_p(3*uMappedPoints)
 	const StructDispNode *pNode = 0;
 	unsigned uNodes = 0;
 	std::vector<const StructDispNode *>::const_iterator p;
-	for (p = nodes.begin(); p != nodes.end(); ++p) {
+	for (p = nodes.cbegin(); p != nodes.cend(); ++p) {
 		if (*p != pNode) {
 			pNode = *p;
 			uNodes++;
@@ -121,7 +121,7 @@ m_p(3*uMappedPoints)
 	}
 
 	Nodes.resize(uNodes);
-	p = nodes.begin();
+	p = nodes.cbegin();
 	std::vector<const StructDispNode *>::const_iterator pPrev = p;
 	std::vector<NodeData>::iterator n = Nodes.begin();
 	while (true) {
@@ -165,7 +165,7 @@ m_p(3*uMappedPoints)
 
 	unsigned uPts = 0;
 	n = Nodes.begin();
-	std::vector<Vec3>::const_iterator o = offsets.begin();
+	std::vector<Vec3>::const_iterator o = offsets.cbegin();
 	std::vector<uint32_t>::iterator l = labels.begin();
 	for (; o != offsets.end(); ++o, uPts++) {
 		if (uPts == n->Offsets.size()) {
@@ -173,7 +173,7 @@ m_p(3*uMappedPoints)
 			uPts = 0;
 
 			if (dynamic_cast<const StructNode *>(n->pNode) == 0) {
-				for (std::vector<StructMappingExtForce::OffsetData>::const_iterator i = n->Offsets.begin();
+				for (std::vector<StructMappingExtForce::OffsetData>::const_iterator i = n->Offsets.cbegin();
 					i != n->Offsets.end(); i++)
 				{
 					if (!i->Offset.IsNull()) {

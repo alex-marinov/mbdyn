@@ -1928,8 +1928,8 @@ Modal::Output(OutputHandler& OH) const
 
 		// TODO: find a way to link modal coordinates of attached modes and the corresponding FEM node, and use FEM node's label
 
-		std::vector<StrNodeData>::const_iterator i = SND.begin();
-		std::vector<StrNodeData>::const_iterator end = SND.end();
+		std::vector<StrNodeData>::const_iterator i = SND.cbegin();
+		std::vector<StrNodeData>::const_iterator end = SND.cend();
 		for (; i != end; ++i) {
 			if (i->bOut) {
 				// element@node_label F M
@@ -2850,8 +2850,8 @@ Modal::iGetPrivDataIdx(const char *s) const
 
 		} else {
 			std::vector<unsigned int>::const_iterator iv
-				= std::find(uModeNumber.begin(), uModeNumber.end(), n);
-			if (iv == uModeNumber.end()) {
+				= std::find(uModeNumber.cbegin(), uModeNumber.cend(), n);
+			if (iv == uModeNumber.cend()) {
 				return 0;
 			}
 
@@ -2892,11 +2892,11 @@ Modal::iGetPrivDataIdx(const char *s) const
 		return 0;
 	}
 
-	std::vector<std::string>::const_iterator ii = find(IdFEMNodes.begin(), IdFEMNodes.end(), FEMLabel);
-	if (ii == IdFEMNodes.end()) {
+	std::vector<std::string>::const_iterator ii = find(IdFEMNodes.cbegin(), IdFEMNodes.cend(), FEMLabel);
+	if (ii == IdFEMNodes.cend()) {
 		return 0;
 	}
-	unsigned int i = ii - IdFEMNodes.begin();
+	unsigned int i = ii - IdFEMNodes.cbegin();
 
 	return 3*NModes + 18*i + (what == 'w' ? 3 : 0) + 6*p + index;
 }
@@ -3284,9 +3284,9 @@ ReadModal(DataManager* pDM,
 			}
 
 			std::vector<unsigned int>::const_iterator
-				iv = std::find(uModeNumber.begin(),
-					uModeNumber.end(), (unsigned int)n);
-			if (iv != uModeNumber.end()) {
+				iv = std::find(uModeNumber.cbegin(),
+					uModeNumber.cend(), (unsigned int)n);
+			if (iv != uModeNumber.cend()) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"mode #" << iCnt + 1
 					<< " already defined "
@@ -3330,9 +3330,9 @@ ReadModal(DataManager* pDM,
 				}
 
 				std::vector<unsigned int>::const_iterator
-					iv = std::find(uModeNumber.begin(),
-						uModeNumber.end(), (unsigned int)n);
-				if (iv == uModeNumber.end()) {
+					iv = std::find(uModeNumber.cbegin(),
+						uModeNumber.cend(), (unsigned int)n);
+				if (iv == uModeNumber.cend()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"mode " << n << " not defined "
 						"at line " << HP.GetLineData()

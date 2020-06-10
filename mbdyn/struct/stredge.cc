@@ -138,7 +138,7 @@ velocity, RF, 3, 121, 0
 		std::vector<PointData>::const_iterator point;
 		std::vector<Vec3>::iterator ix;
 		std::vector<Vec3>::iterator iv;
-		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); ++point, ++ix, ++iv) {
+		for (point = m_Points.cbegin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.cend(); ++point, ++ix, ++iv) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
@@ -151,7 +151,7 @@ velocity, RF, 3, 121, 0
 		std::vector<PointData>::const_iterator point;
 		std::vector<Vec3>::iterator ix;
 		std::vector<Vec3>::iterator iv;
-		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); ++point, ++ix, ++iv) {
+		for (point = m_Points.cbegin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.cend(); ++point, ++ix, ++iv) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 
 			*ix = point->pNode->GetXCurr() + f;
@@ -168,7 +168,7 @@ velocity, RF, 3, 121, 0
 		"grid_idents, IF, 1, " << m_Points.size() << ", 0\n";
 
 	int cnt = 0;
-	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point, ++cnt) {
+	for (std::vector<PointData>::const_iterator point = m_Points.cbegin(); point != m_Points.cend(); ++point, ++cnt) {
 		if (cnt > 0) {
 			if ((cnt%6) == 0) {
 				outf << "\n";
@@ -186,7 +186,7 @@ velocity, RF, 3, 121, 0
 
 	for (int c = 1; c <= 3; c++) {
 		int cnt = 0;
-		for (std::vector<Vec3>::const_iterator i = m_x.begin(); i != m_x.end(); ++i, ++cnt) {
+		for (std::vector<Vec3>::const_iterator i = m_x.cbegin(); i != m_x.cend(); ++i, ++cnt) {
 			if (cnt > 0) {
 				if ((cnt%6) == 0) {
 					outf << "\n";
@@ -206,7 +206,7 @@ velocity, RF, 3, 121, 0
 
 	for (int c = 1; c <= 3; c++) {
 		int cnt = 0;
-		for (std::vector<Vec3>::const_iterator i = m_v.begin(); i != m_v.end(); ++i, ++cnt) {
+		for (std::vector<Vec3>::const_iterator i = m_v.cbegin(); i != m_v.cend(); ++i, ++cnt) {
 			if (cnt > 0) {
 				if ((cnt%6) == 0) {
 					outf << "\n";
@@ -558,7 +558,7 @@ force, RF, 3, 121, 0
 
 			mbedge_goto_eol(inf, buf, sizeof(buf));
 
-			for (RIndexType::const_iterator p = points.begin(); p != points.end(); p++) {
+			for (RIndexType::const_iterator p = points.cbegin(); p != points.cend(); p++) {
 				double d;
 
 				inf >> d;
@@ -568,7 +568,7 @@ force, RF, 3, 121, 0
 
 			mbedge_goto_eol(inf, buf, sizeof(buf));
 
-			for (RIndexType::const_iterator p = points.begin(); p != points.end(); p++) {
+			for (RIndexType::const_iterator p = points.cbegin(); p != points.cend(); p++) {
 				double d;
 
 				inf >> d;

@@ -551,7 +551,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 		outf << "# regular nodes" << std::endl;
 
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+		for (std::vector<PointData>::const_iterator point = m_Points.cbegin(); point != m_Points.cend(); ++point) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 Dx(x - xRef);
@@ -618,7 +618,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 	} else {
 		outf << "# regular nodes" << std::endl;
 
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+		for (std::vector<PointData>::const_iterator point = m_Points.cbegin(); point != m_Points.cend(); ++point) {
 			/*
 				p = x + f
 				R = R
@@ -1116,13 +1116,13 @@ StructExtForce::RecvFromFileDes(int infd)
 
 			unsigned l = iobuf_labels[cnt];
 			std::vector<PointData>::const_iterator p;
-			for (p = m_Points.begin(); p != m_Points.end(); ++p) {
+			for (p = m_Points.cbegin(); p != m_Points.cend(); ++p) {
 				if (p->uLabel == l) {
 					break;
 				}
 			}
 
-			if (p == m_Points.end()) {
+			if (p == m_Points.cend()) {
 				silent_cerr("StructExtForce"
 					"(" << GetLabel() << "): "
 					"unknown label " << l
