@@ -885,7 +885,7 @@ public:
         SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
     	:pVec(p) {
             MATVEC_ASSERT((iRows == iNumRows) || (iNumRows == DYNAMIC_SIZE && iRows >= 0));
-            MATVEC_ASSERT(iOffset = N_offset);
+            MATVEC_ASSERT(iOffset == N_offset);
         }
 
         const ScalarType& operator()(index_type iRow) const {
