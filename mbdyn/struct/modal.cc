@@ -1563,12 +1563,12 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
     
         VecN a(NModes), aPrime(NModes), b(NModes), bPrime(NModes); 
 
-        for (integer i = 1; i <= NModes; ++i) {
+        for (unsigned int i = 1; i <= NModes; ++i) {
                 XCurr.dGetCoef(iModalIndex + i, a(i), dCoef, &dofMap);
                 XPrimeCurr.dGetCoef(iModalIndex + i, aPrime(i), 1., &dofMap);
         }
 
-        for (integer i = 1; i <= NModes; ++i) {
+        for (unsigned int i = 1; i <= NModes; ++i) {
                 XCurr.dGetCoef(iModalIndex + NModes + i, b(i), dCoef, &dofMap);
                 XPrimeCurr.dGetCoef(iModalIndex + NModes + i, bPrime(i), 1., &dofMap);
         }
@@ -1591,12 +1591,12 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
         Mat3x3 Inv10jaPj;
     
         if (pInv5 || pInv8 || pInv9 || pInv10) {
-                for (index_type jMode = 1; jMode <= NModes; jMode++)  {
+                for (unsigned int jMode = 1; jMode <= NModes; jMode++)  {
                         const T& a_jMode = a(jMode);
                         const T& aP_jMode = b(jMode);
 
                         if (pInv5) {
-                                for (index_type kMode = 1; kMode <= NModes; kMode++) {
+                                for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
                                         for (index_type i = 1; i <= 3; ++i) {
                                                 const doublereal v_i = (*pInv5)(i, (jMode - 1) * NModes + kMode);
                                                 Inv5jaj(i, kMode) += v_i * a_jMode;
@@ -1606,7 +1606,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                         }
             
                         if (pInv8) {				
-                                for (index_type jCnt = 1; jCnt <= 3; jCnt++) {
+                                for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
                                         const index_type iMjC = (jMode - 1) * 3 + jCnt;
                                         for (index_type i = 1; i <= 3; ++i) {
                                                 Inv8jaj(i, jCnt) += (*pInv8)(i, iMjC) * a_jMode;
@@ -1615,7 +1615,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                                 }
 
                                 if (pInv9) {                    
-                                        for (index_type kMode = 1; kMode <= NModes; kMode++) {
+                                        for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
                                                 const T& a_kMode = a(kMode);
                                                 const T& aP_kMode = b(kMode);
                                                 const index_type iOffset = (jMode - 1) * 3 * NModes + (kMode - 1) * 3;
@@ -1744,7 +1744,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                 WorkVec.AddItem(iRigidIndex + 4, f2);
         }
 
-        for (index_type jMode = 1; jMode <= NModes; jMode++) {
+        for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
                 index_type jOffset = (jMode - 1) * 3 + 1;
                 T d = -MaPP(jMode) - CaP(jMode) - Ka(jMode);
 
@@ -1780,7 +1780,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                                         }
                                 }
                                 if (pInv9) {
-                                        for (index_type kModem1 = 0; kModem1 < NModes; kModem1++) {
+                                        for (unsigned int kModem1 = 0; kModem1 < NModes; kModem1++) {
                                                 const T& a_kMode = a(kModem1 + 1);
                                                 const index_type kOffset = (jMode - 1) * 3 * NModes + kModem1 * 3 + 1;
 	
@@ -1807,17 +1807,17 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                 WorkVec.AddItem(iModalIndex + NModes + jMode, d);
         }
 
-        for (index_type iCnt = 1; iCnt <= NModes; iCnt++) {
+        for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
                 WorkVec.AddItem(iModalIndex + iCnt, b(iCnt) - aPrime(iCnt));
         }
 
-        for (index_type iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+        for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
                 const index_type iStrNodem1 = iStrNode - 1;
                 const integer iNodeFirstMomIndex = SND[iStrNodem1].pNode->iGetFirstMomentumIndex();
 
                 Vec3 PHIta, PHIra;
 
-                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
                         const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
                         for (index_type i = 1; i <= 3; ++i) {
                                 PHIta(i) += (*pPHIt)(i, iOffset) * a(jMode);
@@ -1851,7 +1851,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
 
                 Vec3 vtemp = Transpose(R) * F;
         
-                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
                         const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
                         const T d = -Dot(vtemp, pPHIt->GetVec(iOffset));
                         WorkVec.AddItem(iModalIndex + NModes + jMode, d);
@@ -1876,7 +1876,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
 
                 vtemp = Transpose(R) * R2_M;
         
-                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
                         const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
                         const T d = -Dot(vtemp, pPHIr->GetVec(iOffset));
                         WorkVec.AddItem(iModalIndex + NModes + jMode, d);
