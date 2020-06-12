@@ -341,6 +341,8 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		break;
 
 	case InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED:
+		//break;
+
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 		silent_cerr("DataManager::AssConstrRes(" << pIDS->GetProblemType() << ") not implemented yet" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -689,6 +691,15 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		}
 
 		} break;
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:{ 
+		//break;	
+	}
+
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:{
+		silent_cerr("DataManager::AssConstrRes(" << pIDS->GetProblemType() << ") not implemented yet" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		break;
+	}
 
 	default:
 		ASSERT(0);
