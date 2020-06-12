@@ -12,9 +12,24 @@ First step: the minimum objective;
 2. MBDyn-C::E interfaces; (3 weeks)
 3. a simple C::E system; (1-2 day)
 
-Schedules:
-1. A define element: like the external structural force element, yet without communication tools, such as the sockets or the files; (2-3 weeks)
-	1.a. a loadable element like the structural force;
-	2.a. a loadable element like the external structural force element, with an inputing force or torque;
 
+Update 2: Week 2;
 
+A easy C::E model is created in library "libCE_models.so", and connected to module-chrono-interface.
+The include file is "mbdyn_ce.h". But the data is not exchanged.
+
+The following functions are designed:
+// using to create the C::E model, defined by the users;
+extern "C" void
+MBDyn_CE_CEModel_create(ChSystemParallelNSC *pMBDyn_CE_CEModel);
+
+// create the C::E model
+pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_init();
+
+// destroy the C::E model
+extern void
+MBDyn_CE_CEModel_destroy(pMBDyn_CE_CEModel_t);
+
+// update C::E Model, now just do step integration and output the C::E time;
+extern void
+MBDyn_CE_CEModel_update(pMBDyn_CE_CEModel_t, double time_step);

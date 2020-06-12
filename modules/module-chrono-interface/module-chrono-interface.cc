@@ -1,3 +1,39 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2017
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+ /*
+  * With the contribution of Runsen Zhang <runsen.zhang@polimi.it>
+  * during Google Summer of Code 2020
+  */
+
+
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <iostream>
@@ -9,6 +45,7 @@
 #include "userelem.h"
 
 #include "module-chrono-interface.h"
+#include "mbdyn_ce.h"
 
 ChronoInterfaceBaseElem::ChronoInterfaceBaseElem(
 	unsigned uLabel, const DofOwner *pDO,
@@ -16,6 +53,7 @@ ChronoInterfaceBaseElem::ChronoInterfaceBaseElem(
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO)
 {
+	// Read element: obtain information from MBDyn script
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
@@ -35,33 +73,62 @@ UserDefinedElem(uLabel, pDO)
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
-
-	// Read element: obtain information from MBDyn script
-	// or create a read function to read data
-	// get the node
-	pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL)); // obtain the node
-	// get the force
-	f = HP.GetVec3();
+	iCoupling = ChronoInterfaceBaseElem::COUPLING_NONE;
+	pMBDyn_CE_CEModel = MBDyn_CE_CEModel_Init();
 }
 
 ChronoInterfaceBaseElem::~ChronoInterfaceBaseElem(void)
 {
 	// destroy private data
-	NO_OP;
+	MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel);
+	
 }
 
-void
-ChronoInterfaceBaseElem::Output(OutputHandler& OH) const
+void 
+ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
+									   VectorHandler &X, VectorHandler &XP,
+									   SimulationEntity::Hints *h)
 {
-	// should do something useful
-	NO_OP;
+	if (iCoupling==ChronoInterfaceBaseElem::COUPLING_NONE)
+		return;
 }
+
+void 
+ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
+                        const VectorHandler &XprimeCurr)
+{
+	if (iCoupling==ChronoInterfaceBaseElem::COUPLING_NONE)
+		return;
+}
+
+void 
+ChronoInterfaceBaseElem::AfterConvergence(const VectorHandler &X,
+                                  const VectorHandler &XP)
+{
+	if (iCoupling==ChronoInterfaceBaseElem::COUPLING_NONE){
+		
+	}
+	return;
+}
+
+void 
+ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
+                              VectorHandler &XP)
+{
+	if (iCoupling==ChronoInterfaceBaseElem::COUPLING_NONE)
+	{
+		MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel, 1.0e-3);
+		return;
+	}
+}
+
+
 
 void
 ChronoInterfaceBaseElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = 6;
-	*piNumCols = 3;
+	*piNumRows = 0;
+	*piNumCols = 0;
 }
 
 VariableSubMatrixHandler& 
@@ -70,20 +137,9 @@ ChronoInterfaceBaseElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	// similar like the structural force element;
-	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	DEBUGCOUT("Entering C::E-interface::AssJac()" << std::endl);
 
-	WM.ResizeReset(3, 3);
-
-	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex() + 3;
-	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex() + 3;
-	for (integer iCnt = 1; iCnt <= 3; iCnt++)
-	{
-		WM.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
-		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
-	}
-	Vec3 TmpArm(pNode->GetRRef() * Zero3);
-	WM.Sub(1, 1, Mat3x3(MatCrossCross, f, TmpArm * dCoef));
+	WorkMat.SetNullMatrix();
 	return WorkMat;
 }
 
@@ -93,74 +149,18 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	// refer to structural force element
-	integer iNumRows;
-	integer iNumCols;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Indici delle incognite del nodo */
-	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
-	}
-
-	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 F(f);
-	Vec3 M((R*Zero3).Cross(F));
-
-	WorkVec.Add(1, F);
-	WorkVec.Add(4, M);
-
-
+	WorkVec.ResizeReset(0);
 	return WorkVec;
 }
 
-unsigned int
-ChronoInterfaceBaseElem::iGetNumPrivData(void) const
-{
-	return 0;
-}
-
-int
-ChronoInterfaceBaseElem::iGetNumConnectedNodes(void) const
-{
-	return 0;
-}
-
-void
-ChronoInterfaceBaseElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(0);
-}
-
-void
-ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
-	VectorHandler& X, VectorHandler& XP,
-	SimulationEntity::Hints *ph)
-{
-	NO_OP;
-}
-
-std::ostream&
-ChronoInterfaceBaseElem::Restart(std::ostream& out) const
-{
-	return out << "# ModuleChronoInterface: not implemented" << std::endl;
-}
-
-unsigned int
-ChronoInterfaceBaseElem::iGetInitialNumDof(void) const
-{
-	return 0;
-}
 
 void 
 ChronoInterfaceBaseElem::InitialWorkSpaceDim(
 	integer* piNumRows,
 	integer* piNumCols) const
 {
-	*piNumRows = 12;
-	*piNumCols = 6;
+	*piNumRows = 0;
+	*piNumCols = 0;
 }
 
 VariableSubMatrixHandler&
@@ -168,36 +168,9 @@ ChronoInterfaceBaseElem::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat, 
 	const VectorHandler& XCurr)
 {
-	// refer to the structural force element
-	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	DEBUGCOUT("Entering C::E-interface::InitialAssJac()" << std::endl);
 
-	WM.ResizeReset(6, 6);
-
-	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex() + 3;
-	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
-	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
-		WM.PutRowIndex(3+iCnt, iFirstVelocityIndex + iCnt);
-		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
-		WM.PutColIndex(3+iCnt, iFirstVelocityIndex + iCnt);
-	}
-
-
-	Vec3 TmpArm(pNode->GetRRef()*Zero3);
-	Vec3 TmpDir = f;
-	const Vec3& Omega(pNode->GetWRef());
-
-	/* |    F/\   |           |   F  |
-	 * |          | Delta_g = |      |
-	 * | (d/\F)/\ |           | d/\F |
-	 */
-
-	Mat3x3 MTmp(MatCrossCross, TmpDir, TmpArm);
-
-	WM.Sub(1, 1, MTmp);
-	WM.Sub(4, 1, Mat3x3(MatCrossCross, TmpDir, Omega)*Mat3x3(MatCross, TmpArm));
-	WM.Sub(4, 4, MTmp);
-
+	WorkMat.SetNullMatrix();
 	return WorkMat;
 }
 
@@ -206,39 +179,31 @@ ChronoInterfaceBaseElem::InitialAssRes(
 	SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	// refer to structural force element
-	integer iNumRows;
-	integer iNumCols;
-	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-
-	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
-	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex + iCnt);
-	}
-
-
-	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir(f);
-	Vec3 TmpArm(R*Zero3);
-	const Vec3& Omega(pNode->GetWCurr());
-
-	WorkVec.Add(1, TmpDir);
-	WorkVec.Add(4, TmpArm.Cross(TmpDir));
-	
-	WorkVec.Add(10, (Omega.Cross(TmpArm)).Cross(TmpDir));
-
+	WorkVec.ResizeReset(0);
 	return WorkVec;
 }
+
+
+void
+ChronoInterfaceBaseElem::Output(OutputHandler& OH) const
+{
+	// should do something useful
+	NO_OP;
+}
+
+std::ostream&
+ChronoInterfaceBaseElem::Restart(std::ostream& out) const
+{
+	return out << "# ModuleChronoInterface: is doing now" << std::endl;
+}
+
 
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
 	UserDefinedElemRead *rf = new UDERead<ChronoInterfaceBaseElem>; // or new ChronoInterfaceElemRead;
-
+	std::cout << "create your C::E models:"
+			  << "\n";
 	if (!SetUDE("ChronoInterface", rf)) {
 		delete rf;
 

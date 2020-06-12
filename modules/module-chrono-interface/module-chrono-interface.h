@@ -1,3 +1,38 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2017
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+ /*
+  * With the contribution of Runsen Zhang <runsen.zhang@polimi.it>
+  * during Google Summer of Code 2020
+  */
+
 
 #ifndef MODULE_CHRONO_INTERFACE_H
 #define MODULE_CHRONO_INTERFACE_H
@@ -12,10 +47,7 @@
 #include "dataman.h"
 #include "userelem.h"
 
-/*start class: buffer for interfaces*/
-// send(): data: MBDyn->buffer->C::E
-// recv(): data: C::E->buffer->MBDyn
-
+#include "mbdyn_ce.h" // interfaces functions to C::E;
 
 
 /* start class ChronoInterfaceBaseELem: a base class*/
@@ -26,47 +58,22 @@ class ChronoInterfaceBaseElem
     : virtual public Elem,
       public UserDefinedElem
 {
-protected:
-    Converged c;
-    // exchange after predict ?
-    bool bSendAfterPredict;
-    
-    int iCoupling;
-
-    // some parameters to record the coupling states
-    // interation counter
-    mutable int iCouplingCounter;
-    mutable bool bFirstSend; 
-    mutable bool bFirstRecv; 
-    enum SendWhen
-    {
-        SEND_FIRST_TIME,
-        SEND_REGULAR,
-        SEND_AFTER_CONVERGENCE
-    };
-    enum RecvWhen
-    {
-        RECV_FIRST_TIME,
-        RECV_REGULAR,
-        RECV_AFTER_CONVERGENCE
-    };
-
-    // functions for data exchanging
-    void Send(ChronoInterfaceBaseElem::SendWhen sendwhen);// data from MBDyn to C::E;
-    void Recv(ChronoInterfaceBaseElem::RecvWhen recvwhen);// data from C::E to MBDyn;
-
 public:
+    pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
     // 0: loose interface
-	// 1: tight coupling
-	// >1: exchange every iCoupling iterations // TO DO 
-    enum
+    // 1: tight coupling
+    // >1: exchange every iCoupling iterations // TO DO
+    enum 
     {
-        LOOSE = 0,
-        TIGHT = 1,
-        MULTIRATE = 2 // TO DO 
-    };
+        COUPLING_NONE = -2,
+        COUPLING_STSTAGGERED = -1,
+        COUPLING_LOOSE = 0,
+        COUPLING_TIGHT = 1,
+        COUPLING_MULTIRATE = 2 // TO DO
+    } iCoupling;
 
     // constructor
+    
     ChronoInterfaceBaseElem(unsigned uLabel,     // Label
                         const DofOwner *pDO, // ？
                         DataManager *pDM,    // a lot of information for solvers (nodes, elements, solver...)
@@ -85,14 +92,13 @@ public:
                                   const VectorHandler &XP);
     virtual void AfterPredict(VectorHandler &X,
                               VectorHandler &XP);
-    unsigned int iGetNumPrivData(void) const;
+    //unsigned int iGetNumPrivData(void) const;
     /* functions that introduces methods to handle the simulation: start*/
 
 
 
     /* functions for element, set the Jac and Res: start*/
     // Initial Assemble
-    virtual unsigned int iGetInitialNumDof(void) const;
     virtual void
     InitialWorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
     VariableSubMatrixHandler &
@@ -114,48 +120,33 @@ public:
            const VectorHandler &XCurr,
            const VectorHandler &XPrimeCurr);
     /* functions for element, set the Jac and Res: end*/
-    
+
 
 
     /*Miscellaneous refers to the module-template2.cc and force.h: start*/
-    virtual void Output(OutputHandler &OH) const; // for output;    
-    int iGetNumConnectedNodes(void) const; 
-	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+    
+    virtual void Output(OutputHandler &OH) const;                                              // for output;
     std::ostream &Restart(std::ostream &out) const; // module information
+    virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	}; // force style
     /*Miscellaneous refers to the module-template2.cc and force.h: end*/
-
-
-    /* data information of MBDyn side, refer to strext.h: start */
-public:
-    //struc includes all the information of a point
-    struct PointData{      
-        unsigned uLabel;
-        const StructNode *pNode;
-        Vec3 Offset;
-        Vec3 F;
-        Vec3 M;
-    };
-
-protected:
-    std::vector<PointData> m_Points; // now only support one node
-
-
-    /* data information of MBDyn side, refer to strext.h: end */
 };
 
-// Read struct and read function; can use the UDERead <> instead;
-/*
+/*// Read struct and read function; can use the UDERead <> instead;
+
 struct ChronoInterfaceElemRead : public UserDefinedElemRead{
     virtual ~ChronoInterfaceElemRead(void) { NO_OP; };
     virtual ChronoInterfaceBaseElem *
     Read(unsigned uLabel, const DofOwner* pDO,
-         DataManager* const pDM, MBDynParser& HP) const; // why const ?
+         DataManager* const pDM, MBDynParser& HP) const; 
 };
 
 ChronoInterfaceBaseElem *
 ChronoInterfaceElemRead::Read(unsigned uLabel, const DofOwner *pDO,
                               DataManager *const pDM, MBDynParser &HP) const
 {
+    // Read element: obtain information from MBDyn script
     return new ChronoInterfaceBaseElem(uLabel, pDO, pDM, HP);
 }*/
 #endif

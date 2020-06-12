@@ -33,34 +33,72 @@
   * during Google Summer of Code 2020
   */
 
+
 #ifndef MBDYN_CE_H
 #define MBDYN_CE_H
 
+#include"chrono/ChConfig.h"
+
 extern "C" {
+//opaque pointer to C::E system
+typedef  void* pMBDyn_CE_CEModel_t;
 
-// opaque pointer to element's data
-typedef void * MBDyn_CE_t *;
-
-// creates a new instance of the element, returning an opaque pointer to its data
-extern MBDyn_CE_t *
-MBDyn_CE_init(void);
+pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init();
 
 // destroy
 extern void
-MBDyn_CE_destroy(MBDyn_CE_t *);
+MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t);
+
+// update CEModel
+extern void
+MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t, double time_step);
+
+// destroy
+//extern void
+//MBDyn_CE_destroy(MBDyn_CE_t *);
 
 // add if needed
-extern void
-MBDyn_CE_AfterPredict(MBDyn_CE_t *);
+//extern void
+//MBDyn_CE_AfterPredict(MBDyn_CE_t *);
 
 // add arguments as needed
-extern void
-MBDyn_CE_Exchange(MBDyn_CE_t *, double *x, double *R, double *f, double *m);
+//extern void
+//MBDyn_CE_Exchange(MBDyn_CE_t *, double *x, double *R, double *f, double *m);
 
 // add if needed
-extern void
-MBDyn_CE_AfterConvergence(MBDyn_CE_t *);
-
+//extern void
+//MBDyn_CE_AfterConvergence(MBDyn_CE_t *);
 }
+
+/*class MBDyn_CE_CEModel
+{
+private:
+  
+public:
+  MBDyn_CE_CEModel();
+  ~MBDyn_CE_CEModel();
+  // opaque struct to C::E system
+  struct MBDYN_CE_CEMODEL_DATA{
+    double F[3]; //forces from CEModel;
+    double M[3]; //torques from CEModel;
+  }MBDyn_CE_CEModel_Data;
+
+  enum MBDYN_CE_CEMODEL_SIMCMD
+  {
+    CEMODEL_SAVE_DATA=1,
+    CEMODEL_FIRST_SEND=2,
+    CEMODEL_REGULAR_STEP=3
+  }MBDyn_CE_CEModel_SimCmd;
+
+  void getMBDyn_CE_CEModel_Data();
+};
+
+MBDyn_CE_CEModel::MBDyn_CE_CEModel()
+{
+}
+
+MBDyn_CE_CEModel::~MBDyn_CE_CEModel()
+{
+}*/
 
 #endif // MBDYN_CE_H

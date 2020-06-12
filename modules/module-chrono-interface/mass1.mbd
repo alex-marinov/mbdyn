@@ -8,7 +8,7 @@ end: data;
 begin: initial value;
   initial time: 0.0;
   time step: 1e-3;
-  final time: 2.0;
+  final time: 0.1;
 
   method: ms, 0.56;
   linear solver: naive, colamd;
@@ -24,7 +24,7 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
-  default output: none;#, structural nodes;
+  #default output: none;#, structural nodes;
   structural nodes:
   +1 #GROUND
   +1 #sliders
@@ -43,6 +43,10 @@ begin: control data;
  forces:
   +1 #external
   ;
+ loadable elements:
+ +1
+ ;
+
 end: control data;
 
 set: const integer GROUND = 0;
@@ -123,5 +127,6 @@ begin: elements;
             1,0,0,
             const, 10.
             ;
-
+  module load: "libmodule-chrono-interface";
+  user defined: SPRING_1, ChronoInterface;
 end: elements;

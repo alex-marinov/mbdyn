@@ -5,7 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "~/Downloads/GSoC2020/mbdyn-GSoC2020/**",
-                "~/Downloads/mbdyn-git/mbdyn_test/build/include/**"
+                "~/Downloads/mbdyn-git/mbdyn_test/build/include/**",
+                "~/Downloads/chrono-github/chrono/src/**",
+                "~/Documents/chrono-engine-develop/chrono/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
