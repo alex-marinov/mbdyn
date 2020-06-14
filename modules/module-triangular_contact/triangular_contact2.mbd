@@ -26,7 +26,7 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-## AUTHOR: Reinhard Resch <octave-user@a1.net>
+## AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
 ## Copyright (C) 2020(-2020) all rights reserved.
 
 ## The copyright of this code is transferred
@@ -36,9 +36,7 @@
 
 include: "${TRIANGULAR_CONTACT_SET}";
 
-set: real omega2 = 0.5 * pi;
-set: real J1 = 2. / 5. * m1 * r1^2;
-set: real t1 = 2 * sqrt(2 * (r2 - r1) / g);
+set: real omega2 = 0;
 
 begin: data;
 	problem: initial value; # the default
@@ -46,23 +44,25 @@ end: data;
 
 begin: initial value;
 	initial time: 0;
-	final time:  10 * t1;
+	final time: t1;
 
-	time step: t1 / 1000.;
+	time step: t1 / 2000.;
 
 	max iterations: 100;
 	tolerance: 1e-6;
 	method: implicit euler;
 	derivatives tolerance: 1e-3;
-	derivatives max iterations: 10;
+	derivatives max iterations: 100;
 	derivatives coefficient: 1e-10;
-	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
-	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+	linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 100;
+	nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, divergence check, no;
 	threads: assembly, 1;
+	output: iterations;
 end: initial value;
 
 begin: control data;
-       use: loadable elements, in assembly;
+       max iterations: 10;
+       #use: loadable elements, in assembly;
 	output meter: closest next, 0, forever, const, 1e-2;
 	joints: 1;
 	structural nodes: 4;
@@ -89,10 +89,10 @@ set: integer drive_id_Wkin = 5001;
 set: integer drive_id_Wpot = 5002;
 
 reference: ref_id_contact,
-	   reference, global, sqrt(r2^2 - r1^2) - r1 * sqrt(2), 0., 0.,
-	   reference, global, euler123, 0., pi / 4., 0.,
+	   reference, global, (r2 - r1) * cos(Phi0), 0., -(r2 - r1) * sin(Phi0),
+	   reference, global, eye,
 	   reference, global, null,
-	   reference, global, 2 * pi, 2 * pi, 2. * pi;
+	   reference, global, null;
 
 begin: nodes;
 	structural: node_id_contact, dynamic,
