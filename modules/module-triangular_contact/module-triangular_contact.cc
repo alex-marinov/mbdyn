@@ -41,6 +41,7 @@
 #include <array>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -245,10 +246,12 @@ private:
      struct ContactNode {
 	  ContactNode(const StructNode* pNode,
 		      std::vector<ContactVertex>&& v,
+		      std::unique_ptr<DriveCaller>&& dr,
 		      integer iNumFaces);
 
 	  const StructNode* const pContNode;
 	  const std::vector<ContactVertex> rgVertices;
+	  std::unique_ptr<DriveCaller> dr;
 	  std::unordered_map<TargetFace*, ContactPair> rgContCurr, rgContPrev;
      };
 
@@ -494,9 +497,11 @@ TriangularContact::TargetFace::TargetFace(const DataManager* pDM)
 
 TriangularContact::ContactNode::ContactNode(const StructNode* pNode,
 					    std::vector<ContactVertex>&& rgVert,
+					    std::unique_ptr<DriveCaller>&& dr,
 					    integer iNumFaces)
      :pContNode(pNode),
-      rgVertices(std::move(rgVert))
+      rgVertices(std::move(rgVert)),
+      dr(std::move(dr))
 {
      rgContCurr.reserve(iNumFaces);
      rgContPrev.reserve(iNumFaces);
@@ -789,6 +794,7 @@ TriangularContact::TriangularContact(unsigned uLabel, const DofOwner *pDO,
      for (integer i = 0; i < iNumContactNodes; ++i) {
 	  const StructNode* pContNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
 	  const ReferenceFrame oRefFrame(pContNode);
+	  std::unique_ptr<DriveCaller> dr{HP.IsKeyWord("normal" "offset") ? HP.GetDriveCaller() : new NullDriveCaller};
 	  const integer iNumVertices = HP.IsKeyWord("number" "of" "contact" "vertices") ? HP.GetInt() : 1;
 
 	  std::vector<ContactVertex> rgVertices;
@@ -810,7 +816,7 @@ TriangularContact::TriangularContact(unsigned uLabel, const DofOwner *pDO,
 	       rgVertices.emplace_back(o1, r1);
 	  }
 
-	  rgContactMesh.emplace_back(pContNode, std::move(rgVertices), iNumFaces);
+	  rgContactMesh.emplace_back(pContNode, std::move(rgVertices), std::move(dr), iNumFaces);
      }
 
      SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
@@ -906,6 +912,7 @@ void TriangularContact::ContactSearch()
 
      for (auto& rFace: rgTargetMesh) {
 	  for (auto& rNode: rgContactMesh) {
+	       const doublereal dr = rNode.dr->dGet();
 	       const Vec3& X1 = rNode.pContNode->GetXCurr();
 	       const Mat3x3& R1 = rNode.pContNode->GetRCurr();
 	       const Vec3& X1P = rNode.pContNode->GetVCurr();
@@ -913,7 +920,7 @@ void TriangularContact::ContactSearch()
 
 	       for (std::size_t iVertex = 0; iVertex < rNode.rgVertices.size(); ++iVertex) {
 		    const Vec3& o1 = rNode.rgVertices[iVertex].o1;
-		    const doublereal r1 = rNode.rgVertices[iVertex].r1;
+		    const doublereal r1 = rNode.rgVertices[iVertex].r1 + dr;
 		    const Vec3 R1_o1 = R1 * o1;
 		    const Vec3 l1 = X1 + R1_o1 - X2;
 		    const doublereal dDist = (l1 - R2 * rFace.oc).Norm() - r1 - rFace.r;
@@ -1030,21 +1037,18 @@ TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 {
      using namespace grad;
 
-     if (func & RESIDUAL_FLAG) {
-	  ContactSearch();
-     }
-
      tCurr = pDM->dGetTime();
 
      const doublereal dt = tCurr - tPrev;
      const integer iFirstIndex2 = pTargetNode->iGetFirstMomentumIndex();
-
      Vector<T, 3> X1, X2, F1, M1, F2, M2;
      Vector<T, 3> XP1, XP2, omega1, omega2;
      Vector<T, 2> U, tau;
      Matrix<T, 3, 3> R1, R2;
 
      for (auto& rNode: rgContactMesh) {
+	  const doublereal dr = rNode.dr->dGet();
+	  
 	  F1 = M1 = F2 = M2 = ::Zero3;
 
 	  oDofMap.Reset();
@@ -1067,7 +1071,7 @@ TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 	       const TargetFace& oTargetFace = *oContPair.first;
 	       const ContactVertex& oVertex = rNode.rgVertices[oContPair.second.iVertex];
 	       const Vec3& o1 = oVertex.o1;
-	       const doublereal r1 = oVertex.r1;
+	       const doublereal r1 = oVertex.r1 + dr;
 	       const Mat3x3& R2i = oTargetFace.rgVert[0].R;
 	       const Vec3& o2i = oTargetFace.rgVert[0].o;
 
@@ -1080,7 +1084,7 @@ TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 	       const T pz = dz - r1;
 	       const T F2in = GetContactForce(pz, &oDofMap);
 	       Vector<T, 3> F2i = n3 * F2in;
-
+	       
 	       if (eFrictionModel != FrictionModel::None) {
 		    LugreState& oFrictState = oContPair.second.oFrictState;
 
@@ -1134,6 +1138,8 @@ TriangularContact::AssRes(SubVectorHandler& WorkVec,
 {
      using namespace grad;
 
+     ContactSearch();
+     
      GradientAssVec<doublereal>::AssRes(this, WorkVec, dCoef, XCurr, XPrimeCurr, REGULAR_RES);
 
      return WorkVec;
@@ -1155,6 +1161,8 @@ TriangularContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler&
 {
      using namespace grad;
 
+     ContactSearch();
+     
      GradientAssVec<doublereal>::InitialAssRes(this, WorkVec, XCurr, INITIAL_ASS_RES);
 
      return WorkVec;

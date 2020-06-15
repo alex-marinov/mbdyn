@@ -109,7 +109,10 @@ unwind_protect
     fprintf(fd, "number of target faces, %d,\n", rows(v));
     fprintf(fd, "%d, %d, %d,\n", v.');
     fputs(fd, "number of contact nodes, 1,\n");
-    fputs(fd, "node_id_sphere, number of contact vertices, 1, offset, reference, ref_id_sphere, null, radius, r1;\n");
+    fputs(fd, "node_id_sphere, \n");
+    fputs(fd, "normal offset, u0,\n");
+    fputs(fd, "number of contact vertices, 1,\n");
+    fputs(fd, "offset, reference, ref_id_sphere, null, radius, r1;\n");
   unwind_protect_cleanup
     if (fd ~= -1)
       fclose(fd);
