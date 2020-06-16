@@ -26,7 +26,7 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-## AUTHOR: Reinhard Resch <octave-user@a1.net>
+## AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
 ## Copyright (C) 2020(-2020) all rights reserved.
 
 ## The copyright of this code is transferred
@@ -150,10 +150,9 @@ begin: elements;
 	      inertial, reference, ref_id_sphere, eye;
 
 scalar function: "penalty", multilinear,
-	  -1., -F0 - s1,
-	  0., -F0,
-	  u0, 0.,
-	  u0 + 1., 0.;
+	  -1., -s1,
+	  0., 0.,
+	  1., 0.;
 
 	include: "${TRIANGULAR_CONTACT_ELEM}";
 
