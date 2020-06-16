@@ -49,7 +49,7 @@ class GiNaCDriveCaller : public DriveCaller
 {
 private:
 	// parameter symbols
-	GiNaC::symbol * gVar;
+	GiNaC::realsymbol * gVar;
 
 	// expression
 	GiNaC::ex gExpr;

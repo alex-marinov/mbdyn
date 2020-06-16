@@ -48,7 +48,7 @@ class GiNaCElasticConstitutiveLaw
 private:
 	unsigned dim;
 
-	std::vector<GiNaC::symbol *> gEps;		/* parameter symbols */
+	std::vector<GiNaC::realsymbol *> gEps;		/* parameter symbols */
 
 	std::vector<GiNaC::ex> gExpr;			/* expressions */
 	std::vector<std::vector<GiNaC::ex> > gExprDEps;	/* derivatives */
@@ -103,7 +103,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 	GiNaC::lst l; 
 
 	for (unsigned row = 0; row < dim; row++) {
-		gEps[row] = new GiNaC::symbol(epsilon[row]);
+		gEps[row] = new GiNaC::realsymbol(epsilon[row]);
 		l.append(*gEps[row]);
 	}
 
@@ -242,7 +242,7 @@ template <>
 class GiNaCElasticConstitutiveLaw<doublereal, doublereal>
 : public SymbolicElasticConstitutiveLaw<doublereal, doublereal> {
 private:
-	GiNaC::symbol gEps;		/* parameter symbol */
+	GiNaC::realsymbol gEps;		/* parameter symbol */
 
 	GiNaC::ex gExpr;		/* expression */
 	GiNaC::ex gExprDEps;		/* derivative */
@@ -376,7 +376,7 @@ class GiNaCViscousConstitutiveLaw
 private:
 	unsigned dim;
 
-	std::vector<GiNaC::symbol *> gEpsPrime;			/* parameter symbols */
+	std::vector<GiNaC::realsymbol *> gEpsPrime;		/* parameter symbols */
 
 	std::vector<GiNaC::ex> gExpr;				/* expressions */
 	std::vector<std::vector<GiNaC::ex> > gExprDEpsPrime;	/* derivatives */
@@ -430,7 +430,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 	GiNaC::lst l; 
 
 	for (unsigned row = 0; row < dim; row++) {
-		gEpsPrime[row] = new GiNaC::symbol(epsilonPrime[row]);
+		gEpsPrime[row] = new GiNaC::realsymbol(epsilonPrime[row]);
 		l.append(*gEpsPrime[row]);
 	}
 
@@ -564,10 +564,10 @@ template <>
 class GiNaCViscousConstitutiveLaw<doublereal, doublereal>
 : public SymbolicViscousConstitutiveLaw<doublereal, doublereal> {
 private:
-	GiNaC::symbol gEpsPrime;	/* parameter derivative symbol */
+	GiNaC::realsymbol gEpsPrime;	/* parameter derivative symbol */
 
 	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gExprDEpsPrime;		/* derivative */
+	GiNaC::ex gExprDEpsPrime;	/* derivative */
 
 public:
 	GiNaCViscousConstitutiveLaw(
@@ -693,8 +693,8 @@ class GiNaCViscoElasticConstitutiveLaw
 private:
 	unsigned dim;
 
-	std::vector<GiNaC::symbol *> gEps;			/* parameter symbols */
-	std::vector<GiNaC::symbol *> gEpsPrime;			/* parameter symbols */
+	std::vector<GiNaC::realsymbol *> gEps;			/* parameter symbols */
+	std::vector<GiNaC::realsymbol *> gEpsPrime;		/* parameter symbols */
 
 	std::vector<GiNaC::ex> gExpr;				/* expressions */
 	std::vector<std::vector<GiNaC::ex> > gExprDEps;		/* derivatives */
@@ -756,9 +756,9 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 	GiNaC::lst l; 
 
 	for (unsigned row = 0; row < dim; row++) {
-		gEps[row] = new GiNaC::symbol(epsilon[row]);
+		gEps[row] = new GiNaC::realsymbol(epsilon[row]);
 		l.append(*gEps[row]);
-		gEpsPrime[row] = new GiNaC::symbol(epsilonPrime[row]);
+		gEpsPrime[row] = new GiNaC::realsymbol(epsilonPrime[row]);
 		l.append(*gEpsPrime[row]);
 	}
 
@@ -931,12 +931,12 @@ template <>
 class GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>
 : public SymbolicViscoElasticConstitutiveLaw<doublereal, doublereal> {
 private:
-	GiNaC::symbol gEps;		/* parameter symbol */
-	GiNaC::symbol gEpsPrime;	/* parameter derivative symbol */
+	GiNaC::realsymbol gEps;		/* parameter symbol */
+	GiNaC::realsymbol gEpsPrime;	/* parameter derivative symbol */
 
 	GiNaC::ex gExpr;		/* expression */
 	GiNaC::ex gExprDEps;		/* derivative */
-	GiNaC::ex gExprDEpsPrime;		/* derivative */
+	GiNaC::ex gExprDEpsPrime;	/* derivative */
 
 public:
 	GiNaCViscoElasticConstitutiveLaw(

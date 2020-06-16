@@ -42,7 +42,7 @@ GiNaCDriveCaller::GiNaCDriveCaller(const DriveHandler* pDH,
 {
 	GiNaC::lst l; 
 
-	gVar = new GiNaC::symbol(var);
+	gVar = new GiNaC::realsymbol(var);
 	l.append(*gVar);
 
 	try {
