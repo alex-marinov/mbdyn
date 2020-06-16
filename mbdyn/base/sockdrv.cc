@@ -326,7 +326,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 
    	/* prova */
    	for (integer iCnt = 1; iCnt <= iNumDrives; iCnt++) {
-      		if (pFlags[iCnt] & SocketDrive::IMPULSIVE) {
+		if (pFlags[iCnt] == SocketDrive::IMPULSIVE) {
 	 		pdVal[iCnt] = 0.;
       		}
    	}
@@ -493,72 +493,72 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				}
 
        				if (strncasecmp(p, "yes", STRLENOF("yes")) == 0) {
-	  				pFlags[label] |= SocketDrive::INCREMENTAL;
+					pFlags[label] = SocketDrive::INCREMENTAL;
 
-       				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
-	  				pFlags[label] &= !(SocketDrive::INCREMENTAL);
+				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
+					pFlags[label] = SocketDrive::DEFAULT;
 
-       				} else {
-	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
+				} else {
+					silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"inc\" line in "
 						"\"" << nextline << "\" "
 						"looks corrupted"
 						<< std::endl);
-	  				fclose(fd);
-	  				break;
-       				}
-       				nextline = NULL;
+					fclose(fd);
+					break;
+				}
+				nextline = NULL;
 
-    			} else if (strncasecmp(nextline, "imp:", STRLENOF("imp:")) == 0) {
-       				char *p = nextline + STRLENOF("imp:");
-       				while (isspace(p[0])) {
-	  				p++;
-       				}
+			} else if (strncasecmp(nextline, "imp:", STRLENOF("imp:")) == 0) {
+				char *p = nextline + STRLENOF("imp:");
+				while (isspace(p[0])) {
+					p++;
+				}
 
-       				if (strncasecmp(p, "yes", STRLENOF("yes")) == 0) {
-	  				pFlags[label] |= SocketDrive::IMPULSIVE;
+				if (strncasecmp(p, "yes", STRLENOF("yes")) == 0) {
+					pFlags[label] = SocketDrive::IMPULSIVE;
 
-       				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
-	  				pFlags[label] &= !(SocketDrive::IMPULSIVE);
+				} else if (strncasecmp(p, "no", STRLENOF("no")) == 0) {
+					pFlags[label] = SocketDrive::DEFAULT;
 
-       				} else {
-	  				silent_cerr("SocketDrive(" << GetLabel() << "): "
+				} else {
+					silent_cerr("SocketDrive(" << GetLabel() << "): "
 						"\"imp\" line" " in "
 						"\"" << nextline << "\""
 						" looks corrupted"
 						<< std::endl);
-	  				fclose(fd);
-	  				break;
-       				}
-       				nextline = NULL;
-    			}
+					fclose(fd);
+					break;
+				}
+				nextline = NULL;
+			}
 
-	 		/* usa i valori */
+			/* usa i valori */
 	 		if (got_value) {
-	    			if (pFlags[label] & SocketDrive::INCREMENTAL) {
-	       				silent_cout("SocketDrive(" << GetLabel() << "): "
+				if (pFlags[label] == SocketDrive::INCREMENTAL) {
+					silent_cout("SocketDrive(" << GetLabel() << "): "
 						"adding " << value
 						<< " to label " << label
 						<< std::endl);
-	       				pdVal[label] += value;
+					pdVal[label] += value;
 
-	    			} else {
-	       				silent_cout("SocketDrive(" << GetLabel() << "): "
+				} else {
+					silent_cout("SocketDrive(" << GetLabel() << "): "
 						"setting label " << label
 						<< " to value " << value
 						<< std::endl);
-	       				pdVal[label] = value;
-	    			}
+					pdVal[label] = value;
+				}
 	 		}
-      		}
-   	}
+		}
+	}
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */
 std::ostream&
 SocketDrive::Restart(std::ostream& out) const
 {
-   	return out << "SocketDrive not implemented yet" << std::endl;
+	return out << "SocketDrive not implemented yet" << std::endl;
 }
 
 /* legge i drivers tipo socket */
@@ -582,7 +582,7 @@ SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 
 	if (HP.IsKeyWord("local")) {
 #ifdef _WIN32
-        silent_cerr("SocketDrive(" << uLabel << "): "
+     silent_cerr("SocketDrive(" << uLabel << "): "
             "local sockets are not supported on Windows, you must use inet "
             "at line " << HP.GetLineData()
             << std::endl);
