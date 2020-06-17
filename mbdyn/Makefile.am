@@ -12,6 +12,12 @@ mbdyn_SOURCES = \
 mbdyn.cc  \
 mbdyn.h
 
+# Hack needed to use abs() function whose derivative evaluates correctly at 0
+if USE_GINAC
+mbdyn_SOURCES += \
+ginac_mbdyn_abs.cc
+endif
+
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
 
