@@ -35,6 +35,8 @@
 
 #include "mbdyn_ce.h"
 #include "chrono/ChConfig.h"
+#include "chrono_parallel/ChDataManager.h" // for simulation of parallel system, data_manager
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 using namespace chrono;
@@ -43,7 +45,8 @@ using namespace chrono::collision;
 extern "C" void
 MBDyn_CE_CEModel_Create(ChSystemParallelNSC *pMBDyn_CE_CEModel);
 
-extern "C" pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init()
+extern "C" pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init
+(std::vector<double> & MBDyn_CE_CEModel_Data)
 {
 	std::cout << "Initial MBDyn_CE_CEModel pointer:\n";
 	ChSystemParallelNSC *pMBDyn_CE_CEModel = new ChSystemParallelNSC;
@@ -52,6 +55,10 @@ extern "C" pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init()
 		std::cout << "Initial MBDyn_CE_CEModel pointer fails\n";
 	}
 	MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
+	unsigned int bodies_size = pMBDyn_CE_CEModel->Get_bodylist().size();
+	unsigned int system_size = (3 * 3 + 3 * 4) * bodies_size + 1; // +1: save Chtime; system_size=body_size+1(time)
+	// allocate space for C::E_Model_Data;
+	MBDyn_CE_CEModel_Data.resize(system_size,1.0);
 	return pMBDyn_CE_CEModel;
 }
 
@@ -68,6 +75,127 @@ MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel)
 	}
 }
 
+// save CEModel at current step for reloading them in the tight coupling scheme
+// (before advance())
+extern "C" int
+MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+                        std::vector<double> & MBDyn_CE_CEModel_Data)
+{
+	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
+	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
+	unsigned int vector_size = MBDyn_CE_CEModel_Data.size();
+	if (tempsys_size != vector_size)
+	{
+		std::cout << "Error: the vector to save data is not consistent with the C::E model:\n"; // how to safely exit MBDyn?
+		return 1;
+	}
+
+	// save data
+#pragma omp parallel for
+	for (unsigned int i = 0; i < tempsys_bodies_size; i++)
+	{
+		ChVector<>& body_pos = tempsys->Get_bodylist()[i]->GetPos(); // 3
+		ChQuaternion<> &body_rot = tempsys->Get_bodylist()[i]->GetRot();   // 4
+		ChVector<> &body_pos_dt = tempsys->Get_bodylist()[i]->GetPos_dt(); // 3
+		ChQuaternion<> &body_rot_dt = tempsys->Get_bodylist()[i]->GetRot_dt(); // 4
+		ChVector<> &body_pos_dtdt = tempsys->Get_bodylist()[i]->GetPos_dtdt(); // 3
+		ChQuaternion<> &body_rot_dtdt = tempsys->Get_bodylist()[i]->GetRot_dtdt(); //4
+
+		unsigned int i_pos = (3 * 3 + 3 * 4) * i; 
+		MBDyn_CE_CEModel_Data[i_pos] = body_pos.x();
+		MBDyn_CE_CEModel_Data[i_pos+1] = body_pos.y();
+		MBDyn_CE_CEModel_Data[i_pos+2] = body_pos.z();
+
+		unsigned int i_rot = i_pos + 3;
+		MBDyn_CE_CEModel_Data[i_rot] = body_rot.e0();
+		MBDyn_CE_CEModel_Data[i_rot+1] = body_rot.e1();
+		MBDyn_CE_CEModel_Data[i_rot+2] = body_rot.e2();
+		MBDyn_CE_CEModel_Data[i_rot+3] = body_rot.e3();
+
+		unsigned int i_pos_dt = i_rot + 4;
+		MBDyn_CE_CEModel_Data[i_pos_dt] = body_pos_dt.x();
+		MBDyn_CE_CEModel_Data[i_pos_dt+1] = body_pos_dt.y();
+		MBDyn_CE_CEModel_Data[i_pos_dt+2] = body_pos_dt.z();
+
+		unsigned int i_rot_dt = i_pos_dt + 3;
+		MBDyn_CE_CEModel_Data[i_rot_dt] = body_rot_dt.e0();
+		MBDyn_CE_CEModel_Data[i_rot_dt+1] = body_rot_dt.e1();
+		MBDyn_CE_CEModel_Data[i_rot_dt+2] = body_rot_dt.e2();
+		MBDyn_CE_CEModel_Data[i_rot_dt+3] = body_rot_dt.e3();
+
+		unsigned int i_pos_dtdt = i_rot_dt + 4;
+		MBDyn_CE_CEModel_Data[i_pos_dtdt] = body_pos_dtdt.x();
+		MBDyn_CE_CEModel_Data[i_pos_dtdt+1] = body_pos_dtdt.y();
+		MBDyn_CE_CEModel_Data[i_pos_dtdt+2] = body_pos_dtdt.z();
+
+		unsigned int i_rot_dtdt = i_pos_dtdt + 3;
+		MBDyn_CE_CEModel_Data[i_rot_dtdt] = body_rot_dtdt.e0();
+		MBDyn_CE_CEModel_Data[i_rot_dtdt+1] = body_rot_dtdt.e1();
+		MBDyn_CE_CEModel_Data[i_rot_dtdt+2] = body_rot_dtdt.e2();
+		MBDyn_CE_CEModel_Data[i_rot_dtdt+3] = body_rot_dtdt.e3();
+	}
+	MBDyn_CE_CEModel_Data[tempsys_size] = tempsys->GetChTime();
+	return 0;
+}
+
+
+// reload data in the tight coupling scheme at each iteration
+extern "C" int
+MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+                        std::vector<double> & MBDyn_CE_CEModel_Data)
+{
+	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
+	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
+	unsigned int vector_size = MBDyn_CE_CEModel_Data.size();
+	if (tempsys_size != vector_size)
+	{
+		std::cout << "Error: the vector to save data is not consistent with the C::E model:\n"; // how to safely exit MBDyn?
+		return 1;
+	}
+	double MBDyn_CE_CEModel_time = MBDyn_CE_CEModel_Data[tempsys_size - 1];
+	tempsys->SetChTime(MBDyn_CE_CEModel_time);
+#pragma omp parallel for
+	for (int i = 0; i < tempsys_bodies_size; i++)
+	{
+		unsigned int i_pos = (3 * 3 + 3 * 4) * i;
+		tempsys->Get_bodylist()[i]->SetPos(ChVector<>(MBDyn_CE_CEModel_Data[i_pos],
+										 MBDyn_CE_CEModel_Data[i_pos + 1],
+										 MBDyn_CE_CEModel_Data[i_pos + 2]));
+
+		unsigned int i_rot = i_pos + 3;
+		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot],
+										 MBDyn_CE_CEModel_Data[i_rot + 1],
+										 MBDyn_CE_CEModel_Data[i_rot + 2],
+										 MBDyn_CE_CEModel_Data[i_rot + 3]));
+
+		unsigned int i_pos_dt = i_rot + 4;
+		tempsys->Get_bodylist()[i]->SetPos_dt(ChVector<>(MBDyn_CE_CEModel_Data[i_pos_dt],
+													  MBDyn_CE_CEModel_Data[i_pos_dt + 1],
+													  MBDyn_CE_CEModel_Data[i_pos_dt + 2]));
+
+		unsigned int i_rot_dt = i_pos_dt + 3;
+		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dt],
+														  MBDyn_CE_CEModel_Data[i_rot_dt + 1],
+														  MBDyn_CE_CEModel_Data[i_rot_dt + 2],
+														  MBDyn_CE_CEModel_Data[i_rot_dt + 3]));
+		
+		unsigned int i_pos_dtdt = i_rot_dt + 4;
+		tempsys->Get_bodylist()[i]->SetPos_dt(ChVector<>(MBDyn_CE_CEModel_Data[i_pos_dtdt],
+													  MBDyn_CE_CEModel_Data[i_pos_dtdt + 1],
+													  MBDyn_CE_CEModel_Data[i_pos_dtdt + 2]));
+
+		unsigned int i_rot_dtdt = i_pos_dtdt + 3;
+		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dtdt],
+														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 1],
+														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 2],
+														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 3]));
+		tempsys->Get_bodylist()[i]->Update(MBDyn_CE_CEModel_time);
+	}
+	return 0;
+}
+
 extern "C" void
 MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step)
 {
@@ -79,4 +207,20 @@ MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step)
 		temp->DoStepDynamics(time_step);
 		std::cout << temp->GetChTime()<<"\n";
 	}
+}
+
+// C::E models receive coupling motion from the buffer
+void 
+MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+							std::vector<double>& MBDyn_CE_CouplingKinematic)
+{
+
+}
+
+// C::E models send coupling forces to the buffer
+void 
+MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+						   std::vector<double> &MBDyn_CE_CouplingDynamic)
+{
+
 }

@@ -31,27 +31,54 @@
  /*
   * With the contribution of Runsen Zhang <runsen.zhang@polimi.it>
   * during Google Summer of Code 2020
-  */
+ */
 
+
+
+/* name rules for MBDyn-chrono::engine:
+functions/variables: MBDyn_CE_XxxYyy (eg. MBDyn_CE_NodesNum)
+pointer: pMBDyn_CE_XxxYyy
+structures/class: MBDYN_CE_XXXYYY (eg. MBDYN_CE_POINTDATA)
+temporary variables: mbdynce_xxx (eg. mbdynce_point)
+functions/variables for C::E Model:MBDyn_CE_CEModel_XxxYyy
+*/
 
 #ifndef MBDYN_CE_H
 #define MBDYN_CE_H
 
 #include"chrono/ChConfig.h"
+#include <vector>
 
 extern "C" {
 //opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
 
-pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init();
+pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave);
 
 // destroy
-extern void
-MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t);
+void
+MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel);
 
-// update CEModel
-extern void
-MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t, double time_step);
+// C::E models receive coupling motion from the buffer
+void MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double>& MBDyn_CE_CouplingKinematic);
+
+// C::E models send coupling forces to the buffer
+void MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double> &MBDyn_CE_CouplingDynamic);
+
+// update CEModel, and do time integration.
+void
+MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step);
+
+// save CEModel at current step for reloading it in the tight coupling scheme
+// (before advance())
+int
+MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+                        std::vector<double> & MBDyn_CE_CEModel_Data);
+
+// reload data in the tight coupling scheme at each iteration
+int
+MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+                        std::vector<double> & MBDyn_CE_CEModel_Data);
 
 // destroy
 //extern void

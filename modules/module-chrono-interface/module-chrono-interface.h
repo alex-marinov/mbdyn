@@ -32,7 +32,12 @@
   * With the contribution of Runsen Zhang <runsen.zhang@polimi.it>
   * during Google Summer of Code 2020
   */
-
+/* name rules for MBDyn-chrono::engine:
+functions/variables: MBDyn_CE_XxxYyy (eg. MBDyn_CE_NodesNum)
+pointer: pMBDyn_CE_XxxYyy
+structures/class: MBDYN_CE_XXXYYY (eg. MBDYN_CE_POINTDATA)
+temporary variables: mbdynce_xxx (eg. mbdynce_point)
+*/
 
 #ifndef MODULE_CHRONO_INTERFACE_H
 #define MODULE_CHRONO_INTERFACE_H
@@ -41,6 +46,7 @@
 
 #include <iostream>
 #include <cfloat>
+#include <vector>
 
 #include "elem.h"
 #include "strnode.h"
@@ -48,6 +54,8 @@
 #include "userelem.h"
 
 #include "mbdyn_ce.h" // interfaces functions to C::E;
+
+
 
 
 /* start class ChronoInterfaceBaseELem: a base class*/
@@ -58,19 +66,53 @@ class ChronoInterfaceBaseElem
     : virtual public Elem,
       public UserDefinedElem
 {
+private:
+    // A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
+    void MBDyn_CE_Vec3D(Vec3 mbdynce_Vec3, double *mbdynce_temp);
+    // A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
+    void MBDyn_CE_Mat3x3D(Mat3x3 mbdynce_Mat3x3, double *mbdynce_temp);
+
+protected:
+    std::vector<double> MBDyn_CE_CouplingKinematic; // for coupling motion
+    std::vector<double> MBDyn_CE_CouplingDynamic; // for coupling forces
+    double *pMBDyn_CE_CouplingKinematic_x = NULL;  // consistent with the external struc force element
+    double *pMBDyn_CE_CouplingKinematic_R = NULL;
+    double *pMBDyn_CE_CouplingKinematic_xp = NULL;
+    double *pMBDyn_CE_CouplingKinematic_omega = NULL;
+    double *pMBDyn_CE_CouplingKinematic_xpp = NULL;
+    double *pMBDyn_CE_CouplingKinematic_omegap = NULL;
+    double *pMBDyn_CE_CouplingDynamic_f = NULL;
+    double *pMBDyn_CE_CouplingDynamic_m = NULL;
+    unsigned MBDyn_CE_CouplingSize[2];
+
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
+    std::vector<double> MBDyn_CE_CEModel_Data; // for reload C::E data in the tight coupling scheme
+
+    // Coupling nodes information
+    struct MBDYN_CE_POINTDATA {
+        unsigned MBDyn_CE_uLabel
+		const StructNode *pMBDyn_CE_Node;
+		Vec3 MBDyn_CE_Offset;
+		Vec3 MBDyn_CE_F;
+		Vec3 MBDyn_CE_M;
+	};
+protected:
+    std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes;
+    unsigned MBDyn_CE_NodesNum; // for now, only the case of one node
+public:
     // 0: loose interface
     // 1: tight coupling
     // >1: exchange every iCoupling iterations // TO DO
-    enum 
+    enum MBDyn_CE_COUPLING
     {
         COUPLING_NONE = -2,
-        COUPLING_STSTAGGERED = -1,
+        COUPLING_STSTAGGERED = -1, // meanless, only for consistent with strext
         COUPLING_LOOSE = 0,
         COUPLING_TIGHT = 1,
-        COUPLING_MULTIRATE = 2 // TO DO
-    } iCoupling;
+        //COUPLING_MULTIRATE >1 // TO DO
+    };
+    MBDyn_CE_COUPLING MBDyn_CE_CouplingType;
 
     // constructor
     
@@ -121,7 +163,10 @@ public:
            const VectorHandler &XPrimeCurr);
     /* functions for element, set the Jac and Res: end*/
 
-
+    /* functions for coupling variables: start*/
+    void MBDyn_CE_SendDataToBuf(); // write the kinematic variables to the vector.
+    void MBDyn_CE_RecvDataFromBuf(); // read the dynamic variables from the Buf.
+    /* functions for coupling variables: start*/
 
     /*Miscellaneous refers to the module-template2.cc and force.h: start*/
     
