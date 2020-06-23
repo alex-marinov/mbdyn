@@ -214,9 +214,9 @@ OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable in
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
-OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],no,[auto yes pmpi no])
+OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
-OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],no,[auto yes no])
+OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
 
 dnl temporarily disabled until we figure out how to make chaco work...
 OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],no,[auto yes no])
