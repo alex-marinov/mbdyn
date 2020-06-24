@@ -449,9 +449,11 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 #endif
 			if (!mbp.FileStreamIn) {
+				int save_errno = errno;
 				silent_cerr(std::endl
-					<< "Unable to open file \""
-					<< mbp.sInputFileName << "\"");
+					<< "Unable to open file "
+					"\"" << mbp.sInputFileName << "\" (" << save_errno << ": " << strerror(save_errno) << ");"
+					" aborting..." << std::endl);
 #ifdef USE_MPI
 				if (mbp.using_mpi) {
 					silent_cerr(" on " << mbp.ProcessorName);
@@ -861,9 +863,10 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 #endif
 				if (!mbp.FileStreamIn) {
+					int save_errno = errno;
 					silent_cerr(std::endl
 						<< "Unable to open file "
-						"\"" << mbp.sInputFileName << "\";"
+						"\"" << mbp.sInputFileName << "\" (" << save_errno << ": " << strerror(save_errno) << ");"
 						" aborting..." << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}

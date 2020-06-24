@@ -602,10 +602,13 @@ DataManager::ReadControl(MBDynParser& HP,
 				case GRAVITY:
 					// FIXME: to be implemented!
 					ElemData[Elem::GRAVITY].ToBeUsedInAssembly(true);
+#if 0
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						"Gravity will be used "
 						"in initial joint assembly"
 						<< std::endl);
+#endif
+					silent_cerr("using \"gravity\" in assembly is currently not supported at line " << HP.GetLineData() << std::endl);
 					break;
 
 				case FORCES:
@@ -1231,19 +1234,12 @@ EndOfUse:
 			break;
 
 		case FDJAC_METER: {
-#ifdef MBDYN_FDJAC
 			if (pFDJacMeter != 0) {
 				silent_cerr("\"finite difference jacobian meter\" already defined" << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-#endif // MBDYN_FDJAC
 			DriveCaller *pTmp = HP.GetDriveCaller(false);
-#ifdef MBDYN_FDJAC
 			pFDJacMeter = pTmp;
-#else // !MBDYN_FDJAC
-			silent_cerr("warning, \"finite difference jacobian meter\" not supported (ignored)" << std::endl);
-			SAFEDELETE(pTmp);
-#endif // !MBDYN_FDJAC
 		} break;
 
 		case READSOLUTIONARRAY:{

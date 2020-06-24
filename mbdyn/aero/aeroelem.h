@@ -84,26 +84,23 @@ protected:
 	// output flags
 	OrientationDescription od;
 
-#ifdef USE_NETCDF
-	// common to all AEROD_OUT_*, specific for NetCDF output
+	// specific for NetCDF output and AEROD_OUT_PGAUSS
 	typedef struct {
+		doublereal alpha;
+		Vec3 f;
+
+#ifdef USE_NETCDF
 		Vec3 X;
 		Mat3x3 R;
 		Vec3 V;
 		Vec3 W;
 		Vec3 F;
 		Vec3 M;
-		MBDynNcVar Var_X, Var_Phi, Var_V, Var_W, Var_F, Var_M;
-	} AeroNetCDFOutput;
 
-	std::vector<AeroNetCDFOutput> NetCDFOutputData;
-	std::vector<AeroNetCDFOutput>::iterator NetCDFOutputIter;
+		MBDynNcVar Var_alpha, Var_gamma, Var_Mach,
+			Var_cl, Var_cd, Var_cm,
+			Var_X, Var_Phi, Var_V, Var_W, Var_F, Var_M;
 #endif /* USE_NETCDF */
-
-	// specific for AEROD_OUT_PGAUSS
-	typedef struct {
-		Vec3 f;
-		doublereal alpha;
 	} Aero_output;
 
 	std::vector<Aero_output> OutputData;
@@ -176,7 +173,9 @@ protected:
 	 * viene settato dopo la costruzione
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
-	void Output_int(OutputHandler& OH) const;
+#ifdef USE_NETCDF
+	void Output_NetCDF(OutputHandler& OH) const;
+#endif // USE_NETCDF
 	void AddForce_int(const StructNode *pN, const Vec3& F, const Vec3& M, const Vec3& X) const;
 	void AddSectionalForce_int(unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,

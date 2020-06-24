@@ -510,6 +510,7 @@ RodBezier::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_l1, l1);
 			OH.WriteNcVar(Var_l2, l2);
 			OH.WriteNcVar(Var_v, dEpsilonPrime*dL0);
+			ConstitutiveLaw1DOwner::NetCDFOutputAppend(OH);
 		}
 #endif // USE_NETCDF
 

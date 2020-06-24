@@ -158,10 +158,10 @@ SimulationEntity::OutputAppend(std::ostream& out) const
 	return out;
 }
 
-std::ostream&
-SimulationEntity::OutputAppend(std::ostream& out, OutputHandler& OH) const
+void
+SimulationEntity::NetCDFOutputAppend(OutputHandler& OH) const
 {
-	return out;
+	NO_OP;
 }
 
 void

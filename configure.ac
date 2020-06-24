@@ -185,6 +185,8 @@ esac
 ])dnl
 AC_SUBST(mbdyn_subdir)dnl
 
+PKG_PROG_PKG_CONFIG
+
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(Werror,[  --enable-Werror          enable building with -Werror], yes)dnl
@@ -602,6 +604,18 @@ dnl checks for netcdf header file (for netcdf4 c++):
 				],[
 					have_libnetcdf4=yes
 					NETCDF_LIBS="$try_NETCDF_LIBS"
+				],[
+				  try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
+			      LIBS="$try_NETCDF_LIBS $save_LIBS"
+				  AC_TRY_LINK([
+	#include <netcdf>
+				  ],[
+		/* test for netcdf */
+		netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
+				  ],[
+					have_libnetcdf4=yes
+					NETCDF_LIBS="$try_NETCDF_LIBS"
+				  ])
 				])
 			AC_TRY_LINK([
 	#include <netcdf>
@@ -665,7 +679,19 @@ dnl checks for netcdf header file (for netcdf4 c++):
 							have_libnetcdfc=yes
 							NETCDF_LIBS="$try_NETCDF_LIBS"
 						],[
+						try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
+					    LIBS="$try_NETCDF_LIBS $save_LIBS"
+                        AC_TRY_LINK([
+		#include <netcdf.h>
+						  ],[
+				/* test for netcdf */
+				NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
+						  ],[
+							have_libnetcdfc=yes
+							NETCDF_LIBS="$try_NETCDF_LIBS"
+						  ],[
 							have_libnetcdfc=no
+						  ])
 						])
 					AC_LANG_C
 					LIBS="$save_LIBS"
@@ -745,7 +771,7 @@ if test "$ol_enable_python" != no ; then
 		AC_MSG_ERROR([python needs swig])
 	fi
 	if test "$ol_enable_python" = yes ; then
-	        PYTHON_NUMPY_HEADERS=`$PYTHON -c "import numpy; print numpy.get_include()" 2>/dev/null`
+	        PYTHON_NUMPY_HEADERS=`$PYTHON -c "from __future__ import print_function; import numpy; print(\"{}\".format(numpy.get_include()))" 2>/dev/null`
 		if test x"$PYTHON_NUMPY_HEADERS" = x ; then
 			AC_MSG_ERROR([python needs numpy - including its development packages])
 		else
@@ -774,9 +800,10 @@ if test "$ol_enable_octave" != no ; then
    	   	AC_MSG_RESULT([yes])
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LFLAGS` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
+	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | tr '\\' '/'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`"
+	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | tr '\\' '/'`"
+       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | tr '\\' '/'`:${LD_LIBRARY_PATH}"
     else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
@@ -1881,6 +1908,7 @@ if test $ol_with_blas != no ; then
 	/* test for blas */
 	return cblas_dgemm();
 			],[have_blas="atlas"
+				have_cblas="yes"
 				LIBS="-lcblas -lf77blas -latlas $FCLIBS $F77LIBS -lm $LIBS"
 				AC_TRY_LINK([
 					/* FIXME: some architectures might use different
@@ -1904,11 +1932,14 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-	extern int cblas_dgemm(void);
+	#include<cblas.h>
 			],[
 	/* test for blas */
-	return cblas_dgemm();
-			],[have_blas="cblas"],[
+	cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 1, 1, 1, 1, NULL, 1, NULL, 1, 0., NULL, 1);
+	return 0;
+			],[have_blas="cblas"
+				have_cblas="yes"
+			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "cblas" ; then
 					AC_MSG_ERROR([CBLAS not available])
@@ -1947,6 +1978,9 @@ if test $ol_with_blas != no ; then
 		ol_link_blas="yes"
 		BLAS_LIBS="$try_blas_LIBS"
 		AC_DEFINE(HAVE_BLAS,1,[define if BLAS are available])
+		if test "$have_cblas" == "yes" ; then
+			AC_DEFINE(HAVE_CBLAS,1,[define if CBLAS are available])
+		fi
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
@@ -2030,10 +2064,10 @@ if test $ol_with_lapack != no ; then
 	AC_MSG_CHECKING([for lapack])
 
 	save_LIBS="$LIBS"
-        
+
         dnl Some optimized BLAS libraries like OpenBLAS already contain LAPACK
         try_lapack_LIBS="$BLAS_LIBS"
-        
+
         LIBS="$try_lapack_LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
@@ -2182,7 +2216,7 @@ if test $ol_with_lapack != no ; then
 	else
 		AC_MSG_RESULT([no])
 	fi
-        
+
 	LIBS="$save_LIBS"
 fi
 
@@ -2764,7 +2798,7 @@ if test $ol_with_pastix != no ; then
 			],[have_pastix="yes"])
 
                 LIBS="$save_LIBS"
-                
+
                 if test "$have_pastix" = "yes"; then
                    AC_MSG_RESULT([yes])
                    ol_link_pastix=yes
@@ -3346,10 +3380,10 @@ if test $ol_with_ginac != no ; then
 		GINACLIB_CPPFLAGS=`ginac-config --cppflags`
 		have_ginac=yes
 	else
-		pkg-config ginac
+		$PKG_CONFIG ginac
 		if test $? = 0; then
-			GINACLIB_LIBS=`pkg-config --libs ginac`
-			GINACLIB_CPPFLAGS=`pkg-config --cflags ginac`
+			GINACLIB_LIBS=`$PKG_CONFIG --libs ginac`
+			GINACLIB_CPPFLAGS=`$PKG_CONFIG --cflags ginac`
 			have_ginac=yes
 		fi
 	fi

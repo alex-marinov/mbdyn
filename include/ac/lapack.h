@@ -38,7 +38,7 @@
 #ifndef AC_LAPACK_H
 #define AC_LAPACK_H
 
-#ifdef USE_LAPACK
+#if defined USE_LAPACK || defined HAVE_BLAS
 
 #if defined(__cplusplus)
 extern "C" {
@@ -46,8 +46,10 @@ extern "C" {
 
 #include "ac/f2c.h"
 
+#endif /* defined USE_LAPACK || defined HAVE_BLAS */
+
 /*
- * Add declarations of lapack routines used by MBDyn
+ * Add declarations of blas and lapack routines used by MBDyn
  */
 
 /*
@@ -153,6 +155,13 @@ ARGUMENTS
               Ltd.
  */
 
+#if defined HAVE_BLAS
+#if defined HAVE_CBLAS
+
+#include<cblas.h>
+
+#else /* HAVE_BLAS and !HAVE_CBLAS */
+
 /* Subroutine */ extern int
 __FC_DECL__(dgemm)(const char *const TRANSA,
                    const char *const TRANSB,
@@ -167,7 +176,11 @@ __FC_DECL__(dgemm)(const char *const TRANSA,
                    const doublereal *const BETA,
                    doublereal *const C,
                    const integer *const LDC);
-        
+#endif /* !HAVE_CBLAS */
+#endif /* HAVE_BLAS */
+
+#if defined USE_LAPACK
+
 /* Subroutine */ extern int
 __FC_DECL__(dggev)(
 	const char *JOBVL,
@@ -322,11 +335,14 @@ __FC_DECL__(dtrtrs)(const char* UPLO,
                     const integer* LDB,
                     integer* INFO);
 
+
+#endif /* USE_LAPACK */
+
+#if defined USE_LAPACK || defined HAVE_BLAS
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */
-
-#endif /* USE_LAPACK */
+#endif /* defined USE_LAPACK || defined HAVE_BLAS */
 
 #endif /* AC_LAPACK_H */
 

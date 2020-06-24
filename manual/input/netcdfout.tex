@@ -216,12 +216,24 @@ by REpower Systems AG.}
 The aerodynamic elements allow to define a broad set of variables.
 Values are output at the integration points.
 Each element allows to define $n$ integration points.
-The \kw{aerodynamic body} outputs at $n$ points.
-The \kw{aerodynamic beam2} outputs at $2 \cdot n$ points.
-The \kw{aerodynamic beam3} outputs at $3 \cdot n$ points.
+The \kw{aerodynamic body} outputs at $N = n$ points.
+The \kw{aerodynamic beam2} outputs at $N = 2 \cdot n$ points.
+The \kw{aerodynamic beam3} outputs at $N = 3 \cdot n$ points.
 
 \paragraph{Output.}
 \begin{itemize}
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.alpha\_}\bnt{i} contains the angle of attack, in degrees
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i} contains the sideslip angle, in degrees
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i} contains the Mach number
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cl\_}\bnt{i} contains the lift coefficient
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cd\_}\bnt{i} contains the drag coefficient
+
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.cm\_}\bnt{i} contains the moment coefficient
+
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.X\_}\bnt{i} contains the location
 of the integration point \nt{i}, in the global reference frame;
 
@@ -245,18 +257,38 @@ of the integration point \nt{i}, in the global reference frame;
 of the integration point \nt{i}, in the global reference frame;
 
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i} contains the force
-at the integration point \nt{i}, in the absolute reference frame;
+at the integration point \nt{i}, in the global reference frame;
 
 \item \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} contains the moment
-at the integration point \nt{i}, in the absolute reference frame,
+at the integration point \nt{i}, in the global reference frame,
 referred to the location of the integration point.
 \end{itemize}
+where $\nt{i} \in [0,N)$.
 
+\bigskip
+\noindent
 Note: variables \kw{R\_}\bnt{i}, \kw{Phi\_}\bnt{i} and \kw{E\_}\bnt{i}
 are mutually exclusive.
 
-Note: by default, only variables \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i}
-and \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} are output.
+\bigskip
+\noindent
+Note: by default, only variables
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.alpha\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.gamma\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.Mach\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cl\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cd\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.cm\_}\bnt{i},
+%\kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i},
+%and \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} are output.
+\kw{alpha\_}\bnt{i},
+\kw{gamma\_}\bnt{i},
+\kw{Mach\_}\bnt{i},
+\kw{cl\_}\bnt{i},
+\kw{cd\_}\bnt{i},
+\kw{cm\_}\bnt{i},
+\kw{F\_}\bnt{i},
+and \kw{M\_}\bnt{i} are output.
 See Section~\ref{sec:EL:AERO:BODY-BEAM23} for indications
 about how to customize aerodynamic element output in NetCDF format.
 
@@ -906,12 +938,12 @@ set to \kw{orientation vector}
 and
 \ref{sec:NetCDF:Node:Structural Node}) is extracted with
 \begin{verbatim}
-    octave:1> X0 = eig_geom('mbdyn_output.nc', 0, 'Phi')
+    octave:1> X0 = eig_geom('mbout.nc', 0, 'Phi')
 \end{verbatim}
 In the same fashion, the reference configuration of eigensolution 2, with
 \kw{default orientation} set to \kw{orientation matrix} is extracted with
 \begin{verbatim}
-    octave:1> X0 = eig_geom('mbdyn_output.nc', 2, 'R')
+    octave:1> X0 = eig_geom('mbout.nc', 2, 'R')
 \end{verbatim}
 The orientation matrix of the node 3 (supposing it is also the third node in
 the model) in the reference configuration is, then
@@ -944,7 +976,7 @@ Results from MBDyn can be easily handled once the data structure is known.
 
 To access the database, a handler needs to be obtained by calling
 \begin{verbatim}
-    octave:1> nc = netcdf('mbdyn_output.nc', 'r');
+    octave:1> nc = netcdf('mbout.nc', 'r');
 \end{verbatim}
 Variable descriptions are accessed as
 \begin{verbatim}
@@ -963,17 +995,35 @@ So, for example, the $z$ component of the position of node 1000 can be plot with
 The \texttt{netcdf} package appears to have superseded the \texttt{octcdf} package in recent
 distributions of Octave. It is no longer necessary to obtain a handler to the MBDyn output file. \\
 
-Variable properties are displayed with
+Variable properties are accessed with
 \begin{verbatim}
-    octave:1> ncinfo('mbdyn_output.nc', 'node.struct.1000.X');
+    octave:1> X10 = ncinfo('mbout.nc', 'node.struct.10.X');
+\end{verbatim}
+A single component (in this example the $y$-position of node \texttt{10})
+at all time steps is accessed with
+\begin{verbatim}
+    octave:2> X10_y = ncread('mbout.nc', 'node.struct.10.X', [2, 1], [1, Inf]);
 \end{verbatim}
 Single records (in this example the position of node \texttt{10} at step \texttt{15})
 are accessed with
 \begin{verbatim}
-    octave:2> X10_15 = ncread('mbdyn_output.nc', 'node.struct.10.X', [1, 15], [3, 1]);
+    octave:3> X10_s15 = ncread('mbout.nc', 'node.struct.10.X', [1, 15], [3, 1]);
 \end{verbatim}
 Single values (in this example the $z$-position of node \texttt{10} at step \texttt{15}) 
 with
 \begin{verbatim}
-    octave:3> X10_15_z = ncread('mbdyn_output.nc', 'node.struct.10.X', [3, 15], [1, 1]);
+    octave:4> X10_s15_z = ncread('mbout.nc', 'node.struct.10.X', [3, 15], [1, 1]);
+\end{verbatim}
+An orientation matrix (in this example the orientation of node \texttt{10} at step \texttt{15})
+is accessed as
+\begin{verbatim}
+    octave:5> R10_s15 = ncread('mbout.nc', 'node.struct.10.R', [1, 1, 15], [3, 3, 1]);
+\end{verbatim}
+Element \texttt{(2, 3)} is accessed as
+\begin{verbatim}
+    octave:6> R10_s15_r2_c3 = ncread('mbout.nc', 'node.struct.10.R', [2, 3, 15], [1, 1, 1]);
+\end{verbatim}
+Column \texttt{2} is accessed as
+\begin{verbatim}
+    octave:7> R10_s15_c2 = ncread('mbout.nc', 'node.struct.10.R', [1, 2, 15], [3, 1, 1]);
 \end{verbatim}

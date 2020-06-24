@@ -54,7 +54,8 @@ lRTPeriod(lRTPeriod),
 RTStackSize(RTStackSize),
 bRTAllowNonRoot(bRTAllowNonRoot),
 RTCpuMap(RTCpuMap),
-bNoOutput(bNoOutput)
+bNoOutput(bNoOutput),
+RTSteps(0)
 {
 	ASSERT(RTStackSize > 0);
 	ASSERT(lRTPeriod > 0);
@@ -72,7 +73,6 @@ RTSolverBase::Init(void)
 	if (bNoOutput) {
 		pS->SetNoOutput();
 	}
-
 	mbdyn_reserve_stack(RTStackSize);
 }
 

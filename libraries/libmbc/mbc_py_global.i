@@ -35,9 +35,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_k_label_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_UINT,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_UINT,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -55,9 +55,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_x_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -75,9 +75,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_theta_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -95,9 +95,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_r_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -115,9 +115,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_euler_123_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -135,9 +135,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_xp_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -155,9 +155,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_omega_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -175,9 +175,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_xpp_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -195,9 +195,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_omegap_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -215,9 +215,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_d_label_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_UINT,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_UINT,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -235,9 +235,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_f_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -255,9 +255,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_r_m_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -275,9 +275,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] =  mbc_n_k_labels_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_UINT,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_UINT,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -295,9 +295,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_x_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -315,9 +315,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_theta_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -335,9 +335,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_r_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -355,9 +355,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_euler_123_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -375,9 +375,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_xp_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -395,9 +395,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_omega_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -415,9 +415,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_xpp_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -435,9 +435,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_omegap_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -455,9 +455,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] =  mbc_n_d_labels_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_UINT,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_UINT,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -475,9 +475,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_f_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -496,9 +496,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_n_m_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -516,9 +516,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_m_q_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -536,9 +536,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_m_qp_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }
@@ -556,9 +556,9 @@
                 $result = Py_None;
         } else {
                 PyArrayObject *tmp;
-                int dims[1];
+                npy_intp dims[1];
                 dims[0] = mbc_m_p_size;
-                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                tmp = (PyArrayObject *)PyArray_SimpleNewFromData(1,dims,PyArray_DOUBLE,(char *)$1);
                 $result = (PyObject *)tmp;
         }
 }

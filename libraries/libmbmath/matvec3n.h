@@ -400,6 +400,8 @@ class MatNx3 {
    MatNx3(integer ns, const doublereal& d);   
    ~MatNx3(void);
    
+   const MatNx3& Copy(const MatNx3& m);
+
    inline integer iGetNumRows(void) const;
    void Resize(integer ns); 
    void Reset(const doublereal d = 0.);
@@ -413,6 +415,9 @@ class MatNx3 {
 
    /* *this = [3xN]T */
    const MatNx3& Transpose(const Mat3xN& n);
+
+   const MatNx3& operator *= (const doublereal& d);
+   const MatNx3& operator /= (const doublereal& d);
 
    /* *this = m * n */
    const MatNx3& Mult(const MatNxN& m, const MatNx3& n);
@@ -541,6 +546,7 @@ class MatNxN {
    MatNxN(integer ns, const doublereal& d);   
    ~MatNxN(void);
    
+   void Resize(integer ns) {Create_(ns);};
    inline integer iGetNumRows(void) const;
    inline integer iGetNumCols(void) const;
    void Reset(const doublereal d = 0.);
@@ -548,6 +554,9 @@ class MatNxN {
    inline void Add(integer i, integer j, const doublereal& d);
    inline void Sub(integer i, integer j, const doublereal& d);
    inline const doublereal& dGet(integer i, integer j) const;
+
+   const MatNxN& operator *= (const doublereal& d);
+   const MatNxN& operator /= (const doublereal& d);
 
    const MatNxN& Copy(const MatNxN& m);
 

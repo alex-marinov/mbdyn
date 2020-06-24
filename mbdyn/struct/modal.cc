@@ -1918,6 +1918,7 @@ Modal::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Modal();
 
 		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			// element.mode q q' q''
 			out << std::setw(8) << GetLabel() << '.' << uModeNumber[iCnt - 1]
 				<< " " << a(iCnt)
 				<< " " << b(iCnt)
@@ -1925,10 +1926,13 @@ Modal::Output(OutputHandler& OH) const
 				<< std::endl;
 		}
 
+		// TODO: find a way to link modal coordinates of attached modes and the corresponding FEM node, and use FEM node's label
+
 		std::vector<StrNodeData>::const_iterator i = SND.begin();
 		std::vector<StrNodeData>::const_iterator end = SND.end();
 		for (; i != end; ++i) {
 			if (i->bOut) {
+				// element@node_label F M
 				out << std::setw(8) << GetLabel() << "@" << i->pNode->GetLabel()
 					<< " ", i->F.Write(out, " ")
 					<< " ", i->M.Write(out, " ")
@@ -3846,7 +3850,7 @@ ReadModal(DataManager* pDM,
 		 */
 	
 		doublereal	d;
-		unsigned int	NRejModes = 0;
+		unsigned int	NAttModes = 0, NCstModes = 0, NRejModes = 0;
 		char		str[BUFSIZ];
 
 		while (fdat && !fdat.eof()) {        /* parsing del file */
@@ -3898,11 +3902,10 @@ ReadModal(DataManager* pDM,
 				/* add to modes number */
 				fdat >> NModesFEM;
 	
-				unsigned int i;
-				fdat >> i;
-				NModesFEM += i;
-				fdat >> i;
-				NModesFEM += i;
+				fdat >> NAttModes;
+				NModesFEM += NAttModes;
+				fdat >> NCstModes;
+				NModesFEM += NCstModes;
 
 				/* "rejected" modes (subtract from modes number) */
 				fdat >> NRejModes;
@@ -5594,40 +5597,170 @@ ReadModal(DataManager* pDM,
 		bOut = HP.GetYesNoOrBool();
 	}
 
+	doublereal dTol = 1e-12;
+	if (HP.IsKeyWord("interface" "tolerance")) {
+		dTol = HP.GetReal();
+		if (dTol == 0.0) {
+			// error
+
+		} else if (dTol < 0.0) {
+			// error
+		}
+	}
+
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-		/* nodo collegato 1 (e' il nodo FEM) */
-		std::string Node1 = HP.GetString("");
-		// NOTE: we should check whether a label includes
-		// whitespace.  In any case, it wouldn't match
-		// any of the labels read, so it is pointless,
-		// but could help debugging...
-		if (Node1.find(' ') != std::string::npos ) {
-			silent_cout("Modal(" << uLabel << "): "
-				"FEM node \"" << Node1 << "\""
-				<< " at line " << HP.GetLineData()
-				<< " contains a blank" << std::endl);
-		}
+		unsigned int iNode = 0;
+		std::string Node1;
+		doublereal dCurrTol = dTol;
+		if (HP.IsKeyWord("find" "closest")) {
+			// find FEM node closest to MB one later, after MB node is input
+			if (HP.IsKeyWord("interface" "tolerance")) {
+				dCurrTol = HP.GetReal();
+				if (dCurrTol == 0.0) {
+					// error
 
-		DEBUGCOUT("Linked to FEM Node " << Node1 << std::endl);
-
-		unsigned int iNode;
-		/* verifica di esistenza del nodo 1*/
-		for (iNode = 0; iNode < NFEMNodes; iNode++) {
-			if (Node1 == IdFEMNodes[iNode]) {
-				break;
+				} else if (dCurrTol < 0.0) {
+					// error
+				}
 			}
-		}
 
-		if (iNode == NFEMNodes) {
+		} else {
+			/* nodo collegato 1 (e' il nodo FEM) */
+			Node1 = HP.GetString("");
+			// NOTE: we should check whether a label includes
+			// whitespace.  In any case, it wouldn't match
+			// any of the labels read, so it is pointless,
+			// but could help debugging...
+			if (Node1.find(' ') != std::string::npos) {
+				silent_cout("Modal(" << uLabel << "): "
+					"FEM node \"" << Node1 << "\""
+					<< " at line " << HP.GetLineData()
+					<< " contains a blank" << std::endl);
+			}
+
+			DEBUGCOUT("Linked to FEM Node " << Node1 << std::endl);
+
+			/* verifica di esistenza del nodo 1*/
+			for (iNode = 0; iNode < NFEMNodes; iNode++) {
+				if (Node1 == IdFEMNodes[iNode]) {
+					break;
+				}
+			}
+
+			if (iNode == NFEMNodes) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"FEM node \"" << Node1 << "\""
+					<< " at line " << HP.GetLineData()
+					<< " not defined " << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			iNode++;
+		}
+		
+		/* nodo collegato 2 (e' il nodo multibody) */
+		unsigned int uNode2 = (unsigned int)HP.GetInt();
+		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
+
+		/* verifica di esistenza del nodo 2 */
+		SND[iStrNode - 1].pNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
+		if (SND[iStrNode - 1].pNode == 0) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"FEM node \"" << Node1 << "\""
-				<< " at line " << HP.GetLineData()
-				<< " not defined " << std::endl);
+				"StructuralNode(" << uNode2 << ") "
+				"at line " << HP.GetLineData()
+				<< " not defined" << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		iNode++;
-		
+		/* offset del nodo Multi-Body */
+		ReferenceFrame RF = ReferenceFrame(SND[iStrNode - 1].pNode);
+		Vec3 d2(HP.GetPosRel(RF));
+		Mat3x3 R2(::Eye3);
+		bool bRot(false);
+		if (HP.IsKeyWord("hinge")) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"warning, keyword \"hinge\" for StructuralNode(" << uNode2 << ") "
+				"deprecated; use \"orientation\" instead "
+				"at line " << HP.GetLineData() << std::endl);
+			bRot = true;
+
+		} else if (HP.IsKeyWord("orientation")) {
+			bRot = true;
+		}
+
+		if (bRot) {
+			R2 = HP.GetRotRel(RF);
+		}
+
+		SND[iStrNode - 1].OffsetMB = d2;
+		SND[iStrNode - 1].RotMB = R2;	// FIXME: not used (so far)
+
+		DEBUGCOUT("Multibody Node reference frame d2: " << std::endl
+				<< d2 << std::endl);
+
+		// find closest
+		if (iNode == 0) {
+			// FIXME: origin? orientation?
+			// NOTE: the first node whose distance is below tolerance is accepted, not the absolute closest!
+			Vec3 xMBRel(R.MulTV(SND[iStrNode - 1].pNode->GetXCurr() + SND[iStrNode - 1].OffsetMB - X0));
+			
+			bool bGotIt(false);
+			unsigned int iFirst = 0;
+			doublereal dNorm = 2*dCurrTol;
+			for (iNode = 0; iNode < NFEMNodes; iNode++) {
+				Vec3 xFEMRel(pXYZFEMNodes->GetVec(iNode + 1));
+				doublereal d = (xFEMRel - xMBRel).Norm();
+				if (d < dCurrTol) {
+					if (!bGotIt) {
+						bGotIt = true;
+						iFirst = iNode;
+						dNorm = d;
+
+						pedantic_cout("Modal(" << uLabel << "): "
+							"FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+							" is close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+							<< " at line " << HP.GetLineData() << std::endl);
+
+					} else {
+						if (d >= dNorm) {
+							pedantic_cerr("Modal(" << uLabel << "): "
+								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+								<< " but not as close as FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
+								<< " at line " << HP.GetLineData() << std::endl);
+						} else {
+							pedantic_cerr("Modal(" << uLabel << "): "
+								"warning, FEM node #" << iNode << " (\"" << IdFEMNodes[iNode] << "\")"
+								" is also close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\", distance=" << d
+								<< " and closer than FEM node #" << iFirst << " (\"" << IdFEMNodes[iFirst] << "\"), distance=" << dNorm
+								<< " at line " << HP.GetLineData() << std::endl);
+							iFirst = iNode;
+							dNorm = d;
+						}
+					}
+				}
+			}
+
+			if (!bGotIt) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"no FEM node close enough to multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\" was found"
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			iNode = iFirst;
+
+			// label of FEM node
+			Node1 = IdFEMNodes[iNode];
+
+			silent_cout("Modal(" << uLabel << "): "
+				"multibody node \"" << SND[iStrNode - 1].pNode->GetLabel() << "\""
+				" matched with FEM node \"" << Node1 << "\", distance=" << dNorm
+				<< " at line " << HP.GetLineData() << std::endl);
+
+			iNode++;
+		}
+
 		int iNodeCurr = iNode;
 
 		/* recupera la posizione del nodo FEM, somma di posizione
@@ -5647,34 +5780,6 @@ ReadModal(DataManager* pDM,
 			pPHIrStrNode->PutVec(jMode*NStrNodes + iStrNode,
 					pModeShapesr->GetVec(jMode*NFEMNodes + iNodeCurr));
 		}
-
-		/* nodo collegato 2 (e' il nodo multibody) */
-		unsigned int uNode2 = (unsigned int)HP.GetInt();
-		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
-
-		/* verifica di esistenza del nodo 2 */
-		SND[iStrNode - 1].pNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
-		if (SND[iStrNode - 1].pNode == 0) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"StructuralNode(" << uNode2 << ") "
-				"at line " << HP.GetLineData()
-				<< " not defined" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		/* offset del nodo Multi-Body */
-		ReferenceFrame RF = ReferenceFrame(SND[iStrNode - 1].pNode);
-		Vec3 d2(HP.GetPosRel(RF));
-		Mat3x3 R2(::Eye3);
-		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
-			R2 = HP.GetRotRel(RF);
-		}
-
-		SND[iStrNode - 1].OffsetMB = d2;
-		SND[iStrNode - 1].RotMB = R2;	// FIXME: not used (so far)
-
-		DEBUGCOUT("Multibody Node reference frame d2: " << std::endl
-				<< d2 << std::endl);
 
 		/* salva le label dei nodi vincolati nell'array IntNodes;
 		 * puo' servire per il restart? */
@@ -6039,13 +6144,12 @@ ReadModal(DataManager* pDM,
 		}
 	}
 
-#if 1 // def DEBUG
 	if (pedantic_output) {
 		std::ostream &out = std::cout;
 
 		out << "  Total Mass: " << dMass << std::endl;
 		out << "  Inertia Matrix (referred to modal node): " << std::endl
-			<< "    " << JTmp << std::endl;
+			<< "    ", JTmp.Write(out, " ", "\n    ") << std::endl;
 		out << "  Static Moment Vector: " << STmp << std::endl;
 
 		out << "  Generalized Stiffness: " << std::endl;
@@ -6148,7 +6252,6 @@ ReadModal(DataManager* pDM,
 			out << "  Inv9: unused" << std::endl;
 		}
 	}
-#endif /* DEBUG */
 
 	if (HP.IsStringWithDelims()) {
 		const char *sTmp = HP.GetFileName();

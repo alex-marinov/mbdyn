@@ -751,12 +751,13 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				<< HP.GetLineData() << std::endl);
 			}
 
-			AeroData *pa = 0;
+			C81AeroDataHolder *pa = 0;
+			AeroData* ppa = 0;
 			if (HP.IsKeyWord("multiple")) {
-				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim);
+				ReadC81MultipleAeroData(pDM, HP, &ppa, *piNumber, iDim);
 
 			} else if (HP.IsKeyWord("interpolated")) {
-				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim, true);
+				ReadC81MultipleAeroData(pDM, HP, &ppa, *piNumber, iDim, true);
 
 			} else {
 	  			unsigned iProfile = (unsigned)HP.GetInt();
@@ -773,13 +774,13 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 							TimeDriveCaller,
 							TimeDriveCaller(pDM->pGetDrvHdl()));
 				}
-	  			SAFENEWWITHCONSTRUCTOR(pa,
+	  			SAFENEWWITHCONSTRUCTOR(ppa,
 					C81AeroData,
 					C81AeroData(*piNumber, iDim,
 						eInst, iProfile,
 						data, ptime));
 			}
-
+			pa = dynamic_cast<C81AeroDataHolder*>(ppa);
 			DriveCaller *ptime = 0;
 			SAFENEWWITHCONSTRUCTOR(ptime,
 					TimeDriveCaller,

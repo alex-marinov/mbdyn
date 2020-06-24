@@ -545,14 +545,15 @@ void DiscreteCoulombFriction::AssJac(
 
 //------------------------
 doublereal SimpleShapeCoefficient::Sh_c(void) const {
-	return 1.;
+	return shc;
 }
 	
 doublereal SimpleShapeCoefficient::Sh_c(
 	const doublereal f,
 	const doublereal F,
 	const doublereal v) {
-	return f;
+	shc = f;
+	return shc;
 };
 
 void SimpleShapeCoefficient::dSh_c(

@@ -165,8 +165,8 @@ mbdyn_make_inet_socket_type(SOCKET* sock, struct sockaddr_in *name, const char *
 				TCP_NODELAY,     /* name of option */
 				(char *) &flag,  /* the cast is historical cruft */
 				sizeof(int));    /* length of option value */
-	if (!result) {
-		fprintf(stderr, "Unable to diable Nagle's algorithm, sockets may be slow\n");
+	if (result != 0) {
+		fprintf(stderr, "Unable to disable Nagle's algorithm, sockets may be slow\n");
 	}
 	if (dobind) {
 		rc = bind(*sock, (struct sockaddr *) name, sizeof(struct sockaddr_in));

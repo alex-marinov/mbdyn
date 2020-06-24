@@ -114,7 +114,7 @@ STAHRAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6&
 C81AeroData::C81AeroData(int i_p, int i_dim,
 	AeroData::UnsteadyModel u, integer p,
 	const c81_data* d, DriveCaller *ptime)
-: AeroData(i_p, i_dim, u, ptime),
+: C81AeroDataHolder(i_p, i_dim, u, ptime),
 profile(p), data(d)
 {
 	ASSERT(data != NULL);
@@ -146,8 +146,8 @@ C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA
 		break;
 	}
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(data), unsteadyflag);
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
+		data, unsteadyflag);
 }
 
 int
@@ -167,7 +167,7 @@ C81MultipleAeroData::C81MultipleAeroData(
 	std::vector<doublereal>& ub,
 	std::vector<const c81_data *>& d,
 	DriveCaller *ptime)
-: AeroData(i_p, i_dim, u, ptime),
+: C81AeroDataHolder(i_p, i_dim, u, ptime),
 profiles(p), upper_bounds(ub), data(d)
 {
 	ASSERT(!profiles.empty());
@@ -233,8 +233,8 @@ C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa
 	ASSERT(i >= 0);
 	ASSERT(unsigned(i) < data.size());
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
+		data[curr_data], unsteadyflag);
 }
 
 int
@@ -256,7 +256,7 @@ C81InterpolatedAeroData::C81InterpolatedAeroData(
 		doublereal dcltol,
 		DriveCaller *ptime
 )
-: AeroData(i_p, i_dim, u, ptime),
+: C81AeroDataHolder(i_p, i_dim, u, ptime),
 profiles(p), upper_bounds(ub), data(d),
 i_data(i_p*i_dim)
 {
@@ -347,8 +347,8 @@ C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, 
 		break;
 	}
 
-	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(&i_data[i]), unsteadyflag);
+	return c81_aerod2_u(W, &VAM, TNG, &OUTA,
+		&i_data[i], unsteadyflag);
 }
 
 int
@@ -368,7 +368,7 @@ static const doublereal TheodorsenParams[2][4] = {
 
 TheodorsenAeroData::TheodorsenAeroData(
 	int i_p, int i_dim,
-	AeroData *pa,
+	C81AeroDataHolder *pa,
 	DriveCaller *ptime)
 : AeroData(i_p, i_dim, STEADY, ptime),
 iParam(0),
@@ -384,6 +384,34 @@ pAeroData(pa)
 {
 	ASSERT(pAeroData->Unsteady() == STEADY);
 	ASSERT(pAeroData->iGetNumDof() == 0);
+	SAFENEWARR(cfx_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cfy_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cfz_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmx_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmy_0, doublereal, i_p * i_dim);
+	SAFENEWARR(cmz_0, doublereal, i_p * i_dim);
+	SAFENEWARR(alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(dot_alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(dot_alpha, doublereal, i_p * i_dim);
+	SAFENEWARR(ddot_alpha, doublereal, i_p * i_dim);
+	SAFENEWARR(clalpha, doublereal, i_p * i_dim);
+	SAFENEWARR(prev_alpha_pivot, doublereal, i_p * i_dim);
+	SAFENEWARR(prev_dot_alpha, doublereal, i_p * i_dim);
+	for (int i = 0; i < i_p * i_dim; i++) {
+		cfx_0[i] = 0.;
+		cfy_0[i] = 0.;
+		cfz_0[i] = 0.;
+		cmx_0[i] = 0.;
+		cmy_0[i] = 0.;
+		cmz_0[i] = 0.;
+		alpha_pivot[i] = 0.;
+		dot_alpha_pivot[i] = 0.;
+		dot_alpha[i] = 0.;
+		ddot_alpha[i] = 0.;
+		clalpha[i] = 0.;
+		prev_alpha_pivot[i] = 0.;
+		prev_dot_alpha[i] = 0.;
+	}
 }
 
 TheodorsenAeroData::~TheodorsenAeroData(void)
@@ -395,6 +423,19 @@ TheodorsenAeroData::~TheodorsenAeroData(void)
 	if (pAeroData) {
 		SAFEDELETE(pAeroData);
 	}
+	SAFEDELETEARR(cfx_0);
+	SAFEDELETEARR(cfy_0);
+	SAFEDELETEARR(cfz_0);
+	SAFEDELETEARR(cmx_0);
+	SAFEDELETEARR(cmy_0);
+	SAFEDELETEARR(cmz_0);
+	SAFEDELETEARR(alpha_pivot);
+	SAFEDELETEARR(dot_alpha_pivot);
+	SAFEDELETEARR(dot_alpha);
+	SAFEDELETEARR(ddot_alpha);
+	SAFEDELETEARR(clalpha);
+	SAFEDELETEARR(prev_alpha_pivot);
+	SAFEDELETEARR(prev_dot_alpha);
 }
 
 std::ostream&
@@ -445,40 +486,6 @@ TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstIndex, integer iFirstSubIndex,
 	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
 {
-	// FIXME: should do it earlier
-	if (alpha_pivot == 0) {
-		doublereal *d = 0;
-		SAFENEWARR(d, doublereal, 10*GetNumPoints());
-
-#ifdef HAVE_MEMSET
-		memset(d, '\0', 10*GetNumPoints()*sizeof(doublereal));
-#else // ! HAVE_MEMSET
-		for (int i = 0; i < 10*GetNumPoints(); i++) {
-			d[i] = 0.;
-		}
-#endif // ! HAVE_MEMSET
-
-		alpha_pivot = d;
-		d += GetNumPoints();
-		dot_alpha_pivot = d;
-		d += GetNumPoints();
-		dot_alpha = d;
-		d += GetNumPoints();
-		ddot_alpha = d;
-		d += GetNumPoints();
-		cfx_0 = d;
-		d += GetNumPoints();
-		cfy_0 = d;
-		d += GetNumPoints();
-		cmz_0 = d;
-		d += GetNumPoints();
-		clalpha = d;
-		d += GetNumPoints();
-		prev_alpha_pivot = d;
-		d += GetNumPoints();
-		prev_dot_alpha = d;
-		d += GetNumPoints();
-	}
 
 	doublereal q1 = XCurr(iFirstIndex + 1);
 	doublereal q2 = XCurr(iFirstIndex + 2);
@@ -561,8 +568,8 @@ TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		ddot_alpha[i] = (dot_alpha[i] - prev_dot_alpha[i])/Delta_t;
 
 	} else {
-		dot_alpha_pivot[0] = 0.;
-		ddot_alpha[0] = 0.;
+		dot_alpha_pivot[i] = 0.;
+		ddot_alpha[i] = 0.;
 	}
 
 	clalpha[i] = OUTA.clalpha;
@@ -610,29 +617,28 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
 {
-#ifdef DEBUG_JACOBIAN_UNSTEADY
+//#define DEBUG_JACOBIAN_UNSTEADY
+//#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal q1 = XCurr(iFirstIndex + 1);
 	doublereal q2 = XCurr(iFirstIndex + 2);
-#endif // DEBUG_JACOBIAN_UNSTEADY
+//#endif // DEBUG_JACOBIAN_UNSTEADY
 
 	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 	doublereal d = 2*Uinf/chord;
-#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
-#endif // DEBUG_JACOBIAN_UNSTEADY
-#if 0
+//#if 1
 	doublereal qD = .5*VAM.density*UUinf2;
-#endif
+//#endif
 
 	// doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
-#ifdef DEBUG_JACOBIAN_UNSTEADY
+//#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
-#endif // DEBUG_JACOBIAN_UNSTEADY
+//#endif // DEBUG_JACOBIAN_UNSTEADY
 
-#if 0
+//#if 0
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
 		+ (1 - A1 - A2)*u2;
-#endif
+//#endif
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
@@ -641,7 +647,7 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 1, dCoef*b1*b2*d*d);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, dCoef*(b1 + b2)*d);
 
-#if 0
+//#if 0
 	//if (Uinf > std::numeric_limits<doublereal>::epsilon()) {		
 	if (Uinf > 1.e-2) {		
 		/* computing the matrix g_{/\tilde{v}} - dimension: 2x3, where 2 is n_states */
@@ -694,7 +700,7 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		WW[WY] = W[WY];
 		WW[WZ] = W[WZ];
 	
-		c81_aerod2_u(WW, &VAM, TNG, &OUTA, const_cast<c81_data *>(data), unsteadyflag);
+		c81_aerod2_u(WW, &VAM, TNG, &OUTA, pAeroData->GetCurData(i), unsteadyflag);
 		doublereal cx_1, cy_1, cmz_1;
 		if (qD > std::numeric_limits<doublereal>::epsilon()) {
 			cx_1 = OUTA.cd;
@@ -710,8 +716,6 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		doublereal dCl_alpha = (cy_1-cfy_0[i])/dDeltaY1;
 		doublereal dCm_alpha = (cmz_1-cmz_0[i])/dDeltaY1;
 	
-		doublereal C11 = (A1+A2)*b1*b2*d*d;
-		doublereal C12 = (A1*b1+A2*b2)*d;
 	
 		doublereal qDc = qD*chord;
 		/* ATTENZIONE: le derivate aerodinamiche calcolate (vedi tecman)
@@ -719,7 +723,11 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
  		 * le derivate di TNG */
 		doublereal sin_alpha = (W[VY]+d34*W[WZ])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
 		doublereal cos_alpha = (W[VX])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
-	
+
+		#if 1
+		doublereal C11 = (A1+A2)*b1*b2*d*d;
+		doublereal C12 = (A1*b1+A2*b2)*d;
+
 		doublereal D_q1 = qDc*dCd_alpha*C11;
 		doublereal D_q2 = qDc*dCd_alpha*C12;
 		doublereal L_q1 = qDc*dCl_alpha*C11;
@@ -727,7 +735,6 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		
 		doublereal M_q1 = qDc*chord*dCm_alpha*C11;
 		doublereal M_q2 = qDc*chord*dCm_alpha*C12;
-		#if 0
 		fq.Put(1, 1, (-L_q1*sin_alpha -D_q1*cos_alpha));
 		fq.Put(1, 2, (-L_q2*sin_alpha -D_q2*cos_alpha));
 		fq.Put(2, 1, (L_q1*cos_alpha -D_q1*sin_alpha));
@@ -749,16 +756,17 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	
 		doublereal cy = cfy_0[i] + clalpha[i]/2/d*( dot_alpha_pivot[i] - a/d*ddot_alpha[i]);
 	
-		Mat6x6 Jaero = 0.;
+		Mat6x6 Jaero;
+		Jaero.Reset();
 		Jaero(1,1) = rho*chord*cfx_0[i]*W[VX] + qDc*( dCd_alpha*dY_V_11);
 		Jaero(1,2) = rho*chord*cfx_0[i]*W[VY] + qDc*( dCd_alpha*dY_V_12);
 		Jaero(1,3) = rho*chord*cfx_0[i]*W[VZ];
 		Jaero(2,1) = rho*chord*cy*W[VX] + qDc*( dCl_alpha*dY_V_11 + dCfy_Uinf*W[VX]/Uinf);
 		Jaero(2,2) = rho*chord*cy*W[VY] + qDc*( dCl_alpha*dY_V_12 + dCfy_Uinf*W[VY]/Uinf );
 		Jaero(2,3) = rho*chord*cy*W[VZ];
-		Jaero(3,1) = rho*chord*cfz_0*W[VX];
-		Jaero(3,1) = rho*chord*cfz_0*W[VY];
-		Jaero(3,3) = rho*chord*cfz_0*W[VZ];
+		Jaero(3,1) = rho*chord*cfz_0[i]*W[VX];
+		Jaero(3,1) = rho*chord*cfz_0[i]*W[VY];
+		Jaero(3,3) = rho*chord*cfz_0[i]*W[VZ];
 	
 		/* f_{/\tilde{omega}} */
 		Jaero(1,6) = qDc*dCd_alpha*(1.-A1-A2)*dU_W_13;
@@ -767,14 +775,14 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		/* c_{/\tilde{v}} */
 		doublereal dCmz_Uinf = 0.5*clalpha[i]*(dot_alpha_pivot[i] - ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha[i] + dot_alpha[i])/(d*4*Uinf);
 	
-		doublereal cmz = cmz_0 + clalpha[i]/2/d*(-dot_alpha_pivot[i]/4 + (a/4/d - 1/d/16)*ddot_alpha[i] - dot_alpha[i]/4);
+		doublereal cmz = cmz_0[i] + clalpha[i]/2/d*(-dot_alpha_pivot[i]/4 + (a/4/d - 1/d/16)*ddot_alpha[i] - dot_alpha[i]/4);
 	
-		Jaero(4,1) = rho*chord*chord*cmx_0*W[VX];
-		Jaero(4,2) = rho*chord*chord*cmx_0*W[VY];
-		Jaero(4,3) = rho*chord*chord*cmx_0*W[VZ];
-		Jaero(5,1) = rho*chord*chord*cmy_0*W[VX];
-		Jaero(5,2) = rho*chord*chord*cmy_0*W[VY];
-		Jaero(5,3) = rho*chord*chord*cmy_0*W[VZ];
+		Jaero(4,1) = rho*chord*chord*cmx_0[i]*W[VX];
+		Jaero(4,2) = rho*chord*chord*cmx_0[i]*W[VY];
+		Jaero(4,3) = rho*chord*chord*cmx_0[i]*W[VZ];
+		Jaero(5,1) = rho*chord*chord*cmy_0[i]*W[VX];
+		Jaero(5,2) = rho*chord*chord*cmy_0[i]*W[VY];
+		Jaero(5,3) = rho*chord*chord*cmy_0[i]*W[VZ];
 		Jaero(6,1) = rho*chord*chord*cmz*W[VX] +qDc*chord*( dCm_alpha*dY_V_11 + dCmz_Uinf*W[VX]/Uinf );
 		Jaero(6,2) = rho*chord*chord*cmz*W[VY] +qDc*chord*( dCm_alpha*dY_V_12 + dCmz_Uinf*W[VY]/Uinf );
 		Jaero(6,3) = rho*chord*chord*cmz*W[VZ];
@@ -815,7 +823,7 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		J(6,6) = Jaero(6,6) + d14*J(2,6);
 		#endif
 	}
-#endif
+//#endif
 #ifdef  DEBUG_JACOBIAN_UNSTEADY	
 	printf("G/v matrix\n");
 	printf("%lf %lf %lf\n", 0., 0., 0.);

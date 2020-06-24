@@ -4929,7 +4929,6 @@ Solver::Eig(bool bNewLine)
 	if (EigAn.uFlags & EigenAnalysis::EIG_USE_LAPACK) {
 		SAFENEWWITHCONSTRUCTOR(pMatA, FullMatrixHandler,
 			FullMatrixHandler(iSize));
-
 		SAFENEWWITHCONSTRUCTOR(pMatB, FullMatrixHandler,
 			FullMatrixHandler(iSize));
 
@@ -4951,6 +4950,12 @@ Solver::Eig(bool bNewLine)
 			SpMapMatrixHandler(iSize));
 		SAFENEWWITHCONSTRUCTOR(pMatB, SpMapMatrixHandler,
 			SpMapMatrixHandler(iSize));
+
+	} else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
+		SAFENEWWITHCONSTRUCTOR(pMatA, FullMatrixHandler,
+			FullMatrixHandler(iSize));
+		SAFENEWWITHCONSTRUCTOR(pMatB, FullMatrixHandler,
+			FullMatrixHandler(iSize));
 	}
 
 	pMatA->Reset();

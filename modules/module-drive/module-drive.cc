@@ -45,16 +45,16 @@ public:
 	DummyDriveCaller(const doublereal &d);
 	virtual ~DummyDriveCaller(void);
  
-	/* Copia */
+	/* Copy Constructor */
 	virtual DriveCaller* pCopy(void) const;
  
-	/* Scrive il contributo del DriveCaller al file di restart */   
+	/* Writes contribution to restart file  */   
 	virtual std::ostream& Restart(std::ostream& out) const;
  
 	inline doublereal dGet(const doublereal& /* dVar */ ) const;
 	inline doublereal dGet(void) const;
 
-	/* this is about drives that are differentiable */
+	/* This is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
 	virtual inline doublereal dGetP(void) const;
@@ -114,7 +114,7 @@ DummyDriveCaller::dGetP(void) const
 	return 0.;
 }
 
-/* prototype of the functional object: reads a drive caller */
+/* Prototype of the functional object: reads a drive caller */
 struct DummyDCR : public DriveCallerRead {
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) {

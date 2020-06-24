@@ -499,6 +499,16 @@ struct DoubleLinearElasticCLR : public ConstitutiveLawRead<T, Tder> {
 				<< HP.GetLineData() << std::endl);
 		}
 
+		doublereal dThirdS = dSecondS;
+		if (HP.IsKeyWord("third" "stiffness"))
+		{
+			dThirdS = HP.GetReal();
+			if (dThirdS <= 0.) {
+				silent_cerr("warning, null or negative third stiffness at line "
+				<< HP.GetLineData() << std::endl);
+			}
+		}
+
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
@@ -507,7 +517,7 @@ struct DoubleLinearElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		typedef DoubleLinearElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL,
 				L,
-				L(pTplDC, PreStress, dS, dUpp, dLow, dSecondS));
+				L(pTplDC, PreStress, dS, dUpp, dLow, dSecondS, dThirdS));
 
 		return pCL;
 	};

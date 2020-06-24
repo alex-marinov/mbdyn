@@ -59,25 +59,48 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
                 return ANN_NO_FILE;
         }
 
-        fscanf(fh,"%d",&(net->N_input));
+	if ( !fscanf(fh,"%d",&(net->N_input)) )
+	{
+		fprintf( stderr, "Unable to read input number.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init" );
+		return ANN_DATA_ERROR;
+	}
 	if( net->N_input <= 0 ){
 		fprintf( stderr, "Input number must be greater than zero.\n");
 		ANN_error( ANN_DATA_ERROR, "ANN_init" );
 		return ANN_DATA_ERROR;
 	}
-        fscanf(fh,"%d",&(net->N_output));
+
+        if ( !fscanf(fh,"%d",&(net->N_output)) )
+	{
+		fprintf( stderr, "Unable to read output number.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init" );
+		return ANN_DATA_ERROR;
+	}
 	if( net->N_output <= 0 ){
 		fprintf( stderr, "Output number must be greater than zero.\n");
 		ANN_error( ANN_DATA_ERROR, "ANN_init" );
 		return ANN_DATA_ERROR;
 	}
-        fscanf(fh,"%d",&(net->N_layer));
+
+        if ( !fscanf(fh,"%d",&(net->N_layer)) )
+	{
+		fprintf( stderr, "Unable to read hidden layer number.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init" );
+		return ANN_DATA_ERROR;
+	}
 	if( net->N_layer < 0 ){
 		fprintf( stderr, "Hidden layer number must be not negative.\n");
 		ANN_error( ANN_DATA_ERROR, "ANN_init" );
 		return ANN_DATA_ERROR;
 	}
-        fscanf(fh,"%d",&(net->r));
+
+        if ( !fscanf(fh,"%d",&(net->r)) )
+	{
+		fprintf( stderr, "Unable to read timestep delay number.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init" );
+		return ANN_DATA_ERROR;
+	}
 	if( net->r < 0 ){
 		fprintf( stderr, "Timestep delay number must be not negative.\n");
 		ANN_error( ANN_DATA_ERROR, "ANN_init" );
@@ -90,16 +113,28 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
         }
         net->N_neuron[0] = 0;
         for( i=0;i<net->N_layer+1;i++ ){
-                fscanf(fh,"%d",&(net->N_neuron[i+1]));
+
+                if ( !fscanf(fh,"%d",&(net->N_neuron[i+1])) )
+		{
+			fprintf( stderr, "Unable to read neuron number at layer %d.\n",i+1);
+			ANN_error( ANN_DATA_ERROR, "ANN_init" );
+			return ANN_DATA_ERROR;
+
+		}
 		if( net->N_neuron[i+1] <= 0 ){
-			fprintf( stderr, "Neuron number at %d layer must be greater than zero.\n",i+1);
+			fprintf( stderr, "Neuron number at layer %d must be greater than zero.\n",i+1);
 			ANN_error( ANN_DATA_ERROR, "ANN_init" );
 			return ANN_DATA_ERROR;
 		}
         }
         net->N_neuron[0] = net->N_input + ( net->r * net->N_neuron[net->N_layer+1] );
 
-        fscanf( fh, "%d", &ActFnc); 
+        if ( !fscanf( fh, "%d", &ActFnc) )
+	{
+		fprintf( stderr, "Unable to read activation function\n" );
+		ANN_error( ANN_DATA_ERROR, "ANN_init" );
+		return ANN_DATA_ERROR;
+	}
 	switch( ActFnc ){
 	case 1:		/* use tanh */
         		net->w_init = w_tanh_init;
@@ -129,14 +164,24 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
 
         net->w_read(net->w_priv, fh, W_F_NONE);
 
-        fscanf( fh, "%le", &(net->eta));
+	if ( !fscanf( fh, "%le", &(net->eta)) )
+	{
+		fprintf( stderr, "Unable to read learning rate.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init");
+		return ANN_DATA_ERROR;
+	}
 	if( net->eta < 0 ){
 		fprintf( stderr, "Learning rate must be not negative.\n");
 		ANN_error( ANN_DATA_ERROR, "ANN_init" );
 		return ANN_DATA_ERROR;
 	}
-        fscanf( fh, "%le", &(net->rho));
 
+	if ( !fscanf( fh, "%le", &(net->rho)) )
+	{
+		fprintf( stderr, "Unable to read momentum term.\n");
+		ANN_error( ANN_DATA_ERROR, "ANN_init");
+		return ANN_DATA_ERROR;
+	}
 	ANN_vector_matrix_init(&net->W, net->N_neuron, net->N_layer);
 	ANN_vector_matrix_init(&net->dEdW, net->N_neuron, net->N_layer);
 	ANN_vector_matrix_init(&net->dW, net->N_neuron, net->N_layer);
@@ -482,8 +527,12 @@ ann_res_t ANN_DataRead( matrix *MAT, int *N_sample, char *FileName ){
 		return ANN_NO_FILE;
 	}
 
-        fscanf( fh, "%d", &Nrow);
-        fscanf( fh, "%d", &Ncolumn);
+	if ( !fscanf( fh, "%d", &Nrow) || !fscanf( fh, "%d", &Ncolumn) )
+	{
+		fprintf( stderr, "Unable to read matrix dimensions.\n");
+		ANN_error(ANN_DATA_ERROR, "ANN_DataRead");
+		return ANN_DATA_ERROR;
+	}
 	if( matrix_init( MAT, Nrow, Ncolumn ) ){
 		ANN_error( ANN_MATRIX_ERROR, "ANN_DataRead" );
 		return ANN_MATRIX_ERROR;

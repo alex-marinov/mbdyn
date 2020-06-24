@@ -146,14 +146,19 @@ int main( int argc, char **argv ){
 	/* initialize random seed: */
   	srand ( time(NULL) );
 
-	/* inizailizzazione del file contenente le informazioni sulla rete neurale */	
+	/* inizializzazione del file contenente le informazioni sulla rete neurale */	
 	fprintf( stdout, "ARTIFICIAL NEURAL NETWORK INITIALIZATION....\n" );
 	fprintf( stdout, "Output save in %s\n\n", file );
 	fh = fopen( file, "w" );
 
 	fprintf( stdout, "*** Network architecture ***\n" );
+
 	fprintf( stdout, "\tNetwork inputs' number?\n" );
-	fscanf( stdin, "%d", &N_input );
+	if ( !fscanf( stdin, "%d", &N_input ) )
+	{
+                fprintf( stderr, "ERROR: Unable to read input number.\n");
+                goto exit_error;
+	}
 	if( N_input <= 0 ){
                 fprintf( stderr, "ERROR: Input number must be greater than zero.\n");
                 goto exit_error;
@@ -161,7 +166,11 @@ int main( int argc, char **argv ){
 	fprintf( fh, "%d\n", N_input );
 	
 	fprintf( stdout, "\tNetwork outputs' number?\n" );
-	fscanf( stdin, "%d", &N_output );
+	if ( !fscanf( stdin, "%d", &N_output ) )
+	{
+                fprintf( stderr, "ERROR: Unable to read Output number.\n");
+                goto exit_error;
+	}
 	if( N_output <= 0 ){
                 fprintf( stderr, "ERROR: Output number must be greater than zero.\n");
                 goto exit_error;
@@ -169,17 +178,30 @@ int main( int argc, char **argv ){
 	fprintf( fh, "%d\n", N_output );
 
         fprintf( stdout, "\tHidden layers' number?\n" );
-        fscanf( stdin, "%d", &N_layer );
+	if ( !fscanf( stdin, "%d", &N_layer ) )
+	{
+		fprintf( stderr, "ERROR: Unable to read hidden layer number.\n");
+                goto exit_error; 
+	}
         if( N_layer < 0 ){
 		fprintf( stderr, "ERROR: Hidden layer number must be not negative.\n");
                 goto exit_error; 
         }       
         fprintf( fh, "%d\n", N_layer );
 
-        fprintf( stdout, "\tTime step delay's number?\n" );
-        fscanf( stdin, "%d", &r );
+
+        if ( !fprintf( stdout, "\tTime step delay's number?\n" ) )
+	{
+		fprintf( stderr, "ERROR: Unable to read timestep delay number.\n");
+                goto exit_error; 
+	}
+        if ( !fscanf( stdin, "%d", &r ) )
+	{
+		fprintf( stderr, "ERROR: Unable to read timestep delay number.\n");
+                goto exit_error; 
+	}
         if( r < 0 ){
-		fprintf( stderr, "ERROR Timestep delay number must be not negative.\n");
+		fprintf( stderr, "ERROR: Timestep delay number must be not negative.\n");
                 goto exit_error; 
         }       
 
@@ -192,7 +214,11 @@ int main( int argc, char **argv ){
 
         for( i=0; i<N_layer; i++ ){
         	fprintf( stdout, "\tNeuron number at %d hidden layer number?\n", i+1 );
-        	fscanf( stdin, "%d", &in );
+		if ( !fscanf( stdin, "%d", &in ) )
+		{
+                        fprintf( stderr, "ERROR: Unable to read neuron number at hidden layer %d.\n",i+1);
+                        goto exit_error;
+		}
 		N_neuron[i+1] = in;
                 if( in <= 0 ){
                         fprintf( stderr, "ERROR: Neuron number at %d hidden layer must be greater than zero.\n",i+1);
@@ -200,8 +226,13 @@ int main( int argc, char **argv ){
                 }
         	fprintf( fh, "%d ", in );
         }
+
         fprintf( stdout, "\tNeuron number at the visible layer number?\n" );
-       	fscanf( stdin, "%d", &in );
+       	if ( !fscanf( stdin, "%d", &in ) )
+	{
+                fprintf( stderr, "ERROR: Unable to read neuron number at the visible layer.\n");
+                goto exit_error;
+	}
 	N_neuron[N_layer+1] = in;
         if( in < N_output ){
                 fprintf( stderr, "ERROR: Neuron number at the visible layer must be not lesser than output number.\n");
@@ -216,26 +247,46 @@ int main( int argc, char **argv ){
 	fprintf( stdout, " 1: Hyperbolic tangent [ y = a*tanh(b*x) ]\n" );
 	fprintf( stdout, " 2: Linear function [ y = mx +q ]\n" );
 	fprintf( stdout, "\tChoose activation function [ 1 2 ]\n" );
-	fscanf( stdin, "%d", &in );
+	if ( !fscanf( stdin, "%d", &in ) )
+	{
+		fprintf(stderr, "ERROR: Unable to read activation function choice.\n");
+		goto exit_error;
+	}
 	fprintf( fh, "%d\n", in );
         fprintf( stdout, "\tActivation function parameters?\n" );
-        fscanf( stdin, "%lf", &doub );
+	if ( !fscanf( stdin, "%lf", &doub ) )
+	{
+		fprintf(stderr, "ERROR: Unable to read activation function parameter.\n");
+		goto exit_error;
+	}
         fprintf( fh, "\n%e ", doub );
-        fscanf( stdin, "%lf", &doub );
+        if ( !fscanf( stdin, "%lf", &doub ) )
+	{
+		fprintf(stderr, "ERROR: Unable to read activation function parameter.\n");
+		goto exit_error;
+	}
         fprintf( fh, " %e\n", doub );
         
 	fprintf( fh, " \n\n\n" );
 
 	fprintf( stdout, "*** Training parameters***\n" );
         fprintf( stdout, "\tLearning rate?\n" );
-        fscanf( stdin, "%lf", &doub );
+        if ( !fscanf( stdin, "%lf", &doub ) )
+	{
+		fprintf(stderr, "ERROR: Unable to read learning rate.\n");
+		goto exit_error;
+	}
         if( doub < 0 ){
 		fprintf( stderr, "ERROR: Learning rate must be not negative.\n");
                 goto exit_error; 
         }       
         fprintf( fh, "%e\n", doub );
 	fprintf( stdout, "\nMomentum term?\n" );
-        fscanf( stdin, "%lf", &doub );
+        if ( !fscanf( stdin, "%lf", &doub ) )
+	{
+		fprintf(stderr, "ERROR: Unable to read momentum term.\n");
+		goto exit_error;
+	}
         fprintf( fh, "%e\n", doub );
 
         fprintf( fh, " \n\n\n" );
@@ -251,7 +302,7 @@ int main( int argc, char **argv ){
 	fprintf( stdout, "*** Input/Output Scale factor computing ***\n" );
         N_sample = 0;
         if( ANN_DataRead( &INPUT, &N_sample, fileINPUT ) ){
-                fprintf( stderr, "ERRRO: Error in Input data acquisition\n");
+                fprintf( stderr, "ERROR: Error in Input data acquisition\n");
                 goto exit_error; 
         }	
         if( ANN_DataRead( &OUTPUT, &N_sample, fileOUTPUT ) ){
@@ -271,7 +322,11 @@ int main( int argc, char **argv ){
 			mean = mean_value( &INPUT, i );
 			var = variance( &INPUT, i );
 			fprintf( stdout, "Input number %d (mean value = %e, variance = %e), do you want ot scale it? [1 = yes, 0 = no]\n", i+1, mean, var );
-			fscanf( stdin, "%d", &in);
+			if ( !fscanf( stdin, "%d", &in) )
+			{
+				fprintf( stderr, "ERROR: Unable to read user choice.\n");
+				goto exit_error;
+			}
 			if( in == 1){
 				SF_INPUT.mat[i][0] = sqrt( VARIANCE/var );
 				SF_INPUT.mat[i][1] = MEAN - SF_INPUT.mat[i][0]*mean;
@@ -289,7 +344,11 @@ int main( int argc, char **argv ){
 			min = minimum( &INPUT, i );
 			max = maximum( &INPUT, i );
 			fprintf( stdout, "Input number %d (min value = %e, max = %e), do you want ot scale it? [1 = yes, 0 = no]\n", i+1, min, max );
-			fscanf( stdin, "%d", &in);
+			if ( !fscanf( stdin, "%d", &in) )
+			{
+				fprintf( stderr, "ERROR: Unable to read user choice.\n");
+				goto exit_error;
+			}
 			if( in == 1){
 				SF_INPUT.mat[i][0] = (MAX-MIN)/(max-min);
 				SF_INPUT.mat[i][1] = (max*MIN-MAX*min)/(max-min);
