@@ -251,8 +251,9 @@ OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - his
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
-OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],no,[auto yes no])
-OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],auto,[auto yes no])
+with_suitesparseqr_default=auto
+OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],$with_suitesparseqr_default,[auto yes no])
+OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],$with_suitesparseqr_default,[auto yes no])
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
@@ -1479,6 +1480,7 @@ if test "$ol_with_threads" != "no" ; then
 		fi
 	fi
 	if test "$have_threads" = "yes" ; then
+		AC_MSG_CHECKING([for threads])
 		save_LIBS="$LIBS"
 		save_CXXFLAGS="$CXXFLAGS"
 		save_CFLAGS="$CFLAGS"
@@ -2821,6 +2823,10 @@ dnl Check for QRUPDATE
 dnl
 ol_link_qrupdate=no
 if test $ol_with_qrupdate != no ; then
+   if test $ol_with_suitesparseqr = yes ; then
+      AC_MSG_NOTICE([suitesparseqr needs qrupdate; promoting qrupdate checking from auto to yes])
+      ol_with_qrupdate=yes
+   fi
    AC_MSG_CHECKING([for qrupdate library])
    try_qrupdate_LIBS="-lqrupdate"
    save_LIBS="$LIBS"
