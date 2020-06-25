@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -77,12 +77,12 @@ class Vec3_Manip {
     Metodo che trasforma la matrice m nel vettore v.
     Viene usato da un costruttore di Vec3 che riceve come
     argomenti un manipolatore e una matrice di rotazione.
-    
+
     NOTE: renamed from Make() to Manipulate() May 2009
     */
    virtual void Manipulate(Vec3& v, const Mat3x3& m) const = 0;
 
-   virtual ~Vec3_Manip(void) { 
+   virtual ~Vec3_Manip(void) {
       NO_OP;
    };
 };
@@ -96,44 +96,44 @@ class Vec3_Manip {
 
 // Vettori di dimensione 3
 class Vec3 {
-   friend class Mat3x3;   
+   friend class Mat3x3;
    friend Vec3 operator - (const Vec3& v);
    // friend class Mat3x3_Manip;
    friend class VecN;
    friend class Mat3xN;
    friend class MatNx3;
-   
+
 
  private:
    //vettore di tre reali che contiene i coefficienti
    doublereal pdVec[3];
 
  protected:
-   
+
  public:
    /*Costruttori */
 
-   /* 
+   /*
     Costruttore banalissimo: non fa nulla. Attenzione che cosi' il
     valore di Vec3 e' unpredictable. Se si desidera un vettore nullo
     usare Zero3.
-    */   
-   Vec3(void) { 
-      NO_OP; 
+    */
+   Vec3(void) {
+      NO_OP;
    };
-   
+
    /*
-    Assegna i tre valori. 
+    Assegna i tre valori.
     Per azzerare il vettore, usare Zero3.
     */
-   Vec3(const doublereal& v1, 
-	const doublereal& v2, 
+   Vec3(const doublereal& v1,
+	const doublereal& v2,
 	const doublereal& v3) {
-      pdVec[V1] = v1; 
-      pdVec[V2] = v2; 
-      pdVec[V3] = v3; 
+      pdVec[V1] = v1;
+      pdVec[V2] = v2;
+      pdVec[V3] = v3;
    };
-   
+
    /*
     Costruttore di copia.
     */
@@ -142,22 +142,22 @@ class Vec3 {
       pdVec[V2] = v.pdVec[V2];
       pdVec[V3] = v.pdVec[V3];
    };
-   
+
    /*
     Costruttore da array di reali. Copia i primi 3 valori dell'array.
-    Si assume che l'array da pd sia lungo almeno 3. 
+    Si assume che l'array da pd sia lungo almeno 3.
     */
    Vec3(const doublereal* pd) {
       ASSERT(pd != NULL);
-      
+
       pdVec[V1] = pd[0];
       pdVec[V2] = pd[1];
       pdVec[V3] = pd[2];
    };
-   
+
    /*
-    Costruttore da VectorHandler. Prende i valori da iFirstIndex 
-    a iFirstIndex+2. Nota: gli indici del VectorHandler partono da 1, 
+    Costruttore da VectorHandler. Prende i valori da iFirstIndex
+    a iFirstIndex+2. Nota: gli indici del VectorHandler partono da 1,
     in stile FORTRAN.
     */
    Vec3(const VectorHandler& vh, integer iFirstIndex) {
@@ -166,61 +166,61 @@ class Vec3 {
       pdVec[V2] = vh(++iFirstIndex);
       pdVec[V3] = vh(++iFirstIndex);
    };
-   
+
    /*
-    Costruttore con manipolatore. 
-    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    Costruttore con manipolatore.
+    Invoca un metodo del manipolatore Manip che restituisce una matrice
     a partire dal vettore v.
     */
    Vec3(const Vec3_Manip& Manip, const Mat3x3& m) {
       Manip.Manipulate(*this, m);
    };
-   
+
    /*
     Distruttore banale: non fa nulla.
     */
-   ~Vec3(void) { 
-      NO_OP; 
+   ~Vec3(void) {
+      NO_OP;
    };
-      
+
 
    /*Metodi di servizio */
-      
+
    /*
     Dirty job: restituisce il puntatore al vettore (deprecato).
     */
-   const doublereal* pGetVec(void) const { 
+   const doublereal* pGetVec(void) const {
       return pdVec;
    };
-      
-   doublereal* pGetVec(void) { 
+
+   doublereal* pGetVec(void) {
       return pdVec;
    };
-      
+
    /*Operatori su vettori e matrici */
-      
+
    /*
-    Prodotto "tensore". 
+    Prodotto "tensore".
     Restituisce se stesso per v trasposto.
     */
    Mat3x3 Tens(const Vec3& v) const;
-      
+
    /*
-    Prodotto "tensore". 
+    Prodotto "tensore".
     Restituisce se stesso per se stesso
     */
    Mat3x3 Tens(void) const;
- 
+
    /*
-    Prodotto vettore. 
+    Prodotto vettore.
     Restituisce il prodotto vettore tra se stesso e v in un temporaneo.
     */
-   Vec3 Cross(const Vec3& v) const {     
+   Vec3 Cross(const Vec3& v) const {
       return Vec3(pdVec[V2]*v.pdVec[V3]-pdVec[V3]*v.pdVec[V2],
 		  pdVec[V3]*v.pdVec[V1]-pdVec[V1]*v.pdVec[V3],
 		  pdVec[V1]*v.pdVec[V2]-pdVec[V2]*v.pdVec[V1]);
    };
-   
+
    /*
     * element by element product of vectors
     */
@@ -231,53 +231,62 @@ class Vec3 {
    };
 
    /*
-    Prodotto vettore per matrice. 
+    * element by element division of vectors
+    */
+   Vec3 EBEDiv(const Vec3& v) const {
+		return Vec3(pdVec[V1]/v.pdVec[V1],
+		pdVec[V2]/v.pdVec[V2],
+		pdVec[V3]/v.pdVec[V3]);
+   };
+
+   /*
+    Prodotto vettore per matrice.
     Restituisce il prodotto vettore tra se stesso e m in un temporaneo.
     */
    Mat3x3 Cross(const Mat3x3& m) const;
-   
+
    /*
-    Prodotto scalare. 
+    Prodotto scalare.
     Restituisce il prodotto scalare tra se e v
     */
    doublereal Dot(const Vec3& v) const {
-      return 
+      return
 	pdVec[V1]*v.pdVec[V1]+
 	pdVec[V2]*v.pdVec[V2]+
 	pdVec[V3]*v.pdVec[V3];
    };
-   
+
    /*
     Prodotto scalare per se stesso.
     */
-   doublereal Dot(void) const { 
-      return 
+   doublereal Dot(void) const {
+      return
 	pdVec[V1]*pdVec[V1]+
 	pdVec[V2]*pdVec[V2]+
 	pdVec[V3]*pdVec[V3];
    };
-   
+
    /*
     Norma: sqrt(Dot())
     */
-   doublereal Norm(void) const { 
-      return 
+   doublereal Norm(void) const {
+      return
 	sqrt(pdVec[V1]*pdVec[V1]+
 	     pdVec[V2]*pdVec[V2]+
 	     pdVec[V3]*pdVec[V3]);
    };
 
    /*Operazioni sui coefficienti */
-      
+
    /*
-    Assegnazione di un coefficiente. 
+    Assegnazione di un coefficiente.
     Nota: l'indice ha base 1, in stile FORTRAN.
     */
    inline void Put(unsigned short int iRow, const doublereal& dCoef) {
-      ASSERT(iRow >= 1 && iRow <= 3);   
+      ASSERT(iRow >= 1 && iRow <= 3);
       pdVec[--iRow] = dCoef;
    };
-   
+
    /*
     Lettura di un coefficiente.
     Nota: l'indice ha base 1, in stile FORTRAN.
@@ -306,43 +315,43 @@ class Vec3 {
       ASSERT(iRow <= 2);
       return pdVec[iRow];
    };
-   
-   
+
+
    /*Operazioni con array di reali */
-      
+
    /*
     Somma se stesso all'array pd.
-    Si assume che l'array pd sia lungo almeno 3 
+    Si assume che l'array pd sia lungo almeno 3
     */
-   void AddTo(doublereal* pd) const {	
+   void AddTo(doublereal* pd) const {
       ASSERT(pd != NULL);
       pd[0] += pdVec[V1];
       pd[1] += pdVec[V2];
       pd[2] += pdVec[V3];
    };
-   
+
    /*
     Sottrae se stesso dall'array pd.
-    Si assume che l'array pd sia lungo almeno 3 
+    Si assume che l'array pd sia lungo almeno 3
     */
-   void SubFrom(doublereal* pd) const {	
+   void SubFrom(doublereal* pd) const {
       ASSERT(pd != NULL);
       pd[0] -= pdVec[V1];
       pd[1] -= pdVec[V2];
       pd[2] -= pdVec[V3];
    };
-   
+
    /*
     Scrive se stesso sull'array pd.
-    Si assume che l'array pd sia lungo almeno 3 
+    Si assume che l'array pd sia lungo almeno 3
     */
    void PutTo(doublereal* pd) const {
       ASSERT(pd != NULL);
       pd[0] = pdVec[V1];
       pd[1] = pdVec[V2];
       pd[2] = pdVec[V3];
-   };   
-   
+   };
+
    /*
     Si legge dall'array pd.
     Si assume che l'array pd sia lungo almeno 3
@@ -355,20 +364,20 @@ class Vec3 {
    };
 
    /*Operatori */
-      
+
    /*
-    Operatore di assegnazione 
+    Operatore di assegnazione
     */
    Vec3& operator = (const Vec3& v) {
       pdVec[V1] = v.pdVec[V1];
       pdVec[V2] = v.pdVec[V2];
       pdVec[V3] = v.pdVec[V3];
-      
+
       return *this;
    };
-      
+
    /*
-    Operatore somma. 
+    Operatore somma.
     Restituisce v sommato a se stesso in un temporaneo.
     */
    Vec3 operator + (const Vec3& v) const {
@@ -376,9 +385,9 @@ class Vec3 {
 		  pdVec[V2]+v.pdVec[V2],
 		  pdVec[V3]+v.pdVec[V3]);
    };
-   
+
    /*
-    Operatore somma e assegnazione. 
+    Operatore somma e assegnazione.
     Somma v a se stesso in loco.
     */
    Vec3& operator += (const Vec3& v) {
@@ -387,9 +396,9 @@ class Vec3 {
       pdVec[V3] += v.pdVec[V3];
       return *this;
    };
-   
+
    /*
-    Operatore sottrazione. 
+    Operatore sottrazione.
     Sottrae v da se stesso in un temporaneo.
     */
    Vec3 operator - (const Vec3& v) const {
@@ -397,9 +406,9 @@ class Vec3 {
 		  pdVec[V2]-v.pdVec[V2],
 		  pdVec[V3]-v.pdVec[V3]);
    };
-   
+
    /*
-    Operatore sottrazione e assegnazione. 
+    Operatore sottrazione e assegnazione.
     Sottrae v da se stesso in loco.
     */
    Vec3& operator -= (const Vec3& v) {
@@ -408,17 +417,17 @@ class Vec3 {
       pdVec[V3] -= v.pdVec[V3];
       return *this;
    };
-   
+
    /*
-    Operatore prodotto per scalare. 
+    Operatore prodotto per scalare.
     Moltiplica se stesso per d in un temporaneo.
     */
    Vec3 operator * (const doublereal& d) const {
       return Vec3(pdVec[V1]*d,
 		  pdVec[V2]*d,
-		  pdVec[V3]*d);    
+		  pdVec[V3]*d);
    };
-   
+
    /*
     Operatore prodotto e assegnazione per scalare.
     Moltiplica se stesso per d in loco.
@@ -428,57 +437,57 @@ class Vec3 {
       pdVec[V2] *= d;
       pdVec[V3] *= d;
       return *this;
-   };   
+   };
 
    /*
-    Prodotto scalare. 
+    Prodotto scalare.
     Moltiplica se stesso per v.
     */
    doublereal operator * (const Vec3& v) const {
       return pdVec[V1]*v.pdVec[V1]
 	+pdVec[V2]*v.pdVec[V2]
 	+pdVec[V3]*v.pdVec[V3];
-   };   
-   
+   };
+
 	/**
 	 * Scalar product
 	 * multiplies self by matrix m; equivalent to m.Transpose() * this.
 	 */
 	Vec3 operator * (const Mat3x3& m) const;
- 
+
    /*
-    Operatore divisione per scalare. 
+    Operatore divisione per scalare.
     Divide se stesso per d in un temporaneo.
     */
    Vec3 operator / (const doublereal& d) const {
-      ASSERT(d != 0.);      
+      ASSERT(d != 0.);
       return Vec3(pdVec[V1]/d,
 		  pdVec[V2]/d,
-		  pdVec[V3]/d);    
+		  pdVec[V3]/d);
    };
-   
+
    /*
-    Operatore divisione e assegnazione per scalare. 
+    Operatore divisione e assegnazione per scalare.
     Divide se stesso per d in loco.
     */
    Vec3& operator /= (const doublereal& d) {
-      ASSERT(d != 0.);	
+      ASSERT(d != 0.);
       pdVec[V1] /= d;
       pdVec[V2] /= d;
       pdVec[V3] /= d;
       return *this;
-   };   
+   };
 
    bool IsNull(void) const {
       return (pdVec[V1] == 0. && pdVec[V2] == 0. && pdVec[V3] == 0.);
    };
-     
+
    bool IsExactlySame(const Vec3& v) const {
       return (pdVec[V1] == v.pdVec[V1]
            && pdVec[V2] == v.pdVec[V2]
            && pdVec[V3] == v.pdVec[V3]);
    };
- 
+
    bool IsSame(const Vec3& v, const doublereal& dTol) const {
       doublereal d2 = 0.;
 
@@ -491,23 +500,23 @@ class Vec3 {
    };
 
    void Reset(void);
- 
+
    /*Input/Output */
-      
+
    /*
     Scrive se stesso sull'ostream out.
     I coefficienti sono separati dalla stringa sFill (spazio di default).
     */
    std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
 };
-   
+
 /* Vec3 - end */
 
 
 /* Mat3x3_Manip - begin */
 
 /* classe virtuale dei manipolatori */
-/* 
+/*
  Manipolatori per la costruzione di matrici 3x3.
  Sono usati per ottenere le matrici di rotazione e lel loro derivate
  dai parametri di rotazione
@@ -526,7 +535,7 @@ class Mat3x3_Manip {
     Metodo che trasforma il vettore v nella matrice m.
     Viene usato da un costruttore di Mat3x3 che riceve come
     argomenti un manipolatore e un vettore di parametri di rotazione.
-    
+
     NOTE: renamed from Make() to Manipulate() May 2009
     */
    virtual void Manipulate(Mat3x3& m, const Vec3& v) const {
@@ -537,7 +546,7 @@ class Mat3x3_Manip {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    };
 
-   virtual ~Mat3x3_Manip(void) { 
+   virtual ~Mat3x3_Manip(void) {
       NO_OP;
    };
 };
@@ -550,14 +559,14 @@ class Mat3x3_Manip {
 class Mat3x3 {
    friend class Vec3;
    friend class SparseSubMatrixHandler;
-   friend class Mat3x3_Manip;   
+   friend class Mat3x3_Manip;
    friend class Mat3xN;
    friend class MatNx3;
-   
+
  protected:
    //Vettore di 9 reali che contiene i coefficienti
    doublereal pdMat[9];
-   
+
  public:
 
    /*Costruttori */
@@ -589,9 +598,9 @@ class Mat3x3 {
       pdMat[M32] = m32;
       pdMat[M13] = m13;
       pdMat[M23] = m23;
-      pdMat[M33] = m33;      
+      pdMat[M33] = m33;
    };
-   
+
    /*
     Costruttore di copia.
     */
@@ -608,11 +617,11 @@ class Mat3x3 {
    };
 
 #if 0
-   // will be replaced by MatCross_Manip 
+   // will be replaced by MatCross_Manip
    /*
     Costruttore prodotto vettore.
-    La matrice viene inizializzata con il vettore v disposto a dare 
-    la matrice prodotto vettore 
+    La matrice viene inizializzata con il vettore v disposto a dare
+    la matrice prodotto vettore
     (ovvero la matrice che, moltiplicata per w, da' v vettor w).
     */
    Mat3x3(const Vec3& v) {
@@ -620,7 +629,7 @@ class Mat3x3 {
       pdMat[M21] = v.pdVec[V3];
       pdMat[M31] = -v.pdVec[V2];
       pdMat[M12] = -v.pdVec[V3];
-      pdMat[M22] = 0.;      
+      pdMat[M22] = 0.;
       pdMat[M32] = v.pdVec[V1];
       pdMat[M13] = v.pdVec[V2];
       pdMat[M23] = -v.pdVec[V1];
@@ -628,8 +637,8 @@ class Mat3x3 {
    };
 #endif
 
-#if 0 
-   // will be replaced by MatCrossCross_Manip 
+#if 0
+   // will be replaced by MatCrossCross_Manip
    /*
     Costruttore doppio prodotto vettore.
     restituisce la matrice data dal prodotto di due matrici prodotto vettore.
@@ -645,8 +654,8 @@ class Mat3x3 {
       pdMat[M23] = a.pdVec[V3]*b.pdVec[V2];
       pdMat[M33] = -a.pdVec[V1]*b.pdVec[V1]-a.pdVec[V2]*b.pdVec[V2];
    };
-#endif 
-   
+#endif
+
    /*
     Costruttore che piglia tre vettori e li affianca a dare la matrice
     */
@@ -663,20 +672,20 @@ class Mat3x3 {
       pdMat[M23] = v3.pdVec[V2];
       pdMat[M33] = v3.pdVec[V3];
    };
-   
-   
+
+
    /*
     Costruttore di copia da array.
-    si assume che l'array pd sia lungo almeno 9 
+    si assume che l'array pd sia lungo almeno 9
     */
    Mat3x3(const doublereal* pd, integer iSize) {
-      ASSERT(pd != NULL);      
+      ASSERT(pd != NULL);
       GetFrom(pd, iSize);
-   };   
-   
+   };
+
    /*
-    Costruttore con manipolatore. 
-    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    Costruttore con manipolatore.
+    Invoca un metodo del manipolatore Manip che restituisce una matrice
     a partire dal nulla.
     */
    Mat3x3(const Mat3x3_Manip& Manip) {
@@ -684,8 +693,8 @@ class Mat3x3 {
    };
 
    /*
-    Costruttore con manipolatore. 
-    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    Costruttore con manipolatore.
+    Invoca un metodo del manipolatore Manip che restituisce una matrice
     a partire dal reale d.
     */
    Mat3x3(const Mat3x3_Manip& Manip, const doublereal d) {
@@ -693,8 +702,8 @@ class Mat3x3 {
    };
 
    /*
-    Costruttore con manipolatore. 
-    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    Costruttore con manipolatore.
+    Invoca un metodo del manipolatore Manip che restituisce una matrice
     a partire dal vettore v.
     */
    Mat3x3(const Mat3x3_Manip& Manip, const Vec3& v) {
@@ -702,8 +711,8 @@ class Mat3x3 {
    };
 
    /*
-    Costruttore con manipolatore. 
-    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    Costruttore con manipolatore.
+    Invoca un metodo del manipolatore Manip che restituisce una matrice
     a partire dai vettori v1 e v2.
     */
    Mat3x3(const Mat3x3_Manip& Manip, const Vec3& v1, const Vec3& v2) {
@@ -726,74 +735,74 @@ class Mat3x3 {
       pdMat[M23] = -v.pdVec[V1];
       pdMat[M33] = d;
    };
-   
+
    /*
     Distruttore banale.
     */
-   ~Mat3x3(void) { 
+   ~Mat3x3(void) {
       NO_OP;
    };
 
 
    /*Metodi di servizio */
-      
+
    /*
     Dirty job: restituisce il puntatore alla matrice (deprecato).
     */
-   const doublereal* pGetMat(void) const { 
+   const doublereal* pGetMat(void) const {
       return pdMat;
    };
 
-   doublereal* pGetMat(void) { 
+   doublereal* pGetMat(void) {
       return pdMat;
    };
 
-      
+
    /*Operazioni sui coefficienti */
-      
+
    /*
     Assegnazione di un coefficiente.
     Nota: gli indici hanno base 1, in stile FORTRAN.
     */
    inline void Put(unsigned short int iRow,
-		   unsigned short int iCol, 
+		   unsigned short int iCol,
 		   const doublereal& dCoef) {
       ASSERT(iRow >= 1 && iRow <= 3);
-      ASSERT(iCol >= 1 && iCol <= 3);      
+      ASSERT(iCol >= 1 && iCol <= 3);
       pdMat[--iRow+3*--iCol] = dCoef;
    };
-   
+
    /*
     Lettura di un coefficiente.
     Nota: gli indici hanno base 1, in stile FORTRAN.
     */
-   inline const doublereal& dGet(unsigned short int iRow, 
+   inline const doublereal& dGet(unsigned short int iRow,
 				 unsigned short int iCol) const {
       ASSERT(iRow >= 1 && iRow <= 3);
-      ASSERT(iCol >= 1 && iCol <= 3);      
+      ASSERT(iCol >= 1 && iCol <= 3);
       return pdMat[--iRow+3*--iCol];
    };
 
-   inline doublereal& operator () (unsigned short int iRow, 
+   inline doublereal& operator () (unsigned short int iRow,
 		   unsigned short int iCol) {
        ASSERT(iRow >= 1 && iRow <= 3);
        ASSERT(iCol >= 1 && iCol <= 3);
        return pdMat[--iRow+3*--iCol];
    };
 
-   inline const doublereal& operator () (unsigned short int iRow, 
+   inline const doublereal& operator () (unsigned short int iRow,
 		   unsigned short int iCol) const {
        ASSERT(iRow >= 1 && iRow <= 3);
        ASSERT(iCol >= 1 && iCol <= 3);
        return pdMat[--iRow+3*--iCol];
    };
 
-   
+
    /*Operazioni su matrici e vettori */
-      
+
    /*
     Prodotto di matrici prodotto vettore.
-    Setta se stessa pari al prodotto delle matrici prodotto vettore 
+    Setta se stessa pari al prodotto delle matrici prodotto vettore
     ottenute dai vettori a e b.
     */
    const Mat3x3& Tens(const Vec3& a, const Vec3& b) {
@@ -814,11 +823,11 @@ class Mat3x3 {
     Restituisce la trasposta di se stessa in un temporaneo (poco efficiente).
     */
    Mat3x3 Transpose(void) const {
-      /* La funzione non e' ottimizzata. Genera una nuova matrice che 
-       * costruisce in modo opportuno. Se si ritiene di dover usare 
+      /* La funzione non e' ottimizzata. Genera una nuova matrice che
+       * costruisce in modo opportuno. Se si ritiene di dover usare
        * ripetutamente la matrice trasposta, conviene memorizzarla in
        * una variabile di servizio */
-      
+
       return Mat3x3(pdMat[M11], pdMat[M12], pdMat[M13],
 		    pdMat[M21], pdMat[M22], pdMat[M23],
 		    pdMat[M31], pdMat[M32], pdMat[M33]);
@@ -943,7 +952,7 @@ class Mat3x3 {
    };
 
    /*
-    Inversione. 
+    Inversione.
     Restituisce l'inversa di se stessa in un temporaneo.
     */
    doublereal dDet(void) const;
@@ -954,23 +963,23 @@ class Mat3x3 {
     Soluzione.
     Restituisce l'inversa di se stessa per v in un temporaneo.
     */
-   Vec3 Solve(const Vec3& v) const;      
-   Vec3 Solve(const doublereal& d, const Vec3& v) const;      
-   
-   Vec3 LDLSolve(const Vec3& v) const;      
+   Vec3 Solve(const Vec3& v) const;
+   Vec3 Solve(const doublereal& d, const Vec3& v) const;
+
+   Vec3 LDLSolve(const Vec3& v) const;
 
    /*
     Eigenvalues
     */
    bool EigSym(Vec3& EigenValues) const;
    bool EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const;
- 
+
    /*Operazioni su arrays di reali */
-      
+
    /*
     Si legge da un array.
     Si assume che l'array pd sia lungo almeno 9.
-    @param iSize e' il numero di righe di dimensionamento dell'array, 
+    @param iSize e' il numero di righe di dimensionamento dell'array,
     in stile FORTRAN
     */
    void GetFrom(const doublereal* pd, integer iSize) {
@@ -981,79 +990,79 @@ class Mat3x3 {
       pdMat[M11] = pdFrom[0];
       pdMat[M21] = pdFrom[1];
       pdMat[M31] = pdFrom[2];
-      
+
       pdFrom += iSize;
       pdMat[M12] = pdFrom[0];
       pdMat[M22] = pdFrom[1];
       pdMat[M32] = pdFrom[2];
-      
+
       pdFrom += iSize;
       pdMat[M13] = pdFrom[0];
       pdMat[M23] = pdFrom[1];
       pdMat[M33] = pdFrom[2];
    };
-   
+
    /*
     Somma se stesso ad un array con iNRows righe.
     si assume che l'array sia lungo almeno 2*iNRows+3 a partire da pd.
-    @param iNRows e' il numero di righe di dimensionamento dell'array, 
+    @param iNRows e' il numero di righe di dimensionamento dell'array,
     in stile FORTRAN
     */
    void AddTo(doublereal* pd, integer iNRows) const {
       ASSERT(pd != NULL);
       ASSERT(iNRows >= 3);
-      
+
       doublereal* pdTo = pd;
-      
+
       pdTo[0] += pdMat[M11];
       pdTo[1] += pdMat[M21];
       pdTo[2] += pdMat[M31];
-      
+
       pdTo += iNRows;
       pdTo[0] += pdMat[M12];
       pdTo[1] += pdMat[M22];
       pdTo[2] += pdMat[M32];
-      
+
       pdTo += iNRows;
       pdTo[0] += pdMat[M13];
       pdTo[1] += pdMat[M23];
-      pdTo[2] += pdMat[M33];      
+      pdTo[2] += pdMat[M33];
    };
-   
+
    /*
     Copia se stesso su un array con iNRows righe.
     Si assume che l'array sia lungo almeno 2*iNRows+3.
-    @param iNRows e' il numero di righe di dimensionamento dell'array, 
+    @param iNRows e' il numero di righe di dimensionamento dell'array,
     in stile FORTRAN
     */
    void PutTo(doublereal* pd, integer iNRows) const {
       ASSERT(pd != NULL);
       ASSERT(iNRows >= 3);
-      
+
       doublereal* pdTo = pd;
-      
+
       pdTo[0] = pdMat[M11];
       pdTo[1] = pdMat[M21];
       pdTo[2] = pdMat[M31];
-      
+
       pdTo += iNRows;
       pdTo[0] = pdMat[M12];
       pdTo[1] = pdMat[M22];
       pdTo[2] = pdMat[M32];
-      
+
       pdTo += iNRows;
       pdTo[0] = pdMat[M13];
       pdTo[1] = pdMat[M23];
       pdTo[2] = pdMat[M33];
    };
-   
+
    /*Operatori */
-   
+
    /*
     Operatore di assegnazione.
     */
    Mat3x3& operator = (const Mat3x3& m) {
-      
+
       pdMat[M11] = m.pdMat[M11];
       pdMat[M21] = m.pdMat[M21];
       pdMat[M31] = m.pdMat[M31];
@@ -1063,12 +1072,12 @@ class Mat3x3 {
       pdMat[M13] = m.pdMat[M13];
       pdMat[M23] = m.pdMat[M23];
       pdMat[M33] = m.pdMat[M33];
-      
+
       return *this;
    };
-   
+
    /*
-    Operatore somma. 
+    Operatore somma.
     Restituisce v sommato a se stesso in un temporaneo.
     */
    Mat3x3 operator + (const Mat3x3& m) const {
@@ -1082,7 +1091,7 @@ class Mat3x3 {
 		    pdMat[M23]+m.pdMat[M23],
 		    pdMat[M33]+m.pdMat[M33]);
    };
-   
+
    /*
     Operatore somma e assegnazione.
     Somma v a se stesso in loco.
@@ -1097,10 +1106,10 @@ class Mat3x3 {
       pdMat[M13] += m.pdMat[M13];
       pdMat[M23] += m.pdMat[M23];
       pdMat[M33] += m.pdMat[M33];
-      
+
       return *this;
    };
-   
+
    /*
     Operatore differenza.
     Restituisce v sottratto da se stesso in un temporaneo.
@@ -1116,7 +1125,7 @@ class Mat3x3 {
 		    pdMat[M23]-m.pdMat[M23],
 		    pdMat[M33]-m.pdMat[M33]);
    };
-   
+
    /*
     Operatore differenza e assegnazione.
     Sottrae v da se stesso in loco.
@@ -1134,7 +1143,7 @@ class Mat3x3 {
 
       return *this;
    };
-   
+
    /*
     Operatore moltiplicazione per scalare.
     Restituisce se stesso moltiplicato per d in un temporaneo.
@@ -1153,7 +1162,7 @@ class Mat3x3 {
       }
       return *this;
    };
-   
+
    /*
     Operatore moltiplicazione per scalare e assegnazione.
     Moltiplica se stesso per d in loco.
@@ -1170,10 +1179,10 @@ class Mat3x3 {
 	 pdMat[M23] *= d;
 	 pdMat[M33] *= d;
       }
-      
+
       return *this;
    };
-   
+
    /*
     Operatore divisione per scalare.
     Restituisce se stesso diviso per d in un temporaneo.
@@ -1191,10 +1200,10 @@ class Mat3x3 {
 		       pdMat[M23]/d,
 		       pdMat[M33]/d);
       }
-      
+
       return *this;
    };
-   
+
    /*
     Operatore divisione per scalare e assegnazione.
     Divide se stesso per d in loco
@@ -1212,11 +1221,11 @@ class Mat3x3 {
 	 pdMat[M23] /= d;
 	 pdMat[M33] /= d;
       }
-      
+
       return *this;
    };
-   
-   
+
+
    /*
     Operatore prodotto matrice vettore.
     Restituisce se stesso moltiplicato per v in un temporaneo.
@@ -1233,7 +1242,7 @@ class Mat3x3 {
            && pdMat[M21] == 0. && pdMat[M22] == 0. && pdMat[M23] == 0.
            && pdMat[M31] == 0. && pdMat[M32] == 0. && pdMat[M33] == 0.);
    };
-     
+
    bool IsExactlySame(const Mat3x3& m) const {
       return (pdMat[M11] == m.pdMat[M11]
            && pdMat[M12] == m.pdMat[M12]
@@ -1245,7 +1254,7 @@ class Mat3x3 {
            && pdMat[M32] == m.pdMat[M32]
            && pdMat[M33] == m.pdMat[M33]);
    };
- 
+
    bool IsSame(const Mat3x3& m, const doublereal& dTol) const {
       doublereal d2 = 0.;
 
@@ -1267,7 +1276,7 @@ class Mat3x3 {
 
 		return true;
 	};
- 
+
 	bool IsSymmetric(const doublereal& dTol) const {
 		ASSERT(dTol > 0.);
 
@@ -1294,7 +1303,7 @@ class Mat3x3 {
 
 		return true;
 	};
- 
+
 	bool IsDiag(const doublereal& dTol) const {
 		ASSERT(dTol > 0.);
 
@@ -1310,7 +1319,7 @@ class Mat3x3 {
 
 		return true;
 	};
- 
+
    /*
     Prodotto matrice per matrice.
     Restituisce il prodotto di se stessa per m in un temporaneo.
@@ -1326,7 +1335,7 @@ class Mat3x3 {
 		 pdMat[M11]*m.pdMat[M13]+pdMat[M12]*m.pdMat[M23]+pdMat[M13]*m.pdMat[M33],
 		 pdMat[M21]*m.pdMat[M13]+pdMat[M22]*m.pdMat[M23]+pdMat[M23]*m.pdMat[M33],
 		 pdMat[M31]*m.pdMat[M13]+pdMat[M32]*m.pdMat[M23]+pdMat[M33]*m.pdMat[M33]);
-    };      
+    };
 
 	/**
 	 * multiply by another matrix, transposed: this * m^T
@@ -1361,18 +1370,18 @@ class Mat3x3 {
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];
    };
-      
+
    void Reset(void);
 
    /*Input/Output */
-   
+
    /*
     Scrittura su ostream della matrice.
     Scrive se stessa sull'ostream out usando come separatore tra colonne sFill
     e come separatore tra le righe sFill2.
     */
-   std::ostream& Write(std::ostream& out, 
-		  const char* sFill = " ", 
+   std::ostream& Write(std::ostream& out,
+		  const char* sFill = " ",
 		  const char* sFill2 = NULL) const;
 };
 
@@ -1387,7 +1396,7 @@ class Mat3x3 {
 extern Vec3 operator - (const Vec3& v);
 
 /*
- Operatore "meno" unario su Mat3x3. 
+ Operatore "meno" unario su Mat3x3.
  Restituisce l'opposto di se stesso in un temporaneo.
  */
 extern Mat3x3 operator - (const Mat3x3& v);
@@ -1397,7 +1406,7 @@ extern Mat3x3 operator - (const Mat3x3& v);
  Nota: i coefficienti sono separati da spazi. Non c'e' endl al termine
  */
 extern std::ostream& operator << (std::ostream& out, const Vec3& v);
-      
+
 /*
  Operatore di scrittura di Mat3x3 su ostream.
  Nota: i coefficienti sono separati da spazi e sono scritti consecutivamente,
@@ -1414,7 +1423,7 @@ extern std::ostream& operator << (std::ostream& out, const Mat3x3& m);
  @param d     valore da scrivere.
  */
 extern std::ostream& Write(std::ostream& out, const doublereal& d, const char*);
-   
+
 /*
  Funzione di Output di Vec3 su ostream.
  Necessarie per poter generare i templates dei legami costitutivi.
@@ -1423,7 +1432,7 @@ extern std::ostream& Write(std::ostream& out, const doublereal& d, const char*);
  @param s     separatore tra i valori.
  */
 extern std::ostream& Write(std::ostream& out, const Vec3& v, const char* s = " ");
-   
+
 /*
  Funzione di Output di Mat3x3 su ostream.
  Necessarie per poter generare i templates dei legami costitutivi.
@@ -1434,7 +1443,7 @@ extern std::ostream& Write(std::ostream& out, const Vec3& v, const char* s = " "
  */
 extern std::ostream& Write(std::ostream& out,
 		      const Mat3x3& m,
-		      const char* s = " ", 
+		      const char* s = " ",
 		      const char* s2 = NULL);
 
 // replaces Mat3x3(const doublereal&) used as Mat3x3(0.)
@@ -1607,7 +1616,7 @@ enum OrientationDescription {
 
 /*
  Calcola i parametri di Rodrigues g a partire dalla matrice di rotazione R.
- Nota: i parametri devono essere definiti, ovvero R non deve rappresentare 
+ Nota: i parametri devono essere definiti, ovvero R non deve rappresentare
  una rotazione a cui corrispondono parametri singolari.
  */
 extern Vec3 MatR2gparam(const Mat3x3& R);
@@ -1616,21 +1625,21 @@ extern Vec3 MatR2gparam(const Mat3x3& R);
  Computes so-called linear parametrization
  */
 extern Vec3 MatR2LinParam(const Mat3x3& R);
-   
+
 /*
- Calcola la matrice di rotazione a partire da due vettori sghembi. 
+ Calcola la matrice di rotazione a partire da due vettori sghembi.
  @param ia indice del vettore va nel sistema locale.
  @param va vettore ia nel sistema locale.
  @param ib indice del vettore che risulta dall'elaborazione di vb.
  @param vb vettore che viene trasformato come segue:
  il vettore va viene assunto come asse ia nel sistema locale,
- mentre la componente di vb normale a va e giacente nel piano 
+ mentre la componente di vb normale a va e giacente nel piano
  normale al prodotto vettore tra va e vb viene assunta come
  componente ib nel sistema locale.
  */
-extern Mat3x3 MatR2vec(unsigned short int ia, 
-		       const Vec3& va, 
-		       unsigned short int ib, 
+extern Mat3x3 MatR2vec(unsigned short int ia,
+		       const Vec3& va,
+		       unsigned short int ib,
 		       const Vec3& vb);
 
 
@@ -1667,13 +1676,13 @@ public:
 	inline void Manipulate(Vec3& v, const Mat3x3& m) const {
 		// singularity test
 		doublereal d = 1. + m.Trace();
-   
+
 		if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
 			silent_cerr("Param_Manip(): divide by zero, "
 			"probably due to singularity in rotation parameters" << std::endl);
 			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 		}
-   
+
 		v = m.Ax()*(4./d);
 	};
 };
@@ -1681,7 +1690,7 @@ public:
 /* MatR_Manip - begin */
 
 // Manipolatore per matrice R con parametri di Rodrigues.
-class MatR_Manip : public Mat3x3_Manip {   
+class MatR_Manip : public Mat3x3_Manip {
  public:
    MatR_Manip() {}
    /*
@@ -1689,15 +1698,15 @@ class MatR_Manip : public Mat3x3_Manip {
     */
    inline void Manipulate(Mat3x3& m, const Vec3& g) const {
       doublereal d = (4./(4. + g.Dot()));
-      
+
       /*
        m = Eye3;
        m += Mat3x3(g*d);
        */
-      
+
       /* E' piu' efficiente se creo contemporaneamente I+d*g/\ */
       m = Mat3x3(1., g*d);
-      
+
       /* Alla fine sommo il termine d/2*g/\g/\, che e' una matrice piena */
       m += Mat3x3(MatCrossCross, g, g*(d/2.));
    };
@@ -1748,7 +1757,7 @@ class MatGm1_Manip : public Mat3x3_Manip {
 extern const Param_Manip Param;
 
 /*
- Manipolatore per matrice R 
+ Manipolatore per matrice R
  */
 extern const MatR_Manip MatR;
 
@@ -1758,7 +1767,7 @@ extern const MatR_Manip MatR;
 extern const MatG_Manip MatG;
 
 /*
- Manipolatore per inversa della matrice G 
+ Manipolatore per inversa della matrice G
  */
 extern const MatGm1_Manip MatGm1;
 
@@ -1789,7 +1798,7 @@ IsSame(const T& t1, const T& t2, const doublereal& dTol)
 template <>
 bool
 IsNull(const doublereal& d);
- 
+
 template <>
 bool
 IsExactlySame(const doublereal& d1, const doublereal& d2);
