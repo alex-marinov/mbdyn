@@ -43,16 +43,23 @@
 
 AddedMass::AddedMass(unsigned int uL,
 	const StructDispNode *pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	flag fOut)
 : Elem(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 pNode(pNode),
-AddedMass(AddedMass)
+AddedMassValues(AddedMassValues)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(AddedMass > 0.);
+
+	for (int i=0 ; i < 3 ; i++)
+	{
+        ASSERT(AddedMassValues[i] > 0.);
+	}
+
+	AddedMassDiagMat = Mat3x3(Mat3x3DEye, AddedMassValues);
+
 }
 
 
@@ -67,7 +74,7 @@ AddedMass::~AddedMass(void)
 Vec3
 AddedMass::GetS_int(void) const
 {
-	return pNode->GetXCurr()*AddedMass;
+	return pNode->GetXCurr().EBEMult(AddedMassValues);
 }
 
 
@@ -77,7 +84,7 @@ AddedMass::GetJ_int(void) const
 {
 	const Vec3& x = pNode->GetXCurr();
 
-	return Mat3x3(MatCrossCross, x, x.EBEMult(-AddedMass));
+	return Mat3x3(MatCrossCross, x, x.EBEMult(-AddedMassValues));
 }
 
 
@@ -86,25 +93,25 @@ std::ostream&
 AddedMass::Restart(std::ostream& out) const
 {
 	out << "  added mass: " << GetLabel() << ", "
-		<< pNode->GetLabel() << ", " << AddedMass << ';' << std::endl;
+		<< pNode->GetLabel() << ", " << AddedMassValues << ';' << std::endl;
 
 	return out;
 }
 
 
-/* massa totale */
+/* total added mass */
 Vec3
-AddedMass::GetAM(void) const
+AddedMass::GetM(void) const
 {
-	return AddedMass;
+	return AddedMassValues;
 }
 
-/* momento statico */
-Vec3
-AddedMass::GetS(void) const
-{
-	return GetS_int();
-}
+///* momento statico */
+//Vec3
+//AddedMass::GetS(void) const
+//{
+//	return GetS_int();
+//}
 
 /* momento d'inerzia */
 Mat3x3
@@ -168,15 +175,15 @@ AddedMass::dGetPrivData(unsigned int i) const
 
 	case 1:
  		// AddedMass
- 		return AddedMass[0];
+ 		return AddedMassValues[0];
 
     case 2:
  		// AddedMass
- 		return AddedMass[1];
+ 		return AddedMassValues[1];
 
     case 3:
  		// AddedMass
- 		return AddedMass[2];
+ 		return AddedMassValues[2];
 	}
 
 	return 0.;
@@ -195,11 +202,11 @@ AddedMass::AssVecRBK_int(SubVectorHandler& WorkVec)
 	}
 
 	// elementwise multiplication of AddedMass and positions
-	s0 = AddedMass.EBEMult (pNode->GetXCurr());
+	s0 = AddedMassValues.EBEMult (pNode->GetXCurr());
 
 	// force in each direction
 	Vec3 f;
-	f = AddedMass.EBEMult (pRBK->GetXPP());
+	f = AddedMassValues.EBEMult (pRBK->GetXPP());
 
 	WorkVec.Sub(iIdx + 1, f);
 }
@@ -221,7 +228,11 @@ AddedMass::AssMatsRBK_int(
 	Mat3x3 MTmp(MatCross, pRBK->GetWP());
 	MTmp += Mat3x3(MatCrossCross, pRBK->GetW(), pRBK->GetW());
 
-	WMA.Add(iIdx + 1, 1, MTmp*(AddedMass*dCoef));
+//    Mat3x3 AddedMassDiag = Mat3x3( AddedMassValues[0],         0.0,           0.0,
+//                                            0.0, AddedMassValues[1],          0.0,
+//                                            0.0,          0.0, AddedMassValues[1]  );
+
+	WMA.Add(iIdx + 1, 1, MTmp*(AddedMassDiagMat*dCoef));
 }
 
 /* AddedMass - end */
@@ -231,10 +242,10 @@ AddedMass::AssMatsRBK_int(
 
 DynamicAddedMass::DynamicAddedMass(unsigned int uL,
 	const DynamicStructDispNode* pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	flag fOut)
 : Elem(uL, fOut),
-AddedMass(uL, pNode, AddedMass, fOut)
+AddedMass(uL, pNode, AddedMassValues, fOut)
 {
 	NO_OP;
 }
@@ -335,9 +346,7 @@ DynamicAddedMass::AssMats(VariableSubMatrixHandler& WorkMatA,
 void
 DynamicAddedMass::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
-	doublereal dCoef,
-	bool bGravity,
-	const Vec3& GravityAcceleration)
+	doublereal dCoef)
 {
 	DEBUGCOUTFNAME("DynamicAddedMass::AssMats");
 
@@ -346,9 +355,9 @@ DynamicAddedMass::AssMats(FullSubMatrixHandler& WMA,
 	 *
 	 * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag
 	 */
-	WMB.IncCoef(1, 1, AddedMass[0]);
-	WMB.IncCoef(2, 2, AddedMass[1]);
-	WMB.IncCoef(3, 3, AddedMass[2]);
+	WMB.IncCoef(1, 1, AddedMassValues[0]);
+	WMB.IncCoef(2, 2, AddedMassValues[1]);
+	WMB.IncCoef(3, 3, AddedMassValues[2]);
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 	if (pRBK) {
@@ -380,7 +389,7 @@ DynamicAddedMass::AssRes(SubVectorHandler& WorkVec,
 	const Vec3& V(pNode->GetVCurr());
 
 	/* Quantita' di moto: R[1] = Q */
-	WorkVec.Sub(1, V*AddedMass);
+	WorkVec.Sub(1, V.EBEMult(AddedMassValues));
 
 	if (pRBK) {
 		AssVecRBK_int(WorkVec);
@@ -389,7 +398,7 @@ DynamicAddedMass::AssRes(SubVectorHandler& WorkVec,
 	const DynamicStructDispNode *pDN = dynamic_cast<const DynamicStructDispNode *>(pNode);
 	ASSERT(pDN != 0);
 
-	pDN->AddInertia(AddedMass); // TODO: what do we do here?
+	pDN->AddInertia(AddedMassValues); // TODO: what do we do here?
 
 	return WorkVec;
 }
@@ -431,7 +440,7 @@ DynamicAddedMass::SetValue(DataManager *pDM,
 	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 
 	const Vec3& V(pNode->GetVCurr());
-	X.Add(iFirstIndex + 1, V.EBEMult(AddedMass));
+	X.Add(iFirstIndex + 1, V.EBEMult(AddedMassValues));
 }
 
 /* momentum */
@@ -440,7 +449,7 @@ DynamicAddedMass::GetB_int(void) const
 {
 	const Vec3& V(pNode->GetVCurr());
 
-	return V.EBEMult(AddedMass);
+	return V.EBEMult(AddedMassValues);
 }
 
 /* DynamicAddedMass - end */
@@ -450,10 +459,10 @@ DynamicAddedMass::GetB_int(void) const
 
 StaticAddedMass::StaticAddedMass(unsigned int uL,
 	const StaticStructDispNode* pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	flag fOut)
 : Elem(uL, fOut),
-AddedMass(uL, pNode, AddedMass, fOut)
+AddedMass(uL, pNode, AddedMassValues, fOut)
 {
 	NO_OP;
 }
@@ -623,9 +632,6 @@ StaticAddedMass::AssRes(SubVectorHandler& WorkVec,
 
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
-	/* Se e' definita l'accelerazione di gravita', la aggiunge */
-	Vec3 GravityAcceleration;
-
 	WorkVec.ResizeReset(3);
 
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
@@ -635,7 +641,7 @@ StaticAddedMass::AssRes(SubVectorHandler& WorkVec,
 
 	Vec3 Acceleration = pNode->GetXPPCurr();
 
-	WorkVec.Sub(1, Acceleration*AddedMass);
+	WorkVec.Sub(1, Acceleration.EBEMult(AddedMassValues));
 
 	return WorkVec;
 }
@@ -683,21 +689,26 @@ StaticAddedMass::SetValue(DataManager *pDM,
 
 AddedMassAndInertia::AddedMassAndInertia(unsigned int uL,
 	const StructNode *pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 pNode(pNode),
-AddedMass(AddedMass),
+AddedMassValues(AddedMassValues),
 Xgc(Xgc),
-S0(Xgc*AddedMass),
+S0(Xgc.EBEMult(AddedMassValues)),
 J0(J)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(AddedMass > 0.);
+	for (int i=0 ; i < 3 ; i++)
+	{
+        ASSERT(AddedMassValues[i] > 0.);
+	}
+
+	AddedMassDiagMat = Mat3x3(Mat3x3DEye, AddedMassValues);
 }
 
 
@@ -712,7 +723,7 @@ AddedMassAndInertia::~AddedMassAndInertia(void)
 Vec3
 AddedMassAndInertia::GetS_int(void) const
 {
-	return pNode->GetXCurr()*AddedMass + pNode->GetRCurr()*S0;
+	return pNode->GetXCurr().EBEMult(AddedMassValues) + pNode->GetRCurr()*S0;
 }
 
 
@@ -724,7 +735,7 @@ AddedMassAndInertia::GetJ_int(void) const
 	const Vec3& x = pNode->GetXCurr();
 
 	return pNode->GetRCurr()*J0.MulMT(pNode->GetRCurr())
-		- Mat3x3(MatCrossCross, x, x*AddedMass)
+		- Mat3x3(MatCrossCross, x, x.EBEMult(AddedMassValues))
 		- Mat3x3(MatCrossCross, s, x)
 		- Mat3x3(MatCrossCross, x, s);
 }
@@ -735,7 +746,7 @@ std::ostream&
 AddedMassAndInertia::Restart(std::ostream& out) const
 {
 	out << "  added mass: " << GetLabel() << ", "
-		<< pNode->GetLabel() << ", " << AddedMass << ", "
+		<< pNode->GetLabel() << ", " << AddedMassValues << ", "
 		<< "reference, node, ", Xgc.Write(out, ", ") << ", "
 		<< "reference, node, ", (J0 + Mat3x3(MatCrossCross, S0, Xgc)).Write(out, ", ")
 		<< ";" << std::endl;
@@ -757,7 +768,7 @@ AddedMassAndInertia::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP 
 Vec3
 AddedMassAndInertia::GetM(void) const
 {
-	return AddedMass;
+	return AddedMassValues;
 }
 
 /* momento statico */
@@ -827,11 +838,11 @@ AddedMassAndInertia::dGetPrivData(unsigned int i) const
 {
 	switch (i) {
 	case 1:
-		return AddedMass[0];
+		return AddedMassValues[0];
     case 2:
-		return AddedMass[1];
+		return AddedMassValues[1];
 	case 3:
-		return AddedMass[2];
+		return AddedMassValues[2];
 	}
 
 	return 0.;
@@ -849,11 +860,11 @@ AddedMassAndInertia::AssVecRBK_int(SubVectorHandler& WorkVec)
 		iIdx = 6;
 	}
 
-	s0 = AddedMass.EBEMult(pNode->GetXCurr()) + STmp;
+	s0 = AddedMassValues.EBEMult(pNode->GetXCurr()) + STmp;
 
 	// force
 	Vec3 f;
-	f = AddedMass.EBEMult(pRBK->GetXPP());
+	f = AddedMassValues.EBEMult(pRBK->GetXPP());
 	f += pRBK->GetWP().Cross(s0);
 	f += pRBK->GetW().Cross(pRBK->GetW().Cross(s0));
 
@@ -898,7 +909,7 @@ AddedMassAndInertia::AssMatsRBK_int(
 	MTmp = Mat3x3(MatCross, pRBK->GetWP());
 	MTmp += Mat3x3(MatCrossCross, pRBK->GetW(), pRBK->GetW());
 
-	WMA.Add(iIdx + 1, 1, MTmp*(AddedMass*dCoef));
+	WMA.Add(iIdx + 1, 1, MTmp*(AddedMassDiagMat*dCoef));
 
 
 	// f: theta delta
@@ -954,12 +965,12 @@ AddedMassAndInertia::AssMatsRBK_int(
 
 DynamicAddedMassAndInertia::DynamicAddedMassAndInertia(unsigned int uL,
 	const DynamicStructNode* pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-AddedMassAndInertia(uL, pNode, AddedMass, Xgc, J, fOut)
+AddedMassAndInertia(uL, pNode, AddedMassValues, Xgc, J, fOut)
 {
 	NO_OP;
 }
@@ -1093,9 +1104,9 @@ DynamicAddedMassAndInertia::AssMats(FullSubMatrixHandler& WMA,
 	 *
 	 * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag
 	 */
-	WMB.IncCoef(1, 1, AddedMass[0]);
-	WMB.IncCoef(2, 2, AddedMass[1]);
-	WMB.IncCoef(3, 3, AddedMass[2]);
+	WMB.IncCoef(1, 1, AddedMassValues[0]);
+	WMB.IncCoef(2, 2, AddedMassValues[1]);
+	WMB.IncCoef(3, 3, AddedMassValues[2]);
 
 	WMB.Sub(1, 3 + 1, SWedge);
 	WMA.Add(1, 3 + 1, Mat3x3(MatCross, Sc.Cross(W)));
@@ -1148,7 +1159,7 @@ DynamicAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 	JTmp = R*J0.MulMT(R);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
-	WorkVec.Sub(1, V.EBEMult(AddedMass) + W.Cross(STmp));
+	WorkVec.Sub(1, V.EBEMult(AddedMassValues) + W.Cross(STmp));
 
 	/* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
 	WorkVec.Sub(3 + 1, JTmp*W + STmp.Cross(V));
@@ -1160,7 +1171,7 @@ DynamicAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
 	ASSERT(pDN != 0);
 
-	pDN->AddInertia(AddedMass, STmp, JTmp);
+	pDN->AddInertia(AddedMassValues, STmp, JTmp);
 
 	return WorkVec;
 }
@@ -1293,7 +1304,7 @@ DynamicAddedMassAndInertia::SetValue(DataManager *pDM,
 	const Mat3x3& R(pNode->GetRCurr());
 	STmp = R*S0;
 	JTmp = R*J0.MulMT(R);
-	X.Add(iFirstIndex + 1, V.EBEMult(AddedMass) + W.Cross(STmp));
+	X.Add(iFirstIndex + 1, V.EBEMult(AddedMassValues) + W.Cross(STmp));
 	X.Add(iFirstIndex + 4, STmp.Cross(V) + JTmp*W);
 }
 
@@ -1305,7 +1316,7 @@ DynamicAddedMassAndInertia::GetB_int(void) const
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
 
-	return V.EBEMult(AddedMass) + W.Cross(R*S0);
+	return V.EBEMult(AddedMassValues) + W.Cross(R*S0);
 }
 
 
@@ -1321,7 +1332,7 @@ DynamicAddedMassAndInertia::GetG_int(void) const
 	Vec3 STmp(R*S0);
 
 	// NOTE: with respect to the origin of the global reference frame!
-	return (STmp + X*AddedMass).Cross(V) + R*(J0*(R.MulTV(W)))
+	return (STmp + X.EBEMult(AddedMassValues)).Cross(V) + R*(J0*(R.MulTV(W)))
 		- X.Cross(STmp.Cross(W));
 }
 
@@ -1333,12 +1344,12 @@ DynamicAddedMassAndInertia::GetG_int(void) const
 
 ModalAddedMassAndInertia::ModalAddedMassAndInertia(unsigned int uL,
 	const ModalNode* pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-DynamicAddedMassAndInertia(uL, pNode, AddedMass, Xgc, J, fOut),
+DynamicAddedMassAndInertia(uL, pNode, AddedMassValues, Xgc, J, fOut),
 XPP(::Zero3), WP(::Zero3)
 {
 	NO_OP;
@@ -1452,7 +1463,7 @@ ModalAddedMassAndInertia::AssMats(FullSubMatrixHandler& WMA,
 	const Mat3x3& RCurr = pNode->GetRCurr();
 
 	const Mat3x3 J12A = (Mat3x3(MatCross, WP) + Mat3x3(MatCrossCross, W, W)).MulVCross(RRef * S0 * (-dCoef));
-	const Mat3x3 J13B(Mat3x3DEye, AddedMass);
+	const Mat3x3 J13B(Mat3x3DEye, AddedMassValues);
 	const Mat3x3 J14A = (Mat3x3(MatCrossCross, W, STmp) + Mat3x3(MatCross, W.Cross(STmp))) * (-dCoef);
 	const Mat3x3 J14B(MatCross, -STmp);
 	const Mat3x3 J22A = (Mat3x3(MatCrossCross, W, RRef * J0 * RCurr.MulTV(W))
@@ -1513,7 +1524,7 @@ ModalAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 		WP(i) = XPrimeCurr.dGetCoef(iFirstIndexModal + i + 9);
 	}
 
-	const Vec3 F = XPP * -AddedMass - WP.Cross(STmp) - W.Cross(W.Cross(STmp));
+	const Vec3 F = XPP.EBEMult(-AddedMassValues) - WP.Cross(STmp) - W.Cross(W.Cross(STmp));
 	const Vec3 M = -STmp.Cross(XPP) - W.Cross(JTmp * W) - JTmp * WP;
 
 	WorkVec.Add(6 + 1, F);
@@ -1526,7 +1537,7 @@ ModalAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
 	ASSERT(pDN != 0);
 
-	pDN->AddInertia(AddedMass, STmp, JTmp);
+	pDN->AddInertia(AddedMassValues, STmp, JTmp);
 
 	return WorkVec;
 }
@@ -1538,12 +1549,12 @@ ModalAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 
 StaticAddedMassAndInertia::StaticAddedMassAndInertia(unsigned int uL,
 	const StaticStructNode* pNode,
-	Vec3 AddedMass,
+	Vec3 AddedMassValues,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-AddedMassAndInertia(uL, pNode, AddedMass, Xgc, J, fOut)
+AddedMassAndInertia(uL, pNode, AddedMassValues, Xgc, J, fOut)
 {
 	NO_OP;
 }
@@ -1732,7 +1743,7 @@ StaticAddedMassAndInertia::AssRes(SubVectorHandler& WorkVec,
 		+ pNode->GetWPCurr().Cross(XgcTmp)
 		+ pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp));
 
-	WorkVec.Sub(1, Acceleration.EBEMult(AddedMass));
+	WorkVec.Sub(1, Acceleration.EBEMult(AddedMassValues));
 
 	Vec3 M = JTmp*pNode->GetWPCurr()
 		+ STmp.Cross(pNode->GetXPPCurr())
@@ -1810,7 +1821,7 @@ ReadAddedMass(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	bool bInverseDynamics = pDM->bIsInverseDynamics();
 //
 //	if (HP.IsKeyWord("variable" "added" "mass")) {
-//		return ReadVariableBody(pDM, HP, uLabel, pStrNode);
+//		return ReadVariableAddedMass(pDM, HP, uLabel, pStrNode);
 //	}
 
 //	integer iNumMasses = 1;
@@ -1936,8 +1947,10 @@ ReadAddedMass(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *sNodeName;
 	sElemName = "AddedMass";
 	if (pStrNode) {
+        sElemName = "AddedMassAndInertia";
 		sNodeName = "StructNode";
 	} else {
+        sElemName = "AddedMass";
 		sNodeName = "StructDispNode";
 	}
 

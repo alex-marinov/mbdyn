@@ -45,10 +45,12 @@ class AddedMass :
 virtual public Elem, public InitialAssemblyElem {
 protected:
 	const StructDispNode *pNode;
-	Vec3 AddedMass;
+	Vec3 AddedMassValues;
+	Mat3x3 AddedMassDiagMat;
 
 	/* static moment */
-	Vec3 GetS_int(void) const;
+    Vec3 GetS_int(void) const;
+
 
 	/* moment of inertia */
 	Mat3x3 GetJ_int(void) const;
@@ -73,7 +75,7 @@ public:
 	virtual ~AddedMass(void);
 
 	/* massa totale */
-	Vec3 GetAM(void) const;
+	Vec3 GetM(void) const;
 
 	/* momento statico */
 	Vec3 GetS(void) const;
@@ -264,11 +266,12 @@ public:
 
 /* Body - begin */
 
-class Body :
-virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
+class AddedMassAndInertia :
+virtual public Elem, public InitialAssemblyElem {
 protected:
 	const StructNode *pNode;
-	Vec3 AddedMass;
+	Vec3 AddedMassValues;
+	Mat3x3 AddedMassDiagMat;
 	Vec3 Xgc;
 	Vec3 S0;
 	Mat3x3 J0;
@@ -294,17 +297,17 @@ protected:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	Body(unsigned int uL, const StructNode *pNode,
+	AddedMassAndInertia(unsigned int uL, const StructNode *pNode,
 		Vec3 AddedMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
 		flag fOut);
 
-	virtual ~Body(void);
+	virtual ~AddedMassAndInertia(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* massa totale */
-	Vec3 GetAM(void) const;
+	Vec3 GetM(void) const;
 
 	/* momento statico */
 	Vec3 GetS(void) const;
@@ -349,7 +352,7 @@ public:
 /* DynamicAddedMassAndInertia - begin */
 
 class DynamicAddedMassAndInertia :
-virtual public Elem, public Body {
+virtual public Elem, public AddedMassAndInertia {
 private:
 
 	Vec3 GetB_int(void) const;
@@ -464,7 +467,7 @@ public:
 /* StaticAddedMassAndInertia - begin */
 
 class StaticAddedMassAndInertia :
-virtual public Elem, public Body {
+virtual public Elem, public AddedMassAndInertia {
 private:
 	/* Assembla le due matrici necessarie per il calcolo degli
 	 * autovalori e per lo jacobiano */
