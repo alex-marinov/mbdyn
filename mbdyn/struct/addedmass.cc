@@ -58,7 +58,10 @@ AddedMassValues(AddedMassValues)
         ASSERT(AddedMassValues[i] > 0.);
 	}
 
-	AddedMassDiagMat = Mat3x3(Mat3x3DEye, AddedMassValues);
+	AddedMassDiagMat = Mat3x3( AddedMassValues[0], 0., 0.,
+                               0., AddedMassValues[1], 0.,
+	                           0., 0., AddedMassValues[2] );
+	//AddedMassDiagMat = Mat3x3(Mat3x3DEye, AddedMassValues);
 
 }
 
@@ -708,7 +711,9 @@ J0(J)
         ASSERT(AddedMassValues[i] > 0.);
 	}
 
-	AddedMassDiagMat = Mat3x3(Mat3x3DEye, AddedMassValues);
+	AddedMassDiagMat = Mat3x3( AddedMassValues[0], 0., 0.,
+                               0., AddedMassValues[1], 0.,
+	                           0., 0., AddedMassValues[2] );
 }
 
 
@@ -1909,7 +1914,7 @@ ReadAddedMass(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
          */
         // TODO: instead of "inertial" or "node", use "orientation [ , reference, <ref> ] , <mat>"...
         Mat3x3 JTmp(HP.GetMatRel(RF));
-        DEBUGLCOUT(MYDEBUG_INPUT, "Added inertia matrix of added mass(" << iCnt
+        DEBUGLCOUT(MYDEBUG_INPUT, "Added inertia matrix of added mass(" << uLabel
             << ") =" << std::endl << JTmp << std::endl);
         if (!JTmp.IsSymmetric()) {
             silent_cerr("AddedMass(" << uLabel << "): "
