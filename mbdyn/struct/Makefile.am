@@ -7,6 +7,8 @@ noinst_LTLIBRARIES = libstruct.la
 libstruct_la_SOURCES = \
 accj.cc \
 accj.h \
+addedmass.cc \
+addedmass.h \
 autostr.cc \
 autostr.h \
 beam.cc \
