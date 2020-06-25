@@ -256,7 +256,7 @@ public:
 	virtual void InitialUpdate(const VectorHandler& X);
 
 	/* Inverse Dynamics: */
-	/* Do Update on node position, velocity or acceleration 
+	/* Do Update on node position, velocity or acceleration
 	 * depending on iOrder */
 	void Update(const VectorHandler& X, InverseDynamics::Order iOrder);
 
@@ -272,10 +272,10 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-	
+
 	/* Inverse Dynamics: reset orientation parameters */
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP, 
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
 			const VectorHandler& XPP);
 
 	/* Metodi per l'estrazione di dati "privati".
@@ -284,7 +284,7 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const;
 
 	/* Maps a string (possibly with substrings) to a private data;
-	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0
 	 * in case of unrecognized data; error must be handled by caller */
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 
@@ -542,6 +542,7 @@ public:
 	virtual integer iGetFirstRowIndex(void) const;
 
 	virtual void AddInertia(const doublereal& dm) const;
+	virtual void AddInertia(const Vec3& m) const;
 
    	/* Accesso ai suoi dati */
 	virtual const Vec3& GetBCurr(void) const;
@@ -555,7 +556,7 @@ public:
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
-	
+
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
 	virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
@@ -749,19 +750,19 @@ protected:
 	mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
 	mutable Vec3 WPPrev;    /* Accelerazione angolare al passo prec. */
 
-	// FIXME: qui o in StructDispNode	
+	// FIXME: qui o in StructDispNode
 	// const StructNode *pRefNode;	/* Reference node for relative prediction */
 
 	/* Rigidezze fittizie usate nell'assemblaggio dei vincoli */
 	bool bOmegaRot;       /* Flag di velocita' angolare solidale col nodo */
 
 	// reference motion, for relative kinematics
-	// FIXME: qui o in StructDispNode	
+	// FIXME: qui o in StructDispNode
 	// const RigidBodyKinematics *pRefRBK;
 
 	// makes sense also for dummy nodes, as they may inherit
 	// accelerations from the parent node
-	// FIXME: qui o in StructDispNode	
+	// FIXME: qui o in StructDispNode
 	// bool bOutputAccels;
 
 #ifdef USE_AUTODIFF
@@ -876,7 +877,7 @@ public:
 	inline void GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
                 inline void GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
+
 	template <grad::index_type N_SIZE>
 	inline void GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
@@ -916,7 +917,7 @@ public:
 	virtual void InitialUpdate(const VectorHandler& X);
 
 	/* Inverse Dynamics: */
-	/* Do Update on node position, velocity or acceleration 
+	/* Do Update on node position, velocity or acceleration
 	 * depending on iOrder */
 	void Update(const VectorHandler& X, InverseDynamics::Order iOrder);
 
@@ -932,10 +933,10 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-	
+
 	/*Inverse Dynamics: reset orientation parameters*/
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP, 
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
 			const VectorHandler& XPP);
 
 	/*
@@ -947,7 +948,7 @@ public:
 
 	/*
 	 * Maps a string (possibly with substrings) to a private data;
-	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0
 	 * in case of unrecognized data; error must be handled by caller
 	 */
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -1085,10 +1086,10 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, dou
 inline void StructNode::GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const
 {
         GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
-        
+
         gP = gPCurr;
 }
-        
+
 template <grad::index_type N_SIZE>
 inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
 {
@@ -1329,10 +1330,12 @@ public:
 
 	virtual void AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ) const;
+    virtual void AddInertia(const Vec3& m, const Vec3& dS,
+		const Mat3x3& dJ) const;
 
    	/* Accesso ai suoi dati */
-	virtual const Vec3& GetGCurr(void) const;     
-	virtual const Vec3& GetGPCurr(void) const;   
+	virtual const Vec3& GetGCurr(void) const;
+	virtual const Vec3& GetGPCurr(void) const;
 
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
@@ -1342,7 +1345,7 @@ public:
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
-	
+
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
 	virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
@@ -1527,25 +1530,25 @@ public:
 
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
-                
+
 #ifdef USE_AUTODIFF
        using StructNode::GetXPPCurr;
        using StructNode::GetWPCurr;
-                
+
        inline void
        GetXPPCurr(grad::Vector<doublereal, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
+
        template <grad::index_type N_SIZE>
        inline void
        GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
        inline void
        GetWPCurr(grad::Vector<doublereal, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
+
        template <grad::index_type N_SIZE>
        inline void
        GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif                
+#endif
 };
 
 
@@ -1634,9 +1637,9 @@ ModalNode::GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCo
                                         MapVectorBase::GLOBAL,
                                         0.);
 		g.SetDerivativeGlobal(iFirstDofIndex + i + 9, -1.);
-	}        
+	}
 }
-        
+
 #endif
 
 /* ModalNode - end */

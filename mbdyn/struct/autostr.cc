@@ -43,7 +43,7 @@
 AutomaticStructDispElem::AutomaticStructDispElem(const DynamicStructDispNode* pN)
 : Elem(pN->GetLabel(), pN->fToBeOutput()),
 pNode(const_cast<DynamicStructDispNode *>(pN)), B(Zero3), BP(Zero3),
-m(0.)
+m(Zero3)
 {
 	pNode->SetAutoStr(this);
 }
@@ -51,18 +51,24 @@ m(0.)
 void
 AutomaticStructDispElem::ComputeAccelerations(Vec3& XPP) const
 {
-	if (m == 0.) {
+	if ( (m[0] == 0.) and (m[1] == 0.) and (m[2] == 0.) ){
 		XPP = Zero3;
 		return;
 	}
 
-	XPP = BP/m;
+	XPP = BP.EBEDiv(m);
 }
 
 void
 AutomaticStructDispElem::AddInertia(const doublereal& dm)
 {
-	m += dm;
+	m += Vec3 (dm, dm, dm);
+}
+
+void
+AutomaticStructDispElem::AddInertia(const Vec3& new_m)
+{
+	m += new_m;
 }
 
 /* inizializza i dati */
@@ -222,7 +228,7 @@ AutomaticStructDispElem::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	// reset instantaneous inertia properties
-	m = 0.;
+	m = Zero3;
 
 	return WorkVec;
 }
@@ -400,26 +406,35 @@ S(Zero3), J(Zero3x3)
 void
 AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 {
-	if (m == 0.) {
+	if ( (m[0] == 0.) and (m[1] == 0.) and (m[2] == 0.) ){
 		XPP = Zero3;
 		WP = Zero3;
 		return;
 	}
 
-	Vec3 Xcg = S/m;
+	Vec3 Xcg = S.EBEDiv(m);
 	Mat3x3 Jcg = J + Mat3x3(MatCrossCross, Xcg, S);
 	const Vec3& V = pNode->GetVCurr();
 	const Vec3& W = dynamic_cast<const DynamicStructNode *>(pNode)->GetWCurr();
 	ASSERT(Jcg.IsSymmetric()); // NOTE: should be a run time test
 	WP = Jcg.LDLSolve(GP - Xcg.Cross(BP) - W.Cross(Jcg*W) + V.Cross(B));
-	XPP = (BP - WP.Cross(S) - W.Cross(W.Cross(S)))/m;
+	XPP = (BP - WP.Cross(S) - W.Cross(W.Cross(S))).EBEDiv(m);
 }
 
 void
 AutomaticStructElem::AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ)
 {
-	m += dm;
+	m += Vec3(dm, dm, dm);
+	S += dS;
+	J += dJ;
+}
+
+void
+AutomaticStructElem::AddInertia(const Vec3& new_m, const Vec3& dS,
+		const Mat3x3& dJ)
+{
+	m += new_m;
 	S += dS;
 	J += dJ;
 }
@@ -601,7 +616,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	// reset instantaneous inertia properties
-	m = 0.;
+	m = Zero3;
 	S = Zero3;
 	J = Zero3x3;
 

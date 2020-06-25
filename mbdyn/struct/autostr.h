@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -56,7 +56,7 @@ protected:
 	virtual inline const Vec3& GetBPCurr(void) const { return BP; };
 	virtual inline const Vec3& GetGPCurr(void) const { return ::Zero3; };
 
-	mutable doublereal m;
+	mutable Vec3 m;
 
 	virtual void ComputeAccelerations(Vec3& XPP) const;
 
@@ -91,8 +91,9 @@ public:
 		const Mat3x3& dJ);
 #endif
 	virtual void AddInertia(const doublereal& dm);
+	virtual void AddInertia(const Vec3& new_m);
 
-	virtual doublereal dGetM(void) const {
+	virtual Vec3 dGetM(void) const {
 		return m;
 	};
 
@@ -211,6 +212,8 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void AddInertia(const doublereal& dm, const Vec3& dS,
+		const Mat3x3& dJ);
+	virtual void AddInertia(const Vec3& new_m, const Vec3& dS,
 		const Mat3x3& dJ);
 
 	virtual const Vec3& GetS(void) const {

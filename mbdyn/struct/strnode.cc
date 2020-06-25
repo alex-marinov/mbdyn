@@ -603,7 +603,7 @@ StructDispNode::InitialUpdate(const VectorHandler& X)
 }
 
 /* Inverse Dynamics: */
-void 
+void
 StructDispNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
 	integer iFirstIndex = iGetFirstIndex();
@@ -611,7 +611,7 @@ StructDispNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 	case InverseDynamics::POSITION:
 		XCurr = Vec3(X, iFirstIndex + 1);
 		break;
-		
+
 	case InverseDynamics::VELOCITY:
 		VCurr = Vec3(X, iFirstIndex + 1);
 		break;
@@ -789,8 +789,8 @@ StructDispNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 /* Inverse Dynamics: */
 void
-StructDispNode::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP, 
+StructDispNode::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP,
 	const VectorHandler& XPP)
 {
 	XPrev = XCurr;
@@ -832,7 +832,7 @@ StructDispNode::iGetNumPrivData(void) const
 
 /*
  * Maps a string (possibly with substrings) to a private data;
- * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0
  * in case of unrecognized data; error must be handled by caller
  */
 unsigned int
@@ -1146,7 +1146,7 @@ DynamicStructDispNode::DescribeDof(std::vector<std::string>& desc, bool bInitial
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "StructDispNode(" << GetLabel() << ")";
 
@@ -1210,7 +1210,7 @@ DynamicStructDispNode::DescribeEq(std::vector<std::string>& desc, bool bInitial,
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "StructDispNode(" << GetLabel() << ")";
 
@@ -1249,6 +1249,15 @@ DynamicStructDispNode::AddInertia(const doublereal& dm) const
 	/* FIXME: do it only if to be output... */
 	if (bComputeAccelerations()) {
 		pAutoStr->AddInertia(dm);
+	}
+}
+
+void
+DynamicStructDispNode::AddInertia(const Vec3& m) const
+{
+	/* FIXME: do it only if to be output... */
+	if (bComputeAccelerations()) {
+		pAutoStr->AddInertia(m);
 	}
 }
 
@@ -1896,7 +1905,7 @@ StructNode::Output(OutputHandler& OH) const
 			}
 				OH.WriteNcVar(Var_XP, VCurr);
 				OH.WriteNcVar(Var_Omega, WCurr);
-				
+
 			if (bOutputAccels) {
 					OH.WriteNcVar(Var_XPP, XPPCurr);
 					OH.WriteNcVar(Var_OmegaP, WPCurr);
@@ -2279,7 +2288,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 }
 
 /* Inverse Dynamics: */
-void 
+void
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
 #ifdef USE_AUTODIFF
@@ -2295,7 +2304,7 @@ StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 		RCurr = RDelta*RRef;
 		// gCurr = ::Zero3;
 		} break;
-		
+
 	case InverseDynamics::VELOCITY: {
 		VCurr = Vec3(X, iFirstIndex + 1);
 #if 0
@@ -2592,23 +2601,23 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 /* Inverse Dynamics: */
 void
-StructNode::AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP, 
+StructNode::AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
 			const VectorHandler& XPP)
 {
 #ifdef USE_AUTODIFF
 	bUpdateRotation = true;
 #endif
-/* Right now, AfterConvergence is performed only on position 
- * to reset orientation parameters. XPrime and XPrimePrime are 
- * left for compatibility with the virtual method in 
+/* Right now, AfterConvergence is performed only on position
+ * to reset orientation parameters. XPrime and XPrimePrime are
+ * left for compatibility with the virtual method in
  * class SimulationEntity */
 
 	integer iFirstIndex = iGetFirstIndex();
-	
-	
+
+
 	/* Orientation Parameters:
-	 * Get g and impose it as gRef: successive iterations 
+	 * Get g and impose it as gRef: successive iterations
 	 * use gRef as reference and the solution is a perturbation
 	 * from it */
 	gRef = Vec3(X, iFirstIndex + 4);
@@ -2658,7 +2667,7 @@ StructNode::iGetNumPrivData(void) const
 
 /*
  * Maps a string (possibly with substrings) to a private data;
- * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0
  * in case of unrecognized data; error must be handled by caller
  */
 unsigned int
@@ -2992,7 +3001,7 @@ DynamicStructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, in
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "StructNode(" << GetLabel() << ")";
 
@@ -3058,7 +3067,7 @@ DynamicStructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "StructNode(" << GetLabel() << ")";
 
@@ -3098,6 +3107,16 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 	/* FIXME: do it only if to be output... */
 	if (bComputeAccelerations()) {
 		dynamic_cast<AutomaticStructElem *>(pAutoStr)->AddInertia(dm, dS, dJ);
+	}
+}
+
+void
+DynamicStructNode::AddInertia(const Vec3& m, const Vec3& dS,
+	const Mat3x3& dJ) const
+{
+	/* FIXME: do it only if to be output... */
+	if (bComputeAccelerations()) {
+		dynamic_cast<AutomaticStructElem *>(pAutoStr)->AddInertia(m, dS, dJ);
 	}
 }
 
@@ -3386,7 +3405,7 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "ModalStructNode(" << GetLabel() << ")";
 
@@ -3412,7 +3431,7 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 		os << ": " << sn_initial_dof[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
-	
+
 }
 
 std::ostream&
@@ -3460,7 +3479,7 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 	} else {
 		desc.resize(1);
 	}
-	
+
 	std::ostringstream os;
 	os << "ModalStructNode(" << GetLabel() << ")";
 
