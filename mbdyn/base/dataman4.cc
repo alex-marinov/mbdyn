@@ -47,6 +47,7 @@
 #include "autostr.h"   /* Elementi automatici associati ai nodi dinamici */
 #include "gravity.h"   /* Elemento accelerazione di gravita' */
 #include "body.h"
+#include "addedmass.h"
 #include "inertia.h"
 #include "joint.h"
 #include "jointreg.h"
@@ -98,6 +99,7 @@ enum KeyWords {
 
 	GRAVITY,
 	BODY,
+	ADDEDMASS,
 	AUTOMATICSTRUCTURAL,
 	JOINT,
 	JOINT_REGULARIZATION,
@@ -166,6 +168,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		"gravity",
 		"body",
+		"added" "mass",
 		"automatic" "structural",
 		"joint",
 			"joint" "regularization",
@@ -301,6 +304,12 @@ DataManager::ReadElems(MBDynParser& HP)
 			case BODY: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "bodies" << std::endl);
 				Typ = Elem::BODY;
+				break;
+			}
+
+			case ADDEDMASS: {
+				DEBUGLCOUT(MYDEBUG_INPUT, "added masses" << std::endl);
+				Typ = Elem::ADDEDMASS;
 				break;
 			}
 
@@ -490,24 +499,28 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BODY:
 					t = Elem::BODY;
 					break;
-	
+
+				case ADDEDMASS:
+					t = Elem::ADDEDMASS;
+					break;
+
 				case AUTOMATICSTRUCTURAL:
 					t = Elem::AUTOMATICSTRUCTURAL;
 					break;
-	
+
 				case JOINT:
 					t = Elem::JOINT;
 					break;
-	
+
 				case FORCE:
 				case COUPLE:
 					t = Elem::FORCE;
 					break;
-	
+
 				case INERTIA:
 					t = Elem::INERTIA;
 					break;
-	
+
 				case BEAM:
 				case BEAM3:			/* same as BEAM */
 				case BEAM2:
@@ -525,11 +538,11 @@ DataManager::ReadElems(MBDynParser& HP)
 				case ROTOR:
 					t = Elem::INDUCEDVELOCITY;
 					break;
-	
+
 				case AEROMODAL:
 					t = Elem::AEROMODAL;
 					break;
-	
+
 #ifdef USE_EXTERNAL
 				case AERODYNAMICEXTERNAL:
 				case AERODYNAMICEXTERNALMODAL:
@@ -545,15 +558,15 @@ DataManager::ReadElems(MBDynParser& HP)
 				case GENERICAERODYNAMICFORCE:
 					t = Elem::AERODYNAMIC;
 					break;
-	
+
 				case GENEL:
 					t = Elem::GENEL;
 					break;
-	
+
 				case ELECTRIC:
 					t = Elem::ELECTRIC;
 					break;
-	
+
 				case THERMAL:
 					t = Elem::THERMAL;
 					break;
@@ -631,7 +644,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						"for element " << psElemNames[t] << " (" << pEl->GetLabel() << ") "
 						"while binding to ParameterNode(" << uL << ") "
 						"at line " << HP.GetLineData() << std::endl);
-					
+
 				} else {
 					silent_cerr("error in private data #" << i << " "
 						"for element " << psElemNames[t] << " (" << pEl->GetLabel() << ") "
@@ -696,9 +709,9 @@ DataManager::ReadElems(MBDynParser& HP)
 				pASD->Init(q, qp);
 			}
 
-        /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
+        /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */
 		/* default: leggo un elemento e lo creo */
-		} else {              			
+		} else {
 			/* puntatore all'elemento */
 			Elem* pE = 0;
 
@@ -788,6 +801,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					switch (CurrDriven) {
 					case FORCE:
 					case BODY:
+					case ADDEDMASS:
 					case JOINT:
 					case JOINT_REGULARIZATION:
 					case COUPLE:
@@ -860,6 +874,10 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BODY, uLabel);
 							break;
 
+						case ADDEDMASS:
+							ppE = ppFindElem(Elem::ADDEDMASS, uLabel);
+							break;
+
 						case JOINT:
 							ppE = ppFindElem(Elem::JOINT, uLabel);
 							break;
@@ -927,7 +945,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						default:
 							DEBUGCERR("warning, this element can't be driven" << std::endl);
 							break;
-							
+
 						}  /*switch (CurrDriven) */
 
 						if (ppE == NULL) {
@@ -1016,6 +1034,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case FORCE:
 
 				case BODY:
+				case ADDEDMASS:
 				case INERTIA:
 				case JOINT:
 				case JOINT_REGULARIZATION:
@@ -1118,7 +1137,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				}  /* end switch (CurrDesc) 'in base al tipo'  */
-				
+
 			}  /* end case default: 'Elemento generico' */
 			}  /* end switch (CurrDesc) 'Elemento generico' */
 
@@ -1127,10 +1146,10 @@ DataManager::ReadElems(MBDynParser& HP)
 				/* decrementa il totale degli elementi mancanti */
 				iMissingElems--;
 			}
-			
-		}  /* end <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
+
+		}  /* end <<<<  D E F A U L T  >>>>  :  Read one element and create it */
 		   /* end default: leggo un elemento e lo creo */
-		 
+
 	}  /* while ((CurrDesc = KeyWords(HP.GetDescription())) != END) */
 
 	if (KeyWords(HP.GetWord()) != ELEMENTS) {
@@ -1327,6 +1346,37 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		pE = ReadBody(this, HP, uLabel);
 		if (pE != 0) {
 			ppE = InsertElem(ElemData[Elem::BODY], uLabel, pE);
+		}
+
+		break;
+	}
+
+	case ADDEDMASS: {
+		silent_cout("Reading Added Mass(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
+
+		if (iNumTypes[Elem::ADDEDMASS]-- <= 0) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": AddedMass(" << uLabel << ") "
+				"exceeds added mass elements number" << std::endl);
+
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		/* verifica che non sia gia' definito */
+		if (pFindElem(Elem::ADDEDMASS, uLabel) != NULL) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": AddedMass(" << uLabel << ") "
+				"already defined" << std::endl);
+
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		/* allocazione e creazione */
+		pE = ReadAddedMass(this, HP, uLabel);
+		if (pE != 0) {
+			ppE = InsertElem(ElemData[Elem::ADDEDMASS], uLabel, pE);
 		}
 
 		break;
@@ -2170,7 +2220,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 				elements.insert(pEl);
 			}
-		}  /* end while (HP.IsArg()) */ 
+		}  /* end while (HP.IsArg()) */
 
 		flag fOut = fReadOutput(HP, Elem::BODY);
 		if (bLog) {
@@ -2185,7 +2235,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 				silent_cerr("line " << HP.GetLineData() << ": "
 					"Inertia(" << uLabel << ") "
 					"exceeds inertia elements number" << std::endl);
-	
+
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -2195,7 +2245,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 				silent_cerr("line " << HP.GetLineData() << ": "
 					"Inertia(" << uLabel << ") "
 					"already defined" << std::endl);
-	
+
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 

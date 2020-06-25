@@ -88,6 +88,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::AUTOMATICSTRUCTURAL],
 		psReadControlElems[Elem::GRAVITY],
 		psReadControlElems[Elem::BODY],
+		psReadControlElems[Elem::ADDEDMASS],
 		psReadControlElems[Elem::JOINT],
 		psReadControlElems[Elem::JOINT_REGULARIZATION],
 		psReadControlElems[Elem::BEAM],
@@ -178,6 +179,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		AUTOMATICSTRUCTURAL,
 		GRAVITY,
 		RIGIDBODIES,
+		ADDEDMASSES,
 		JOINTS,
 			JOINT_REGULARIZATIONS,
 		BEAMS,
@@ -340,6 +342,12 @@ DataManager::ReadControl(MBDynParser& HP,
 			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::BODY].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << std::endl);
+		} break;
+
+		case ADDEDMASSES: {
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
+			ElemData[Elem::ADDEDMASS].iExpectedNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Added Masses: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di inerzie attese */
@@ -890,9 +898,9 @@ EndOfUse:
 			}
 			SAFENEWWITHCONSTRUCTOR(pOutputMeter,
 				MeterDriveCaller,
-				MeterDriveCaller(&DrvHdl, 
+				MeterDriveCaller(&DrvHdl,
 					-std::numeric_limits<double>::max(),
-					std::numeric_limits<double>::max(), 
+					std::numeric_limits<double>::max(),
 					iFreq)
 				);
 		} break;
