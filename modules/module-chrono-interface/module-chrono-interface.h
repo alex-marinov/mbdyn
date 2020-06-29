@@ -68,9 +68,9 @@ class ChronoInterfaceBaseElem
 {
 private:
     // A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
-    void MBDyn_CE_Vec3D(Vec3 mbdynce_Vec3, double *mbdynce_temp);
+    void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CEUnit);
     // A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
-    void MBDyn_CE_Mat3x3D(Mat3x3 mbdynce_Mat3x3, double *mbdynce_temp);
+    void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
 
 protected:
     std::vector<double> MBDyn_CE_CouplingKinematic; // for coupling motion
@@ -81,19 +81,21 @@ protected:
     double *pMBDyn_CE_CouplingKinematic_omega = NULL;
     double *pMBDyn_CE_CouplingKinematic_xpp = NULL;
     double *pMBDyn_CE_CouplingKinematic_omegap = NULL;
+    double *pMBDyn_CE_CEFrame = NULL; // the position [3] and the orietation [9] of chrono ground coordinate
     double *pMBDyn_CE_CouplingDynamic_f = NULL;
     double *pMBDyn_CE_CouplingDynamic_m = NULL;
     unsigned MBDyn_CE_CouplingSize[2];
+    unsigned MBDyn_CE_CouplingIter_Max;
 
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
     std::vector<double> MBDyn_CE_CEModel_Data; // for reload C::E data in the tight coupling scheme
-
+    double MBDyn_CE_CEUnit;                    // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEUnit * Unit() in Chrono::Engine;
     // Coupling nodes information
     struct MBDYN_CE_POINTDATA {
-        unsigned MBDyn_CE_uLabel
-		const StructNode *pMBDyn_CE_Node;
-		Vec3 MBDyn_CE_Offset;
+        unsigned MBDyn_CE_uLabel;
+        const StructNode *pMBDyn_CE_Node;
+        Vec3 MBDyn_CE_Offset;
 		Vec3 MBDyn_CE_F;
 		Vec3 MBDyn_CE_M;
 	};
@@ -112,7 +114,7 @@ public:
         COUPLING_TIGHT = 1,
         //COUPLING_MULTIRATE >1 // TO DO
     };
-    MBDyn_CE_COUPLING MBDyn_CE_CouplingType;
+    int MBDyn_CE_CouplingType;
 
     // constructor
     

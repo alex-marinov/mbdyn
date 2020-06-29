@@ -53,21 +53,22 @@ extern "C" {
 //opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
 
-pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave);
+pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave, double* pMBDyn_CE_CEFrame, const double& MBDyn_CE_CEUnit);
 
 // destroy
 void
 MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel);
 
 // C::E models receive coupling motion from the buffer
-void MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double>& MBDyn_CE_CouplingKinematic);
+void MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double>& MBDyn_CE_CouplingKinematic,const unsigned& MBDyn_CE_NodesNum);
 
 // C::E models send coupling forces to the buffer
-void MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double> &MBDyn_CE_CouplingDynamic);
+void MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double> &MBDyn_CE_CouplingDynamic, 
+                                double* pMBDyn_CE_CEFrame, const unsigned& MBDyn_CE_NodesNum,const double & MBDyn_CE_CEUnit);
 
 // update CEModel, and do time integration.
 void
-MBDyn_CE_CEModel_Update(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step);
+MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step);
 
 // save CEModel at current step for reloading it in the tight coupling scheme
 // (before advance())
