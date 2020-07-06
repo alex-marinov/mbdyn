@@ -50,10 +50,18 @@ functions/variables for C::E Model:MBDyn_CE_CEModel_XxxYyy
 #include <vector>
 
 extern "C" {
+// IDs of coupling bodies and motors in C::E
+struct MBDYN_CE_CEMODELDATA{
+        unsigned MBDyn_CE_CEBody_Label;
+        unsigned MBDyn_CE_CEMotor_Label;
+    };
 //opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
 
-pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave, double* pMBDyn_CE_CEFrame, const double& MBDyn_CE_CEUnit);
+pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave, // space for data save
+                                          const double* pMBDyn_CE_CEFrame, const double* MBDyn_CE_CEScale, // coupling information: ground ref and scale for units
+                                          std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label, // coupling information: coupling bodies
+                                          const int & MBDyn_CE_CouplingType); // coupling information: coupling type
 
 // destroy
 void
@@ -64,7 +72,7 @@ void MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::ve
 
 // C::E models send coupling forces to the buffer
 void MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double> &MBDyn_CE_CouplingDynamic, 
-                                double* pMBDyn_CE_CEFrame, const unsigned& MBDyn_CE_NodesNum,const double & MBDyn_CE_CEUnit);
+                                double* pMBDyn_CE_CEFrame, const unsigned& MBDyn_CE_NodesNum,const double* MBDyn_CE_CEScale);
 
 // update CEModel, and do time integration.
 void
@@ -80,7 +88,6 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 int
 MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
                         std::vector<double> & MBDyn_CE_CEModel_Data);
-
 // destroy
 //extern void
 //MBDyn_CE_destroy(MBDyn_CE_t *);
@@ -97,36 +104,4 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 //extern void
 //MBDyn_CE_AfterConvergence(MBDyn_CE_t *);
 }
-
-/*class MBDyn_CE_CEModel
-{
-private:
-  
-public:
-  MBDyn_CE_CEModel();
-  ~MBDyn_CE_CEModel();
-  // opaque struct to C::E system
-  struct MBDYN_CE_CEMODEL_DATA{
-    double F[3]; //forces from CEModel;
-    double M[3]; //torques from CEModel;
-  }MBDyn_CE_CEModel_Data;
-
-  enum MBDYN_CE_CEMODEL_SIMCMD
-  {
-    CEMODEL_SAVE_DATA=1,
-    CEMODEL_FIRST_SEND=2,
-    CEMODEL_REGULAR_STEP=3
-  }MBDyn_CE_CEModel_SimCmd;
-
-  void getMBDyn_CE_CEModel_Data();
-};
-
-MBDyn_CE_CEModel::MBDyn_CE_CEModel()
-{
-}
-
-MBDyn_CE_CEModel::~MBDyn_CE_CEModel()
-{
-}*/
-
 #endif // MBDYN_CE_H

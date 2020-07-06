@@ -52,6 +52,7 @@ temporary variables: mbdynce_xxx (eg. mbdynce_point)
 #include "strnode.h"
 #include "dataman.h"
 #include "userelem.h"
+#include "converged.h"
 
 #include "mbdyn_ce.h" // interfaces functions to C::E;
 
@@ -68,7 +69,7 @@ class ChronoInterfaceBaseElem
 {
 private:
     // A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
-    void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CEUnit);
+    void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CELengthScale);
     // A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
 
@@ -86,19 +87,29 @@ protected:
     double *pMBDyn_CE_CouplingDynamic_m = NULL;
     unsigned MBDyn_CE_CouplingSize[2];
     unsigned MBDyn_CE_CouplingIter_Max;
-
+    unsigned MBDyn_CE_CouplingIter_Count; 
+    
+protected:
+    Converged MBDyn_CE_CEModel_Converged; // denote whether the coupling variables are converged
+    bool bMBDyn_CE_CEModel_DoStepDynamics; // detect whether CEModel is needed to be simulated and sends back data
+    bool bMBDyn_CE_FirstSend;      // whether the current residual is the first or not..
+    
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
     std::vector<double> MBDyn_CE_CEModel_Data; // for reload C::E data in the tight coupling scheme
-    double MBDyn_CE_CEUnit;                    // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEUnit * Unit() in Chrono::Engine;
     // Coupling nodes information
     struct MBDYN_CE_POINTDATA {
         unsigned MBDyn_CE_uLabel;
+        unsigned MBDyn_CE_CEBody_Label; //coupling bodies in C::E model
         const StructNode *pMBDyn_CE_Node;
         Vec3 MBDyn_CE_Offset;
 		Vec3 MBDyn_CE_F;
 		Vec3 MBDyn_CE_M;
-	};
+    };
+
+    std::vector<MBDYN_CE_CEMODELDATA> MBDyn_CE_CEModel_Label; //IDs of coupling bodies and motors in C::E model
+    double MBDyn_CE_CEScale[4]; // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEScale * Unit() in Chrono::Engine;
+
 protected:
     std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes;
     unsigned MBDyn_CE_NodesNum; // for now, only the case of one node
