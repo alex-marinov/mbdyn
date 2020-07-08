@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- added fully coupled piezolectric beam (Marco Morandini & Wenguo Zhu)
 		- the new handling of math expressions and
 		  "string" drive caller (With the contribution
 		  of Ankit Aggarwal during Google Summer of Code 2015)
@@ -30,6 +31,7 @@ MBDyn 1.X-Devel
 	Known issues:
 		- gravity not used in assembly
 	Bug fixes:
+		- fix and document ViscoelasticBeam Jacobian matrix (Marco Morandini & Wenguo Zhu)
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives
 		- fix initialization (Reinhard Resch)
