@@ -53,7 +53,7 @@
 static bool bHFElem(false);
 
 class HarmonicForcingElem
-: virtual public Elem, public UserDefinedElem {
+: virtual public Elem, public UserDefinedElem, public DriveOwner {
 private:
 	// add private data
 	enum Priv {
@@ -106,6 +106,8 @@ private:
 	bool m_bStarted;
 	bool m_bConverged;
 	bool m_bDone;
+
+	bool m_bPrintAllPeriods;
 
 	bool m_bOut;
 	integer m_iPeriodOut;
@@ -178,6 +180,7 @@ HarmonicForcingElem::HarmonicForcingElem(
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
+DriveOwner(0),
 m_pDM(pDM),
 m_dTInit(-std::numeric_limits<doublereal>::max()),
 m_dMaxDeltaT(std::numeric_limits<doublereal>::max()),
@@ -196,6 +199,7 @@ m_iCurrentStep(0),
 m_bStarted(false),
 m_bConverged(false),
 m_bDone(false),
+m_bPrintAllPeriods(false),
 m_bOut(false),
 m_iPeriodOut(0),
 m_dOmegaOut(0.),
@@ -424,6 +428,19 @@ m_OutputFormat(Out_COMPLEX)
 	// initial time
 	if (HP.IsKeyWord("initial" "time")) {
 		m_dTInit = HP.GetReal();
+		if (HP.IsKeyWord("prescribed" "time" "step")) {
+			DriveCaller *pDC = HP.GetDriveCaller();
+			DriveOwner::Set(pDC);
+			if (pDC->dGet(m_dTInit) != m_dDeltaT) {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): Prescribed initial time step "
+					<< pDC->dGet(m_dTInit) <<
+					"\nevaluated at the initial time t = " << m_dTInit <<
+					"is different from initial time step " << m_dDeltaT << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+	} else {
+		m_dTInit = m_pDM->dGetTime();
 	}
 
 	// tolerance
@@ -521,6 +538,9 @@ m_OutputFormat(Out_COMPLEX)
 		}
 	}
 
+	if (HP.IsKeyWord("print" "all" "periods"))
+		m_bPrintAllPeriods = true;
+
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
 	m_cos_psi.resize(m_iN);
@@ -561,13 +581,18 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 	// NOTE: output occurs only at convergence,
 	// not with fixed periodicity
 	if (bToBeOutput()) {
-		if (m_bOut && m_iPeriod == 0 && m_iPeriodCnt == 0 && m_iCurrentStep == 0) {
+		if (((m_bOut && m_iPeriod == 0) || (m_bPrintAllPeriods && m_pDM->dGetTime()>m_dTInit))
+			&& m_iPeriodCnt == 0 && m_iCurrentStep == 0) {
 			std::ostream& out = OH.Loadable();
 
 			out << std::setw(8) << GetLabel()	// 1:	label
-				<< " " << m_pDM->dGetTime()	// 2:	when
-				<< " " << m_dOmegaOut		// 3:	what frequency
-				<< " " << m_iPeriodOut;		// 4:	how many periods required (-1 if not converged?)
+				<< " " << m_pDM->dGetTime();	// 2:	when
+			if(m_iPeriod==0) // just converged
+				out << " " << m_dOmegaOut		// 3:	what frequency
+					<< " " << m_iPeriodOut;		// 4:	how many periods required (-1 if not converged?)
+			else
+				out << " " << m_dOmega		// 3:	what frequency
+					<< " " << m_iPeriod;		// 4:	how many periods required (-1 if not converged?)
 
 			switch (m_OutputFormat) {
 			case Out_COMPLEX:
@@ -635,7 +660,6 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		if (m_pDM->dGetTime() >= m_dTInit) {
 			m_bStarted = true;
 			m_dT0 = m_pDM->dGetTime();
-
 		}
 
 	} else {
@@ -667,6 +691,8 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	if (!m_bStarted) {
+		if (DriveOwner::pGetDriveCaller())
+			m_dDeltaT = DriveOwner::dGet(m_pDM->dGetTime());
 		return;
 	}
 

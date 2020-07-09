@@ -63,12 +63,14 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
                 \{ \kw{additive} , (\ty{real}) \bnt{omega_add_increment}
                     | \kw{multiplicative} , (\ty{real}) \bnt{omega_mul_increment}
                     | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
-        [ \kw{initial time} , (\ty{real}) \bnt{initial_time} , ]
+        [ \kw{initial time} , (\ty{real}) \bnt{initial_time} ,
+	    [ \kw{prescribed time step} , (\hty{DriveCaller}) \bnt{time_step} , ] ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
         \kw{min periods} , (\ty{integer}) \bnt{min_periods}
         [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
             [ , \kw{no convergence strategy} , \{ \kw{continue} | \kw{abort} \} ] ]
         [ , \kw{timestep drive label} , (\ty{unsigned}) \bnt{timestep_label} ]
+        [ , \kw{print all periods} ]
 \end{Verbatim}
 with
 \begin{itemize}
@@ -112,6 +114,11 @@ Since the amount of simulation time required to reach a certain excitation angul
 
 The list of custom angular frequencies is terminated by the keyword \kw{last};
 
+\item $\nt{initial\_time}$ the simulation time after which the elements begins its action
+
+\item $\nt{time\_step}$ optional prescribed time step for $t<=\nt{initial\_time}$; $\nt{time\_step}(\nt{initial\_time})$
+needs to be equal to the time step computed by the element for the first forcing frequency.
+
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 
 \item $\nt{max\_periods} > \nt{min\_periods}$ is the maximum number of periods that can be performed for convergence.
@@ -126,12 +133,14 @@ In case convergence is not achieved, if the value of \kw{no convergence strategy
 \item \nt{timestep\_label} is the label of the timestep drive caller, as defined in the \kw{strategy}\texttt{:} \kw{change} statement in the \kw{initial value} block, and postponed until the definition of the user-defined element.
 Using this keyword replaces the need to manually define an \kw{element} drive caller for the timestep
 (see the discussion of the \kw{timestep} private datum).
+
+\item \kw{print all periods} is a keyword to print a row in the \emph{user-defined} elements output file at the end of each period, and not only at convergence for each specific excitation frequency.
 \end{itemize}
 
 \paragraph{Output.}\label{hfelem_output}
 Output in text format takes place in the \emph{user-defined} elements output file (the one with the \texttt{.usr} extension).
 
-The output of this element differs a bit from that of regular ones, since it only occurs at convergence for each specific excitation frequency, which in turn can only occur at the end of a period.
+The output of this element differs a bit from that of regular ones, since it only occurs at convergence for each specific excitation frequency (except for when \kw{print all periods} is specified as a keyword), which in turn can only occur at the end of a period.
 
 \bigskip
 
