@@ -68,15 +68,18 @@ class ChronoInterfaceBaseElem
       public UserDefinedElem
 {
 private:
+    DataManager *m_pDM;
     // A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CELengthScale);
     // A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
+    double MBDyn_CE_CalculateError(); // calculate the error of coupling force.
 
 protected:
     std::vector<double> MBDyn_CE_CouplingKinematic; // for coupling motion
     std::vector<double> MBDyn_CE_CouplingDynamic; // for coupling forces
-    double *pMBDyn_CE_CouplingKinematic_x = NULL;  // consistent with the external struc force element
+    std::vector<double> MBDyn_CE_CouplingDynamic_pre; // for coupling forces in last iterations.
+    double *pMBDyn_CE_CouplingKinematic_x = NULL; // consistent with the external struc force element
     double *pMBDyn_CE_CouplingKinematic_R = NULL;
     double *pMBDyn_CE_CouplingKinematic_xp = NULL;
     double *pMBDyn_CE_CouplingKinematic_omega = NULL;
@@ -85,13 +88,20 @@ protected:
     double *pMBDyn_CE_CEFrame = NULL; // the position [3] and the orietation [9] of chrono ground coordinate
     double *pMBDyn_CE_CouplingDynamic_f = NULL;
     double *pMBDyn_CE_CouplingDynamic_m = NULL;
-    unsigned MBDyn_CE_CouplingSize[2];
+    double *pMBDyn_CE_CouplingDynamic_f_pre = NULL;
+    double *pMBDyn_CE_CouplingDynamic_m_pre = NULL;
+    struct{
+        unsigned Size_Kinematic;
+        unsigned Size_Dynamic;
+    } MBDyn_CE_CouplingSize;
+    // some parameters about the convergence
     unsigned MBDyn_CE_CouplingIter_Max;
-    unsigned MBDyn_CE_CouplingIter_Count; 
-    
+    unsigned MBDyn_CE_CouplingIter_Count;
+    double MBDyn_CE_Coupling_Tol; 
+
 protected:
     Converged MBDyn_CE_CEModel_Converged; // denote whether the coupling variables are converged
-    bool bMBDyn_CE_CEModel_DoStepDynamics; // detect whether CEModel is needed to be simulated and sends back data
+    bool bMBDyn_CE_CEModel_DoStepDynamics;         // detect whether CEModel is needed to be simulated and sends back data
     bool bMBDyn_CE_FirstSend;      // whether the current residual is the first or not..
     
 public:
@@ -111,6 +121,7 @@ public:
     double MBDyn_CE_CEScale[4]; // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEScale * Unit() in Chrono::Engine;
 
 protected:
+    double time_step;
     std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes;
     unsigned MBDyn_CE_NodesNum; // for now, only the case of one node
 public:

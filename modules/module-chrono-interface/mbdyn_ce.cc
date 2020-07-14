@@ -41,6 +41,7 @@
 #include "chrono/physics/ChLinkMotionImposed.h" //for 3-D dimension
 #include "chrono/motion_functions/ChFunctionPosition_line.h"
 #include "chrono/motion_functions/ChFunctionRotation_spline.h"
+#include "chrono/geometry/ChLineSegment.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -56,12 +57,12 @@ const int& MBDyn_CE_CouplingType)
 {
 	std::cout << "Initial MBDyn_CE_CEModel pointer:\n";
 	ChSystemParallelNSC *pMBDyn_CE_CEModel = new ChSystemParallelNSC;
+	MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
+	std::cout << "C::E body_vel_start: " << (pMBDyn_CE_CEModel->SearchBodyID(1))->GetPos_dt() << "\n";
 	if(pMBDyn_CE_CEModel==NULL)
 	{
 		std::cout << "\t\tInitial MBDyn_CE_CEModel pointer fails\n";
 	}
-	MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
-
 	// initial the ground coordinate in C::E;
 	// r = (-CEF1,-CEF2,-CEF3);
 	// R= [CEF3,  CEF4,  CEF5 ]^T           [CEF3,  CEF6,  CEF9]
@@ -77,35 +78,43 @@ const int& MBDyn_CE_CouplingType)
 	pMBDyn_CE_CEModel->Set_G_acc(mbdynce_temp_frameMBDyn.TransformDirectionLocalToParent(ChVector<>(0.0,-9.81*MBDyn_CE_CEScale[0],0.0)));
 
 	// initial motor for coupling bodies.
-	if (MBDyn_CE_CouplingType>=-2)//coupling
+	if (MBDyn_CE_CouplingType>=-1)//coupling
 	{
 		unsigned mbdynce_temp_bodies_num = MBDyn_CE_CEModel_Label.size() - 1;
 		unsigned mbdynce_temp_ground_id = MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEBody_Label; // ground ID is set in the last element
+		MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEMotor_Label = 0; // the last label is invalid
 		auto mbdynce_temp_ground = pMBDyn_CE_CEModel->SearchBodyID(mbdynce_temp_ground_id);
 		for (unsigned i = 0; i < mbdynce_temp_bodies_num;i++)
 		{
 			unsigned body_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label;
 			auto body_i = pMBDyn_CE_CEModel->SearchBodyID(body_i_id);
+			std::cout << "C::E body_vel_start after creating motor: " << (pMBDyn_CE_CEModel->SearchBodyID(1))->GetPos_dt() << "\n";
 			auto motor3d_body_i = std::make_shared<ChLinkMotionImposed>();
-			motor3d_body_i->Initialize(mbdynce_temp_ground,
-									   body_i,
-									   false, //connecting frames are described in ground ref.
-									   ChFrame<>(ChVector<>(0.0, 0.0, 0.0)), // how to determine these two frames::TO DO !!!!!!
-									   ChFrame<>(ChVector<>(0.0, 0.0, 0.0)));
+			motor3d_body_i->Initialize(body_i,
+									   mbdynce_temp_ground,
+									   true,																 //connecting frames are described in local ref.
+									   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1., 0., 0., 0.)), // By default: using the mass center and the body orientation
+									   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1., 0., 0., 0.)));
 			pMBDyn_CE_CEModel->Add(motor3d_body_i);
 			auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>(); // impose veloctiy:: TO DO !!!!!!!
 			auto motor3d_function_rot = std::make_shared<ChFunctionRotation_spline>();
 			motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 			motor3d_body_i->SetRotationFunction(motor3d_function_rot);
 			MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label = motor3d_body_i->GetIdentifier();
-			std::cout << "C::E motor" << i + 1 << "ID:\t" << motor3d_body_i->GetIdentifier() << "\n";
+			std::cout << "C::E motor " << i + 1 << " ID:\t" << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label << "\n";		
 		}
-		std::cout << "C::E ground ID is \t"<<mbdynce_temp_ground->GetIdentifier()<<"\n";
+		std::cout << "C::E ground ID:\t"<<mbdynce_temp_ground->GetIdentifier()<<"\n";
 	}
 	else
 	{
 		std::cout << "Coupling none in C::E model.\n";
 	}
+	// printf model information after adding motor
+	std::cout << "there is the coupling C::E model \n";
+	std::cout << "num of links:\t" << pMBDyn_CE_CEModel->Get_linklist().size() << "\n";
+	std::cout << "num of other physicslist:\t" << pMBDyn_CE_CEModel->Get_otherphysicslist().size() << "\n";
+	std::cout << "num of rigid bodies:\t" << pMBDyn_CE_CEModel->Get_bodylist().size() << "\n";
+	std::cout << "num of speed motor:\t" << pMBDyn_CE_CEModel->data_manager->num_linmotors << "\n";
 	// allocate space for C::E_Model_Data;
 	unsigned int bodies_size = pMBDyn_CE_CEModel->Get_bodylist().size();
 	unsigned int system_size = (3 * 3 + 3 * 4) * bodies_size + 1; // +1: save Chtime; system_size=body_size+1(time)
@@ -116,6 +125,11 @@ const int& MBDyn_CE_CouplingType)
 extern "C" void
 MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "destroy the CE_model fails:\n";
+		return;
+	}
 	std::cout << "destroy the CE_model...\n";
 	if(pMBDyn_CE_CEModel!=NULL)
 	{
@@ -132,7 +146,13 @@ extern "C" int
 MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
                         std::vector<double> & MBDyn_CE_CEModel_Data)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "\t\tCE_models DataSave() fails:\n";
+		return 0;
+	}
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	std::cout << "\t\tCE_models DataSave():\n";
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
 	unsigned int vector_size = MBDyn_CE_CEModel_Data.size();
@@ -143,20 +163,21 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 	}
 
 	// save data
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (unsigned int i = 0; i < tempsys_bodies_size; i++)
 	{
-		ChVector<>& body_pos = tempsys->Get_bodylist()[i]->GetPos(); // 3
-		ChQuaternion<> &body_rot = tempsys->Get_bodylist()[i]->GetRot();   // 4
-		ChVector<> &body_pos_dt = tempsys->Get_bodylist()[i]->GetPos_dt(); // 3
-		ChQuaternion<> &body_rot_dt = tempsys->Get_bodylist()[i]->GetRot_dt(); // 4
-		ChVector<> &body_pos_dtdt = tempsys->Get_bodylist()[i]->GetPos_dtdt(); // 3
-		ChQuaternion<> &body_rot_dtdt = tempsys->Get_bodylist()[i]->GetRot_dtdt(); //4
+		const ChVector<>& body_pos = tempsys->Get_bodylist()[i]->GetPos(); // 3
+		const ChQuaternion<> &body_rot = tempsys->Get_bodylist()[i]->GetRot();   // 4
+		const ChVector<> &body_pos_dt = tempsys->Get_bodylist()[i]->GetPos_dt(); // 3
+		const ChQuaternion<> &body_rot_dt = tempsys->Get_bodylist()[i]->GetRot_dt(); // 4
+		const ChVector<> &body_pos_dtdt = tempsys->Get_bodylist()[i]->GetPos_dtdt(); // 3
+		const ChQuaternion<> &body_rot_dtdt = tempsys->Get_bodylist()[i]->GetRot_dtdt(); //4
 
 		unsigned int i_pos = (3 * 3 + 3 * 4) * i; 
 		MBDyn_CE_CEModel_Data[i_pos] = body_pos.x();
 		MBDyn_CE_CEModel_Data[i_pos+1] = body_pos.y();
 		MBDyn_CE_CEModel_Data[i_pos+2] = body_pos.z();
+		std::cout << "\t\tsave position" << i << ": " << MBDyn_CE_CEModel_Data[i_pos] << "\n";
 
 		unsigned int i_rot = i_pos + 3;
 		MBDyn_CE_CEModel_Data[i_rot] = body_rot.e0();
@@ -187,6 +208,7 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		MBDyn_CE_CEModel_Data[i_rot_dtdt+3] = body_rot_dtdt.e3();
 	}
 	MBDyn_CE_CEModel_Data[tempsys_size-1] = tempsys->GetChTime();
+	std::cout << "\t\tsave time: " << MBDyn_CE_CEModel_Data[tempsys_size - 1] << "\n";
 	return 0;
 }
 
@@ -196,6 +218,12 @@ extern "C" int
 MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
                         std::vector<double> & MBDyn_CE_CEModel_Data)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "\t\tCE_models DataReload() fails:\n";
+		return 0;
+	}
+	std::cout << "\t\tCE_models DataReload():\n";
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
@@ -207,14 +235,14 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 	}
 	double MBDyn_CE_CEModel_time = MBDyn_CE_CEModel_Data[tempsys_size - 1];
 	tempsys->SetChTime(MBDyn_CE_CEModel_time);
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < tempsys_bodies_size; i++)
 	{
 		unsigned int i_pos = (3 * 3 + 3 * 4) * i;
 		tempsys->Get_bodylist()[i]->SetPos(ChVector<>(MBDyn_CE_CEModel_Data[i_pos],
 										 MBDyn_CE_CEModel_Data[i_pos + 1],
 										 MBDyn_CE_CEModel_Data[i_pos + 2]));
-
+		std::cout << "\t\treload position" << i << ": " << MBDyn_CE_CEModel_Data[i_pos] << "\n";
 		unsigned int i_rot = i_pos + 3;
 		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot],
 										 MBDyn_CE_CEModel_Data[i_rot + 1],
@@ -227,18 +255,18 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 													  MBDyn_CE_CEModel_Data[i_pos_dt + 2]));
 
 		unsigned int i_rot_dt = i_pos_dt + 3;
-		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dt],
+		tempsys->Get_bodylist()[i]->SetRot_dt(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dt],
 														  MBDyn_CE_CEModel_Data[i_rot_dt + 1],
 														  MBDyn_CE_CEModel_Data[i_rot_dt + 2],
 														  MBDyn_CE_CEModel_Data[i_rot_dt + 3]));
 		
 		unsigned int i_pos_dtdt = i_rot_dt + 4;
-		tempsys->Get_bodylist()[i]->SetPos_dt(ChVector<>(MBDyn_CE_CEModel_Data[i_pos_dtdt],
+		tempsys->Get_bodylist()[i]->SetPos_dtdt(ChVector<>(MBDyn_CE_CEModel_Data[i_pos_dtdt],
 													  MBDyn_CE_CEModel_Data[i_pos_dtdt + 1],
 													  MBDyn_CE_CEModel_Data[i_pos_dtdt + 2]));
 
 		unsigned int i_rot_dtdt = i_pos_dtdt + 3;
-		tempsys->Get_bodylist()[i]->SetRot(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dtdt],
+		tempsys->Get_bodylist()[i]->SetRot_dtdt(ChQuaternion<>(MBDyn_CE_CEModel_Data[i_rot_dtdt],
 														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 1],
 														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 2],
 														  MBDyn_CE_CEModel_Data[i_rot_dtdt + 3]));
@@ -250,6 +278,11 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 extern "C" void
 MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "\t\tCE_models DoStepDynamics() fails:\n";
+		return;
+	}
 	std::cout << "\t\tCE_models DoStepDynamics():\n";
 	if (pMBDyn_CE_CEModel!=NULL)
 	{   // it's not a good idea to do this convert
@@ -257,36 +290,47 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 		ChSystemParallelNSC* tempsys=(ChSystemParallelNSC *) pMBDyn_CE_CEModel;
 		tempsys->DoStepDynamics(time_step);
 		tempsys->CalculateContactForces();
-		std::cout << "\t\t" << tempsys->GetChTime() << "\n";
-		//pedantic_cout();
+		std::cout << "\t\ttime: " << tempsys->GetChTime() << " s\n";
+		std::cout << "\t\ttime step: " << time_step << " s\n";
+		std::cout << "\t\tpos after integration: " << tempsys->SearchBodyID(1)->GetPos() << "\n";
 	}
 }
 
 // C::E models receive coupling motion from the buffer
 void 
-MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double>& MBDyn_CE_CouplingKinematic, const unsigned& MBDyn_CE_NodesNum)
+MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+const std::vector<double>& MBDyn_CE_CouplingKinematic, 
+const unsigned& MBDyn_CE_NodesNum,
+const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
+double time_step)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "\t\tCE_models RecvFromMBDyn() fails:\n";
+		return;
+	}
+	std::cout << "\t\tCE_models RecvFromMBDyn():\n";
 	ChSystemParallelNSC *mbdynce_tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	// 1. obtain the data;
 	// 2. transfer it to the coordinate in C::E;
-	// 3. apply to the model;
-	
+	// 3. update motor functions;
+
 	// 1. obtain the data;
-	double *pmbdynce_tempvec3_x = &MBDyn_CE_CouplingKinematic[0];
-	double *pmbdynce_tempemat3x3_R = &MBDyn_CE_CouplingKinematic[3 * MBDyn_CE_NodesNum];
-	double *pmbdynce_tempvec3_xp = &MBDyn_CE_CouplingKinematic[12 * MBDyn_CE_NodesNum];
-	double *pmbdynce_tempvec3_omega = &MBDyn_CE_CouplingKinematic[15 * MBDyn_CE_NodesNum];
-	double *pmbdynce_tempvec3_xpp = &MBDyn_CE_CouplingKinematic[18 * MBDyn_CE_NodesNum];
-	double *pmbdynce_tempvec3_omegap = &MBDyn_CE_CouplingKinematic[21 * MBDyn_CE_NodesNum];
-	double *pmbdynce_temp_frame = &MBDyn_CE_CouplingKinematic[24 * MBDyn_CE_NodesNum];
-	ChVector<> mbdynce_temp_frameMBDyn_pos(-(*pmbdynce_temp_frame), -(*(pmbdynce_temp_frame + 1)), -(*(pmbdynce_temp_frame + 2)));
-	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(*(pmbdynce_temp_frame + 3), *(pmbdynce_temp_frame + 4), *(pmbdynce_temp_frame + 5));
-	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(*(pmbdynce_temp_frame + 6), *(pmbdynce_temp_frame + 7), *(pmbdynce_temp_frame + 8));
-	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(*(pmbdynce_temp_frame + 9), *(pmbdynce_temp_frame + 10), *(pmbdynce_temp_frame + 11));
+	const double *pmbdynce_tempvec3_x = &MBDyn_CE_CouplingKinematic[0];
+	const double *pmbdynce_tempemat3x3_R = &MBDyn_CE_CouplingKinematic[3 * MBDyn_CE_NodesNum];
+	const double *pmbdynce_tempvec3_xp = &MBDyn_CE_CouplingKinematic[12 * MBDyn_CE_NodesNum];
+	const double *pmbdynce_tempvec3_omega = &MBDyn_CE_CouplingKinematic[15 * MBDyn_CE_NodesNum];
+	const double *pmbdynce_tempvec3_xpp = &MBDyn_CE_CouplingKinematic[18 * MBDyn_CE_NodesNum];
+	const double *pmbdynce_tempvec3_omegap = &MBDyn_CE_CouplingKinematic[21 * MBDyn_CE_NodesNum];
+	const double *pmbdynce_temp_frame = &MBDyn_CE_CouplingKinematic[24 * MBDyn_CE_NodesNum];
+	ChVector<> mbdynce_temp_frameMBDyn_pos(-pmbdynce_temp_frame[0], -pmbdynce_temp_frame[1], -pmbdynce_temp_frame[2]);
+	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pmbdynce_temp_frame[3], pmbdynce_temp_frame[4], pmbdynce_temp_frame[5]);
+	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pmbdynce_temp_frame[6], pmbdynce_temp_frame[7], pmbdynce_temp_frame[8]);
+	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pmbdynce_temp_frame[9], pmbdynce_temp_frame[10], pmbdynce_temp_frame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
-
-	// 2. transfer it to the coordinate in C::E, and create motor functions
+	double time = mbdynce_tempsys->GetChTime();
+	// 2. transfer it to the coordinate in C::E, and 3. update motor functions
 	for (unsigned i = 0; i < MBDyn_CE_NodesNum;i++)
 	{
 		// 2.1 coordinate transformation
@@ -296,18 +340,62 @@ MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<
 										  ChVector<>(pmbdynce_tempemat3x3_R[9 * i + 1], pmbdynce_tempemat3x3_R[9 * i + 4], pmbdynce_tempemat3x3_R[9 * i + 7]),
 										  ChVector<>(pmbdynce_tempemat3x3_R[9 * i + 2], pmbdynce_tempemat3x3_R[9 * i + 5], pmbdynce_tempemat3x3_R[9 * i + 8])); // three column vectors
 		ChMatrix33<> mbdynce_tempmbdyn_R(mbdynce_tempmbdyn_R1.Get_A_quaternion() >> mbdynce_temp_frameMBDyn);
-		ChFrame<> mbdynce_tempframe_end(mbdynce_tempmbdyn_pos,mbdynce_tempmbdyn_R);
-
+		ChFrame<> mbdynce_tempframeG_end(mbdynce_tempmbdyn_pos,mbdynce_tempmbdyn_R);
 		// 2.2 create motor functions
-		// TO DO
+		// find motor i
+		unsigned motor3d_body_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label;
+		std::cout << "\t\tmotor3d_body_i_id is: " << motor3d_body_i_id << std::endl;
+		auto motor3d_body_i = std::dynamic_pointer_cast<ChLinkMotionImposed>(mbdynce_tempsys->SearchLinkID(motor3d_body_i_id));
+		// frame_start // more details:: TO DO !!!
+		if (motor3d_body_i!=NULL)
+		{
+			auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_line>(motor3d_body_i->GetPositionFunction());
+			auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_spline>(motor3d_body_i->GetRotationFunction());
+			if (motor3d_function_pos != NULL & motor3d_function_rot != NULL)
+			{
+				ChFrame<> mbdynce_tempframe1b1_start, mbdynce_tempframe1G_start, mbdynce_tempframeM2_start, mbdynce_tempframeM2_end;
+				if (time < time_step)
+				{
+					mbdynce_tempframeM2_start=ChFrame<>(ChVector<>(0.0,0.0,0.0),motor3d_body_i->GetBody1()->GetRot());
+				}
+				else
+				{
+					mbdynce_tempframe1b1_start = motor3d_body_i->GetFrame1();
+					mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_body_i->GetBody1());
+					mbdynce_tempframeM2_start=ChFrame<>(mbdynce_tempframe1G_start >> ((motor3d_body_i->GetFrame2()) >> *(motor3d_body_i->GetBody2())).GetInverse()); // expressed in Frame 2
+				}
+				mbdynce_tempframeM2_end = ChFrame<>(mbdynce_tempframeG_end >> ((motor3d_body_i->GetFrame2()) >> *motor3d_body_i->GetBody2()).GetInverse()); // expressed in Frame 2
+				std::cout << "\t\tC::E model motions_pos_start: " << mbdynce_tempframeM2_start.GetPos() << "\n";
+				std::cout << "\t\tC::E model motions_rot_start: " << mbdynce_tempframeM2_start.GetRot()<< "\n";
+				std::cout << "\t\tC::E model motions_pos_end: " << mbdynce_tempframeM2_end.GetPos() << "\n";
+				std::cout << "\t\tC::E model motions_rot_end: " << mbdynce_tempframeM2_end.GetRot() << "\n";
+				// position function
+				auto mbdynce_temp_pos_line = chrono_types::make_shared<geometry::ChLineSegment>(mbdynce_tempframeM2_start.GetPos(), mbdynce_tempframeM2_end.GetPos());
+				motor3d_function_pos->SetLine(mbdynce_temp_pos_line);
+				// chrono_types::make_shared<>: a more safety case in C::E
+				motor3d_function_pos->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
+				// rotation function
+				std::vector<ChQuaternion<>> mbdynce_temp_rot_spline = {{mbdynce_tempframeM2_start.GetRot()}, {mbdynce_tempframeM2_end.GetRot()}};
+				motor3d_function_rot->SetupData(1, mbdynce_temp_rot_spline);
+				motor3d_function_rot->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
+			}
+		}
 	}
 }
 
 // C::E models send coupling forces to the buffer
 void 
 MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<double> &MBDyn_CE_CouplingDynamic, 
-							double* pMBDyn_CE_CEFrame, const unsigned& MBDyn_CE_NodesNum, const double* MBDyn_CE_CEScale)
+							double* pMBDyn_CE_CEFrame, const unsigned& MBDyn_CE_NodesNum, const double* MBDyn_CE_CEScale,
+							const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label)
 {
+	if (pMBDyn_CE_CEModel==NULL)
+	{
+		std::cout << "\t\tCE_models SendToMBDyn() fails:\n";
+		return;
+	}
+	std::cout << "\t\tCE_models SendToMBDyn():\n";
+	ChSystemParallelNSC *mbdynce_tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	// obtain the transform matrix
 	ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pMBDyn_CE_CEFrame[3], pMBDyn_CE_CEFrame[4], pMBDyn_CE_CEFrame[5]);
@@ -315,8 +403,6 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pMBDyn_CE_CEFrame[9], pMBDyn_CE_CEFrame[10], pMBDyn_CE_CEFrame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
-
-	
 	// write exchange force/torque to the buffer
 	ChVector<> mbdynce_ce_force_G(0.0, 0.0, 0.0);
 	ChVector<> mbdynce_ce_torque_G(0.0, 0.0, 0.0);
@@ -327,13 +413,38 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 	for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++)
 	{
 		// obtain the exchange force/torque from CE model; 
-		// TO DO ...
-
-
+		unsigned motor_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label;
+		auto motor_i = std::dynamic_pointer_cast<ChLinkMotionImposed>(mbdynce_tempsys->SearchLinkID(motor_i_id));
+		if (motor_i==NULL)
+		{
+			std::cout << "\t\tcannot read coupling motor\n";
+		}
+		else
+		{
+			
+			ChCoordsys<> mbdynce_temp_frameMG_calcu (motor_i->GetLinkAbsoluteCoords());
+			//!!!!(Here I think that the get_react_force() obtains reaction forces applied to body 2 in the link frame, not the forces
+			//applied to body 1 in the link frame)
+			//get the reaction force at the global frame and MBDyn frame, apply to the node
+			mbdynce_ce_force_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(motor_i->Get_react_force());
+			mbdynce_ce_torque_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(motor_i->Get_react_torque());
+			mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_force_G);
+			mbdynce_mbdyn_torque = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_torque_G);
+			std::cout << "\t\tcoupling forces_f: " << mbdynce_mbdyn_force << "\n";
+			std::cout << "\t\tcoupling forces_q: " << mbdynce_mbdyn_torque << "\n";
+			// get the contact force
+			// ChVector<> contact_forc(system.GetBodyContactForce(container).x, system.GetBodyContactForce(container).y, system.GetBodyContactForce(container).z);
+			// ChVector<> contact_torq(system.GetBodyContactTorque(container).x, system.GetBodyContactTorque(container).y, system.GetBodyContactTorque(container).z);
+			// mbdynce_ce_force_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(contact_forc);
+			// mbdynce_ce_torque_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(contact_torq);
+			// mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_force_G);
+			// mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_torque_G);
+		}
 		// write in the buffer
-		double mbdynce_tempvec3_f[3]={mbdynce_mbdyn_force.x()/MBDyn_CE_CEScale[2],
+		double mbdynce_tempvec3_f[3]={mbdynce_mbdyn_force.x()/MBDyn_CE_CEScale[2],//0.0,0.0};
 										mbdynce_mbdyn_force.y()/MBDyn_CE_CEScale[2],
 										mbdynce_mbdyn_force.z()/MBDyn_CE_CEScale[2]};
+		std::cout << "\t\tcoupling forces_f: " << mbdynce_tempvec3_f[0] << "\n";
 		double mbdynce_tempvec3_m[3]={mbdynce_mbdyn_torque.x()/(MBDyn_CE_CEScale[3]),
 										mbdynce_mbdyn_torque.y()/(MBDyn_CE_CEScale[3]),
 										mbdynce_mbdyn_torque.z()/(MBDyn_CE_CEScale[3])};
