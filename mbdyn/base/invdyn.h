@@ -45,16 +45,20 @@ public:
 		FULLY_ACTUATED = 0x01U,
 		FULLY_DETERMINED = 0x02U,
 		COLLOCATED = 0x04U,
+		OVERACTUATED = 0x08U,
 
-		// fully actuated collocated
+		// Fully Actuated, Collocated
 		FULLY_ACTUATED_COLLOCATED = (FULLY_ACTUATED|FULLY_DETERMINED|COLLOCATED),
-		// fully actuated non collocated
+		// Fully Actuated, Non-Collocated
 		FULLY_ACTUATED_NON_COLLOCATED = (FULLY_ACTUATED|FULLY_DETERMINED),
-		// underdetermined underactuated collocated
+		// Underdetermined, Underactuated, Collocated
 		UNDERDETERMINED_UNDERACTUATED_COLLOCATED = (COLLOCATED),
-		// underdetermined fully actuated
+		// Underdetermined, Fully Actuated
 		UNDERDETERMINED_FULLY_ACTUATED = (FULLY_ACTUATED),
-
+		// Fully Determined, Underactuated
+		FULLY_DETERMINED_OVERACTUATED = (FULLY_DETERMINED | OVERACTUATED),
+		// Underdetermined, Underactuated
+		UNDERDETERMINED_OVERACTUATED = (OVERACTUATED),
 
 		PRESCRIBED_MOTION = 0x10U,
 		TORQUE = 0x20U,

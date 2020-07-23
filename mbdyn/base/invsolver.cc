@@ -1003,7 +1003,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 			"fully" "actuated" "non" "collocated",
 			"underdetermined" "underactuated" "collocated",
 			"underdetermined" "fully" "actuated",
-
+			"fully" "determined" "overactuated",
+			"underdetermined" "overactuated",
 		NULL
 	};
 
@@ -1082,6 +1083,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 			FANC,
 			UDUAC,
 			UDFA,
+			FDOA,
+			UDOA,
 
 		LASTKEYWORD
 	};
@@ -1811,7 +1814,12 @@ InverseSolver::ReadData(MBDynParser& HP)
 					}
 				}
 				break;
-
+			case FDOA:
+				ProblemType = InverseDynamics::FULLY_DETERMINED_OVERACTUATED;
+				break;
+			case UDOA:
+				ProblemType = InverseDynamics::UNDERDETERMINED_OVERACTUATED;
+				break;
 			default:
 				silent_cerr("inverse dynamics: unrecognized problem type at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
