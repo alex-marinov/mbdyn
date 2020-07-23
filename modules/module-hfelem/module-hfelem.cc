@@ -561,10 +561,8 @@ m_OutputFormat(Out_COMPLEX)
 	}
 
 	// reset
-	for (unsigned i = 0; i < m_Xcos.size(); ++i) {
-		m_Xcos[i] = 0.;
-		m_Xsin[i] = 0.;
-	}
+	std::fill(m_Xcos.begin(), m_Xcos.end(), 0.);
+	std::fill(m_Xsin.begin(), m_Xsin.end(), 0.);
 }
 
 HarmonicForcingElem::~HarmonicForcingElem(void)
@@ -673,10 +671,8 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 			m_dT0 = m_pDM->dGetTime();
 
 			// reset vectors
-			for (unsigned i = 0; i < m_Input.size(); ++i) {
-				m_Xcos[i] = 0.;
-				m_Xsin[i] = 0.;
-			}
+			std::fill(m_Xcos.begin(), m_Xcos.end(), 0.);
+			std::fill(m_Xsin.begin(), m_Xcos.end(), 0.);
 		}
 	}
 
