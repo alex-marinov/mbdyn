@@ -672,7 +672,7 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 			// reset vectors
 			std::fill(m_Xcos.begin(), m_Xcos.end(), 0.);
-			std::fill(m_Xsin.begin(), m_Xcos.end(), 0.);
+			std::fill(m_Xsin.begin(), m_Xsin.end(), 0.);
 		}
 	}
 
@@ -707,14 +707,14 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 			m_XcosPrev[i] = m_Xcos[i];
 			m_XsinPrev[i] = m_Xsin[i];
 
-			m_Xcos[i] -= m_X[m_iPeriodCnt][i]*m_cos_psi[m_iPeriodCnt];
-			m_Xsin[i] -= m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
+			//m_Xcos[i] -= m_X[m_iPeriodCnt][i]*m_cos_psi[m_iPeriodCnt];
+			//m_Xsin[i] -= m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
 		}
 
 		m_X[m_iPeriodCnt][i] = m_Input[i].m_pDC->dGet();
 
-		m_Xcos[i] += m_X[m_iPeriodCnt][i]*m_cos_psi[m_iPeriodCnt];
-		m_Xsin[i] += m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
+		m_Xcos[i] = m_X[m_iPeriodCnt][i]*m_cos_psi[m_iPeriodCnt];
+		m_Xsin[i] = m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
 
 		if (m_iPeriod > 0 && (m_Input[i].m_Flag & HFInput::HF_TEST)) {
 			doublereal d = m_Xcos[i] - m_XcosPrev[i];
