@@ -322,13 +322,13 @@ bool LineSearchSolver::bCheckDivergence(const doublereal dErrFactor, const doubl
      return bDivergence;
 }
 
-doublereal LineSearchSolver::dGetLambdaMin(doublereal& dSlope, const bool bRebuildJac, const VectorHandler& p, const integer iIterCnt) const
+doublereal LineSearchSolver::dGetLambdaMin(doublereal& dSlope, const bool bRebuildJac, const VectorHandler& p, const integer iIterCnt, doublereal fCurr) const
 {
      TRACE_VAR(dSlope);
 
      doublereal dLambdaMinCurr = -1.;
 
-     if (dSlope >= 0.) {
+     if (dSlope >= 0. && fCurr > 0.) {
           if (uFlags & VERBOSE_MODE) {
                silent_cerr("line search warning: slope = " << dSlope << " is not negative at time step "
 			   << pDM->dGetTime()
@@ -552,7 +552,7 @@ LineSearchFull::LineSearch(const doublereal dMaxStep,
 
      doublereal dSlope = g.InnerProd(p);
 
-     const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, true, p, iIterCnt);
+     const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, true, p, iIterCnt, fCurr);
 
      doublereal dLambda = 1., dLambdaPrev = 0;
      integer iLineSearchIter = 0;
@@ -947,7 +947,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                p = *pSol;
 
                doublereal dLambda = 1., dLambdaPrev = 0.;
-               const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, bRebuildJac, p, iIterCnt);
+               const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, bRebuildJac, p, iIterCnt, fCurr);
 
                TRACE_VAR(dLambdaMinCurr);
 
@@ -1325,7 +1325,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
                p = *pSol;
 
                doublereal dLambda = 1., dLambdaPrev = 0.;
-               const doublereal dLambdaMinCurr = fCurr ? dGetLambdaMin(dSlope, bRebuildJac, p, iIterCnt) : 1.;
+               const doublereal dLambdaMinCurr = dGetLambdaMin(dSlope, bRebuildJac, p, iIterCnt, fCurr);
 
                integer iLineSearchIter = 0;
                doublereal dLambdaMax = 1.;

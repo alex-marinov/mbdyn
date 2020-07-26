@@ -169,7 +169,7 @@ protected:
      void Attach(const NonlinearProblem* pNLP, Solver* pS);
      doublereal dGetMinNewtonInc(const VectorHandler& dX) const;
      doublereal dGetLambdaNext(doublereal dLambdaCurr, doublereal dSlope, doublereal fPrev, doublereal fCurr);
-     doublereal dGetLambdaMin(doublereal& dSlope, bool bRebuildJac, const VectorHandler& p, integer iIterCnt) const;
+     doublereal dGetLambdaMin(doublereal& dSlope, bool bRebuildJac, const VectorHandler& p, integer iIterCnt, doublereal fCurr) const;
      doublereal dGetMaxNewtonStep(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr) const;
      void ScaleNewtonStep(doublereal stpmax, VectorHandler& dX, integer iIterCnt) const;
      bool bCheckZeroGradient(doublereal fCurr,
