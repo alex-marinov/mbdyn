@@ -123,7 +123,7 @@ public:
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
 #ifdef USE_NETCDF
-		ASSERT(OH.IsOpen(OutputHadler::NETCDF));
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
 		{
 			Var_dAct = OH.CreateVar<doublereal>(name + ".a", "", "Muscular activation (effective value)");
