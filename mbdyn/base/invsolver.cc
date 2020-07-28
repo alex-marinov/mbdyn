@@ -395,6 +395,7 @@ InverseSolver::Prepare(void)
 	switch (GetProblemType()) {
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED:
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 		{
 			NonlinearSolverTestRange *pRT = new NonlinearSolverTestRange(pResTest);
 			NonlinearSolverTestRange *pST = new NonlinearSolverTestRange(pSolTest);

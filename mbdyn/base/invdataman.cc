@@ -113,7 +113,8 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 	InverseSolver *pIDS = dynamic_cast<InverseSolver *>(pSolver);
 
 	switch (pIDS->GetProblemType()) {
-	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:
+	case InverseDynamics::FULLY_ACTUATED_COLLOCATED: {
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
@@ -123,13 +124,14 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 				JacHdl += j->second->AssJac(WorkMat, *pXCurr);
 			}
 		}
-		break;
+		} break;
 
 	case InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED:
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 		silent_cerr("DataManager::AssConstrJac(" << pIDS->GetProblemType() << ") not implemented yet" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED: {
 		// NOTE: in this case, the name of the function is misleading,
 		// since it assembles the entire problem's Jacobian matrix
@@ -292,167 +294,6 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 		}
 		} break;
 
-	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
-	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:{
-		InverseDynamicsStepSolver *pIDSS = dynamic_cast<InverseDynamicsStepSolver *>(pSolver->pGetStepIntegrator());
-		if (pIDSS->GetOrder() == InverseDynamics::INVERSE_DYNAMICS) {
-			for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-				j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
-			{
-				bool bActive(true);
-				Joint *pJ = Cast<Joint>(j->second, true);
-				if (pJ == 0) {
-					bActive = false;
-					pJ = Cast<Joint>(j->second, false);
-				}
-
-				if (pJ->bIsTorque() && bActive) {
-					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
-					WorkMat.AddToT(JacHdl);
-
-				} else if (pJ->bIsPrescribedMotion() || (pJ->bIsTorque() && !bActive)) {
-					integer iNumDof = pJ->iGetNumDof();
-					integer iFirstIndex = pJ->iGetFirstIndex();
-					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-						JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) = 1.;
-					}
-				}
-			}
-
-			// FIXME: regularization could be needed also in other phases
-			// may need to be related to the state of the regularized joint
-			for (ElemContainerType::iterator j = ElemData[Elem::JOINT_REGULARIZATION].ElemContainer.begin();
-				j != ElemData[Elem::JOINT_REGULARIZATION].ElemContainer.end(); ++j)
-			{
-				JointRegularization *pJ = Cast<JointRegularization>(j->second, true);
-				if (pJ) {
-					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
-				}
-			}
-
-#if 0
-			// this _should_ be harmless...
-			for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-				n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
-			{
-				ASSERT(n->second->iGetNumDof() == 6);
-				integer iFirstIndex = n->second->iGetFirstIndex();
-
-				for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-					JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) += 1.;
-				}
-			}
-#endif
-
-		} else {
-			doublereal dw1, dw2;
-			pIDS->GetWeight(pIDSS->GetOrder(), dw1, dw2);
-			if (dw1 > 0.) {
-				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
-				{
-					ASSERT(n->second->iGetNumDof() == 6);
-					integer iFirstIndex = n->second->iGetFirstIndex();
-
-					for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-						JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) += dw1;
-					}
-				}
-			}
-
-			if (dw2 > 0.) {
-// DO NOT ENABLE, BROKEN
-//#define TORQUE_OPTIMIZATION
-#ifdef TORQUE_OPTIMIZATION
-				if (pIDSS->GetOrder() == InverseDynamics::POSITION) {
-					doublereal h = DrvHdl.dGetTimeStep();
-					dw2 /= h*h;
-				}
-#endif // TORQUE_OPTIMIZATION
-
-				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
-					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
-				{
-					if (!b->second->bIsErgonomy()) {
-						continue;
-					}
-
-					const Body *pBody(Cast<Body>(b->second));
-					doublereal dm(pBody->dGetM()*dw2);
-					Vec3 S(pBody->GetS()*dw2);
-					Mat3x3 J = (pBody->GetJ()*dw2);
-					const StructNode *pNode = pBody->pGetNode();
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					for (int iRow = 1; iRow <= 3; iRow++) {
-						JacHdl(iFirstIndex + iRow, iFirstIndex + iRow) += dm;
-
-						for (int iCol = 1; iCol <= 3; iCol++) {
-							JacHdl(iFirstIndex + 3 + iRow, iFirstIndex + 3 + iCol) += J(iRow, iCol);
-						}
-					}
-
-					JacHdl(iFirstIndex + 3 + 1, iFirstIndex + 2) = -S(3);	// 1, 2
-					JacHdl(iFirstIndex + 3 + 1, iFirstIndex + 3) = S(2);	// 1, 3
-					JacHdl(iFirstIndex + 3 + 2, iFirstIndex + 3) = -S(1);	// 2, 3
-					JacHdl(iFirstIndex + 3 + 2, iFirstIndex + 1) = S(3);	// 2, 1
-					JacHdl(iFirstIndex + 3 + 3, iFirstIndex + 1) = -S(2);	// 3, 1
-					JacHdl(iFirstIndex + 3 + 3, iFirstIndex + 2) = S(1);	// 3, 2
-
-					JacHdl(iFirstIndex + 2, iFirstIndex + 3 + 1) = -S(3);	// 2, 1
-					JacHdl(iFirstIndex + 3, iFirstIndex + 3 + 1) = S(2);	// 3, 1
-					JacHdl(iFirstIndex + 3, iFirstIndex + 3 + 2) = -S(1);	// 3, 2
-					JacHdl(iFirstIndex + 1, iFirstIndex + 3 + 2) = S(3);	// 1, 2
-					JacHdl(iFirstIndex + 1, iFirstIndex + 3 + 3) = -S(2);	// 1, 3
-					JacHdl(iFirstIndex + 2, iFirstIndex + 3 + 3) = S(1);	// 2, 3
-				}
-			}
-
-			for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-				j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
-			{
-				bool bActive(true);
-				Joint *pJ = Cast<Joint>(j->second, true);
-				if (pJ == 0) {
-					bActive = false;
-					pJ = Cast<Joint>(j->second, false);
-				}
-
-				if (pJ->bIsPrescribedMotion() && bActive) {
-					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
-					WorkMat.AddToT(JacHdl);
-
-				} else if (pJ->bIsErgonomy() && bActive && pIDSS->GetOrder() == InverseDynamics::POSITION) {
-					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
-
-				} else if (pJ->bIsTorque() || (pJ->bIsPrescribedMotion() && !bActive)) {
-					integer iNumDof = pJ->iGetNumDof();
-					integer iFirstIndex = pJ->iGetFirstIndex();
-					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-						JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) = 1.;
-					}
-				}
-			}
-
-			for (ElemContainerType::iterator j = ElemData[Elem::BEAM].ElemContainer.begin();
-				j != ElemData[Elem::BEAM].ElemContainer.end(); ++j)
-			{
-				bool bActive(true);
-				Beam2 *pB = Cast<Beam2>(j->second, true);
-				if (pB == 0) {
-					bActive = false;
-					pB = Cast<Beam2>(j->second, false);
-				}
-
-				if (pB && pB->bIsErgonomy() && bActive && pIDSS->GetOrder() == InverseDynamics::POSITION) {
-					JacHdl += pB->AssJac(WorkMat, *pXCurr);
-				}
-			}
-		}
-	}
-
-
 	default:
 		ASSERT(0);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -483,6 +324,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 
 	switch (pIDS->GetProblemType()) {
 	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
@@ -508,6 +350,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		silent_cerr("DataManager::AssConstrRes(" << pIDS->GetProblemType() << ") not implemented yet" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED: {
 		// NOTE: in this case, the name of the function is misleading,
 		// since it assembles the entire problem's residual
@@ -852,348 +695,6 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		}
 
 		} break;
-	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
-	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:{
-		doublereal dw1, dw2;
-		pIDS->GetWeight(iOrder, dw1, dw2);
-		switch (iOrder) {
-		case InverseDynamics::POSITION:
-			if (dw1 > 0.) {
-				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
-				{
-					const StructNode *pNode = dynamic_cast<const StructNode *>(n->second);
-
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					Vec3 DX(pNode->GetXPrev() - pNode->GetXCurr());
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += dw1*DX(iCnt);
-					}
-
-					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
-					Vec3 DTheta(RotManip::VecRot(pNode->GetRPrev().MulMT(pNode->GetRCurr())));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += dw1*DTheta(iCnt);
-					}
-				}
-			}
-
-			if (dw2 > 0.) {
-#ifdef TORQUE_OPTIMIZATION
-				doublereal h = DrvHdl.dGetTimeStep();
-				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
-					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
-				{
-					if (!b->second->bIsRightHandSide()) {
-						continue;
-					}
-
-					const Body *pBody(Cast<Body>(b->second));
-					doublereal dm(pBody->dGetM()*dw2);
-					Vec3 S(pBody->GetS()*dw2);
-					Mat3x3 J = (pBody->GetJ()*dw2);
-					const StructNode *pNode = pBody->pGetNode();
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					Vec3 DXP((pNode->GetXCurr() - pNode->GetXPrev())/h);
-					Vec3 DXPP((DXP - pNode->GetVPrev())/h);
-					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
-					Vec3 DW(RotManip::VecRot(pNode->GetRCurr().MulMT(pNode->GetRPrev()))/h);
-					Vec3 DWP((DW - pNode->GetWPrev())/h);
-
-					Vec3 XRes(DXPP*dm + DWP.Cross(S) + DW.Cross(DW.Cross(S)));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) -= XRes(iCnt);
-					}
-
-					Vec3 ThetaRes(S.Cross(DXPP) + J*DWP + DW.Cross(J*DW));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) -= ThetaRes(iCnt);
-					}
-				}
-#else // !TORQUE_OPTIMIZATION
-				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
-					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
-				{
-					if (!b->second->bIsErgonomy()) {
-						continue;
-					}
-
-					const Body *pBody(Cast<Body>(b->second));
-					doublereal dm(pBody->dGetM()*dw2);
-					Vec3 S(pBody->GetS()*dw2);
-					Mat3x3 J = (pBody->GetJ()*dw2);
-					const StructNode *pNode = pBody->pGetNode();
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					Vec3 DX(pNode->GetXPrev() - pNode->GetXCurr());
-					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
-					Vec3 DTheta(RotManip::VecRot(pNode->GetRPrev().MulMT(pNode->GetRCurr())));
-
-					Vec3 XRes(DX*dm - S.Cross(DTheta));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += XRes(iCnt);
-					}
-
-					Vec3 ThetaRes(S.Cross(DX) + J*DTheta);
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += ThetaRes(iCnt);
-					}
-				}
-#endif // !TORQUE_OPTIMIZATION
-			}
-			break;
-
-		case InverseDynamics::VELOCITY:
-			if (dw1 > 0.) {
-				doublereal h = DrvHdl.dGetTimeStep();
-
-				// xp_k = xp_km1/3 + 2/3*(x_k - x_km1)/h
-				// xp_k = 2*(x_k - x_km1)/h - xp_km1
-				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
-				{
-					const StructNode *pNode = dynamic_cast<const StructNode *>(n->second);
-
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					const Vec3& VPrev(pNode->GetVPrev());
-						(void) VPrev; // silence set but not used warning
-					const Vec3& XPrev(pNode->GetXPrev());
-					const Vec3& XCurr(pNode->GetXCurr());
-
-// #define USE_2XmV 1	// 2nd order, a-stable, oscillations
-// #define USE_2XpVd3 1	// 1st order, a/l-stable, more accurate
-#define USE_X 1		// 1st order, l-stable (implicit Euler), less accurate (alpha == 1.)
-// #define USE_alphaX_betaV	(1.0)	// alpha = 1. + |rho|; beta = (1 - alpha) for 1st order accuracy
-
-#if USE_2XmV
-					Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
-#elif USE_2XpVd3
-					Vec3 VRef((XCurr - XPrev)*(2./3./h) + VPrev/3.);
-#elif defined(USE_alphaX_betaV)
-					Vec3 VRef((XCurr - XPrev)*(USE_alphaX_betaV/h) + VPrev*(1 - USE_alphaX_betaV));
-#elif USE_X
-					Vec3 VRef((XCurr - XPrev)/h);
-#endif
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += dw1*VRef(iCnt);
-					}
-
-					const Vec3& WPrev(pNode->GetWPrev());
-						(void) WPrev; // silence set but not used warning
-					const Mat3x3& RPrev(pNode->GetRPrev());
-					const Mat3x3& RCurr(pNode->GetRCurr());
-
-#if USE_2XmV
-					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./h) - WPrev);
-#elif USE_2XpVd3
-					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./3./h) + WPrev/3.);
-#elif defined(USE_alphaX_betaV)
-					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(USE_alphaX_betaV/h) + WPrev*(1 - USE_alphaX_betaV));
-#elif USE_X
-					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))/h);
-#endif
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += dw1*WRef(iCnt);
-					}
-				}
-			}
-
-			if (dw2 > 0.) {
-				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
-					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
-				{
-					if (!b->second->bIsErgonomy()) {
-						continue;
-					}
-
-					const Body *pBody(Cast<Body>(b->second));
-					doublereal dm(pBody->dGetM()*dw2);
-					Vec3 S(pBody->GetS()*dw2);
-					Mat3x3 J = (pBody->GetJ()*dw2);
-					const StructNode *pNode = pBody->pGetNode();
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					Vec3 BPrev(pNode->GetVPrev()*dm - S.Cross(pNode->GetWPrev()));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += BPrev(iCnt);
-					}
-
-					Vec3 GPrev(S.Cross(pNode->GetVPrev()) + J*pNode->GetWPrev());
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += GPrev(iCnt);
-					}
-				}
-			}
-			break;
-
-		case InverseDynamics::ACCELERATION:
-			if (dw1 > 0.) {
-				doublereal h = DrvHdl.dGetTimeStep();
-
-				// xpp_k = xpp_km1/3 + 2/3*(xp_k - xp_km1)/h
-				// xpp_k = 2*(xp_k - xp_km1)/h - xpp_km1
-				// xpp_k = xpp_km1 + 6*(xp_k + xp_km1)/h - 12*(x_k - x_km1)/h^2
-				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
-				{
-					const StructNode *pNode = dynamic_cast<const StructNode *>(n->second);
-
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					const Vec3& XPPPrev(pNode->GetXPPPrev());
-						(void) XPPPrev; // silence set but not used warning
-					const Vec3& VPrev(pNode->GetVPrev());
-					const Vec3& VCurr(pNode->GetVCurr());
-
-#if USE_2XmV
-					Vec3 XPPRef((VCurr - VPrev)*(2./h) - XPPPrev);
-#elif USE_2XpVd3
-					Vec3 XPPRef((VCurr - VPrev)*(2./3./h) + XPPPrev/3.);
-#elif defined(USE_alphaX_betaV)
-					Vec3 XPPRef((VCurr - VPrev)*(USE_alphaX_betaV/h) + XPPPrev*(1 - USE_alphaX_betaV));
-#elif USE_X
-					Vec3 XPPRef((VCurr - VPrev)/h);
-#endif
-#if 0
-					const Vec3& XPrev(pNode->GetXPrev());
-					const Vec3& XCurr(pNode->GetXCurr());
-
-					Vec3 XPPRef(XPPPrev + (VCurr + VPrev)*(6./h) - (XCurr - XPrev)*(12./h/h));
-#endif
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += dw1*XPPRef(iCnt);
-					}
-
-					const Vec3& WPPrev(pNode->GetWPPrev());
-						(void) WPPrev; // silence set but not used warning
-					const Vec3& WPrev(pNode->GetWPrev());
-					const Vec3& WCurr(pNode->GetWCurr());
-
-#if USE_2XmV
-					Vec3 WPRef((WCurr - WPrev)*(2./h) - WPPrev);
-#elif USE_2XpVd3
-					Vec3 WPRef((WCurr - WPrev)*(2./3./h) + WPPrev/3.);
-#elif defined(USE_alphaX_betaV)
-					Vec3 WPRef((WCurr - WPrev)*(USE_alphaX_betaV/h) + WPPrev*(1 - USE_alphaX_betaV));
-#elif USE_X
-					Vec3 WPRef((WCurr - WPrev)/h);
-#endif
-#if 0
-					const Mat3x3& RPrev(pNode->GetRPrev());
-					const Mat3x3& RCurr(pNode->GetRCurr());
-
-					Vec3 WPRef(WPPrev + (WCurr + WPrev)*(6./h) - RotManip::VecRot(RCurr.MulMT(RPrev))*(12./h/h));
-#endif
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += dw1*WPRef(iCnt);
-					}
-				}
-			}
-
-			if (dw2 > 0.) {
-				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
-					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
-				{
-					if (!b->second->bIsErgonomy()) {
-						continue;
-					}
-
-					const Body *pBody(Cast<Body>(b->second));
-					doublereal dm(pBody->dGetM()*dw2);
-					Vec3 S(pBody->GetS()*dw2);
-					Mat3x3 J = (pBody->GetJ()*dw2);
-					const StructNode *pNode = pBody->pGetNode();
-					ASSERT(pNode->iGetNumDof() == 6);
-					integer iFirstIndex = pNode->iGetFirstIndex();
-
-					Vec3 BPPrev(pNode->GetXPPPrev()*dm - S.Cross(pNode->GetWPPrev()));
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += BPPrev(iCnt);
-					}
-
-					Vec3 GPPrev(S.Cross(pNode->GetXPPPrev()) + J*pNode->GetWPPrev());
-					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += GPPrev(iCnt);
-					}
-				}
-			}
-			break;
-
-		default:
-			ASSERT(0);
-		}
-
-		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
-		{
-			bool bActive(true);
-			Joint *pJ = Cast<Joint>(j->second, true);
-			if (pJ == 0) {
-				bActive = false;
-				pJ = Cast<Joint>(j->second, false);
-			}
-
-			if ((pJ->bIsPrescribedMotion()
-				|| (iOrder == InverseDynamics::POSITION && pJ->bIsErgonomy())) && bActive)
-			{
-				try {
-					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
-				}
-				catch (Elem::ChangedEquationStructure& e) {
-					ResHdl += WorkVec;
-					ChangedEqStructure = true;
-				}
-
-			} else if (pJ->bIsTorque() || (pJ->bIsPrescribedMotion() && !bActive)) {
-				integer iNumDof = pJ->iGetNumDof();
-				integer iFirstIndex = pJ->iGetFirstIndex();
-				if (iOrder == InverseDynamics::POSITION) {
-					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) = -(*pXCurr)(iFirstIndex + iCnt);
-					}
-
-				} else {
-					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) = 0.;
-					}
-				}
-			}
-		}
-
-		for (ElemContainerType::iterator j = ElemData[Elem::BEAM].ElemContainer.begin();
-			j != ElemData[Elem::BEAM].ElemContainer.end(); ++j)
-		{
-			bool bActive(true);
-			Beam2 *pB = Cast<Beam2>(j->second, true);
-			if (pB == 0) {
-				bActive = false;
-				pB = Cast<Beam2>(j->second, false);
-			}
-
-			if (pB && (iOrder == InverseDynamics::POSITION && pB->bIsErgonomy()) && bActive)
-			{
-				try {
-					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
-				}
-				catch (Elem::ChangedEquationStructure& e) {
-					ResHdl += WorkVec;
-					ChangedEqStructure = true;
-				}
-			}
-		}
-	}
-
 	default:
 		ASSERT(0);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1407,27 +908,23 @@ DataManager::IDDofInit(void)
 
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-      
-	/* Di ogni DofOwner setta il primo indice
-	 * e calcola il numero totale di Dof:
-	 * poichè per il problema inverso non si 
-	 * possono aggiungere incognite diverse
-	 * da posizione (velocità e accelerazione)
-	 * dei nodi e reazioni vincolari, viene
-	 * controllato che gli elementi che aggiungono 
-	 * dof siano solo nodi e vincoli.
-	 * 
-	 * Per problemi mal posti (DoF nodi != Dof vincoli): 
-	 * iTotDofs = (DoF nodi) + (Dof vincoli), altrimenti
-	 * 
-	 * Per problemi ben posti:
-	 * iTotDofs = DoF nodi (= DoF vincoli)
+     
+	/* Sets the first index of every DofOwner and calculates the total number of
+	 * Dof: since it is not possible to add Dofs outside of nodes' positions
+	 * (velocity, accelerations) and constraints reactions, the method checks that
+	 * only elements and nodes are actually adding Dofs.
+	 *
+	 * For ill-posed problems (nodes Dofs != constraints Dofs):
+	 * iTotDofs = (nodes Dofs) + (constraints Dofs)
+	 *
+	 * otherwise
+	 *
+	 * iTotDofs = nodes Dofs (== constraints Dofs)
 	 */
 
 	integer iRealTotDofs = 0;
 	
-	/* Mette gli indici ai DofOwner dei nodi strutturali: */
-	/* contatore dei Dof dei nodi */
+	/* Structural nodes indices: nodes Dofs counter */	
 	integer iNodeIndex = 0;
 
 	NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
@@ -1450,8 +947,7 @@ DataManager::IDDofInit(void)
 	}
 
 	ASSERT(iNodeIndex == iIDNodeTotNumDofs);
-
-	/* Gli indici dei nodi sono ok */
+	/* Node indices are ok */
 	
 	if (bOutputAccels) {
 		for (NodeContainerType::iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
@@ -1461,29 +957,34 @@ DataManager::IDDofInit(void)
 		}
 	}
 
-	/* Se il problema è ben posto, gli indici delle equazioni di vincolo
-	 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
-	 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
-	 * peso nello jacobiano) */
+	/* For well-posed problems, the numbering of the constraints equations
+	 * indices are independent frome the nodes'. Otherwise, the numbering 
+	 * starts from the nodes' indices (to make room for weights matrix in
+	 * the Jacobian)
+	 */
 
-	/* contatore dei Dof dei joint */
+	/* Constraints Dof counters */
 	integer iJointIndex;
 	integer iPrescribedMotionJointIndex;
 	integer iTorqueJointIndex;
 	switch (dynamic_cast<InverseSolver *>(pSolver)->GetProblemType()) {
+	
 	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
+	case InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED:
 		if (iIDNodeTotNumDofs != iIDJointTotNumDofs) {
 			silent_cerr("DataManager::IDDofInit: nodeDoFs=" << iIDNodeTotNumDofs
 				<< " jointDoFs=" << iIDJointTotNumDofs << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+		/* fall-through */
 
-	case InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED:
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:
 		iJointIndex = 0;
 		iPrescribedMotionJointIndex = 0;
 		iTorqueJointIndex = 0;
 		break;
 
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED:
 		iJointIndex = iNodeIndex;
@@ -1545,6 +1046,7 @@ DataManager::IDDofInit(void)
 		silent_cout("Beam2(" << pB->GetLabel() << "): " << sTorque << sPrescribedMotion << sErgonomy << sRightHandSide << std::endl);
 	}
 
+	/*	Useless!
 	switch (dynamic_cast<InverseSolver *>(pSolver)->GetProblemType()) {
 	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
 		ASSERT(iIDNodeTotNumDofs == iIDJointTotNumDofs);
@@ -1554,6 +1056,8 @@ DataManager::IDDofInit(void)
 		iTotDofs = iNodeIndex;
 		break;
 
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED:
 		iTotDofs = iTorqueJointIndex;
@@ -1562,21 +1066,22 @@ DataManager::IDDofInit(void)
 	default:
 		break;
 	}
+	*/
 
 	iTotDofs = iJointIndex;
 
 	DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
 
  
-	/* Crea la struttura dinamica dei Dof */
+	/* Create the Dofs dynamic structure */
 	if (iTotDofs == 0) {
 		silent_cerr("DataManager::IDDofInit: no dofs defined" << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Dofs.resize(iRealTotDofs); /* Inizializza l'iteratore sui Dof */
+	Dofs.resize(iRealTotDofs); /* Dof iterator initialization */
 
-	/* Inizializza la struttura dinamica dei Dof */
+	/* Dof dynamic structure initialization */
 	integer iIndex = DofOwners[0].iFirstIndex;
 	for (integer idx = 0; idx < iRealTotDofs; idx++) {
 		Dofs[idx].iIndex = iIndex++;
@@ -1605,6 +1110,8 @@ DataManager::iIDGetTotNumDofs(void) const
 		ASSERT(iIDNodeTotNumDofs == iIDJointTotNumDofs);
 		return iIDNodeTotNumDofs;
 
+	case InverseDynamics::FULLY_DETERMINED_OVERACTUATED:
+	case InverseDynamics::UNDERDETERMINED_OVERACTUATED:
 	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
 	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED:
 		return iIDNodeTotNumDofs + iIDJointTotNumDofs;
