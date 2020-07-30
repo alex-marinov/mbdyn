@@ -103,7 +103,8 @@ protected:
     Converged MBDyn_CE_CEModel_Converged; // denote whether the coupling variables are converged
     bool bMBDyn_CE_CEModel_DoStepDynamics;         // detect whether CEModel is needed to be simulated and sends back data
     bool bMBDyn_CE_FirstSend;      // whether the current residual is the first or not..
-    
+    bool bMBDyn_CE_Output; // whether C::E codes output the solution at each iteration. 
+
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
     std::vector<double> MBDyn_CE_CEModel_Data; // for reload C::E data in the tight coupling scheme
@@ -118,6 +119,8 @@ public:
     };
 
     std::vector<MBDYN_CE_CEMODELDATA> MBDyn_CE_CEModel_Label; //IDs of coupling bodies and motors in C::E model
+    // MBDyn_CE_CEScale[0]=length_scale, MBDyn_CE_CEScale[1]=mass_scale
+    // MBDyn_CE_CEScale[2]=force_scale, MBDyn_CE_CEScale[3]=torque_scale
     double MBDyn_CE_CEScale[4]; // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEScale * Unit() in Chrono::Engine;
 
 protected:
