@@ -73,7 +73,7 @@ begin: initial value;
 
 	method: ms, .6;
 
-	output: iterations;
+	#output: iterations;
 	# output: residual;
 end: initial value;
 
@@ -177,6 +177,7 @@ begin: elements;
 			drive, node, 2, structural, string, "X[1]", direct,
 			drive, node, 2, structural, string, "XP[1]", direct;
 	*/
+	module load: "libmodule-hfelem";
 	user defined: 99, harmonic excitation,
 		inputs number, 2,
 			node, 2, structural, string, "X[1]", direct,
