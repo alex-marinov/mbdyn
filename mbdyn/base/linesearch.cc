@@ -734,7 +734,7 @@ LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
 
                if (bResConverged && bSolConverged) {
                     return;
-               }	      
+               }
 
                if (bCheck) { // lambda <= dLambdaMinCurr: check for gradient zero
                     bCheckZeroGradient(fCurr, dErr, Tol, iIterCnt);
@@ -821,7 +821,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
 
      iIterCnt = 0;
      bool bRebuildJac = false;
-     bool bResConverged = pGetResTest()->GetType() == NonlinearSolverTest::NONE;     
+     bool bResConverged = pGetResTest()->GetType() == NonlinearSolverTest::NONE;
      bool bSolConverged = pGetSolTest()->GetType() == NonlinearSolverTest::NONE;
      bool bUpdateResidual = true;
      bool bDivergence = false;
@@ -917,7 +917,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                          silent_cout("\t\tSolErr " << dSolErr << '\n');
                     }
                }
-	       
+
                if (bSolConverged && bResConverged) {
                     pNLP->Update(pSol);
 
@@ -1284,7 +1284,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
                          silent_cout("\t\tSolErr " << dSolErr << '\n');
                     }
                }
-	       
+
                if (bResConverged && bSolConverged) {
                     // Use our current solution to update the Jacobian for the next step
                     // unless the Jacobian will be rebuild anyway
