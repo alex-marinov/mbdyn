@@ -65,6 +65,8 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
                     | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
         [ \kw{initial time} , (\ty{real}) \bnt{initial_time} ,
 	    [ \kw{prescribed time step} , (\hty{DriveCaller}) \bnt{time_step} , ] ]
+        [ \kw{RMS test}, 
+	    [ \kw{RMS target}, (\ty{real}) \bnt{RMS target value}, ] ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
         \kw{min periods} , (\ty{integer}) \bnt{min_periods}
         [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
@@ -119,6 +121,15 @@ The list of custom angular frequencies is terminated by the keyword \kw{last};
 \item $\nt{time\_step}$ optional prescribed time step for $t<=\nt{initial\_time}$; $\nt{time\_step}(\nt{initial\_time})$
 needs to be equal to the time step computed by the element for the first forcing frequency.
 
+\item \kw{RMS test} is a keyword to perform the test not on the difference between the values of the test functions,
+but on their RMSs; the relative difference of each test function RMS between two periods needs to be
+$<=\nt{tolerance}$.
+
+\item \kw{RMS target} modifies the RMS convergence test: convergence is achieved if the test function RMS 
+also matches, within $\nt{tolerance}$, the prescribed $\nt{RMS\_target\_value}$. This is
+accomplished by changing the module \kw{amplitude} private data. This option makes sense if and only if
+there is a single test variable.
+
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 
 \item $\nt{max\_periods} > \nt{min\_periods}$ is the maximum number of periods that can be performed for convergence.
@@ -159,9 +170,9 @@ Each output row contains:
 \item[4)] how many periods were required to reach convergence (unsigned)
 \item[5--?)] fundamental frequency coefficient of output signals; for each of them, 
 \begin{itemize}
-	\item the real and the imaginary part are output (pairs of reals) 
+	\item the real and the imaginary part are output, both divided by \kw{amplitude}, (pairs of reals) 
 	if \kw{output format} is either not set or set equal to \kw{complex}
-	\item the magnitude and phase are output (pair of reals)
+	\item the magnitude divided by \kw{amplitude} and phase are output (pair of reals)
 	if \kw{output format} is set equal to \kw{magnitude phase}
 \end{itemize}
 \end{itemize}
@@ -196,7 +207,7 @@ Then, after instantiating the \kw{hfelem}, one must reference the time step driv
 Alternatively, one can use the optional keyword \kw{timestep drive label} to pass the element the label of the timestep drive caller,
 which is directly instantiated by the element.
 
-\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and unit amplitude.
+\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and \kw{amplitude} amplitude.
 This signal must be used to excite the problem (e.g.\ as the multiplier of a force or moment, or a prescribed displacement or rotation).
 For example, in the case of a force:
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -240,7 +251,7 @@ along the (absolute) $y$ direction, scaled by a factor 50, with 90 deg phase del
 \item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
 This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
 
-\item \kw{amplitude}, the amplitude of the excitation signal (currently set to 1).
+\item \kw{amplitude}, the amplitude of the excitation signal (equal to 1, unless \kw{RMS target} is set).
 
 \item \kw{count}, the number of frequencies that have been applied so far.
 
