@@ -339,7 +339,7 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 	// 1. mbdyn writes kinematic coupling variables to buffer;
 	// 2. C::E models reload data;
 	// 3. C::E models read the coupling data from buffer;
-	std::cout << "\tMBDyn::Update()\n";
+	//std::cout << "\tMBDyn::Update()\n";
 	if (bMBDyn_CE_CEModel_DoStepDynamics || bMBDyn_CE_FirstSend)
 	{
 		MBDyn_CE_SendDataToBuf();
@@ -379,10 +379,10 @@ ChronoInterfaceBaseElem::AfterConvergence(const VectorHandler &X,
 	switch (MBDyn_CE_CouplingType)
 	{
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
-		std::cout << "\tMBDyn::AfterConvergence()\n";
+		//std::cout << "\tMBDyn::AfterConvergence()\n";
 		break; // do nothing
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT: 
-		std::cout << "\tMBDyn::AfterConvergence()\n";
+		//std::cout << "\tMBDyn::AfterConvergence()\n";
 		break;
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: // to do
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: // to do
@@ -405,7 +405,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 	switch (MBDyn_CE_CouplingType)
 	{
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
-		std::cout << "\tMBDyn::AfterPredict()\n";
+		//std::cout << "\tMBDyn::AfterPredict()\n";
 		// get time step
 		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep();
 		if(MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel, time_step, bMBDyn_CE_Output))
@@ -418,20 +418,20 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 		MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
 		break; // do nothing
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT:
-		std::cout << "\tMBDyn::AfterPredict()\n";
+		//std::cout << "\tMBDyn::AfterPredict()\n";
 		if(MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		Update(X, XP); // do step dynamics at the first time.
+		Update(X, XP); // integration at the first time.
 		bMBDyn_CE_FirstSend = false;
 		bMBDyn_CE_CEModel_DoStepDynamics = true;
 		MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
 		break;
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: // to do
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: // to do
-	default: // multirate  to do 
+	default: // multirate to do 
 		break; 
 	}
 }
@@ -463,22 +463,21 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 {	
 	if (MBDyn_CE_CouplingType == MBDyn_CE_COUPLING::COUPLING_NONE)
 	{
-		std::cout << "\t\tMBDyn::AssRes()\n";
+		//std::cout << "\t\tMBDyn::AssRes()\n";
 		WorkVec.Resize(0);
 		return WorkVec;
 	}
 
 	else if (MBDyn_CE_CouplingType == MBDyn_CE_COUPLING::COUPLING_TIGHT)
 	{
-		std::cout << "\tMBDyn::AssRes()\n";
+		//std::cout << "\tMBDyn::AssRes()\n";
 		
 		if(bMBDyn_CE_CEModel_DoStepDynamics)
 		{
-			std::cout << "\t\tAss_Coupling_Error()\n";
-
+			// std::cout << "\t\tAss_Coupling_Error()\n";
 			// read coupling force from the buffer;
 			MBDyn_CE_RecvDataFromBuf();
-			std::cout << "\t\titerations: " << MBDyn_CE_CouplingIter_Count << "\n";
+			//std::cout << "\t\titerations: " << MBDyn_CE_CouplingIter_Count << "\n";
 			MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
 			bMBDyn_CE_CEModel_DoStepDynamics = true;
 			if (MBDyn_CE_CouplingIter_Count > 0)
@@ -489,11 +488,11 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 				{
 					MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
 					bMBDyn_CE_CEModel_DoStepDynamics = false; // C::E don't do time integration until next step;
-					std::cout << "\t\tCoupling error: " << mbdynce_error << "\n";
+					//std::cout << "\t\tCoupling error: " << mbdynce_error << "\n";
 				}
 				else
 				{
-					std::cout << "\t\tCoupling error: " << mbdynce_error << "\n";
+					//std::cout << "\t\tCoupling error: " << mbdynce_error << "\n";
 				}
 			}
 			MBDyn_CE_CouplingIter_Count++;
@@ -538,7 +537,7 @@ ChronoInterfaceBaseElem::InitialAssJac(
 	switch (MBDyn_CE_CouplingType)
 	{
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
-		std::cout << "\tInitialAssJac()\n";
+		//std::cout << "\tInitialAssJac()\n";
 		break; // do nothing
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT: // do nothing
 		break;
@@ -559,10 +558,10 @@ ChronoInterfaceBaseElem::InitialAssRes(
 	switch (MBDyn_CE_CouplingType)
 	{
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
-		std::cout << "\tInitialAssRes()\n";
+		//std::cout << "\tInitialAssRes()\n";
 		break; // do nothing
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT: // do nothing
-		std::cout << "\tInitialAssRes()\n";
+		//std::cout << "\tInitialAssRes()\n";
 		break;
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE:	   // do nothing
 	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: // do nothing

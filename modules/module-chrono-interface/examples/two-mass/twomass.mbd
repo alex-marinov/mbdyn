@@ -8,22 +8,26 @@ end: data;
 begin: initial value;
   initial time: 0.0;
   time step: 1e-3;
-  final time: 0.1;
+  final time: 0.001;
 
   method: ms, 0.56;
   linear solver: naive, colamd;
-	nonlinear solver: newton raphson, modified, 5;
+	#nonlinear solver: newton raphson, modified, 5;
+  nonlinear solver: newton raphson, modified, 5;
 
 	tolerance: 1e-10;
 	max iterations: 30;
 
 	#derivatives coefficient: 1e-9;
-	#derivatives tolerance: 1e-6;
-	derivatives max iterations: 100;
-
+	#derivatives tolerance: 1e9;
+  #derivatives tolerance: 1e-6;
+	derivatives max iterations: 10;
+  #output: iterations;
+  #output: residual;
 end: initial value;
 
 begin: control data;
+  #skip initial joint assembly;
   #default output: none;#, structural nodes;
   structural nodes:
   +1 #GROUND
@@ -40,13 +44,14 @@ begin: control data;
   +1 #constraint between slider and Ground
   ;
 
- forces:
-  +1 #external
+  forces:
+  #+1 #external
   ;
- loadable elements:
- +1
- ;
-
+  loadable elements:
+  +1
+  ;
+  gravity;
+  output frequency: 10;#10;
 end: control data;
 
 set: const integer GROUND = 0;
@@ -87,7 +92,7 @@ begin: nodes;
     reference, MASS_1, eye,
     reference, MASS_1, initial_velocity,.0,.0,
     reference, MASS_1, null,
-    accelerations, yes;
+    accelerations, no;
 end: nodes;
 
 begin: elements;
@@ -107,26 +112,37 @@ begin: elements;
         K*initial_length,
         C*initial_length;
 
-  joint: 2,
-    prismatic,
-      GROUND,
-        orientation, eye,
-      MASS_1,
-        orientation, eye;
+  joint: 2, total joint,
+		GROUND,
+			position, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,
+		MASS_1,
+			position, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,
+		position constraint, 0, 1, 1, null,
+		orientation constraint, 1, 1, 1, null,
+			# output, yes;
+			output, no;
 
   body: MASS_1, MASS_1,
     mass,
     null,
     diag, 1.0, 1.0, 1.0;
 
-
-  #force using mbdyn as comparision.
-  force: SPRING_1, absolute,
-         MASS_1,
-          position, .0,.0,.0,
-            1,0,0,
-            const, 10.
-            ;
   module load: "libmodule-chrono-interface";
-  user defined: SPRING_1, ChronoInterface;
+  user defined: SPRING_1, ChronoInterface,
+                coupling,tight,4,
+                tolerance, 0.001, # just coupling, none, coupling, tight
+                length scale, 1000.0,
+                mass scale, 1.0,# length scale, force scale...
+                nodes number, 1, # nodes number, 1,
+                MASS_1, offset, null, 1,
+                ground, 0,
+                position, 1.0,0.0,0.0,
+                orientation, eye;
+
+  gravity: uniform, 0., -1., 0.,
+                    const, 9.81;
 end: elements;

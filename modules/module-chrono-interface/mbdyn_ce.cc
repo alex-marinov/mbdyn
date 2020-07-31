@@ -276,7 +276,7 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		return 1;
 	}
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel; // static_cast?
-	std::cout << "\t\tCE_models DataSave():\n";
+	//std::cout << "\t\tCE_models DataSave():\n";
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
 	unsigned int vector_size = MBDyn_CE_CEModel_Data.size();
@@ -331,7 +331,6 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		MBDyn_CE_CEModel_Data[i_rot_dtdt+3] = body_rot_dtdt.e3();
 	}
 	MBDyn_CE_CEModel_Data[tempsys_size-1] = tempsys->GetChTime();
-	std::cout << "\t\tsave time: " << MBDyn_CE_CEModel_Data[tempsys_size - 1] << "\n";
 	return 0;
 }
 
@@ -346,7 +345,7 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		std::cout << "Error: the C::E model pointer is NULL.\n";
 		return 1;
 	}
-	std::cout << "\t\tCE_models DataReload():\n";
+	//std::cout << "\t\tCE_models DataReload():\n";
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; // +1 Chtime: Sys_size=body_size + 1(for time);
@@ -405,7 +404,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 		std::cout << "Error: the C::E model pointer is NULL.\n";
 		return 1;
 	}
-	std::cout << "\t\tCE_models DoStepDynamics():\n";
+	//std::cout << "\t\tCE_models DoStepDynamics():\n";
 
 	// it's not a good idea to do this convert or using static_cast/dynamic_cast?
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
@@ -477,7 +476,7 @@ bool bMBDyn_CE_Output)
 		std::cout << "Error: the C::E model pointer is NULL.\n";
 		return 1;
 	}
-	std::cout << "\t\tCE_models RecvFromMBDyn():\n";
+	//std::cout << "\t\tCE_models RecvFromMBDyn():\n";
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	// 1. obtain the data;
 	// 2. transfer it to the coordinate in C::E;
@@ -633,7 +632,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 		std::cout << "\t\tCE_models SendToMBDyn() fails:\n";
 		return 1;
 	}
-	std::cout << "\t\tCE_models SendToMBDyn():\n";
+	//std::cout << "\t\tCE_models SendToMBDyn():\n";
 	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
 	// obtain the transform matrix
 	ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
@@ -668,7 +667,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 			mbdynce_ce_torque_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(motor_i->Get_react_torque());
 			mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_force_G);
 			mbdynce_mbdyn_torque = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_torque_G);
-			if (true)
+			if (false)
 			{
 				std::cout << "\t\tcoupling forces_f: " << mbdynce_mbdyn_force << "\n";
 				std::cout << "\t\tcoupling forces_q: " << mbdynce_mbdyn_torque << "\n";

@@ -1,0 +1,215 @@
+#example.
+#two two-mass oscillators.
+#multi-node co-simulation
+
+begin: data;
+  problem: initial value;
+end: data;
+
+begin: initial value;
+  initial time: 0.0;
+  time step: 1e-5;
+  final time: 0.5;
+
+  method: ms, 0.56;
+  linear solver: naive, colamd;
+	#nonlinear solver: newton raphson, modified, 5;
+  nonlinear solver: newton raphson, modified, 5;
+
+	tolerance: 1e-10;
+	max iterations: 30;
+
+	#derivatives coefficient: 1e-9;
+	#derivatives tolerance: 1e9;
+  #derivatives tolerance: 1e-6;
+	derivatives max iterations: 10;
+  #output: iterations;
+  #output: residual;
+end: initial value;
+
+begin: control data;
+  #skip initial joint assembly;
+  #default output: none;#, structural nodes;
+  structural nodes:
+  +1 #GROUND
+  +1 #slider 1
+  +1 #slider 2
+  ;
+
+  rigid bodies:
+  +1 #slider 1
+  +1 #slider 2
+  ;
+
+  joints:
+  +1 #clamp
+  +1 #spring 1 between slider 1 and GROUND
+  +1 #constraint 1 between slider 1 and GROUND
+  +1 #spring 2 between slider 2 and GROUND
+  +1 #contraint 2 between slider 2 and GROUND
+  ;
+
+  forces:
+  #+1 #external
+  ;
+  loadable elements:
+  +1
+  ;
+  gravity;
+  output frequency: 10;
+end: control data;
+
+set: const integer GROUND = 0;
+set: const integer MASS_1 = 1;
+set: const integer MASS_2 = 2;
+set: const integer GROUND_2 = 3;
+
+set: const integer SPRING_1 = 1;
+set: const integer CONSTRAINT_1 = 2;
+set: const integer SPRING_2 = 3;
+set: const integer CONSTRAINT_2 = 4;
+
+set: const real mass=1.0;
+set: const real initial_length=1.0e0;
+set: const real K = 5000;#100.0
+set: const real C = 0.0;
+set: const real initial_position_1 = 1.0;
+set: const real initial_velocity_1 = 0.1;
+set: const real initial_position_2 = 2.0;
+set: const real initial_velocity_2 = 0.1;
+
+reference: GROUND,
+  reference, global, null,
+  reference, global, eye,
+  reference, global, null,
+  reference, global, null;
+
+reference: GROUND_2,
+  reference, global, initial_position_2 + initial_length, 0.0, 0.0,
+  reference, global, eye,
+  reference, global, null,
+  reference, global, null;
+
+reference: MASS_1,
+  reference, GROUND, initial_position_1, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+
+reference: MASS_2,
+  reference, GROUND, initial_position_2, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+
+begin: nodes;
+  structural: GROUND,
+    static,
+    reference, GROUND, null,
+    reference, GROUND, eye,
+    reference, GROUND, null,
+    reference, GROUND, null,
+    output, no;
+
+  structural: MASS_1,
+    dynamic,
+    reference, MASS_1, null,
+    reference, MASS_1, eye,
+    reference, MASS_1, initial_velocity_1,.0,.0,
+    reference, MASS_1, null,
+    accelerations, no;
+
+  structural: MASS_2,
+    dynamic,
+    reference, MASS_2, null,
+    reference, MASS_2, eye,
+    reference, MASS_2, initial_velocity_2,.0,.0,
+    reference, MASS_2, null,
+    accelerations, no;
+end: nodes;
+
+begin: elements;
+  joint: GROUND,
+    clamp,
+    GROUND,
+    node,
+    node;
+
+  joint: SPRING_1,
+    rod,
+      GROUND,
+        position, reference, GROUND, null,
+      MASS_1,
+        position, reference, MASS_1, null,
+      initial_length,
+      linear viscoelastic,
+        K*initial_length,
+        C*initial_length;
+
+  joint: CONSTRAINT_1, total joint,
+		GROUND,
+			position, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,
+		MASS_1,
+			position, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,
+		position constraint, 0, 1, 1, null,
+		orientation constraint, 1, 1, 1, null,
+			# output, yes;
+			output, no;
+
+  joint: SPRING_2,
+      rod,
+        GROUND,
+          position, reference, GROUND_2, null,
+        MASS_2,
+          position, reference, MASS_2, null,
+        initial_length,
+        linear viscoelastic,
+          K*initial_length,
+          C*initial_length;
+
+  joint: CONSTRAINT_2, total joint,
+  	GROUND,
+  		position, null,
+  		position orientation, reference, global, eye,
+  		rotation orientation, reference, global, eye,
+  	MASS_2,
+  		position, null,
+  		position orientation, reference, global, eye,
+  		rotation orientation, reference, global, eye,
+  		position constraint, 0, 1, 1, null,
+  		orientation constraint, 1, 1, 1, null,
+  			# output, yes;
+  	output, no;
+
+
+  body: MASS_1, MASS_1,
+    mass,
+    null,
+    diag, 1.0, 1.0, 1.0;
+
+
+  body: MASS_2, MASS_2,
+    mass,
+    null,
+    diag, 1.0, 1.0, 1.0;
+
+  module load: "libmodule-chrono-interface";
+  user defined: SPRING_1, ChronoInterface,
+                coupling,tight,4,
+                tolerance, 0.001, # just coupling, none, coupling, tight
+                length scale, 1.0,
+                mass scale, 1.0,# length scale, force scale...
+                nodes number, 2, # nodes number, 1,
+                MASS_1, offset, null, 1,
+                MASS_2, offset, null, 2,
+                ground, 0,
+                position, reference, MASS_1, null,
+                orientation, eye;
+
+  gravity: uniform, 0., -1., 0.,
+                    const, 9.81;
+end: elements;
