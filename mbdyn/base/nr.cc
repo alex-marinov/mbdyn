@@ -100,6 +100,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	pPrevNLP = pNLP;
 	dSolErr = 0.;
 
+	bool bResConverged = pGetResTest()->GetType() == NonlinearSolverTest::NONE;
+	bool bSolConverged = pGetSolTest()->GetType() == NonlinearSolverTest::NONE;
 	doublereal dOldErr = 0.;
 	doublereal dErrFactor = 1.;
 	doublereal dErrDiff = 0.;
@@ -134,7 +136,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * in the output (maybe we could conditionally disable 
 		 * it?) */
 
-		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
+		bResConverged = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 
 		if (outputRes()) {
 			pS->PrintResidual(*pRes, iIterCnt);
@@ -184,7 +186,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		
 		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
-		if (bTest) {
+		if (bResConverged && bSolConverged) {
 			return;
 		}
       		
@@ -267,7 +269,7 @@ rebuild_matrix:;
 
 		pNLP->Update(pSol);
 		
-		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
+		bSolConverged = MakeSolTest(pS, *pSol, SolTol, dSolErr);
 
 		if (outputIters()) {
 #ifdef USE_MPI
@@ -279,8 +281,8 @@ rebuild_matrix:;
 			}
 		}
 
-		if (bTest) {
-			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
+		if (bResConverged && bSolConverged) {
+		     return;
 		}
 
 		// allow to bail out in case of multiple CTRL^C
