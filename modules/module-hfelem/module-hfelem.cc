@@ -514,7 +514,9 @@ RMS_cur_idx(0)
 		if (HP.IsKeyWord("prescribed" "time" "step")) {
 			DriveCaller *pDC = HP.GetDriveCaller();
 			DriveOwner::Set(pDC);
-			if (pDC->dGet(m_dTInit) != m_dDeltaT) {
+			//if (pDC->dGet(m_dTInit) != m_dDeltaT) {
+			//Biondani
+			if (std::abs(pDC->dGet(m_dTInit) - m_dDeltaT)/m_dDeltaT > 1.0e-5 ) {
 				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): Prescribed initial time step "
 					<< pDC->dGet(m_dTInit) <<
 					"\nevaluated at the initial time t = " << m_dTInit <<
