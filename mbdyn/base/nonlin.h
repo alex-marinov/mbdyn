@@ -84,6 +84,8 @@ public:
 
 	virtual ~NonlinearSolverTest(void);
 
+        virtual Type GetType() const=0;
+
 	/* loops over the vector Vec */
 	virtual doublereal MakeTest(Solver *pS, const integer& Size,
 			const VectorHandler& Vec, bool bResidual = false,
@@ -107,6 +109,7 @@ public:
 
 class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
 public:
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
@@ -118,6 +121,7 @@ public:
 
 class NonlinearSolverTestNorm : virtual public NonlinearSolverTest {
 public:
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
@@ -127,6 +131,7 @@ public:
 
 class NonlinearSolverTestMinMax : virtual public NonlinearSolverTest {
 public:
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
@@ -147,6 +152,7 @@ public:
 class NonlinearSolverTestScaleNorm : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestNorm {
 public:
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
@@ -157,6 +163,7 @@ public:
 class NonlinearSolverTestScaleMinMax : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestMinMax {
 public:
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
@@ -180,7 +187,7 @@ public:
 	virtual doublereal MakeTest(Solver *pS, const integer& Size,
 		const VectorHandler& Vec, bool bResidual = false);
 #endif
-
+        virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 
