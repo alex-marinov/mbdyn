@@ -472,8 +472,8 @@ void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        doublereal ALPHA,
                                        doublereal BETA) const
 {
-        ASSERT((strcmp("N", TRANSA) == 0 && out_nr == iGetNumRows() && in_nr == iGetNumCols()) ||
-               (strcmp("T", TRANSA) == 0 && out_nr == iGetNumCols() && in_nr == iGetNumRows()));
+        ASSERT((strcmp("N", TRANSA) == 0 && m == iGetNumRows() && n == iGetNumCols()) ||
+               (strcmp("T", TRANSA) == 0 && n == iGetNumCols() && m == iGetNumRows()));
 
 	CBLAS_TRANSPOSE TA, TB;
 	if (strcmp("N", TRANSA) == 0) TA = CblasNoTrans;
@@ -534,8 +534,8 @@ void FullMatrixHandler::BlasMatrixOp(const char* TRANSA,
                                        doublereal ALPHA,
                                        doublereal BETA) const
 {
-        ASSERT((strcmp("N", TRANSA) == 0 && out_nr == iGetNumRows() && in_nr == iGetNumCols()) ||
-               (strcmp("T", TRANSA) == 0 && out_nr == iGetNumCols() && in_nr == iGetNumRows()));
+        ASSERT((strcmp("N", TRANSA) == 0 && m == iGetNumRows() && k == iGetNumCols()) ||
+               (strcmp("T", TRANSA) == 0 && m == iGetNumCols() && k == iGetNumRows()));
         
         __FC_DECL__(dgemm)(TRANSA,
                            TRANSB,
