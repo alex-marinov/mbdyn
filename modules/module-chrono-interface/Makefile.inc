@@ -22,11 +22,12 @@
 # ### sudo vim /etc/ld.so.conf;
 # ### sudo ldconfig
 # 5. copy your shared libraries to /lib or /usr/lib (default path)
-#LIBPATH=/home/runsen/Documents/GSoC/C::E_models
-LIBPATH=/home/runsen/Downloads/GSoC2020/build_cemodels/multinode
+LIBPATH=/home/runsen/Documents/GSoC/C::E_models
+#LIBPATH=/home/runsen/Downloads/GSoC2020/build_cemodels/multinode
 
 # the header for the funcs “mbdyn_ce.h”.
 MODULE_INCLUDE = -I .
 # link the shared library “libCE_models.so”
 # add your C::Emodel shared library
-MODULE_LINK= -L$(LIBPATH) -lCE_models_multinode
+#MODULE_LINK= -L$(LIBPATH) -lCE_models_multinode
+MODULE_LINK= -L$(LIBPATH) -lCE_models

@@ -86,10 +86,20 @@ const int& MBDyn_CE_CouplingType)
 			unsigned mbdynce_temp_ground_id = MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEBody_Label; // ground ID is set in the last element
 			MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEMotor_Label = 0;								 // the last label is invalid
 			auto mbdynce_temp_ground = pMBDyn_CE_CEModel->SearchBodyID(mbdynce_temp_ground_id);
+			if (mbdynce_temp_ground == NULL)
+			{
+				std::cout << "\t\tCannot find C::E ground\n";
+				return NULL;
+			}
 			for (unsigned i = 0; i < mbdynce_temp_bodies_num; i++)
 			{
 				unsigned body_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label;
 				auto body_i = pMBDyn_CE_CEModel->SearchBodyID(body_i_id);
+				if (body_i == NULL)
+				{
+					std::cout << "\t\tCannot find C::E body " << body_i_id << "\n";
+					return NULL;
+				}
 				auto motor3d_body_i = std::make_shared<ChLinkMotionImposed>();
 				motor3d_body_i->Initialize(body_i,
 										   mbdynce_temp_ground,
@@ -97,7 +107,7 @@ const int& MBDyn_CE_CouplingType)
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)), // By default: using the mass center and the body orientation
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)));
 				pMBDyn_CE_CEModel->Add(motor3d_body_i);
-				auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>(); // impose veloctiy:: TO DO !!!!!!!
+				auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>();
 				auto motor3d_function_rot = std::make_shared<ChFunctionRotation_spline>();
 				motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 				motor3d_body_i->SetRotationFunction(motor3d_function_rot);
