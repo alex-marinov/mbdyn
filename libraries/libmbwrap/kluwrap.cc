@@ -333,7 +333,9 @@ pMatScale(0)
 
 KLUSparseSolutionManager::~KLUSparseSolutionManager(void)
 {
-	SAFEDELETE(pMatScale);
+	if (pMatScale) {
+		SAFEDELETE(pMatScale);
+	}
 }
 
 void
