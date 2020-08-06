@@ -66,7 +66,8 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
         [ \kw{initial time} , (\ty{real}) \bnt{initial_time} ,
 	    [ \kw{prescribed time step} , (\hty{DriveCaller}) \bnt{time_step} , ] ]
         [ \kw{RMS test}, 
-	    [ \kw{RMS target}, (\ty{real}) \bnt{RMS target value}, ] ]
+	    [ \kw{RMS target}, (\ty{real}) \bnt{RMS target value}, 
+	        [\kw{max amplitude relative difference} , (\ty{real}) \bnt{max_amplitude_relative_difference} , ] ] ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
         \kw{min periods} , (\ty{integer}) \bnt{min_periods}
         [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
@@ -129,6 +130,11 @@ $<=\nt{tolerance}$.
 also matches, within $\nt{tolerance}$, the prescribed $\nt{RMS\_target\_value}$. This is
 accomplished by changing the module \kw{amplitude} private data. This option makes sense if and only if
 there is a single test variable.
+
+\item \kw{max amplitude relative difference}: if the new computed \kw{amplitude} $an$ is such that
+$|an - a| / \min(an, a)  > \nt{max\_amplitude\_relative\_difference}$, where $a$ is the current amplitude,
+re-compute $an$ using a lower-order interpolation method.\\
+Default value: $\nt{max\_amplitude\_relative\_difference} = 2$.
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 

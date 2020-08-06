@@ -81,6 +81,7 @@ private:
 	doublereal m_dPsi;
 	doublereal m_dF;
 	doublereal m_dAmplitude;
+	doublereal m_dAmplitudeRelDiff;
 
 	bool bRMSTest;
 	bool bRMSTestTarget;
@@ -168,7 +169,9 @@ private:
 			}
 			case 1 : {
 				an = a0 + (RMSt - R0) * (a0 - a1) / (R0 - R1);
-				if (an <= 0.) an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 0);
+				if (an <= 0. || std::abs(an - a0) / std::min(an, a0) > m_dAmplitudeRelDiff) {
+					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 0);
+				}
 				break;
 			}
 			case 2 : {
@@ -195,7 +198,10 @@ private:
 				} else if (an2 > 0.) {
 					an = an2;
 				} else {
-					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);;
+					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);
+				}
+				if (std::abs(an - a0) / std::min(an, a0)  > m_dAmplitudeRelDiff) {
+					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);
 				}
 				
 				break;
@@ -265,6 +271,7 @@ m_dMaxDeltaT(std::numeric_limits<doublereal>::max()),
 m_dPsi(0.),
 m_dF(0.),
 m_dAmplitude(1.),
+m_dAmplitudeRelDiff(2.),
 bRMSTest(false),
 bRMSTestTarget(false),
 m_iMaxPeriods(0),
@@ -557,6 +564,16 @@ RMS_cur_idx(0)
 					}
 				}
 			}
+			if (HP.IsKeyWord("max" "amplitude" "relative" "difference"))  {
+					try {
+						m_dAmplitudeRelDiff = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
+					} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
+						silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
+						"max amplitude relative difference value must be positive, at line " << HP.GetLineData() << std::endl);
+						throw e;
+					}
+			}
+
 		}
 	}
 	if (!HP.IsKeyWord("tolerance")) {
