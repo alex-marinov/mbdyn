@@ -592,7 +592,8 @@ void SimplePlaneHingeJointSh_c::dSh_c(
 	const ExpandableRowVector& dfc,
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
-		doublereal dsh_fc = 1./std::sqrt(1.+f*f)-0.5*std::pow(1.+f*f,-3./2.)*f;
+//		doublereal dsh_fc = 1./std::sqrt(1.+f*f)-0.5*std::pow(1.+f*f,-3./2.)*f;
+		doublereal dsh_fc = 1./std::sqrt(1.+f*f)-f*f*std::pow(1.+f*f,-3./2.);
 // 		dShc.ReDim(2);
 // 		dShc.Set(0.,1);
 // 		dShc.Link(1,&dF);
