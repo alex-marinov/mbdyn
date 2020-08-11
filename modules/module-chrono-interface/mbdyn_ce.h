@@ -51,14 +51,20 @@ functions/variables for C::E Model:MBDyn_CE_CEModel_XxxYyy
 
 extern "C" {
 // IDs of coupling bodies and motors in C::E
+// a set of IDs
+// Body_Label: body label in C::E;
+// Motor_Label: motor label in C::E;
+// bool output: output the body motion in C::E;
 struct MBDYN_CE_CEMODELDATA{
-        unsigned MBDyn_CE_CEBody_Label;
-        unsigned MBDyn_CE_CEMotor_Label;
-    };
+    unsigned MBDyn_CE_CEBody_Label;
+    unsigned MBDyn_CE_CEMotor_Label; 
+    bool bMBDyn_CE_CEBody_Output;
+};
 //opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
 
 pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init(std::vector<double> & MBDyn_CE_CEModel_DataSave, // space for data save
+                                          const int MBDyn_CE_CEMotorType, // motor type
                                           const double* pMBDyn_CE_CEFrame, const double* MBDyn_CE_CEScale, // coupling information: ground ref and scale for units
                                           std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label, // coupling information: coupling bodies
                                           const int & MBDyn_CE_CouplingType); // coupling information: coupling type
@@ -82,8 +88,9 @@ MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
                                   const std::vector<double> &MBDyn_CE_CouplingKinematic,
                                   const unsigned &MBDyn_CE_NodesNum,
                                   const std::vector<MBDYN_CE_CEMODELDATA> &MBDyn_CE_CEModel_Label,
+                                  const int MBDyn_CE_CEMotorType,
                                   double time_step,
-                                  bool bMBDyn_CE_Output);
+                                  bool bMBDyn_CE_Verbose);
 
 
 // C::E models send coupling forces to the buffer
@@ -96,7 +103,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 
 // update CEModel, and do time integration.
 int
-MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step, bool bMBDyn_CE_Output);
+MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double time_step, bool bMBDyn_CE_Verbose);
 
 // save CEModel at current step for reloading it in the tight coupling scheme
 // (before advance())
@@ -108,20 +115,13 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 int
 MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
                         std::vector<double> & MBDyn_CE_CEModel_Data);
-// destroy
-//extern void
-//MBDyn_CE_destroy(MBDyn_CE_t *);
 
-// add if needed
-//extern void
-//MBDyn_CE_AfterPredict(MBDyn_CE_t *);
+// write data to files. 
+int 
+MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
+                    const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
+                    double *pMBDyn_CE_CEFrame,  const double* MBDyn_CE_CEScale,
+                    std::ostream & out);
 
-// add arguments as needed
-//extern void
-//MBDyn_CE_Exchange(MBDyn_CE_t *, double *x, double *R, double *f, double *m);
-
-// add if needed
-//extern void
-//MBDyn_CE_AfterConvergence(MBDyn_CE_t *);
 }
 #endif // MBDYN_CE_H
