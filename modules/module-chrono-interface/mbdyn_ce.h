@@ -99,7 +99,8 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
                                 double* pMBDyn_CE_CEFrame,
                                 const unsigned& MBDyn_CE_NodesNum,
                                 const double* MBDyn_CE_CEScale,
-                                const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label);
+                                const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
+                                bool bMBDyn_CE_Verbose);
 
 // update CEModel, and do time integration.
 int

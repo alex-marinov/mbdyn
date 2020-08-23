@@ -193,11 +193,17 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].MBDyn_CE_CEMotor_Label = 0; // invalid ID. 
 		MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = false; // by default, not output information of the Ground Body.
 		bMBDyn_CE_Output = false;
-		std::cout<<"changing 1\n";
+
 		for (int i = 0; i < MBDyn_CE_NodesNum; i++)
 		{
 			MBDyn_CE_Nodes[i].pMBDyn_CE_Node = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP); // nodes in MBDyn model
-			std::cout<<"changing 2\n";
+			const DynamicStructNode *temp_pMBDyn_CE_Node = dynamic_cast<const DynamicStructNode *>(MBDyn_CE_Nodes[i].pMBDyn_CE_Node);
+			if(temp_pMBDyn_CE_Node==NULL)
+			{
+				silent_cerr("The node" << MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel()<< " at line " << HP.GetLineData() << "is not a dynamic structual node"<<std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			const_cast<DynamicStructNode *> (temp_pMBDyn_CE_Node)->ComputeAccelerations(true);
 			ReferenceFrame pNode_RF(MBDyn_CE_Nodes[i].pMBDyn_CE_Node); //get its coordinate
 			if (HP.IsKeyWord("offset")){
 				MBDyn_CE_Nodes[i].MBDyn_CE_Offset = HP.GetPosRel(pNode_RF); // return offset in the node coordinate
@@ -267,7 +273,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				}
 			}
 			bMBDyn_CE_Output = (bMBDyn_CE_Output || MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output);
-			std::cout<<"changing 3\n";
 			for (unsigned i = 0; i < 3; i++)
 			{
 				mbdyn_ce_ref_x[i] = (mbdyn_ce_ref_x_Vec3.pGetVec())[i] * MBDyn_CE_CEScale[0];
@@ -296,7 +301,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			// do nothing
 		}
 	}
-	std::cout<<"changing 4\n";
 	/* read information from script - end*/
 	
 	/* initial public vectors (containers for the coupling variables) - start*/
@@ -423,7 +427,7 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		// write coupling force to MBDyn_CE_CouplingDynamic
-		if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label))
+		if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label, bMBDyn_CE_Verbose))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") C::E writting force process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -567,7 +571,6 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 
 			WorkVec.Add(i*iOffset + 1, point.MBDyn_CE_F);
 			WorkVec.Add(i*iOffset + 4, point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr()*point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F)); // AssJac
-
 			// save the force of last iteration
 			memcpy(&pMBDyn_CE_CouplingDynamic_f_pre[3 * i], &pMBDyn_CE_CouplingDynamic_f[3 * i], 3 * sizeof(double));
 			memcpy(&pMBDyn_CE_CouplingDynamic_m_pre[3 * i], &pMBDyn_CE_CouplingDynamic_m[3 * i], 3 * sizeof(double));
@@ -643,8 +646,10 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf()
 		const MBDYN_CE_POINTDATA& mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
 		// rotation and position
 		const Mat3x3 & mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
+		//const Mat3x3 & mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRPrev(); // using the rot at last step;
 		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
 		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXCurr() + mbdynce_f;
+		//Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXPrev() + mbdynce_f; // using the pos at last step;
 		// angular velocity and velocity
 		const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWCurr();
 		Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);

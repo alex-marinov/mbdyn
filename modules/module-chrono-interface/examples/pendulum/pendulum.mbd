@@ -39,7 +39,7 @@ end: data;
 begin: initial value;
   initial time: 0.0;
   time step: 1e-3;
-  final time: 0.001;
+  final time: 5000*0.001;
 
   method: ms, 0.50;
   linear solver: naive, colamd;
@@ -73,8 +73,8 @@ end: control data;
 
 set: const real PI=3.141592653589793238462643;
 set: const real L = 0.2;
-set: const real V0 = 0.0;
-set: const real alpha=30.0/180.0*PI;
+set: const real V0 = 1.0;
+set: const real alpha=0.0/180.0*PI;
 
 begin: nodes;
 	# in zero, with horizontal speed
@@ -84,8 +84,13 @@ begin: nodes;
 		matr, cos(alpha), -sin(alpha), 0.0,
     sin(alpha), cos(alpha),  0.0,
     0.0,        0.0,         1.0,
-		V0, 0., 0.,	# initial velocity (1 m/s in y)
-		0., 0., V0/L;	# angular velocity
+		orientation description, euler321,
+		#matr, 1.0,  0.0,  0.0,
+    #			0.0,  0.0,  1.0,
+    #			0.0, -1.0,  0.0,
+		V0*cos(alpha),V0*sin(alpha),0.0,	# initial velocity (1 m/s in y)
+		0.0,  0.0, V0/L,
+		accelerations, yes;	# angular velocity
 end: nodes;
 
 begin: elements;
@@ -113,17 +118,21 @@ begin: elements;
 
   module load: "libmodule-chrono-interface";
   user defined: 1, ChronoInterface,
-                coupling,tight,4,
-                tolerance, 0.001, # just coupling, none, coupling, tight
+                coupling,tight,20,
+                tolerance, 0.0001, # just coupling, none, coupling, tight
+								motor type, setpoint,#spline,#
                 length scale, 1000.0,
                 mass scale, 1.0,# length scale, force scale...
                 nodes number, 1, # nodes number, 1,
                 1,
 								offset, 0.0, -L,0.0,
+								#offset, L*sin(alpha), 0.0, -L*cos(alpha), # default: relative to the node reference.
 								1, # the last number denote the ID of bodies in C::E model
+								output, yes,
                 ground, 0,# ground bodies in C::E model
-								position, L*sin(alpha), -L*cos(alpha),0.0,
-								orientation, eye; # body ID, position, orientation
+								position, L*sin(alpha), -L*cos(alpha),0.0, #default: relative to global
+								orientation, eye, # body ID, position, orientation
+								verbose, no;
 
 	gravity: uniform, 0., -1., 0., const, 9.81;
 end: elements;

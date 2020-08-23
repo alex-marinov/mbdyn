@@ -201,14 +201,17 @@ begin: elements;
   user defined: SPRING_1, ChronoInterface,
                 coupling,tight,4,
                 tolerance, 0.001, # just coupling, none, coupling, tight
+                motor type, spline,#setpoint,#
                 length scale, 1.0,
                 mass scale, 1.0,# length scale, force scale...
                 nodes number, 2, # nodes number, 1,
                 MASS_1, offset, null, 1,
                 MASS_2, offset, null, 2,
+                output, yes,
                 ground, 0,
                 position, reference, MASS_1, null,
-                orientation, eye;
+                orientation, eye,
+                verbose, no;
 
   gravity: uniform, 0., -1., 0.,
                     const, 9.81;

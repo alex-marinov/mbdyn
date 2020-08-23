@@ -8,7 +8,7 @@ end: data;
 begin: initial value;
   initial time: 0.0;
   time step: 1e-3;
-  final time: 0.001;
+  final time:1*0.001;
 
   method: ms, 0.56;
   linear solver: naive, colamd;
@@ -22,7 +22,7 @@ begin: initial value;
 	#derivatives tolerance: 1e9;
   #derivatives tolerance: 1e-6;
 	derivatives max iterations: 10;
-  #output: iterations;
+  output: iterations;
   #output: residual;
 end: initial value;
 
@@ -51,7 +51,7 @@ begin: control data;
   +1
   ;
   gravity;
-  output frequency: 10;#10;
+  output frequency: 1;#10;
 end: control data;
 
 set: const integer GROUND = 0;
@@ -62,8 +62,9 @@ set: const real mass=1.0;
 set: const real initial_position = 1.0e0;
 set: const real initial_length=1.0e0;
 set: const real initial_velocity=0.1;
-set: const real K = 5000;#100.0
+set: const real K = 0.0;#5000.0
 set: const real C = 0.0;
+set: const real alpha=30.0*deg2rad; # angle with respect to axis z
 
 reference: GROUND,
   reference, global, null,
@@ -89,7 +90,10 @@ begin: nodes;
   structural: MASS_1,
     dynamic,
     reference, MASS_1, null,
-    reference, MASS_1, eye,
+    #reference, MASS_1, eye,
+    matr, cos(alpha), -sin(alpha), 0.0,
+          sin(alpha), cos(alpha),  0.0,
+          0.0,        0.0,         1.0,
     reference, MASS_1, initial_velocity,.0,.0,
     reference, MASS_1, null,
     accelerations, no;
@@ -133,15 +137,17 @@ begin: elements;
 
   module load: "libmodule-chrono-interface";
   user defined: SPRING_1, ChronoInterface,
-                coupling,tight,4,
+                coupling,tight,7,
                 tolerance, 0.001, # just coupling, none, coupling, tight
+                motor type, setpoint,#spline,#
                 length scale, 1000.0,
                 mass scale, 1.0,# length scale, force scale...
                 nodes number, 1, # nodes number, 1,
-                MASS_1, offset, null, 1,
+                MASS_1, offset, null, 1, output, yes,
                 ground, 0,
                 position, 1.0,0.0,0.0,
-                orientation, eye;
+                orientation, eye,
+                verbose, yes;
 
   gravity: uniform, 0., -1., 0.,
                     const, 9.81;
