@@ -54,7 +54,7 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
             (\hty{DriveCaller}) \bnt{input_signal}
                     [ \{ \kw{test} | \kw{output} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
                 [ , ... ] , # \nt{inputs_number} occurrences
-        [\kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \},]
+        [\kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \}, [\kw{normalized} ,]]
 	\kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
         [\kw{max delta t} , (\ty{real}) \bnt{max_delta_t} ,]
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
@@ -90,7 +90,8 @@ If \kw{test} is \kw{true}, the signal will be used to evaluate convergence, othe
 If \kw{output} is \kw{true}, the fundamental harmonic of the signal will appear in the output, otherwise it will be ignored;
 by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used, the signal is used to test for convergence and appears in the output;
 
-\item \kw{output format}; coose the output format: either \kw{complex} (defualt) of \kw{magnitude phase} (see
+\item \kw{output format}; coose the output format: either \kw{complex} (default) of \kw{magnitude phase};
+if \kw{normalized} the output is normalized with respect to the \kw{amplitude} (see
 \ref{hfelem_output} for the output description);
 
 \item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
@@ -176,10 +177,13 @@ Each output row contains:
 \item[4)] how many periods were required to reach convergence (unsigned)
 \item[5--?)] fundamental frequency coefficient of output signals; for each of them, 
 \begin{itemize}
-	\item the real and the imaginary part are output, both divided by \kw{amplitude}, (pairs of reals) 
-	if \kw{output format} is either not set or set equal to \kw{complex}
-	\item the magnitude divided by \kw{amplitude} and phase are output (pair of reals)
-	if \kw{output format} is set equal to \kw{magnitude phase}
+	\item the real and the imaginary part are output (pairs of reals) 
+	if \kw{output format} is either not set or set equal to \kw{complex};
+	they are both divided by \kw{amplitude}	if \kw{output format} is \kw{normalized};
+	\item the magnitude and phase are output (pair of reals)
+	if \kw{output format} is set equal to \kw{magnitude phase};
+	the magnitude is divided by \kw{amplitude} if \kw{output format} is \kw{normalized}.
+\item[last)] the \kw{amplitude}
 \end{itemize}
 \end{itemize}
 For example, to plot the results of the first output signal in Octave (or Matlab), one can use:

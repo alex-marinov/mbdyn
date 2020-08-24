@@ -120,6 +120,7 @@ private:
 		Out_COMPLEX,
 		Out_MAGNITUDE_PHASE
 	} m_OutputFormat;
+	bool b_OutputNormalized;
 
 	std::vector<doublereal> m_cos_psi;
 	std::vector<doublereal> m_sin_psi;
@@ -291,6 +292,7 @@ m_bOut(false),
 m_iPeriodOut(0),
 m_dOmegaOut(0.),
 m_OutputFormat(Out_COMPLEX),
+b_OutputNormalized(false),
 RMS_pol_order(0),
 RMS_cur_idx(0)
 {
@@ -391,6 +393,9 @@ RMS_cur_idx(0)
 		} else {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): unknown output format at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		if (HP.IsKeyWord("normalized")) {
+			b_OutputNormalized = true;
 		}
 	}
 
@@ -742,7 +747,11 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
 					if (m_Input[i].m_Flag & HFInput::HF_OUTPUT) {
 						// real imag
-						out << " " << m_Xsin[i] / m_dAmplitude << " " << m_Xcos[i] / m_dAmplitude;
+						if (b_OutputNormalized) {
+							out << " " << m_Xsin[i] / m_dAmplitude << " " << m_Xcos[i] / m_dAmplitude;
+						} else {
+							out << " " << m_Xsin[i] << " " << m_Xcos[i];
+						}
 					}
 				}
 				break;
@@ -751,11 +760,16 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
 					if (m_Input[i].m_Flag & HFInput::HF_OUTPUT) {
 						// magnitude phase
-						out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i])  / m_dAmplitude << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+						if (b_OutputNormalized) {
+							out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i]) / m_dAmplitude << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+						} else {
+							out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i]) << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+						}
 					}
 				}
 				break;
 			}
+			out << " " << m_dAmplitude;
 
 			out << std::endl;
 		}
