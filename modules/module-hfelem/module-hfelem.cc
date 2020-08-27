@@ -103,6 +103,7 @@ private:
 
 	integer m_iOmegaCnt;
 	integer m_iPeriod;
+	integer m_iPeriodRMS;
 	integer m_iPeriodCnt;
 	integer m_iNumSubSteps;
 	integer m_iCurrentStep;
@@ -281,6 +282,7 @@ m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
 m_iOmegaCnt(0),
 m_iPeriod(0),
+m_iPeriodRMS(0),
 m_iPeriodCnt(0),
 m_iNumSubSteps(1),
 m_iCurrentStep(0),
@@ -897,14 +899,19 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 					RMS[RMS_cur_idx][i] = std::sqrt(RMS[RMS_cur_idx][i] / m_iN - SUM[i] * SUM[i] / m_iN / m_iN);
 				}
 				m_bConverged = true;
-				bRMSConverged = true;
+				m_iPeriodRMS++;
+				if (m_iPeriodRMS >= m_iMinPeriods){
+					m_iPeriodRMS=0;
+					bRMSConverged = true;
+				}else
+					bRMSConverged = false;
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
 					if (m_Input[i].m_Flag & HFInput::HF_TEST) {
 						bRMSConverged = bRMSConverged && (std::abs(RMS[RMS_cur_idx][i]-RMSOld[i]) /
 							std::max(RMS[RMS_cur_idx][i], RMSOld[i]) <= m_dTol);
 					}
 				}
-				RMSOld = RMS[RMS_cur_idx];
+
 				m_bConverged = bRMSConverged;
 				if (bRMSConverged && bRMSTestTarget) {
 					for (unsigned i = 0; i < m_Input.size(); ++i) {
@@ -953,6 +960,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 						RMS_pol_order = 0;
 					}
 				}
+				RMSOld = RMS[RMS_cur_idx];
 			}
 		} else {
 			dErr = sqrt(dErr);

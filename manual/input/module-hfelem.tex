@@ -130,7 +130,8 @@ $<=\nt{tolerance}$.
 \item \kw{RMS target} modifies the RMS convergence test: convergence is achieved if the test function RMS 
 also matches, within $\nt{tolerance}$, the prescribed $\nt{RMS\_target\_value}$. This is
 accomplished by changing the module \kw{amplitude} private data. This option makes sense if and only if
-there is a single test variable.
+there is a single test variable. If $\nt{min\_periods}$ is specified then the periods counter
+is reset also for an \kw{amplitude} change, and not only for a frequency change.
 
 \item \kw{max amplitude relative difference}: if the new computed \kw{amplitude} $an$ is such that
 $|an - a| / \min(an, a)  > \nt{max\_amplitude\_relative\_difference}$, where $a$ is the current amplitude,
