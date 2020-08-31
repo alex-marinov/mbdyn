@@ -305,11 +305,14 @@ Rod::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Rod", OH, name);
 
-			Var_dElle = OH.CreateVar<doublereal>(name + "l", "m",
+			Var_dElle = OH.CreateVar<doublereal>(name + "l",
+				OutputHandler::Dimensions::Length,
 				"length of the element");
-			Var_dEllePrime = OH.CreateVar<doublereal>(name + "lP", "m/2",
+			Var_dEllePrime = OH.CreateVar<doublereal>(name + "lP",
+				OutputHandler::Dimensions::Velocity,
 				"lengthening velocity of the element");
-			Var_v = OH.CreateVar<Vec3>(name + "v", "m",
+			Var_v = OH.CreateVar<Vec3>(name + "v",
+				OutputHandler::Dimensions::Dimensionless,
 				"direction unit vector");
 			ConstitutiveLaw1DOwner::OutputAppendPrepare(OH, name + "CL");
 		}

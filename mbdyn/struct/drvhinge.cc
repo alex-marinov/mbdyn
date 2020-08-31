@@ -102,7 +102,8 @@ DriveHingeJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Drive Hinge", OH, name);
 
-			Var_Phi = OH.CreateVar<Vec3>(name + "Theta", "rad",
+			Var_Phi = OH.CreateVar<Vec3>(name + "Theta",
+				OutputHandler::Dimensions::rad,
 				"Relative orientation");
 		}
 #endif // USE_NETCDF

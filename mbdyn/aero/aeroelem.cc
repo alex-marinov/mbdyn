@@ -498,7 +498,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "alpha_" << j;
-					i->Var_alpha = OH.CreateVar<doublereal>(os.str(), "deg",
+					i->Var_alpha = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::deg,
 						gp + " angle of attack");
 				}
 
@@ -506,7 +507,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "gamma_" << j;
-					i->Var_gamma = OH.CreateVar<doublereal>(os.str(), "deg",
+					i->Var_gamma = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::deg,
 						gp + " sideslip angle");
 				}
 
@@ -514,7 +516,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "Mach_" << j;
-					i->Var_Mach = OH.CreateVar<doublereal>(os.str(), "-",
+					i->Var_Mach = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::Dimensionless,
 						gp + " Mach number");
 				}
 
@@ -522,7 +525,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "cl_" << j;
-					i->Var_cl = OH.CreateVar<doublereal>(os.str(), "-",
+					i->Var_cl = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::Dimensionless,
 						gp + " lift coefficient");
 				}
 
@@ -530,7 +534,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "cd_" << j;
-					i->Var_cd = OH.CreateVar<doublereal>(os.str(), "-",
+					i->Var_cd = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::Dimensionless,
 						gp + " drag coefficient");
 				}
 
@@ -538,7 +543,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "cm_" << j;
-					i->Var_cm = OH.CreateVar<doublereal>(os.str(), "-",
+					i->Var_cm = OH.CreateVar<doublereal>(os.str(),
+						OutputHandler::Dimensions::Dimensionless,
 						gp + " moment coefficient");
 				}
 
@@ -546,7 +552,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "X_" << j;
-					i->Var_X = OH.CreateVar<Vec3>(os.str(), "m",
+					i->Var_X = OH.CreateVar<Vec3>(os.str(),
+						OutputHandler::Dimensions::Length,
 						gp + " global position vector (X, Y, Z)");
 				}
 
@@ -561,7 +568,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "V_" << j;
-					i->Var_V = OH.CreateVar<Vec3>(os.str(), "m/s",
+					i->Var_V = OH.CreateVar<Vec3>(os.str(),
+						OutputHandler::Dimensions::Velocity,
 						gp + " global velocity vector (V_X, V_Y, V_Z)");
 				}
 
@@ -569,7 +577,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "Omega_" << j;
-					i->Var_W = OH.CreateVar<Vec3>(os.str(), "radian/s",
+					i->Var_W = OH.CreateVar<Vec3>(os.str(),
+						OutputHandler::Dimensions::AngularVelocity,
 						gp + " global angular velocity vector (Omega_X, Omega_Y, Omega_Z)");
 				}
 
@@ -577,7 +586,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "F_" << j;
-					i->Var_F = OH.CreateVar<Vec3>(os.str(), "N/m",
+					i->Var_F = OH.CreateVar<Vec3>(os.str(),
+						OutputHandler::Dimensions::ForceUnitSpan,
 						gp + " force per unit span in global frame (F_X, F_Y, F_Z)");
 				}
 
@@ -585,7 +595,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << "M_" << j;
-					i->Var_M = OH.CreateVar<Vec3>(os.str(), "Nm/m",
+					i->Var_M = OH.CreateVar<Vec3>(os.str(),
+						OutputHandler::Dimensions::Force,
 						gp + " moment per unit span in global frame (M_X, M_Y, M_Z)");
 				}
 			}

@@ -956,14 +956,17 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+						OutputHandler::Dimensions::Moment,
 						"friciton moment ");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc", "--",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+						OutputHandler::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
 		}
@@ -2023,7 +2026,8 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 			Var_Phi = OH.CreateRotationVar(name, "", od, 
 				"relative orientation");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -3358,14 +3362,17 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "Relative orientation");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+						OutputHandler::Dimensions::Moment,
 						"friciton moment");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+						OutputHandler::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
 		}

@@ -83,6 +83,48 @@ const char* psExt[] = {
 	NULL		// 33
 };
 
+const std::unordered_map<OutputHandler::Dimensions, std::string> DimensionNames ({
+	{ OutputHandler::Dimensions::Dimensionless , std::string("Dimensionless") },
+	{ OutputHandler::Dimensions::Boolean , std::string("Boolean") },
+	{ OutputHandler::Dimensions::Length , std::string("Length") },
+	{ OutputHandler::Dimensions::Mass , std::string("Mass") },
+	{ OutputHandler::Dimensions::Time , std::string("Time") },
+	{ OutputHandler::Dimensions::Current , std::string("Current") },
+	{ OutputHandler::Dimensions::Temperature , std::string("Temperature") },
+	{ OutputHandler::Dimensions::Angle , std::string("Angle") },
+	{ OutputHandler::Dimensions::Area , std::string("Area") },
+	{ OutputHandler::Dimensions::Force , std::string("Force") },
+	{ OutputHandler::Dimensions::Velocity , std::string("Velocity") },
+	{ OutputHandler::Dimensions::Acceleration , std::string("Acceleration") },
+	{ OutputHandler::Dimensions::AngularVelocity , std::string("AngularVelocity") },
+	{ OutputHandler::Dimensions::AngularAcceleration , std::string("AngularAcceleration") },
+
+	{ OutputHandler::Dimensions::Momentum , std::string("Momentum") },
+	{ OutputHandler::Dimensions::MomentaMoment , std::string("MomentaMoment") },
+	{ OutputHandler::Dimensions::MomentumDerivative , std::string("MomentumDerivative") },
+	{ OutputHandler::Dimensions::MomentaMomentDerivative , std::string("MomentaMomentDerivative") },
+
+	{ OutputHandler::Dimensions::LinearStrain , std::string("LinearStrain") },
+	{ OutputHandler::Dimensions::AngularStrain , std::string("AngularStrain") },
+	{ OutputHandler::Dimensions::LinearStrainRate , std::string("LinearStrainRate") },
+	{ OutputHandler::Dimensions::AngularStrainRate , std::string("AngularStrainRate") },
+
+	{ OutputHandler::Dimensions::StaticMoment , std::string("StaticMoment") },
+	{ OutputHandler::Dimensions::MomentOfInertia , std::string("MomentOfInertia") },
+
+	{ OutputHandler::Dimensions::ForceUnitSpan , std::string("ForceUnitSpan") },
+
+	{ OutputHandler::Dimensions::Work , std::string("Work") },
+	{ OutputHandler::Dimensions::Power , std::string("Power") },
+	{ OutputHandler::Dimensions::Pressure , std::string("Pressure") },
+	{ OutputHandler::Dimensions::Moment , std::string("Moment") },
+	{ OutputHandler::Dimensions::Voltage , std::string("Voltage") },
+	{ OutputHandler::Dimensions::Charge , std::string("Charge") },
+	{ OutputHandler::Dimensions::Frequency , std::string("Frequency") },
+	{ OutputHandler::Dimensions::deg , std::string("deg") },
+	{ OutputHandler::Dimensions::rad , std::string("rad") }
+});
+
 /* Costruttore senza inizializzazione */
 OutputHandler::OutputHandler(void)
 : FileName(NULL),
@@ -140,7 +182,142 @@ ncCount1x3x3(3,1)
 {
 	OutputHandler_int();
 	Init(sFName, iExtNum);
+	SetUnspecifiedUnits(Units);
 }
+
+void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>& Units ) {
+	Units[Dimensions::Area] = Units[Dimensions::Length] + "^2";
+	Units[Dimensions::Force] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Length] + " " +
+		Units[Dimensions::Time] + "^-2";
+	Units[Dimensions::Velocity] = Units[Dimensions::Length] + " " +
+		Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::Acceleration] = Units[Dimensions::Length] + " " +
+		Units[Dimensions::Time] + "^-2";
+	Units[Dimensions::AngularVelocity] = Units[Dimensions::Angle] + " " +
+		Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::AngularAcceleration] = Units[Dimensions::Angle] + " " +
+		Units[Dimensions::Time] + "^-2";
+
+	Units[Dimensions::Momentum] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Velocity];
+	Units[Dimensions::MomentaMoment] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Length] + "^2 " + 
+		Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::MomentumDerivative] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Acceleration];
+	Units[Dimensions::MomentaMomentDerivative] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Length] + "^2 " + 
+		Units[Dimensions::Time] + "^-2";
+
+	Units[Dimensions::LinearStrain] = Units[Dimensions::Dimensionless];
+	Units[Dimensions::AngularStrain] = Units[Dimensions::Angle] + " " +
+		Units[Dimensions::Length] + "^-1";
+	Units[Dimensions::LinearStrainRate] = Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::AngularStrainRate] = Units[Dimensions::Angle] + " " +
+		Units[Dimensions::Length] + "^-1 " + 
+		Units[Dimensions::Time] + "^-1";
+
+	Units[Dimensions::StaticMoment] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Length];
+	Units[Dimensions::AngularStrain] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Length] + "^2";
+
+	Units[Dimensions::ForceUnitSpan] = Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Time] + "^-2";
+
+	Units[Dimensions::Work] = Units[Dimensions::Force] + " " +
+		Units[Dimensions::Length];
+	Units[Dimensions::Power] = Units[Dimensions::Force] + " " +
+		Units[Dimensions::Velocity];
+	Units[Dimensions::Pressure] = Units[Dimensions::Force] + " " +
+		Units[Dimensions::Length] + "^-2";
+	Units[Dimensions::Moment] = Units[Dimensions::Force] + " " +
+		Units[Dimensions::Length];
+	Units[Dimensions::Voltage] = Units[Dimensions::Length] + "^2 " +
+		Units[Dimensions::Mass] + " " +
+		Units[Dimensions::Time] + "^-3 " +
+		Units[Dimensions::Current] + "^-1";
+	Units[Dimensions::Frequency] = Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::Charge] = Units[Dimensions::Time] + " " +
+		Units[Dimensions::Current];
+	Units[Dimensions::deg] = "deg";
+	Units[Dimensions::rad] = "rad";
+};
+
+void OutputHandler::SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units) {
+	for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
+		Units[i->first] = i->second;
+	}
+}
+
+void OutputHandler::SetMKSUnits(std::unordered_map<Dimensions, std::string>& Units) {
+	Units[Dimensions::Length] = "m";
+	Units[Dimensions::Mass] = "kg";
+	Units[Dimensions::Time] = "s";
+	Units[Dimensions::Current] = "A";
+	Units[Dimensions::Temperature] = "K";
+	Units[Dimensions::Angle] = "rad";
+	SetDerivedUnits(Units);
+	Units[Dimensions::Force] = "N";
+	Units[Dimensions::Moment] = "N m";
+	Units[Dimensions::Work] = "J";
+	Units[Dimensions::Power] = "W";
+	Units[Dimensions::Pressure] = "Pa";
+	Units[Dimensions::Voltage] = "V";
+	Units[Dimensions::Charge] = "C";
+	Units[Dimensions::Frequency] = "Hz";
+};
+
+void OutputHandler::SetCGSUnits(std::unordered_map<Dimensions, std::string>& Units) {
+	Units[Dimensions::Length] = "cm";
+	Units[Dimensions::Mass] = "kg";
+	Units[Dimensions::Time] = "s";
+	Units[Dimensions::Current] = "A";
+	Units[Dimensions::Temperature] = "K";
+	Units[Dimensions::Angle] = "rad";
+	SetDerivedUnits(Units);
+	Units[Dimensions::Force] = "dyn";
+	Units[Dimensions::Pressure] = "dyn cm^-2";
+	Units[Dimensions::Moment] = "dyn cm";
+	Units[Dimensions::Work] = "erg";
+	Units[Dimensions::Power] = "erg s^-1";
+	Units[Dimensions::Frequency] = "Hz";
+}
+
+void OutputHandler::SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
+	Units[Dimensions::Length] = "mm";
+	Units[Dimensions::Mass] = "ton";
+	Units[Dimensions::Time] = "ms";
+	Units[Dimensions::Current] = "A";
+	Units[Dimensions::Temperature] = "K";
+	Units[Dimensions::Angle] = "rad";
+	SetDerivedUnits(Units);
+	Units[Dimensions::Force] = "N";
+	Units[Dimensions::Moment] = "N mm";
+	Units[Dimensions::Work] = "N mm";
+	Units[Dimensions::Power] = "N mm s^-1";
+	Units[Dimensions::Pressure] = "MPa";
+	Units[Dimensions::Frequency] = "kHz";
+}
+
+void OutputHandler::SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
+	Units[Dimensions::Length] = "mm";
+	Units[Dimensions::Mass] = "kg";
+	Units[Dimensions::Time] = "ms";
+	Units[Dimensions::Current] = "A";
+	Units[Dimensions::Temperature] = "K";
+	Units[Dimensions::Angle] = "rad";
+	SetDerivedUnits(Units);
+	Units[Dimensions::Force] = "kN";
+	Units[Dimensions::Moment] = "N m";
+	Units[Dimensions::Work] = "N m";
+	Units[Dimensions::Power] = "N m ms^-1";
+	Units[Dimensions::Pressure] = "GPa";
+	Units[Dimensions::Work] = "kN mm";
+	Units[Dimensions::Frequency] = "kHz";
+}
+
 
 // Pesudo-constructor
 void
@@ -346,8 +523,8 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 
 		// Let's define some dimensions which could be useful
 		m_DimTime = CreateDim("time");
-		m_DimV1 = CreateDim("vec1", 1);
-		m_DimV3 = CreateDim("vec3", 3);
+		m_DimV1 = CreateDim("Vec1", 1);
+		m_DimV3 = CreateDim("Vec3", 3);
 
 	} else
 #endif /* USE_NETCDF */

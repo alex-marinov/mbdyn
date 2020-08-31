@@ -280,10 +280,12 @@ DistanceJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Distance", OH, name);
 			
-			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
+			Var_V = OH.CreateVar<Vec3>(name + "V",
+				OutputHandler::Dimensions::Dimensionless,
 				"constrained distance direction unit vector (x, y, z)");
 			
-			Var_d = OH.CreateVar<doublereal>(name + "d", "m",
+			Var_d = OH.CreateVar<doublereal>(name + "d",
+				OutputHandler::Dimensions::Length,
 				"constrained distance magnitude");
 		}
 #endif // USE_NETCDF
@@ -902,10 +904,12 @@ DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Distance with offset", OH, name);
 			
-			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
+			Var_V = OH.CreateVar<Vec3>(name + "V",
+				OutputHandler::Dimensions::Dimensionless,
 				"constrained distance direction unit vector (x, y, z)");
 			
-			Var_d = OH.CreateVar<doublereal>(name + "d", "m",
+			Var_d = OH.CreateVar<doublereal>(name + "d",
+				OutputHandler::Dimensions::Length,
 				"constrained distance magnitude");
 		}
 #endif // USE_NETCDF

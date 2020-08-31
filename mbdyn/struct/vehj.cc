@@ -185,7 +185,8 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 			Var_Phi = OH.CreateRotationVar(name, "", od, 
 				"relative orientation, in joint reference frame");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif // USE_NETCDF
