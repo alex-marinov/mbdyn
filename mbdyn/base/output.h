@@ -395,7 +395,8 @@ OutputHandler::CreateVar(const std::string& name,
 	AttrValVec attrs(3);
 	NcDimVec dims(1);
 
-	attrs[0] = AttrVal("units", units);
+	//attrs[0] = AttrVal("units", units);
+	attrs[0] = AttrVal("units", "unknown");
 	attrs[2] = AttrVal("description", description);
 	dims[0] = DimTime();
 	
