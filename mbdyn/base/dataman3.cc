@@ -144,6 +144,8 @@ DataManager::ReadControl(MBDynParser& HP,
 			"reference" "frames",
 			"accelerations",
 			"drive" "callers",
+			
+		"model" "units",
 
 		"default" "orientation",
 		"default" "beam" "output",
@@ -235,6 +237,8 @@ DataManager::ReadControl(MBDynParser& HP,
 			REFERENCEFRAMES,
 			ACCELERATIONS,
 			DRIVECALLERS,
+			
+		MODELUNITS,
 
 		DEFAULTORIENTATION,
 		DEFAULTBEAMOUTPUT,
@@ -1134,7 +1138,11 @@ EndOfUse:
 				}
 			}
 			break;
-
+		
+		case MODELUNITS:
+			OutHdl.ReadModelUnits(HP);
+			break;
+		
 		case DEFAULTORIENTATION:
 			od = ReadOrientationDescription(HP);
 			break;

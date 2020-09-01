@@ -34,8 +34,11 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <sstream>
+#include <list>
 
 #include "output.h"
+#include "mbpar.h"
+#include "dataman.h"
 
 /* OutputHandler - begin */
 
@@ -83,7 +86,7 @@ const char* psExt[] = {
 	NULL		// 33
 };
 
-const std::unordered_map<OutputHandler::Dimensions, std::string> DimensionNames ({
+const std::unordered_map<const OutputHandler::Dimensions, const std::string> DimensionNames ({
 	{ OutputHandler::Dimensions::Dimensionless , std::string("Dimensionless") },
 	{ OutputHandler::Dimensions::Boolean , std::string("Boolean") },
 	{ OutputHandler::Dimensions::Length , std::string("Length") },
@@ -96,23 +99,23 @@ const std::unordered_map<OutputHandler::Dimensions, std::string> DimensionNames 
 	{ OutputHandler::Dimensions::Force , std::string("Force") },
 	{ OutputHandler::Dimensions::Velocity , std::string("Velocity") },
 	{ OutputHandler::Dimensions::Acceleration , std::string("Acceleration") },
-	{ OutputHandler::Dimensions::AngularVelocity , std::string("AngularVelocity") },
-	{ OutputHandler::Dimensions::AngularAcceleration , std::string("AngularAcceleration") },
+	{ OutputHandler::Dimensions::AngularVelocity , std::string("Angular velocity") },
+	{ OutputHandler::Dimensions::AngularAcceleration , std::string("Angular acceleration") },
 
 	{ OutputHandler::Dimensions::Momentum , std::string("Momentum") },
-	{ OutputHandler::Dimensions::MomentaMoment , std::string("MomentaMoment") },
-	{ OutputHandler::Dimensions::MomentumDerivative , std::string("MomentumDerivative") },
-	{ OutputHandler::Dimensions::MomentaMomentDerivative , std::string("MomentaMomentDerivative") },
+	{ OutputHandler::Dimensions::MomentaMoment , std::string("Momenta moment") },
+	{ OutputHandler::Dimensions::MomentumDerivative , std::string("Momentum derivative") },
+	{ OutputHandler::Dimensions::MomentaMomentDerivative , std::string("Momenta moment derivative") },
 
-	{ OutputHandler::Dimensions::LinearStrain , std::string("LinearStrain") },
-	{ OutputHandler::Dimensions::AngularStrain , std::string("AngularStrain") },
-	{ OutputHandler::Dimensions::LinearStrainRate , std::string("LinearStrainRate") },
-	{ OutputHandler::Dimensions::AngularStrainRate , std::string("AngularStrainRate") },
+	{ OutputHandler::Dimensions::LinearStrain , std::string("Linear strain") },
+	{ OutputHandler::Dimensions::AngularStrain , std::string("Angular strain") },
+	{ OutputHandler::Dimensions::LinearStrainRate , std::string("Linear strain rate") },
+	{ OutputHandler::Dimensions::AngularStrainRate , std::string("Angular strain rate") },
 
-	{ OutputHandler::Dimensions::StaticMoment , std::string("StaticMoment") },
-	{ OutputHandler::Dimensions::MomentOfInertia , std::string("MomentOfInertia") },
+	{ OutputHandler::Dimensions::StaticMoment , std::string("Static moment") },
+	{ OutputHandler::Dimensions::MomentOfInertia , std::string("Moment of inertia") },
 
-	{ OutputHandler::Dimensions::ForceUnitSpan , std::string("ForceUnitSpan") },
+	{ OutputHandler::Dimensions::ForceUnitSpan , std::string("Force per unit span") },
 
 	{ OutputHandler::Dimensions::Work , std::string("Work") },
 	{ OutputHandler::Dimensions::Power , std::string("Power") },
@@ -185,7 +188,50 @@ ncCount1x3x3(3,1)
 	SetUnspecifiedUnits(Units);
 }
 
+void OutputHandler::ReadModelUnits(MBDynParser& HP) {
+	if (HP.IsKeyWord("MKS")) {
+		SetMKSUnits(Units);
+	} else if (HP.IsKeyWord("CGS")) {
+		SetCGSUnits(Units);
+	} else if (HP.IsKeyWord("MMTMS")) {
+		SetMMTMSUnits(Units);
+	} else if (HP.IsKeyWord("MMKGMS")) {
+		SetMMKGMSUnits(Units);
+	} else if (HP.IsKeyWord("Custom")) {
+		const std::list<Dimensions> BaseUnits ({
+			Dimensions::Length,
+			Dimensions::Mass,
+			Dimensions::Time,
+			Dimensions::Current,
+			Dimensions::Temperature		 
+		});
+		for (auto i = BaseUnits.begin(); i != BaseUnits.end(); i++) {
+			if (HP.IsKeyWord(DimensionNames.find(*i)->second.c_str())) {
+				Units[*i] = HP.GetStringWithDelims();
+			} else {
+				silent_cerr("Error while reading Custom unit system  at line"
+						<< HP.GetLineData()
+						<< "\nExpecting the definition of "
+						<< DimensionNames.find(*i)->second
+						<< " units."
+						<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+		SetDerivedUnits(Units);
+		for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
+			Log() << "Unit for " << i->second << ": " << Units[i->first] << std::endl;
+		}
+	} else {
+		silent_cerr("Error while reading the model Units at line"
+						<< HP.GetLineData()
+						<< std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
 void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>& Units ) {
+	Units[Dimensions::Angle] = "rad";
 	Units[Dimensions::Area] = Units[Dimensions::Length] + "^2";
 	Units[Dimensions::Force] = Units[Dimensions::Mass] + " " +
 		Units[Dimensions::Length] + " " +
@@ -220,7 +266,7 @@ void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>&
 
 	Units[Dimensions::StaticMoment] = Units[Dimensions::Mass] + " " +
 		Units[Dimensions::Length];
-	Units[Dimensions::AngularStrain] = Units[Dimensions::Mass] + " " +
+	Units[Dimensions::MomentOfInertia] = Units[Dimensions::Mass] + " " +
 		Units[Dimensions::Length] + "^2";
 
 	Units[Dimensions::ForceUnitSpan] = Units[Dimensions::Mass] + " " +
@@ -257,7 +303,6 @@ void OutputHandler::SetMKSUnits(std::unordered_map<Dimensions, std::string>& Uni
 	Units[Dimensions::Time] = "s";
 	Units[Dimensions::Current] = "A";
 	Units[Dimensions::Temperature] = "K";
-	Units[Dimensions::Angle] = "rad";
 	SetDerivedUnits(Units);
 	Units[Dimensions::Force] = "N";
 	Units[Dimensions::Moment] = "N m";
@@ -275,7 +320,6 @@ void OutputHandler::SetCGSUnits(std::unordered_map<Dimensions, std::string>& Uni
 	Units[Dimensions::Time] = "s";
 	Units[Dimensions::Current] = "A";
 	Units[Dimensions::Temperature] = "K";
-	Units[Dimensions::Angle] = "rad";
 	SetDerivedUnits(Units);
 	Units[Dimensions::Force] = "dyn";
 	Units[Dimensions::Pressure] = "dyn cm^-2";
@@ -283,6 +327,7 @@ void OutputHandler::SetCGSUnits(std::unordered_map<Dimensions, std::string>& Uni
 	Units[Dimensions::Work] = "erg";
 	Units[Dimensions::Power] = "erg s^-1";
 	Units[Dimensions::Frequency] = "Hz";
+	Units[Dimensions::Charge] = "C";
 }
 
 void OutputHandler::SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
@@ -291,7 +336,6 @@ void OutputHandler::SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& U
 	Units[Dimensions::Time] = "ms";
 	Units[Dimensions::Current] = "A";
 	Units[Dimensions::Temperature] = "K";
-	Units[Dimensions::Angle] = "rad";
 	SetDerivedUnits(Units);
 	Units[Dimensions::Force] = "N";
 	Units[Dimensions::Moment] = "N mm";
@@ -299,6 +343,7 @@ void OutputHandler::SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& U
 	Units[Dimensions::Power] = "N mm s^-1";
 	Units[Dimensions::Pressure] = "MPa";
 	Units[Dimensions::Frequency] = "kHz";
+	Units[Dimensions::Charge] = "mC";
 }
 
 void OutputHandler::SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
@@ -307,7 +352,6 @@ void OutputHandler::SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& 
 	Units[Dimensions::Time] = "ms";
 	Units[Dimensions::Current] = "A";
 	Units[Dimensions::Temperature] = "K";
-	Units[Dimensions::Angle] = "rad";
 	SetDerivedUnits(Units);
 	Units[Dimensions::Force] = "kN";
 	Units[Dimensions::Moment] = "N m";
@@ -316,6 +360,7 @@ void OutputHandler::SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& 
 	Units[Dimensions::Pressure] = "GPa";
 	Units[Dimensions::Work] = "kN mm";
 	Units[Dimensions::Frequency] = "kHz";
+	Units[Dimensions::Charge] = "mC";
 }
 
 

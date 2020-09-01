@@ -78,6 +78,8 @@ typedef netCDF::NcType MBDynNcType;
 #include "solman.h"
 #include "filename.h"
 
+class MBDynParser;
+
 /* OutputHandler - begin */
 
 class OutputHandler : public FileName {
@@ -271,6 +273,8 @@ public:
 	void Init(const char* sFName, int iExtNum = -1);
 
 	virtual ~OutputHandler(void);
+	
+	void ReadModelUnits(MBDynParser& HP);
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);
