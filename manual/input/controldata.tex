@@ -281,6 +281,53 @@ of the entities whose output should be activated.
     end: control data;
 \end{verbatim}
 
+\subsection{Model units}
+\label{sec:CONTROLDATA:MODELUNITS}
+This statement is intended to document in the .log file and in the NetCDF results 
+what system of units the file input is written, and thus the results.
+
+The user should remember that MBDyn works with numbers: it is responsability of the user
+to build an input file using a consisten systm of units.
+The specification of a different unit system has no effect whatsoever on the
+input file parsing and/or on the simulation. It is merely a reminder for the user.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{model units} : \bnt{units system} ;
+    
+    \bnt{units system} ::= \\
+        \{ \kw{MKS} \\
+            | \kw{CGS} \\
+            | \kw{MMTMS} \\
+            | \kw{MMKGMS} \\
+            | \bnt{custom units system} \}
+     
+    \bnt{custom units system} ::= \kw{Custom},
+        \kw{Length},  (\ty{string}) \bnt{unit_for_length},
+        \kw{Mass},  (\ty{string}) \bnt{unit_for_mass},
+        \kw{Time},  (\ty{string}) \bnt{unit_for_time}, 
+        \kw{Current},  (\ty{string}) \bnt{unit_for_electric_current}, 
+        \kw{Temperature}, (\ty{string}) \bnt{unit_for_temperature} ;
+\end{Verbatim}
+
+With the \bnt{custom units system} the user needs to define all the principal units of measure.
+The pre-defines units systems are reported in Table\ \ref{tab:predefined-units-systems}.
+\begin{table}
+\centering
+\caption{Predefined units systems}
+\label{tab:predefined-units-systems} 
+\begin{tabular}{lccccc} 
+\hline
+&\kw{Length}&\kw{Mass}&\kw{Time}&\kw{Current}&\kw{Temperature}\\
+\hline
+\kw{MKS}&m&kg&s&A&K\\
+\kw{CGS}&cm&kg&s&A&K\\
+\kw{MMTMS}&lm&ton&ms&A&K\\
+\kw{MMKGMS}&mm&kg&ms&A&K\\
+\hline
+\end{tabular}
+\end{table}
+
+
 \subsection{Output Frequency}
 \label{sec:CONTROLDATA:OUTPUTFREQUENCY}
 This statement is intended for producing partial output.
