@@ -1962,7 +1962,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* tabella delle parole chiave */
 	KeyTable K(HP, sKeyWords);
 
-	/* nodo collegato */
+	/* associated node */
 	const StructDispNode *pStrDispNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
 	const StructNode *pStrNode = dynamic_cast<const StructNode *>(pStrDispNode);
 
@@ -1992,7 +1992,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		 *
 		 * Xgc = Sum(Xgc_i*dm_i)/Sum(dm_i)
 		 *
-		 * J = Sum(J_i)-Sum(dm_i*(Xgc_i-Xgc)/\(Xgc_i-Xgc)/\)
+		 * J = Sum(J_i) - Sum(dm_i*(Xgc_i-Xgc)/\(Xgc_i-Xgc)/\)
 		 *
 		 * and it can be accomplished by accumulating:
 		 *
@@ -2038,7 +2038,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		dm += dMTmp;
 
 		if (pStrNode) {
-			/* posiz. c.g. */
+			/* Center of gravity position */
 			Vec3 XgcTmp(HP.GetPosRel(RF));
 			if (iNumMasses == 1) {
 				Xgc = XgcTmp;
@@ -2049,47 +2049,56 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 			DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt
 				<< ") center of gravity = " << XgcTmp << std::endl);
-
 			/*
-			 * matrice del mom. d'inerzia
+			 * inertia matrix
 			 *
-			 * Usa la funzione che legge una matrice qualsiasi con parole chiave
-			 * per forme abbreviate:
-			 *   - null: matrice vuota
-			 *   - eye:  matrice identita'
-			 *   - diag: matrice diagonale, seguita da 3 reali
-			 *   - sym:  matrice simmetrica, seguita da 6 reali,
-			 *           letta come triangolare superiore ordinata per righe:
+			 * Uses the method that reads a generic matrix with keywords for
+			 * abbreviated forms:
+			 *   - null: empty matrix
+			 *   - eye:  identity matrix
+			 *   - diag: diagonal matrix, 3 real numbers expected
+			 *   - sym:  symmetric matrix, 6 real numbers expected,
+			 *           read as row-oriented upper triangular:
 			 *           m11, m12, m13,    m22, m23,    m33
-			 *   - matrice generica, costituita da 9 reali, letta per righe:
-			 *           m11, m12, m13,    m21, m22, m23,   m31, m32, m33
+			 *   - generic matrix, 9 real numbers expected, read row-oriented:
+			 *           m11, m12, m13,    m21, m22, m23,    m31, m32, m33
 			 *
-			 * Si assume inoltre che la matrice dei momenti di inerzia
-			 * sia espressa nel centro di massa del corpo, quindi viene
-			 * corretta per l'eventuale offset rispetto al nodo
+			 * It is also assumed that the inertia matrix is expressed with 
+			 * respect to the center of gravity of the body, therefore the 
+			 * transport term due to the possible offset with respect to the 
+			 * node is removed.
+			 *
 			 */
-			// TODO: instead of "inertial" or "node", use "orientation [ , reference, <ref> ] , <mat>"...
+
 			Mat3x3 JTmp(HP.GetMatRel(RF));
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
-				<< ") =" << std::endl << JTmp << std::endl);
+				<< ") = " << JTmp << std::endl);
 			if (!JTmp.IsSymmetric()) {
 				silent_cerr("Body(" << uLabel << "): "
 					"warning, non-symmetric inertia tensor at line " << HP.GetLineData() << std::endl);
 			}
 
-			if (HP.IsKeyWord("inertial")) {
+			if (HP.IsKeyWord("orientation")) {
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"supplied in relative frame" << std::endl);
+				Mat3x3 RTmp(HP.GetRotRel(RF));
+				JTmp = RTmp*JTmp.MulMT(RTmp);
+			} else if (HP.IsKeyWord("inertial")) {
+				silent_cerr("Body(" << uLabel << "): "
+					"warning, using deprecated keyword \"inertial\" at line " << HP.GetLineData()
+					<< " just use \"orientation\" instead" << std::endl);
 				DEBUGLCOUT(MYDEBUG_INPUT,
 					"supplied in inertial reference frame" << std::endl);
 				if (HP.IsKeyWord("node")) {
 					NO_OP;
 				} else {
-					Mat3x3 RTmp(HP.GetRotRel(RF));
-					JTmp = RTmp*JTmp.MulMT(RTmp);
+				Mat3x3 RTmp(HP.GetRotRel(RF));
+				JTmp = RTmp*JTmp.MulMT(RTmp);
 				}
-				DEBUGLCOUT(MYDEBUG_INPUT,
-					"Inertia matrix of mass(" << iCnt << ") "
-					"in current frame =" << JTmp << std::endl);
 			}
+			DEBUGLCOUT(MYDEBUG_INPUT,
+				"Inertia matrix of mass(" << iCnt << ") "
+				"in current frame = " << JTmp << std::endl);
 
 			J += JTmp - Mat3x3(MatCrossCross, XgcTmp, XgcTmp*dMTmp);
 		}

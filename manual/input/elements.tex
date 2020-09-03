@@ -204,8 +204,7 @@ when connected to a rotationless, 3 degree of freedom structural node.
         (\ty{real}) \bnt{mass} , 
         (\hty{Vec3})   \bnt{relative_center_of_mass} ,
         (\hty{Mat3x3}) \bnt{inertia_matrix}
-        [ , \kw{inertial} , 
-            \{ \kw{node} | (\hty{OrientationMatrix}) \bnt{orientation_matrix} \} ]
+        [ , \kw{orientation} , \bnt{orientation_matrix}]
 
     \bnt{one_pointmass} ::=
         (\ty{real}) \bnt{mass}      # when \bnt{node_label} is a \kw{displacement} node
@@ -229,9 +228,8 @@ example, gravity will still act as if the mass was positive).
 
 The \nt{inertia\_matrix} is always referred to the center of mass of the
 mass that is being added. It can be rotated locally by means of the extra
-\nt{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
-The keyword \kw{node} corresponds to the default, i.e.\ the inertia matrix
-is assumed to be input in the node reference frame.
+\nt{orientation\_matrix} supplied after the (optional) keyword 
+\kw{orientation}.
 
 Note: in many commercial finite element software, the off-diagonal elements 
 of the inertia matrix are defined with a minus sign; for instance, 
