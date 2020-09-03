@@ -2092,8 +2092,8 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				if (HP.IsKeyWord("node")) {
 					NO_OP;
 				} else {
-				Mat3x3 RTmp(HP.GetRotRel(RF));
-				JTmp = RTmp*JTmp.MulMT(RTmp);
+					Mat3x3 RTmp(HP.GetRotRel(RF));
+					JTmp = RTmp*JTmp.MulMT(RTmp);
 				}
 			}
 			DEBUGLCOUT(MYDEBUG_INPUT,
