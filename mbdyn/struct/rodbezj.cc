@@ -465,19 +465,24 @@ RodBezier::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("rod bezier", OH, name);
 			
-			Var_F2 = OH.CreateVar<Vec3>(name + "F2", "N",
+			Var_F2 = OH.CreateVar<Vec3>(name + "F2",
+				OutputHandler::Dimensions::Force,
 				"force on Node 2 (x, y, z)");
 
-			Var_l = OH.CreateVar<doublereal>(name + "l", "m",
+			Var_l = OH.CreateVar<doublereal>(name + "l",
+				OutputHandler::Dimensions::Length,
 				"length of the element");
 
-			Var_l1 = OH.CreateVar<Vec3>(name + "l1", "-",
+			Var_l1 = OH.CreateVar<Vec3>(name + "l1",
+				OutputHandler::Dimensions::Dimensionless,
 				"node 1 reference unit vector (x, y, z)");
 			
-			Var_l2 = OH.CreateVar<Vec3>(name + "l2", "-",
+			Var_l2 = OH.CreateVar<Vec3>(name + "l2",
+				OutputHandler::Dimensions::Dimensionless,
 				"node 2 reference unit vector (x, y, z)");
 
-			Var_v = OH.CreateVar<doublereal>(name + "v", "m/s",
+			Var_v = OH.CreateVar<doublereal>(name + "v",
+				OutputHandler::Dimensions::Velocity,
 				"length rate of change");
 		}
 #endif // USE_NETCDF

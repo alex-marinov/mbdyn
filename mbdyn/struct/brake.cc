@@ -457,13 +457,16 @@ Brake::OutputPrepare(OutputHandler& OH)
 			Var_Phi = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
 				"relative rotation (Euler123)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "rad/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity, node 2 RF (x, y, z)");
 			
-			Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+			Var_fc = OH.CreateVar<doublereal>(name + "fc",
+				OutputHandler::Dimensions::Dimensionless,
 				"friction coefficient");
 
-			Var_Fb = OH.CreateVar<doublereal>(name + "Fb", "N",
+			Var_Fb = OH.CreateVar<doublereal>(name + "Fb",
+				OutputHandler::Dimensions::Force,
 				"normal force the brake is activated with");
 		}
 #endif // USE_NETCDF

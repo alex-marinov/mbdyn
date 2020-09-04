@@ -241,10 +241,14 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 
 			std::string name(os.str());
 
-			Var_B = OH.CreateVar<Vec3>(name + "B", "kg m/s", "momentum (X, Y, Z)");
-			Var_G = OH.CreateVar<Vec3>(name + "G", "kg m^2/s", "momenta moment (X, Y, Z)");
-			Var_BP = OH.CreateVar<Vec3>(name + "BP", "kg m/s^2", "momentum derivative (X, Y, Z)");
-			Var_GP = OH.CreateVar<Vec3>(name + "GP", "kg m^2/s^2", "momenta moment derivative (X, Y, Z)");
+			Var_B = OH.CreateVar<Vec3>(name + "B", 
+				OutputHandler::Dimensions::Momentum, "momentum (X, Y, Z)");
+			Var_G = OH.CreateVar<Vec3>(name + "G",  
+				OutputHandler::Dimensions::MomentaMoment, "momenta moment (X, Y, Z)");
+			Var_BP = OH.CreateVar<Vec3>(name + "BP",  
+				OutputHandler::Dimensions::MomentumDerivative, "momentum derivative (X, Y, Z)");
+			Var_GP = OH.CreateVar<Vec3>(name + "GP",  
+				OutputHandler::Dimensions::MomentaMomentDerivative, "momenta moment derivative (X, Y, Z)");
 		}
 #endif // USE_NETCDF
 	}
@@ -622,10 +626,14 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 
 			std::string name(os.str());
 
-			Var_B = OH.CreateVar<Vec3>(name + "B", "kg m/s", "momentum (X, Y, Z)");
-			Var_G = OH.CreateVar<Vec3>(name + "G", "kg m^2/s", "momenta moment (X, Y, Z)");
-			Var_BP = OH.CreateVar<Vec3>(name + "BP", "kg m/s^2", "momentum derivative (X, Y, Z)");
-			Var_GP = OH.CreateVar<Vec3>(name + "GP", "kg m^2/s^2", "momenta moment derivative (X, Y, Z)");
+			Var_B = OH.CreateVar<Vec3>(name + "B",  
+				OutputHandler::Dimensions::Momentum, "momentum (X, Y, Z)");
+			Var_G = OH.CreateVar<Vec3>(name + "G",  
+				OutputHandler::Dimensions::MomentaMoment, "momenta moment (X, Y, Z)");
+			Var_BP = OH.CreateVar<Vec3>(name + "BP",  
+				OutputHandler::Dimensions::MomentumDerivative, "momentum derivative (X, Y, Z)");
+			Var_GP = OH.CreateVar<Vec3>(name + "GP",   
+				OutputHandler::Dimensions::MomentaMomentDerivative, "momenta moment derivative (X, Y, Z)");
 		}
 #endif // USE_NETCDF
 	}

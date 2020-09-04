@@ -144,10 +144,12 @@ DeformableAxialJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Deformable axial joint", OH, name);
 
-			Var_Theta = OH.CreateVar<doublereal>(name + "Theta", "rad",
+			Var_Theta = OH.CreateVar<doublereal>(name + "Theta",
+				OutputHandler::Dimensions::rad,
 				"relative angle");
 
-			Var_Omega = OH.CreateVar<doublereal>(name + "Omega", "rad/s",
+			Var_Omega = OH.CreateVar<doublereal>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"relative angular velocity");
 		}
 #endif // USE_NETCDF

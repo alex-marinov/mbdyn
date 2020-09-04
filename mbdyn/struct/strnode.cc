@@ -475,23 +475,28 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 			os << '.';
 			std::string name = os.str();
 
-			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+			Var_X = OH.CreateVar<Vec3>(name + "X",
+				OutputHandler::Dimensions::Length,
 				"global position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
-			Var_XP = OH.CreateVar<Vec3>(name + "XP", "m/s",
+			Var_XP = OH.CreateVar<Vec3>(name + "XP",
+				OutputHandler::Dimensions::Velocity,
 				"global velocity vector (v_X, v_Y, v_Z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
-				Var_XPP = OH.CreateVar<Vec3>(name + "XPP", "m/s^2",
+				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
+					OutputHandler::Dimensions::Acceleration,
 					"global acceleration vector (a_X, a_Y, a_Z)");
 
-				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP", "radian/s^2",
+				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
+					OutputHandler::Dimensions::AngularAcceleration,
 					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
@@ -1820,23 +1825,28 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			os << '.';
 			std::string name = os.str();
 
-			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+			Var_X = OH.CreateVar<Vec3>(name + "X",
+				OutputHandler::Dimensions::Length,
 				"global position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
-			Var_XP = OH.CreateVar<Vec3>(name + "XP", "m/s",
+			Var_XP = OH.CreateVar<Vec3>(name + "XP",
+				OutputHandler::Dimensions::Velocity,
 				"global velocity vector (v_X, v_Y, v_Z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
-				Var_XPP = OH.CreateVar<Vec3>(name + "XPP", "m/s^2",
+				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
+					OutputHandler::Dimensions::Acceleration,
 					"global acceleration vector (a_X, a_Y, a_Z)");
 
-				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP", "radian/s^2",
+				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
+					OutputHandler::Dimensions::AngularAcceleration,
 					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}

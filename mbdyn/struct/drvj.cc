@@ -182,10 +182,12 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Linear velocity", OH, name);
 
-			Var_dv = OH.CreateVar<doublereal>(name + "dv", "[-]",
+			Var_dv = OH.CreateVar<doublereal>(name + "dv",
+					OutputHandler::Dimensions::Dimensionless,
 					"direction of imposed velocity");
 
-			Var_v = OH.CreateVar<doublereal>(name + "v", "m/s",
+			Var_v = OH.CreateVar<doublereal>(name + "v",
+					OutputHandler::Dimensions::Velocity,
 					"magnitude of imposed velocity");
 		}
 #endif // USE_NETCDF
@@ -437,10 +439,12 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Angular velocity", OH, name);
 
-			Var_dOmega = OH.CreateVar<doublereal>(name + "dOmega", "rad/s",
+			Var_dOmega = OH.CreateVar<doublereal>(name + "dOmega",
+					OutputHandler::Dimensions::AngularVelocity,
 					"magnitude imposed angular velocity");
 
-			Var_w = OH.CreateVar<Vec3>(name + "w", "[-]",
+			Var_w = OH.CreateVar<Vec3>(name + "w",
+					OutputHandler::Dimensions::Dimensionless,
 					"direction of imposed angular velocity");
 		}
 #endif // USE_NETCDF

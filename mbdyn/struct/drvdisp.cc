@@ -98,7 +98,8 @@ DriveDisplacementJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Drive displacement", OH, name);
 
-			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
+			Var_d = OH.CreateVar<Vec3>(name + "d",
+				OutputHandler::Dimensions::Length,
 				"imposed relative displacement, global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -754,7 +755,8 @@ DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Drive displacement pin", OH, name);
 
-			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
+			Var_d = OH.CreateVar<Vec3>(name + "d",
+				OutputHandler::Dimensions::Length,
 				"imposed relative displacement (x, y, z)");
 		}
 #endif // USE_NETCDF

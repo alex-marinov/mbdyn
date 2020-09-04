@@ -664,7 +664,8 @@ Beam2::OutputPrepare(OutputHandler &OH)
 			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 
 			if (uOutputFlags & Beam::OUTPUT_EP_X) {
-				Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+				Var_X = OH.CreateVar<Vec3>(name + "X",
+					OutputHandler::Dimensions::Length,
 					"evaluation point global position vector (X, Y, Z)");
 			}
 
@@ -674,32 +675,38 @@ Beam2::OutputPrepare(OutputHandler &OH)
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_F) {
-				Var_F = OH.CreateVar<Vec3>(name + "F", "N",
+				Var_F = OH.CreateVar<Vec3>(name + "F",
+					OutputHandler::Dimensions::Force,
 					"evaluation point internal force in local frame (F_X, F_Y, F_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_M) {
-				Var_M = OH.CreateVar<Vec3>(name + "M", "Nm",
+				Var_M = OH.CreateVar<Vec3>(name + "M",
+					OutputHandler::Dimensions::Moment,
 					"evaluation point internal force in local frame (M_X, M_Y, M_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-				Var_Nu = OH.CreateVar<Vec3>(name + "nu", "-",
+				Var_Nu = OH.CreateVar<Vec3>(name + "nu",
+					OutputHandler::Dimensions::LinearStrain,
 					"evaluation point linear strain in local frame (nu_X, nu_Y, nu_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_K) {
-				Var_K = OH.CreateVar<Vec3>(name + "k", "1/m",
+				Var_K = OH.CreateVar<Vec3>(name + "k",
+					OutputHandler::Dimensions::AngularStrain,
 					"evaluation point angular strain in local frame (K_X, K_Y, K_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-				Var_NuP = OH.CreateVar<Vec3>(name + "nuP", "1/s",
+				Var_NuP = OH.CreateVar<Vec3>(name + "nuP",
+					OutputHandler::Dimensions::LinearStrainRate,
 					"evaluation point linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-				Var_KP = OH.CreateVar<Vec3>(name + "kP", "1/ms",
+				Var_KP = OH.CreateVar<Vec3>(name + "kP",
+					OutputHandler::Dimensions::AngularStrainRate,
 					"evaluation point angular strain rate in local frame (KP_X, KP_Y, KP_Z)");
 			}
 		}
