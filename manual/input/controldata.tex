@@ -281,10 +281,10 @@ of the entities whose output should be activated.
     end: control data;
 \end{verbatim}
 
-\subsection{Model units}
-\label{sec:CONTROLDATA:MODELUNITS}
+\subsection{Output units}
+\label{sec:CONTROLDATA:OUTPUTUNITS}
 This statement is intended to document in the .log file and in the NetCDF results 
-what system of units the file input is written, and thus the results.
+what system of units the input file is written in, and thus the results.
 
 The user should remember that MBDyn works with numbers: it is responsability of the user
 to build an input file using a consisten systm of units.
@@ -292,7 +292,7 @@ The specification of a different unit system has no effect whatsoever on the
 input file parsing and/or on the simulation. It is merely a reminder for the user.
 
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{model units} : \bnt{units system} ;
+    \bnt{card} ::= \kw{output units} : \bnt{units system} ;
     
     \bnt{units system} ::= \\
         \{ \kw{MKS} \\

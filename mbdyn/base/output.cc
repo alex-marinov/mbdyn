@@ -188,7 +188,7 @@ ncCount1x3x3(3,1)
 	SetUnspecifiedUnits(Units);
 }
 
-void OutputHandler::ReadModelUnits(MBDynParser& HP) {
+void OutputHandler::ReadOutputUnits(MBDynParser& HP) {
 	if (HP.IsKeyWord("MKS")) {
 		SetMKSUnits(Units);
 	} else if (HP.IsKeyWord("CGS")) {

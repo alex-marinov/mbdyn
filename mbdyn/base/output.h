@@ -274,7 +274,7 @@ public:
 
 	virtual ~OutputHandler(void);
 	
-	void ReadModelUnits(MBDynParser& HP);
+	void ReadOutputUnits(MBDynParser& HP);
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);
