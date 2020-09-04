@@ -286,10 +286,11 @@ of the entities whose output should be activated.
 This statement is intended to document in the .log file and in the NetCDF results 
 what system of units the input file is written in, and thus the results.
 
-The user should remember that MBDyn works with numbers: it is responsability of the user
-to build an input file using a consisten systm of units.
-The specification of a different unit system has no effect whatsoever on the
-input file parsing and/or on the simulation. It is merely a reminder for the user.
+The user should remember that MBDyn works with numbers: it is the responsibility 
+of the user to build an input file using a consistent system of units.
+The specification of a different unit system has \emph{no effect whatsoever} on the
+input file parsing and/or on the simulation, it only affects the information 
+displayed in the output, and it intended merely as a reminder for the user.
 
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{output units} : \bnt{units system} ;
@@ -321,7 +322,7 @@ The pre-defines units systems are reported in Table\ \ref{tab:predefined-units-s
 \hline
 \kw{MKS}&m&kg&s&A&K\\
 \kw{CGS}&cm&kg&s&A&K\\
-\kw{MMTMS}&lm&ton&ms&A&K\\
+\kw{MMTMS}&mm&ton&ms&A&K\\
 \kw{MMKGMS}&mm&kg&ms&A&K\\
 \hline
 \end{tabular}
