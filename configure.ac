@@ -210,6 +210,7 @@ AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile]
 ],[ol_with_mkoctfile_exec=mkoctfile])
 OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
+OL_ARG_ENABLE(sparse_autodiff, [  --enable-sparse_autodiff                enable automatic differentiation based on sparse algorithms],no)dnl
 OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -889,6 +890,67 @@ if test "$ol_enable_octave" != no ; then
 	fi
 fi
 
+if test "$ol_enable_autodiff" != no || test "$ol_enable_sparse_autodiff" != no; then
+	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = _aligned_malloc(1024, 32);
+_aligned_free(p);
+				],[have_aligned_malloc="yes"])
+
+	if test "$have_aligned_malloc" == "yes"; then
+		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for posix_memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void *p;
+posix_memalign(&p, 32, 1024);
+			],[have_posix_memalign="yes"])
+
+	if test "$have_posix_memalign" == "yes"; then
+		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = memalign(32, 1024);
+				],[have_memalign="yes"])
+
+	if test "$have_memalign" == "yes"; then
+		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for aligned_alloc])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = aligned_alloc(32, 1024);
+free(p);
+				],[have_aligned_alloc="yes"])
+
+	if test "$have_aligned_alloc" == "yes"; then
+		AC_DEFINE(HAVE_ALIGNED_ALLOC, 1, [define if aligned_alloc can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+fi
+
 if test "$ol_enable_autodiff" != no ; then
 	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
 
@@ -924,50 +986,6 @@ if test "$ol_enable_autodiff" != no ; then
                 fi
         fi
         AC_LANG_RESTORE
-
-	AC_MSG_CHECKING([for posix_memalign])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void *p;
-posix_memalign(&p, 32, 1024);
-			],[have_posix_memalign="yes"])
-
-	if test "$have_posix_memalign" == "yes"; then
-		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-
-	AC_MSG_CHECKING([for memalign])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void* p = memalign(32, 1024);
-				],[have_memalign="yes"])
-
-	if test "$have_memalign" == "yes"; then
-		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-
-	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void* p = _aligned_malloc(1024, 32);
-_aligned_free(p);
-				],[have_aligned_malloc="yes"])
-
-	if test "$have_aligned_malloc" == "yes"; then
-		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
 
 	if test "$ol_enable_autodiff_vect" == 0 ; then
 		save_CXXFLAGS="$CXXFLAGS"
@@ -1194,6 +1212,10 @@ int main(int argc, char* argv[])
 		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 0, [the number of bytes of an avx or sse register])
 		AC_MSG_WARN([vectorization of derivatives is not possible])
 	esac
+fi
+
+if test "$ol_enable_sparse_autodiff" != no ; then
+	AC_DEFINE(USE_SPARSE_AUTODIFF, 1, [define if automatic differentiation based on sparse algorithms can be used])
 fi
 
 dnl ----------------------------------------------------------------
@@ -3622,6 +3644,7 @@ AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
+AM_CONDITIONAL(USE_SPARSE_AUTODIFF,[test "$ol_enable_sparse_autodiff" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 
