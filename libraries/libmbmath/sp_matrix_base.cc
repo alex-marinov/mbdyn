@@ -43,10 +43,4 @@
 
 namespace sp_grad {
      SpMatrixBaseData SP_GRAD_THREAD_LOCAL SpMatrixBaseData::oNullData{0, 0, 1, 0};
-
-     template
-     class SpMatrixBase<SpGradient>;
-
-     template
-     class SpMatrixBase<doublereal>;
 }

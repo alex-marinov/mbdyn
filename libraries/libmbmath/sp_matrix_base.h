@@ -30,12 +30,12 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+	Copyright (C) 2020(-2020) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+	The copyright of this code is transferred
+	to Pierangelo Masarati and Paolo Mantegazza
+	for use in the software MBDyn as described
+	in the GNU Public License version 2.1
 */
 
 #ifndef __SP_MATRIX_BASE_H__INCLUDED__
@@ -239,7 +239,7 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(iRefCnt >= 1);
 
 	  if (--iRefCnt == 0) {
-	       if (this != &oNullData) {	       
+	       if (this != &oNullData) {
 		    this->~SpMatrixData();
 
 #if defined(HAVE_ALIGNED_MALLOC)
@@ -347,7 +347,7 @@ namespace sp_grad {
 	       pMem = nullptr;
 	  }
 #elif defined(HAVE_MEMALIGN)
-	  char* pMem = reinterpret_cast<char*>(memalign(uAlign, uSize));	  
+	  char* pMem = reinterpret_cast<char*>(memalign(uAlign, uSize));
 #elif defined(HAVE_ALIGNED_MALLOC)
 	  char* pMem = reinterpret_cast<char*>(_aligned_malloc(uSize, uAlign));
 #elif defined(HAVE_ALIGNED_ALLOC)
@@ -355,7 +355,7 @@ namespace sp_grad {
 #else
 	  char* pMem = malloc(uSize);
 #endif
-	  
+
 	  if (!pMem) {
 	       throw std::bad_alloc();
 	  }
@@ -879,7 +879,7 @@ namespace sp_grad {
 	       pData->IncRef();
 	  }
      }
-
+     
      template <typename ValueType, index_type NumRows, index_type NumCols>
      SpMatrixBase<ValueType, NumRows, NumCols>::SpMatrixBase(SpMatrixBase&& oMat)
 	  :SpMatrixBase(pGetNullData()) {
@@ -906,6 +906,22 @@ namespace sp_grad {
      template <typename ValueTypeExpr, typename Expr>
      SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator=(const SpMatElemExprBase<ValueTypeExpr, Expr>& oExpr) {
 	  oExpr.Eval(*this);
+	  return *this;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator=(const Mat3x3& oMat)
+     {
+	  *this = SpMat3x3Expr(oMat);
+
+	  return *this;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator=(const Vec3& oVec)
+     {
+	  *this = SpVec3Expr(oVec);
+	  
 	  return *this;
      }
 
@@ -1115,6 +1131,11 @@ namespace sp_grad {
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
+     SpMatrix<ValueType, NumRows, NumCols>::SpMatrix(const Mat3x3& oMat)
+	  :SpMatrixBase<ValueType, NumRows, NumCols>(SpMat3x3Expr(oMat)) {
+     }
+     
+     template <typename ValueType, index_type NumRows, index_type NumCols>
      ValueType& SpMatrix<ValueType, NumRows, NumCols>::operator()(index_type iRow, index_type iCol) {
 	  return this->GetElem(iRow, iCol);
      }
@@ -1137,6 +1158,12 @@ namespace sp_grad {
 	  return *this;
      }
 
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     SpMatrix<ValueType, NumRows, NumCols>& SpMatrix<ValueType, NumRows, NumCols>::operator=(const Mat3x3& oMat) {
+	  SpMatrixBase<ValueType, NumRows, NumCols>::operator=(oMat);
+	  return *this;
+     }
+
      template <typename ValueType, index_type NumRows>
      SpColVector<ValueType, NumRows>::SpColVector(index_type iNumRows, index_type iNumDeriv)
 	  :SpMatrixBase<ValueType, NumRows, 1>(iNumRows, 1, iNumDeriv) {
@@ -1146,6 +1173,11 @@ namespace sp_grad {
      template <typename ValueTypeExpr, typename Expr>
      SpColVector<ValueType, NumRows>::SpColVector(const SpMatElemExprBase<ValueTypeExpr, Expr>& oExpr)
 	  :SpMatrixBase<ValueType, NumRows, 1>(oExpr) {
+     }
+
+     template <typename ValueType, index_type NumRows>
+     SpColVector<ValueType, NumRows>::SpColVector(const Vec3& oVec)
+	  :SpMatrixBase<ValueType, NumRows, 1>(SpVec3Expr(oVec)) {
      }
 
      template <typename ValueType, index_type NumRows>
@@ -1162,6 +1194,12 @@ namespace sp_grad {
      template <typename ValueTypeExpr, typename Expr>
      SpColVector<ValueType, NumRows>& SpColVector<ValueType, NumRows>::operator=(const SpMatElemExprBase<ValueTypeExpr, Expr>& oExpr) {
 	  SpMatrixBase<ValueType, NumRows, 1>::operator=(oExpr);
+	  return *this;
+     }
+
+     template <typename ValueType, index_type NumRows>
+     SpColVector<ValueType, NumRows>& SpColVector<ValueType, NumRows>::operator=(const Vec3& oVec) {
+	  SpMatrixBase<ValueType, NumRows, 1>::operator=(oVec);
 	  return *this;
      }
 
@@ -1214,7 +1252,7 @@ namespace sp_grad {
 	       const SpMatElemExprBase<RhsValue, RhsExpr>& B) noexcept {
 	  return decltype(operator-(A, B))(A, B);
      }
-
+     
      template <typename Value, typename Expr>
      inline constexpr
      SpMatElemUnaryExpr<Value,
@@ -1224,6 +1262,16 @@ namespace sp_grad {
 	  return decltype(operator-(A))(A);
      }
 
+     template <typename LhsValue, typename RhsValue, typename LhsExpr, typename RhsExpr>
+     inline constexpr
+     SpMatCrossExpr<typename util::ResultType<LhsValue, RhsValue>::Type,
+		    const SpMatElemExprBase<LhsValue, LhsExpr>&,
+		    const SpMatElemExprBase<RhsValue, RhsExpr>&>
+     Cross(const SpMatElemExprBase<LhsValue, LhsExpr>& A,
+	   const SpMatElemExprBase<RhsValue, RhsExpr>& B) noexcept {
+	  return decltype(Cross(A, B))(A, B);
+     }
+     
      template <typename Value, typename Expr>
      inline constexpr
      SpMatElemTranspExpr<Value, const SpMatElemExprBase<Value, Expr>&>
@@ -1300,11 +1348,66 @@ namespace sp_grad {
 	  return decltype(operator*(A, B))(A, B);
      }
 
+     template <typename LhsValue, typename LhsExpr>
+     inline constexpr
+     SpMatMulExpr<LhsValue,
+		  doublereal,
+		  const SpMatElemExprBase<LhsValue, LhsExpr>&,
+		  const SpVec3Expr>
+     operator*(const SpMatElemExprBase<LhsValue, LhsExpr>& A,
+	       const Vec3& B) noexcept {
+	  return decltype(operator*(A, B))(A, SpVec3Expr(B));
+     }     
+
+     template <typename RhsValue, typename RhsExpr>
+     inline constexpr
+     SpMatMulExpr<doublereal,
+		  RhsValue,
+		  const SpVec3Expr,
+		  const SpMatElemExprBase<RhsValue, RhsExpr>&>
+     operator*(const Vec3& A,
+	       const SpMatElemExprBase<RhsValue, RhsExpr>& B) noexcept {
+	  return decltype(operator*(A, B))(SpVec3Expr(A), B);
+     }
+     
+     template <typename LhsValue, typename LhsExpr>
+     inline constexpr
+     SpMatMulExpr<LhsValue,
+		  doublereal,
+		  const SpMatElemExprBase<LhsValue, LhsExpr>&,
+		  const SpMat3x3Expr>
+     operator*(const SpMatElemExprBase<LhsValue, LhsExpr>& A,
+	       const Mat3x3& B) noexcept {
+	  return decltype(operator*(A, B))(A, SpMat3x3Expr(B));
+     }
+
+     template <typename RhsValue, typename RhsExpr>
+     inline constexpr
+     SpMatMulExpr<doublereal,
+		  RhsValue,
+		  const SpMat3x3Expr,
+		  const SpMatElemExprBase<RhsValue, RhsExpr>&>
+     operator*(const Mat3x3& A,
+	       const SpMatElemExprBase<RhsValue, RhsExpr>& B) noexcept {
+	  return decltype(operator*(A, B))(SpMat3x3Expr(A), B);
+     }     
+
      template <typename LhsValue, typename RhsValue, typename LhsExpr, typename RhsExpr>
      inline constexpr
      typename util::ResultType<LhsValue, RhsValue>::Type
      Dot(const SpMatElemExprBase<LhsValue, LhsExpr>& u, const SpMatElemExprBase<RhsValue, RhsExpr>& v) {
 	  return *SpMatrixBase<typename util::ResultType<LhsValue, RhsValue>::Type, 1, 1>(Transpose(u) * v).begin();
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     inline std::ostream& operator<<(std::ostream& os, const SpMatrixBase<ValueType, NumRows, NumCols>& A) {
+	  for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+	       for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+		    os << A.dGetValue(i, j) << ' ';
+	       }
+	  }
+
+	  return os;
      }
 }
 

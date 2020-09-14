@@ -6,18 +6,18 @@ include $(top_srcdir)/build/top.mk
 export LTCXXCOMPILE = @LIBTOOL@ --tag=CXX --mode=compile @CXX@ @DEFS@ \
 	-I. -I@srcdir@ \
 	-I../../include \
-	-I../$(top_srcdir)/include \
-	-I../$(top_srcdir)/libraries/libmbutil \
-	-I../$(top_srcdir)/libraries/libmbmath \
-	-I../$(top_srcdir)/libraries/libmbwrap \
-	-I../$(top_srcdir)/libraries/libobjs \
-	-I../$(top_srcdir)/libraries/libmbc \
-	-I../$(top_srcdir)/mbdyn \
-	-I../$(top_srcdir)/mbdyn/base \
-	-I../$(top_srcdir)/mbdyn/struct \
-	-I../$(top_srcdir)/mbdyn/aero \
-	-I../$(top_srcdir)/mbdyn/elec \
-	-I../$(top_srcdir)/mbdyn/hydr \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/libraries/libmbutil \
+	-I$(top_srcdir)/libraries/libmbmath \
+	-I$(top_srcdir)/libraries/libmbwrap \
+	-I$(top_srcdir)/libraries/libobjs \
+	-I$(top_srcdir)/libraries/libmbc \
+	-I$(top_srcdir)/mbdyn \
+	-I$(top_srcdir)/mbdyn/base \
+	-I$(top_srcdir)/mbdyn/struct \
+	-I$(top_srcdir)/mbdyn/aero \
+	-I$(top_srcdir)/mbdyn/elec \
+	-I$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CXXFLAGS) @CXXFLAGS@
 CXXLD = @CXX@
@@ -26,18 +26,18 @@ export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I. -I@srcdir@ \
 	-I../../include \
-	-I../$(top_srcdir)/include \
-	-I../$(top_srcdir)/libraries/libmbc \
-	-I../$(top_srcdir)/libraries/libmbutil \
-	-I../$(top_srcdir)/libraries/libmbmath \
-	-I../$(top_srcdir)/libraries/libmbwrap \
-	-I../$(top_srcdir)/libraries/libobjs \
-	-I../$(top_srcdir)/mbdyn \
-	-I../$(top_srcdir)/mbdyn/base \
-	-I../$(top_srcdir)/mbdyn/struct \
-	-I../$(top_srcdir)/mbdyn/aero \
-	-I../$(top_srcdir)/mbdyn/elec \
-	-I../$(top_srcdir)/mbdyn/hydr \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/libraries/libmbc \
+	-I$(top_srcdir)/libraries/libmbutil \
+	-I$(top_srcdir)/libraries/libmbmath \
+	-I$(top_srcdir)/libraries/libmbwrap \
+	-I$(top_srcdir)/libraries/libobjs \
+	-I$(top_srcdir)/mbdyn \
+	-I$(top_srcdir)/mbdyn/base \
+	-I$(top_srcdir)/mbdyn/struct \
+	-I$(top_srcdir)/mbdyn/aero \
+	-I$(top_srcdir)/mbdyn/elec \
+	-I$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
 export LTF77COMPILE = @LIBTOOL@ --tag=F77 --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
@@ -68,9 +68,10 @@ all__:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
+			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
+				case $$isrc in /*) fisrc=$$isrc/$$f ;; *) fisrc=../$$isrc/$$f ;; esac ; \
+				case $$isrc in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$fisrc ; then ( cd $$i && ln -sf $$fisrc $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$$isrc ) ; \
@@ -86,9 +87,10 @@ install: all__
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
+			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
+				case $$isrc in /*) fisrc=$$isrc/$$f ;; *) fisrc=../$$isrc/$$f ;; esac ; \
+				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$fisrc ; then ( cd $$i && ln -sf $$fisrc $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) install ) ; \

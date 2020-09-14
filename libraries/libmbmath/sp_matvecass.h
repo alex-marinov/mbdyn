@@ -50,34 +50,13 @@
 #include "submat.h"
 
 namespace sp_grad {
-     enum FunctionCall {
-	  // FIXME: There should be a flag for the initial derivatives phase
-	  // 		  However this information is not available for elements at the moment
-	  //		  The prototype for Element::AssRes and Element::AssJac should be changed like
-	  //		  AssRes(..., enum FunctionCall func);
-	  //		  AssJac(..., enum FunctionCall func);
-	  STATE_MASK 			= 0x0F,
-	  FUNCTION_MASK 		= 0xF0,
-	  INITIAL_ASS_FLAG 	= 0x01,
-	  INITIAL_DER_FLAG 	= 0x02,
-	  REGULAR_FLAG 		= 0x04,
-	  RESIDUAL_FLAG 		= 0x10,
-	  JACOBIAN_FLAG 		= 0x20,
-	  UNKNOWN_FUNC 	= 0x0,
-	  INITIAL_ASS_RES = INITIAL_ASS_FLAG | RESIDUAL_FLAG,
-	  INITIAL_ASS_JAC = INITIAL_ASS_FLAG | JACOBIAN_FLAG,
-	  INITIAL_DER_RES = INITIAL_DER_FLAG | RESIDUAL_FLAG,
-	  INITIAL_DER_JAC = INITIAL_DER_FLAG | JACOBIAN_FLAG,
-	  REGULAR_RES 	= REGULAR_FLAG 	   | RESIDUAL_FLAG,
-	  REGULAR_JAC 	= REGULAR_FLAG	   | JACOBIAN_FLAG
-     };
      template <typename T>
-     class GradientVectorHandler;
+     class SpGradientVectorHandler;
 
      template <>
-     class GradientVectorHandler<doublereal> {
+     class SpGradientVectorHandler<doublereal> {
      public:
-	  GradientVectorHandler(const VectorHandler& vh)
+	  SpGradientVectorHandler(const VectorHandler& vh)
 	       :vh(vh) {
 
 	  }
@@ -98,9 +77,9 @@ namespace sp_grad {
      };
 
      template <>
-     class GradientVectorHandler<SpGradient> {
+     class SpGradientVectorHandler<SpGradient> {
      public:
-	  GradientVectorHandler(const VectorHandler& vh)
+	  SpGradientVectorHandler(const VectorHandler& vh)
 	       :vh(vh) {
 
 	  }
@@ -119,18 +98,18 @@ namespace sp_grad {
 	  const VectorHandler& vh;
      };
 
-     class GradientAssVecBase {
+     class SpGradientAssVecBase {
      public:
-	  enum mode_t { RESET, APPEND };
+	  enum SpAssMode { RESET, APPEND };
      };
 
      template <typename T>
-     class GradientAssVec;
+     class SpGradientAssVec;
 
      template <>
-     class GradientAssVec<doublereal>: GradientAssVecBase {
+     class SpGradientAssVec<doublereal>: SpGradientAssVecBase {
      public:
-	  GradientAssVec(SubVectorHandler& vh, enum mode_t mode = RESET)
+	  SpGradientAssVec(SubVectorHandler& vh, SpAssMode mode = RESET)
 	       :WorkVec(vh) {
 
 	       switch (mode) {
@@ -156,11 +135,11 @@ namespace sp_grad {
 		 doublereal dCoef,
 		 const VectorHandler& XCurr,
 		 const VectorHandler& XPrimeCurr,
-		 enum FunctionCall func,
-		 enum mode_t mode = RESET) {
-	       const GradientVectorHandler<doublereal> XCurr_grad(XCurr);
-	       const GradientVectorHandler<doublereal> XPrimeCurr_grad(XPrimeCurr);
-	       GradientAssVec WorkVec_grad(WorkVec, mode);
+		 SpFunctionCall func,
+		 SpAssMode mode = RESET) {
+	       const SpGradientVectorHandler<doublereal> XCurr_grad(XCurr);
+	       const SpGradientVectorHandler<doublereal> XPrimeCurr_grad(XPrimeCurr);
+	       SpGradientAssVec WorkVec_grad(WorkVec, mode);
 
 	       pElem->AssRes(WorkVec_grad, dCoef, XCurr_grad, XPrimeCurr_grad, func);
 	  }
@@ -170,10 +149,10 @@ namespace sp_grad {
 	  InitialAssRes(T* pElem,
 			SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr,
-			enum FunctionCall func,
-			enum mode_t mode = RESET) {
-	       const GradientVectorHandler<doublereal> XCurr_grad(XCurr);
-	       GradientAssVec WorkVec_grad(WorkVec, mode);
+			SpFunctionCall func,
+			SpAssMode mode = RESET) {
+	       const SpGradientVectorHandler<doublereal> XCurr_grad(XCurr);
+	       SpGradientAssVec WorkVec_grad(WorkVec, mode);
 
 	       pElem->InitialAssRes(WorkVec_grad, XCurr_grad, func);
 	  }
@@ -206,9 +185,9 @@ namespace sp_grad {
      };
 
      template <>
-     class GradientAssVec<SpGradient>: public GradientAssVecBase {
+     class SpGradientAssVec<SpGradient>: public SpGradientAssVecBase {
      public:
-	  GradientAssVec(SparseSubMatrixHandler& mh, enum mode_t mode = RESET)
+	  SpGradientAssVec(SparseSubMatrixHandler& mh, SpAssMode mode = RESET)
 	       :WorkMat(mh) {
 
 	       switch (mode) {
@@ -234,13 +213,13 @@ namespace sp_grad {
 			     doublereal dCoef,
 			     const VectorHandler& XCurr,
 			     const VectorHandler& XPrimeCurr,
-			     enum FunctionCall func,
-			     enum mode_t mode = RESET) {
+			     SpFunctionCall func,
+			     SpAssMode mode = RESET) {
 
-	       const GradientVectorHandler<SpGradient> XCurr_grad(XCurr);
-	       const GradientVectorHandler<SpGradient> XPrimeCurr_grad(XPrimeCurr);
+	       const SpGradientVectorHandler<SpGradient> XCurr_grad(XCurr);
+	       const SpGradientVectorHandler<SpGradient> XPrimeCurr_grad(XPrimeCurr);
 
-	       GradientAssVec WorkMat_grad(WorkMat, mode);
+	       SpGradientAssVec WorkMat_grad(WorkMat, mode);
 
 	       pElem->AssRes(WorkMat_grad, dCoef, XCurr_grad, XPrimeCurr_grad, func);
 	  }
@@ -249,12 +228,12 @@ namespace sp_grad {
 	  static void InitialAssJac(T* pElem,
 				    SparseSubMatrixHandler& WorkMat,
 				    const VectorHandler& XCurr,
-				    enum FunctionCall func,
-				    enum mode_t mode = RESET) {
+				    SpFunctionCall func,
+				    SpAssMode mode = RESET) {
 
-	       const GradientVectorHandler<SpGradient> XCurr_grad(XCurr);
+	       const SpGradientVectorHandler<SpGradient> XCurr_grad(XCurr);
 
-	       GradientAssVec WorkMat_grad(WorkMat, mode);
+	       SpGradientAssVec WorkMat_grad(WorkMat, mode);
 
 	       pElem->InitialAssRes(WorkMat_grad, XCurr_grad, func);
 	  }

@@ -133,6 +133,56 @@ namespace sp_grad_test {
                 }
         }
 
+	void test0() {
+	        Mat3x3 A, C;
+		Vec3 b;
+
+		for (index_type i = 1; i <= 3; ++i) {
+			for (index_type j = 1; j <= 3; ++j) {
+				A(i, j) = 10 * i + j;
+				C(i, j) = 100 * j + 10 * i;
+			}
+	       
+			b(i) = i;
+		}
+
+		SpMatrix<doublereal, 3, 3> Asp(A), Csp(C);
+		SpColVector<doublereal, 3> bsp(b);
+
+		Asp = A;
+		bsp = b;
+
+		SpColVector<doublereal, 3> csp1 = Asp * b;
+ 		SpColVector<doublereal, 3> csp2 = A * bsp;
+		SpColVector<doublereal, 3> csp3 = Asp * bsp;
+		SpColVector<doublereal, 3> csp4 = A * b;
+
+		Vec3 c = A * b;
+
+		Mat3x3 D = A * C;
+
+		SpMatrix<doublereal, 3, 3> Dsp1 = A * C;
+		SpMatrix<doublereal, 3, 3> Dsp2 = Asp * C;
+		SpMatrix<doublereal, 3, 3> Dsp3 = A * Csp;
+		SpMatrix<doublereal, 3, 3> Dsp4 = Asp * Csp;
+		
+		constexpr doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+		     
+		for (index_type i = 1; i <= 3; ++i) {
+		     sp_grad_assert_equal(csp1(i), c(i), dTol);
+		     sp_grad_assert_equal(csp2(i), c(i), dTol);
+		     sp_grad_assert_equal(csp3(i), c(i), dTol);
+		     sp_grad_assert_equal(csp4(i), c(i), dTol);
+		     
+		     for (index_type j = 1; j <= 3; ++j) {
+			  sp_grad_assert_equal(Dsp1(i, j), D(i, j), dTol);
+			  sp_grad_assert_equal(Dsp2(i, j), D(i, j), dTol);
+			  sp_grad_assert_equal(Dsp3(i, j), D(i, j), dTol);
+			  sp_grad_assert_equal(Dsp4(i, j), D(i, j), dTol);
+		     }
+		}
+	}
+     
         void test1()
         {
                 using namespace std;
@@ -2089,8 +2139,21 @@ namespace sp_grad_test {
                         SpRowVector<T, 3> s = Transpose(v1) * Transpose(A);
                         SpRowVector<T, 3> r = Transpose(A * v1);
                         SpColVector<T, 3> x = C.GetCol(1) + C.GetCol(2);
+			SpColVector<T, 3> vm1 = Cross(Transpose(r), Transpose(s));
+			SpColVector<T, 3> vm2 = EvalCompressed(Cross(Transpose(r), Transpose(s)));
+			SpColVector<T, 3> vr1(3, 0), vr2(3, 0);
+			
+			const T x1 = r(1), y1 = r(2), z1 = r(3);
+			const T x2 = s(1), y2 = s(2), z2 = s(3);
+			
+			vr1(1) = y1 * z2 - y2 * z1;
+			vr1(2) = -(x1 * z2 - x2 * z1);
+			vr1(3) = x1 * y2 - x2 * y1;
 
-
+			vr2(1) = EvalCompressed(y1 * z2 - y2 * z1);
+			vr2(2) = -EvalCompressed(x1 * z2 - x2 * z1);
+			vr2(3) = EvalCompressed(x1 * y2 - x2 * y1);
+			
                         SpMatrix<T, 3, 3> y;
 
                         for (index_type i = 1; i <= F.iGetNumRows(); ++i) {
@@ -2163,6 +2226,12 @@ namespace sp_grad_test {
                                 }
                         }
 
+			for (index_type i = 1; i <= 3; ++i) {
+				sp_grad_assert_equal(vm1(i), vr1(i), dTol);
+				sp_grad_assert_equal(vm2(i), vr1(i), dTol);
+				sp_grad_assert_equal(vr2(i), vr1(i), dTol);
+			}
+			
                         start = high_resolution_clock::now();
 
                         I = Transpose(C) * C;
@@ -2223,6 +2292,7 @@ int main(int argc, char* argv[])
 #define SP_GRAD_RUN_TEST(number)                                \
                 (dtest == dall_tests || dtest == (number))
 
+		if (SP_GRAD_RUN_TEST(0.1)) test0();
                 if (SP_GRAD_RUN_TEST(1.1)) test1();
                 if (SP_GRAD_RUN_TEST(2.1)) test2(inumloops, inumnz, inumdof);
                 if (SP_GRAD_RUN_TEST(3.1)) test3<SpGradient, SpGradient>(inumloops, inumnz, inumdof, imatrows);

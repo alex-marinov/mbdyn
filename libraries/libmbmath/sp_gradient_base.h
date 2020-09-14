@@ -72,6 +72,28 @@
 #endif
 
 namespace sp_grad {
+     enum SpFunctionCall {
+	  // FIXME: There should be a flag for the initial derivatives phase
+	  // 		  However this information is not available for elements at the moment
+	  //		  The prototype for Element::AssRes and Element::AssJac should be changed like
+	  //		  AssRes(..., SpFunctionCall func);
+	  //		  AssJac(..., SpFunctionCall func);
+	  STATE_MASK 			= 0x0F,
+	  FUNCTION_MASK 		= 0xF0,
+	  INITIAL_ASS_FLAG 	= 0x01,
+	  INITIAL_DER_FLAG 	= 0x02,
+	  REGULAR_FLAG 		= 0x04,
+	  RESIDUAL_FLAG 		= 0x10,
+	  JACOBIAN_FLAG 		= 0x20,
+	  UNKNOWN_FUNC 	= 0x0,
+	  INITIAL_ASS_RES = INITIAL_ASS_FLAG | RESIDUAL_FLAG,
+	  INITIAL_ASS_JAC = INITIAL_ASS_FLAG | JACOBIAN_FLAG,
+	  INITIAL_DER_RES = INITIAL_DER_FLAG | RESIDUAL_FLAG,
+	  INITIAL_DER_JAC = INITIAL_DER_FLAG | JACOBIAN_FLAG,
+	  REGULAR_RES 	= REGULAR_FLAG 	   | RESIDUAL_FLAG,
+	  REGULAR_JAC 	= REGULAR_FLAG	   | JACOBIAN_FLAG
+     };
+     
      typedef double doublereal;
      typedef int integer;
      typedef long index_type;
