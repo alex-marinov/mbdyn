@@ -419,8 +419,15 @@ DeformableJointAD::Output(OutputHandler& OH) const
 void
 DeformableJointAD::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-     *piNumRows = 12;
-     *piNumCols = 24;
+     switch (fJac) {
+     case SPARSE_TEMPLATE_META_PROG:
+	  *piNumRows = -12;
+	  *piNumCols = 24;
+	  break;
+     default:
+	  *piNumRows = 12;
+	  *piNumCols = 12;
+     }
 }
 
 VariableSubMatrixHandler&
@@ -1618,7 +1625,7 @@ InlineJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      pNode2->GetXCurr(X2, dCoef, func);
      pNode2->GetRCurr(R2, dCoef, func);
 
-     SpColVector<T, 2> lambda;
+     SpColVector<T, 2> lambda(2, 1);
 
      XCurr.GetVec(iFirstIndex + 1, lambda, 1.); // Note: for algebraic variables dCoef is always one
 

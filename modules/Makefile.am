@@ -68,13 +68,13 @@ all__:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
+			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
 			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$isrc in /*) fisrc=$$isrc/$$f ;; *) fisrc=../$$isrc/$$f ;; esac ; \
-				case $$isrc in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$fisrc ; then ( cd $$i && ln -sf $$fisrc $$f ) ; fi ; ;; esac ; \
+				case $$isrc in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrca/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
-			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$$isrc ) ; \
+			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=$$isrca ) ; \
 			rm -f $$i/Makefile ; \
 		done \
 	fi
@@ -87,10 +87,10 @@ install: all__
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
+			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
 			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$isrc in /*) fisrc=$$isrc/$$f ;; *) fisrc=../$$isrc/$$f ;; esac ; \
-				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$fisrc ; then ( cd $$i && ln -sf $$fisrc $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrca/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) install ) ; \
