@@ -18,6 +18,18 @@ export LTCXXCOMPILE = @LIBTOOL@ --tag=CXX --mode=compile @CXX@ @DEFS@ \
 	-I$(top_srcdir)/mbdyn/aero \
 	-I$(top_srcdir)/mbdyn/elec \
 	-I$(top_srcdir)/mbdyn/hydr \
+	-I../$(top_srcdir)/include \
+	-I../$(top_srcdir)/libraries/libmbutil \
+	-I../$(top_srcdir)/libraries/libmbmath \
+	-I../$(top_srcdir)/libraries/libmbwrap \
+	-I../$(top_srcdir)/libraries/libobjs \
+	-I../$(top_srcdir)/libraries/libmbc \
+	-I../$(top_srcdir)/mbdyn \
+	-I../$(top_srcdir)/mbdyn/base \
+	-I../$(top_srcdir)/mbdyn/struct \
+	-I../$(top_srcdir)/mbdyn/aero \
+	-I../$(top_srcdir)/mbdyn/elec \
+	-I../$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CXXFLAGS) @CXXFLAGS@
 CXXLD = @CXX@
@@ -38,6 +50,18 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I$(top_srcdir)/mbdyn/aero \
 	-I$(top_srcdir)/mbdyn/elec \
 	-I$(top_srcdir)/mbdyn/hydr \
+	-I../$(top_srcdir)/include \
+	-I../$(top_srcdir)/libraries/libmbc \
+	-I../$(top_srcdir)/libraries/libmbutil \
+	-I../$(top_srcdir)/libraries/libmbmath \
+	-I../$(top_srcdir)/libraries/libmbwrap \
+	-I../$(top_srcdir)/libraries/libobjs \
+	-I../$(top_srcdir)/mbdyn \
+	-I../$(top_srcdir)/mbdyn/base \
+	-I../$(top_srcdir)/mbdyn/struct \
+	-I../$(top_srcdir)/mbdyn/aero \
+	-I../$(top_srcdir)/mbdyn/elec \
+	-I../$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
 export LTF77COMPILE = @LIBTOOL@ --tag=F77 --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
