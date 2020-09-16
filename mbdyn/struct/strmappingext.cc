@@ -1059,7 +1059,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 			iSize += 6;
 		}
 
-		ASSERT(iSize == m_uResSize);
+		ASSERT(static_cast<unsigned>(iSize) == m_uResSize);
 
 	} else {
 		integer iSize(0);
@@ -1086,7 +1086,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 			iSize += iDim;
 		}
 
-		ASSERT(iSize == m_uResSize);
+		ASSERT(static_cast<unsigned>(iSize) == m_uResSize);
 	}
 
 	return WorkVec;
