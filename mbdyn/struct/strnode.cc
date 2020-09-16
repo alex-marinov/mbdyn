@@ -2174,7 +2174,7 @@ inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, con
 	  G(3,2) = tmp7;
 	  G(3,3) = d;
 
-	  W = G * gP + RDelta * WRef; // Note that the first index of gP and g must be the same in order to work!
+	  W = EvalCompressed(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
      }
      break;
 
