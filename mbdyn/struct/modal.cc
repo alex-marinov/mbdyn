@@ -5829,13 +5829,13 @@ ReadModal(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
                 }
 
-                ASSERT(pInv3->iGetNumCols() == NModes);
+                ASSERT(static_cast<unsigned>(pInv3->iGetNumCols()) == NModes);
                 
                 if (!pInv4) {
 		SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
                 }
 
-                ASSERT(pInv4->iGetNumCols() == NModes);
+                ASSERT(static_cast<unsigned>(pInv4->iGetNumCols()) == NModes);
 
 		/* NOTE: we assume that Inv5 is used only if Inv4 is used as well */
 		/* Inv5 e' un 3xMxM */
@@ -5843,14 +5843,14 @@ ReadModal(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.));
                 }
 
-                ASSERT(pInv5->iGetNumCols() == NModes * NModes);
+                ASSERT(static_cast<unsigned>(pInv5->iGetNumCols()) == NModes * NModes);
 
                 if (!pInv8) {
 		/* Inv8 e' un 3x3xM */
 		SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));
                 }
 
-                ASSERT(pInv8->iGetNumCols() == 3 * NModes);
+                ASSERT(static_cast<unsigned>(pInv8->iGetNumCols()) == 3 * NModes);
 
 		/* NOTE: we assume that Inv9 is used only if Inv8 is used as well */
 		/* by default: no */
@@ -5860,7 +5860,7 @@ ReadModal(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.));
 		}
 
-                    ASSERT(pInv9->iGetNumCols() == 3 * NModes * NModes);
+                    ASSERT(static_cast<unsigned>(pInv9->iGetNumCols()) == 3 * NModes * NModes);
 		}
 		/* Inv10 e' un 3x3xM */
 		SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.));
