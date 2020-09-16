@@ -167,7 +167,7 @@ namespace sp_grad {
 	  struct MatEvalHelperCompr<SpGradCommon::ExprEvalUncompressed> {
 	       static constexpr SpGradCommon::ExprEvalFlags eComprFlag = SpGradCommon::ExprEvalUncompressed;
 
-	       template <typename MatEvalType, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
+	       template <MatTranspEvalFlag eTransp, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
 	       static inline void ElemEval(const Expr& oExpr, SpMatrixBase<ValueType, NumRows, NumCols>& A);
 	  };
 
@@ -175,7 +175,7 @@ namespace sp_grad {
 	  struct MatEvalHelperCompr<SpGradCommon::ExprEvalCompressed> {
 	       static constexpr SpGradCommon::ExprEvalFlags eComprFlag = SpGradCommon::ExprEvalCompressed;
 
-	       template <typename MatEvalType, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
+	       template <MatTranspEvalFlag eTransp, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
 	       static inline void ElemEval(const Expr& oExpr, SpMatrixBase<ValueType, NumRows, NumCols>& A);
 	  };
 
@@ -214,16 +214,16 @@ namespace sp_grad {
 						index_type j);
 	  };
 
-	  template <typename MatEvalType> struct TranspMatEvalHelper;
+	  template <MatTranspEvalFlag eTransp> struct TranspMatEvalHelper;
 
 	  template <>
-	  struct TranspMatEvalHelper<MatEvalHelperTransp<MatTranspEvalFlag::DIRECT> > {
-	       typedef MatEvalHelperTransp<MatTranspEvalFlag::TRANSPOSED> Type;
+	  struct TranspMatEvalHelper<MatTranspEvalFlag::DIRECT> {
+	       static constexpr MatTranspEvalFlag Value = MatTranspEvalFlag::TRANSPOSED;
 	  };
 
 	  template <>
-	  struct TranspMatEvalHelper<MatEvalHelperTransp<MatTranspEvalFlag::TRANSPOSED> > {
-	       typedef MatEvalHelperTransp<MatTranspEvalFlag::DIRECT> Type;
+	  struct TranspMatEvalHelper<MatTranspEvalFlag::TRANSPOSED> {
+	       static constexpr MatTranspEvalFlag Value = MatTranspEvalFlag::DIRECT;
 	  };
 
 	  enum MatAccessFlag: unsigned {
@@ -267,18 +267,18 @@ namespace sp_grad {
 	  static constexpr SpMatOpType eMatOpType = DERIVED::eMatOpType;
 	  static constexpr SpGradCommon::ExprEvalFlags eComprFlag = DERIVED::eComprFlag;
 
-	  template <typename MatEvalType = util::MatEvalHelper<util::MatTranspEvalFlag::DIRECT>, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
 	  inline void ElemEval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
 
-	  template <typename MatEvalType, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
 	  inline void ElemEvalUncompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
 
-	  template <typename MatEvalType, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
 	  inline void ElemEvalCompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
 	  inline void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	       pGetRep()->template Eval<MatEvalType>(A);
+	       pGetRep()->template Eval<eTransp>(A);
 	  }
 
 	  index_type iGetNumRows() const {
@@ -366,26 +366,25 @@ namespace sp_grad {
 	  ~SpConstMatElemAdapter() noexcept {}
 
      public:	  
-	  static constexpr sp_grad::index_type iNumElemOps = 0;
-	  static constexpr unsigned uMatAccess = sp_grad::util::MatAccessFlag::ELEMENT_WISE |
-	       sp_grad::util::MatAccessFlag::ITERATORS |
-	       sp_grad::util::MatAccessFlag::MATRIX_WISE;
-	  static constexpr sp_grad::SpMatOpType eMatOpType = sp_grad::SpMatOpType::MATRIX;
-	  static constexpr sp_grad::SpGradCommon::ExprEvalFlags eComprFlag = sp_grad::SpGradCommon::ExprEvalUncompressed;
-	  inline constexpr sp_grad::index_type iGetSize(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return 0; }
-	  inline constexpr sp_grad::index_type iGetMaxSize() const noexcept { return 0; }
+	  static constexpr index_type iNumElemOps = 0;
+	  static constexpr unsigned uMatAccess = util::MatAccessFlag::ELEMENT_WISE |
+	       util::MatAccessFlag::ITERATORS |
+	       util::MatAccessFlag::MATRIX_WISE;
+	  static constexpr SpMatOpType eMatOpType = SpMatOpType::MATRIX;
+	  static constexpr SpGradCommon::ExprEvalFlags eComprFlag = SpGradCommon::ExprEvalUncompressed;
+	  inline constexpr index_type iGetSize(index_type i, index_type j) const noexcept { return 0; }
+	  inline constexpr index_type iGetMaxSize() const noexcept { return 0; }
 	  template <typename ValueType_B>
-	  inline constexpr void InsertDeriv(ValueType_B& g, doublereal dCoef, sp_grad::index_type i, sp_grad::index_type j) const noexcept {}
-	  inline constexpr void GetDofStat(sp_grad::SpGradDofStat& s, sp_grad::index_type i, sp_grad::index_type j) const noexcept {}
-	  inline constexpr void InsertDof(sp_grad::SpGradExpDofMap& oExpDofMap, sp_grad::index_type i, sp_grad::index_type j) const noexcept {};
+	  inline constexpr void InsertDeriv(ValueType_B& g, doublereal dCoef, index_type i, index_type j) const noexcept {}
+	  inline constexpr void GetDofStat(SpGradDofStat& s, index_type i, index_type j) const noexcept {}
+	  inline constexpr void InsertDof(SpGradExpDofMap& oExpDofMap, index_type i, index_type j) const noexcept {};
 	  template <typename ValueTypeB>
-	  inline constexpr void AddDeriv(ValueTypeB& g, doublereal dCoef, const sp_grad::SpGradExpDofMap& oExpDofMap, sp_grad::index_type i, sp_grad::index_type j) const noexcept {}
+	  inline constexpr void AddDeriv(ValueTypeB& g, doublereal dCoef, const SpGradExpDofMap& oExpDofMap, index_type i, index_type j) const noexcept {}
 	  template <typename ExprType, typename Expr>
 	  inline constexpr bool bHaveRefTo(const SpMatElemExprBase<ExprType, Expr>& A) const noexcept { return false; }
-	  template <typename MatEvalType = sp_grad::util::MatEvalHelperTransp<sp_grad::util::MatTranspEvalFlag::DIRECT>,
-		    index_type iNumRowsStatic, index_type iNumColsStatic>
-	  void Eval(sp_grad::SpMatrixBase<doublereal, iNumRowsStatic, iNumColsStatic>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type iNumRowsStatic, index_type iNumColsStatic>
+	  void Eval(SpMatrixBase<doublereal, iNumRowsStatic, iNumColsStatic>& A) const {
+	       this->template ElemEval<eTransp>(A);
 	  }
      };
 }

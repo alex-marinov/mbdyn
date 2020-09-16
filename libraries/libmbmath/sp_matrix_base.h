@@ -144,9 +144,9 @@ namespace sp_grad {
 	       :u(std::move(oExpr.u)), v(std::move(oExpr.v)) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type iNumRowsA, index_type iNumColsA >
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type iNumRowsA, index_type iNumColsA >
 	  void Eval(SpMatrixBase<ValueType, iNumRowsA, iNumColsA>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -257,9 +257,9 @@ namespace sp_grad {
 	       :u(std::move(oExpr.u)), v(std::move(oExpr.v)) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type iNumRowsA, index_type iNumColsA >
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type iNumRowsA, index_type iNumColsA >
 	  void Eval(SpMatrixBase<ValueType, iNumRowsA, iNumColsA>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -430,9 +430,9 @@ namespace sp_grad {
 	       :u(std::move(oExpr.u)) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT> >
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT>
 	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -505,9 +505,9 @@ namespace sp_grad {
 	       :u(u) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT> >
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT>
 	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -579,9 +579,9 @@ namespace sp_grad {
 	       :u(u) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
 	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	       u.template Eval<typename util::TranspMatEvalHelper<MatEvalType>::Type>(A);
+	       u.template Eval<util::TranspMatEvalHelper<eTransp>::Value>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -653,9 +653,9 @@ namespace sp_grad {
 	       :u(u), iCol(iCol) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
 	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -746,9 +746,9 @@ namespace sp_grad {
 	       :u(u), iRow(iRow) {
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
 	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  constexpr doublereal dGetValue(index_type i, index_type j) const {
@@ -853,7 +853,7 @@ namespace sp_grad {
 	       SP_GRAD_ASSERT(u.iGetNumCols() == v.iGetNumRows());
 	  }
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>, index_type NumRowsA, index_type NumColsA>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRowsA, index_type NumColsA>
 	  inline void Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const;
 
 	  doublereal dGetValue(index_type, index_type) const = delete;
@@ -922,9 +922,9 @@ namespace sp_grad {
 
 	  inline constexpr explicit SpMatElemScalarExpr(const ScalarExpr& u) noexcept;
 
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT> >
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT>
 	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
-	       this->template ElemEval<MatEvalType>(A);
+	       this->template ElemEval<eTransp>(A);
 	  }
 
 	  inline constexpr doublereal dGetValue(index_type, index_type) const noexcept;
@@ -1011,7 +1011,7 @@ namespace sp_grad {
 	  template <typename ValueTypeB>
 	  constexpr static inline bool bIsOwnerOf(const SpMatrixData<ValueTypeB>*) noexcept { return false; }
 	  inline bool bIsOwnerOf(const SpMatrixData<ValueType>* pDataB) const noexcept;
-	  template <typename MatEvalType = util::MatEvalHelperTransp<util::MatTranspEvalFlag::DIRECT>,
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    index_type NumRowsA, index_type NumColsA>
 	  inline void Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const;
 	  inline index_type iGetMaxSize() const;
@@ -1404,18 +1404,18 @@ namespace sp_grad {
      }
 
      namespace util {
-	  template <typename MatEvalType, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
+	  template <MatTranspEvalFlag eTransp, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
 	  void MatEvalHelperCompr<SpGradCommon::ExprEvalUncompressed>::ElemEval(const Expr& oExpr, SpMatrixBase<ValueType, NumRows, NumCols>& A) {
 	       static_assert(eComprFlag == SpGradCommon::ExprEvalUncompressed);
 
-	       oExpr.template ElemEvalUncompr<MatEvalType>(A);
+	       oExpr.template ElemEvalUncompr<eTransp>(A);
 	  }
 
-	  template <typename MatEvalType, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
+	  template <MatTranspEvalFlag eTransp, typename Expr, typename ValueType, index_type NumRows, index_type NumCols>
 	  void MatEvalHelperCompr<SpGradCommon::ExprEvalCompressed>::ElemEval(const Expr& oExpr, SpMatrixBase<ValueType, NumRows, NumCols>& A) {
 	       static_assert(eComprFlag == SpGradCommon::ExprEvalCompressed);
 
-	       oExpr.template ElemEvalCompr<MatEvalType>(A);
+	       oExpr.template ElemEvalCompr<eTransp>(A);
 	  }
 
 	  template <typename ValueType, index_type NumRows, index_type NumCols>
@@ -1457,19 +1457,21 @@ namespace sp_grad {
      };
 
      template <typename ValueType, typename DERIVED>
-     template <typename MatEvalType, index_type NumRows, index_type NumCols>
+     template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
      void SpMatElemExprBase<ValueType, DERIVED>::ElemEval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	  util::MatEvalHelperCompr<util::ComprEvalHelper<ValueType, eComprFlag>::eComprFlag>::template ElemEval<MatEvalType>(*this, A);
+	  util::MatEvalHelperCompr<util::ComprEvalHelper<ValueType, eComprFlag>::eComprFlag>::template ElemEval<eTransp>(*this, A);
      }
 
      template <typename ValueType, typename DERIVED>
-     template <typename MatEvalType, index_type NumRows, index_type NumCols>
+     template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
      void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalUncompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
 	  const index_type iNumRows = iGetNumRows();
 	  const index_type iNumCols = iGetNumCols();
 	  const index_type iMaxSize = iGetMaxSize();
 
-	  constexpr bool bTransposed = MatEvalType::eTranspFlag == util::MatTranspEvalFlag::TRANSPOSED;
+	  typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
+	  
+	  constexpr bool bTransposed = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
 
 	  static_assert(NumRows == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
 	  static_assert(NumCols == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
@@ -1501,12 +1503,13 @@ namespace sp_grad {
      }
 
      template <typename ValueType, typename DERIVED>
-     template <typename MatEvalType, index_type NumRows, index_type NumCols>
+     template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
      void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalCompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
 	  const index_type iNumRows = iGetNumRows();
 	  const index_type iNumCols = iGetNumCols();
 
-	  constexpr bool bTransposed = MatEvalType::eTranspFlag == util::MatTranspEvalFlag::TRANSPOSED;
+	  typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
+	  constexpr bool bTransposed = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
 
 	  static_assert(NumRows == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
 	  static_assert(NumCols == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
@@ -1609,11 +1612,11 @@ namespace sp_grad {
 	  };
 
 
-	  template <typename MatEvalType, bool bIsGradientLhs, bool bIsGradientRhs>
+	  template <util::MatTranspEvalFlag eTransp, bool bIsGradientLhs, bool bIsGradientRhs>
 	  struct MatMulExprLoop;
 
-	  template <typename MatEvalType>
-	  struct MatMulExprLoop<MatEvalType, true, true> {
+	  template <util::MatTranspEvalFlag eTransp>
+	  struct MatMulExprLoop<eTransp, true, true> {
 	       template <typename MatA, typename MatU, typename MatV>
 	       static inline void InnerProduct(MatA& Atmp,
 					       const MatU& utmp,
@@ -1627,6 +1630,7 @@ namespace sp_grad {
 					       const index_type iColOffsetV,
 					       const index_type iColSizeV) {
 		    MatMulExprHelper oMatMulHelper;
+		    typedef MatEvalHelperTransp<eTransp> MatEvalType;
 
 		    for (index_type j = 1; j <= iNumCols; ++j) {
 			 const SpGradient* const pvtmp_j = vtmp.begin() + (j - 1) * iColOffsetV;
@@ -1655,8 +1659,8 @@ namespace sp_grad {
 	       }
 	  };
 
-	  template <typename MatEvalType>
-	  struct MatMulExprLoop<MatEvalType, true, false> {
+	  template <util::MatTranspEvalFlag eTransp>
+	  struct MatMulExprLoop<eTransp, true, false> {
 	       template <typename MatA, typename MatU, typename MatV>
 	       static inline void InnerProduct(MatA& Atmp,
 					       const MatU& utmp,
@@ -1670,7 +1674,8 @@ namespace sp_grad {
 					       const index_type iColOffsetV,
 					       const index_type iColSizeV) {
 		    MatMulExprHelper oMatMulHelper;
-
+		    typedef MatEvalHelperTransp<eTransp> MatEvalType;
+		    
 		    for (index_type i = 1; i <= iNumRows; ++i) {
 			 const SpGradient* const putmp_i = utmp.begin() + (i - 1) * iRowOffsetU;
 
@@ -1697,8 +1702,8 @@ namespace sp_grad {
 	       }
 	  };
 
-	  template <typename MatEvalType>
-	  struct MatMulExprLoop<MatEvalType, false, true> {
+	  template <util::MatTranspEvalFlag eTransp>
+	  struct MatMulExprLoop<eTransp, false, true> {
 	       template <typename MatA, typename MatU, typename MatV>
 	       static inline void InnerProduct(MatA& Atmp,
 					       const MatU& utmp,
@@ -1712,7 +1717,8 @@ namespace sp_grad {
 					       const index_type iColOffsetV,
 					       const index_type iColSizeV) {
 		    MatMulExprHelper oMatMulHelper;
-
+		    typedef MatEvalHelperTransp<eTransp> MatEvalType;
+		    
 		    for (index_type j = 1; j <= iNumCols; ++j) {
 			 const SpGradient* const pvtmp_j = vtmp.begin() + (j - 1) * iColOffsetV;
 
@@ -1738,8 +1744,8 @@ namespace sp_grad {
 	       }
 	  };
 
-	  template <typename MatEvalType>
-	  struct MatMulExprLoop<MatEvalType, false, false> {
+	  template <util::MatTranspEvalFlag eTransp>
+	  struct MatMulExprLoop<eTransp, false, false> {
 	       template <typename MatA, typename MatU, typename MatV>
 	       static inline void InnerProduct(MatA& Atmp,
 					       const MatU& utmp,
@@ -1753,6 +1759,8 @@ namespace sp_grad {
 					       const index_type iColOffsetV,
 					       const index_type iColSizeV) noexcept {
 
+		    typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
+		    
 		    for (index_type j = 1; j <= iNumCols; ++j) {
 			 const doublereal* const pvtmp_j = vtmp.begin() + (j - 1) * iColOffsetV;
 
@@ -1773,9 +1781,11 @@ namespace sp_grad {
      }
 
      template <typename LhsValue, typename RhsValue, typename LhsExpr, typename RhsExpr>
-     template <typename MatEvalType, index_type NumRowsA, index_type NumColsA>
+     template <util::MatTranspEvalFlag eTransp, index_type NumRowsA, index_type NumColsA>
      void SpMatMulExpr<LhsValue, RhsValue, LhsExpr, RhsExpr>::Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const {
-	  constexpr bool bTransposedEval = MatEvalType::eTranspFlag == util::MatTranspEvalFlag::TRANSPOSED;
+	  typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
+	  
+	  constexpr bool bTransposedEval = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
 
 	  static_assert(NumRowsA == (!bTransposedEval ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
 	  static_assert(NumColsA == (!bTransposedEval ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
@@ -1815,7 +1825,7 @@ namespace sp_grad {
 	  constexpr bool bIsGradientLhs = std::is_same<SpGradient, LhsValue>::value;
 	  constexpr bool bIsGradientRhs = std::is_same<SpGradient, RhsValue>::value;
 
-	  typedef util::MatMulExprLoop<MatEvalType, bIsGradientLhs, bIsGradientRhs> MatMulExprLoop;
+	  typedef util::MatMulExprLoop<eTransp, bIsGradientLhs, bIsGradientRhs> MatMulExprLoop;
 
 	  MatMulExprLoop::InnerProduct(Atmp,
 				       utmp,
@@ -2129,9 +2139,9 @@ namespace sp_grad {
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
-     template <typename MatEvalType, index_type NumRowsA, index_type NumColsA>
+     template <util::MatTranspEvalFlag eTransp, index_type NumRowsA, index_type NumColsA>
      void SpMatrixBase<ValueType, NumRows, NumCols>::Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const {
-	  this->template ElemEval<MatEvalType>(A);
+	  this->template ElemEval<eTransp>(A);
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
