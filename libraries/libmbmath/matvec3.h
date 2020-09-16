@@ -43,6 +43,10 @@
 #include "except.h"
 #include "solman.h"
 
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_matrix_base_fwd.h"
+#endif
+
 #include "tpls.h"
 
 enum {
@@ -95,7 +99,11 @@ class Vec3_Manip {
 /* Vec3 - begin */
 
 // Vettori di dimensione 3
-class Vec3 {
+class Vec3
+#ifdef USE_SPARSE_AUTODIFF
+     :public sp_grad::SpConstMatElemAdapter<Vec3>
+#endif
+{
    friend class Mat3x3;   
    friend Vec3 operator - (const Vec3& v);
    // friend class Mat3x3_Manip;
@@ -499,6 +507,18 @@ class Vec3 {
     I coefficienti sono separati dalla stringa sFill (spazio di default).
     */
    std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
+
+#ifdef USE_SPARSE_AUTODIFF
+     static constexpr sp_grad::index_type iNumRowsStatic = 3;
+     static constexpr sp_grad::index_type iNumColsStatic = 1;
+     inline constexpr sp_grad::index_type iGetRowOffset() const noexcept { return 1; }
+     inline constexpr sp_grad::index_type iGetColOffset() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     inline const doublereal* begin() const noexcept { return &pdVec[0]; }
+     inline const doublereal* end() const noexcept { return &pdVec[iNumRowsStatic]; }
+     doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i); }     
+#endif
 };
    
 /* Vec3 - end */
@@ -547,7 +567,11 @@ class Mat3x3_Manip {
 
 /* Mat3x3 - begin */
 // Matrici 3x3
-class Mat3x3 {
+class Mat3x3
+#ifdef USE_SPARSE_AUTODIFF
+     :public sp_grad::SpConstMatElemAdapter<Mat3x3>
+#endif
+{
    friend class Vec3;
    friend class SparseSubMatrixHandler;
    friend class Mat3x3_Manip;   
@@ -1374,6 +1398,18 @@ class Mat3x3 {
    std::ostream& Write(std::ostream& out, 
 		  const char* sFill = " ", 
 		  const char* sFill2 = NULL) const;
+     
+#ifdef USE_SPARSE_AUTODIFF
+     static constexpr sp_grad::index_type iNumRowsStatic = 3;
+     static constexpr sp_grad::index_type iNumColsStatic = 3;
+     inline constexpr sp_grad::index_type iGetRowOffset() const noexcept { return 1; }
+     inline constexpr sp_grad::index_type iGetColOffset() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     inline const doublereal* begin() const noexcept { return &pdMat[0]; }
+     inline const doublereal* end() const noexcept { return &pdMat[iNumRowsStatic * iNumColsStatic]; }
+     doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
+#endif
 };
 
 /* Mat3x3 - end */
