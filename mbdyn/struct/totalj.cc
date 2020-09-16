@@ -350,7 +350,7 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == ndof);
+		ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": dof(" << i + 1 << ")";
@@ -551,7 +551,7 @@ TotalJoint::DescribeEq(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == ndof);
+		ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": equation(" << i + 1 << ")";
@@ -2369,7 +2369,7 @@ TotalPinJoint::DescribeDof(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == ndof);
+		ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": dof(" << i + 1 << ")";
@@ -2568,7 +2568,7 @@ TotalPinJoint::DescribeEq(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == ndof);
+		ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": equation(" << i + 1 << ")";
