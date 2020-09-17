@@ -2148,7 +2148,7 @@ inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, con
      RDelta(3,2) = (tmp5 + g(1)) * d;
      RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
 
-     R = RDelta * RRef;
+     R = EvalCompressed(RDelta * RRef);
 
      switch (func) {
      case INITIAL_ASS_JAC:

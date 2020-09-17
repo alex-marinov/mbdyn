@@ -40,8 +40,10 @@
 
 #include <cstdlib>
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 #include <cmath>
+#include <vector>
+
 #endif
 
 #include "sp_gradient.h"
@@ -133,7 +135,7 @@ namespace sp_grad {
 	  pData->bCompressed = true;
      }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
      bool SpGradient::bValid() const {
 	  SP_GRAD_ASSERT(pData != nullptr);
 
@@ -153,15 +155,37 @@ namespace sp_grad {
 	  for (index_type i = 0; i < pData->iSizeCurr; ++i) {
 	       SP_GRAD_ASSERT(std::isfinite(pData->rgDer[i].dDer));
 	       SP_GRAD_ASSERT(pData->rgDer[i].iDof > 0);
-
+	       
 	       if (i > 0 && pData->bCompressed) {
-		    SP_GRAD_ASSERT(pData->rgDer[i].iDof > pData->rgDer[i - 1].iDof);
+	       	    SP_GRAD_ASSERT(pData->rgDer[i].iDof > pData->rgDer[i - 1].iDof);
 	       }
 	  }
 
 	  return true;
      }
 
+     bool SpGradient::bIsUnique() const {
+	  SpGradDofStat s;
+	  
+	  GetDofStat(s);
+	  
+	  std::vector<bool> v(s.iMaxDof - s.iMinDof + 1, false);
+
+	  for (const auto&r: *this) {
+	       size_t i = r.iDof - s.iMinDof;
+
+	       SP_GRAD_ASSERT(i < v.size());
+	       
+	       if (v[i]) {
+		    return false;
+	       }
+	       
+	       v[i] = true;
+	  }
+
+	  return true;
+     }
+     
      void SpGradient::PrintValue(std::ostream& os) const {
 	  os << dGetValue() << ' ';
      }

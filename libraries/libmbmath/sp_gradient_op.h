@@ -121,7 +121,7 @@ namespace sp_grad {
 
      inline constexpr doublereal EvalCompressed(doublereal d) noexcept { return d; }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
      template <typename Expr>
      std::ostream& operator<<(std::ostream& os, const SpGradBase<Expr>& g) {
 	  os << "f=(";

@@ -41,7 +41,7 @@
 #ifndef ___SP_MATVECASS_H__INCLUDED___
 #define ___SP_MATVECASS_H__INCLUDED___
 
-#if defined(DEBUG) && defined(HAVE_FINITE)
+#if defined(HAVE_FINITE)
 #include <cmath>
 #endif
 

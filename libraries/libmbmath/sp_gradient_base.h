@@ -50,6 +50,7 @@
 #include "ac/f2c.h"
 #include "myassert.h"
 
+#define SP_GRAD_DEBUG DEBUG
 #define SP_GRAD_ASSERT(expr) ASSERT(expr)
 #define SP_GRAD_TRACE(expr) DEBUGCERR(expr)
 #define SP_GRAD_TRACE_VAR(var) SP_GRAD_TRACE(#var << "=" << var << std::endl)
@@ -98,7 +99,7 @@ namespace sp_grad {
      typedef int integer;
      typedef long index_type;
 
-     struct SpDerivData;
+     class SpDerivData;
      class SpGradExpDofMap;
      class SpGradient;
 
@@ -234,7 +235,7 @@ namespace sp_grad {
 	       return static_cast<const DERIVED*>(this);
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  void PrintValue(std::ostream& os) const {
 	       pGetRep()->PrintValue(os);
 	  }

@@ -93,7 +93,7 @@ namespace sp_grad {
 	       v.AddDeriv(g, df_dv * dCoef, oExpDofMap);
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  void PrintValue(std::ostream& os) const {
 	       BinaryFunc::Print(os);
 	       os << '(';
@@ -160,7 +160,7 @@ namespace sp_grad {
 	       u.AddDeriv(g, df_du * dCoef, oExpDofMap);
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  void PrintValue(std::ostream& os) const {
 	       UnaryFunc::Print(os);
 	       os << '(';
@@ -215,7 +215,7 @@ namespace sp_grad {
 	  static void AddDeriv(SpGradient&, doublereal, const SpGradExpDofMap&) {
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  void PrintValue(std::ostream& os) const {
 	       os << u << ' ';
 	  }
@@ -311,7 +311,7 @@ namespace sp_grad {
 	  static void AddDeriv(SpGradient& g, doublereal dCoef, const SpGradExpDofMap& oExpDofMap) {
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void PrintValue(std::ostream& os) {
 	  }
 

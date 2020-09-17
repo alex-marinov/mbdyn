@@ -384,7 +384,7 @@ namespace sp_grad {
 
 	  SP_GRAD_ASSERT(g.pData != pGetNullData());
 	  SP_GRAD_ASSERT(g.pData->iSizeCurr == oDofMap.iGetLocalSize());
-
+	  
 	  for (const auto& r: *this) {
 	       const index_type i = oDofMap.iGetLocalIndex(r.iDof);
 
@@ -628,13 +628,19 @@ namespace sp_grad {
      }
 
      void SpGradient::MaybeCompress() const {
-	  if (!pData->bCompressed) {
+	  if (!bIsCompressed()) {
 	       const_cast<SpGradient*>(this)->Compress();
 	  }
+
+	  SP_GRAD_ASSERT(bIsCompressed());
+     }
+
+     bool SpGradient::bIsCompressed() const {
+	  return pData->bCompressed;
      }
 
      SpDerivRec* SpGradient::pFindRec(index_type iDof) const {
-	  SP_GRAD_ASSERT(pData->bCompressed);
+	  SP_GRAD_ASSERT(bIsCompressed());
 
 	  auto pBegin = pData->rgDer;
 	  auto pEnd = pData->rgDer + pData->iSizeCurr;
@@ -671,7 +677,7 @@ namespace sp_grad {
 
 	       std::uninitialized_copy(std::begin(rgDer), std::end(rgDer), pData->rgDer);
 
-	       SP_GRAD_ASSERT(!pData->bCompressed);
+	       SP_GRAD_ASSERT(!bIsCompressed());
 	  }
      }
 
@@ -690,6 +696,8 @@ namespace sp_grad {
 	  g.InsertDeriv(f, 1.);
 
 	  *this = std::move(f);
+
+	  SP_GRAD_ASSERT(!bIsCompressed());
      }
 
      template <typename Expr>
@@ -719,9 +727,14 @@ namespace sp_grad {
 	  g.AddDeriv(f, 1., oDofMap);
 
 	  *this = std::move(f);
+
+	  SP_GRAD_ASSERT(!bIsCompressed());
+	  SP_GRAD_ASSERT(bIsUnique());
      }
 
      void SpGradient::InitDeriv(const SpGradExpDofMap& oExpDofMap) {
+	  SP_GRAD_ASSERT(pData != pGetNullData());       
+	  
 	  for (index_type i = 0; i < oExpDofMap.iGetLocalSize(); ++i) {
 	       pInsertRec(oExpDofMap.iGetGlobalIndex(i), 0.);
 	  }
@@ -834,6 +847,13 @@ namespace sp_grad {
      }
 
      SpDerivData* SpGradient::pGetNullData() {
+	  SP_GRAD_ASSERT(oNullData.dVal == 0.);
+	  SP_GRAD_ASSERT(oNullData.iSizeCurr == 0);
+	  SP_GRAD_ASSERT(oNullData.iSizeRes == 0);
+	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 1);
+	  SP_GRAD_ASSERT(oNullData.bCompressed);
+	  SP_GRAD_ASSERT(oNullData.pOwner == nullptr);
+	  
 	  return &oNullData;
      }
 }

@@ -58,6 +58,7 @@
 #include <string>
 #include <vector>
 
+#include "matvec3.h"
 #include "sp_gradient.h"
 #include "sp_matrix_base.h"
 #include "sp_gradient_op.h"
@@ -152,7 +153,7 @@ namespace sp_grad_test {
 		  Mat3xN A3n(3), C3n(3);
 		  MatNx3 An3(3), Cn3(3);
 		  MatNxN Ann(3, 3), Cnn(3, 3);
-		  
+		  Vec3 g;
 		  Vec3 b;
 		  doublereal d;
 
@@ -168,9 +169,17 @@ namespace sp_grad_test {
 		       }
 
 		       sp_grad_rand_gen(b(i), randnz, randdof, randval, gen);
+		       sp_grad_rand_gen(g(i), randnz, randdof, randval, gen);
 		  }
 
 		  SpMatrix<doublereal, 3, 3> Asp(A), Csp(C);
+		  SpColVector<doublereal, 3> gsp(g);
+		  Mat3x3 RDelta(CGR_Rot::MatR, g);
+		  Mat3x3 RVec = RotManip::Rot(g);
+		  Vec3 g2 = RotManip::VecRot(RVec);
+		  SpMatrix<doublereal, 3, 3> RDeltasp = MatRVec(gsp);
+		  SpMatrix<doublereal, 3, 3> RVecsp = MatRotVec(gsp);
+		  SpColVector<doublereal, 3> gsp2 = VecRot(RVecsp);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, 3> Aspn(3, 3, 0), Cspn(3, 3, 0);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Aspnn(3, 3, 0), Cspnn(3, 3, 0);
 		  
@@ -287,7 +296,9 @@ namespace sp_grad_test {
 		       sp_grad_assert_equal(csp3(i), c(i), dTol);
 		       sp_grad_assert_equal(csp4(i), c(i), dTol);
 		       sp_grad_assert_equal(q(i), 4.5 * c(i), dTol);
-
+		       sp_grad_assert_equal(gsp2(i), gsp(i), dTol);
+		       sp_grad_assert_equal(gsp2(i), g(i), dTol);
+		       
 		       for (index_type j = 1; j <= 3; ++j) {
 			    sp_grad_assert_equal(Dsp1(i, j), D(i, j), dTol);
 			    sp_grad_assert_equal(Dsp2(i, j), D(i, j), dTol);
@@ -355,6 +366,9 @@ namespace sp_grad_test {
 			    sp_grad_assert_equal(Ksp2(i, j), K(i, j), dTol);
 
 			    sp_grad_assert_equal(Lsp1(i, j), L(i, j), dTol);
+
+			    sp_grad_assert_equal(RDeltasp(i, j), RDelta(i, j), dTol);
+			    sp_grad_assert_equal(RVecsp(i, j), RVec(i, j), dTol);
 		       }
 		  }
 	     }
@@ -374,7 +388,7 @@ namespace sp_grad_test {
 
 		g2.Reset(20., {{3, 3.2}, {4, 4.2}, {5, 5.2}, {6, 6.2}, {12, 12.2}, {13, 13.2}, {15, 15.2}, {14, 14.2}});
 		g4.Reset(g2.dGetValue(), 3, g2.dGetDeriv(3));
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 		cout << "g1=" << g1 << endl;
 		cout << "g2=" << g2 << endl;
 		cout << "g3=" << g3 << endl;
@@ -388,7 +402,7 @@ namespace sp_grad_test {
 		SpGradient b{2.0, {{1, 20.}}};
 		auto f = sqrt(a + b) / (a - b);
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 		cout << f << endl;
 #endif
 		r4 = r1;
@@ -401,7 +415,7 @@ namespace sp_grad_test {
 		r1 = r8;
 
 		cout << fixed << setprecision(3);
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 		cout << "r=" << r1 << endl;
 
 		cout << "g1=" << g1 << endl;
@@ -2446,6 +2460,51 @@ namespace sp_grad_test {
 		     << static_cast<doublereal>(sp_grad_time_ns) / 1e9
 		     << endl;
 	}
+
+     	template <typename T>
+	void test15(const index_type inumloops,
+		    const index_type inumnz,
+		    const index_type inumdof)
+	{
+		using namespace std;
+		using namespace std::chrono;
+
+		cerr << __PRETTY_FUNCTION__ << ":\n";
+		
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_real_distribution<doublereal> randval(-M_PI, M_PI);
+		uniform_int_distribution<index_type> randdof(1, inumdof);
+		uniform_int_distribution<index_type> randnz(0, inumnz - 1);
+
+		gen.seed(0);
+
+		constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+
+		SpMatrix<T, 3, 3> R(3, 3, inumnz), R2(3, 3, inumnz);
+		SpColVector<T, 3> Phi(3, inumnz), Phi2(3, inumnz);
+
+		for (index_type iloop = 0; iloop < inumloops; ++iloop) {
+			for (auto& phii: Phi) {
+			     sp_grad_rand_gen(phii, randnz, randdof, randval, gen);
+			}
+
+			R = MatRotVec(Phi);
+			Phi2 = VecRot(R);
+			R2 = MatRotVec(Phi2);
+
+			for (index_type i = 1; i <= 3; ++i) {
+			     if (sqrt(Dot(Phi, Phi)) < M_PI) {
+				  sp_grad_assert_equal(Phi2(i), Phi(i), dTol);
+			     }
+			     
+			     for (index_type j = 1; j <= 3; ++j) {
+				  sp_grad_assert_equal(R2(i, j), R(i, j), dTol);				  
+			     }
+			}
+				  
+		}
+	}
 }
 
 int main(int argc, char* argv[])
@@ -2564,6 +2623,8 @@ int main(int argc, char* argv[])
 		if (SP_GRAD_RUN_TEST(13.1)) test13<SpGradient>(inumloops, inumnz, inumdof);
 
 		if (SP_GRAD_RUN_TEST(14.1)) test_bool1(inumloops, inumnz, inumdof);
+		if (SP_GRAD_RUN_TEST(15.1)) test15<doublereal>(inumloops, inumnz, inumdof);
+		if (SP_GRAD_RUN_TEST(15.2)) test15<SpGradient>(inumloops, inumnz, inumdof);
 
 		cerr << "All tests passed\n"
 		     << "\n\tloops performed: " << inumloops

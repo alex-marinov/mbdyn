@@ -30,12 +30,12 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+	Copyright (C) 2020(-2020) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+	The copyright of this code is transferred
+	to Pierangelo Masarati and Paolo Mantegazza
+	for use in the software MBDyn as described
+	in the GNU Public License version 2.1
 */
 
 #ifndef __SP_GRADIENT_FWD_H__INCLUDED__
@@ -47,13 +47,13 @@
 #include "sp_gradient_base.h"
 #include "sp_matrix_base_fwd.h"
 
-namespace sp_grad {        
+namespace sp_grad {
      class SpGradient: public SpGradBase<SpGradient> {
      public:
 	  friend util::SpMatrixDataTraits<SpGradient>;
-                
+
 	  static constexpr ExprEvalFlags eExprEvalFlags = ExprEvalUncompressed;
-                
+
 	  inline SpGradient();
 
 	  inline SpGradient(const SpGradient& g);
@@ -75,7 +75,7 @@ namespace sp_grad {
 
 	  template <typename Expr>
 	  inline SpGradient& operator=(const SpGradBase<Expr>& g);
-                
+
 	  template <typename Expr>
 	  inline SpGradient& operator+=(const SpGradBase<Expr>& g);
 
@@ -111,7 +111,7 @@ namespace sp_grad {
 	  static inline void SetValuePreserve(doublereal& g, doublereal dVal);
 
 	  static inline void ResizeReset(SpGradient& g, doublereal dVal, index_type iSize);
-                
+
 	  static inline void ResizeReset(doublereal& g, doublereal dVal, index_type iSize);
 
 	  template <typename Expr>
@@ -212,7 +212,7 @@ namespace sp_grad {
 	  inline static void GetDofStat(const SpGradient& g, SpGradDofStat& s);
 
 	  inline static void GetDofStat(doublereal, SpGradDofStat&);
-                
+
 	  inline static doublereal dGetDeriv(const SpGradient&g, index_type iDof);
 
 	  inline static constexpr doublereal dGetDeriv(doublereal, index_type);
@@ -224,10 +224,16 @@ namespace sp_grad {
 	  inline void MapAssign(const SpGradBase<Expr>& g);
 
 	  inline void InitDeriv(const SpGradExpDofMap& oExpDofMap);
-                
+
 	  void Compress();
-#ifdef DEBUG
+
+	  inline bool bIsCompressed() const;
+
+#ifdef SP_GRAD_DEBUG
 	  bool bValid() const;
+	  bool bIsUnique() const;
+	  static bool bIsUnique(const SpGradient& g) { return g.bIsUnique(); }
+	  static bool bIsUnique(doublereal) { return true; }
 	  void PrintValue(std::ostream& os) const;
 	  void PrintDeriv(std::ostream& os, doublereal dCoef) const;
 #endif
@@ -236,7 +242,7 @@ namespace sp_grad {
 	       ALLOC_RESIZE,
 	       ALLOC_UNIQUE
 	  };
-                
+
 	  inline explicit SpGradient(SpDerivData* pData);
 
 	  inline static constexpr size_t uGetAllocSize(index_type iSizeRes);

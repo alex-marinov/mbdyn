@@ -267,7 +267,9 @@ namespace sp_grad {
 	  static constexpr SpMatOpType eMatOpType = DERIVED::eMatOpType;
 	  static constexpr SpGradCommon::ExprEvalFlags eComprFlag = DERIVED::eComprFlag;
 
-	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
+		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
+		    index_type NumRows, index_type NumCols>
 	  inline void ElemEval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
 
 	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
@@ -276,9 +278,11 @@ namespace sp_grad {
 	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
 	  inline void ElemEvalCompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
 
-	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type NumRows, index_type NumCols>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
+		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
+		    index_type NumRows, index_type NumCols>
 	  inline void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
-	       pGetRep()->template Eval<eTransp>(A);
+	       pGetRep()->template Eval<eTransp, eCompr>(A);
 	  }
 
 	  index_type iGetNumRows() const {
@@ -382,9 +386,11 @@ namespace sp_grad {
 	  inline constexpr void AddDeriv(ValueTypeB& g, doublereal dCoef, const SpGradExpDofMap& oExpDofMap, index_type i, index_type j) const noexcept {}
 	  template <typename ExprType, typename Expr>
 	  inline constexpr bool bHaveRefTo(const SpMatElemExprBase<ExprType, Expr>& A) const noexcept { return false; }
-	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT, index_type iNumRowsStatic, index_type iNumColsStatic>
+	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
+		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
+		    index_type iNumRowsStatic, index_type iNumColsStatic>
 	  void Eval(SpMatrixBase<doublereal, iNumRowsStatic, iNumColsStatic>& A) const {
-	       this->template ElemEval<eTransp>(A);
+	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
      };
 }

@@ -60,7 +60,7 @@ namespace sp_grad {
 	       return 1.;
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "+";
 	  }
@@ -81,7 +81,7 @@ namespace sp_grad {
 	       return -1.;
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "-";
 	  }
@@ -102,7 +102,7 @@ namespace sp_grad {
 	       return u;
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "*";
 	  }
@@ -122,7 +122,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, doublereal v) {
 	       return -u / (v * v);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "/";
 	  }
@@ -142,7 +142,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, doublereal v) {
 	       return pow(u, v) * log(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "pow";
 	  }
@@ -162,7 +162,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, integer v) {
 	       return 0.;
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "powi";
 	  }
@@ -183,7 +183,7 @@ namespace sp_grad {
 	       return -u / (v * v + u * u);
 	  }
                 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "atan2";
 	  }
@@ -204,7 +204,7 @@ namespace sp_grad {
 	       return 0.;
 	  }
                 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "copysign";
 	  }
@@ -225,7 +225,7 @@ namespace sp_grad {
 	       return -int(u / v);
 	  }
 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "fmod";
 	  }
@@ -240,7 +240,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return -1;
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "-";
 	  }
@@ -258,7 +258,7 @@ namespace sp_grad {
 	       return std::copysign(1., u);
 	  }
                 
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "fabs";
 	  }
@@ -274,7 +274,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / (2. * sqrt(u));
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "sqrt";
 	  }
@@ -290,7 +290,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return exp(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "exp";
 	  }
@@ -306,7 +306,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / u;
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "log";
 	  }
@@ -322,7 +322,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return cos(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "sin";
 	  }
@@ -338,7 +338,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return -sin(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "cos";
 	  }
@@ -354,7 +354,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. + tan(u) * tan(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "tan";
 	  }
@@ -370,7 +370,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return cosh(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "sinh";
 	  }
@@ -386,7 +386,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return sinh(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "cosh";
 	  }
@@ -402,7 +402,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. - tanh(u) * tanh(u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "tanh";
 	  }
@@ -418,7 +418,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / sqrt(1 - u * u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "asin";
 	  }
@@ -434,7 +434,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return -1. / sqrt(1 - u * u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "acos";
 	  }
@@ -450,7 +450,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / (1. + u * u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "atan";
 	  }
@@ -466,7 +466,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / sqrt(1. + u * u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "asinh";
 	  }
@@ -482,7 +482,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / sqrt(u * u - 1.);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "acosh";
 	  }
@@ -498,7 +498,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_du(doublereal u) {
 	       return 1. / (1. - u * u);
 	  }
-#ifdef DEBUG
+#ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "atanh";
 	  }
