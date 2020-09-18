@@ -51,7 +51,6 @@
 #include "Rot.hh"
 
 #include "sp_matrix_base_fwd.h"
-#include "sp_gradient_func.h"
 #include "sp_gradient.h"
 
 namespace sp_grad {
@@ -159,8 +158,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag,
-		    index_type iNumRowsA, index_type iNumColsA>
-	  void Eval(SpMatrixBase<ValueType, iNumRowsA, iNumColsA>& A) const {
+		    typename ValueTypeA, index_type iNumRowsA, index_type iNumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, iNumRowsA, iNumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -274,8 +273,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag,
-		    index_type iNumRowsA, index_type iNumColsA>
-	  void Eval(SpMatrixBase<ValueType, iNumRowsA, iNumColsA>& A) const {
+		    typename ValueTypeA, index_type iNumRowsA, index_type iNumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, iNumRowsA, iNumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -448,8 +447,8 @@ namespace sp_grad {
 	  }
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
-		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag>
-	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
+		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -524,8 +523,8 @@ namespace sp_grad {
 	  }
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
-		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag>
-	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
+		    SpGradCommon::ExprEvalFlags eCompr = eComprFlag, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       u.template Eval<eTransp, eComprFlag>(A);
 	  }
 
@@ -600,8 +599,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRows, index_type NumCols>
-	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       u.template Eval<util::TranspMatEvalHelper<eTransp>::Value, eCompr>(A);
 	  }
 
@@ -676,8 +675,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRows, index_type NumCols>
-	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -771,8 +770,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRows, index_type NumCols>
-	  void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -880,8 +879,8 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRowsA, index_type NumColsA>
-	  inline void Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const;
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  inline void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const;
 
 	  doublereal dGetValue(index_type, index_type) const = delete;
 
@@ -916,6 +915,7 @@ namespace sp_grad {
 	  const ValueType* end() const = delete;
 	  inline constexpr index_type iGetRowOffset() const = delete;
 	  inline constexpr index_type iGetColOffset() const = delete;
+	  
      private:
 	  const LhsExpr u;
 	  const RhsExpr v;
@@ -950,8 +950,9 @@ namespace sp_grad {
 	  inline constexpr explicit SpMatElemScalarExpr(const ScalarExpr& u) noexcept;
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
-		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed>
-	  void Eval(SpMatrixBase<ValueType, iNumRowsStatic, iNumColsStatic>& A) const {
+		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
 
@@ -1047,8 +1048,8 @@ namespace sp_grad {
 	  inline bool bIsOwnerOf(const SpMatrixData<ValueType>* pDataB) const noexcept;
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRowsA, index_type NumColsA>
-	  inline void Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const;
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  inline void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const;
 	  inline index_type iGetMaxSize() const;
 	  inline constexpr SpMatColVecExpr<ValueType, const SpMatrixBase&> GetCol(index_type iCol) const {
 	       return decltype(GetCol(iCol))(*this, iCol);
@@ -1481,14 +1482,17 @@ namespace sp_grad {
      };
 
      template <typename ValueType, typename DERIVED>
-     template <util::MatTranspEvalFlag eTransp, SpGradCommon::ExprEvalFlags eCompr, index_type NumRows, index_type NumCols>
-     void SpMatElemExprBase<ValueType, DERIVED>::ElemEval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+     template <util::MatTranspEvalFlag eTransp,
+	       SpGradCommon::ExprEvalFlags eCompr,
+	       typename ValueTypeA,
+	       index_type NumRowsA, index_type NumColsA>
+     void SpMatElemExprBase<ValueType, DERIVED>::ElemEval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	  util::MatEvalHelperCompr<eCompr>::template ElemEval<eTransp>(*this, A);
      }
 
      template <typename ValueType, typename DERIVED>
-     template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
-     void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalUncompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+     template <util::MatTranspEvalFlag eTransp, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+     void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalUncompr(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	  const index_type iNumRows = iGetNumRows();
 	  const index_type iNumCols = iGetNumCols();
 	  const index_type iMaxSize = iGetMaxSize();
@@ -1497,10 +1501,10 @@ namespace sp_grad {
 	  
 	  constexpr bool bTransposed = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
 
-	  static_assert(NumRows == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
-	  static_assert(NumCols == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
+	  static_assert(NumRowsA == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
+	  static_assert(NumColsA == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
 
-	  SpMatrixBase<ValueType, NumRows, NumCols> Atmp;
+	  SpMatrixBase<ValueTypeA, NumRowsA, NumColsA> Atmp;
 
 	  if (!bHaveRefTo(A)) {
 	       Atmp = std::move(A);
@@ -1513,7 +1517,7 @@ namespace sp_grad {
 
 	  for (index_type j = 1; j <= iNumCols; ++j) {
 	       for (index_type i = 1; i <= iNumRows; ++i) {
-		    ValueType& Ai = MatEvalType::GetElem(Atmp, i, j);
+		    ValueTypeA& Ai = MatEvalType::GetElem(Atmp, i, j);
 
 		    SP_GRAD_ASSERT(SpGradient::iGetSize(Ai) == 0);
 		    SP_GRAD_ASSERT(SpGradient::dGetValue(Ai) == 0.);
@@ -1527,18 +1531,18 @@ namespace sp_grad {
      }
 
      template <typename ValueType, typename DERIVED>
-     template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
-     void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalCompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+     template <util::MatTranspEvalFlag eTransp, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+     void SpMatElemExprBase<ValueType, DERIVED>::ElemEvalCompr(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	  const index_type iNumRows = iGetNumRows();
 	  const index_type iNumCols = iGetNumCols();
 
 	  typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
 	  constexpr bool bTransposed = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
 
-	  static_assert(NumRows == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
-	  static_assert(NumCols == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
+	  static_assert(NumRowsA == (!bTransposed ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
+	  static_assert(NumColsA == (!bTransposed ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
 
-	  SpMatrixBase<ValueType, NumRows, NumCols> Atmp;
+	  SpMatrixBase<ValueTypeA, NumRowsA, NumColsA> Atmp;
 
 	  if (!bHaveRefTo(A)) {
 	       Atmp = std::move(A);
@@ -1807,8 +1811,8 @@ namespace sp_grad {
      }
 
      template <typename LhsValue, typename RhsValue, typename LhsExpr, typename RhsExpr>
-     template <util::MatTranspEvalFlag eTransp, SpGradCommon::ExprEvalFlags eCompr, index_type NumRowsA, index_type NumColsA>
-     void SpMatMulExpr<LhsValue, RhsValue, LhsExpr, RhsExpr>::Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const {
+     template <util::MatTranspEvalFlag eTransp, SpGradCommon::ExprEvalFlags eCompr, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+     void SpMatMulExpr<LhsValue, RhsValue, LhsExpr, RhsExpr>::Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	  typedef util::MatEvalHelperTransp<eTransp> MatEvalType;
 	  
 	  constexpr bool bTransposedEval = eTransp == util::MatTranspEvalFlag::TRANSPOSED;
@@ -1816,7 +1820,7 @@ namespace sp_grad {
 	  static_assert(NumRowsA == (!bTransposedEval ? iNumRowsStatic : iNumColsStatic), "Number of rows does not match");
 	  static_assert(NumColsA == (!bTransposedEval ? iNumColsStatic : iNumRowsStatic), "Number of columns does not match");
 
-	  SpMatrixBase<ValueType, NumRowsA, NumColsA> Atmp;
+	  SpMatrixBase<ValueTypeA, NumRowsA, NumColsA> Atmp;
 
 	  if (!bHaveRefTo(A)) {
 	       Atmp = std::move(A);
@@ -2206,8 +2210,8 @@ namespace sp_grad {
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
-     template <util::MatTranspEvalFlag eTransp, SpGradCommon::ExprEvalFlags eCompr, index_type NumRowsA, index_type NumColsA>
-     void SpMatrixBase<ValueType, NumRows, NumCols>::Eval(SpMatrixBase<ValueType, NumRowsA, NumColsA>& A) const {
+     template <util::MatTranspEvalFlag eTransp, SpGradCommon::ExprEvalFlags eCompr, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+     void SpMatrixBase<ValueType, NumRows, NumCols>::Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	  this->template ElemEval<eTransp, eCompr>(A);
      }
 
@@ -2339,7 +2343,7 @@ namespace sp_grad {
 	       const SpMatElemExprBase<RhsValue, RhsExpr>& B) noexcept {
 	  return decltype(operator-(A, B))(A, B);
      }
-
+     
      template <typename Value, typename Expr>
      inline constexpr
      SpMatElemUnaryExpr<Value,
@@ -2554,7 +2558,7 @@ namespace sp_grad {
      }
 
      template <typename ValueType>
-     inline void RotCo(const ValueType& phi, ValueType& cf) {
+     inline ValueType RotCo(const ValueType& phi) {
 	  // This algorithm is a simplified version of RotCo in RotCoeff.hc
 	  // from Marco Morandini  <morandini@aero.polimi.it>
 	  // and Teodoro Merlini  <merlini@aero.polimi.it>
@@ -2562,28 +2566,30 @@ namespace sp_grad {
 	  using std::cos;
 	  using std::sqrt;
 	  using std::fabs;
-	
-	  ValueType phip[10];
-	  ValueType phi2(phi * phi);
+
+	  constexpr index_type N = 10;
+	  ValueType phip[N];
+	  ValueType phi2{EvalCompressed(phi * phi)};
 
 	  if (fabs(phi) < RotCoeff::SerThrsh[0]) {
-	       SpGradient::ResizeReset(phip[0], 1., SpGradient::iGetSize(phi));
+	       SpGradient::ResizeReset(phip[0], 1., 0);
             
-	       for (index_type j = 1; j <= 9; j++) {
-                    phip[j] = phip[j - 1] * phi2;
+	       for (index_type j = 1; j <= N - 1; j++) {
+                    phip[j] = EvalCompressed(phip[j - 1] * phi2);
 	       }
 
-	       SpGradient::ResizeReset(cf, 0., SpGradient::iGetSize(phi));
+	       ValueType cf;
+	       SpGradient::ResizeReset(cf, 0., SpGradient::iGetSize(phip[N - 1]));
             
 	       for (index_type j = 0; j < RotCoeff::SerTrunc[0]; j++) {
-                    cf += phip[j] / RotCoeff::SerCoeff[0][j];
+                    cf += EvalCompressed(phip[j] / RotCoeff::SerCoeff[0][j]);
 	       }
 
-	       return;
+	       return cf;
 	  } 
 	
-	  const ValueType pd(sqrt(phi2));
-	  cf = sin(pd) / pd;                 // a = sin(phi)/phi
+	  const ValueType pd{sqrt(phi2)};
+	  return sin(pd) / pd;                 // a = sin(phi)/phi
      }
      
      template <typename ValueType>
@@ -2620,9 +2626,7 @@ namespace sp_grad {
 	       }
                 
 	       const ValueType phi = atan2(sinphi, cosphi);
-	       ValueType a;
-	       RotCo(phi, a);
-	       unit /= a;
+	       unit /= RotCo(phi);
 	  } else {
 	       // -1 <= cosphi <= 0
 	       SpMatrix<ValueType, 3, 3> eet = (R + Transpose(R)) * 0.5;

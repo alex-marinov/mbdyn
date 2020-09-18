@@ -177,7 +177,11 @@ namespace sp_grad_test {
 		  Mat3x3 RDelta(CGR_Rot::MatR, g);
 		  Mat3x3 RVec = RotManip::Rot(g);
 		  Vec3 g2 = RotManip::VecRot(RVec);
-		  //SpMatrix<SpGradient, 3, 3> Asp2{Asp};
+		  Vec3 g3 = -g2;
+		  SpMatrix<SpGradient, 3, 3> Asp2{Asp}, Asp3{A};
+		  SpColVector<SpGradient, 3> gsp3{g};
+		  Asp2 = Transpose(A);
+		  gsp3 = 2 * g / Dot(g, g);
 		  SpMatrix<doublereal, 3, 3> RDeltasp = MatRVec(gsp);
 		  SpMatrix<doublereal, 3, 3> RVecsp = MatRotVec(gsp);
 		  SpColVector<doublereal, 3> gsp2 = VecRotMat(RVecsp);

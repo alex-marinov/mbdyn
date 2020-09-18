@@ -1471,7 +1471,7 @@ WCurr(W0),
 WPCurr(Zero3),
 WPPrev(Zero3),
 bOmegaRot(bOmRot)
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 ,bUpdateRotation(true)
 ,dCoefGrad(0.) // This should be safe because the time step should never be zero
 #endif
@@ -1951,7 +1951,7 @@ StructNode::Output(OutputHandler& OH) const
 void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2448,7 +2448,7 @@ void StructNode::UpdateRotation(doublereal dCoef, sp_grad::SpFunctionCall func) 
 void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2466,7 +2466,7 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2488,7 +2488,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void 
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2542,7 +2542,7 @@ StructNode::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2700,7 +2700,7 @@ StructNode::BeforePredict(VectorHandler& X,
 void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2802,7 +2802,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP, 
 			const VectorHandler& XPP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 /* Right now, AfterConvergence is performed only on position 

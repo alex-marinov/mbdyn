@@ -49,19 +49,19 @@
 #include <fstream>
 #include <joint.h>
 
-#ifdef USE_SPARSE_AUTODIFF
+#if USE_SPARSE_AUTODIFF
 #define MODAL_USE_SPARSE_AUTODIFF USE_SPARSE_AUTODIFF
 #else
 #define MODAL_USE_AUTODIFF USE_AUTODIFF
 #endif
 
-#ifdef USE_AUTODIFF
+#if USE_AUTODIFF
 #include <gradient.h>
 #include <matvec.h>
 #include <matvecass.h>
 #endif
 
-#ifdef USE_SPARSE_AUTODIFF
+#if USE_SPARSE_AUTODIFF
 #include <sp_gradient.h>
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
@@ -84,7 +84,7 @@ public:
 	struct StrNodeData;
 
 private:
-#if defined(MODAL_USE_AUTODIFF)
+#if MODAL_USE_AUTODIFF
 	inline void
 	UpdateStrNodeData(StrNodeData& oNode,
                           const grad::Vector<doublereal, 3>& d1tot,
@@ -133,7 +133,7 @@ private:
     grad::LocalDofMap dofMap;
 #endif
      
-#if defined(MODAL_USE_SPARSE_AUTODIFF)
+#if MODAL_USE_SPARSE_AUTODIFF
      inline void
      UpdateStrNodeData(StrNodeData& oNode,
 		       const sp_grad::SpColVector<doublereal, 3>& d1tot,
@@ -225,20 +225,20 @@ protected:
 
 	Vec3   Inv3jaj;
 
-#if !(defined(MODAL_USE_AUTODIFF) || defined(MODAL_USE_SPARSE_AUTODIFF)) || defined(MODAL_DEBUG_AUTODIFF)
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Vec3   Inv3jaPj;
 #endif
 
 	Mat3x3 Inv8jaj;
 
-#if !(defined(MODAL_USE_AUTODIFF) || defined(MODAL_USE_SPARSE_AUTODIFF)) || defined(MODAL_DEBUG_AUTODIFF)
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Mat3x3 Inv8jaPj;
 	Mat3xN Inv5jaj;
 	Mat3xN Inv5jaPj;
 #endif
 	Mat3x3 Inv9jkajak;
 
-#if !(defined(MODAL_USE_AUTODIFF) || defined(MODAL_USE_SPARSE_AUTODIFF)) || defined(MODAL_DEBUG_AUTODIFF)
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Mat3x3 Inv9jkajaPk;
 #endif
 
@@ -392,13 +392,13 @@ public:
     }
 
     inline void GetACurr(sp_grad::index_type iMode, doublereal& ai, doublereal, sp_grad::SpFunctionCall) const {
-        GRADIENT_ASSERT(iMode >= 1);
-        GRADIENT_ASSERT(iMode <= a.iGetNumRows());
+        SP_GRAD_ASSERT(iMode >= 1);
+        SP_GRAD_ASSERT(iMode <= a.iGetNumRows());
         ai = a(iMode);
     }
 #endif
      
-#if defined(MODAL_USE_AUTODIFF)
+#if MODAL_USE_AUTODIFF
        template <typename T>
        void
        AssRes(grad::GradientAssVec<T>& WorkVec,
@@ -406,7 +406,7 @@ public:
               const grad::GradientVectorHandler<T>& XCurr,
               const grad::GradientVectorHandler<T>& XPrimeCurr,
               enum grad::FunctionCall func);
-#elif defined(MODAL_USE_SPARSE_AUTODIFF)
+#elif MODAL_USE_SPARSE_AUTODIFF
        template <typename T>
        void
        AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,

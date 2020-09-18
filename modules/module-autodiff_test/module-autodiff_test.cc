@@ -419,15 +419,19 @@ DeformableJointAD::Output(OutputHandler& OH) const
 void
 DeformableJointAD::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
+#ifdef USE_SPARSE_AUTODIFF
      switch (fJac) {
      case SPARSE_TEMPLATE_META_PROG:
 	  *piNumRows = -12;
 	  *piNumCols = 24;
 	  break;
      default:
+#endif
 	  *piNumRows = 12;
 	  *piNumCols = 12;
+#ifdef USE_SPARSE_AUTODIFF
      }
+#endif
 }
 
 VariableSubMatrixHandler&
@@ -1275,7 +1279,7 @@ private:
      doublereal lambda[2];
 
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     LocalDofMap dof;
+     grad::LocalDofMap dof;
 #endif
      static constexpr integer iWorkSpace = 14;
      static constexpr integer iInitialWorkSpace = 28;
@@ -1553,11 +1557,11 @@ InlineJointAD::AssRes(SubVectorHandler& WorkVec,
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
 template <typename T>
 inline void
-InlineJointAD::AssRes(GradientAssVec<T>& WorkVec,
+InlineJointAD::AssRes(grad::GradientAssVec<T>& WorkVec,
 		      doublereal dCoef,
-		      const GradientVectorHandler<T>& XCurr,
-		      const GradientVectorHandler<T>& XPrimeCurr,
-		      enum FunctionCall func) {
+		      const grad::GradientVectorHandler<T>& XCurr,
+		      const grad::GradientVectorHandler<T>& XPrimeCurr,
+		      enum grad::FunctionCall func) {
      using namespace grad;
      
      typedef Vector<T, 3> Vec3;
@@ -1752,9 +1756,9 @@ InlineJointAD::InitialAssRes(
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
 template <typename T>
 inline void
-InlineJointAD::InitialAssRes(GradientAssVec<T>& WorkVec,
-			     const GradientVectorHandler<T>& XCurr,
-			     enum FunctionCall func) {
+InlineJointAD::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
+			     const grad::GradientVectorHandler<T>& XCurr,
+			     enum grad::FunctionCall func) {
      using namespace grad;
      typedef Vector<T, 3> Vec3;
      typedef Matrix<T, 3, 3> Mat3x3;

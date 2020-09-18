@@ -269,19 +269,20 @@ namespace sp_grad {
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRows, index_type NumCols>
-	  inline void ElemEval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
+		    typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  inline void ElemEval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const;
 
-	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
-	  inline void ElemEvalUncompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
+	  template <util::MatTranspEvalFlag eTransp, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  inline void ElemEvalUncompr(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const;
 
-	  template <util::MatTranspEvalFlag eTransp, index_type NumRows, index_type NumCols>
-	  inline void ElemEvalCompr(SpMatrixBase<ValueType, NumRows, NumCols>& A) const;
+	  template <util::MatTranspEvalFlag eTransp, typename ValueTypeA, index_type NumRowsA, index_type NumColsA>
+	  inline void ElemEvalCompr(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const;
 
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type NumRows, index_type NumCols>
-	  inline void Eval(SpMatrixBase<ValueType, NumRows, NumCols>& A) const {
+		    typename ValueTypeA,
+		    index_type NumRowsA, index_type NumColsA>
+	  inline void Eval(SpMatrixBase<ValueTypeA, NumRowsA, NumColsA>& A) const {
 	       pGetRep()->template Eval<eTransp, eCompr>(A);
 	  }
 
@@ -388,8 +389,8 @@ namespace sp_grad {
 	  inline constexpr bool bHaveRefTo(const SpMatElemExprBase<ExprType, Expr>& A) const noexcept { return false; }
 	  template <util::MatTranspEvalFlag eTransp = util::MatTranspEvalFlag::DIRECT,
 		    SpGradCommon::ExprEvalFlags eCompr = SpGradCommon::ExprEvalUncompressed,
-		    index_type iNumRowsStatic, index_type iNumColsStatic>
-	  void Eval(SpMatrixBase<doublereal, iNumRowsStatic, iNumColsStatic>& A) const {
+		    typename ValueTypeA, index_type iNumRowsA, index_type iNumColsA>
+	  void Eval(SpMatrixBase<ValueTypeA, iNumRowsA, iNumColsA>& A) const {
 	       this->template ElemEval<eTransp, eCompr>(A);
 	  }
      };

@@ -48,6 +48,8 @@
 #include "sp_gradient_fwd.h"
 #include "sp_gradient_util.h"
 #include "sp_gradient_expr.h"
+#include "sp_gradient_func.h"
+#include "sp_gradient_op.h"
 #include "sp_matrix_base.h"
 
 namespace sp_grad {
