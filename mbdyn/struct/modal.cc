@@ -2066,10 +2066,11 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	  Inv3jaPPj = *pInv3 * bPrime;
      }
 
-     Mat3x3 Inv8jaj(3, 3, NModes), Inv8jaPj(3, 3, NModes);
-     Mat3xN Inv5jaj(3, NModes, NModes), Inv5jaPj(3, NModes, NModes);
-     Mat3x3 Inv9jkajak(3, 3, NModes * NModes), Inv9jkajaPk(3, 3, NModes * NModes);
-     Mat3x3 Inv10jaPj(3, 3, NModes);
+     Mat3x3 Inv8jaj(3, 3, pInv8 ? NModes : 0), Inv8jaPj(3, 3, pInv8 ? NModes : 0);
+     Mat3xN Inv5jaj(3, NModes, pInv5 ? NModes : 0), Inv5jaPj(3, NModes, pInv5 ? NModes: 0);
+     Mat3x3 Inv9jkajak(3, 3, (pInv8 && pInv9) ? 2 * NModes * NModes : 0);
+     Mat3x3 Inv9jkajaPk(3, 3, (pInv8 && pInv9) ? 2 * NModes * NModes: 0);
+     Mat3x3 Inv10jaPj(3, 3, pInv10 ? NModes : 0);
 
      if (pInv5 || pInv8 || pInv9 || pInv10) {
 	  for (unsigned int jMode = 1; jMode <= NModes; jMode++)  {
@@ -2121,6 +2122,11 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 		    }
 	       }
 	  }
+
+	  if (pInv8 && pInv9) {
+	       Inv9jkajak = EvalCompressed(Inv9jkajak);
+	       Inv9jkajaPk = EvalCompressed(Inv9jkajaPk);
+	  }
      }
 
 #ifdef MODAL_USE_GRAVITY
@@ -2166,6 +2172,8 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 		    J -= Inv9jkajak;
 	       }
 	  }
+
+	  J = EvalCompressed(J);
 
 	  J = (R * J) * Transpose(R);
 
