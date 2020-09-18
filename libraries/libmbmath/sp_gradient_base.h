@@ -50,7 +50,9 @@
 #include "ac/f2c.h"
 #include "myassert.h"
 
+#ifdef DEBUG
 #define SP_GRAD_DEBUG DEBUG
+#endif
 #define SP_GRAD_ASSERT(expr) ASSERT(expr)
 #define SP_GRAD_TRACE(expr) DEBUGCERR(expr)
 #define SP_GRAD_TRACE_VAR(var) SP_GRAD_TRACE(#var << "=" << var << std::endl)
@@ -73,7 +75,9 @@
 #endif
 
 namespace sp_grad {
-     enum SpFunctionCall {
+     typedef integer index_type;
+     
+     enum struct SpFunctionCall: index_type {
 	  // FIXME: There should be a flag for the initial derivatives phase
 	  // 		  However this information is not available for elements at the moment
 	  //		  The prototype for Element::AssRes and Element::AssJac should be changed like
@@ -94,10 +98,6 @@ namespace sp_grad {
 	  REGULAR_RES 	= REGULAR_FLAG 	   | RESIDUAL_FLAG,
 	  REGULAR_JAC 	= REGULAR_FLAG	   | JACOBIAN_FLAG
      };
-     
-     typedef double doublereal;
-     typedef int integer;
-     typedef long index_type;
 
      class SpDerivData;
      class SpGradExpDofMap;

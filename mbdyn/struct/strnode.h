@@ -445,10 +445,10 @@ inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
-     case sp_grad::INITIAL_ASS_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
 	  SP_GRAD_ASSERT(dCoef == 1.);
-     case sp_grad::INITIAL_DER_JAC:
-     case sp_grad::REGULAR_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+     case sp_grad::SpFunctionCall::REGULAR_JAC:
 	  iFirstDofIndex = iGetFirstIndex();
 	  break;
 
@@ -473,13 +473,13 @@ inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
-     case sp_grad::INITIAL_ASS_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
 	  SP_GRAD_ASSERT(dCoef == 1.);
 	  iFirstDofIndex = iGetInitialFirstIndexPrime();
 	  break;
 
-     case sp_grad::INITIAL_DER_JAC:
-     case sp_grad::REGULAR_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+     case sp_grad::SpFunctionCall::REGULAR_JAC:
 	  iFirstDofIndex = iGetFirstIndex();
 	  break;
 
@@ -1397,11 +1397,11 @@ inline void StructNode::GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
-     case sp_grad::INITIAL_ASS_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
 	  SP_GRAD_ASSERT(dCoef == 1.);
 
-     case sp_grad::INITIAL_DER_JAC:
-     case sp_grad::REGULAR_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+     case sp_grad::SpFunctionCall::REGULAR_JAC:
 	  iFirstDofIndex = iGetFirstIndex();
 	  break;
 
@@ -1426,9 +1426,9 @@ inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& 
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
-     case sp_grad::INITIAL_ASS_JAC:
-     case sp_grad::INITIAL_DER_JAC:
-     case sp_grad::REGULAR_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
+     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+     case sp_grad::SpFunctionCall::REGULAR_JAC:
 	  iFirstDofIndex = iGetFirstIndex();
 	  break;
 
@@ -1906,8 +1906,8 @@ ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doubler
 	sp_grad::index_type iFirstDofIndex = -1;
 
 	switch (func) {
-	case sp_grad::INITIAL_DER_JAC:
-	case sp_grad::REGULAR_JAC:
+	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+	case sp_grad::SpFunctionCall::REGULAR_JAC:
 		iFirstDofIndex = iGetFirstIndex();
 		break;
 
@@ -1934,8 +1934,8 @@ ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublerea
 	sp_grad::index_type iFirstDofIndex = -1;
 
 	switch (func) {
-	case sp_grad::INITIAL_DER_JAC:
-	case sp_grad::REGULAR_JAC:
+	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+	case sp_grad::SpFunctionCall::REGULAR_JAC:
 		iFirstDofIndex = iGetFirstIndex();
 		break;
 

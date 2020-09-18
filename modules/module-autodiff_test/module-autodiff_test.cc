@@ -462,7 +462,7 @@ DeformableJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 								 dCoef,
 								 XCurr,
 								 XPrimeCurr,
-								 sp_grad::REGULAR_JAC);
+								 sp_grad::SpFunctionCall::REGULAR_JAC);
 	  break;
 #endif
      case F77:
@@ -511,7 +511,7 @@ DeformableJointAD::AssRes(SubVectorHandler& WorkVec,
 							dCoef,
 							XCurr,
 							XPrimeCurr,
-							sp_grad::REGULAR_RES);
+							sp_grad::SpFunctionCall::REGULAR_RES);
 	  break;
 #endif
      case F77:
@@ -1037,7 +1037,7 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      Vec3 X1, X2, XP1, XP2, W1, W2;
      
 #if CREATE_PROFILE == 1
-     const index_type iFunc = (func == REGULAR_RES) ? RESIDUAL : JACOBIAN;
+     const index_type iFunc = (func == SpFunctionCall::REGULAR_RES) ? RESIDUAL : JACOBIAN;
      profile.dtInit[iFunc] += mbdyn_clock_time() - start;
      start = mbdyn_clock_time();
 #endif
@@ -1519,7 +1519,7 @@ InlineJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 							    dCoef,
 							    XCurr,
 							    XPrimeCurr,
-							    sp_grad::REGULAR_JAC);
+							    sp_grad::SpFunctionCall::REGULAR_JAC);
 #endif     
      return WorkMat;
 }
@@ -1544,7 +1544,7 @@ InlineJointAD::AssRes(SubVectorHandler& WorkVec,
 						   dCoef,
 						   XCurr,
 						   XPrimeCurr,
-						   sp_grad::REGULAR_RES);
+						   sp_grad::SpFunctionCall::REGULAR_RES);
 #endif
      
      return WorkVec;
@@ -1725,7 +1725,7 @@ InlineJointAD::InitialAssJac(
      sp_grad::SpGradientAssVec<sp_grad::SpGradient>::InitialAssJac(this,
 								   WorkMat.SetSparse(),
 								   XCurr,
-								   sp_grad::INITIAL_ASS_JAC);     
+								   sp_grad::SpFunctionCall::INITIAL_ASS_JAC);     
 #endif
      return WorkMat;
 }
@@ -1744,7 +1744,7 @@ InlineJointAD::InitialAssRes(
      sp_grad::SpGradientAssVec<doublereal>::InitialAssRes(this,
 							  WorkVec,
 							  XCurr,
-							  sp_grad::INITIAL_ASS_RES);
+							  sp_grad::SpFunctionCall::INITIAL_ASS_RES);
 #endif
      return WorkVec;
 }

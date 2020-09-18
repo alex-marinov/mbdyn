@@ -177,9 +177,10 @@ namespace sp_grad_test {
 		  Mat3x3 RDelta(CGR_Rot::MatR, g);
 		  Mat3x3 RVec = RotManip::Rot(g);
 		  Vec3 g2 = RotManip::VecRot(RVec);
+		  //SpMatrix<SpGradient, 3, 3> Asp2{Asp};
 		  SpMatrix<doublereal, 3, 3> RDeltasp = MatRVec(gsp);
 		  SpMatrix<doublereal, 3, 3> RVecsp = MatRotVec(gsp);
-		  SpColVector<doublereal, 3> gsp2 = VecRot(RVecsp);
+		  SpColVector<doublereal, 3> gsp2 = VecRotMat(RVecsp);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, 3> Aspn(3, 3, 0), Cspn(3, 3, 0);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Aspnn(3, 3, 0), Cspnn(3, 3, 0);
 		  
@@ -2490,7 +2491,7 @@ namespace sp_grad_test {
 			}
 
 			R = MatRotVec(Phi);
-			Phi2 = VecRot(R);
+			Phi2 = VecRotMat(R);
 			R2 = MatRotVec(Phi2);
 
 			for (index_type i = 1; i <= 3; ++i) {

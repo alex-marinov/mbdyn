@@ -1015,6 +1015,10 @@ namespace sp_grad {
 	  inline SpMatrixBase& operator=(const SpMatrixBase& oMat);
 	  inline SpMatrixBase& operator*=(const ValueType& b);
 	  inline SpMatrixBase& operator/=(const ValueType& b);
+	  template <typename ValueTypeExpr, typename Expr>
+	  inline SpMatrixBase& operator+=(const SpMatElemExprBase<ValueTypeExpr, Expr>& b);
+	  template <typename ValueTypeExpr, typename Expr>
+	  inline SpMatrixBase& operator-=(const SpMatElemExprBase<ValueTypeExpr, Expr>& b);
 	  inline index_type iGetNumRows() const;
 	  inline index_type iGetNumCols() const;
 	  inline index_type iGetSize(index_type i, index_type j) const;
@@ -1998,21 +2002,27 @@ namespace sp_grad {
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
      SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator*=(const ValueType& b) {
-	  for (auto& a:*this) {
-	       a *= b;
-	  }
-
-	  return *this;
+	  return *this = *this * b;
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
      SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator/=(const ValueType& b) {
-	  for (auto& a:*this) {
-	       a /= b;
-	  }
-
-	  return *this;
+	  return *this = *this / b;
      }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     template <typename ValueTypeExpr, typename Expr>
+     SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator+=(const SpMatElemExprBase<ValueTypeExpr, Expr>& b)
+     {
+	  return *this = *this + b;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     template <typename ValueTypeExpr, typename Expr>
+     SpMatrixBase<ValueType, NumRows, NumCols>& SpMatrixBase<ValueType, NumRows, NumCols>::operator-=(const SpMatElemExprBase<ValueTypeExpr, Expr>& b)
+     {
+	  return *this = *this - b;
+     }     
      
      template <typename ValueType, index_type NumRows, index_type NumCols>
      SpMatrixBase<ValueType, NumRows, NumCols>::~SpMatrixBase() {
@@ -2454,11 +2464,29 @@ namespace sp_grad {
 	  return *SpMatrixBase<typename util::ResultType<LhsValue, RhsValue>::Type, 1, 1>{Transpose(u) * v}.begin();
      }
 
+     template <typename ValueType>
+     SpMatrix<ValueType, 3, 3> MatGVec(const SpColVector<ValueType, 3>& g) {
+	  const ValueType d = (4./(4.+Dot(g, g)));
+
+	  SpMatrix<ValueType, 3, 3> G(3, 3, 0);
+	  
+	  G(1, 1) = d;
+	  G(2, 1) = g(3) * d / 2.;
+	  G(3, 1) = -g(2) * d / 2.;
+	  G(1, 2) = -g(3) * d / 2.;
+	  G(2, 2) = d;
+	  G(3, 2) = g(1) * d / 2.;
+	  G(1, 3) = g(2) * d / 2.;
+	  G(2, 3) = -g(1) * d / 2.;
+	  G(3, 3) = d;
+
+	  return G;
+     }
 
      template <typename ValueType>
      inline SpMatrix<ValueType, 3, 3>
      MatRVec(const SpColVector<ValueType, 3>& g) {
-	  SpMatrix<ValueType, 3, 3> RDelta(3, 3, g.iGetMaxSize());
+	  SpMatrix<ValueType, 3, 3> RDelta(3, 3, 0);
 	  
 	  const ValueType d = 4. / (4. + Dot(g, g));
 	  const ValueType tmp1 = -g(3) * g(3);
@@ -2560,7 +2588,7 @@ namespace sp_grad {
      
      template <typename ValueType>
      inline SpColVector<ValueType, 3>
-     VecRot(const SpMatrix<ValueType, 3, 3>& R) {
+     VecRotMat(const SpMatrix<ValueType, 3, 3>& R) {
 	  // Modified from Appendix 2.4 of
 	  //
 	  // author = {Marco Borri and Lorenzo Trainelli and Carlo L. Bottasso},
@@ -2622,6 +2650,25 @@ namespace sp_grad {
 	  }
 
 	  return unit;
+     }
+
+     template <typename ValueType>
+     inline SpMatrix<ValueType, 3, 3>
+     MatCrossVec(const SpColVector<ValueType, 3>& v, doublereal d) {
+	  SpMatrix<ValueType, 3, 3> A(3, 3, v.iGetMaxSize());
+
+	  SpGradient::ResizeReset(A(1, 1), d, 0);
+	  SpGradient::ResizeReset(A(2, 2), d, 0);
+	  SpGradient::ResizeReset(A(3, 3), d, 0);
+	  
+	  A(1, 2) = -v(3);
+	  A(1, 3) =  v(2);
+	  A(2, 1) =  v(3);
+	  A(2, 3) = -v(1);
+	  A(3, 1) = -v(2);
+	  A(3, 2) =  v(1);
+
+	  return A;
      }
      
      template <typename ValueType, index_type NumRows, index_type NumCols>

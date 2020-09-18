@@ -2151,12 +2151,12 @@ inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, con
      R = EvalCompressed(RDelta * RRef);
 
      switch (func) {
-     case INITIAL_ASS_JAC:
+     case SpFunctionCall::INITIAL_ASS_JAC:
 	  W = gP;	// Note gP must be equal to WCurr during the initial assembly phase
 	  break;
 
-     case INITIAL_DER_JAC:
-     case REGULAR_JAC:
+     case SpFunctionCall::INITIAL_DER_JAC:
+     case SpFunctionCall::REGULAR_JAC:
      {
 	  SpMatrix<T, 3, 3> G(3, 3, 8);
 
