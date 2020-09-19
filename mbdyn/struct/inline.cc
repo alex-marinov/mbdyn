@@ -311,10 +311,12 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Inline", OH, name);
 
 			if (fc) {
-				Var_FF = OH.CreateVar<Vec3>(name + "FF", "N",
+				Var_FF = OH.CreateVar<Vec3>(name + "FF",
+						OutputHandler::Dimensions::Force,
 						"friction force (x, y, z)");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+						OutputHandler::Dimensions::Dimensionless,
 						"friction coefficient");
 			}
 		}

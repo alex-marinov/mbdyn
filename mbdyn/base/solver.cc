@@ -3800,7 +3800,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	SAFENEWWITHCONSTRUCTOR(pDerivativeSteps,
 			DerivativeSolver,
 			DerivativeSolver(dDerivativesTol,
-				0.,
+				dSolutionTol,
 				dInitialTimeStep*dDerivativesCoef,
 				iDerivativesMaxIterations,
 				bModResTest,
@@ -3812,7 +3812,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
 				CrankNicolsonIntegrator,
 				CrankNicolsonIntegrator(dDummyStepsTolerance,
-					0.,
+					dSolutionTol,
 					iDummyStepsMaxIterations,
 					bModResTest));
 
@@ -3822,7 +3822,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					CrankNicolsonIntegrator,
 					CrankNicolsonIntegrator(dDummyStepsTolerance,
-						0.,
+						dSolutionTol,
 						iDummyStepsMaxIterations,
 						bModResTest));
 			break;
@@ -3831,7 +3831,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					MultistepSolver,
 					MultistepSolver(dDummyStepsTolerance,
-						0.,
+						dSolutionTol,
 						iDummyStepsMaxIterations,
 						pRhoDummy,
 						pRhoAlgebraicDummy,

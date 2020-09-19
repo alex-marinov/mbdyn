@@ -206,28 +206,39 @@ Rotor::OutputPrepare(OutputHandler& OH)
 		(void)OH.CreateVar(name, "Rotor");
 
 		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
-			Var_f = OH.CreateVar<Vec3>(name + "f", "N",
+			Var_f = OH.CreateVar<Vec3>(name + "f",
+					OutputHandler::Dimensions::Force,
 					"rotor force in x, y and z directions (lon, lat, thrust)");
-			Var_m = OH.CreateVar<Vec3>(name + "m", "Nm", 
+			Var_m = OH.CreateVar<Vec3>(name + "m",
+					OutputHandler::Dimensions::Moment,
 					"rotor moment about x, y and z directions (pitch, roll, torque)");
-			Var_dUMean = OH.CreateVar<doublereal>(name + "UMean", "m/s",
+			Var_dUMean = OH.CreateVar<doublereal>(name + "UMean",
+					OutputHandler::Dimensions::Velocity,
 					"mean inflow velocity");
 
-			Var_dVelocity = OH.CreateVar<doublereal>(name + "VRef", "m/s",
+			Var_dVelocity = OH.CreateVar<doublereal>(name + "VRef",
+					OutputHandler::Dimensions::Velocity,
 					"reference velocity (craft_node + airstream)");
-			Var_dAlpha = OH.CreateVar<doublereal>(name + "Alpha", "rad",
+			Var_dAlpha = OH.CreateVar<doublereal>(name + "Alpha",
+					OutputHandler::Dimensions::rad,
 					"rotor disk angle");
-			Var_dMu = OH.CreateVar<doublereal>(name + "Mu", "-",
+			Var_dMu = OH.CreateVar<doublereal>(name + "Mu",
+					OutputHandler::Dimensions::Dimensionless,
 					"advance parameter");
-			Var_dLambda = OH.CreateVar<doublereal>(name + "Lambda", "-",
+			Var_dLambda = OH.CreateVar<doublereal>(name + "Lambda",
+					OutputHandler::Dimensions::Dimensionless,
 					"inflow parameter");
-			Var_dChi = OH.CreateVar<doublereal>(name + "Chi", "-",
+			Var_dChi = OH.CreateVar<doublereal>(name + "Chi",
+					OutputHandler::Dimensions::Dimensionless,
 					"advance/inflow parameter");
-			Var_dPsi0 = OH.CreateVar<doublereal>(name + "Psi0", "rad",
+			Var_dPsi0 = OH.CreateVar<doublereal>(name + "Psi0",
+					OutputHandler::Dimensions::rad,
 					"reference azimuthal direction");
 			Var_bUMeanRefConverged = OH.CreateVar<integer>(name + "UMeanRefConverged",
-					"bool", "boolean flag indicating reference induced velocity computation convergence");
-			Var_iCurrIter = OH.CreateVar<integer>(name + "Iter", "-",
+					OutputHandler::Dimensions::Boolean,
+					"boolean flag indicating reference induced velocity computation convergence");
+			Var_iCurrIter = OH.CreateVar<integer>(name + "Iter",
+					OutputHandler::Dimensions::Dimensionless,
 					"number of iterations required for convergence");
 
 		}
@@ -1769,11 +1780,14 @@ DynamicInflowRotor::OutputPrepare(OutputHandler& OH)
 		std::ostringstream os;
 		os << "elem.inducedvelocity." << GetLabel() << ".";
 		std::string name = os.str();
-		Var_dVConst = OH.CreateVar<doublereal>(name + "VConst", "m/s",
+		Var_dVConst = OH.CreateVar<doublereal>(name + "VConst",
+				OutputHandler::Dimensions::Velocity,
 				"constant inflow state");
-		Var_dVSine = OH.CreateVar<doublereal>(name + "VSine", "m/s",
+		Var_dVSine = OH.CreateVar<doublereal>(name + "VSine",
+				OutputHandler::Dimensions::Velocity,
 				"sine inflow state (lateral)");
-		Var_dVCosine= OH.CreateVar<doublereal>(name + "VCosine", "m/s",
+		Var_dVCosine= OH.CreateVar<doublereal>(name + "VCosine",
+				OutputHandler::Dimensions::Velocity,
 				"cosine inflow state (longitudinal)");
 
 #endif // USE_NETCDF

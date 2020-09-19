@@ -733,7 +733,8 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Spherical pin", OH, name);
 
-			Var_Phi = OH.CreateVar<Vec3>(name + "E", "rad", 
+			Var_Phi = OH.CreateVar<Vec3>(name + "E",
+				OutputHandler::Dimensions::deg,
 				"node orientation (E123)");
 
 		}

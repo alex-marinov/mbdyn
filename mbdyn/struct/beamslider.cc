@@ -159,13 +159,16 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Beam slider", OH, name);
 			
-			Var_Beam = OH.CreateVar<integer>(name + "Beam", "-",
+			Var_Beam = OH.CreateVar<integer>(name + "Beam",
+				OutputHandler::Dimensions::Dimensionless,
 				"current beam label");
 
-			Var_sRef = OH.CreateVar<doublereal>(name + "sRef", "",
+			Var_sRef = OH.CreateVar<doublereal>(name + "sRef",
+				OutputHandler::Dimensions::Dimensionless,
 				"current curvilinear abscissa");
 
-			Var_l = OH.CreateVar<Vec3>(name + "l", "-",
+			Var_l = OH.CreateVar<Vec3>(name + "l",
+				OutputHandler::Dimensions::Dimensionless,
 				"local direction vector (x, y, z)");
 		}
 #endif // USE_NETCDF

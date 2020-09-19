@@ -54,7 +54,7 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
             (\hty{DriveCaller}) \bnt{input_signal}
                     [ \{ \kw{test} | \kw{output} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
                 [ , ... ] , # \nt{inputs_number} occurrences
-        [\kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \},]
+        [\kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \}, [\kw{normalized} ,]]
 	\kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
         [\kw{max delta t} , (\ty{real}) \bnt{max_delta_t} ,]
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
@@ -65,6 +65,9 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
                     | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
         [ \kw{initial time} , (\ty{real}) \bnt{initial_time} ,
 	    [ \kw{prescribed time step} , (\hty{DriveCaller}) \bnt{time_step} , ] ]
+        [ \kw{RMS test}, 
+	    [ \kw{RMS target}, (\ty{real}) \bnt{RMS target value}, 
+	        [\kw{max amplitude relative difference} , (\ty{real}) \bnt{max_amplitude_relative_difference} , ] ] ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
         \kw{min periods} , (\ty{integer}) \bnt{min_periods}
         [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
@@ -87,7 +90,8 @@ If \kw{test} is \kw{true}, the signal will be used to evaluate convergence, othe
 If \kw{output} is \kw{true}, the fundamental harmonic of the signal will appear in the output, otherwise it will be ignored;
 by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used, the signal is used to test for convergence and appears in the output;
 
-\item \kw{output format}; coose the output format: either \kw{complex} (defualt) of \kw{magnitude phase} (see
+\item \kw{output format}; coose the output format: either \kw{complex} (default) of \kw{magnitude phase};
+if \kw{normalized} the output is normalized with respect to the \kw{amplitude} (see
 \ref{hfelem_output} for the output description);
 
 \item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
@@ -118,6 +122,21 @@ The list of custom angular frequencies is terminated by the keyword \kw{last};
 
 \item $\nt{time\_step}$ optional prescribed time step for $t<=\nt{initial\_time}$; $\nt{time\_step}(\nt{initial\_time})$
 needs to be equal to the time step computed by the element for the first forcing frequency.
+
+\item \kw{RMS test} is a keyword to perform the test not on the difference between the values of the test functions,
+but on their RMSs; the relative difference of each test function RMS between two periods needs to be
+$<=\nt{tolerance}$.
+
+\item \kw{RMS target} modifies the RMS convergence test: convergence is achieved if the test function RMS 
+also matches, within $\nt{tolerance}$, the prescribed $\nt{RMS\_target\_value}$. This is
+accomplished by changing the module \kw{amplitude} private data. This option makes sense if and only if
+there is a single test variable. If $\nt{min\_periods}$ is specified then the periods counter
+is reset also for an \kw{amplitude} change, and not only for a frequency change.
+
+\item \kw{max amplitude relative difference}: if the new computed \kw{amplitude} $an$ is such that
+$|an - a| / \min(an, a)  > \nt{max\_amplitude\_relative\_difference}$, where $a$ is the current amplitude,
+re-compute $an$ using a lower-order interpolation method.\\
+Default value: $\nt{max\_amplitude\_relative\_difference} = 2$.
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 
@@ -160,9 +179,12 @@ Each output row contains:
 \item[5--?)] fundamental frequency coefficient of output signals; for each of them, 
 \begin{itemize}
 	\item the real and the imaginary part are output (pairs of reals) 
-	if \kw{output format} is either not set or set equal to \kw{complex}
+	if \kw{output format} is either not set or set equal to \kw{complex};
+	they are both divided by \kw{amplitude}	if \kw{output format} is \kw{normalized};
 	\item the magnitude and phase are output (pair of reals)
-	if \kw{output format} is set equal to \kw{magnitude phase}
+	if \kw{output format} is set equal to \kw{magnitude phase};
+	the magnitude is divided by \kw{amplitude} if \kw{output format} is \kw{normalized}.
+\item[last)] the \kw{amplitude}
 \end{itemize}
 \end{itemize}
 For example, to plot the results of the first output signal in Octave (or Matlab), one can use:
@@ -196,7 +218,7 @@ Then, after instantiating the \kw{hfelem}, one must reference the time step driv
 Alternatively, one can use the optional keyword \kw{timestep drive label} to pass the element the label of the timestep drive caller,
 which is directly instantiated by the element.
 
-\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and unit amplitude.
+\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and \kw{amplitude} amplitude.
 This signal must be used to excite the problem (e.g.\ as the multiplier of a force or moment, or a prescribed displacement or rotation).
 For example, in the case of a force:
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -240,7 +262,7 @@ along the (absolute) $y$ direction, scaled by a factor 50, with 90 deg phase del
 \item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
 This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
 
-\item \kw{amplitude}, the amplitude of the excitation signal (currently set to 1).
+\item \kw{amplitude}, the amplitude of the excitation signal (equal to 1, unless \kw{RMS target} is set).
 
 \item \kw{count}, the number of frequencies that have been applied so far.
 

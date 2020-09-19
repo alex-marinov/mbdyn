@@ -123,17 +123,22 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Deformable joint", OH, name);
-			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
+			Var_tilde_d = OH.CreateVar<Vec3>(name + "d",
+				OutputHandler::Dimensions::Length,
 				"relative position in local frame (x, y, z)");
-			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
+			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime",
+				OutputHandler::Dimensions::Velocity,
 				"relative linear velocity in local frame (x, y, z)");
-			Var_d = OH.CreateVar<Vec3>(name + "D", "m",
+			Var_d = OH.CreateVar<Vec3>(name + "D",
+				OutputHandler::Dimensions::Length,
 				"relative position in global frame (x, y, z)");
-			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime", "m/s",
+			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime",
+				OutputHandler::Dimensions::Velocity,
 				"relative linear velocity in global frame (x, y, z)");
 			Var_Phi = OH.CreateRotationVar(name, "", od, 
 				"relative orientation, in joint reference frame");
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif

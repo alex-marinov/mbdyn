@@ -1483,16 +1483,19 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Total joint", OH, name);
 
-			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+			Var_X = OH.CreateVar<Vec3>(name + "X",
+				OutputHandler::Dimensions::Length,
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
 			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
-			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
+			Var_V = OH.CreateVar<Vec3>(name + "V",
+				OutputHandler::Dimensions::Velocity,
 				"local relative velocity (x, y, z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -3316,16 +3319,19 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Total pin joint", OH, name);
 
-			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+			Var_X = OH.CreateVar<Vec3>(name + "X",
+				OutputHandler::Dimensions::Length,
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
 			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
-			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
+			Var_V = OH.CreateVar<Vec3>(name + "V",
+				OutputHandler::Dimensions::Velocity,
 				"local relative velocity (x, y, z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif // USE_NETCDF

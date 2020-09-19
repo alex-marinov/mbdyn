@@ -1774,7 +1774,7 @@ public:
         }
 
         void Resize(index_type iRows, index_type iCols) {
-            if (iRows != iNumRows || iCols != iCols) {
+            if (iRows != iNumRows || iCols != iNumCols) {
                 rgData.Resize(iRows * iCols);
                 iNumRows = iRows;
                 iNumCols = iCols;

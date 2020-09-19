@@ -176,8 +176,8 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Linear acceleration", OH, name);
 
-			Var_a = OH.CreateVar<Vec3>(name + "a", "m/s^2",
-				"imposed acceleration (x, y, z)");
+			Var_a = OH.CreateVar<Vec3>(name + "a", 
+				OutputHandler::Dimensions::Acceleration, "imposed acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF
 	}
@@ -432,7 +432,8 @@ AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Angular acceleration", OH, name);
 
-			Var_wP = OH.CreateVar<Vec3>(name + "wP", "rad/s^2",
+			Var_wP = OH.CreateVar<Vec3>(name + "wP", 
+				OutputHandler::Dimensions::AngularAcceleration,
 				"imposed angular acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF

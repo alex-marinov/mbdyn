@@ -46,6 +46,7 @@
 #include <fstream>
 #include <vector>
 #include <typeinfo>
+#include <unordered_map>
 
 #if defined(USE_NETCDF)
 #if defined(USE_NETCDFC)
@@ -76,6 +77,8 @@ typedef netCDF::NcType MBDynNcType;
 #include "except.h"
 #include "solman.h"
 #include "filename.h"
+
+class MBDynParser;
 
 /* OutputHandler - begin */
 
@@ -118,6 +121,47 @@ public:
 		TRACES,
 		EIGENANALYSIS,			// NOTE: ALWAYS LAST!
 		LASTFILE			// 33
+	};
+	enum struct Dimensions {
+		Dimensionless,
+		Boolean,
+		Length,
+		Mass,
+		Time,
+		Current,
+		Temperature,
+		Angle,
+		Area,
+		Force,
+		Velocity,
+		Acceleration,
+		AngularVelocity,
+		AngularAcceleration,
+
+		Momentum,
+		MomentaMoment,
+		MomentumDerivative,
+		MomentaMomentDerivative,
+
+		StaticMoment,
+		MomentOfInertia,
+
+		LinearStrain,
+		AngularStrain,
+		LinearStrainRate,
+		AngularStrainRate,
+		
+		ForceUnitSpan,
+
+		Work,
+		Power,
+		Pressure,
+		Moment,
+		Voltage,
+		Charge,
+		Frequency,
+		deg,
+		rad
 	};
 
 private:
@@ -229,6 +273,8 @@ public:
 	void Init(const char* sFName, int iExtNum = -1);
 
 	virtual ~OutputHandler(void);
+	
+	void ReadOutputUnits(MBDynParser& HP);
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);
@@ -376,7 +422,7 @@ public:
 	template <class T>
 	MBDynNcVar
 	CreateVar(const std::string& name,
-		const std::string& units, const std::string& description);
+		const Dimensions phys_dim, const std::string& description);
 
 	MBDynNcVar
 	CreateRotationVar(const std::string& name_prefix,
@@ -384,18 +430,28 @@ public:
 		OrientationDescription od,
 		const std::string& description);
 #endif /* USE_NETCDF */
+/* Unit system related stuff */
+private:
+	std::unordered_map<Dimensions, std::string> Units;
+	void SetDerivedUnits(std::unordered_map<Dimensions, std::string>& Units );
+	void SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units);
+	void SetMKSUnits(std::unordered_map<Dimensions, std::string>& Units);
+	void SetCGSUnits(std::unordered_map<Dimensions, std::string>& Units);
+	void SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& Units);
+	void SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& Units);
 }; /* End class OutputHandler */
 
 #ifdef USE_NETCDF
 template <class T>
 MBDynNcVar
 OutputHandler::CreateVar(const std::string& name,
-	const std::string& units, const std::string& description)
+	const Dimensions phys_dim, const std::string& description)
 {
 	AttrValVec attrs(3);
 	NcDimVec dims(1);
 
-	attrs[0] = AttrVal("units", units);
+	//attrs[0] = AttrVal("units", units);
+	attrs[0] = AttrVal("units", Units[phys_dim]);
 	attrs[2] = AttrVal("description", description);
 	dims[0] = DimTime();
 	

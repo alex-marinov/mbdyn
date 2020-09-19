@@ -173,6 +173,11 @@ NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
 
 /* NonlinearSolverTestNone - begin */
 
+NonlinearSolverTest::Type NonlinearSolverTestNone::GetType() const
+{
+     return NONE;
+}
+
 doublereal
 NonlinearSolverTestNone::MakeTest(Solver *pS, integer Size, 
 		const VectorHandler& Vec, bool bResidual,
@@ -205,6 +210,11 @@ NonlinearSolverTestNone::TestMerge(doublereal& dResCurr,
 
 /* NonlinearSolverTestNorm - begin */
 
+NonlinearSolverTest::Type NonlinearSolverTestNorm::GetType() const
+{
+     return NORM;
+}
+
 void
 NonlinearSolverTestNorm::TestOne(doublereal& dRes, 
 		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
@@ -235,6 +245,11 @@ NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 /* NonlinearSolverTestNorm - end */
 
 /* NonlinearSolverTestMinMax */
+
+NonlinearSolverTest::Type NonlinearSolverTestMinMax::GetType() const
+{
+     return MINMAX;
+}
 
 void
 NonlinearSolverTestMinMax::TestOne(doublereal& dRes,
@@ -290,6 +305,11 @@ NonlinearSolverTestScale::dScaleCoef(const integer& iIndex) const
 
 /* NonlinearSolverTestScaleNorm - begin */
 
+NonlinearSolverTest::Type NonlinearSolverTestScaleNorm::GetType() const
+{
+     return NORM;
+}
+
 void
 NonlinearSolverTestScaleNorm::TestOne(doublereal& dRes,
 		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
@@ -315,6 +335,11 @@ NonlinearSolverTestScaleNorm::dScaleCoef(const integer& iIndex) const
 /* NonlinearSolverTestScaleNorm - end */
 
 /* NonlinearSolverTestScaleMinMax - begin */
+
+NonlinearSolverTest::Type NonlinearSolverTestScaleMinMax::GetType() const
+{
+     return MINMAX;
+}
 
 void
 NonlinearSolverTestScaleMinMax::TestOne(doublereal& dRes,
@@ -359,6 +384,11 @@ NonlinearSolverTestRange::NonlinearSolverTestRange(NonlinearSolverTest *pTest, i
 NonlinearSolverTestRange::~NonlinearSolverTestRange(void)
 {
 	delete m_pTest;
+}
+
+NonlinearSolverTest::Type NonlinearSolverTestRange::GetType() const
+{
+     return m_pTest->GetType();
 }
 
 #if 0
@@ -494,7 +524,7 @@ NonlinearSolver::MakeResTest(Solver *pS,
 	}
 
 	dTest = pResTest->MakeTest(pS, Size, Vec, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
-	return ((dTest < dTol) && pS->pGetDataManager()->IsConverged());
+	return ((dTest <= dTol) && pS->pGetDataManager()->IsConverged()); // operator <= will work also for NonlinearSolverTestNone
 }
 
 bool
@@ -504,7 +534,7 @@ NonlinearSolver::MakeSolTest(Solver *pS,
 	doublereal& dTest)
 {
 	dTest = pSolTest->MakeTest(pS, Size, Vec);
-	return ((dTest < dTol) && pS->pGetDataManager()->IsConverged());
+	return ((dTest <= dTol) && pS->pGetDataManager()->IsConverged()); // operator <= will work also for NonlinearSolverTestNone
 }
 
 #ifdef USE_EXTERNAL

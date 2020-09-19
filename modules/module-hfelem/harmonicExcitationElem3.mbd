@@ -180,11 +180,12 @@ begin: elements;
 	module load: "libmodule-hfelem";
 	user defined: 99, harmonic excitation,
 		inputs number, 2,
-			node, 2, structural, string, "X[1]", direct,
+			node, 2, structural, string, "XPP[1]", direct,
 				# output, no,
 				# test, no,
 			node, 2, structural, string, "XP[1]", direct,
-				# test, no,
+				test, no,
+				output, yes,
 		output format, magnitude phase,
 		steps number, 128,
 		initial angular frequency, 2.*2*pi,
@@ -194,10 +195,13 @@ begin: elements;
 				multiplicative, 1.06,
 				# custom, 4.*2*pi, 6.*2*pi, 8.*2*pi, 10.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, 50.*2*pi, last,
 		# initial time, 5., # defaults to "always"
-		tolerance, 1.e-8,
+		RMS test,
+		RMS target, 0.005,
+		max amplitude relative difference, .1,
+		tolerance, 1.e-2,
 		min periods, 2,
-		max periods, 50,
-			# no convergence strategy, abort,
+		max periods, 100,
+			no convergence strategy, abort,
 		timestep drive label, TIMESTEP_DRIVE;
 
 	output: loadable, 99;

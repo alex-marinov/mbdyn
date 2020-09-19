@@ -168,16 +168,21 @@ ScrewJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Screw Joint", OH, name);
 
-			Var_dTheta = OH.CreateVar<doublereal>(name + "dTheta", "rad",
+			Var_dTheta = OH.CreateVar<doublereal>(name + "dTheta",
+				OutputHandler::Dimensions::rad,
 				"screw angle magnitude [deg]");
-			Var_Theta = OH.CreateVar<Vec3>(name + "Theta", "-",
+			Var_Theta = OH.CreateVar<Vec3>(name + "Theta",
+				OutputHandler::Dimensions::Length,
 				"screw axis (x, y, z)");
 			if (fc) {
-				Var_vrel = OH.CreateVar<doublereal>(name + "vRel", "m/s",
+				Var_vrel = OH.CreateVar<doublereal>(name + "vRel",
+					OutputHandler::Dimensions::Velocity,
 					"contact point sliding velocity");
-				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+					OutputHandler::Dimensions::Dimensionless,
 					"friction coefficient");
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+					OutputHandler::Dimensions::Moment,
 					"friction moment");
 
 			}

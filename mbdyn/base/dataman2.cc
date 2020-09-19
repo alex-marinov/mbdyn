@@ -1456,9 +1456,12 @@ DataManager::OutputPrepare(void)
 		OutHdl.Open(OutputHandler::NETCDF);
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
-		Var_Step = OutHdl.CreateVar<integer>("run.step", "-", "time step index");
-		Var_Time = OutHdl.CreateVar<doublereal>("time", "s", "simulation time");
-		Var_TimeStep = OutHdl.CreateVar<doublereal>("run.timestep", "s", "integration time step");
+		Var_Step = OutHdl.CreateVar<integer>("run.step", 
+			OutputHandler::Dimensions::Dimensionless, "time step index");
+		Var_Time = OutHdl.CreateVar<doublereal>("time", 
+			OutputHandler::Dimensions::Time, "simulation time");
+		Var_TimeStep = OutHdl.CreateVar<doublereal>("run.timestep", 
+			OutputHandler::Dimensions::Time, "integration time step");
 	}
 #endif /* USE_NETCDF */
 
@@ -1709,14 +1712,14 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-",
-				"F/xPrime - dCoef * F/x");
+		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+				OutputHandler::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-",
-				"F/xPrime + dCoef * F/x");
+		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
 		size_t iCnt = 0;
 		Vec3 v;
@@ -1799,14 +1802,14 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-", 
-				"F/xPrime + dCoef * F/x");
+		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), "-", 
-				"F/xPrime - dCoef * F/x");
+		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+			OutputHandler::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		size_t iCnt = 0;
 		Vec3 v;
