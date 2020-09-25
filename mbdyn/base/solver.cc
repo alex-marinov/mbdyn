@@ -4016,6 +4016,8 @@ do_eig(const doublereal& b, const doublereal& re,
 	return 0;
 }
 
+
+#if defined USE_LAPACK || defined USE_ARPACK || defined USE_JDQZ
 // Writes eigenvalues to the .out file in human-readable form
 static void
 output_eigenvalues(const VectorHandler *pBeta,
@@ -4071,6 +4073,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 		Out << std::endl;
 	}
 }
+#endif // defined USE_LAPACK || defined USE_ARPACK || defined USE_JDQZ
 
 #ifdef USE_LAPACK
 // Computes eigenvalues and eigenvectors using LAPACK's
