@@ -74,10 +74,10 @@
 #include <clock_time.h>
 #include <dataman.h>
 #include <gauss.h>
-#include <gradient.h>
+#include <sp_gradient.h>
+#include <sp_matrix_base.h>
+#include <sp_matvecass.h>
 #include <hfluid.h>
-#include <matvec.h>
-#include <matvecass.h>
 #include <presnode.h>
 #include <../thermo/thermalnode.h>
 #include <userelem.h>
@@ -85,9 +85,9 @@
 
 #include "module-hydrodynamic_plain_bearing2.h"
 
-#if defined(USE_AUTODIFF) && __cplusplus >= 201103L
+#if defined(USE_SPARSE_AUTODIFF) && __cplusplus >= 201103L
 namespace {
-    using namespace grad;
+    using namespace sp_grad;
 
 #if !defined(DEBUG) && HYDRO_DEBUG > 0
 #define HYDRO_ASSERT(expr) assert(expr)
@@ -101,31 +101,18 @@ namespace {
 #define HYDRO_TRACE(expr) static_cast<void>(0)
 #endif
 
-#if CREATE_PROFILE == 1 || HYDRO_DEBUG > 0
-    static inline index_type
-    iGetGradientVectorSize(doublereal) {
-        return 0;
-    }
-
-    template <index_type N_SIZE>
-    static inline index_type
-    iGetGradientVectorSize(const Gradient<N_SIZE>& g) {
-        return g.iGetLocalSize();
-    }
-#endif
-
 #if HYDRO_DEBUG > 0
     template <typename ElementType>
-    bool bCheckNumColsWorkSpace(const ElementType* pElem, grad::FunctionCall eFunc, doublereal g, index_type iRowIndex)
+    bool bCheckNumColsWorkSpace(const ElementType* pElem, sp_grad::SpFunctionCall eFunc, doublereal g, index_type iRowIndex)
     {
         return true;
     }
 
-    template <typename ElementType, index_type N_SIZE>
-    bool bCheckNumColsWorkSpace(const ElementType* pElem, grad::FunctionCall eFunc, const Gradient<N_SIZE>& g, index_type iRowIndex);
+    template <typename ElementType>
+    bool bCheckNumColsWorkSpace(const ElementType* pElem, sp_grad::SpFunctionCall eFunc, const SpGradient& g, index_type iRowIndex);
 
     template <typename ElementType, typename G, index_type N_ROWS>
-    bool bCheckNumColsWorkSpace(const ElementType* pElem, grad::FunctionCall eFunc, const Vector<G, N_ROWS>& v, index_type iRowIndex)
+    bool bCheckNumColsWorkSpace(const ElementType* pElem, sp_grad::SpFunctionCall eFunc, const SpColVector<G, N_ROWS>& v, index_type iRowIndex)
     {
         for (index_type i = 1; i <= v.iGetNumRows(); ++i) {
             if (!bCheckNumColsWorkSpace(pElem, eFunc, v(i), iRowIndex + i - 1)) {
@@ -140,17 +127,6 @@ namespace {
 #else
 #define CHECK_NUM_COLS_WORK_SPACE(pElem, eFunc, g, iRowIndex) static_cast<void>(0)
 #endif
-
-    inline void SetDofMap(doublereal& g, LocalDofMap*)
-    {
-        g = 0;
-    }
-
-    template <index_type N_SIZE>
-    inline void SetDofMap(Gradient<N_SIZE>& g, LocalDofMap* pDofMap)
-    {
-        g = Gradient<N_SIZE>(0., pDofMap);
-    }
 
     namespace util {
         template <typename T>
@@ -272,24 +248,24 @@ namespace {
 
     class Geometry2D {
     protected:
-        explicit Geometry2D(const Vector<doublereal, 2>& x);
+        explicit Geometry2D(const SpColVector<doublereal, 2>& x);
     public:
         virtual ~Geometry2D();
-        virtual std::unique_ptr<Geometry2D> Clone(const Vector<doublereal, 2>& x) const=0;
-        virtual bool bPointIsInside(const Vector<doublereal, 2>& p1) const=0;
+        virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const=0;
+        virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const=0;
         static std::unique_ptr<Geometry2D> Read(HydroRootElement* pRoot, MBDynParser& HP);
-        const Vector<doublereal, 2>& GetPosition() const {
+        const SpColVector<doublereal, 2>& GetPosition() const {
             return x;
         }
     protected:
-        const Vector<doublereal, 2> x; // position
+        const SpColVector<doublereal, 2> x; // position
     };
 
     class Circle2D: public Geometry2D {
     public:
-        Circle2D(const Vector<doublereal, 2>& x, doublereal r);
-        virtual std::unique_ptr<Geometry2D> Clone(const Vector<doublereal, 2>& x) const;
-        virtual bool bPointIsInside(const Vector<doublereal, 2>& p1) const;
+        Circle2D(const SpColVector<doublereal, 2>& x, doublereal r);
+        virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
+        virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
 
     private:
         const doublereal r;
@@ -297,9 +273,9 @@ namespace {
 
     class Rectangle2D: public Geometry2D {
     public:
-        Rectangle2D(const Vector<doublereal, 2>& x, doublereal w, doublereal h);
-        virtual std::unique_ptr<Geometry2D> Clone(const Vector<doublereal, 2>& x) const;
-        virtual bool bPointIsInside(const Vector<doublereal, 2>& p1) const;
+        Rectangle2D(const SpColVector<doublereal, 2>& x, doublereal w, doublereal h);
+        virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
+        virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
 
     private:
         const doublereal w, h;
@@ -307,26 +283,26 @@ namespace {
 
     class CompleteSurface2D: public Geometry2D {
     public:
-        explicit CompleteSurface2D(const Vector<doublereal, 2>& x);
-        virtual std::unique_ptr<Geometry2D> Clone(const Vector<doublereal, 2>& x) const;
-        virtual bool bPointIsInside(const Vector<doublereal, 2>& p1) const;
+        explicit CompleteSurface2D(const SpColVector<doublereal, 2>& x);
+        virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
+        virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
     };
 
     class SurfaceGrid2D: public Geometry2D {
     public:
-        explicit SurfaceGrid2D(const Vector<doublereal, 2>& xc,
-                               const Vector<doublereal, DYNAMIC_SIZE>& x,
-                               const Vector<doublereal, DYNAMIC_SIZE>& z,
+        explicit SurfaceGrid2D(const SpColVector<doublereal, 2>& xc,
+                               const SpColVector<doublereal>& x,
+                               const SpColVector<doublereal>& z,
                                doublereal tolx,
                                doublereal tolz,
-                               const Matrix<int8_t, DYNAMIC_SIZE, DYNAMIC_SIZE>& status);
-        virtual std::unique_ptr<Geometry2D> Clone(const Vector<doublereal, 2>& xc) const;
-        virtual bool bPointIsInside(const Vector<doublereal, 2>& p1) const;
+                               const std::vector<bool>& status);
+        virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& xc) const;
+        virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
 
     private:
         const doublereal tolx, tolz;
-        const Vector<doublereal, DYNAMIC_SIZE> x, z;
-        const Matrix<int8_t, DYNAMIC_SIZE, DYNAMIC_SIZE> status;
+        const SpColVector<doublereal> x, z;
+	const std::vector<bool> status;
     };
 
     class LubricationGroove {
@@ -382,7 +358,7 @@ namespace {
 
     class LubricationGrooveSlave: public LubricationGroove {
     public:
-        LubricationGrooveSlave(LubricationGrooveMaster* pMaster, const Vector<doublereal, 2>& x);
+        LubricationGrooveSlave(LubricationGrooveMaster* pMaster, const SpColVector<doublereal, 2>& x);
 
     public:
         virtual ~LubricationGrooveSlave();
@@ -407,13 +383,13 @@ namespace {
         explicit Pocket(std::unique_ptr<Geometry2D>&& pGeometry);
         virtual ~Pocket();
         static std::unique_ptr<Pocket> Read(HydroRootElement* pRoot, MBDynParser& HP, const class CylindricalBearing* pParent);
-        virtual void GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const=0;
-        virtual void GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const=0;
-        virtual void GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const=0;
-        virtual void GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const=0;
-        virtual void GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const=0;
-        virtual void GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const=0;
-        virtual std::unique_ptr<Pocket> Clone(const Vector<doublereal, 2>& x) const=0;
+        virtual void GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const=0;
+        virtual void GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const=0;
+        virtual void GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const=0;
+        virtual void GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const=0;
+        virtual void GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const=0;
+        virtual void GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const=0;
+        virtual std::unique_ptr<Pocket> Clone(const SpColVector<doublereal, 2>& x) const=0;
         const Geometry2D* pGetGeometry() const { return pGeometry.get(); }
 
     private:
@@ -426,13 +402,13 @@ namespace {
         ConstHeightPocket(std::unique_ptr<Geometry2D>&& pGeometry, doublereal dy);
         virtual ~ConstHeightPocket();
 
-        virtual void GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const;
-        virtual void GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const;
-        virtual void GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
-        virtual void GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const;
-        virtual void GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
-        virtual void GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const;
-        virtual std::unique_ptr<Pocket> Clone(const Vector<doublereal, 2>& x) const;
+        virtual void GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const;
+        virtual void GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const;
+        virtual void GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
+        virtual void GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const;
+        virtual void GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
+        virtual void GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const;
+        virtual std::unique_ptr<Pocket> Clone(const SpColVector<doublereal, 2>& x) const;
 
     private:
         doublereal dy;
@@ -442,32 +418,32 @@ namespace {
     {
     public:
         RectangularPocket(std::unique_ptr<Geometry2D>&& pGeometry,
-                          const Vector<doublereal, 2>& x,
-                          const Vector<doublereal, 2>& z,
-                          const Matrix<doublereal, 2, 2>& Deltay);
+                          const SpColVector<doublereal, 2>& x,
+                          const SpColVector<doublereal, 2>& z,
+                          const SpMatrix<doublereal, 2, 2>& Deltay);
         virtual ~RectangularPocket();
 
-        virtual void GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const;
-        virtual void GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const;
-        virtual void GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
-        virtual void GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const;
-        virtual void GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
-        virtual void GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const;
-        virtual std::unique_ptr<Pocket> Clone(const Vector<doublereal, 2>& x) const;
+        virtual void GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const;
+        virtual void GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const;
+        virtual void GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
+        virtual void GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const;
+        virtual void GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
+        virtual void GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const;
+        virtual std::unique_ptr<Pocket> Clone(const SpColVector<doublereal, 2>& x) const;
 
     private:
         template <typename T> inline
-        void GetHeightTpl(const Vector<T, 2>& x, T& Deltay) const;
+        void GetHeightTpl(const SpColVector<T, 2>& x, T& Deltay) const;
 
         template <typename T> inline
-        void GetHeightDerXTpl(const Vector<T, 2>& x, T& dDeltay_dx) const;
+        void GetHeightDerXTpl(const SpColVector<T, 2>& x, T& dDeltay_dx) const;
 
         template <typename T> inline
-        void GetHeightDerZTpl(const Vector<T, 2>& x, T& dDeltay_dz) const;
+        void GetHeightDerZTpl(const SpColVector<T, 2>& x, T& dDeltay_dz) const;
 
     private:
-        const Vector<doublereal, 2> x, z;
-        const Matrix<doublereal, 2, 2> f;
+        const SpColVector<doublereal, 2> x, z;
+        const SpMatrix<doublereal, 2, 2> f;
         doublereal dfi1_dx, dfi2_dx;
     };
 
@@ -475,36 +451,36 @@ namespace {
     {
     public:
         explicit SurfaceGrid(std::unique_ptr<Geometry2D>&& pGeometry,
-                             const Vector<doublereal, DYNAMIC_SIZE>& x,
-                             const Vector<doublereal, DYNAMIC_SIZE>& z,
-                             const Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE>& f);
+                             const SpColVector<doublereal>& x,
+                             const SpColVector<doublereal>& z,
+                             const SpMatrix<doublereal>& f);
         virtual ~SurfaceGrid();
-        virtual void GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const;
-        virtual void GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const;
-        virtual void GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
-        virtual void GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const;
-        virtual void GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
-        virtual void GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const;
-        virtual std::unique_ptr<Pocket> Clone(const Vector<doublereal, 2>& x) const;
+        virtual void GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const;
+        virtual void GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const;
+        virtual void GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
+        virtual void GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const;
+        virtual void GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
+        virtual void GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const;
+        virtual std::unique_ptr<Pocket> Clone(const SpColVector<doublereal, 2>& x) const;
 
     private:
         template <typename T> inline
-        index_type iFindGridX(const Vector<T, 2>& xci) const;
+        index_type iFindGridX(const SpColVector<T, 2>& xci) const;
 
         template <typename T> inline
-        index_type iFindGridZ(const Vector<T, 2>& zci) const;
+        index_type iFindGridZ(const SpColVector<T, 2>& zci) const;
 
         template <typename T> inline
-        void GetHeightTpl(const Vector<T, 2>& xci, T& Deltay) const;
+        void GetHeightTpl(const SpColVector<T, 2>& xci, T& Deltay) const;
 
         template <typename T> inline
-        void GetHeightDerXTpl(const Vector<T, 2>& xci, T& dDeltay_dx) const;
+        void GetHeightDerXTpl(const SpColVector<T, 2>& xci, T& dDeltay_dx) const;
 
         template <typename T> inline
-        void GetHeightDerZTpl(const Vector<T, 2>& xci, T& dDeltay_dz) const;
+        void GetHeightDerZTpl(const SpColVector<T, 2>& xci, T& dDeltay_dz) const;
 
-        const Vector<doublereal, DYNAMIC_SIZE> x, z;
-        const Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> f;
+        const SpColVector<doublereal> x, z;
+        const SpMatrix<doublereal> f;
     };
 
     class HelicalGroove: public Pocket
@@ -512,27 +488,27 @@ namespace {
     public:
         explicit HelicalGroove(std::unique_ptr<Geometry2D>&& pGeometry,
                                std::array<std::unique_ptr<DriveCaller>, 2>&& rgProfile,
-                               const Matrix<doublereal, 2, 2>& R0,
-                               const Vector<doublereal, 2>& x0,
+                               const SpMatrix<doublereal, 2, 2>& R0,
+                               const SpColVector<doublereal, 2>& x0,
                                doublereal P);
         virtual ~HelicalGroove();
-        virtual void GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const;
-        virtual void GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const;
-        virtual void GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
-        virtual void GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const;
-        virtual void GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
-        virtual void GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const;
-        virtual std::unique_ptr<Pocket> Clone(const Vector<doublereal, 2>& x) const;
+        virtual void GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const;
+        virtual void GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const;
+        virtual void GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const;
+        virtual void GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const;
+        virtual void GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const;
+        virtual void GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const;
+        virtual std::unique_ptr<Pocket> Clone(const SpColVector<doublereal, 2>& x) const;
 
     private:
         template <typename T> inline
-        void RelativePosition(const Vector<T, 2>& xci, Vector<T, 2>& x) const;
+        void RelativePosition(const SpColVector<T, 2>& xci, SpColVector<T, 2>& x) const;
 
         template <typename T> inline
-        void GetHeightTpl(const Vector<T, 2>& xci, T& Deltay) const;
+        void GetHeightTpl(const SpColVector<T, 2>& xci, T& Deltay) const;
 
         template <typename T> inline
-        void GetHeightDerTpl(const Vector<T, 2>& xci, T& dDeltay_dx, index_type iDirection) const;
+        void GetHeightDerTpl(const SpColVector<T, 2>& xci, T& dDeltay_dx, index_type iDirection) const;
 
         enum ProfileIndex {
             PROFILE_X = 0,
@@ -540,8 +516,8 @@ namespace {
         };
 
         std::array<std::unique_ptr<DriveCaller>, 2> rgProfile;
-        const Matrix<doublereal, 2, 2> R0;
-        const Vector<doublereal, 2> x0;
+        const SpMatrix<doublereal, 2, 2> R0;
+        const SpColVector<doublereal, 2> x0;
         const doublereal P;
     };
 
@@ -554,26 +530,25 @@ namespace {
         inline void
         Update(HydroUpdatedNode* pNode,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
-        inline void GetClearance(T& h, LocalDofMap* pDofMap) const;
-        inline void GetClearanceDerTime(T& dh_dt, LocalDofMap* pDofMap) const;
-        inline void GetVelocity(Vector<T, 2>& U1, Vector<T, 2>& U2, LocalDofMap* pDofMap) const;
-        inline void GetHydraulicVelocity(Vector<T, 2>& U, LocalDofMap* pDofMap) const;
-        inline bool GetContactPressure(T& pasp, LocalDofMap* pDofMap) const;
-        inline bool GetContactStress(Vector<T, 2>& tauc_0, LocalDofMap* pDofMap) const;
-        inline bool GetContactFrictionLossDens(T& Pfc, LocalDofMap* pDofMap) const;
+        inline void GetClearance(T& h) const;
+        inline void GetClearanceDerTime(T& dh_dt) const;
+        inline void GetVelocity(SpColVector<T, 2>& U1, SpColVector<T, 2>& U2) const;
+        inline void GetHydraulicVelocity(SpColVector<T, 2>& U) const;
+        inline bool GetContactPressure(T& pasp) const;
+        inline bool GetContactStress(SpColVector<T, 2>& tauc_0) const;
+        inline bool GetContactFrictionLossDens(T& Pfc) const;
 
     private:
         bool bContact;
         T h;                    // clearance
         T dh_dt;                // derivative of clearance versus time
         T pasp;                 // asperity contact pressure
-        Vector<T, 2> U1;        // velocity at the shaft
-        Vector<T, 2> U2;        // velocity at the bearing
-        Vector<T, 2> U;         // effective hydraulic velocity
-        Vector<T, 2> tauc_0;    // asperity contact shear stress at y=0
+	 SpColVectorA<T, 2, 12> U1;        // velocity at the shaft
+	 SpColVectorA<T, 2, 12> U2;        // velocity at the bearing
+	 SpColVectorA<T, 2, 12> U;         // effective hydraulic velocity
+	 SpColVectorA<T, 2, 12> tauc_0;    // asperity contact shear stress at y=0
         T Pfc;                  // asperity contact power losses per unit area
     };
 
@@ -590,12 +565,12 @@ namespace {
         void ParseInput(DataManager* pDM, MBDynParser& HP, const HydroRootElement* pParent);
 
         template <typename G>
-        void GetWallTemperature(WallTempIndex eWall, G& T, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const {
-            rgNodes[eWall]->GetX(T, dCoef, func, pDofMap);
+        void GetWallTemperature(WallTempIndex eWall, G& T, doublereal dCoef, SpFunctionCall func) const {
+            rgNodes[eWall]->GetX(T, dCoef, func);
         }
 
         template <typename G>
-        void AddHeatFlux(WallTempIndex eWall, const G& Qdot, GradientAssVec<G>& WorkVec) const {
+        void AddHeatFlux(WallTempIndex eWall, const G& Qdot, SpGradientAssVec<G>& WorkVec) const {
             WorkVec.AddItem(rgNodes[eWall]->iGetFirstRowIndex() + 1, Qdot);
         }
 
@@ -636,7 +611,7 @@ namespace {
         void ParseInput(DataManager* pDM, MBDynParser& HP, const HydroRootElement* pParent);
 
         template <typename U>
-        inline U GetViscosityLiquid(const U& T) const;
+        inline void GetViscosityLiquid(const U& T, U& eta) const;
 
         template <typename U>
         inline U GetSpecHeatPerVolume(const U& p, const U& T, HeatCapacityType eType) const;
@@ -699,11 +674,11 @@ namespace {
                                 doublereal* drho_dp = nullptr,
                                 doublereal* drho_dT = nullptr) const=0;
 
-        virtual void GetDensity(const Gradient<0>& p,
-                                const Gradient<0>& T,
-                                Gradient<0>& rho,
-                                Gradient<0>* drho_dp = nullptr,
-                                Gradient<0>* drho_dT = nullptr) const=0;
+        virtual void GetDensity(const SpGradient& p,
+                                const SpGradient& T,
+                                SpGradient& rho,
+                                SpGradient* drho_dp = nullptr,
+                                SpGradient* drho_dT = nullptr) const=0;
 
         virtual void GetPressure(const doublereal& rho,
                                  const doublereal& T,
@@ -711,19 +686,19 @@ namespace {
                                  doublereal* dp_drho = nullptr,
                                  doublereal* dp_dT = nullptr) const=0;
 
-        virtual void GetPressure(const Gradient<0>& rho,
-                                 const Gradient<0>& T,
-                                 Gradient<0>& p,
-                                 Gradient<0>* dp_drho = nullptr,
-                                 Gradient<0>* dp_dT = nullptr) const=0;
+        virtual void GetPressure(const SpGradient& rho,
+                                 const SpGradient& T,
+                                 SpGradient& p,
+                                 SpGradient* dp_drho = nullptr,
+                                 SpGradient* dp_dT = nullptr) const=0;
 
         virtual void GetViscosity(const doublereal& rho,
                                   const doublereal& T,
                                   doublereal& eta) const=0;
 
-        virtual void GetViscosity(const Gradient<0>& rho,
-                                  const Gradient<0>& T,
-                                  Gradient<0>& eta) const=0;
+        virtual void GetViscosity(const SpGradient& rho,
+                                  const SpGradient& T,
+                                  SpGradient& eta) const=0;
 
         template <typename U>
         void GetSpecificHeat(const U& p, const U& T, const U& rho, U& cp, HeatCapacityType eType) const {
@@ -745,18 +720,18 @@ namespace {
                         doublereal& rho,
                         doublereal& drho_dt) const=0;
         virtual void
-        ThetaToPhysical(const std::array<Gradient<0>, iNumDof>& Theta,
-                        const std::array<Gradient<0>, iNumDof>& dTheta_dt,
-                        const Gradient<0>& T,
-                        const Gradient<0>& dT_dt,
-                        Gradient<0>& p,
-                        Gradient<0>& dp_dt,
-                        Gradient<0>& rho,
-                        Gradient<0>& drho_dt) const=0;
+        ThetaToPhysical(const std::array<SpGradient, iNumDof>& Theta,
+                        const std::array<SpGradient, iNumDof>& dTheta_dt,
+                        const SpGradient& T,
+                        const SpGradient& dT_dt,
+                        SpGradient& p,
+                        SpGradient& dp_dt,
+                        SpGradient& rho,
+                        SpGradient& drho_dt) const=0;
 
         virtual doublereal GetTheta0(index_type iDofIndex) const=0;
         virtual CavitationState Cavitation(doublereal& p, doublereal* dp_dt=0) const=0;
-        virtual CavitationState Cavitation(Gradient<0>& p, Gradient<0>* dp_dt=0) const=0;
+        virtual CavitationState Cavitation(SpGradient& p, SpGradient* dp_dt=0) const=0;
         virtual doublereal dGetRefPressure() const;
         virtual doublereal dGetRefDensity() const;
 
@@ -790,11 +765,11 @@ namespace {
                                 doublereal* drho_dp = nullptr,
                                 doublereal* drho_dT = nullptr) const;
 
-        virtual void GetDensity(const Gradient<0>& p,
-                                const Gradient<0>& T,
-                                Gradient<0>& rho,
-                                Gradient<0>* drho_dp = nullptr,
-                                Gradient<0>* drho_dT = nullptr) const;
+        virtual void GetDensity(const SpGradient& p,
+                                const SpGradient& T,
+                                SpGradient& rho,
+                                SpGradient* drho_dp = nullptr,
+                                SpGradient* drho_dT = nullptr) const;
 
         virtual void GetPressure(const doublereal& rho,
                                  const doublereal& T,
@@ -802,19 +777,19 @@ namespace {
                                  doublereal* dp_drho = nullptr,
                                  doublereal* dp_dT = nullptr) const;
 
-        virtual void GetPressure(const Gradient<0>& rho,
-                                 const Gradient<0>& T,
-                                 Gradient<0>& p,
-                                 Gradient<0>* dp_drho = nullptr,
-                                 Gradient<0>* dp_dT = nullptr) const;
+        virtual void GetPressure(const SpGradient& rho,
+                                 const SpGradient& T,
+                                 SpGradient& p,
+                                 SpGradient* dp_drho = nullptr,
+                                 SpGradient* dp_dT = nullptr) const;
 
         virtual void GetViscosity(const doublereal& rho,
                                   const doublereal& T,
                                   doublereal& eta) const;
 
-        virtual void GetViscosity(const Gradient<0>& rho,
-                                  const Gradient<0>& T,
-                                  Gradient<0>& eta) const;
+        virtual void GetViscosity(const SpGradient& rho,
+                                  const SpGradient& T,
+                                  SpGradient& eta) const;
 
         virtual void
         ThetaToPhysical(const std::array<doublereal, iNumDof>& Theta,
@@ -827,18 +802,18 @@ namespace {
                         doublereal& drho_dt) const;
 
         virtual void
-        ThetaToPhysical(const std::array<Gradient<0>, iNumDof>& Theta,
-                        const std::array<Gradient<0>, iNumDof>& dTheta_dt,
-                        const Gradient<0>& T,
-                        const Gradient<0>& dT_dt,
-                        Gradient<0>& p,
-                        Gradient<0>& dp_dt,
-                        Gradient<0>& rho,
-                        Gradient<0>& drho_dt) const;
+        ThetaToPhysical(const std::array<SpGradient, iNumDof>& Theta,
+                        const std::array<SpGradient, iNumDof>& dTheta_dt,
+                        const SpGradient& T,
+                        const SpGradient& dT_dt,
+                        SpGradient& p,
+                        SpGradient& dp_dt,
+                        SpGradient& rho,
+                        SpGradient& drho_dt) const;
 
         virtual doublereal GetTheta0(index_type iDofIndex) const;
         virtual CavitationState Cavitation(doublereal& p, doublereal* dp_dt=0) const;
-        virtual CavitationState Cavitation(Gradient<0>& p, Gradient<0>* dp_dt=0) const;
+        virtual CavitationState Cavitation(SpGradient& p, SpGradient* dp_dt=0) const;
         virtual HydraulicType GetHydraulicType() const;
 
     private:
@@ -893,11 +868,11 @@ namespace {
                                 doublereal* drho_dp = nullptr,
                                 doublereal* drho_dT = nullptr) const;
 
-        virtual void GetDensity(const Gradient<0>& p,
-                                const Gradient<0>& T,
-                                Gradient<0>& rho,
-                                Gradient<0>* drho_dp = nullptr,
-                                Gradient<0>* drho_dT = nullptr) const;
+        virtual void GetDensity(const SpGradient& p,
+                                const SpGradient& T,
+                                SpGradient& rho,
+                                SpGradient* drho_dp = nullptr,
+                                SpGradient* drho_dT = nullptr) const;
 
         virtual void GetPressure(const doublereal& rho,
                                  const doublereal& T,
@@ -905,19 +880,19 @@ namespace {
                                  doublereal* dp_drho = nullptr,
                                  doublereal* dp_dT = nullptr) const;
 
-        virtual void GetPressure(const Gradient<0>& rho,
-                                 const Gradient<0>& T,
-                                 Gradient<0>& p,
-                                 Gradient<0>* dp_drho = nullptr,
-                                 Gradient<0>* dp_dT = nullptr) const;
+        virtual void GetPressure(const SpGradient& rho,
+                                 const SpGradient& T,
+                                 SpGradient& p,
+                                 SpGradient* dp_drho = nullptr,
+                                 SpGradient* dp_dT = nullptr) const;
 
         virtual void GetViscosity(const doublereal& rho,
                                   const doublereal& T,
                                   doublereal& eta) const;
 
-        virtual void GetViscosity(const Gradient<0>& rho,
-                                  const Gradient<0>& T,
-                                  Gradient<0>& eta) const;
+        virtual void GetViscosity(const SpGradient& rho,
+                                  const SpGradient& T,
+                                  SpGradient& eta) const;
 
         virtual void
         ThetaToPhysical(const std::array<doublereal, iNumDof>& Theta,
@@ -929,18 +904,18 @@ namespace {
                         doublereal& rho,
                         doublereal& drho_dt) const;
         virtual void
-        ThetaToPhysical(const std::array<Gradient<0>, iNumDof>& Theta,
-                        const std::array<Gradient<0>, iNumDof>& dTheta_dt,
-                        const Gradient<0>& T,
-                        const Gradient<0>& dT_dt,
-                        Gradient<0>& p,
-                        Gradient<0>& dp_dt,
-                        Gradient<0>& rho,
-                        Gradient<0>& drho_dt) const;
+        ThetaToPhysical(const std::array<SpGradient, iNumDof>& Theta,
+                        const std::array<SpGradient, iNumDof>& dTheta_dt,
+                        const SpGradient& T,
+                        const SpGradient& dT_dt,
+                        SpGradient& p,
+                        SpGradient& dp_dt,
+                        SpGradient& rho,
+                        SpGradient& drho_dt) const;
 
         virtual doublereal GetTheta0(integer iDofIndex) const;
         virtual CavitationState Cavitation(doublereal& p, doublereal* dp_dt = nullptr) const;
-        virtual CavitationState Cavitation(Gradient<0>& p, Gradient<0>* dp_dt = nullptr) const;
+        virtual CavitationState Cavitation(SpGradient& p, SpGradient* dp_dt = nullptr) const;
         virtual HydraulicType GetHydraulicType() const;
 
     private:
@@ -1014,27 +989,26 @@ namespace {
         };
 
         Node2D(integer iNodeNo,
-               const Vector<doublereal, 2>& x,
+               const SpColVector<doublereal, 2>& x,
                HydroMesh* pMesh,
                integer iNodeFlags);
 
         virtual ~Node2D();
 
-        const Vector<doublereal, 2>&
+        const SpColVector<doublereal, 2>&
         GetPosition2D() const {
             return x;
         }
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const=0;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const=0;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const=0;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const=0;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap)=0;
+               SpFunctionCall func)=0;
 
         virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
         virtual void DofUpdate(VectorHandler& X, VectorHandler& XP);
@@ -1075,7 +1049,7 @@ namespace {
     private:
         const integer iNodeNo;
         const integer iNodeFlags;
-        const Vector<doublereal, 2> x;
+        const SpColVector<doublereal, 2> x;
         HydroMesh* const pMesh;
         const HydroFluid* const pFluid;
     };
@@ -1216,7 +1190,7 @@ namespace {
         virtual ThermalNode* pGetThermalNode() const;
         virtual void AddNode(HydroNode* pNode);
         virtual integer iGetNumNodes() const;
-        std::unique_ptr<PressureCouplingSlave> Clone(const Vector<doublereal, 2>& x);
+        std::unique_ptr<PressureCouplingSlave> Clone(const SpColVector<doublereal, 2>& x);
 
     private:
         PressureNode* const pHydroNode;
@@ -1245,8 +1219,8 @@ namespace {
 
         explicit HydroDofOwner();
         virtual ~HydroDofOwner();
-        inline integer iGetOffsetIndex(grad::FunctionCall eFunc) const;
-        inline void SetOffsetIndex(integer iOffset, grad::FunctionCall eFunc);
+        inline integer iGetOffsetIndex(sp_grad::SpFunctionCall eFunc) const;
+        inline void SetOffsetIndex(integer iOffset, sp_grad::SpFunctionCall eFunc);
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)=0;
         virtual unsigned int iGetNumDof(void) const=0;
         virtual unsigned int iGetInitialNumDof(void) const=0;
@@ -1259,11 +1233,11 @@ namespace {
         DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const=0;
 
     private:
-        inline index_type iFuncCallToIndex(grad::FunctionCall eFunc) const {
-            HYDRO_ASSERT((eFunc & grad::REGULAR_FLAG) || (eFunc & grad::INITIAL_ASS_FLAG));
-            HYDRO_ASSERT(!((eFunc & grad::REGULAR_FLAG) && (eFunc & grad::INITIAL_ASS_FLAG)));
+        inline index_type iFuncCallToIndex(sp_grad::SpFunctionCall eFunc) const {
+	     HYDRO_ASSERT((eFunc & SpFunctionCall::REGULAR_FLAG) || (eFunc & SpFunctionCall::INITIAL_ASS_FLAG));
+	     HYDRO_ASSERT(!((eFunc & SpFunctionCall::REGULAR_FLAG) && (eFunc & SpFunctionCall::INITIAL_ASS_FLAG)));
 
-            return (eFunc & grad::REGULAR_FLAG) ? 1 : 0;
+	     return (eFunc & SpFunctionCall::REGULAR_FLAG) ? 1 : 0;
         }
 
         std::array<integer, 2> rgOffsetIndex;
@@ -1272,15 +1246,15 @@ namespace {
     class ThermoHydrNode: public Node2D {
     public:
         ThermoHydrNode(integer iNodeNo,
-                       const Vector<doublereal, 2>& x,
+                       const SpColVector<doublereal, 2>& x,
                        HydroMesh* pMesh,
                        integer iNodeFlags);
 
         virtual ~ThermoHydrNode();
-        virtual void GetTemperature(doublereal& T, LocalDofMap* = nullptr, doublereal = 0.) const=0;
-        virtual void GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const=0;
-        virtual void GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* = nullptr, doublereal=0.) const=0;
-        virtual void GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const=0;
+        virtual void GetTemperature(doublereal& T, doublereal = 0.) const=0;
+        virtual void GetTemperature(SpGradient& T, doublereal dCoef) const=0;
+        virtual void GetTemperatureDerTime(doublereal& dT_dt, doublereal=0.) const=0;
+        virtual void GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const=0;
         virtual bool bGetPrivateData(HydroRootBase::PrivateDataType eType, doublereal& dPrivData) const;
         virtual void Output(std::ostream& os, unsigned uOutputFlags) const;
     };
@@ -1288,27 +1262,26 @@ namespace {
     class ThermalActiveNode: public ThermoHydrNode, public HydroDofOwner {
     public:
         ThermalActiveNode(integer iNodeNo,
-                          const Vector<doublereal, 2>& x,
+                          const SpColVector<doublereal, 2>& x,
                           HydroMesh* pParent,
                           doublereal T0,
                           bool bDoInitAss);
         virtual ~ThermalActiveNode();
 
-        virtual void GetTemperature(doublereal& T, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetTemperature(doublereal& T, doublereal=0.) const;
+        virtual void GetTemperature(SpGradient& T, doublereal dCoef) const;
+        virtual void GetTemperatureDerTime(doublereal& dT_dt, doublereal=0.) const;
+        virtual void GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const;
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
         virtual unsigned int iGetNumDof(void) const;
         virtual unsigned int iGetInitialNumDof(void) const;
@@ -1322,7 +1295,7 @@ namespace {
         DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
 
     private:
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
         doublereal T, dT_dt;
         const doublereal s;
         const bool bDoInitAss;
@@ -1331,36 +1304,35 @@ namespace {
     class ThermalCoupledNode: public ThermoHydrNode {
     public:
         ThermalCoupledNode(integer iNodeNo,
-                           const Vector<doublereal, 2>& x,
+                           const SpColVector<doublereal, 2>& x,
                            HydroMesh* pMesh,
                            ThermalNode* pExtThermNode);
 
         virtual ~ThermalCoupledNode();
-        virtual void GetTemperature(doublereal& T, LocalDofMap* = nullptr, doublereal = 0.) const;
-        virtual void GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetTemperature(doublereal& T, doublereal = 0.) const;
+        virtual void GetTemperature(SpGradient& T, doublereal dCoef) const;
+        virtual void GetTemperatureDerTime(doublereal& dT_dt, doublereal=0.) const;
+        virtual void GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const;
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
     private:
         ThermalNode* const pExtThermNode;
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
     };
 
     class ThermalInletNode: public ThermalActiveNode {
     public:
         ThermalInletNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          HydroMesh* pParent,
                          ThermalNode* pExtThermNode,
                          bool bDoInitAss);
@@ -1371,11 +1343,10 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         virtual integer
-        iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         const ThermalCoupledNode* pGetInletNode() const {
             return &oInletNode;
@@ -1387,23 +1358,22 @@ namespace {
     class ThermalPassiveNode: public ThermoHydrNode {
     public:
         ThermalPassiveNode(integer iNodeNo,
-                           const Vector<doublereal, 2>& x,
+                           const SpColVector<doublereal, 2>& x,
                            HydroMesh* pParent,
                            const FluidStateBoundaryCond* pBoundCond);
         virtual ~ThermalPassiveNode();
 
-        virtual void GetTemperature(doublereal& T, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
+        virtual void GetTemperature(doublereal& T, doublereal=0.) const;
+        virtual void GetTemperature(SpGradient& T, doublereal dCoef) const;
+        virtual void GetTemperatureDerTime(doublereal& dT_dt, doublereal=0.) const;
+        virtual void GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         const FluidStateBoundaryCond* pGetFluidBoundCond() const { return pBoundCond; }
 
@@ -1414,23 +1384,22 @@ namespace {
     class ThermalSlaveNode: public ThermoHydrNode {
     public:
         ThermalSlaveNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          ThermoHydrNode* pMasterNode);
 
         virtual ~ThermalSlaveNode();
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
-        virtual void GetTemperature(doublereal& T, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
+        virtual void GetTemperature(doublereal& T, doublereal=0.) const;
+        virtual void GetTemperature(SpGradient& T, doublereal dCoef) const;
+        virtual void GetTemperatureDerTime(doublereal& dT_dt, doublereal=0.) const;
+        virtual void GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
     private:
         ThermoHydrNode* const pMasterNode;
@@ -1463,16 +1432,16 @@ namespace {
                  NodeDataReq eNodeDataReq);
 
         virtual ~FluxNode();
-        inline void GetEnergyBalance(doublereal& Qu, LocalDofMap* = nullptr) const;
-        inline void GetEnergyBalance(Gradient<0>& Qu, LocalDofMap* pDofMap) const;
-        inline void GetDissipationFactors(doublereal& A0, doublereal& Ah, doublereal& Ac, LocalDofMap* = nullptr) const;
-        inline void GetDissipationFactors(Gradient<0>& A0, Gradient<0>& Ah, Gradient<0>& Ac, LocalDofMap* pDofMap) const;
-        inline void GetVolumeFluxDens(doublereal& qu, LocalDofMap* = nullptr, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
-        inline void GetVolumeFluxDens(Gradient<0>& qu, LocalDofMap* pDofMap, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
-        inline void GetVelocityAvg(doublereal& wu, LocalDofMap* = nullptr, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
-        inline void GetVelocityAvg(Gradient<0>& wu, LocalDofMap* pDofMap, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
-        inline void GetMassFluxDens(doublereal& mdotu, LocalDofMap* = nullptr, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
-        inline void GetMassFluxDens(Gradient<0>& mdotu, LocalDofMap* pDofMap, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetEnergyBalance(doublereal& Qu) const;
+        inline void GetEnergyBalance(SpGradient& Qu) const;
+        inline void GetDissipationFactors(doublereal& A0, doublereal& Ah, doublereal& Ac) const;
+        inline void GetDissipationFactors(SpGradient& A0, SpGradient& Ah, SpGradient& Ac) const;
+        inline void GetVolumeFluxDens(doublereal& qu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetVolumeFluxDens(SpGradient& qu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetVelocityAvg(doublereal& wu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetVelocityAvg(SpGradient& wu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetMassFluxDens(doublereal& mdotu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
+        inline void GetMassFluxDens(SpGradient& mdotu, PressureSource ePressSrc = PRESSURE_FROM_NODE) const;
 
         inline void RequestPressureSource(PressureSource ePressSrc);
         inline void RequestNodeData(NodeDataReq eFlag);
@@ -1487,11 +1456,10 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
 
         virtual bool
         bGetPrivateData(HydroRootBase::PrivateDataType eType,
@@ -1506,10 +1474,10 @@ namespace {
         template <typename T>
         struct NodeData {
             NodeData()
-                :Qu{0.},
-                 A0{0.},
-                 Ah{0.},
-                 Ac{0.} {
+                :Qu{},
+                 A0{},
+                 Ah{},
+                 Ac{} {
                  }
 
             T Qu, A0, Ah, Ac;
@@ -1518,9 +1486,9 @@ namespace {
         template <typename T>
         struct FluxData {
             FluxData()
-                :wu{0.},
-                 qu{0.},
-                 mdotu{0.} {
+                :wu{},
+                 qu{},
+                 mdotu{} {
                  }
 
             T wu;
@@ -1528,12 +1496,23 @@ namespace {
             T mdotu;
         };
 
+	 template <typename G>
+	 struct NodeDataHydr {
+	      G p, h, eta;
+	      SpColVectorA<G, 2, 12> U;
+	 };
+
+	 template <typename G>
+	 struct NodeDataTherm {
+	      G T;
+	      SpColVectorA<G, 2, 12> U1, U2;
+	 };
+	 
         template <typename T>
         inline void UpdateTpl(NodeData<T>& oNode,
                               std::array<FluxData<T>, iNumPressSources>& rgFlux,
                               doublereal dCoef,
-                              FunctionCall func,
-                              LocalDofMap* pDofMap) const;
+                              SpFunctionCall func) const;
 
         index_type iDirection;
         doublereal du;
@@ -1541,61 +1520,60 @@ namespace {
         PressureSource ePressSource;
         unsigned uNodeDataReq;
         NodeData<doublereal> oNode;
-        NodeData<Gradient<0> > oNode_grad;
+        NodeData<SpGradient > oNode_grad;
         std::array<FluxData<doublereal>, iNumPressSources> rgFlux;
-        std::array<FluxData<Gradient<0> >, iNumPressSources> rgFlux_grad;
-        LocalDofMap oDofMap;
+        std::array<FluxData<SpGradient>, iNumPressSources> rgFlux_grad;
     };
 
     class HydroNode: public Node2D {
     public:
         HydroNode(integer iNodeNo,
-                  const Vector<doublereal, 2>& x,
+                  const SpColVector<doublereal, 2>& x,
                   HydroMesh* pMesh,
                   integer iNodeFlags);
         virtual ~HydroNode();
 
-        virtual const Vector<doublereal, 3>&
+        virtual const SpColVector<doublereal, 3>&
         GetPosition3D() const=0;
 
-        virtual const Matrix<doublereal, 3, 3>&
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetTangentCoordSys() const=0;
         virtual index_type iGetComplianceIndex() const=0;
-        virtual void GetPressure(doublereal& p, LocalDofMap* = nullptr, doublereal=0.) const=0;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const=0;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const=0;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const=0;
-        virtual void GetDensity(doublereal& rho, LocalDofMap* = nullptr, doublereal=0.) const=0;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const=0;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const=0;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef) const=0;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const=0;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const=0;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const=0;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const=0;
         virtual HydroFluid::CavitationState GetCavitationState() const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* = nullptr, doublereal=0.) const=0;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const=0;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const=0;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const=0;
         template <typename G>
-        inline void GetTemperature(G& T, LocalDofMap* pDofMap = nullptr, doublereal dCoef = 0.) const;
+        inline void GetTemperature(G& T, doublereal dCoef = 0.) const;
         template <typename G>
-        inline void GetTemperatureDerTime(G& dT_dt, LocalDofMap* pDofMap = nullptr, doublereal dCoef = 0.) const;
+        inline void GetTemperatureDerTime(G& dT_dt, doublereal dCoef = 0.) const;
         template <typename G>
-        inline void GetViscosity(G& eta, LocalDofMap* pDofMap = nullptr, doublereal dCoef = 0.) const;
+        inline void GetViscosity(G& eta, doublereal dCoef = 0.) const;
         virtual void GetStress(doublereal& tau_xy_0, doublereal& tau_yz_0, doublereal& tau_xy_h, doublereal& tau_yz_h) const=0;
         virtual void SetStress(doublereal tau_xy_0, doublereal tau_yz_0, doublereal tau_xy_h, doublereal tau_yz_h)=0;
-        virtual bool GetContactPressure(doublereal& pasp, LocalDofMap* = nullptr) const=0;
-        virtual bool GetContactPressure(Gradient<0>& pasp, LocalDofMap* pDofMap) const=0;
-        virtual void GetContactStress(Vector<doublereal, 2>& tauc_0, LocalDofMap* = nullptr) const=0;
-        virtual void GetContactStress(Vector<Gradient<0>, 2>& tauc_0, LocalDofMap* pDofMap) const=0;
-        virtual void GetContactFrictionLossDens(doublereal& Pfc, LocalDofMap* = nullptr) const=0;
-        virtual void GetContactFrictionLossDens(Gradient<0>& Pfc, LocalDofMap* pDofMap) const=0;
-        virtual void GetClearance(doublereal& h, LocalDofMap* = nullptr) const=0;
-        virtual void GetClearance(Gradient<0>& h, LocalDofMap* pDofMap) const=0;
-        virtual void GetClearanceDerTime(doublereal& dh_dt, LocalDofMap* =nullptr) const=0;
-        virtual void GetClearanceDerTime(Gradient<0>& dh_dt, LocalDofMap* pDofMap) const=0;
-        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef=0, FunctionCall func=REGULAR_RES, LocalDofMap* pDofMap=nullptr) const=0;
-        virtual void GetRadialDeformation(Gradient<0>& w, Gradient<0>& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const=0;
+        virtual bool GetContactPressure(doublereal& pasp) const=0;
+        virtual bool GetContactPressure(SpGradient& pasp) const=0;
+        virtual void GetContactStress(SpColVector<doublereal, 2>& tauc_0) const=0;
+        virtual void GetContactStress(SpColVector<SpGradient, 2>& tauc_0) const=0;
+        virtual void GetContactFrictionLossDens(doublereal& Pfc) const=0;
+        virtual void GetContactFrictionLossDens(SpGradient& Pfc) const=0;
+        virtual void GetClearance(doublereal& h) const=0;
+        virtual void GetClearance(SpGradient& h) const=0;
+        virtual void GetClearanceDerTime(doublereal& dh_dt) const=0;
+        virtual void GetClearanceDerTime(SpGradient& dh_dt) const=0;
+        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef=0, SpFunctionCall func=SpFunctionCall::REGULAR_RES) const=0;
+        virtual void GetRadialDeformation(SpGradient& w, SpGradient& dw_dt, doublereal dCoef, SpFunctionCall func) const=0;
         virtual void GetRadialDeformation1(doublereal& w1) const=0;
         virtual void GetRadialDeformation2(doublereal& w2) const=0;
-        virtual void GetVelocity(Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, LocalDofMap* =nullptr) const=0;
-        virtual void GetVelocity(Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, LocalDofMap* pDofMap) const=0;
-        virtual void GetHydraulicVelocity(Vector<doublereal, 2>& U, LocalDofMap* = nullptr) const=0;
-        virtual void GetHydraulicVelocity(Vector<Gradient<0>, 2>& U, LocalDofMap* pDofMap) const=0;
+        virtual void GetVelocity(SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2) const=0;
+        virtual void GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const=0;
+        virtual void GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const=0;
+        virtual void GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const=0;
         virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const=0;
         virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond)=0;
         doublereal dGetClearance(const FluidStateBoundaryCond* pBoundCond, doublereal* dh_dt=nullptr) const;
@@ -1625,57 +1603,56 @@ namespace {
     class HydroSlaveNode: public HydroNode {
     public:
         HydroSlaveNode(integer iNodeNo,
-                       const Vector<doublereal, 2>& x,
+                       const SpColVector<doublereal, 2>& x,
                        HydroMesh* pMesh,
                        HydroNode* pMasterNode);
         virtual ~HydroSlaveNode();
 
-        virtual const Vector<doublereal, 3>&
+        virtual const SpColVector<doublereal, 3>&
         GetPosition3D() const;
 
-        virtual const Matrix<doublereal, 3, 3>&
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetTangentCoordSys() const;
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
         virtual index_type iGetComplianceIndex() const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
         virtual void GetStress(doublereal& tau_xy_0, doublereal& tau_yz_0, doublereal& tau_xy_h, doublereal& tau_yz_h) const;
         virtual void SetStress(doublereal tau_xy_0, doublereal tau_yz_0, doublereal tau_xy_h, doublereal tau_yz_h);
-        virtual bool GetContactPressure(doublereal& pasp, LocalDofMap*) const;
-        virtual bool GetContactPressure(Gradient<0>& pasp, LocalDofMap* pDofMap) const;
-        virtual void GetContactStress(Vector<doublereal, 2>& tauc_0, LocalDofMap* = nullptr) const;
-        virtual void GetContactStress(Vector<Gradient<0>, 2>& tauc_0, LocalDofMap* = nullptr) const;
-        virtual void GetContactFrictionLossDens(doublereal& Pfc, LocalDofMap* = nullptr) const;
-        virtual void GetContactFrictionLossDens(Gradient<0>& Pfc, LocalDofMap* pDofMap) const;
-        virtual void GetClearance(doublereal& h, LocalDofMap*) const;
-        virtual void GetClearance(Gradient<0>& h, LocalDofMap* pDofMap) const;
-        virtual void GetClearanceDerTime(doublereal& dh_dt, LocalDofMap*) const;
-        virtual void GetClearanceDerTime(Gradient<0>& dh_dt, LocalDofMap* pDofMap) const;
-        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const;
-        virtual void GetRadialDeformation(Gradient<0>& w, Gradient<0>& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const;
+        virtual bool GetContactPressure(doublereal& pasp) const;
+        virtual bool GetContactPressure(SpGradient& pasp) const;
+        virtual void GetContactStress(SpColVector<doublereal, 2>& tauc_0) const;
+        virtual void GetContactStress(SpColVector<SpGradient, 2>& tauc_0) const;
+        virtual void GetContactFrictionLossDens(doublereal& Pfc) const;
+        virtual void GetContactFrictionLossDens(SpGradient& Pfc) const;
+        virtual void GetClearance(doublereal& h) const;
+        virtual void GetClearance(SpGradient& h) const;
+        virtual void GetClearanceDerTime(doublereal& dh_dt) const;
+        virtual void GetClearanceDerTime(SpGradient& dh_dt) const;
+        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, SpFunctionCall func) const;
+        virtual void GetRadialDeformation(SpGradient& w, SpGradient& dw_dt, doublereal dCoef, SpFunctionCall func) const;
         virtual void GetRadialDeformation1(doublereal& w1) const;
         virtual void GetRadialDeformation2(doublereal& w2) const;
-        virtual void GetVelocity(Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, LocalDofMap*) const;
-        virtual void GetVelocity(Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, LocalDofMap* pDofMap) const;
-        virtual void GetHydraulicVelocity(Vector<doublereal, 2>& U, LocalDofMap* =0) const;
-        virtual void GetHydraulicVelocity(Vector<Gradient<0>, 2>& U, LocalDofMap* pDofMap) const;
+        virtual void GetVelocity(SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2) const;
+        virtual void GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const;
+        virtual void GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const;
+        virtual void GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const;
         virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const;
         virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond);
 
@@ -1687,7 +1664,7 @@ namespace {
     {
     public:
         HydroMasterNode(integer iNodeNo,
-                        const Vector<doublereal, 2>& x,
+                        const SpColVector<doublereal, 2>& x,
                         HydroMesh* pMesh,
                         integer iNodeFlags);
         virtual ~HydroMasterNode();
@@ -1696,8 +1673,7 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const;
         virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond);
@@ -1709,25 +1685,24 @@ namespace {
     class HydroUpdatedNode: public HydroMasterNode {
     public:
         HydroUpdatedNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          HydroMesh* pMesh,
                          ContactModel* pContactModel,
                          std::unique_ptr<FrictionModel>&& pFrictionModel,
                          integer iNodeFlags);
         virtual ~HydroUpdatedNode();
 
-        virtual const Vector<doublereal, 3>&
+        virtual const SpColVector<doublereal, 3>&
         GetPosition3D() const;
 
-        virtual const Matrix<doublereal, 3, 3>&
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetTangentCoordSys() const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
         virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
         virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
         virtual void GetStress(doublereal& tau_xy_0, doublereal& tau_yz_0, doublereal& tau_xy_h, doublereal& tau_yz_h) const;
@@ -1735,33 +1710,33 @@ namespace {
         const ContactModel* pGetContactModel() const { return pContactModel; }
         const FrictionModel* pGetFrictionModel() const { return pFrictionModel.get(); }
         FrictionModel* pGetFrictionModel(){ return pFrictionModel.get(); }
-        virtual bool GetContactPressure(doublereal& pasp, LocalDofMap* =0) const;
-        virtual bool GetContactPressure(Gradient<0>& pasp, LocalDofMap* pDofMap) const;
-        virtual void GetContactStress(Vector<doublereal, 2>& tauc_0, LocalDofMap* = nullptr) const;
-        virtual void GetContactStress(Vector<Gradient<0>, 2>& tauc_0, LocalDofMap* pDofMap) const;
-        virtual void GetContactFrictionLossDens(doublereal& Pfc, LocalDofMap* = nullptr) const;
-        virtual void GetContactFrictionLossDens(Gradient<0>& Pfc, LocalDofMap* pDofMap) const;
-        virtual void GetClearance(doublereal& h, LocalDofMap* pDofMap=0) const;
-        virtual void GetClearance(Gradient<0>& h, LocalDofMap* pDofMap) const;
-        virtual void GetClearanceDerTime(doublereal& dh_dt, LocalDofMap* pDofMap=0) const;
-        virtual void GetClearanceDerTime(Gradient<0>& dh_dt, LocalDofMap* pDofMap) const;
-        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const;
-        virtual void GetRadialDeformation(Gradient<0>& w, Gradient<0>& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const;
+        virtual bool GetContactPressure(doublereal& pasp) const;
+        virtual bool GetContactPressure(SpGradient& pasp) const;
+        virtual void GetContactStress(SpColVector<doublereal, 2>& tauc_0) const;
+        virtual void GetContactStress(SpColVector<SpGradient, 2>& tauc_0) const;
+        virtual void GetContactFrictionLossDens(doublereal& Pfc) const;
+        virtual void GetContactFrictionLossDens(SpGradient& Pfc) const;
+        virtual void GetClearance(doublereal& h) const;
+        virtual void GetClearance(SpGradient& h) const;
+        virtual void GetClearanceDerTime(doublereal& dh_dt) const;
+        virtual void GetClearanceDerTime(SpGradient& dh_dt) const;
+        virtual void GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, SpFunctionCall func) const;
+        virtual void GetRadialDeformation(SpGradient& w, SpGradient& dw_dt, doublereal dCoef, SpFunctionCall func) const;
         virtual void GetRadialDeformation1(doublereal& w1) const;
         virtual void GetRadialDeformation2(doublereal& w2) const;
-        virtual void GetVelocity(Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, LocalDofMap*) const;
-        virtual void GetVelocity(Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, LocalDofMap* pDofMap) const;
-        virtual void GetHydraulicVelocity(Vector<doublereal, 2>& U, LocalDofMap* =0) const;
-        virtual void GetHydraulicVelocity(Vector<Gradient<0>, 2>& U, LocalDofMap* pDofMap) const;
+        virtual void GetVelocity(SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2) const;
+        virtual void GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const;
+        virtual void GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const;
+        virtual void GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const;
         index_type iGetComplianceIndex() const;
 
     private:
-        Vector<doublereal, 3> v;
-        Matrix<doublereal, 3, 3> Rt;
+        SpColVectorA<doublereal, 3> v;
+        SpMatrixA<doublereal, 3, 3> Rt;
         doublereal sum_tau_xy_0, sum_tau_yz_0, sum_tau_xy_h, sum_tau_yz_h;
         integer iNumStressEval;
         KinematicsBoundaryCond<doublereal> oBoundary;
-        KinematicsBoundaryCond<Gradient<0> > oBoundary_grad;
+        KinematicsBoundaryCond<SpGradient > oBoundary_grad;
         ContactModel* pContactModel;
         std::unique_ptr<FrictionModel> pFrictionModel;
         ComplianceModel* pComplianceModel;
@@ -1772,30 +1747,29 @@ namespace {
     {
     public:
         HydroIncompressibleNode(integer iNodeNo,
-                                const Vector<doublereal, 2>& x,
+                                const SpColVector<doublereal, 2>& x,
                                 HydroMesh* pParent,
                                 ContactModel* pContactModel,
                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
                                 integer iNodeFlags);
         virtual ~HydroIncompressibleNode();
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
     private:
         template <typename G>
         struct FluidState {
             FluidState()
-                :rho(0.),
-                 drho_dt(0.) {
+		 :rho{},
+		  drho_dt{} {
             }
 
             G rho;
@@ -1804,36 +1778,35 @@ namespace {
 
         template <typename G>
         inline void
-        UpdateState(FluidState<G>& oState, LocalDofMap* pDofMap, doublereal dCoef) const;
+        UpdateState(FluidState<G>& oState, doublereal dCoef) const;
 
         FluidState<doublereal> oState;
-        FluidState<Gradient<0> > oState_grad;
+        FluidState<SpGradient > oState_grad;
     };
 
     class HydroActiveNode: public HydroIncompressibleNode, public HydroDofOwner {
     public:
         HydroActiveNode(integer iNodeNo,
-                        const Vector<doublereal, 2>& x,
+                        const SpColVector<doublereal, 2>& x,
                         HydroMesh* pParent,
                         ContactModel* pContactModel,
                         std::unique_ptr<FrictionModel>&& pFrictionModel);
         virtual ~HydroActiveNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
 
         virtual unsigned int iGetNumDof(void) const;
         virtual unsigned int iGetInitialNumDof(void) const;
@@ -1849,26 +1822,26 @@ namespace {
     private:
         doublereal p, dp_dt;
         const doublereal s;
-        FunctionCall eCurrFunc;
+        SpFunctionCall eCurrFunc;
     };
 
     class HydroPassiveNode: public HydroIncompressibleNode {
     public:
         HydroPassiveNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          HydroMesh* pParent,
                          ContactModel* pContactModel,
                          std::unique_ptr<FrictionModel>&& pFrictionModel,
                          const FluidStateBoundaryCond* pBoundaryCond);
         virtual ~HydroPassiveNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
 
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
 
     private:
         inline const FluidStateBoundaryCond* pGetBoundCond() const;
@@ -1878,35 +1851,34 @@ namespace {
     class HydroCoupledNode: public HydroIncompressibleNode {
     public:
         HydroCoupledNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          HydroMesh* pParent,
                          ContactModel* pContactModel,
                          std::unique_ptr<FrictionModel>&& pFrictionModel,
                          const PressureNode* pNode);
         virtual ~HydroCoupledNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
     private:
         const PressureNode* const pExtNode;
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
     };
 
     class HydroCompressibleNode: public HydroUpdatedNode {
     public:
         HydroCompressibleNode(integer iNodeNo,
-                              const Vector<doublereal, 2>& x,
+                              const SpColVector<doublereal, 2>& x,
                               HydroMesh* pParent,
                               ContactModel* pContactModel,
                               std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -1917,22 +1889,21 @@ namespace {
     class HydroActiveComprNode: public HydroCompressibleNode, public HydroDofOwner {
     public:
         HydroActiveComprNode(integer iNodeNo,
-                             const Vector<doublereal, 2>& x,
+                             const SpColVector<doublereal, 2>& x,
                              HydroMesh* pParent,
                              ContactModel* pContactModel,
                              std::unique_ptr<FrictionModel>&& pFrictionModel);
         virtual ~HydroActiveComprNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
 
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         virtual void
         AfterPredict(VectorHandler& X, VectorHandler& XP);
@@ -1945,15 +1916,15 @@ namespace {
                          const VectorHandler& XP);
 
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
         virtual HydroFluid::CavitationState GetCavitationState() const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
         virtual unsigned int iGetInitialNumDof(void) const;
         virtual unsigned int iGetNumDof(void) const;
 
@@ -1976,13 +1947,13 @@ namespace {
         template <typename G>
         struct FluidState {
             FluidState()
-                :T{0.},
-                 dT_dt{0.},
-                 p{0.},
-                 rho{0.},
-                 drho_dt{0.} {
-                     std::fill(Theta.begin(), Theta.end(), 0.); // backward compatible with g++-4.8
-                     std::fill(dTheta_dt.begin(), dTheta_dt.end(), 0.);
+                :T{},
+                 dT_dt{},
+                 p{},
+                 rho{},
+                 drho_dt{} {
+		      std::fill(Theta.begin(), Theta.end(), G{}); // backward compatible with g++-4.8
+		      std::fill(dTheta_dt.begin(), dTheta_dt.end(), G{});
                  }
             std::array<G, iNumDofMax> Theta;
             std::array<G, iNumDofMax> dTheta_dt;
@@ -1994,16 +1965,16 @@ namespace {
             G drho_dt;
         };
 
-        inline void GetTheta(std::array<doublereal, iNumDofMax>& Theta, LocalDofMap* pDofMap, doublereal dCoef) const;
-        inline void GetTheta(std::array<Gradient<0>, iNumDofMax>& Theta, LocalDofMap* pDofMap, doublereal dCoef) const;
-        inline void GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
-        inline void GetThetaDerTime(std::array<Gradient<0>, iNumDofMax>& dTheta_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        inline void GetTheta(std::array<doublereal, iNumDofMax>& Theta, doublereal dCoef) const;
+        inline void GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoef) const;
+        inline void GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal dCoef) const;
+        inline void GetThetaDerTime(std::array<SpGradient, iNumDofMax>& dTheta_dt, doublereal dCoef) const;
 
         template <typename G>
-        inline void UpdateState(FluidState<G>& oState, LocalDofMap* pDofMap = nullptr, doublereal dCoef = 0.) const;
+        inline void UpdateState(FluidState<G>& oState, doublereal dCoef = 0.) const;
 
         FluidState<doublereal> oState;
-        FluidState<Gradient<0> > oState_grad;
+        FluidState<SpGradient > oState_grad;
 
         struct State {
             doublereal t;
@@ -2016,33 +1987,32 @@ namespace {
         State oCurrState; // Updated in each iteration
 
         std::array<doublereal, iNumDofMax> s;
-        FunctionCall eCurrFunc;
-        LocalDofMap oDofMap;
+        SpFunctionCall eCurrFunc;
     };
 
     class HydroPassiveComprNode: public HydroCompressibleNode {
     public:
         HydroPassiveComprNode(integer iNodeNo,
-                              const Vector<doublereal, 2>& x,
+                              const SpColVector<doublereal, 2>& x,
                               HydroMesh* pParent,
                               ContactModel* pContactModel,
                               std::unique_ptr<FrictionModel>&& pFrictionModel,
                               const FluidStateBoundaryCond* pBoundaryCond);
         virtual ~HydroPassiveComprNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
 
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
 
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
         virtual HydroFluid::CavitationState GetCavitationState() const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
 
         inline const FluidStateBoundaryCond* pGetFluidBoundCond() const;
     private:
@@ -2052,7 +2022,7 @@ namespace {
     class HydroComprOutletNode: public HydroPassiveComprNode {
     public:
         HydroComprOutletNode(integer iNodeNo,
-                             const Vector<doublereal, 2>& x,
+                             const SpColVector<doublereal, 2>& x,
                              HydroMesh* pParent,
                              ContactModel* pContactModel,
                              std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -2060,10 +2030,10 @@ namespace {
                              const HydroMasterNode* pMasterNode);
         virtual ~HydroComprOutletNode();
 
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
 
     private:
         const HydroMasterNode* const pMasterNode;
@@ -2072,41 +2042,40 @@ namespace {
     class HydroCoupledComprNode: public HydroCompressibleNode {
     public:
         HydroCoupledComprNode(integer iNodeNo,
-                              const Vector<doublereal, 2>& x,
+                              const SpColVector<doublereal, 2>& x,
                               HydroMesh* pParent,
                               ContactModel* pContactModel,
                               std::unique_ptr<FrictionModel>&& pFrictionModel,
                               PressureNode* pExtNode);
         virtual ~HydroCoupledComprNode();
 
-        virtual integer iGetFirstEquationIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetFirstDofIndex(grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
-        virtual void GetPressure(doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
-        virtual void GetPressureDerTime(doublereal& dp_dt, LocalDofMap* = nullptr, doublereal=0.) const;
-        virtual void GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
+        virtual void GetPressure(doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(SpGradient& p, doublereal dCoef=0.) const;
+        virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const;
+        virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
 
-        virtual void GetDensity(doublereal& rho, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensity(doublereal& rho, doublereal=0.) const;
+        virtual void GetDensity(SpGradient& rho, doublereal dCoef) const;
         virtual HydroFluid::CavitationState GetCavitationState() const;
-        virtual void GetDensityDerTime(doublereal& drho_dt, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
+        virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
         void Update(const VectorHandler& XCurr,
                     const VectorHandler& XPrimeCurr,
                     doublereal dCoef,
-                    enum FunctionCall func,
-                    LocalDofMap* pDofMap);
+                    SpFunctionCall func);
 
     private:
         template <typename G>
         struct FluidState {
             FluidState()
                 :eCavitationState(HydroFluid::FULL_FILM_REGION),
-                 p(0.),
-                 dp_dt(0.),
-                 rho(0.),
-                 drho_dt(0.) {
+                 p{},
+                 dp_dt{},
+                 rho{},
+                 drho_dt{} {
             }
 
             HydroFluid::CavitationState eCavitationState;
@@ -2117,17 +2086,16 @@ namespace {
         };
 
         template <typename G>
-        inline void UpdateState(FluidState<G>& oStateCurr, LocalDofMap* pDofMap, doublereal dCoef, FunctionCall func) const;
-        void GetExtPressure(doublereal& p, doublereal& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
-        void GetExtPressure(Gradient<0>& p, Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const;
+        inline void UpdateState(FluidState<G>& oStateCurr, doublereal dCoef, SpFunctionCall func) const;
+        void GetExtPressure(doublereal& p, doublereal& dp_dt, doublereal dCoef) const;
+        void GetExtPressure(SpGradient& p, SpGradient& dp_dt, doublereal dCoef) const;
         const PressureNode* const pExtNode;
         doublereal pext;
         doublereal dpext_dt;
-        FunctionCall eCurrFunc;
+        SpFunctionCall eCurrFunc;
 
         FluidState<doublereal> oState;
-        FluidState<Gradient<0> > oState_grad;
-        LocalDofMap oDofMap;
+        FluidState<SpGradient > oState_grad;
     };
 
     class BearingGeometry {
@@ -2152,31 +2120,29 @@ namespace {
         virtual void Initialize() = 0;
 
         virtual void
-        GetClosestDistance2D(const Vector<doublereal, 2>& x1,
-                             const Vector<doublereal, 2>& x2,
-                             Vector<doublereal, 2>& dx) const=0;
+        GetClosestDistance2D(const SpColVector<doublereal, 2>& x1,
+                             const SpColVector<doublereal, 2>& x2,
+                             SpColVector<doublereal, 2>& dx) const=0;
 
         virtual void
         GetBoundaryConditions(HydroNode* pNode,
                               doublereal& h,
                               doublereal& dh_dt,
-                              Vector<doublereal, 2>& U1,
-                              Vector<doublereal, 2>& U2,
-                              Vector<doublereal, 2>& U,
+                              SpColVector<doublereal, 2>& U1,
+                              SpColVector<doublereal, 2>& U2,
+                              SpColVector<doublereal, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const=0;
+                              SpFunctionCall func) const=0;
 
         virtual void
         GetBoundaryConditions(HydroNode* pNode,
-                              Gradient<0>& h,
-                              Gradient<0>& dh_dt,
-                              Vector<Gradient<0>, 2>& U1,
-                              Vector<Gradient<0>, 2>& U2,
-                              Vector<Gradient<0>, 2>& U,
+                              SpGradient& h,
+                              SpGradient& dh_dt,
+                              SpColVector<SpGradient, 2>& U1,
+                              SpColVector<SpGradient, 2>& U2,
+                              SpColVector<SpGradient, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const=0;
+                              SpFunctionCall func) const=0;
 
         virtual void
         GetNonNegativeClearance(const doublereal& h,
@@ -2184,18 +2150,18 @@ namespace {
                                 const doublereal* dh_dt = nullptr,
                                 doublereal* dhn_dt = nullptr) const;
         virtual void
-        GetNonNegativeClearance(const Gradient<0>& h,
-                                Gradient<0>& hn,
-                                const Gradient<0>* dh_dt = nullptr,
-                                Gradient<0>* dhn_dt = nullptr) const;
+        GetNonNegativeClearance(const SpGradient& h,
+                                SpGradient& hn,
+                                const SpGradient* dh_dt = nullptr,
+                                SpGradient* dhn_dt = nullptr) const;
 
         virtual void
-        GetPosition3D(const Vector<doublereal, 2>& x,
-                      Vector<doublereal, 3>& v) const=0;
+        GetPosition3D(const SpColVector<doublereal, 2>& x,
+                      SpColVector<doublereal, 3>& v) const=0;
 
         virtual void
-        GetTangentCoordSys(const Vector<doublereal, 2>& x,
-                           Matrix<doublereal, 3, 3>& Rt) const=0;
+        GetTangentCoordSys(const SpColVector<doublereal, 2>& x,
+                           SpMatrix<doublereal, 3, 3>& Rt) const=0;
 
         doublereal
         dGetNodeDistance2D(const Node2D* pNode1,
@@ -2203,61 +2169,58 @@ namespace {
                            index_type iDirection) const;
 
         virtual void
-        GetStructNodeOffset(const HydroNode* pHydroNode, Vector<doublereal, 3>& v) const=0;
+        GetStructNodeOffset(const HydroNode* pHydroNode, SpColVector<doublereal, 3>& v) const=0;
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<doublereal, 3>& dF_0_Rt,
-                         const Vector<doublereal, 3>& dF_h_Rt,
-                         const Vector<doublereal, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<doublereal, 3>& dF_0_Rt,
+                         const SpColVector<doublereal, 3>& dF_h_Rt,
+                         const SpColVector<doublereal, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap)=0;
+                         SpFunctionCall func)=0;
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<Gradient<0>, 3>& dF_0_Rt,
-                         const Vector<Gradient<0>, 3>& dF_h_Rt,
-                         const Vector<Gradient<0>, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<SpGradient, 3>& dF_0_Rt,
+                         const SpColVector<SpGradient, 3>& dF_h_Rt,
+                         const SpColVector<SpGradient, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap)=0;
+                         SpFunctionCall func)=0;
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const=0;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const=0;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const=0;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const=0;
 
         virtual void
         Update(doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap)=0;
+               SpFunctionCall func)=0;
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode)=0;
+               SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode)=0;
+               SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode)=0;
+                      SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode)=0;
+                      SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual int iGetNumConnectedNodes(void) const=0;
         virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const=0;
@@ -2277,20 +2240,20 @@ namespace {
         virtual void ReserveMovingLubrGrooves(size_t n);
 
         const LubricationGroove*
-        pFindMovingLubricationGroove(const Vector<doublereal, 2>& x, Node2D::NodeType eNodeType) const;
-
+        pFindMovingLubricationGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType) const;
+	 
         virtual doublereal dGetReferenceClearance() const=0;
 
         virtual bool
         bGetPrivateData(HydroRootBase::PrivateDataType eType,
                         doublereal& dPrivData) const=0;
 
-        virtual void GetMovingMeshOffset(Vector<doublereal, 2>& x, LocalDofMap* = nullptr) const = 0;
-        virtual void GetMovingMeshOffset(Vector<Gradient<0>, 2>& x, LocalDofMap* pDofMap) const = 0;
+        virtual void GetMovingMeshOffset(SpColVector<doublereal, 2>& x) const = 0;
+        virtual void GetMovingMeshOffset(SpColVector<SpGradient, 2>& x) const = 0;
 
     protected:
         virtual doublereal dGetMinClearance() const=0;
-        virtual doublereal dGetPocketHeightMesh(const Vector<doublereal, 2>& x) const=0;
+        virtual doublereal dGetPocketHeightMesh(const SpColVector<doublereal, 2>& x) const=0;
 
 #if CREATE_PROFILE == 1
         enum { PROF_RES = 0, PROF_JAC = 1};
@@ -2322,42 +2285,42 @@ namespace {
         virtual void ParseInput(DataManager* pDM, MBDynParser& HP);
         const StructNode* pGetNode1() const { return pNode1; }
         const StructNode* pGetNode2() const { return pNode2; }
-        const Vector<doublereal, 3>&
+        const SpColVector<doublereal, 3>&
         GetOffsetNode1() const { return o1_R1; }
-        const Matrix<doublereal, 3, 3>&
+        const SpMatrix<doublereal, 3, 3>&
         GetOrientationNode1() const { return Rb1; }
-        const Vector<doublereal, 3>&
+        const SpColVector<doublereal, 3>&
         GetOffsetNode2() const { return o2_R2; }
-        const Matrix<doublereal, 3, 3>&
+        const SpMatrix<doublereal, 3, 3>&
         GetOrientationNode2() const { return Rb2; }
         virtual int iGetNumConnectedNodes(void) const;
         virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const;
         virtual std::ostream& PrintLogFile(std::ostream& os) const;
         virtual std::ostream& Output(std::ostream& os) const;
 
     protected:
         inline void
-        SaveReactionForce(const Vector<doublereal, 3>& F1,
-                          const Vector<doublereal, 3>& M1,
-                          const Vector<doublereal, 3>& F2,
-                          const Vector<doublereal, 3>& M2);
+        SaveReactionForce(const SpColVector<doublereal, 3>& F1,
+                          const SpColVector<doublereal, 3>& M1,
+                          const SpColVector<doublereal, 3>& F2,
+                          const SpColVector<doublereal, 3>& M2);
 
         inline void
-        SaveReactionForce(const Vector<Gradient<0>, 3>& F1,
-                          const Vector<Gradient<0>, 3>& M1,
-                          const Vector<Gradient<0>, 3>& F2,
-                          const Vector<Gradient<0>, 3>& M2);
+        SaveReactionForce(const SpColVector<SpGradient, 3>& F1,
+                          const SpColVector<SpGradient, 3>& M1,
+                          const SpColVector<SpGradient, 3>& F2,
+                          const SpColVector<SpGradient, 3>& M2);
 
     private:
         const StructNode* pNode1;   // shaft node
         const StructNode* pNode2;   // bearing node
-        Vector<doublereal, 3> o1_R1;
-        Vector<doublereal, 3> o2_R2;
-        Matrix<doublereal, 3, 3> Rb1;
-        Matrix<doublereal, 3, 3> Rb2;
-        Vector<doublereal, 3> F1, M1, F2, M2;
+        SpColVectorA<doublereal, 3> o1_R1;
+        SpColVectorA<doublereal, 3> o2_R2;
+        SpMatrixA<doublereal, 3, 3> Rb1;
+        SpMatrixA<doublereal, 3, 3> Rb2;
+        SpColVectorA<doublereal, 3> F1, M1, F2, M2;
     };
 
     class CylindricalBearing: public RigidBodyBearing {
@@ -2370,29 +2333,29 @@ namespace {
         doublereal dGetBearingRadius() const { return R; }
 
         virtual void
-        GetClosestDistance2D(const Vector<doublereal, 2>& x1,
-                             const Vector<doublereal, 2>& x2,
-                             Vector<doublereal, 2>& dx) const;
+        GetClosestDistance2D(const SpColVector<doublereal, 2>& x1,
+                             const SpColVector<doublereal, 2>& x2,
+                             SpColVector<doublereal, 2>& dx) const;
 
         virtual void
-        GetPosition3D(const Vector<doublereal, 2>& x,
-                      Vector<doublereal, 3>& v) const;
+        GetPosition3D(const SpColVector<doublereal, 2>& x,
+                      SpColVector<doublereal, 3>& v) const;
 
         virtual void
-        GetPosition3D(const Vector<Gradient<0>, 2>& x,
-                      Vector<Gradient<0>, 3>& v) const;
+        GetPosition3D(const SpColVector<SpGradient, 2>& x,
+                      SpColVector<SpGradient, 3>& v) const;
 
         virtual void
-        GetTangentCoordSys(const Vector<doublereal, 2>& x,
-                           Matrix<doublereal, 3, 3>& Rt) const;
+        GetTangentCoordSys(const SpColVector<doublereal, 2>& x,
+                           SpMatrix<doublereal, 3, 3>& Rt) const;
 
         virtual void
-        GetTangentCoordSys(const Vector<Gradient<0>, 2>& x,
-                           Matrix<Gradient<0>, 3, 3>& Rt) const;
+        GetTangentCoordSys(const SpColVector<SpGradient, 2>& x,
+                           SpMatrix<SpGradient, 3, 3>& Rt) const;
         virtual void
-        GetStructNodeOffset(const HydroNode* pHydroNode, Vector<doublereal, 3>& v) const;
+        GetStructNodeOffset(const HydroNode* pHydroNode, SpColVector<doublereal, 3>& v) const;
 
-        virtual void Update(doublereal dCoef, enum FunctionCall func, LocalDofMap* pDofMap);
+        virtual void Update(doublereal dCoef, SpFunctionCall func);
         virtual std::ostream& PrintLogFile(std::ostream& os) const;
 
         virtual doublereal dGetMeshRadius() const=0; // radius at the mesh side
@@ -2402,41 +2365,38 @@ namespace {
 
     protected:
         typedef std::unique_ptr<Pocket> PocketPtr;
-        typedef std::vector<PocketPtr, GradientAllocator<PocketPtr> > PocketVector;
+        typedef std::vector<PocketPtr> PocketVector;
         typedef PocketVector::iterator PocketIterator;
         typedef PocketVector::const_iterator ConstPocketIterator;
 
         const Pocket*
-        pFindBearingPocket(const Vector<doublereal, 2>& x) const;
+        pFindBearingPocket(const SpColVector<doublereal, 2>& x) const;
 
         const Pocket*
-        pFindShaftPocket(const Vector<doublereal, 2>& x) const;
+        pFindShaftPocket(const SpColVector<doublereal, 2>& x) const;
 
         virtual const Pocket*
-        pFindMeshPocket(const Vector<doublereal, 2>& x) const=0;
-
-        virtual const Matrix<doublereal, 3, 3>&
+        pFindMeshPocket(const SpColVector<doublereal, 2>& x) const=0;
+	 
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetOrientationMeshNode() const=0;
 
         virtual doublereal
-        dGetPocketHeightMesh(const Vector<doublereal, 2>& x) const;
-
-    protected:
-        LocalDofMap oDofMap;
+        dGetPocketHeightMesh(const SpColVector<doublereal, 2>& x) const;
 
     private:
-        static const Pocket* pFindPocket(const Vector<doublereal, 2>& x, const PocketVector& rgPockets);
+        static const Pocket* pFindPocket(const SpColVector<doublereal, 2>& x, const PocketVector& rgPockets);
         void ReadPockets(MBDynParser& HP, PocketVector& rgPockets);
 
         template <typename T>
         inline void
-        GetTangentCoordSysTpl(const Vector<T, 2>& x,
-                              Matrix<T, 3, 3>& Rt) const;
+        GetTangentCoordSysTpl(const SpColVector<T, 2>& x,
+                              SpMatrix<T, 3, 3>& Rt) const;
 
         template <typename T>
         inline void
-        GetPosition3DTpl(const Vector<T, 2>& x,
-                         Vector<T, 3>& v) const;
+        GetPosition3DTpl(const SpColVector<T, 2>& x,
+                         SpColVector<T, 3>& v) const;
     private:
         doublereal b; // bearing width
         doublereal r; // shaft radius
@@ -2457,86 +2417,81 @@ namespace {
         GetBoundaryConditions(HydroNode* pNode,
                               doublereal& h,
                               doublereal& dh_dt,
-                              Vector<doublereal, 2>& U1,
-                              Vector<doublereal, 2>& U2,
-                              Vector<doublereal, 2>& U,
+                              SpColVector<doublereal, 2>& U1,
+                              SpColVector<doublereal, 2>& U2,
+                              SpColVector<doublereal, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const;
+                              SpFunctionCall func) const;
 
         virtual void
         GetBoundaryConditions(HydroNode* pNode,
-                              Gradient<0>& h,
-                              Gradient<0>& dh_dt,
-                              Vector<Gradient<0>, 2>& U1,
-                              Vector<Gradient<0>, 2>& U2,
-                              Vector<Gradient<0>, 2>& U,
+                              SpGradient& h,
+                              SpGradient& dh_dt,
+                              SpColVector<SpGradient, 2>& U1,
+                              SpColVector<SpGradient, 2>& U2,
+                              SpColVector<SpGradient, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const;
+                              SpFunctionCall func) const;
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<doublereal, 3>& dF_0_Rt,
-                         const Vector<doublereal, 3>& dF_h_Rt,
-                         const Vector<doublereal, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<doublereal, 3>& dF_0_Rt,
+                         const SpColVector<doublereal, 3>& dF_h_Rt,
+                         const SpColVector<doublereal, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap);
+                         SpFunctionCall func);
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<Gradient<0>, 3>& dF_0_Rt,
-                         const Vector<Gradient<0>, 3>& dF_h_Rt,
-                         const Vector<Gradient<0>, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<SpGradient, 3>& dF_0_Rt,
+                         const SpColVector<SpGradient, 3>& dF_h_Rt,
+                         const SpColVector<SpGradient, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap);
+                         SpFunctionCall func);
 
         virtual void
         Update(doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkMat,
+        void AssRes(SpGradientAssVec<T>& WorkMat,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkMat,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkMat,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual enum LubricationGroove::Type
         ReadLubricationGrooveType(MBDynParser& HP) const;
@@ -2545,24 +2500,24 @@ namespace {
         bGetPrivateData(HydroRootBase::PrivateDataType eType,
                         doublereal& dPrivData) const;
 
-        virtual void GetMovingMeshOffset(Vector<doublereal, 2>& x, LocalDofMap* = nullptr) const;
-        virtual void GetMovingMeshOffset(Vector<Gradient<0>, 2>& x, LocalDofMap* pDofMap) const;
+        virtual void GetMovingMeshOffset(SpColVector<doublereal, 2>& x) const;
+        virtual void GetMovingMeshOffset(SpColVector<SpGradient, 2>& x) const;
 
     protected:
         virtual doublereal dGetMeshRadius() const;
 
-        virtual const Matrix<doublereal, 3, 3>&
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetOrientationMeshNode() const;
 
         virtual const Pocket*
-        pFindMeshPocket(const Vector<doublereal, 2>& x) const;
+        pFindMeshPocket(const SpColVector<doublereal, 2>& x) const;
 
     private:
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkMat,
+        void UnivAssRes(SpGradientAssVec<T>& WorkMat,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         template <typename T>
         class Boundary {
@@ -2574,70 +2529,61 @@ namespace {
 
             inline void
             Update(doublereal dCoef,
-                   enum FunctionCall func,
-                   LocalDofMap* pDofMap);
+                   SpFunctionCall func);
 
             inline void
             GetBoundaryConditions(HydroNode* pNode,
                                   T& h,
                                   T& dh_dt,
-                                  Vector<T, 2>& U1,
-                                  Vector<T, 2>& U2,
-                                  Vector<T, 2>& U,
+                                  SpColVector<T, 2>& U1,
+                                  SpColVector<T, 2>& U2,
+                                  SpColVector<T, 2>& U,
                                   doublereal dCoef,
-                                  enum FunctionCall func,
-                                  LocalDofMap* pDofMap) const;
+                                  SpFunctionCall func) const;
 
-            void GetMovingMeshOffset(Vector<T, 2>& x, LocalDofMap* pDofMap) const;
+            void GetMovingMeshOffset(SpColVector<T, 2>& x) const;
 
         private:
-            typedef Vector<doublereal, 2> CVec2;
-            typedef Vector<doublereal, 3> CVec3;
-            typedef Matrix<doublereal, 3, 3> CMat3x3;
-            typedef Vector<T, 2> VVec2;
-            typedef Vector<T, 3> VVec3;
-            typedef Matrix<T, 3, 3> VMat3x3;
-
             const CylindricalMeshAtShaft& rParent;
-            CVec3 Rb2T_o2;
-            VVec3 X1, X2, X1P, X2P, omega1, omega2;
-            VMat3x3 R1, R2;
-            VMat3x3 Rb2T_R2T;
+	     SpColVectorA<doublereal, 3> Rb2T_o2;
+	     SpColVectorA<T, 3, 1> X1, X2, X1P, X2P;
+	     SpColVectorA<T, 3, 3> omega1, omega2;
+	     SpMatrixA<T, 3, 3, 3> R1, R2;
+	     SpMatrixA<T, 3, 3, 3> Rb2T_R2T;
         };
 
         template <typename T>
         struct ReactionForce {
-            Vector<T, 3> F1_R1;
-            Vector<T, 3> M1_R1;
-            Vector<T, 3> F2_R1;
-            Vector<T, 3> M2_R1;
+            SpColVectorA<T, 3> F1_R1;
+            SpColVectorA<T, 3> M1_R1;
+            SpColVectorA<T, 3> F2_R1;
+            SpColVectorA<T, 3> M2_R1;
 
             inline void Reset();
         };
 
         template <typename T>
         inline void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<T, 3>& dF_0_Rt,
-                         const Vector<T, 3>& dF_h_Rt,
-                         const Vector<T, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<T, 3>& dF_0_Rt,
+                         const SpColVector<T, 3>& dF_h_Rt,
+                         const SpColVector<T, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap,
+                         SpFunctionCall func,
                          ReactionForce<T>& oReact);
 
         inline const
         ReactionForce<doublereal>& GetReactionForce(const doublereal& dummy) const;
 
         inline const
-        ReactionForce<Gradient<0> >& GetReactionForce(const Gradient<0>& dummy) const;
+        ReactionForce<SpGradient >& GetReactionForce(const SpGradient& dummy) const;
 
         Boundary<doublereal> oBound;
-        Boundary<Gradient<0> > oBound_grad;
+        Boundary<SpGradient > oBound_grad;
         ReactionForce<doublereal> oReaction;
-        ReactionForce<Gradient<0> > oReaction_grad;
+        ReactionForce<SpGradient > oReaction_grad;
     };
 
     class CylindricalMeshAtBearing: public CylindricalBearing {
@@ -2651,86 +2597,81 @@ namespace {
         GetBoundaryConditions(HydroNode* pNode,
                               doublereal& h,
                               doublereal& dh_dt,
-                              Vector<doublereal, 2>& U1,
-                              Vector<doublereal, 2>& U2,
-                              Vector<doublereal, 2>& U,
+                              SpColVector<doublereal, 2>& U1,
+                              SpColVector<doublereal, 2>& U2,
+                              SpColVector<doublereal, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const;
+                              SpFunctionCall func) const;
 
         virtual void
         GetBoundaryConditions(HydroNode* pNode,
-                              Gradient<0>& h,
-                              Gradient<0>& dh_dt,
-                              Vector<Gradient<0>, 2>& U1,
-                              Vector<Gradient<0>, 2>& U2,
-                              Vector<Gradient<0>, 2>& U,
+                              SpGradient& h,
+                              SpGradient& dh_dt,
+                              SpColVector<SpGradient, 2>& U1,
+                              SpColVector<SpGradient, 2>& U2,
+                              SpColVector<SpGradient, 2>& U,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap) const;
+                              SpFunctionCall func) const;
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<doublereal, 3>& dF_0_Rt,
-                         const Vector<doublereal, 3>& dF_h_Rt,
-                         const Vector<doublereal, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<doublereal, 3>& dF_0_Rt,
+                         const SpColVector<doublereal, 3>& dF_h_Rt,
+                         const SpColVector<doublereal, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap);
+                         SpFunctionCall func);
 
         virtual void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<Gradient<0>, 3>& dF_0_Rt,
-                         const Vector<Gradient<0>, 3>& dF_h_Rt,
-                         const Vector<Gradient<0>, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<SpGradient, 3>& dF_0_Rt,
+                         const SpColVector<SpGradient, 3>& dF_h_Rt,
+                         const SpColVector<SpGradient, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap);
+                         SpFunctionCall func);
 
         virtual void
         Update(doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkMat,
+        void AssRes(SpGradientAssVec<T>& WorkMat,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkMat,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkMat,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual enum LubricationGroove::Type
         ReadLubricationGrooveType(MBDynParser& HP) const;
@@ -2738,24 +2679,24 @@ namespace {
         bool bGetPrivateData(HydroRootBase::PrivateDataType eType,
                              doublereal& dPrivData) const;
 
-        virtual void GetMovingMeshOffset(Vector<doublereal, 2>& x, LocalDofMap* = nullptr) const;
-        virtual void GetMovingMeshOffset(Vector<Gradient<0>, 2>& x, LocalDofMap* pDofMap) const;
+        virtual void GetMovingMeshOffset(SpColVector<doublereal, 2>& x) const;
+        virtual void GetMovingMeshOffset(SpColVector<SpGradient, 2>& x) const;
 
     protected:
         virtual doublereal dGetMeshRadius() const;
 
-        virtual const Matrix<doublereal, 3, 3>&
+        virtual const SpMatrix<doublereal, 3, 3>&
         GetOrientationMeshNode() const;
 
         virtual const Pocket*
-        pFindMeshPocket(const Vector<doublereal, 2>& x) const;
+        pFindMeshPocket(const SpColVector<doublereal, 2>& x) const;
 
     private:
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkMat,
+        void UnivAssRes(SpGradientAssVec<T>& WorkMat,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         template <typename T>
         struct Boundary {
@@ -2766,69 +2707,60 @@ namespace {
 
             inline void
             Update(doublereal dCoef,
-                   enum FunctionCall func,
-                   LocalDofMap* pDofMap);
+                   SpFunctionCall func);
 
             inline void
             GetBoundaryConditions(HydroNode* pNode,
                                   T& h,
                                   T& dh_dt,
-                                  Vector<T, 2>& U1,
-                                  Vector<T, 2>& U2,
-                                  Vector<T, 2>& U,
+                                  SpColVector<T, 2>& U1,
+                                  SpColVector<T, 2>& U2,
+                                  SpColVector<T, 2>& U,
                                   doublereal dCoef,
-                                  enum FunctionCall func,
-                                  LocalDofMap* pDofMap) const;
+                                  SpFunctionCall func) const;
 
-            void GetMovingMeshOffset(Vector<T, 2>& x, LocalDofMap* pDofMap) const;
-
-            typedef Vector<doublereal, 2> CVec2;
-            typedef Vector<doublereal, 3> CVec3;
-            typedef Matrix<doublereal, 3, 3> CMat3x3;
-            typedef Vector<T, 2> VVec2;
-            typedef Vector<T, 3> VVec3;
-            typedef Matrix<T, 3, 3> VMat3x3;
+            void GetMovingMeshOffset(SpColVector<T, 2>& x) const;
 
             const CylindricalMeshAtBearing& rParent;
-            CVec3 Rb1T_o1;
-            VVec3 X1, X2, X1P, X2P, omega1, omega2;
-            VMat3x3 R1, R2;
-            VMat3x3 Rb1T_R1T;
+	     SpColVectorA<doublereal, 3> Rb1T_o1;
+	     SpColVectorA<T, 3, 1> X1, X2, X1P, X2P;
+	     SpColVectorA<T, 3, 3> omega1, omega2;
+	     SpMatrixA<T, 3, 3, 3> R1, R2;
+	     SpMatrixA<T, 3, 3, 3> Rb1T_R1T;
         };
 
         template <typename T>
-        struct ReactionForce {
-            Vector<T, 3> F1_R2;
-            Vector<T, 3> M1_R2;
-            Vector<T, 3> F2_R2;
-            Vector<T, 3> M2_R2;
+        struct ReactionForce {		  
+            SpColVectorA<T, 3> F1_R2;
+            SpColVectorA<T, 3> M1_R2;
+            SpColVectorA<T, 3> F2_R2;
+            SpColVectorA<T, 3> M2_R2;
 
             inline void Reset();
         };
 
         template <typename T>
         inline void
-        AddReactionForce(const Vector<doublereal, 2>& x,
-                         const Vector<doublereal, 3>& v,
-                         const Matrix<doublereal, 3, 3>& Rt,
-                         const Vector<T, 3>& dF_0_Rt,
-                         const Vector<T, 3>& dF_h_Rt,
-                         const Vector<T, 2>& dM_h_Rt,
+        AddReactionForce(const SpColVector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 3>& v,
+                         const SpMatrix<doublereal, 3, 3>& Rt,
+                         const SpColVector<T, 3>& dF_0_Rt,
+                         const SpColVector<T, 3>& dF_h_Rt,
+                         const SpColVector<T, 2>& dM_h_Rt,
                          doublereal dCoef,
-                         enum FunctionCall func,
-                         LocalDofMap* pDofMap,
+                         SpFunctionCall func,
                          ReactionForce<T>& oReact);
 
         inline const ReactionForce<doublereal>&
         GetReactionForce(const doublereal& dummy) const;
 
-        inline const ReactionForce<Gradient<0> >&
-        GetReactionForce(const Gradient<0>& dummy) const;
+        inline const ReactionForce<SpGradient >&
+        GetReactionForce(const SpGradient& dummy) const;
 
         Boundary<doublereal> oBound;
-        Boundary<Gradient<0> > oBound_grad;
+        Boundary<SpGradient > oBound_grad;
         ReactionForce<doublereal> oReaction;
-        ReactionForce<Gradient<0> > oReaction_grad;
+        ReactionForce<SpGradient > oReaction_grad;
     };
 
     class Material
@@ -2871,8 +2803,8 @@ namespace {
     public:
         virtual ~FrictionModel();
         virtual void ParseInput(MBDynParser& HP)=0;
-        virtual void GetFrictionForce(const doublereal h, const Vector<doublereal, 2>& U, doublereal p, Vector<doublereal, 2>& tau)=0;
-        virtual void GetFrictionForce(const Gradient<0>& h, const Vector<Gradient<0>, 2>& U, const Gradient<0>& p, Vector<Gradient<0>, 2>& tau)=0;
+        virtual void GetFrictionForce(const doublereal h, const SpColVector<doublereal, 2>& U, doublereal p, SpColVector<doublereal, 2>& tau)=0;
+        virtual void GetFrictionForce(const SpGradient& h, const SpColVector<SpGradient, 2>& U, const SpGradient& p, SpColVector<SpGradient, 2>& tau)=0;
         virtual void AfterPredict(const VectorHandler& X, const VectorHandler& XP);
         virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
         virtual std::unique_ptr<FrictionModel> Clone() const=0;
@@ -2889,13 +2821,13 @@ namespace {
         explicit CoulombFriction(HydroMesh* pMesh);
         virtual ~CoulombFriction();
         virtual void ParseInput(MBDynParser& HP);
-        virtual void GetFrictionForce(const doublereal h, const Vector<doublereal, 2>& U, doublereal p, Vector<doublereal, 2>& tau);
-        virtual void GetFrictionForce(const Gradient<0>& h, const Vector<Gradient<0>, 2>& U, const Gradient<0>& p, Vector<Gradient<0>, 2>& tau);
+        virtual void GetFrictionForce(const doublereal h, const SpColVector<doublereal, 2>& U, doublereal p, SpColVector<doublereal, 2>& tau);
+        virtual void GetFrictionForce(const SpGradient& h, const SpColVector<SpGradient, 2>& U, const SpGradient& p, SpColVector<SpGradient, 2>& tau);
         virtual std::unique_ptr<FrictionModel> Clone() const;
 
     private:
         template <typename T>
-        void GetFrictionForceTpl(const T& h, const Vector<T, 2>& U, const T& p, Vector<T, 2>& tau);
+        void GetFrictionForceTpl(const T& h, const SpColVector<T, 2>& U, const T& p, SpColVector<T, 2>& tau);
 
         doublereal mu;
         doublereal signumDeltaU;
@@ -2907,21 +2839,21 @@ namespace {
         explicit LugreFriction(HydroMesh* pMesh);
         virtual ~LugreFriction();
         virtual void ParseInput(MBDynParser& HP);
-        virtual void GetFrictionForce(const doublereal h, const Vector<doublereal, 2>& U, doublereal p, Vector<doublereal, 2>& tau);
-        virtual void GetFrictionForce(const Gradient<0>& h, const Vector<Gradient<0>, 2>& U, const Gradient<0>& p, Vector<Gradient<0>, 2>& tau);
+        virtual void GetFrictionForce(const doublereal h, const SpColVector<doublereal, 2>& U, doublereal p, SpColVector<doublereal, 2>& tau);
+        virtual void GetFrictionForce(const SpGradient& h, const SpColVector<SpGradient, 2>& U, const SpGradient& p, SpColVector<SpGradient, 2>& tau);
         virtual std::unique_ptr<FrictionModel> Clone() const;
         virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
     private:
         template <typename T>
-        void GetFrictionForceTpl(const T& h, const Vector<T, 2>& U, const T& p, Vector<T, 2>& tau);
+        void GetFrictionForceTpl(const T& h, const SpColVector<T, 2>& U, const T& p, SpColVector<T, 2>& tau);
 
-        void SaveStictionState(const Vector<doublereal, 2>& z, const Vector<doublereal, 2>& zP);
-        void SaveStictionState(const Vector<Gradient<0>, 2>& z, const Vector<Gradient<0>, 2>& zP);
+        void SaveStictionState(const SpColVector<doublereal, 2>& z, const SpColVector<doublereal, 2>& zP);
+        void SaveStictionState(const SpColVector<SpGradient, 2>& z, const SpColVector<SpGradient, 2>& zP);
 
-        Matrix<doublereal, 2, 2> Mk, Mk2, invMk2_sigma0, Ms, Ms2, sigma0, sigma1;
+        SpMatrix<doublereal, 2, 2> Mk, Mk2, invMk2_sigma0, Ms, Ms2, sigma0, sigma1;
         doublereal beta, vs, gamma;
-        Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
+        SpColVector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
         doublereal tPrev, tCurr;
     };
 
@@ -2935,7 +2867,7 @@ namespace {
 
         virtual void ParseInput(MBDynParser& HP);
         virtual bool GetContactPressure(const doublereal h, doublereal& pasp) const=0;
-        virtual bool GetContactPressure(const Gradient<0>& h, Gradient<0>& pasp) const=0;
+        virtual bool GetContactPressure(const SpGradient& h, SpGradient& pasp) const=0;
         HydroMesh* pGetMesh() const { return pMesh; }
         const Material& GetMaterial(index_type i) const {
             HYDRO_ASSERT(i >= 0);
@@ -2955,7 +2887,7 @@ namespace {
         virtual ~GreenwoodTrippCM();
         virtual void ParseInput(MBDynParser& HP);
         virtual bool GetContactPressure(const doublereal h, doublereal& pasp) const;
-        virtual bool GetContactPressure(const Gradient<0>& h, Gradient<0>& pasp) const;
+        virtual bool GetContactPressure(const SpGradient& h, SpGradient& pasp) const;
 
     private:
         template <typename T>
@@ -2971,7 +2903,7 @@ namespace {
         virtual ~PenaltyCM();
         virtual void ParseInput(MBDynParser& HP);
         virtual bool GetContactPressure(const doublereal h, doublereal& pasp) const;
-        virtual bool GetContactPressure(const Gradient<0>& h, Gradient<0>& pasp) const;
+        virtual bool GetContactPressure(const SpGradient& h, SpGradient& pasp) const;
 
     private:
         template <typename T>
@@ -2997,37 +2929,37 @@ namespace {
         virtual int iGetNumNodes() const=0;
         virtual void SetNode(int iNode, HydroNode* pNode)=0;
         virtual HydroNode* pGetNode(int iNode) const=0;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const;
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode)=0;
+               SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode)=0;
+               SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode)=0;
+                      SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode)=0;
+                      SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
         virtual void AfterConvergence(const VectorHandler& X,
                                       const VectorHandler& XP);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const=0;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const=0;
         virtual void Initialize()=0;
         HydroMesh* pGetMesh() const { return pMesh; }
         const HydroFluid* pGetFluid() const { return pFluid; }
@@ -3089,7 +3021,7 @@ namespace {
         static const int iNumFluxNodes = 4;
         std::array<HydroNode*, iNumNodes> rgHydroNodes;
         std::array<FluxNode*, iNumFluxNodes> rgFluxNodes;
-        std::array<Vector<doublereal, 2>, iNumNodes> x;
+        std::array<SpColVectorA<doublereal, 2>, iNumNodes> x;
         doublereal dx;
         doublereal dz;
         doublereal dA;
@@ -3120,7 +3052,7 @@ namespace {
         static const int iNode4SE = 3; /**< south east */
 
     protected:
-        static const int iNumNodes = 4;
+        static constexpr int iNumNodes = 4;
         std::array<HydroNode*, iNumNodes> rgHydroNodes;
         doublereal dx, dz, dA;
     };
@@ -3135,48 +3067,46 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
     private:
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
     private:
-        LocalDofMap oDofMap;
-
 #if CREATE_PROFILE == 1
         enum { PROF_RES = 0, PROF_JAC = 1 };
         static struct ProfileData {
@@ -3200,36 +3130,33 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
-
-    private:
-        LocalDofMap oDofMap;
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
     };
 
     class LinFD4FrictionElem: public LinFD4Elem {
@@ -3242,59 +3169,58 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T> inline
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void Initialize();
 
     private:
         template <typename T> inline
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
-        inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<Vector<doublereal, 2>, iNumNodes>& Ui, doublereal dTau_xy, doublereal dTau_yz) const;
-        inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<Vector<Gradient<0>, 2>, iNumNodes>& Ui, const Gradient<0>& dTau_xy, const Gradient<0>& dTau_yz) const;
+	 inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<SpColVectorA<doublereal, 2, 12>, iNumNodes>& Ui, doublereal dTau_xy, doublereal dTau_yz) const;
+	 inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<SpColVectorA<SpGradient, 2, 12>, iNumNodes>& Ui, const SpGradient& dTau_xy, const SpGradient& dTau_yz) const;
         inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, doublereal dPf) const;
-        inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const Gradient<0>& dPf) const;
+        inline void AddFrictionLoss(HydroRootBase::FrictionLossType type, const SpGradient& dPf) const;
         static inline void SetStress(HydroNode* pNode, doublereal tau_xy_0, doublereal tau_yz_0, doublereal tau_xy_h, doublereal tau_yz_h);
-        static inline void SetStress(HydroNode*, const Gradient<0>&, const Gradient<0>&, const Gradient<0>&, const Gradient<0>&);
+        static inline void SetStress(HydroNode*, const SpGradient&, const SpGradient&, const SpGradient&, const SpGradient&);
 
-        LocalDofMap oDofMap;
-        Vector<doublereal, 2> xc;
-        Vector<doublereal, 3> vc;
-        Matrix<doublereal, 3, 3> Rtc;
+        SpColVector<doublereal, 2> xc;
+        SpColVector<doublereal, 3> vc;
+        SpMatrix<doublereal, 3, 3> Rtc;
         doublereal dScaleEnergy;
 
 #if CREATE_PROFILE == 1
@@ -3320,33 +3246,33 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T> inline
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         virtual void Initialize();
 
@@ -3358,7 +3284,6 @@ namespace {
     private:
         static const index_type iNumFluxNodes = 2;
         std::array<FluxNode*, iNumFluxNodes> rgFluxNodes;
-        LocalDofMap oDofMap;
     };
 
     class LinFD5ComprReynoldsElem: public LinFD5Elem {
@@ -3371,50 +3296,49 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
     private:
         inline void SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const;
-        inline void SetMaxTimeStep(const std::array<Gradient<0>, iNumFluxNodes>&) const;
+        inline void SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const;
 
         static const index_type iNumDofMax = HydroActiveComprNode::iNumDofMax;
-        LocalDofMap oDofMap;
     };
 
     class LinFD5ThermalElem: public LinFD5Elem {
@@ -3431,13 +3355,12 @@ namespace {
 
     protected:
         template <typename G>
-        inline void EnergyBalance(G& f, G& Qdot0, G& Qdoth, LocalDofMap* pDofMap, doublereal dCoef, grad::FunctionCall func) const;
+        inline void EnergyBalance(G& f, G& Qdot0, G& Qdoth, doublereal dCoef, sp_grad::SpFunctionCall func) const;
         inline void SetMaxTimeStep(const std::array<doublereal, 2>& wxi, const std::array<doublereal, 2>& wzi) const;
         static inline void UpwindWeight(const std::array<doublereal, 2>& q, std::array<doublereal, 2>& alpha);
 
         std::array<ThermoHydrNode*, iNumNodes> rgThermNodes;
         doublereal dScale;
-        LocalDofMap oDofMap;
     };
 
     class LinFD5ThermalElemImp: public LinFD5ThermalElem {
@@ -3450,45 +3373,45 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
-
-        template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
+
+        template <typename T>
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
     private:
         template <typename G>
-        void UnivAssRes(GradientAssVec<G>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<G>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<G>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<G>& XCurr,
+                        SpFunctionCall func);
         const bool bDoInitAss;
     };
 
@@ -3503,45 +3426,44 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void WorkSpaceDim(integer* piNumRows,
                                   integer* piNumCols,
-                                  grad::FunctionCall eFunc) const;
+                                  sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void Initialize();
 
     private:
-        LocalDofMap oDofMap;
         const ThermalInletNode* pInletNode;
         const bool bDoInitAss;
     };
@@ -3610,8 +3532,8 @@ namespace {
 
     protected:
         struct GaussPointData {
-            Vector<doublereal, iNumNodes> N;
-            Matrix<doublereal, 2, iNumNodes> B;
+            SpColVectorA<doublereal, iNumNodes> N;
+            SpMatrixA<doublereal, 2, iNumNodes> B;
             doublereal detJ;
         };
 
@@ -3619,11 +3541,11 @@ namespace {
 
         inline index_type iGetNumIntegrationRules() const;
 
-        index_type iSelectIntegrationRule(const Vector<doublereal, iNumNodes>& pe,
-                                          const Vector<doublereal, iNumNodes>* paspe = nullptr);
+        index_type iSelectIntegrationRule(const SpColVector<doublereal, iNumNodes>& pe,
+                                          const SpColVector<doublereal, iNumNodes>* paspe = nullptr);
 
-        index_type iSelectIntegrationRule(const Vector<Gradient<0>, iNumNodes>& pe,
-                                          const Vector<Gradient<0>, iNumNodes>* paspe = nullptr);
+        index_type iSelectIntegrationRule(const SpColVector<SpGradient, iNumNodes>& pe,
+                                          const SpColVector<SpGradient, iNumNodes>* paspe = nullptr);
 
         index_type iGetCurrentIntegrationRule() const {
             HYDRO_ASSERT(iCurrIntegRule >= 0);
@@ -3640,19 +3562,19 @@ namespace {
 
         inline doublereal dGetGaussPos(index_type iGaussPoint, index_type iIntegRule) const;
 
-        void NodePositionMatrix(Matrix<doublereal, iNumNodes, 2>& xe) const;
+        void NodePositionMatrix(SpMatrix<doublereal, iNumNodes, 2>& xe) const;
 
-        void PressureInterpolMatrix(Vector<doublereal, iNumNodes>& N,
+        void PressureInterpolMatrix(SpColVector<doublereal, iNumNodes>& N,
                                     doublereal r,
                                     doublereal s) const;
 
-        void PressureInterpolMatrixDer(Matrix<doublereal, 2, iNumNodes>& dN_drs,
+        void PressureInterpolMatrixDer(SpMatrix<doublereal, 2, iNumNodes>& dN_drs,
                                        doublereal r,
                                        doublereal s) const;
 
-        void PressureGradInterpolMatrix(Matrix<doublereal, 2, iNumNodes>& B,
+        void PressureGradInterpolMatrix(SpMatrix<doublereal, 2, iNumNodes>& B,
                                         doublereal& detJ,
-                                        const Matrix<doublereal, iNumNodes, 2>& xe,
+                                        const SpMatrix<doublereal, iNumNodes, 2>& xe,
                                         doublereal r,
                                         doublereal s) const;
 
@@ -3685,50 +3607,52 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkMat,
+        void AssRes(SpGradientAssVec<T>& WorkMat,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void Initialize();
 
     private:
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
-        std::vector<GaussPointData> rgGaussPntDat;
-        LocalDofMap oDofMap;
+	 struct GaussPointDataR: GaussPointData {
+	      SpMatrixA<doublereal, iNumNodes, iNumNodes> BTB;
+	 };
+        std::vector<GaussPointDataR> rgGaussPntDat;
         doublereal dA;
     };
 
@@ -3744,69 +3668,69 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkMat,
+        void AssRes(SpGradientAssVec<T>& WorkMat,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkMat,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkMat,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void Initialize();
 
     protected:
         struct GaussPointDataF: GaussPointData {
-            Vector<doublereal, 2> xc;
-            Vector<doublereal, 3> vc;
-            Matrix<doublereal, 3, 3> Rtc;
+            SpColVectorA<doublereal, 2> xc;
+            SpColVectorA<doublereal, 3> vc;
+            SpMatrixA<doublereal, 3, 3> Rtc;
         };
 
     private:
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkMat,
+        void UnivAssRes(SpGradientAssVec<T>& WorkMat,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         inline void AddFrictionLoss(HydroRootBase::FrictionLossType type,
-                                    const Vector<doublereal, 2>& U,
+                                    const SpColVector<doublereal, 2>& U,
                                     doublereal dTau_xy,
                                     doublereal dTau_yz) const;
 
         inline void AddFrictionLoss(HydroRootBase::FrictionLossType type,
-                                    const Vector<Gradient<0>, 2>& U,
-                                    const Gradient<0>& dTau_xy,
-                                    const Gradient<0>& dTau_yz) const;
+                                    const SpColVector<SpGradient, 2>& U,
+                                    const SpGradient& dTau_xy,
+                                    const SpGradient& dTau_yz) const;
 
         inline void AddFrictionLoss(HydroRootBase::FrictionLossType type,
                                     doublereal dPf) const;
         inline void AddFrictionLoss(HydroRootBase::FrictionLossType type,
-                                    const Gradient<0>& dPf) const;
+                                    const SpGradient& dPf) const;
 
         void SetStress(doublereal r,
                        doublereal s,
@@ -3817,13 +3741,12 @@ namespace {
 
         void SetStress(doublereal r,
                        doublereal s,
-                       const Gradient<0>& tau_xy_0,
-                       const Gradient<0>& tau_yz_0,
-                       const Gradient<0>& tau_xy_h,
-                       const Gradient<0>& tau_yz_h) const {}
+                       const SpGradient& tau_xy_0,
+                       const SpGradient& tau_yz_0,
+                       const SpGradient& tau_xy_h,
+                       const SpGradient& tau_yz_h) const {}
 
         std::vector<GaussPointDataF> rgGaussPntDat;
-        LocalDofMap oDofMap;
     };
 
     class QuadFeIso9MassFlowZ: public QuadFeIso9Elem {
@@ -3838,38 +3761,38 @@ namespace {
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               enum GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      enum GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkMat,
+        void AssRes(SpGradientAssVec<T>& WorkMat,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void Initialize();
 
@@ -3880,7 +3803,6 @@ namespace {
         };
 
         std::vector<GaussPointDataMassFlow> rgGaussPntDat;
-        LocalDofMap oDofMap;
         const doublereal sref;
         static const index_type iNumNodesOutletBound = 3;
         const index_type* const pNodeIndexOutletBound;
@@ -3896,8 +3818,8 @@ namespace {
          *               the specific boundary conditions of the selected elements
          *               (e.g. boundary conditions according to Guembel)
          */
-        virtual void GetPressure(const HydroNode* pNode, doublereal& p, LocalDofMap* =0, doublereal=0.) const;
-        virtual void GetPressure(const HydroNode* pNode, Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef=0.) const;
+        virtual void GetPressure(const HydroNode* pNode, doublereal& p, doublereal=0.) const;
+        virtual void GetPressure(const HydroNode* pNode, SpGradient& p, doublereal dCoef=0.) const;
         virtual void ParseInput(DataManager* pDM, MBDynParser& HP)=0;
         virtual integer iGetNumNodes() const=0;
         virtual integer iGetNumElements() const=0;
@@ -3914,8 +3836,7 @@ namespace {
         virtual void
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr, doublereal dCoef,
-               enum FunctionCall func,
-               LocalDofMap* pDofMap);
+               SpFunctionCall func);
         inline doublereal dGetMaxPressureGradient() const;
 
     protected:
@@ -3923,8 +3844,8 @@ namespace {
         typedef std::vector<std::unique_ptr<LubricationGroove> > LubrGrooveVector;
         typedef std::vector<std::unique_ptr<PressureCouplingCond> > CouplingVector;
 
-        LubricationGroove* pFindGroove(const Vector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId);
-        PressureCouplingCond* pFindCouplingCond(const Vector<doublereal, 2>& x, integer iNodeId);
+        LubricationGroove* pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId);
+        PressureCouplingCond* pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId);
 
         void ParseGeometry(DataManager* pDM, MBDynParser& HP);
         void ParseBoundaryCond(DataManager* pDM, MBDynParser& HP);
@@ -3980,7 +3901,7 @@ namespace {
         virtual std::ostream& Output(std::ostream& os) const;
 
     private:
-        inline Vector<doublereal, 2> GetNodePosition(integer i, integer j) const;
+        inline SpColVector<doublereal, 2> GetNodePosition(integer i, integer j) const;
         inline integer iGetNodeIndexHydro(integer i, integer j) const;
         inline integer iGetNodeIndexTherm(integer i, integer j) const;
         inline integer iGetNodeIndexFluxX(integer i, integer j) const;
@@ -4012,9 +3933,9 @@ namespace {
         };
 
         index_type iGetNodeIndex(index_type i, index_type j) const;
-        Vector<doublereal, 2> GetNodePosition(index_type i, index_type j) const;
+        SpColVector<doublereal, 2> GetNodePosition(index_type i, index_type j) const;
         const FluidStateBoundaryCond* pFindBoundaryCond(index_type i, index_type j) const;
-        Vector<doublereal, DYNAMIC_SIZE> x, z;
+        SpColVector<doublereal> x, z;
         QuadFeIso9Elem::IntegrationRule oIntegRuleReynolds, oIntegRuleFriction;
         doublereal dSkewMesh;
         MeshGeometry eMeshGeometry;
@@ -4057,8 +3978,8 @@ namespace {
     };
 
     struct ComplianceMatrixCommon {
-        static const grad::index_type MAX_NUM_MATRICES = 3;
-        typedef Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> MatrixType;
+        static const sp_grad::index_type MAX_NUM_MATRICES = 3;
+        typedef SpMatrix<doublereal> MatrixType;
 
         enum MatrixKind {
             MAT_FULL,
@@ -4291,7 +4212,7 @@ namespace {
         virtual int iGetNumNodes() const;
         virtual void SetNode(int iNode, HydroNode* pNode);
         virtual HydroNode* pGetNode(int iNode) const;
-        virtual integer iGetFirstIndex(grad::FunctionCall eFunc) const;
+        virtual integer iGetFirstIndex(sp_grad::SpFunctionCall eFunc) const;
         virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
         virtual void AfterConvergence(const VectorHandler& X,
                                       const VectorHandler& XP);
@@ -4301,22 +4222,20 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               FunctionCall func)=0;
+               SpFunctionCall func)=0;
 
         virtual void
         GetRadialDeformation(doublereal& w,
                              doublereal& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const=0;
 
         virtual void
-        GetRadialDeformation(Gradient<0>& w,
-                             Gradient<0>& dw_dt,
+        GetRadialDeformation(SpGradient& w,
+                             SpGradient& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const=0;
 
         virtual void
@@ -4352,49 +4271,49 @@ namespace {
         virtual ~ComplianceModelNodal();
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         virtual void Initialize();
 
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
         virtual unsigned int iGetNumDof(void) const;
         virtual unsigned int iGetInitialNumDof(void) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const;
         virtual DofOrder::Order GetDofType(unsigned int i) const;
         virtual DofOrder::Order GetEqType(unsigned int i) const;
         virtual std::ostream&
@@ -4407,45 +4326,37 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               FunctionCall func);
+               SpFunctionCall func);
 
         virtual void
         GetRadialDeformation(doublereal& w,
                              doublereal& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
 
         virtual void
-        GetRadialDeformation(Gradient<0>& w,
-                             Gradient<0>& dw_dt,
+        GetRadialDeformation(SpGradient& w,
+                             SpGradient& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
 
     private:
-        enum DofMapIndex {
-            DOF_PRESS = 0,
-            DOF_DEF,
-            DOF_LAST
-        };
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         virtual void Print(std::ostream& os) const;
 
         index_type iNumNodes, iNumModes;
-        Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> C, D, E;
-        Vector<doublereal, DYNAMIC_SIZE> w, dw_dt;
+        SpMatrix<doublereal> C, D, E;
+        SpColVector<doublereal> w, dw_dt;
         const Modal* const pModalJoint;
-        std::array<LocalDofMap, DOF_LAST> rgDofMap;
         ComplianceMatrixArray rgMatrices;
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
     };
 
     class ComplianceModelNodalDouble: public ComplianceModel {
@@ -4482,49 +4393,49 @@ namespace {
         virtual ~ComplianceModelNodalDouble();
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         virtual void Initialize();
 
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
         virtual unsigned int iGetNumDof(void) const;
         virtual unsigned int iGetInitialNumDof(void) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const;
         virtual DofOrder::Order GetDofType(unsigned int i) const;
         virtual DofOrder::Order GetEqType(unsigned int i) const;
         virtual std::ostream&
@@ -4537,22 +4448,20 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               FunctionCall func);
+               SpFunctionCall func);
 
         virtual void
         GetRadialDeformation(doublereal& w,
                              doublereal& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
 
         virtual void
-        GetRadialDeformation(Gradient<0>& w,
-                             Gradient<0>& dw_dt,
+        GetRadialDeformation(SpGradient& w,
+                             SpGradient& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
         virtual void
         GetRadialDeformation1(doublereal& w1,
@@ -4566,25 +4475,17 @@ namespace {
             FT_DEF_MOVING
         };
 
-        enum DEhdDofMapType {
-            DOF_GLOBAL1 = 0,
-            DOF_GLOBAL2,
-            DOF_LOCAL,
-            DOF_LAST
-        };
-
         static constexpr index_type POLYORDER = 9;
         static constexpr index_type GRIDINTERP = 16;
 
         struct PolyData {
-            template <typename MatExpr>
-            PolyData(const MatExpr& pinvA,
-                     const std::array<index_type, GRIDINTERP>& Cidx)
-                :pinvA(pinvA),
-                 Cidx(Cidx) {
-            }
+	     PolyData(SpMatrix<doublereal, POLYORDER, GRIDINTERP>&& pinvA,
+		      const std::array<index_type, GRIDINTERP>& Cidx)
+		  :pinvA(std::move(pinvA)),
+		   Cidx(Cidx) {
+	     }
 
-            Matrix<doublereal, POLYORDER, GRIDINTERP> pinvA;
+            SpMatrix<doublereal, POLYORDER, GRIDINTERP> pinvA;
             std::array<index_type, GRIDINTERP> Cidx;
         };
 
@@ -4593,64 +4494,59 @@ namespace {
         GetRadialDeformationTpl(G& w,
                                 G& dw_dt,
                                 doublereal dCoef,
-                                FunctionCall func,
-                                LocalDofMap* pDofMap,
+                                SpFunctionCall func,
                                 const HydroUpdatedNode* pNode) const;
 
         void
         GetRadialDeformation(doublereal& wi,
                              doublereal& dwi_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              DEhdDeformationIdx eDefIndex,
                              index_type iCompIndex) const;
 
         void
-        GetRadialDeformation(Gradient<0>& wi,
-                             Gradient<0>& dwi_dt,
+        GetRadialDeformation(SpGradient& wi,
+                             SpGradient& dwi_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              DEhdDeformationIdx eDefIndex,
                              index_type iCompIndex) const;
 
         template <DEhdFieldType eField, DEhdBodyIdx eMshSrc, DEhdBodyIdx eMshDst, typename T>
         void Interpolate(const index_type i,
                          const index_type j,
-                         const Vector<T, 2>& dxm_g,
+                         const SpColVector<T, 2>& dxm_g,
                          const doublereal dScale,
                          T& fij_f,
                          const doublereal dCoef,
-                         const FunctionCall func,
-                         LocalDofMap* const pDofMap) const;
+                         const SpFunctionCall func) const;
 
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         virtual void Print(std::ostream& os) const;
 
-        inline void UpdateDefMovingInterp(index_type iCompIndex, doublereal wmi, doublereal dScale);
-        void UpdateDefMovingInterp(index_type, const Gradient<0>&, doublereal){}
-
     private:
+        inline void UpdateDefMovingInterp(index_type iCompIndex, doublereal wmi);
+        void UpdateDefMovingInterp(index_type, const SpGradient&){}
+	 
         std::array<index_type, DEHD_BODY_LAST> rgNumNodes;
-        std::array<Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE>, DEHD_BODY_LAST> C, D, E;
-        std::array<Vector<doublereal, DYNAMIC_SIZE>, DEHD_DEF_MOVING_INTERP + 1> w;
-        std::array<Vector<doublereal, DYNAMIC_SIZE>, DEHD_DEF_MOVING + 1> dw_dt;
+        std::array<SpMatrix<doublereal>, DEHD_BODY_LAST> C, D, E;
+        std::array<SpColVector<doublereal>, DEHD_DEF_MOVING_INTERP + 1> w;
+        std::array<SpColVector<doublereal>, DEHD_DEF_MOVING + 1> dw_dt;
         std::array<std::vector<doublereal>, DEHD_BODY_LAST> xi, zi;
         std::array<std::vector<index_type>, DEHD_BODY_LAST> rgMatIdx;
         std::array<std::vector<ComplianceMatrix::GridIndex>, DEHD_BODY_LAST> rgActGridIdx;
         std::array<std::vector<PolyData>, DEHD_BODY_LAST> rgPolyData;
         const ModalJointArray rgModalJoints;
         doublereal dPressDofScale;
-        std::array<LocalDofMap, DOF_LAST> rgDofMap;
         const doublereal dMeshRadius, dMinDistance_2;
         ComplianceMatrixArray rgMatrices;
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
         const DEhdInterpolOption eInterpolOption;
         doublereal dAxialThreshold;
         static const std::array<integer, POLYORDER> px, pz;
@@ -4670,49 +4566,49 @@ namespace {
         virtual ~ComplianceModelModal();
 
         template <typename T>
-        void AssRes(GradientAssVec<T>& WorkVec,
+        void AssRes(SpGradientAssVec<T>& WorkVec,
                     doublereal dCoef,
-                    const GradientVectorHandler<T>& XCurr,
-                    const GradientVectorHandler<T>& XPrimeCurr,
-                    enum FunctionCall func);
+                    const SpGradientVectorHandler<T>& XCurr,
+                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                    SpFunctionCall func);
 
         virtual void
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         AssJac(SparseSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
-               GradientAssVecBase::mode_t mode);
+               SpGradientAssVecBase::SpAssMode mode);
 
         template <typename T>
-        void InitialAssRes(GradientAssVec<T>& WorkVec,
-                           const GradientVectorHandler<T>& XCurr,
-                           enum FunctionCall func);
+        void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                           const SpGradientVectorHandler<T>& XCurr,
+                           SpFunctionCall func);
 
         virtual void
         InitialAssRes(SubVectorHandler& WorkVec,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
         InitialAssJac(SparseSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
-                      GradientAssVecBase::mode_t mode);
+                      SpGradientAssVecBase::SpAssMode mode);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const;
+        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
 
         virtual void Initialize();
 
         virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr);
         virtual unsigned int iGetNumDof(void) const;
         virtual unsigned int iGetInitialNumDof(void) const;
-        virtual integer iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const;
+        virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const;
         virtual DofOrder::Order GetDofType(unsigned int i) const;
         virtual DofOrder::Order GetEqType(unsigned int i) const;
         virtual std::ostream&
@@ -4725,22 +4621,20 @@ namespace {
         Update(const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                doublereal dCoef,
-               FunctionCall func);
+               SpFunctionCall func);
 
         virtual void
         GetRadialDeformation(doublereal& w,
                              doublereal& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
 
         virtual void
-        GetRadialDeformation(Gradient<0>& w,
-                             Gradient<0>& dw_dt,
+        GetRadialDeformation(SpGradient& w,
+                             SpGradient& dw_dt,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap,
+                             SpFunctionCall func,
                              const HydroUpdatedNode* pNode) const;
 
     private:
@@ -4748,37 +4642,32 @@ namespace {
         GetModalDeformation(index_type iMode,
                             doublereal& qi,
                             doublereal dCoef,
-                            FunctionCall func,
-                            LocalDofMap* pDofMap) const;
+                            SpFunctionCall func) const;
 
         inline void
         GetModalDeformation(index_type iMode,
-                            Gradient<0>& qi,
+                            SpGradient& qi,
                             doublereal dCoef,
-                            FunctionCall func,
-                            LocalDofMap* pDofMap) const;
+                            SpFunctionCall func) const;
 
         inline void
         GetModalDeformationDer(index_type iMode,
                                doublereal& dqi_dt,
                                doublereal dCoef,
-                               FunctionCall func,
-                               LocalDofMap* pDofMap) const;
+                               SpFunctionCall func) const;
 
         inline void
         GetModalDeformationDer(index_type iMode,
-                               Gradient<0>& dqi_dt,
+                               SpGradient& dqi_dt,
                                doublereal dCoef,
-                               FunctionCall func,
-                               LocalDofMap* pDofMap) const;
+                               SpFunctionCall func) const;
 
         template <typename T>
         inline void
         GetRadialDeformationTpl(T& wi,
                                 T& dwi_dt,
                                 doublereal dCoef,
-                                FunctionCall func,
-                                LocalDofMap* pDofMap,
+                                SpFunctionCall func,
                                 const HydroUpdatedNode* pNode) const;
 
         index_type iGetNumModes() const {
@@ -4786,19 +4675,18 @@ namespace {
         }
 
         template <typename T>
-        void UnivAssRes(GradientAssVec<T>& WorkVec,
+        void UnivAssRes(SpGradientAssVec<T>& WorkVec,
                         doublereal dCoef,
-                        const GradientVectorHandler<T>& XCurr,
-                        enum FunctionCall func);
+                        const SpGradientVectorHandler<T>& XCurr,
+                        SpFunctionCall func);
 
         virtual void Print(std::ostream& os) const;
 
-        Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> Phin, RPhiK;
-        Vector<doublereal, DYNAMIC_SIZE> q, dq_dt;
+        SpMatrix<doublereal> Phin, RPhiK;
+        SpColVector<doublereal> q, dq_dt;
         index_type iNumModes;
-        LocalDofMap oDofModal, oDofPressure;
         const std::string strFileName;
-        grad::FunctionCall eCurrFunc;
+        sp_grad::SpFunctionCall eCurrFunc;
     };
 
 
@@ -4929,35 +4817,35 @@ namespace {
         const DataManager* pGetDataManager() const { return pDM; }
 #endif
     private:
-        typedef std::vector<std::unique_ptr<Node2D>, GradientAllocator<std::unique_ptr<Node2D> > > NodeContainer;
-        typedef std::map<integer, HydroDofOwner*, std::less<integer>, GradientAllocator<std::pair<integer, HydroDofOwner*> > > DofOwnerMap;
-        typedef std::vector<HydroDofOwner*, GradientAllocator<HydroDofOwner*> > DofOwnerContainer;
-        typedef std::vector<std::unique_ptr<HydroElement>, GradientAllocator<std::unique_ptr<HydroElement> > > ElementContainer;
-        typedef std::vector<std::unique_ptr<FluidStateBoundaryCond>, GradientAllocator<std::unique_ptr<FluidStateBoundaryCond> > > BoundaryCondContainer;
+        typedef std::vector<std::unique_ptr<Node2D> > NodeContainer;
+        typedef std::map<integer, HydroDofOwner*, std::less<integer> > DofOwnerMap;
+        typedef std::vector<HydroDofOwner*> DofOwnerContainer;
+        typedef std::vector<std::unique_ptr<HydroElement> > ElementContainer;
+        typedef std::vector<std::unique_ptr<FluidStateBoundaryCond> > BoundaryCondContainer;
 
-        const DofOwnerMap& GetDofOwnerMap(grad::FunctionCall eFunc) const {
-            HYDRO_ASSERT((eFunc & grad::STATE_MASK) == grad::REGULAR_FLAG
-                         || (eFunc & grad::STATE_MASK) == grad::INITIAL_ASS_FLAG);
+        const DofOwnerMap& GetDofOwnerMap(sp_grad::SpFunctionCall eFunc) const {
+            HYDRO_ASSERT((eFunc & sp_grad::STATE_MASK) == SpFunctionCall::REGULAR_FLAG
+                         || (eFunc & sp_grad::STATE_MASK) == SpFunctionCall::INITIAL_ASS_FLAG);
 
-            return (eFunc & grad::REGULAR_FLAG)
+            return (eFunc & SpFunctionCall::REGULAR_FLAG)
                 ? oDofOwnerReg
                 : oDofOwnerInitAss;
         }
 
-        DofOwnerMap& GetDofOwnerMap(grad::FunctionCall eFunc) {
-            HYDRO_ASSERT((eFunc & grad::STATE_MASK) == grad::REGULAR_FLAG
-                         || (eFunc & grad::STATE_MASK) == grad::INITIAL_ASS_FLAG);
+        DofOwnerMap& GetDofOwnerMap(sp_grad::SpFunctionCall eFunc) {
+            HYDRO_ASSERT((eFunc & sp_grad::STATE_MASK) == SpFunctionCall::REGULAR_FLAG
+                         || (eFunc & sp_grad::STATE_MASK) == SpFunctionCall::INITIAL_ASS_FLAG);
 
-            return (eFunc & grad::REGULAR_FLAG)
+            return (eFunc & SpFunctionCall::REGULAR_FLAG)
                 ? oDofOwnerReg
                 : oDofOwnerInitAss;
         }
 
-        inline void UnivWorkSpaceDim(integer* piNumRows, integer* piNumCols, FunctionCall func) const;
+        inline void UnivWorkSpaceDim(integer* piNumRows, integer* piNumCols, SpFunctionCall func) const;
         inline void AddDofOwner(HydroDofOwner* pDofOwner);
         void RebuildDofMap();
         inline void InitPrivData();
-        inline const HydroDofOwner* pFindDofOwner(unsigned int i, grad::FunctionCall eFunc) const;
+        inline const HydroDofOwner* pFindDofOwner(unsigned int i, sp_grad::SpFunctionCall eFunc) const;
         void PrintNodeHeader(const Node2D* pNode, Node2D::NodeType eType, std::ostream& out) const;
 
         DataManager* const pDM;
@@ -4972,7 +4860,6 @@ namespace {
         DofOwnerContainer rgDofOwner;
         ElementContainer rgElements;
         BoundaryCondContainer rgBoundaryCond;
-        LocalDofMap oNodeDofMap;
         doublereal dCFL;
         unsigned uInitAssFlags;
 
@@ -5503,7 +5390,7 @@ namespace {
     void HydroRootElement::RebuildDofMap()
     {
         const index_type iNumDofMaps = 2;
-        const std::array<grad::FunctionCall, iNumDofMaps> rgFuncs = {INITIAL_ASS_RES, REGULAR_RES};
+        const std::array<sp_grad::SpFunctionCall, iNumDofMaps> rgFuncs = {SpFunctionCall::INITIAL_ASS_RES, SpFunctionCall::REGULAR_RES};
 
         for (index_type j = 0; j < iNumDofMaps; ++j) {
             DofOwnerMap& oDofOwner = GetDofOwnerMap(rgFuncs[j]);
@@ -5514,7 +5401,7 @@ namespace {
             for (auto i = rgDofOwner.cbegin(); i != rgDofOwner.cend(); ++i) {
                 HydroDofOwner* const pDofOwner = *i;
 
-                const integer iNumDof = (rgFuncs[j] == INITIAL_ASS_RES)
+                const integer iNumDof = (rgFuncs[j] == SpFunctionCall::INITIAL_ASS_RES)
                     ? pDofOwner->iGetInitialNumDof()
                     : pDofOwner->iGetNumDof();
 
@@ -5601,10 +5488,10 @@ namespace {
     void
     HydroRootElement::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
     {
-        UnivWorkSpaceDim(piNumRows, piNumCols, REGULAR_JAC);
+        UnivWorkSpaceDim(piNumRows, piNumCols, SpFunctionCall::REGULAR_JAC);
     }
 
-    void HydroRootElement::UnivWorkSpaceDim(integer* piNumRows, integer* piNumCols, FunctionCall eFunc) const
+    void HydroRootElement::UnivWorkSpaceDim(integer* piNumRows, integer* piNumCols, SpFunctionCall eFunc) const
     {
         integer iNumRowsTotal = 0;
         integer iNumItemsTotal = 0;
@@ -5649,25 +5536,25 @@ namespace {
 
     DofOrder::Order HydroRootElement::GetDofType(unsigned int i) const
     {
-        // RebuildDofMap(REGULAR_RES);
+        // RebuildDofMap(SpFunctionCall::REGULAR_RES);
         ++i; // we are using one based indices
-        const HydroDofOwner* const pDO = pFindDofOwner(i, grad::REGULAR_RES);
-        HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(grad::REGULAR_RES)));
-        return pDO->GetDofType(i - pDO->iGetOffsetIndex(grad::REGULAR_RES));
+        const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
+        HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
+        return pDO->GetDofType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
     }
 
     DofOrder::Order HydroRootElement::GetEqType(unsigned int i) const
     {
         // RebuildDofMap(REGULAR_RES);
         ++i; // we are using one based indices
-        const HydroDofOwner* const pDO = pFindDofOwner(i, grad::REGULAR_RES);
-        HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(grad::REGULAR_RES)));
-        return pDO->GetEqType(i - pDO->iGetOffsetIndex(grad::REGULAR_RES));
+        const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
+        HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
+        return pDO->GetEqType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
     }
 
-    const HydroDofOwner* HydroRootElement::pFindDofOwner(unsigned int i, grad::FunctionCall eFunc) const
+    const HydroDofOwner* HydroRootElement::pFindDofOwner(unsigned int i, sp_grad::SpFunctionCall eFunc) const
     {
-        const DofOwnerMap& oDofOwnerMap = (eFunc & grad::REGULAR_FLAG)
+        const DofOwnerMap& oDofOwnerMap = (eFunc & SpFunctionCall::REGULAR_FLAG)
             ? oDofOwnerReg
             : oDofOwnerInitAss;
 
@@ -5688,9 +5575,9 @@ namespace {
     void HydroRootElement::PrintNodeHeader(const Node2D* pNode, Node2D::NodeType eType, std::ostream& out) const
     {
         if (pNode->bIsNodeType(eType)) {
-            const Vector<doublereal, 2>& x = pNode->GetPosition2D();
+            const SpColVector<doublereal, 2>& x = pNode->GetPosition2D();
             const HydroDofOwner* const pDofOwner = dynamic_cast<const HydroDofOwner*>(pNode);
-            const integer iOffset = pDofOwner && pDofOwner->iGetNumDof() ? pDofOwner->iGetOffsetIndex(grad::REGULAR_RES) : -1;
+            const integer iOffset = pDofOwner && pDofOwner->iGetNumDof() ? pDofOwner->iGetOffsetIndex(SpFunctionCall::REGULAR_RES) : -1;
             out << pNode->iGetNodeNumber() + 1 << ' ' << x(1) << ' ' << x(2) << ' ' << iOffset << ' ';
         }
     }
@@ -5723,9 +5610,8 @@ namespace {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
-        oNodeDofMap.Reset(REGULAR_JAC);
 
-        pMesh->Update(XCurr, XPrimeCurr, dCoef, REGULAR_JAC, &oNodeDofMap);
+        pMesh->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_JAC);
 
 #if CREATE_PROFILE == 1
         profile.dtUpdateGeom[PROF_JAC] += mbdyn_clock_time() - start;
@@ -5733,7 +5619,7 @@ namespace {
 #endif
 
         for (auto i = rgNodes.begin(); i != rgNodes.end(); ++i) {
-            (*i)->Update(XCurr, XPrimeCurr, dCoef, REGULAR_JAC, &oNodeDofMap);
+            (*i)->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_JAC);
         }
 
 #if CREATE_PROFILE == 1
@@ -5745,11 +5631,11 @@ namespace {
         WorkMat.Resize(1, 1);
         WorkMat.PutItem(1, 1, 1, 0); // FIXME: Avoid a segmentation fault if the matrix is empty
 
-        enum GradientAssVecBase::mode_t mode = GradientAssVecBase::RESET;
+        SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
 
         for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
             (*i)->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr, mode);
-            mode = GradientAssVecBase::APPEND;
+            mode = SpGradientAssVecBase::APPEND;
         }
 
 #if CREATE_PROFILE == 1
@@ -5784,7 +5670,7 @@ namespace {
             }
         }
 
-        pMesh->Update(XCurr, XPrimeCurr, dCoef, REGULAR_RES, 0);
+        pMesh->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_RES);
 
 #if CREATE_PROFILE == 1
         profile.dtUpdateGeom[PROF_RES] += mbdyn_clock_time() - start;
@@ -5798,7 +5684,7 @@ namespace {
         dMaxPressGradient = -1.;
 
         for (auto i = rgNodes.begin(); i != rgNodes.end(); ++i) {
-            (*i)->Update(XCurr, XPrimeCurr, dCoef, REGULAR_RES, 0);
+            (*i)->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_RES);
         }
 
 #if CREATE_PROFILE == 1
@@ -5806,11 +5692,11 @@ namespace {
         start = mbdyn_clock_time();
 #endif
 
-        enum GradientAssVecBase::mode_t mode = GradientAssVecBase::RESET;
+        SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
 
         for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
             (*i)->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, mode);
-            mode = GradientAssVecBase::APPEND;
+            mode = SpGradientAssVecBase::APPEND;
         }
 
 #if CREATE_PROFILE == 1
@@ -6000,7 +5886,7 @@ namespace {
     HydroRootElement::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
     {
         if (uInitAssFlags != INIT_ASS_NONE) {
-            UnivWorkSpaceDim(piNumRows, piNumCols, INITIAL_ASS_JAC);
+            UnivWorkSpaceDim(piNumRows, piNumCols, SpFunctionCall::INITIAL_ASS_JAC);
         } else {
             *piNumRows = 0;
             *piNumCols = 0;
@@ -6013,27 +5899,25 @@ namespace {
         const VectorHandler& XCurr)
     {
         if (uInitAssFlags != INIT_ASS_NONE) {
-            oNodeDofMap.Reset(INITIAL_ASS_JAC);
-
             const VectorHandler* const pXPrimeCurr = nullptr;
 
-            pMesh->Update(XCurr, *pXPrimeCurr, 1., INITIAL_ASS_JAC, &oNodeDofMap);
+            pMesh->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_JAC);
 
             HYDRO_ASSERT(rgElements.size() > 0);
 
             for (auto i = rgNodes.begin(); i != rgNodes.end(); ++i) {
-                (*i)->Update(XCurr, *pXPrimeCurr, 1., INITIAL_ASS_JAC, &oNodeDofMap);
+                (*i)->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_JAC);
             }
 
             SparseSubMatrixHandler& WorkMat = WorkMatVar.SetSparse();
             WorkMat.Resize(1, 1);
             WorkMat.PutItem(1, 1, 1, 0); // FIXME: Avoid a segmentation fault if the matrix is empty
 
-            enum GradientAssVecBase::mode_t mode = GradientAssVecBase::RESET;
+            SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
 
             for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
                 (*i)->InitialAssJac(WorkMat, XCurr, mode);
-                mode = GradientAssVecBase::APPEND;
+                mode = SpGradientAssVecBase::APPEND;
             }
 
             pMesh->pGetGeometry()->InitialAssJac(WorkMat, XCurr, mode);
@@ -6054,21 +5938,21 @@ namespace {
 
             const VectorHandler* const pXPrimeCurr = nullptr;
 
-            pMesh->Update(XCurr, *pXPrimeCurr, 1., INITIAL_ASS_RES, &oNodeDofMap);
+            pMesh->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_RES);
 
             for (auto i = rgBoundaryCond.begin(); i != rgBoundaryCond.end(); ++i) {
                 (*i)->Update();
             }
 
             for (auto i = rgNodes.begin(); i != rgNodes.end(); ++i) {
-                (*i)->Update(XCurr, *pXPrimeCurr, 1., INITIAL_ASS_RES, 0);
+                (*i)->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_RES);
             }
 
-            enum GradientAssVecBase::mode_t mode = GradientAssVecBase::RESET;
+            SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
 
             for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
                 (*i)->InitialAssRes(WorkVec, XCurr, mode);
-                mode = GradientAssVecBase::APPEND;
+                mode = SpGradientAssVecBase::APPEND;
             }
 
             pMesh->pGetGeometry()->InitialAssRes(WorkVec, XCurr, mode);
@@ -6303,7 +6187,7 @@ namespace {
         return dInitAss;
     }
 
-    Geometry2D::Geometry2D(const Vector<doublereal, 2>& x)
+    Geometry2D::Geometry2D(const SpColVector<doublereal, 2>& x)
         :x(x)
     {
 
@@ -6324,7 +6208,7 @@ namespace {
             throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-        Vector<doublereal, 2> xc;
+        SpColVectorA<doublereal, 2> xc;
 
         for (integer i = 1; i <= 2; ++i) {
             xc(i) = HP.GetReal();
@@ -6370,8 +6254,8 @@ namespace {
         } else if (HP.IsKeyWord("complete" "surface")) {
             return std::unique_ptr<Geometry2D>{new CompleteSurface2D{xc}};
         } else if (HP.IsKeyWord("surface" "grid")) {
-            Vector<doublereal, DYNAMIC_SIZE> x, z;
-            Matrix<int8_t, DYNAMIC_SIZE, DYNAMIC_SIZE> status;
+            SpColVector<doublereal> x, z;
+	    std::vector<bool> status;
 
             if (!HP.IsKeyWord("x")) {
                 silent_cerr("hydrodynamic plain bearing2("
@@ -6403,7 +6287,7 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            x.Resize(iGridX);
+            x.ResizeReset(iGridX, 0);
 
             for (integer i = 1; i <= iGridX; ++i) {
                 x(i) = HP.GetReal();
@@ -6447,7 +6331,7 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            z.Resize(iGridZ);
+            z.ResizeReset(iGridZ, 0);
 
             for (integer i = 1; i <= iGridZ; ++i) {
                 z(i) = HP.GetReal();
@@ -6470,14 +6354,15 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            status.Resize(iGridX - 1, iGridZ - 1);
+            status.resize((iGridX - 1) * (iGridZ - 1), false);
 
             for (integer i = 1; i < iGridX; ++i) {
                 for (integer j = 1; j < iGridZ; ++j) {
+		     const integer idx = (i - 1) * (iGridZ - 1) + j - 1;
                     if (HP.IsKeyWord("active")) {
-                        status(i, j) = true;
+			 status[idx] = true;
                     } else if (HP.IsKeyWord("inactive")) {
-                        status(i, j) = false;
+			 status[idx] = false;
                     } else {
                         silent_cerr("hydrodynamic plain bearing2("
                                     << pRoot->GetLabel()
@@ -6499,36 +6384,36 @@ namespace {
         }
     }
 
-    Circle2D::Circle2D(const Vector<doublereal, 2>& x, doublereal r)
+    Circle2D::Circle2D(const SpColVector<doublereal, 2>& x, doublereal r)
         :Geometry2D(x), r(r)
     {
 
     }
 
-    std::unique_ptr<Geometry2D> Circle2D::Clone(const Vector<doublereal, 2>& x) const
+    std::unique_ptr<Geometry2D> Circle2D::Clone(const SpColVector<doublereal, 2>& x) const
     {
         return std::unique_ptr<Geometry2D>{new Circle2D(x, r)};
     }
 
-    bool Circle2D::bPointIsInside(const Vector<doublereal, 2>& p1) const
+    bool Circle2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
     {
-        const Vector<doublereal, 2> v = p1 - x;
+        const SpColVector<doublereal, 2> v = p1 - x;
 
         return sqrt(Dot(v, v)) <= r;
     }
 
-    Rectangle2D::Rectangle2D(const Vector<doublereal, 2>& x, doublereal w, doublereal h)
+    Rectangle2D::Rectangle2D(const SpColVector<doublereal, 2>& x, doublereal w, doublereal h)
         :Geometry2D(x), w(w), h(h)
     {
 
     }
 
-    std::unique_ptr<Geometry2D> Rectangle2D::Clone(const Vector<doublereal, 2>& x) const
+    std::unique_ptr<Geometry2D> Rectangle2D::Clone(const SpColVector<doublereal, 2>& x) const
     {
         return std::unique_ptr<Geometry2D>{new Rectangle2D(x, w, h)};
     }
 
-    bool Rectangle2D::bPointIsInside(const Vector<doublereal, 2>& p1) const
+    bool Rectangle2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
     {
         const bool bInside = std::abs(p1(1) - x(1)) <= 0.5 * w
             && std::abs(p1(2) - x(2)) <= 0.5 * h;
@@ -6539,47 +6424,46 @@ namespace {
         return bInside;
     }
 
-    CompleteSurface2D::CompleteSurface2D(const Vector<doublereal, 2>& x)
+    CompleteSurface2D::CompleteSurface2D(const SpColVector<doublereal, 2>& x)
         :Geometry2D(x)
     {
     }
 
-    std::unique_ptr<Geometry2D> CompleteSurface2D::Clone(const Vector<doublereal, 2>& x) const
+    std::unique_ptr<Geometry2D> CompleteSurface2D::Clone(const SpColVector<doublereal, 2>& x) const
     {
         return std::unique_ptr<Geometry2D>{new CompleteSurface2D{x}};
     }
 
-    bool CompleteSurface2D::bPointIsInside(const Vector<doublereal, 2>& p1) const
+    bool CompleteSurface2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
     {
         // per definition everything is inside
         return true;
     }
 
-    SurfaceGrid2D::SurfaceGrid2D(const Vector<doublereal, 2>& xc,
-                                 const Vector<doublereal, DYNAMIC_SIZE>& x,
-                                 const Vector<doublereal, DYNAMIC_SIZE>& z,
+    SurfaceGrid2D::SurfaceGrid2D(const SpColVector<doublereal, 2>& xc,
+                                 const SpColVector<doublereal>& x,
+                                 const SpColVector<doublereal>& z,
                                  doublereal tolx,
                                  doublereal tolz,
-                                 const Matrix<int8_t, DYNAMIC_SIZE, DYNAMIC_SIZE>& status)
-        :Geometry2D(xc),
+                                 const std::vector<bool>& status)
+	 :Geometry2D(xc),
          tolx(tolx),
          tolz(tolz),
-         x(x),
-         z(z),
-         status(status)
+	  x(x),
+	  z(z),
+	  status(status)
     {
         HYDRO_ASSERT(x.iGetNumRows() >= 2);
         HYDRO_ASSERT(z.iGetNumRows() >= 2);
-        HYDRO_ASSERT(x.iGetNumRows() - 1 == status.iGetNumRows());
-        HYDRO_ASSERT(z.iGetNumRows() - 1 == status.iGetNumCols());
+        HYDRO_ASSERT(static_cast<size_t>(x.iGetNumRows() - 1) * (z.iGetNumRows() - 1) == status.size());
     }
 
-    std::unique_ptr<Geometry2D> SurfaceGrid2D::Clone(const Vector<doublereal, 2>& xc) const
+    std::unique_ptr<Geometry2D> SurfaceGrid2D::Clone(const SpColVector<doublereal, 2>& xc) const
     {
         return std::unique_ptr<Geometry2D>{new SurfaceGrid2D{xc, x, z, tolx, tolz, status}};
     }
 
-    bool SurfaceGrid2D::bPointIsInside(const Vector<doublereal, 2>& p1) const
+    bool SurfaceGrid2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
     {
         index_type ix = x.iGetNumRows() - 1;
 
@@ -6599,23 +6483,23 @@ namespace {
             }
         }
 
-        if (status(ix, iz)) {
+        if (status[(ix - 1) * (z.iGetNumRows() - 1) + iz - 1]) {
             return true;
         }
 
-        if (ix > 1 && status(ix - 1, iz) && p1(1) - tolx <= x(ix - 1)) {
+        if (ix > 1 && status[(ix - 2) * (z.iGetNumRows() - 1) + iz - 1] && p1(1) - tolx <= x(ix - 1)) {
             return true;
         }
 
-        if (ix < x.iGetNumRows() - 1 && status(ix + 1, iz) && p1(1) + tolx >= x(ix + 1)) {
+        if (ix < x.iGetNumRows() - 1 && status[ix * (z.iGetNumRows() - 1) + iz - 1] && p1(1) + tolx >= x(ix + 1)) {
             return true;
         }
 
-        if (iz > 1 && status(ix, iz - 1) && p1(2) - tolz <= z(iz - 1)) {
+        if (iz > 1 && status[(ix - 1) * (z.iGetNumRows() - 1) + iz - 2] && p1(2) - tolz <= z(iz - 1)) {
             return true;
         }
 
-        if (iz < z.iGetNumRows() - 1 && status(ix, iz + 1) && p1(2) + tolz >= z(iz + 1)) {
+        if (iz < z.iGetNumRows() - 1 && status[(ix - 1) * (z.iGetNumRows() - 1) + iz] && p1(2) + tolz >= z(iz + 1)) {
             return true;
         }
 
@@ -6689,7 +6573,7 @@ namespace {
         return pBoundaryCond;
     }
 
-    LubricationGrooveSlave::LubricationGrooveSlave(LubricationGrooveMaster* pMaster, const Vector<doublereal, 2>& x)
+    LubricationGrooveSlave::LubricationGrooveSlave(LubricationGrooveMaster* pMaster, const SpColVector<doublereal, 2>& x)
         :LubricationGroove(pMaster->iGetLabel(),
                            pMaster->pGetGeometry()->Clone(x)),
          pMaster(pMaster)
@@ -6756,8 +6640,8 @@ namespace {
 
             return std::unique_ptr<Pocket>{new ConstHeightPocket(std::move(pGeometry), dy)};
         } else if (HP.IsKeyWord("linear")) {
-            Vector<doublereal, 2> x, z;
-            Matrix<doublereal, 2, 2> Deltay;
+	     SpColVectorA<doublereal, 2> x, z;
+	     SpMatrixA<doublereal, 2, 2> Deltay;
 
             if (!HP.IsKeyWord("x")) {
                 silent_cerr("hydrodynamic plain bearing2("
@@ -6818,8 +6702,8 @@ namespace {
 
             return std::unique_ptr<Pocket>{new RectangularPocket{std::move(pGeometry), x, z, Deltay}};
         } else if (HP.IsKeyWord("surface" "grid")) {
-            Vector<doublereal, DYNAMIC_SIZE> x, z;
-            Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> Deltay;
+            SpColVector<doublereal> x, z;
+            SpMatrix<doublereal> Deltay;
 
             if (!HP.IsKeyWord("x")) {
                 silent_cerr("hydrodynamic plain bearing2("
@@ -6840,7 +6724,7 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            x.Resize(iGridX);
+            x.ResizeReset(iGridX, 0);
 
             for (integer i = 1; i <= iGridX; ++i) {
                 x(i) = HP.GetReal();
@@ -6873,7 +6757,7 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            z.Resize(iGridZ);
+            z.ResizeReset(iGridZ, 0);
 
             for (integer i = 1; i <= iGridZ; ++i) {
                 z(i) = HP.GetReal();
@@ -6896,7 +6780,7 @@ namespace {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             }
 
-            Deltay.Resize(iGridX, iGridZ);
+            Deltay.ResizeReset(iGridX, iGridZ, 0);
 
             for (integer i = 1; i <= iGridX; ++i) {
                 for (integer j = 1; j <= iGridZ; ++j) {
@@ -6928,11 +6812,9 @@ namespace {
 
             doublereal beta = HP.IsKeyWord("pitch" "angle") ? HP.GetReal() : 0.;
 
-            Matrix<doublereal, 2, 2> R0;
-            R0(1, 1) = cos(beta); R0(1, 2) = -sin(beta);
-            R0(2, 1) = sin(beta); R0(2, 2) = cos(beta);
+            const SpMatrix<doublereal, 2, 2> R0{cos(beta), sin(beta), -sin(beta), cos(beta)};
 
-            Vector<doublereal, 2> x0;
+            SpColVectorA<doublereal, 2> x0;
 
             if (HP.IsKeyWord("origin")) {
                 for (index_type i = 1; i <= 2; ++i) {
@@ -6973,45 +6855,45 @@ namespace {
 
     }
 
-    void ConstHeightPocket::GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const
+    void ConstHeightPocket::GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const
     {
         Deltay = dy;
     }
 
-    void ConstHeightPocket::GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const
+    void ConstHeightPocket::GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const
     {
-        Deltay = dy;
+	 Deltay.ResizeReset(dy, 0);
     }
 
-    void ConstHeightPocket::GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const
-    {
-        dDeltay_dx = 0.;
-    }
-
-    void ConstHeightPocket::GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const
+    void ConstHeightPocket::GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const
     {
         dDeltay_dx = 0.;
     }
 
-    void ConstHeightPocket::GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const
+    void ConstHeightPocket::GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const
+    {
+	 dDeltay_dx.ResizeReset(0., 0);
+    }
+
+    void ConstHeightPocket::GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const
     {
         dDeltay_dz = 0.;
     }
 
-    void ConstHeightPocket::GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const
+    void ConstHeightPocket::GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const
     {
-        dDeltay_dz = 0.;
+	 dDeltay_dz.ResizeReset(0., 0);
     }
 
-    std::unique_ptr<Pocket> ConstHeightPocket::Clone(const Vector<doublereal, 2>& x) const
+    std::unique_ptr<Pocket> ConstHeightPocket::Clone(const SpColVector<doublereal, 2>& x) const
     {
         return std::unique_ptr<Pocket>{new ConstHeightPocket(pGetGeometry()->Clone(x), dy)};
     }
 
     RectangularPocket::RectangularPocket(std::unique_ptr<Geometry2D>&& pGeometry,
-                                         const Vector<doublereal, 2>& x,
-                                         const Vector<doublereal, 2>& z,
-                                         const Matrix<doublereal, 2, 2>& Deltay)
+                                         const SpColVector<doublereal, 2>& x,
+                                         const SpColVector<doublereal, 2>& z,
+                                         const SpMatrix<doublereal, 2, 2>& Deltay)
         :Pocket(std::move(pGeometry)),
          x(x),
          z(z),
@@ -7026,43 +6908,43 @@ namespace {
 
     }
 
-    void RectangularPocket::GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const
+    void RectangularPocket::GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void RectangularPocket::GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const
+    void RectangularPocket::GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void RectangularPocket::GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const
+    void RectangularPocket::GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const
     {
         GetHeightDerXTpl(x, dDeltay_dx);
     }
 
-    void RectangularPocket::GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const
+    void RectangularPocket::GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const
     {
         GetHeightDerXTpl(x, dDeltay_dx);
     }
 
-    void RectangularPocket::GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const
+    void RectangularPocket::GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const
     {
         GetHeightDerZTpl(x, dDeltay_dz);
     }
 
-    void RectangularPocket::GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const
+    void RectangularPocket::GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const
     {
         GetHeightDerZTpl(x, dDeltay_dz);
     }
 
-    std::unique_ptr<Pocket> RectangularPocket::Clone(const Vector<doublereal, 2>& xgc) const
+    std::unique_ptr<Pocket> RectangularPocket::Clone(const SpColVector<doublereal, 2>& xgc) const
     {
         return std::unique_ptr<Pocket>{new RectangularPocket(pGetGeometry()->Clone(xgc), x, z, f)};
     }
 
     template <typename T> inline
-    void RectangularPocket::GetHeightTpl(const Vector<T, 2>& xci, T& Deltay) const
+    void RectangularPocket::GetHeightTpl(const SpColVector<T, 2>& xci, T& Deltay) const
     {
         const T& xi = xci(1);
         const T& zi = xci(2);
@@ -7075,7 +6957,7 @@ namespace {
     }
 
     template <typename T> inline
-    void RectangularPocket::GetHeightDerXTpl(const Vector<T, 2>& xci, T& dDeltay_dx) const
+    void RectangularPocket::GetHeightDerXTpl(const SpColVector<T, 2>& xci, T& dDeltay_dx) const
     {
         const T& zi = xci(2);
         const T dz = (zi - z(1)) / (z(2) - z(1));
@@ -7084,7 +6966,7 @@ namespace {
     }
 
     template <typename T> inline
-    void RectangularPocket::GetHeightDerZTpl(const Vector<T, 2>& xci, T& dDeltay_dz) const
+    void RectangularPocket::GetHeightDerZTpl(const SpColVector<T, 2>& xci, T& dDeltay_dz) const
     {
         const T& xi = xci(1);
 
@@ -7096,9 +6978,9 @@ namespace {
     }
 
     SurfaceGrid::SurfaceGrid(std::unique_ptr<Geometry2D>&& pGeometry,
-                             const Vector<doublereal, DYNAMIC_SIZE>& x,
-                             const Vector<doublereal, DYNAMIC_SIZE>& z,
-                             const Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE>& f)
+                             const SpColVector<doublereal>& x,
+                             const SpColVector<doublereal>& z,
+                             const SpMatrix<doublereal>& f)
         :Pocket(std::move(pGeometry)),
          x(x),
          z(z),
@@ -7114,43 +6996,43 @@ namespace {
     {
     }
 
-    void SurfaceGrid::GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const
+    void SurfaceGrid::GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void SurfaceGrid::GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const
+    void SurfaceGrid::GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void SurfaceGrid::GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const
+    void SurfaceGrid::GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const
     {
         GetHeightDerXTpl(x, dDeltay_dx);
     }
 
-    void SurfaceGrid::GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const
+    void SurfaceGrid::GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const
     {
         GetHeightDerXTpl(x, dDeltay_dx);
     }
 
-    void SurfaceGrid::GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const
+    void SurfaceGrid::GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const
     {
         GetHeightDerZTpl(x, dDeltay_dz);
     }
 
-    void SurfaceGrid::GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const
+    void SurfaceGrid::GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const
     {
         GetHeightDerZTpl(x, dDeltay_dz);
     }
 
-    std::unique_ptr<Pocket> SurfaceGrid::Clone(const Vector<doublereal, 2>& xc) const
+    std::unique_ptr<Pocket> SurfaceGrid::Clone(const SpColVector<doublereal, 2>& xc) const
     {
         return std::unique_ptr<Pocket>{new SurfaceGrid{pGetGeometry()->Clone(xc), x, z, f}};
     }
 
     template <typename T> inline
-    index_type SurfaceGrid::iFindGridX(const Vector<T, 2>& xci) const
+    index_type SurfaceGrid::iFindGridX(const SpColVector<T, 2>& xci) const
     {
         index_type ix = x.iGetNumRows() - 1;
 
@@ -7165,7 +7047,7 @@ namespace {
     }
 
     template <typename T> inline
-    index_type SurfaceGrid::iFindGridZ(const Vector<T, 2>& xci) const
+    index_type SurfaceGrid::iFindGridZ(const SpColVector<T, 2>& xci) const
     {
         index_type iz = z.iGetNumRows() - 1;
 
@@ -7180,7 +7062,7 @@ namespace {
     }
 
     template <typename T> inline
-    void SurfaceGrid::GetHeightTpl(const Vector<T, 2>& xci, T& Deltay) const
+    void SurfaceGrid::GetHeightTpl(const SpColVector<T, 2>& xci, T& Deltay) const
     {
         const index_type ix = iFindGridX(xci);
         const index_type iz = iFindGridZ(xci);
@@ -7193,7 +7075,7 @@ namespace {
     }
 
     template <typename T> inline
-    void SurfaceGrid::GetHeightDerXTpl(const Vector<T, 2>& xci, T& dDeltay_dx) const
+    void SurfaceGrid::GetHeightDerXTpl(const SpColVector<T, 2>& xci, T& dDeltay_dx) const
     {
         const index_type ix = iFindGridX(xci);
         const index_type iz = iFindGridZ(xci);
@@ -7205,7 +7087,7 @@ namespace {
     }
 
     template <typename T> inline
-    void SurfaceGrid::GetHeightDerZTpl(const Vector<T, 2>& xci, T& dDeltay_dz) const
+    void SurfaceGrid::GetHeightDerZTpl(const SpColVector<T, 2>& xci, T& dDeltay_dz) const
     {
         const index_type ix = iFindGridX(xci);
         const index_type iz = iFindGridZ(xci);
@@ -7218,8 +7100,8 @@ namespace {
 
     HelicalGroove::HelicalGroove(std::unique_ptr<Geometry2D>&& pGeometry,
                                  std::array<std::unique_ptr<DriveCaller>, 2>&& rgProfile,
-                                 const Matrix<doublereal, 2, 2>& R0,
-                                 const Vector<doublereal, 2>& x0,
+                                 const SpMatrix<doublereal, 2, 2>& R0,
+                                 const SpColVector<doublereal, 2>& x0,
                                  doublereal P)
         :Pocket(std::move(pGeometry)),
          rgProfile(std::move(rgProfile)),
@@ -7233,37 +7115,37 @@ namespace {
     {
     }
 
-    void HelicalGroove::GetHeight(const Vector<doublereal, 2>& x, doublereal& Deltay) const
+    void HelicalGroove::GetHeight(const SpColVector<doublereal, 2>& x, doublereal& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void HelicalGroove::GetHeight(const Vector<Gradient<0>, 2>& x, Gradient<0>& Deltay) const
+    void HelicalGroove::GetHeight(const SpColVector<SpGradient, 2>& x, SpGradient& Deltay) const
     {
         GetHeightTpl(x, Deltay);
     }
 
-    void HelicalGroove::GetHeightDerX(const Vector<doublereal, 2>& x, doublereal& dDeltay_dx) const
+    void HelicalGroove::GetHeightDerX(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dx) const
     {
         GetHeightDerTpl(x, dDeltay_dx, 1);
     }
 
-    void HelicalGroove::GetHeightDerX(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dx) const
+    void HelicalGroove::GetHeightDerX(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dx) const
     {
         GetHeightDerTpl(x, dDeltay_dx, 1);
     }
 
-    void HelicalGroove::GetHeightDerZ(const Vector<doublereal, 2>& x, doublereal& dDeltay_dz) const
+    void HelicalGroove::GetHeightDerZ(const SpColVector<doublereal, 2>& x, doublereal& dDeltay_dz) const
     {
         GetHeightDerTpl(x, dDeltay_dz, 2);
     }
 
-    void HelicalGroove::GetHeightDerZ(const Vector<Gradient<0>, 2>& x, Gradient<0>& dDeltay_dz) const
+    void HelicalGroove::GetHeightDerZ(const SpColVector<SpGradient, 2>& x, SpGradient& dDeltay_dz) const
     {
         GetHeightDerTpl(x, dDeltay_dz, 2);
     }
 
-    std::unique_ptr<Pocket> HelicalGroove::Clone(const Vector<doublereal, 2>& x) const
+    std::unique_ptr<Pocket> HelicalGroove::Clone(const SpColVector<doublereal, 2>& x) const
     {
         std::array<std::unique_ptr<DriveCaller>, 2> rgProfileClone;
 
@@ -7275,21 +7157,21 @@ namespace {
     }
 
     template <typename T> inline
-    void HelicalGroove::RelativePosition(const Vector<T, 2>& xci, Vector<T, 2>& x) const
+    void HelicalGroove::RelativePosition(const SpColVector<T, 2>& xci, SpColVector<T, 2>& x) const
     {
-        x = Transpose(R0) * Vector<T, 2>(xci - x0);
+        x = Transpose(R0) * (xci - x0);
 
-        const doublereal z = dGetValue(x(2));
+        const doublereal z = SpGradient::dGetValue(x(2));
 
         int K = z / P + copysign(0.5, z);
 
-        x(2) = T(x(2) - K * P);
+        x(2) = x(2) - K * P;
     }
 
     template <typename T> inline
-    void HelicalGroove::GetHeightTpl(const Vector<T, 2>& xci, T& Deltay) const
+    void HelicalGroove::GetHeightTpl(const SpColVector<T, 2>& xci, T& Deltay) const
     {
-        Vector<T, 2> x, f;
+	 SpColVectorA<T, 2> x, f;
 
         RelativePosition(xci, x);
 
@@ -7301,9 +7183,9 @@ namespace {
     }
 
     template <typename T> inline
-    void HelicalGroove::GetHeightDerTpl(const Vector<T, 2>& xci, T& dDeltay_dx, index_type iDirection) const
+    void HelicalGroove::GetHeightDerTpl(const SpColVector<T, 2>& xci, T& dDeltay_dx, index_type iDirection) const
     {
-        Vector<T, 2> x, df_dx;
+	 SpColVector<T, 2> x(2, 0), df_dx(2, 0);
 
         RelativePosition(xci, x);
 
@@ -7311,16 +7193,16 @@ namespace {
             rgProfile[i]->dGetP(x(i + 1), df_dx(i + 1));
         }
 
-        dDeltay_dx = Dot(R0.GetRow(iDirection), df_dx);
+        dDeltay_dx = Dot(Transpose(R0.GetRow(iDirection)), df_dx);
     }
 
     template <typename T>
     KinematicsBoundaryCond<T>::KinematicsBoundaryCond()
         :bContact(false),
-         h(0.),
-         dh_dt(0.),
-         pasp(0.),
-         Pfc(0.)
+         h{},
+         dh_dt{},
+         pasp{},
+         Pfc{}
     {
 
     }
@@ -7328,15 +7210,14 @@ namespace {
     template <typename T>
     void KinematicsBoundaryCond<T>::Update(HydroUpdatedNode* pNode,
                                            doublereal dCoef,
-                                           enum FunctionCall func,
-                                           LocalDofMap* pDofMap) {
+                                           SpFunctionCall func) {
 
         const HydroMesh* const pMesh = pNode->pGetMesh();
         const BearingGeometry* const pGeometry = pMesh->pGetGeometry();
         const ContactModel* const pContact = pNode->pGetContactModel();
         FrictionModel* const pFriction = pNode->pGetFrictionModel();
 
-        pGeometry->GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func, pDofMap);
+        pGeometry->GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func);
 
         // Attention: stiction states for LuGre friction have to be updated
         // also if there is no contact at the current time step
@@ -7345,69 +7226,69 @@ namespace {
         if (pContact) {
             pContact->GetContactPressure(h, pasp);
         } else {
-            pasp = 0.;
+	     SpGradient::ResizeReset(pasp, 0., 0);
         }
 
         if (pFriction) {
-            const Vector<T, 2> U = U1 - U2;
+            const SpColVector<T, 2> U = U1 - U2;
 
             pFriction->GetFrictionForce(h, U, pasp, tauc_0);
 
             Pfc = Dot(U, tauc_0);
         } else {
             for (index_type i = 1; i <= tauc_0.iGetNumRows(); ++i) {
-                tauc_0(i) = 0.;
+		 SpGradient::ResizeReset(tauc_0(i), 0., 0);
             }
 
-            Pfc = 0.;
+	    SpGradient::ResizeReset(Pfc, 0., 0);
         }
     }
 
     template <typename T>
-    void KinematicsBoundaryCond<T>::GetClearance(T& h, LocalDofMap* pDofMap) const
+    void KinematicsBoundaryCond<T>::GetClearance(T& h) const
     {
-        Copy(h, this->h, pDofMap);
+        h = this->h;
     }
 
     template <typename T>
-    void KinematicsBoundaryCond<T>::GetClearanceDerTime(T& dh_dt, LocalDofMap* pDofMap) const
+    void KinematicsBoundaryCond<T>::GetClearanceDerTime(T& dh_dt) const
     {
-        Copy(dh_dt, this->dh_dt, pDofMap);
+        dh_dt = this->dh_dt;
     }
 
     template <typename T>
-    void KinematicsBoundaryCond<T>::GetVelocity(Vector<T, 2>& U1, Vector<T, 2>& U2, LocalDofMap* pDofMap) const
+    void KinematicsBoundaryCond<T>::GetVelocity(SpColVector<T, 2>& U1, SpColVector<T, 2>& U2) const
     {
-        U1.Copy(this->U1, pDofMap);
-        U2.Copy(this->U2, pDofMap);
+        U1 = this->U1;
+        U2 = this->U2;
     }
 
     template <typename T>
-    void KinematicsBoundaryCond<T>::GetHydraulicVelocity(Vector<T, 2>& U, LocalDofMap* pDofMap) const
+    void KinematicsBoundaryCond<T>::GetHydraulicVelocity(SpColVector<T, 2>& U) const
     {
-        U.Copy(this->U, pDofMap);
+        U = this->U;
     }
 
     template <typename T>
-    bool KinematicsBoundaryCond<T>::GetContactPressure(T& pasp, LocalDofMap* pDofMap) const
+    bool KinematicsBoundaryCond<T>::GetContactPressure(T& pasp) const
     {
-        Copy(pasp, this->pasp, pDofMap);
+        pasp = this->pasp;
 
         return bContact;
     }
 
     template <typename T>
-    bool KinematicsBoundaryCond<T>::GetContactStress(Vector<T, 2>& tauc_0, LocalDofMap* pDofMap) const
+    bool KinematicsBoundaryCond<T>::GetContactStress(SpColVector<T, 2>& tauc_0) const
     {
-        tauc_0.Copy(this->tauc_0, pDofMap);
+        tauc_0 = this->tauc_0;
 
         return bContact;
     }
 
     template <typename T>
-    bool KinematicsBoundaryCond<T>::GetContactFrictionLossDens(T& Pfc, LocalDofMap* pDofMap) const
+    bool KinematicsBoundaryCond<T>::GetContactFrictionLossDens(T& Pfc) const
     {
-        Copy(Pfc, this->Pfc, pDofMap);
+        Pfc = this->Pfc;
 
         return bContact;
     }
@@ -7442,7 +7323,7 @@ namespace {
 
     HydroDofOwner::HydroDofOwner()
     {
-        std::fill(rgOffsetIndex.begin(), rgOffsetIndex.end(), grad::UNKNOWN_FUNC);
+        std::fill(rgOffsetIndex.begin(), rgOffsetIndex.end(), sp_grad::UNKNOWN_FUNC);
     }
 
     HydroDofOwner::~HydroDofOwner()
@@ -7450,18 +7331,18 @@ namespace {
 
     }
 
-    integer HydroDofOwner::iGetOffsetIndex(grad::FunctionCall eFunc) const
+    integer HydroDofOwner::iGetOffsetIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return rgOffsetIndex[iFuncCallToIndex(eFunc)];
     }
 
-    void HydroDofOwner::SetOffsetIndex(integer iOffset, grad::FunctionCall eFunc)
+    void HydroDofOwner::SetOffsetIndex(integer iOffset, sp_grad::SpFunctionCall eFunc)
     {
         rgOffsetIndex[iFuncCallToIndex(eFunc)] = iOffset;
     }
 
     Node2D::Node2D(integer iNodeNo,
-                   const Vector<doublereal, 2>& x,
+                   const SpColVector<doublereal, 2>& x,
                    HydroMesh* pParent,
                    integer iNodeFlags)
         :iNodeNo(iNodeNo),
@@ -7527,7 +7408,7 @@ namespace {
     {
     }
 
-    integer Node2D::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer Node2D::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         return 0;
     }
@@ -7546,7 +7427,7 @@ namespace {
     }
 
     ThermoHydrNode::ThermoHydrNode(integer iNodeNo,
-                                   const Vector<doublereal, 2>& x,
+                                   const SpColVector<doublereal, 2>& x,
                                    HydroMesh* pMesh,
                                    integer iNodeFlags)
         :Node2D(iNodeNo, x, pMesh, THERMAL_NODE | CORNER_NODE | iNodeFlags)
@@ -7575,12 +7456,12 @@ namespace {
     }
 
     ThermalActiveNode::ThermalActiveNode(integer iNodeNo,
-                                         const Vector<doublereal, 2>& x,
+                                         const SpColVector<doublereal, 2>& x,
                                          HydroMesh* pParent,
                                          doublereal T0,
                                          bool bDoInitAss)
         :ThermoHydrNode(iNodeNo, x, pParent, ACTIVE_NODE | MASTER_NODE),
-         eCurrFunc(grad::INITIAL_ASS_FLAG),
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
          T(T0),
          dT_dt(0.),
          s(pParent->pGetParent()->dGetScale(HydroRootElement::SCALE_TEMPERATURE_DOF)),
@@ -7592,59 +7473,51 @@ namespace {
     {
     }
 
-    void ThermalActiveNode::GetTemperature(doublereal& T, LocalDofMap*, doublereal) const
+    void ThermalActiveNode::GetTemperature(doublereal& T, doublereal) const
     {
         T = this->T;
     }
 
-    void ThermalActiveNode::GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalActiveNode::GetTemperature(SpGradient& T, doublereal dCoef) const
     {
-        if (eCurrFunc & grad::REGULAR_FLAG) {
-            T.SetValuePreserve(this->T);
-            T.DerivativeResizeReset(pDofMap,
-                                    iGetFirstDofIndex(eCurrFunc),
-                                    MapVectorBase::GLOBAL,
-                                    -dCoef * s);
+        if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
+	     T.Reset(this->T, iGetFirstDofIndex(eCurrFunc), -dCoef * s);
         } else {
-            T.SetValue(this->T);
+	     T.ResizeReset(this->T, 0);
         }
     }
 
-    void ThermalActiveNode::GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap*, doublereal) const
+    void ThermalActiveNode::GetTemperatureDerTime(doublereal& dT_dt, doublereal) const
     {
         dT_dt = this->dT_dt;
     }
 
-    void ThermalActiveNode::GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalActiveNode::GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const
     {
-        if (bDoInitAss || (eCurrFunc & grad::REGULAR_FLAG)) {
-            dT_dt.SetValuePreserve(this->dT_dt);
-            dT_dt.DerivativeResizeReset(pDofMap,
-                                        iGetFirstDofIndex(eCurrFunc),
-                                        MapVectorBase::GLOBAL,
-                                        -s);
-        } else {
-            dT_dt.SetValue(this->dT_dt);
-        }
+	 if (bDoInitAss || (eCurrFunc & SpFunctionCall::REGULAR_FLAG)) {
+	      dT_dt.Reset(this->dT_dt, iGetFirstDofIndex(eCurrFunc), -s);
+	 } else {
+	      dT_dt.ResizeReset(this->dT_dt, 0);
+	 }
     }
 
-    integer ThermalActiveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer ThermalActiveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return iGetFirstDofIndex(eFunc);
     }
 
-    integer ThermalActiveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer ThermalActiveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(iGetOffsetIndex(eFunc) != UNKNOWN_OFFSET);
         HYDRO_ASSERT(unsigned(iGetOffsetIndex(eFunc)) <= pGetMesh()->pGetParent()->iGetNumDof());
-        HYDRO_ASSERT((eFunc & grad::REGULAR_FLAG) || bDoInitAss);
+        HYDRO_ASSERT((eFunc & SpFunctionCall::REGULAR_FLAG) || bDoInitAss);
 
         return pGetMesh()->pGetParent()->iGetFirstIndex() + iGetOffsetIndex(eFunc);
     }
 
-    integer ThermalActiveNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer ThermalActiveNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
-        if (eFunc & grad::REGULAR_FLAG) {
+        if (eFunc & SpFunctionCall::REGULAR_FLAG) {
             return iGetNumDof();
         } else {
             return iGetInitialNumDof();
@@ -7655,8 +7528,7 @@ namespace {
     ThermalActiveNode::Update(const VectorHandler& XCurr,
                               const VectorHandler& XPrimeCurr,
                               doublereal dCoef,
-                              enum FunctionCall func,
-                              LocalDofMap* pDofMap)
+                              SpFunctionCall func)
     {
         HYDRO_ASSERT(iGetOffsetIndex(func) > 0);
 
@@ -7665,7 +7537,7 @@ namespace {
         HYDRO_ASSERT(iIndex > 0);
         HYDRO_ASSERT(iIndex <= XCurr.iGetSize());
 
-        if (func & grad::REGULAR_FLAG) {
+        if (func & SpFunctionCall::REGULAR_FLAG) {
             T = s * XCurr(iIndex);
             dT_dt = s * XPrimeCurr(iIndex);
         } else if (bDoInitAss) {
@@ -7675,9 +7547,9 @@ namespace {
 
     void ThermalActiveNode::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
 
         HYDRO_ASSERT(iGetOffsetIndex(eCurrFunc) > 0);
 
@@ -7714,8 +7586,8 @@ namespace {
     ThermalActiveNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
         integer iIndex = iGetFirstDofIndex(bInitial
-                                           ? grad::INITIAL_ASS_FLAG
-                                           : grad::REGULAR_FLAG);
+                                           ? SpFunctionCall::INITIAL_ASS_FLAG
+                                           : SpFunctionCall::REGULAR_FLAG);
 
         if (bInitial) {
             if (bDoInitAss) {
@@ -7733,8 +7605,8 @@ namespace {
     {
         if (bDoInitAss || !bInitial) {
             integer iIndex = iGetFirstDofIndex(bInitial
-                                               ? grad::INITIAL_ASS_FLAG
-                                               : grad::REGULAR_FLAG);
+                                               ? SpFunctionCall::INITIAL_ASS_FLAG
+                                               : SpFunctionCall::REGULAR_FLAG);
 
             out << prefix << iIndex << ":  energy balance node " << iGetNodeNumber() + 1 << std::endl;
         }
@@ -7743,12 +7615,12 @@ namespace {
     }
 
     ThermalCoupledNode::ThermalCoupledNode(integer iNodeNo,
-                                           const Vector<doublereal, 2>& x,
+                                           const SpColVector<doublereal, 2>& x,
                                            HydroMesh* pMesh,
                                            ThermalNode* pExtThermNode)
         :ThermoHydrNode(iNodeNo, x, pMesh, COUPLED_NODE | MASTER_NODE),
          pExtThermNode(pExtThermNode),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
         HYDRO_ASSERT(pExtThermNode != nullptr);
     }
@@ -7757,59 +7629,58 @@ namespace {
     {
     }
 
-    void ThermalCoupledNode::GetTemperature(doublereal& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalCoupledNode::GetTemperature(doublereal& T, doublereal dCoef) const
     {
-        pExtThermNode->GetX(T, dCoef, eCurrFunc, pDofMap);
+        pExtThermNode->GetX(T, dCoef, eCurrFunc);
     }
 
-    void ThermalCoupledNode::GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalCoupledNode::GetTemperature(SpGradient& T, doublereal dCoef) const
     {
-        pExtThermNode->GetX(T, dCoef, eCurrFunc, pDofMap);
+        pExtThermNode->GetX(T, dCoef, eCurrFunc);
     }
 
-    void ThermalCoupledNode::GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalCoupledNode::GetTemperatureDerTime(doublereal& dT_dt, doublereal dCoef) const
     {
-        pExtThermNode->GetXPrime(dT_dt, dCoef, eCurrFunc, pDofMap);
+        pExtThermNode->GetXPrime(dT_dt, dCoef, eCurrFunc);
     }
 
-    void ThermalCoupledNode::GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalCoupledNode::GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const
     {
-        pExtThermNode->GetXPrime(dT_dt, dCoef, eCurrFunc, pDofMap);
+        pExtThermNode->GetXPrime(dT_dt, dCoef, eCurrFunc);
     }
 
-    integer ThermalCoupledNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer ThermalCoupledNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
-        HYDRO_ASSERT(eFunc & grad::REGULAR_FLAG);
+        HYDRO_ASSERT(eFunc & SpFunctionCall::REGULAR_FLAG);
 
         return pExtThermNode->iGetFirstRowIndex() + 1;
     }
 
-    integer ThermalCoupledNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer ThermalCoupledNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
-        HYDRO_ASSERT(eFunc & grad::REGULAR_FLAG);
+        HYDRO_ASSERT(eFunc & SpFunctionCall::REGULAR_FLAG);
 
         return pExtThermNode->iGetFirstColIndex() + 1;
     }
 
-    integer ThermalCoupledNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer ThermalCoupledNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
-        return eFunc & grad::REGULAR_FLAG ? 1 : 0;
+        return eFunc & SpFunctionCall::REGULAR_FLAG ? 1 : 0;
     }
 
     void
     ThermalCoupledNode::Update(const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
                                doublereal dCoef,
-                               enum FunctionCall func,
-                               LocalDofMap* pDofMap)
+                               SpFunctionCall func)
     {
-        if (func & grad::REGULAR_FLAG) {
-            eCurrFunc = grad::REGULAR_FLAG;
+        if (func & SpFunctionCall::REGULAR_FLAG) {
+            eCurrFunc = SpFunctionCall::REGULAR_FLAG;
         }
     }
 
     ThermalInletNode::ThermalInletNode(integer iNodeNo,
-                                       const Vector<doublereal, 2>& x,
+                                       const SpColVector<doublereal, 2>& x,
                                        HydroMesh* pParent,
                                        ThermalNode* pExtThermNode,
                                        bool bDoInitAss)
@@ -7827,21 +7698,20 @@ namespace {
     ThermalInletNode::Update(const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr,
                              doublereal dCoef,
-                             enum FunctionCall func,
-                             LocalDofMap* pDofMap)
+                             SpFunctionCall func)
     {
-        ThermalActiveNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
-        oInletNode.Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        ThermalActiveNode::Update(XCurr, XPrimeCurr, dCoef, func);
+        oInletNode.Update(XCurr, XPrimeCurr, dCoef, func);
     }
 
-    integer ThermalInletNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer ThermalInletNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         return ThermalActiveNode::iGetNumColsWorkSpace(eFunc)
             + oInletNode.iGetNumColsWorkSpace(eFunc);
     }
 
     ThermalPassiveNode::ThermalPassiveNode(integer iNodeNo,
-                                           const Vector<doublereal, 2>& x,
+                                           const SpColVector<doublereal, 2>& x,
                                            HydroMesh* pParent,
                                            const FluidStateBoundaryCond* pBoundCond)
         :ThermoHydrNode(iNodeNo, x, pParent, PASSIVE_NODE | MASTER_NODE),
@@ -7854,33 +7724,33 @@ namespace {
     {
     }
 
-    void ThermalPassiveNode::GetTemperature(doublereal& T, LocalDofMap*, doublereal) const
+    void ThermalPassiveNode::GetTemperature(doublereal& T, doublereal) const
     {
         T = pBoundCond->dGetTemperature();
     }
 
-    void ThermalPassiveNode::GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalPassiveNode::GetTemperature(SpGradient& T, doublereal dCoef) const
     {
-        T.SetValue(pBoundCond->dGetTemperature());
+	 T.ResizeReset(pBoundCond->dGetTemperature(), 0);
     }
 
-    void ThermalPassiveNode::GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap*, doublereal) const
+    void ThermalPassiveNode::GetTemperatureDerTime(doublereal& dT_dt, doublereal) const
     {
         dT_dt = pBoundCond->dGetTemperatureDerTime();
     }
 
-    void ThermalPassiveNode::GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalPassiveNode::GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const
     {
-        dT_dt.SetValue(pBoundCond->dGetTemperatureDerTime());
+	 dT_dt.ResizeReset(pBoundCond->dGetTemperatureDerTime(), 0);
     }
 
-    integer ThermalPassiveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer ThermalPassiveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    integer ThermalPassiveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer ThermalPassiveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -7890,13 +7760,12 @@ namespace {
     ThermalPassiveNode::Update(const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
                                doublereal dCoef,
-                               enum FunctionCall func,
-                               LocalDofMap* pDofMap)
+                               SpFunctionCall func)
     {
     }
 
     ThermalSlaveNode::ThermalSlaveNode(integer iNodeNo,
-                                       const Vector<doublereal, 2>& x,
+                                       const SpColVector<doublereal, 2>& x,
                                        ThermoHydrNode* pMasterNode)
         :ThermoHydrNode(iNodeNo, x, pMasterNode->pGetMesh(), (pMasterNode->iGetNodeFlags() & ~MASTER_NODE) | SLAVE_NODE),
          pMasterNode(pMasterNode)
@@ -7907,37 +7776,37 @@ namespace {
     {
     }
 
-    integer ThermalSlaveNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer ThermalSlaveNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetNumColsWorkSpace(eFunc);
     }
 
-    void ThermalSlaveNode::GetTemperature(doublereal& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalSlaveNode::GetTemperature(doublereal& T, doublereal dCoef) const
     {
-        pMasterNode->GetTemperature(T, pDofMap, dCoef);
+        pMasterNode->GetTemperature(T, dCoef);
     }
 
-    void ThermalSlaveNode::GetTemperature(Gradient<0>& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalSlaveNode::GetTemperature(SpGradient& T, doublereal dCoef) const
     {
-        pMasterNode->GetTemperature(T, pDofMap, dCoef);
+        pMasterNode->GetTemperature(T, dCoef);
     }
 
-    void ThermalSlaveNode::GetTemperatureDerTime(doublereal& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalSlaveNode::GetTemperatureDerTime(doublereal& dT_dt, doublereal dCoef) const
     {
-        pMasterNode->GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
+        pMasterNode->GetTemperatureDerTime(dT_dt, dCoef);
     }
 
-    void ThermalSlaveNode::GetTemperatureDerTime(Gradient<0>& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void ThermalSlaveNode::GetTemperatureDerTime(SpGradient& dT_dt, doublereal dCoef) const
     {
-        pMasterNode->GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
+        pMasterNode->GetTemperatureDerTime(dT_dt, dCoef);
     }
 
-    integer ThermalSlaveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer ThermalSlaveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetFirstEquationIndex(eFunc);
     }
 
-    integer ThermalSlaveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer ThermalSlaveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetFirstDofIndex(eFunc);
     }
@@ -7946,8 +7815,7 @@ namespace {
     ThermalSlaveNode::Update(const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr,
                              doublereal dCoef,
-                             enum FunctionCall func,
-                             LocalDofMap* pDofMap)
+                             SpFunctionCall func)
     {
         NO_OP;
     }
@@ -7999,21 +7867,21 @@ namespace {
         return iDirection;
     }
 
-    void FluxNode::GetEnergyBalance(doublereal& Qu, LocalDofMap*) const
+    void FluxNode::GetEnergyBalance(doublereal& Qu) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_THERMAL);
 
         Qu = oNode.Qu;
     }
 
-    void FluxNode::GetEnergyBalance(Gradient<0>& Qu, LocalDofMap* pDofMap) const
+    void FluxNode::GetEnergyBalance(SpGradient& Qu) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_THERMAL);
 
-        Qu.Copy(oNode_grad.Qu, pDofMap);
+        Qu = oNode_grad.Qu;
     }
 
-    void FluxNode::GetDissipationFactors(doublereal& A0, doublereal& Ah,  doublereal& Ac, LocalDofMap*) const
+    void FluxNode::GetDissipationFactors(doublereal& A0, doublereal& Ah,  doublereal& Ac) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_THERMAL_WALL);
 
@@ -8022,16 +7890,16 @@ namespace {
         Ac = oNode.Ac;
     }
 
-    void FluxNode::GetDissipationFactors(Gradient<0>& A0, Gradient<0>& Ah, Gradient<0>& Ac, LocalDofMap* pDofMap) const
+    void FluxNode::GetDissipationFactors(SpGradient& A0, SpGradient& Ah, SpGradient& Ac) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_THERMAL_WALL);
 
-        A0.Copy(oNode_grad.A0, pDofMap);
-        Ah.Copy(oNode_grad.Ah, pDofMap);
-        Ac.Copy(oNode_grad.Ac, pDofMap);
+        A0 = oNode_grad.A0;
+        Ah = oNode_grad.Ah;
+        Ac = oNode_grad.Ac;
     }
 
-    void FluxNode::GetVolumeFluxDens(doublereal& qu, LocalDofMap*, PressureSource ePressSrc) const
+    void FluxNode::GetVolumeFluxDens(doublereal& qu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
@@ -8039,15 +7907,15 @@ namespace {
         qu = rgFlux[ePressSrc].qu;
     }
 
-    void FluxNode::GetVolumeFluxDens(Gradient<0>& qu, LocalDofMap* pDofMap, PressureSource ePressSrc) const
+    void FluxNode::GetVolumeFluxDens(SpGradient& qu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
 
-        qu.Copy(rgFlux_grad[ePressSrc].qu, pDofMap);
+        qu = rgFlux_grad[ePressSrc].qu;
     }
 
-    void FluxNode::GetVelocityAvg(doublereal& wu, LocalDofMap*, PressureSource ePressSrc) const
+    void FluxNode::GetVelocityAvg(doublereal& wu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
@@ -8055,15 +7923,15 @@ namespace {
         wu = rgFlux[ePressSrc].wu;
     }
 
-    void FluxNode::GetVelocityAvg(Gradient<0>& wu, LocalDofMap* pDofMap, PressureSource ePressSrc) const
+    void FluxNode::GetVelocityAvg(SpGradient& wu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
 
-        wu.Copy(rgFlux_grad[ePressSrc].wu, pDofMap);
+        wu = rgFlux_grad[ePressSrc].wu;
     }
 
-    void FluxNode::GetMassFluxDens(doublereal& mdotu, LocalDofMap*, PressureSource ePressSrc) const
+    void FluxNode::GetMassFluxDens(doublereal& mdotu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
@@ -8071,12 +7939,12 @@ namespace {
         mdotu = rgFlux[ePressSrc].mdotu;
     }
 
-    void FluxNode::GetMassFluxDens(Gradient<0>& mdotu, LocalDofMap* pDofMap, PressureSource ePressSrc) const
+    void FluxNode::GetMassFluxDens(SpGradient& mdotu, PressureSource ePressSrc) const
     {
         HYDRO_ASSERT(uNodeDataReq & ND_HYDRAULIC);
         HYDRO_ASSERT(ePressSrc <= ePressSource);
 
-        mdotu.Copy(rgFlux_grad[ePressSrc].mdotu, pDofMap);
+        mdotu = rgFlux_grad[ePressSrc].mdotu;
     }
 
     void FluxNode::RequestPressureSource(PressureSource ePressSrcReq)
@@ -8098,29 +7966,26 @@ namespace {
     FluxNode::Update(const VectorHandler& XCurr,
                      const VectorHandler& XPrimeCurr,
                      doublereal dCoef,
-                     enum FunctionCall func,
-                     LocalDofMap*)
+                     SpFunctionCall func)
     {
         if (uNodeDataReq & ND_HYDRAULIC) {
             switch (func) {
-            case REGULAR_RES:
-            case INITIAL_ASS_RES:
-            case INITIAL_DER_RES:
+            case SpFunctionCall::REGULAR_RES:
+            case SpFunctionCall::INITIAL_ASS_RES:
+            case SpFunctionCall::INITIAL_DER_RES:
                 UpdateTpl(oNode,
                           rgFlux,
                           dCoef,
-                          func,
-                          &oDofMap);
+                          func);
                 break;
 
-            case REGULAR_JAC:
-            case INITIAL_ASS_JAC:
-            case INITIAL_DER_JAC:
+            case SpFunctionCall::REGULAR_JAC:
+            case SpFunctionCall::INITIAL_ASS_JAC:
+            case SpFunctionCall::INITIAL_DER_JAC:
                 UpdateTpl(oNode_grad,
                           rgFlux_grad,
                           dCoef,
-                          func,
-                          &oDofMap);
+                          func);
                 break;
 
             default:
@@ -8130,7 +7995,7 @@ namespace {
         }
     }
 
-    integer FluxNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer FluxNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
 
@@ -8138,7 +8003,7 @@ namespace {
     }
 
 
-    integer FluxNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer FluxNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
 
@@ -8193,67 +8058,65 @@ namespace {
     void FluxNode::UpdateTpl(NodeData<G>& oNode,
                              std::array<FluxData<G>, iNumPressSources>& rgFlux,
                              doublereal dCoef,
-                             FunctionCall func,
-                             LocalDofMap* pDofMap) const
+                             SpFunctionCall func) const
     {
-        std::array<G, iNumNodes> pi, hi, etai;
-        std::array<Vector<G, 2>, iNumNodes> Ui;
+	std::array<NodeDataHydr<G>, iNumNodes> rgNDH;
         const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
 
         for (index_type i = 0; i < iNumNodes; ++i) {
-            rgNodes[i]->GetClearance(hi[i], pDofMap);
-            pGeometry->GetNonNegativeClearance(hi[i], hi[i]);
-            rgNodes[i]->GetViscosity(etai[i], pDofMap, dCoef);
-            rgNodes[i]->GetHydraulicVelocity(Ui[i], pDofMap);
+            rgNodes[i]->GetClearance(rgNDH[i].h);
+            pGeometry->GetNonNegativeClearance(rgNDH[i].h, rgNDH[i].h);
+            rgNodes[i]->GetViscosity(rgNDH[i].eta, dCoef);
+            rgNodes[i]->GetHydraulicVelocity(rgNDH[i].U);
         }
 
-        const G h = 0.5 * (hi[iNodeDown] + hi[iNodeUp]);
-        const G eta = 0.5 * (etai[iNodeDown] + etai[iNodeUp]);
-        const G U = 0.5 * (Ui[iNodeDown](iDirection) + Ui[iNodeUp](iDirection));
+        const G h = 0.5 * (rgNDH[iNodeDown].h + rgNDH[iNodeUp].h);
+        const G eta = 0.5 * (rgNDH[iNodeDown].eta + rgNDH[iNodeUp].eta);
+        const G U = 0.5 * (rgNDH[iNodeDown].U(iDirection) + rgNDH[iNodeUp].U(iDirection));
 
         for (index_type j = 0; j <= ePressSource; ++j) {
             for (index_type i = 0; i < iNumNodes; ++i) {
                 switch (j) {
                 case PRESSURE_FROM_NODE:
-                    rgNodes[i]->GetPressure(pi[i], pDofMap, dCoef);
+                    rgNodes[i]->GetPressure(rgNDH[i].p, dCoef);
                     break;
 
                 case PRESSURE_FROM_MESH:
-                    pGetMesh()->GetPressure(rgNodes[i], pi[i], pDofMap, dCoef);
+                    pGetMesh()->GetPressure(rgNodes[i], rgNDH[i].p, dCoef);
                     break;
                 };
             }
 
-            const G dp_du = (pi[iNodeUp] - pi[iNodeDown]) / du;
+            const G dp_du = (rgNDH[iNodeUp].p - rgNDH[iNodeDown].p) / du;
 
             const G a0 = h * h / (12. * eta) * dp_du;
 
-            rgFlux[j].wu = U - a0;
-            rgFlux[j].qu = h * rgFlux[j].wu;
+            rgFlux[j].wu = EvalUnique(U - a0);
+            rgFlux[j].qu = EvalUnique(h * rgFlux[j].wu);
 
             const index_type iUpwindu = rgFlux[j].qu >= 0. ? iNodeDown : iNodeUp;
+	    
             G rho;
 
-            rgNodes[iUpwindu]->GetDensity(rho, pDofMap, dCoef);
+            rgNodes[iUpwindu]->GetDensity(rho, dCoef);
 
-            rgFlux[j].mdotu = rho * rgFlux[j].qu;
+            rgFlux[j].mdotu = EvalUnique(rho * rgFlux[j].qu);
 
             if ((uNodeDataReq & ND_THERMAL) && j == PRESSURE_FROM_NODE) {
-                std::array<G, iNumNodes> Ti;
-                std::array<Vector<G, 2>, iNumNodes> U1i, U2i;
+		 std::array<NodeDataTherm<G>, iNumNodes> rgNDT;
 
                 for (index_type i = 0; i < iNumNodes; ++i) {
-                    rgNodes[i]->GetTemperature(Ti[i], pDofMap, dCoef);
-                    rgNodes[i]->GetVelocity(U1i[i], U2i[i], pDofMap);
+                    rgNodes[i]->GetTemperature(rgNDT[i].T, dCoef);
+                    rgNodes[i]->GetVelocity(rgNDT[i].U1, rgNDT[i].U2);
                 }
 
-                const G dU = 0.5 * (U1i[iNodeDown](iDirection) + U1i[iNodeUp](iDirection)
-                                    - U2i[iNodeDown](iDirection) - U2i[iNodeUp](iDirection));
+                const G dU = 0.5 * (rgNDT[iNodeDown].U1(iDirection) + rgNDT[iNodeUp].U1(iDirection)
+                                    - rgNDT[iNodeDown].U2(iDirection) - rgNDT[iNodeUp].U2(iDirection));
 
                 doublereal beta = 0.;
 
-                if (pi[iNodeUp] > pGetFluid()->dGetRefPressure() &&
-                    pi[iNodeDown] > pGetFluid()->dGetRefPressure()) {
+                if (rgNDH[iNodeUp].p > pGetFluid()->dGetRefPressure() &&
+                    rgNDH[iNodeDown].p > pGetFluid()->dGetRefPressure()) {
                     doublereal rhoc, drhoc_dT;
 
                     pGetFluid()->GetDensity(pGetFluid()->dGetRefPressure(),
@@ -8267,21 +8130,21 @@ namespace {
 
                 G cp;
 
-                pGetFluid()->GetSpecificHeat(pi[iUpwindu],
-                                             Ti[iUpwindu],
+                pGetFluid()->GetSpecificHeat(rgNDH[iUpwindu].p,
+                                             rgNDT[iUpwindu].T,
                                              rho,
                                              cp,
                                              HydroFluid::SPEC_HEAT_TRUE);
 
-                oNode.Qu = rgFlux[j].qu * (beta * Ti[iUpwindu] * dp_du
-                                           - rho * cp * (Ti[iNodeUp] - Ti[iNodeDown]) / du)
-                    + h * a0 * dp_du + eta * dU * dU / h;
+                oNode.Qu = EvalUnique(rgFlux[j].qu * (beta * rgNDT[iUpwindu].T * dp_du
+                                           - rho * cp * (rgNDT[iNodeUp].T - rgNDT[iNodeDown].T) / du)
+					  + h * a0 * dp_du + eta * dU * dU / h);
 
                 if (uNodeDataReq & ND_THERMAL_WALL) {
                     std::array<G, iNumNodes> Pfci;
 
                     for (index_type i = 0; i < iNumNodes; ++i) {
-                        rgNodes[i]->GetContactFrictionLossDens(Pfci[i], pDofMap);
+                        rgNodes[i]->GetContactFrictionLossDens(Pfci[i]);
                     }
 
                     const G a1 = 0.5 * h / eta * dp_du;
@@ -8289,16 +8152,16 @@ namespace {
                     const G Psi0 = dU / h - a1;
                     const G Psih = dU / h + a1;
 
-                    oNode.A0 = eta * Psi0 * Psi0;
-                    oNode.Ah = eta * Psih * Psih;
-                    oNode.Ac = 0.5 * (Pfci[iNodeUp] + Pfci[iNodeDown]) / h;
+                    oNode.A0 = EvalUnique(eta * Psi0 * Psi0);
+                    oNode.Ah = EvalUnique(eta * Psih * Psih);
+                    oNode.Ac = EvalUnique(0.5 * (Pfci[iNodeUp] + Pfci[iNodeDown]) / h);
                 }
             }
         }
     }
 
     HydroNode::HydroNode(integer iNodeNo,
-                         const Vector<doublereal, 2>& x,
+                         const SpColVector<doublereal, 2>& x,
                          HydroMesh* pParent,
                          integer iNodeFlags)
         :Node2D(iNodeNo, x, pParent, HYDRAULIC_NODE | CORNER_NODE | iNodeFlags),
@@ -8318,32 +8181,32 @@ namespace {
     }
 
     template <typename G>
-    void HydroNode::GetTemperature(G& T, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroNode::GetTemperature(G& T, doublereal dCoef) const
     {
         if (pThermalNode) {
-            pThermalNode->GetTemperature(T, pDofMap, dCoef);
+            pThermalNode->GetTemperature(T, dCoef);
         } else {
-            T = pGetFluid()->dGetRefTemperature();
+	     SpGradient::ResizeReset(T, pGetFluid()->dGetRefTemperature(), 0);
         }
     }
 
     template <typename G>
-    void HydroNode::GetTemperatureDerTime(G& dT_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroNode::GetTemperatureDerTime(G& dT_dt, doublereal dCoef) const
     {
         if (pThermalNode) {
-            pThermalNode->GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
+            pThermalNode->GetTemperatureDerTime(dT_dt, dCoef);
         } else {
-            dT_dt = 0.;
+	     SpGradient::ResizeReset(dT_dt, 0., 0);
         }
     }
 
     template <typename G>
-    void HydroNode::GetViscosity(G& eta, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroNode::GetViscosity(G& eta, doublereal dCoef) const
     {
         G rho, T;
 
-        GetDensity(rho, pDofMap, dCoef);
-        GetTemperature(T, pDofMap, dCoef);
+        GetDensity(rho, dCoef);
+        GetTemperature(T, dCoef);
 
         pGetFluid()->GetViscosity(rho, T, eta);
     }
@@ -8449,7 +8312,7 @@ namespace {
         }
 
         if (uOutputFlags & HydroRootElement::OUTPUT_VELOCITY) {
-            Vector<doublereal, 2> U1, U2;
+	     SpColVectorA<doublereal, 2> U1, U2;
 
             GetVelocity(U1, U2);
 
@@ -8471,7 +8334,7 @@ namespace {
         }
 
         if (uOutputFlags & HydroRootElement::OUTPUT_CONT_STRESS) {
-            Vector<doublereal, 2> tauc_0;
+	     SpColVectorA<doublereal, 2> tauc_0;
 
             GetContactStress(tauc_0);
 
@@ -8506,7 +8369,7 @@ namespace {
     }
 
     HydroSlaveNode::HydroSlaveNode(integer iNodeNo,
-                                   const Vector<doublereal, 2>& x,
+                                   const SpColVector<doublereal, 2>& x,
                                    HydroMesh* pMesh,
                                    HydroNode* pMasterNode)
         :HydroNode(iNodeNo, x, pMesh, (pMasterNode->iGetNodeFlags() & ~MASTER_NODE) | SLAVE_NODE),
@@ -8520,29 +8383,29 @@ namespace {
 
     }
 
-    const Vector<doublereal, 3>&
+    const SpColVector<doublereal, 3>&
     HydroSlaveNode::GetPosition3D() const
     {
         return pMasterNode->GetPosition3D();
     }
 
-    const Matrix<doublereal, 3, 3>&
+    const SpMatrix<doublereal, 3, 3>&
     HydroSlaveNode::GetTangentCoordSys() const
     {
         return pMasterNode->GetTangentCoordSys();
     }
 
-    integer HydroSlaveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroSlaveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetFirstEquationIndex(eFunc);
     }
 
-    integer HydroSlaveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroSlaveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetFirstDofIndex(eFunc);
     }
 
-    integer HydroSlaveNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer HydroSlaveNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         return pMasterNode->iGetNumColsWorkSpace(eFunc);
     }
@@ -8551,50 +8414,49 @@ namespace {
     HydroSlaveNode::Update(const VectorHandler& XCurr,
                            const VectorHandler& XPrimeCurr,
                            doublereal dCoef,
-                           enum FunctionCall func,
-                           LocalDofMap* pDofMap)
+                           SpFunctionCall func)
     {
         NO_OP;
     }
 
-    void HydroSlaveNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const
+    void HydroSlaveNode::GetPressure(doublereal& p, doublereal) const
     {
         pMasterNode->GetPressure(p);
     }
 
-    void HydroSlaveNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
-        pMasterNode->GetPressure(p, pDofMap, dCoef);
+        pMasterNode->GetPressure(p, dCoef);
     }
 
-    void HydroSlaveNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetPressureDerTime(doublereal& dp_dt, doublereal dCoef) const
     {
-        pMasterNode->GetPressureDerTime(dp_dt, pDofMap, dCoef);
+        pMasterNode->GetPressureDerTime(dp_dt, dCoef);
     }
 
-    void HydroSlaveNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
-        pMasterNode->GetPressureDerTime(dp_dt, pDofMap, dCoef);
+        pMasterNode->GetPressureDerTime(dp_dt, dCoef);
     }
 
-    void HydroSlaveNode::GetDensity(doublereal& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetDensity(doublereal& rho, doublereal dCoef) const
     {
-        pMasterNode->GetDensity(rho, pDofMap, dCoef);
+        pMasterNode->GetDensity(rho, dCoef);
     }
 
-    void HydroSlaveNode::GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetDensity(SpGradient& rho, doublereal dCoef) const
     {
-        pMasterNode->GetDensity(rho, pDofMap, dCoef);
+        pMasterNode->GetDensity(rho, dCoef);
     }
 
-    void HydroSlaveNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetDensityDerTime(doublereal& drho_dt, doublereal dCoef) const
     {
-        pMasterNode->GetDensityDerTime(drho_dt, pDofMap, dCoef);
+        pMasterNode->GetDensityDerTime(drho_dt, dCoef);
     }
 
-    void HydroSlaveNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroSlaveNode::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
     {
-        pMasterNode->GetDensityDerTime(drho_dt, pDofMap, dCoef);
+        pMasterNode->GetDensityDerTime(drho_dt, dCoef);
     }
 
     void HydroSlaveNode::GetStress(doublereal& tau_xy_0, doublereal& tau_yz_0, doublereal& tau_xy_h, doublereal& tau_yz_h) const
@@ -8607,64 +8469,64 @@ namespace {
         pMasterNode->SetStress(tau_xy_0, tau_yz_0, tau_xy_h, tau_yz_h);
     }
 
-    bool HydroSlaveNode::GetContactPressure(doublereal& pasp, LocalDofMap* pDofMap) const
+    bool HydroSlaveNode::GetContactPressure(doublereal& pasp) const
     {
-        return pMasterNode->GetContactPressure(pasp, pDofMap);
+        return pMasterNode->GetContactPressure(pasp);
     }
 
-    bool HydroSlaveNode::GetContactPressure(Gradient<0>& pasp, LocalDofMap* pDofMap) const
+    bool HydroSlaveNode::GetContactPressure(SpGradient& pasp) const
     {
-        return pMasterNode->GetContactPressure(pasp, pDofMap);
+        return pMasterNode->GetContactPressure(pasp);
     }
 
-    void HydroSlaveNode::GetContactStress(Vector<doublereal, 2>& tauc_0, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetContactStress(SpColVector<doublereal, 2>& tauc_0) const
     {
-        pMasterNode->GetContactStress(tauc_0, pDofMap);
+        pMasterNode->GetContactStress(tauc_0);
     }
 
-    void HydroSlaveNode::GetContactStress(Vector<Gradient<0>, 2>& tauc_0, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetContactStress(SpColVector<SpGradient, 2>& tauc_0) const
     {
-        pMasterNode->GetContactStress(tauc_0, pDofMap);
+        pMasterNode->GetContactStress(tauc_0);
     }
 
-    void HydroSlaveNode::GetContactFrictionLossDens(doublereal& Pfc, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetContactFrictionLossDens(doublereal& Pfc) const
     {
-        pMasterNode->GetContactFrictionLossDens(Pfc, pDofMap);
+        pMasterNode->GetContactFrictionLossDens(Pfc);
     }
 
-    void HydroSlaveNode::GetContactFrictionLossDens(Gradient<0>& Pfc, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetContactFrictionLossDens(SpGradient& Pfc) const
     {
-        pMasterNode->GetContactFrictionLossDens(Pfc, pDofMap);
+        pMasterNode->GetContactFrictionLossDens(Pfc);
     }
 
-    void HydroSlaveNode::GetClearance(doublereal& h, LocalDofMap*) const
+    void HydroSlaveNode::GetClearance(doublereal& h) const
     {
-        pMasterNode->GetClearance(h, 0);
+        pMasterNode->GetClearance(h);
     }
 
-    void HydroSlaveNode::GetClearance(Gradient<0>& h, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetClearance(SpGradient& h) const
     {
-        pMasterNode->GetClearance(h, pDofMap);
+        pMasterNode->GetClearance(h);
     }
 
-    void HydroSlaveNode::GetClearanceDerTime(doublereal& dh_dt, LocalDofMap*) const
+    void HydroSlaveNode::GetClearanceDerTime(doublereal& dh_dt) const
     {
-        pMasterNode->GetClearanceDerTime(dh_dt, 0);
+        pMasterNode->GetClearanceDerTime(dh_dt);
     }
 
-    void HydroSlaveNode::GetClearanceDerTime(Gradient<0>& dh_dt, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetClearanceDerTime(SpGradient& dh_dt) const
     {
-        pMasterNode->GetClearanceDerTime(dh_dt, pDofMap);
+        pMasterNode->GetClearanceDerTime(dh_dt);
     }
 
-    void HydroSlaveNode::GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, SpFunctionCall func) const
     {
-        pMasterNode->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap);
+        pMasterNode->GetRadialDeformation(w, dw_dt, dCoef, func);
     }
 
-    void HydroSlaveNode::GetRadialDeformation(Gradient<0>& w, Gradient<0>& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetRadialDeformation(SpGradient& w, SpGradient& dw_dt, doublereal dCoef, SpFunctionCall func) const
     {
-        pMasterNode->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap);
+        pMasterNode->GetRadialDeformation(w, dw_dt, dCoef, func);
     }
 
     void HydroSlaveNode::GetRadialDeformation1(doublereal& w1) const
@@ -8677,24 +8539,24 @@ namespace {
         pMasterNode->GetRadialDeformation2(w2);
     }
 
-    void HydroSlaveNode::GetVelocity(Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetVelocity(SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2) const
     {
-        pMasterNode->GetVelocity(U1, U2, pDofMap);
+        pMasterNode->GetVelocity(U1, U2);
     }
 
-    void HydroSlaveNode::GetVelocity(Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const
     {
-        pMasterNode->GetVelocity(U1, U2, pDofMap);
+        pMasterNode->GetVelocity(U1, U2);
     }
 
-    void HydroSlaveNode::GetHydraulicVelocity(Vector<doublereal, 2>& U, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const
     {
-        pMasterNode->GetHydraulicVelocity(U, pDofMap);
+        pMasterNode->GetHydraulicVelocity(U);
     }
 
-    void HydroSlaveNode::GetHydraulicVelocity(Vector<Gradient<0>, 2>& U, LocalDofMap* pDofMap) const
+    void HydroSlaveNode::GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const
     {
-        pMasterNode->GetHydraulicVelocity(U, pDofMap);
+        pMasterNode->GetHydraulicVelocity(U);
     }
 
     const FluidStateBoundaryCond* HydroSlaveNode::pGetMovingPressBoundCond() const
@@ -8713,7 +8575,7 @@ namespace {
     }
 
     HydroMasterNode::HydroMasterNode(integer iNodeNo,
-                                     const Vector<doublereal, 2>& x,
+                                     const SpColVector<doublereal, 2>& x,
                                      HydroMesh* pMesh,
                                      integer iNodeFlags)
         :HydroNode(iNodeNo, x, pMesh, iNodeFlags | MASTER_NODE),
@@ -8730,8 +8592,7 @@ namespace {
     void HydroMasterNode::Update(const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
                                  doublereal dCoef,
-                                 enum FunctionCall func,
-                                 LocalDofMap* pDofMap)
+                                 SpFunctionCall func)
     {
         pMovingBoundCond = nullptr;
     }
@@ -8747,7 +8608,7 @@ namespace {
     }
 
     HydroUpdatedNode::HydroUpdatedNode(integer iNodeNo,
-                                       const Vector<doublereal, 2>& x,
+                                       const SpColVector<doublereal, 2>& x,
                                        HydroMesh* pMesh,
                                        ContactModel* pContactModel,
                                        std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -8778,13 +8639,13 @@ namespace {
 
     }
 
-    const Vector<doublereal, 3>&
+    const SpColVector<doublereal, 3>&
     HydroUpdatedNode::GetPosition3D() const
     {
         return v;
     }
 
-    const Matrix<doublereal, 3, 3>&
+    const SpMatrix<doublereal, 3, 3>&
     HydroUpdatedNode::GetTangentCoordSys() const
     {
         return Rt;
@@ -8794,27 +8655,26 @@ namespace {
     HydroUpdatedNode::Update(const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr,
                              doublereal dCoef,
-                             enum FunctionCall func,
-                             LocalDofMap* pDofMap)
+                             SpFunctionCall func)
     {
-        HydroMasterNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroMasterNode::Update(XCurr, XPrimeCurr, dCoef, func);
 
         switch (func) {
-        case REGULAR_RES:
-        case INITIAL_ASS_RES:
-        case INITIAL_DER_RES:
+        case SpFunctionCall::REGULAR_RES:
+        case SpFunctionCall::INITIAL_ASS_RES:
+        case SpFunctionCall::INITIAL_DER_RES:
             sum_tau_xy_0 = 0.;
             sum_tau_yz_0 = 0.;
             sum_tau_xy_h = 0.;
             sum_tau_yz_h = 0.;
             iNumStressEval = 0;
-            oBoundary.Update(this, dCoef, func, pDofMap);
+            oBoundary.Update(this, dCoef, func);
             break;
 
-        case REGULAR_JAC:
-        case INITIAL_ASS_JAC:
-        case INITIAL_DER_JAC:
-            oBoundary_grad.Update(this, dCoef, func, pDofMap);
+        case SpFunctionCall::REGULAR_JAC:
+        case SpFunctionCall::INITIAL_ASS_JAC:
+        case SpFunctionCall::INITIAL_DER_JAC:
+            oBoundary_grad.Update(this, dCoef, func);
             break;
 
         default:
@@ -8860,73 +8720,73 @@ namespace {
         ++iNumStressEval;
     }
 
-    bool HydroUpdatedNode::GetContactPressure(doublereal& pasp, LocalDofMap* pDofMap) const
+    bool HydroUpdatedNode::GetContactPressure(doublereal& pasp) const
     {
-        return oBoundary.GetContactPressure(pasp, pDofMap);
+        return oBoundary.GetContactPressure(pasp);
     }
 
-    bool HydroUpdatedNode::GetContactPressure(Gradient<0>& pasp, LocalDofMap* pDofMap) const
+    bool HydroUpdatedNode::GetContactPressure(SpGradient& pasp) const
     {
-        return oBoundary_grad.GetContactPressure(pasp, pDofMap);
+        return oBoundary_grad.GetContactPressure(pasp);
     }
 
-    void HydroUpdatedNode::GetContactStress(Vector<doublereal, 2>& tauc_0, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetContactStress(SpColVector<doublereal, 2>& tauc_0) const
     {
-        oBoundary.GetContactStress(tauc_0, pDofMap);
+        oBoundary.GetContactStress(tauc_0);
     }
 
-    void HydroUpdatedNode::GetContactStress(Vector<Gradient<0>, 2>& tauc_0, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetContactStress(SpColVector<SpGradient, 2>& tauc_0) const
     {
-        oBoundary_grad.GetContactStress(tauc_0, pDofMap);
+        oBoundary_grad.GetContactStress(tauc_0);
     }
 
-    void HydroUpdatedNode::GetContactFrictionLossDens(doublereal& Pfc, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetContactFrictionLossDens(doublereal& Pfc) const
     {
-        oBoundary.GetContactFrictionLossDens(Pfc, pDofMap);
+        oBoundary.GetContactFrictionLossDens(Pfc);
     }
 
-    void HydroUpdatedNode::GetContactFrictionLossDens(Gradient<0>& Pfc, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetContactFrictionLossDens(SpGradient& Pfc) const
     {
-        oBoundary_grad.GetContactFrictionLossDens(Pfc, pDofMap);
+        oBoundary_grad.GetContactFrictionLossDens(Pfc);
     }
 
-    void HydroUpdatedNode::GetClearance(doublereal& h, LocalDofMap*) const
+    void HydroUpdatedNode::GetClearance(doublereal& h) const
     {
-        oBoundary.GetClearance(h, 0);
+        oBoundary.GetClearance(h);
     }
 
-    void HydroUpdatedNode::GetClearance(Gradient<0>& h, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetClearance(SpGradient& h) const
     {
-        oBoundary_grad.GetClearance(h, pDofMap);
+        oBoundary_grad.GetClearance(h);
     }
 
-    void HydroUpdatedNode::GetClearanceDerTime(doublereal& dh_dt, LocalDofMap*) const
+    void HydroUpdatedNode::GetClearanceDerTime(doublereal& dh_dt) const
     {
-        oBoundary.GetClearanceDerTime(dh_dt, 0);
+        oBoundary.GetClearanceDerTime(dh_dt);
     }
 
-    void HydroUpdatedNode::GetClearanceDerTime(Gradient<0>& dh_dt, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetClearanceDerTime(SpGradient& dh_dt) const
     {
-        oBoundary_grad.GetClearanceDerTime(dh_dt, pDofMap);
+        oBoundary_grad.GetClearanceDerTime(dh_dt);
     }
 
-    void HydroUpdatedNode::GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetRadialDeformation(doublereal& w, doublereal& dw_dt, doublereal dCoef, SpFunctionCall func) const
     {
         if (pComplianceModel) {
-            pComplianceModel->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap, this);
+            pComplianceModel->GetRadialDeformation(w, dw_dt, dCoef, func, this);
         } else {
             w = 0.;
             dw_dt = 0.;
         }
     }
 
-    void HydroUpdatedNode::GetRadialDeformation(Gradient<0>& w, Gradient<0>& dw_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetRadialDeformation(SpGradient& w, SpGradient& dw_dt, doublereal dCoef, SpFunctionCall func) const
     {
         if (pComplianceModel) {
-            pComplianceModel->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap, this);
+            pComplianceModel->GetRadialDeformation(w, dw_dt, dCoef, func, this);
         } else {
-            w.SetValue(0.);
-            dw_dt.SetValue(0.);
+	     w.ResizeReset(0., 0);
+	     dw_dt.ResizeReset(0., 0);
         }
     }
 
@@ -8948,24 +8808,24 @@ namespace {
         }
     }
 
-    void HydroUpdatedNode::GetVelocity(Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetVelocity(SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2) const
     {
-        oBoundary.GetVelocity(U1, U2, pDofMap);
+        oBoundary.GetVelocity(U1, U2);
     }
 
-    void HydroUpdatedNode::GetVelocity(Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const
     {
-        oBoundary_grad.GetVelocity(U1, U2, pDofMap);
+        oBoundary_grad.GetVelocity(U1, U2);
     }
 
-    void HydroUpdatedNode::GetHydraulicVelocity(Vector<doublereal, 2>& U, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const
     {
-        oBoundary.GetHydraulicVelocity(U, pDofMap);
+        oBoundary.GetHydraulicVelocity(U);
     }
 
-    void HydroUpdatedNode::GetHydraulicVelocity(Vector<Gradient<0>, 2>& U, LocalDofMap* pDofMap) const
+    void HydroUpdatedNode::GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const
     {
-        oBoundary_grad.GetHydraulicVelocity(U, pDofMap);
+        oBoundary_grad.GetHydraulicVelocity(U);
     }
 
     index_type HydroUpdatedNode::iGetComplianceIndex() const
@@ -8974,7 +8834,7 @@ namespace {
     }
 
     HydroActiveNode::HydroActiveNode(integer iNodeNo,
-                                     const Vector<doublereal, 2>& x,
+                                     const SpColVector<doublereal, 2>& x,
                                      HydroMesh* pParent,
                                      ContactModel* pContactModel,
                                      std::unique_ptr<FrictionModel>&& pFrictionModel)
@@ -8987,7 +8847,7 @@ namespace {
          p(0.),
          dp_dt(0.),
          s(pParent->pGetParent()->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF)),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
 
     }
@@ -8997,23 +8857,23 @@ namespace {
 
     }
 
-    integer HydroActiveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroActiveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return iGetFirstDofIndex(eFunc);
     }
 
-    integer HydroActiveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroActiveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(iGetOffsetIndex(eFunc) != HydroDofOwner::UNKNOWN_OFFSET);
 
         return pGetMesh()->pGetParent()->iGetFirstIndex() + iGetOffsetIndex(eFunc);
     }
 
-    integer HydroActiveNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer HydroActiveNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         integer iNumCols = HydroIncompressibleNode::iGetNumColsWorkSpace(eFunc);
 
-        if (eFunc & grad::REGULAR_FLAG) {
+        if (eFunc & SpFunctionCall::REGULAR_FLAG) {
             iNumCols += iGetNumDof();
         } else {
             iNumCols += iGetInitialNumDof();
@@ -9026,8 +8886,7 @@ namespace {
     HydroActiveNode::Update(const VectorHandler& XCurr,
                             const VectorHandler& XPrimeCurr,
                             doublereal dCoef,
-                            enum FunctionCall func,
-                            LocalDofMap* pDofMap)
+                            SpFunctionCall func)
     {
         HYDRO_ASSERT(iGetOffsetIndex(func) > 0);
 
@@ -9039,30 +8898,30 @@ namespace {
         p = s * XCurr(iIndex);
 
         switch (func) {
-        case REGULAR_RES:
-        case REGULAR_JAC:
-            HYDRO_ASSERT(eCurrFunc == grad::REGULAR_FLAG);
+        case SpFunctionCall::REGULAR_RES:
+        case SpFunctionCall::REGULAR_JAC:
+            HYDRO_ASSERT(eCurrFunc == SpFunctionCall::REGULAR_FLAG);
 
             dp_dt = s * XPrimeCurr(iIndex);
             break;
 
-        case INITIAL_ASS_RES:
-        case INITIAL_ASS_JAC:
-            HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        case SpFunctionCall::INITIAL_ASS_RES:
+        case SpFunctionCall::INITIAL_ASS_JAC:
+            HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
             break;
 
         default:
             break;
         }
 
-        HydroIncompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroIncompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
     }
 
     void HydroActiveNode::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
 
         const integer iIndex = iGetFirstDofIndex(eCurrFunc);
 
@@ -9073,36 +8932,28 @@ namespace {
         XPrimeCurr(iIndex) = dp_dt / s;
     }
 
-    void HydroActiveNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const {
+    void HydroActiveNode::GetPressure(doublereal& p, doublereal) const {
         p = this->p;
     }
 
-    void HydroActiveNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const {
-        p.SetValuePreserve(this->p);
-        p.DerivativeResizeReset(pDofMap,
-                                iGetFirstDofIndex(eCurrFunc),
-                                MapVectorBase::GLOBAL,
-                                -s);
+    void HydroActiveNode::GetPressure(SpGradient& p, doublereal dCoef) const {
+	 p.Reset(this->p, iGetFirstDofIndex(eCurrFunc), -s);
     }
 
-    void HydroActiveNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap*, doublereal) const {
+    void HydroActiveNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const {
         dp_dt = this->dp_dt;
     }
 
-    void HydroActiveNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const {
-        HYDRO_ASSERT(eCurrFunc == grad::REGULAR_FLAG || eCurrFunc == grad::INITIAL_ASS_FLAG);
+    void HydroActiveNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const {
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::REGULAR_FLAG || eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        if (eCurrFunc == grad::REGULAR_FLAG) {
-            dp_dt.SetValuePreserve(this->dp_dt);
+        if (eCurrFunc == SpFunctionCall::REGULAR_FLAG) {
             // We assume that db0Algebraic == db0Differential
             // In case of multistep and hope methods this is correct
             // only if algebraic and differential spectral radii are the same!
-            dp_dt.DerivativeResizeReset(pDofMap,
-                                        iGetFirstDofIndex(eCurrFunc),
-                                        MapVectorBase::GLOBAL,
-                                        -dCoef * s);
+	     dp_dt.Reset(this->dp_dt, iGetFirstDofIndex(eCurrFunc), -dCoef * s);	     
         } else {
-            dp_dt.SetValue(this->dp_dt);
+	     dp_dt.ResizeReset(this->dp_dt, 0);
         }
     }
 
@@ -9133,7 +8984,7 @@ namespace {
     std::ostream&
     HydroActiveNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
-        integer iIndex = iGetFirstDofIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+        integer iIndex = iGetFirstDofIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
         out << prefix << iIndex << ": hydrodynamic pressure of node number " << iGetNodeNumber() + 1 << std::endl;
 
@@ -9143,7 +8994,7 @@ namespace {
     std::ostream&
     HydroActiveNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
     {
-        integer iIndex = iGetFirstEquationIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+        integer iIndex = iGetFirstEquationIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
         out << prefix << iIndex << ": incompressible Reynolds equation for node number " << iGetNodeNumber() + 1 << std::endl;
 
@@ -9151,7 +9002,7 @@ namespace {
     }
 
     HydroPassiveNode::HydroPassiveNode(integer iNodeNo,
-                                       const Vector<doublereal, 2>& x,
+                                       const SpColVector<doublereal, 2>& x,
                                        HydroMesh* pParent,
                                        ContactModel* pContactModel,
                                        std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9172,36 +9023,36 @@ namespace {
 
     }
 
-    integer HydroPassiveNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroPassiveNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    integer HydroPassiveNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroPassiveNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    void HydroPassiveNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const
+    void HydroPassiveNode::GetPressure(doublereal& p, doublereal) const
     {
         p = pGetBoundCond()->dGetPressure();
     }
 
-    void HydroPassiveNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroPassiveNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
-        p.SetValue(pGetBoundCond()->dGetPressure());
+	 p.ResizeReset(pGetBoundCond()->dGetPressure(), 0);
     }
 
-    void HydroPassiveNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap*, doublereal) const
+    void HydroPassiveNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
     {
         dp_dt = pGetBoundCond()->dGetPressureDerTime();
     }
 
-    void HydroPassiveNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroPassiveNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
-        dp_dt.SetValue(pGetBoundCond()->dGetPressureDerTime());
+	 dp_dt.ResizeReset(pGetBoundCond()->dGetPressureDerTime(), 0);
     }
 
     const FluidStateBoundaryCond*
@@ -9217,7 +9068,7 @@ namespace {
     }
 
     HydroIncompressibleNode::HydroIncompressibleNode(integer iNodeNo,
-                                                     const Vector<doublereal, 2>& x,
+                                                     const SpColVector<doublereal, 2>& x,
                                                      HydroMesh* pParent,
                                                      ContactModel* pContactModel,
                                                      std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9237,44 +9088,43 @@ namespace {
 
     }
 
-    void HydroIncompressibleNode::GetDensity(doublereal& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroIncompressibleNode::GetDensity(doublereal& rho, doublereal dCoef) const
     {
         rho = oState.rho;
     }
 
-    void HydroIncompressibleNode::GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroIncompressibleNode::GetDensity(SpGradient& rho, doublereal dCoef) const
     {
-        rho.Copy(oState_grad.rho, pDofMap);
+        rho = oState_grad.rho;
     }
 
-    void HydroIncompressibleNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroIncompressibleNode::GetDensityDerTime(doublereal& drho_dt, doublereal dCoef) const
     {
         drho_dt = oState.drho_dt;
     }
 
-    void HydroIncompressibleNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroIncompressibleNode::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
     {
-        drho_dt.Copy(oState_grad.drho_dt, pDofMap);
+        drho_dt = oState_grad.drho_dt;
     }
 
     void
     HydroIncompressibleNode::Update(const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
                                     doublereal dCoef,
-                                    enum FunctionCall func,
-                                    LocalDofMap* pDofMap)
+                                    SpFunctionCall func)
     {
-        HydroUpdatedNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroUpdatedNode::Update(XCurr, XPrimeCurr, dCoef, func);
 
         switch (func) {
-        case INITIAL_ASS_RES:
-        case REGULAR_RES:
-            UpdateState(oState, pDofMap, dCoef);
+        case SpFunctionCall::INITIAL_ASS_RES:
+        case SpFunctionCall::REGULAR_RES:
+            UpdateState(oState, dCoef);
             break;
 
-        case INITIAL_ASS_JAC:
-        case REGULAR_JAC:
-            UpdateState(oState_grad, pDofMap, dCoef);
+        case SpFunctionCall::INITIAL_ASS_JAC:
+        case SpFunctionCall::REGULAR_JAC:
+            UpdateState(oState_grad, dCoef);
             break;
 
         default:
@@ -9284,13 +9134,13 @@ namespace {
 
     template <typename G>
     inline void
-    HydroIncompressibleNode::UpdateState(FluidState<G>& oState, LocalDofMap* pDofMap, doublereal dCoef) const
+    HydroIncompressibleNode::UpdateState(FluidState<G>& oState, doublereal dCoef) const
     {
         G p, T, dT_dt, drho_dp, drho_dT;
 
-        GetPressure(p, pDofMap, dCoef);
-        GetTemperature(T, pDofMap, dCoef);
-        GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
+        GetPressure(p, dCoef);
+        GetTemperature(T, dCoef);
+        GetTemperatureDerTime(dT_dt, dCoef);
         pGetFluid()->GetDensity(p, T, oState.rho, &drho_dp, &drho_dT);
         oState.drho_dt = drho_dT * dT_dt;
 
@@ -9298,7 +9148,7 @@ namespace {
     }
 
     HydroCoupledNode::HydroCoupledNode(integer iNodeNo,
-                                       const Vector<doublereal, 2>& x,
+                                       const SpColVector<doublereal, 2>& x,
                                        HydroMesh* pParent,
                                        ContactModel* pContactModel,
                                        std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9310,7 +9160,7 @@ namespace {
                                  std::move(pFrictionModel),
                                  COUPLED_NODE),
          pExtNode(pNode),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
 
     }
@@ -9320,57 +9170,50 @@ namespace {
 
     }
 
-    integer HydroCoupledNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroCoupledNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pExtNode->iGetFirstRowIndex() + 1;
     }
 
-    integer HydroCoupledNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroCoupledNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pExtNode->iGetFirstColIndex() + 1;
     }
 
-    integer HydroCoupledNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer HydroCoupledNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         return 1 + HydroIncompressibleNode::iGetNumColsWorkSpace(eFunc);
     }
 
-    void HydroCoupledNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const
+    void HydroCoupledNode::GetPressure(doublereal& p, doublereal) const
     {
         p = pExtNode->dGetX();
     }
 
-    void HydroCoupledNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
-        if (eCurrFunc & grad::REGULAR_FLAG) {
-            p.SetValuePreserve(pExtNode->dGetX());
-            p.DerivativeResizeReset(pDofMap,
-                                    iGetFirstDofIndex(grad::UNKNOWN_FUNC),
-                                    MapVectorBase::GLOBAL,
-                                    -1.);   // ScalarNodes are inactive during initial assembly
+        if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
+	     p.Reset(pExtNode->dGetX(), iGetFirstDofIndex(sp_grad::UNKNOWN_FUNC), -1.);
         } else {
-            p.SetValue(pExtNode->dGetX());
+	     // ScalarNodes are inactive during initial assembly
+	     p.ResizeReset(pExtNode->dGetX(), 0);
         }
     }
 
-    void HydroCoupledNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap*, doublereal) const
+    void HydroCoupledNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
     {
         dp_dt = pExtNode->dGetXPrime();
     }
 
-    void HydroCoupledNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
-        if (eCurrFunc & grad::REGULAR_FLAG) {
+        if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
             // We assume that db0Algebraic == db0Differential
             // In case of the multistep and hope methods this is true only if algebraic and differential spectral radii are the same!
-
-            dp_dt.SetValuePreserve(pExtNode->dGetXPrime());
-            dp_dt.DerivativeResizeReset(pDofMap,
-                                        iGetFirstDofIndex(grad::UNKNOWN_FUNC),
-                                        MapVectorBase::GLOBAL,
-                                        -dCoef); // ScalarNodes are inactive during initial assembly
+	     dp_dt.Reset(pExtNode->dGetXPrime(), iGetFirstDofIndex(sp_grad::UNKNOWN_FUNC), -dCoef);
         } else {
-            dp_dt.SetValue(pExtNode->dGetXPrime());
+	     // ScalarNodes are inactive during initial assembly
+	     dp_dt.ResizeReset(pExtNode->dGetXPrime(), 0);
         }
     }
 
@@ -9378,18 +9221,17 @@ namespace {
     HydroCoupledNode::Update(const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr,
                              doublereal dCoef,
-                             enum FunctionCall func,
-                             LocalDofMap* pDofMap)
+                             SpFunctionCall func)
     {
-        if (func & grad::REGULAR_FLAG) {
-            eCurrFunc = grad::REGULAR_FLAG;
+        if (func & SpFunctionCall::REGULAR_FLAG) {
+            eCurrFunc = SpFunctionCall::REGULAR_FLAG;
         }
 
-        HydroIncompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroIncompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
     }
 
     HydroCompressibleNode::HydroCompressibleNode(integer iNodeNo,
-                                                 const Vector<doublereal, 2>& x,
+                                                 const SpColVector<doublereal, 2>& x,
                                                  HydroMesh* pParent,
                                                  ContactModel* pContactModel,
                                                  std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9410,7 +9252,7 @@ namespace {
     }
 
     HydroActiveComprNode::HydroActiveComprNode(integer iNodeNo,
-                                               const Vector<doublereal, 2>& x,
+                                               const SpColVector<doublereal, 2>& x,
                                                HydroMesh* pParent,
                                                ContactModel* pContactModel,
                                                std::unique_ptr<FrictionModel>&& pFrictionModel)
@@ -9420,7 +9262,7 @@ namespace {
                                pContactModel,
                                std::move(pFrictionModel),
                                ACTIVE_NODE),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
         std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
             HydroRootElement::SCALE_PRESSURE_DOF,
@@ -9451,70 +9293,61 @@ namespace {
         return oCurrState.eCavitationState;
     }
 
-    void HydroActiveComprNode::GetTheta(std::array<doublereal, iNumDofMax>& Theta, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetTheta(std::array<doublereal, iNumDofMax>& Theta, doublereal) const
     {
         for (index_type i = 0; i < iNumDofMax; ++i) {
             Theta[i] = oCurrState.Theta[i];
         }
     }
 
-    void HydroActiveComprNode::GetTheta(std::array<Gradient<0>, iNumDofMax>& Theta, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoef) const
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG || eCurrFunc == grad::REGULAR_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
 
-        HYDRO_ASSERT(dCoef == 1. || eCurrFunc != grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(dCoef == 1. || eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG);
 
         const index_type iNumDofInit = iGetInitialNumDof();
 
         for (index_type i = 0; i < iNumDofMax; ++i) {
-            Theta[i].SetValuePreserve(oCurrState.Theta[i]);
-
             doublereal dDeriv = 0;
 
-            if (eCurrFunc == grad::REGULAR_FLAG) {
+            if (eCurrFunc == SpFunctionCall::REGULAR_FLAG) {
                 dDeriv = -dCoef * s[i];
             } else if (i < iNumDofInit) {
                 dDeriv = -s[i];
             }
-
-            Theta[i].DerivativeResizeReset(pDofMap,
-                                           iGetFirstDofIndex(eCurrFunc) + i,
-                                           MapVectorBase::GLOBAL,
-                                           dDeriv);
+	    
+	    Theta[i].Reset(oCurrState.Theta[i], iGetFirstDofIndex(eCurrFunc) + i, dDeriv);
         }
     }
 
-    void HydroActiveComprNode::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal) const
     {
         for (index_type i = 0; i < iNumDofMax; ++i) {
             dTheta_dt[i] = oCurrState.dTheta_dt[i];
         }
     }
 
-    void HydroActiveComprNode::GetThetaDerTime(std::array<Gradient<0>, iNumDofMax>& dTheta_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetThetaDerTime(std::array<SpGradient, iNumDofMax>& dTheta_dt, doublereal dCoef) const
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG || eCurrFunc == grad::REGULAR_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
 
         for (index_type i = 0; i < iNumDofMax; ++i) {
-            if (eCurrFunc & grad::REGULAR_FLAG) {
-                dTheta_dt[i].SetValuePreserve(oCurrState.dTheta_dt[i]);
-                dTheta_dt[i].DerivativeResizeReset(pDofMap,
-                                                   iGetFirstDofIndex(eCurrFunc) + i,
-                                                   MapVectorBase::GLOBAL,
-                                                   -s[i]);
+            if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
+		 dTheta_dt[i].Reset(oCurrState.dTheta_dt[i], iGetFirstDofIndex(eCurrFunc) + i, -s[i]);
             } else {
-                dTheta_dt[i].SetValue(oCurrState.dTheta_dt[i]);
+		 dTheta_dt[i].ResizeReset(oCurrState.dTheta_dt[i], 0);
             }
         }
     }
 
     template <typename G>
-    inline void HydroActiveComprNode::UpdateState(FluidState<G>& oState, LocalDofMap* pDofMap, doublereal dCoef) const
+    inline void HydroActiveComprNode::UpdateState(FluidState<G>& oState, doublereal dCoef) const
     {
-        GetTheta(oState.Theta, pDofMap, dCoef);
-        GetThetaDerTime(oState.dTheta_dt, pDofMap, dCoef);
-        GetTemperature(oState.T, pDofMap, dCoef);
-        GetTemperatureDerTime(oState.dT_dt, pDofMap, dCoef);
+        GetTheta(oState.Theta, dCoef);
+        GetThetaDerTime(oState.dTheta_dt, dCoef);
+        GetTemperature(oState.T, dCoef);
+        GetTemperatureDerTime(oState.dT_dt, dCoef);
 
         pGetFluid()->ThetaToPhysical(oState.Theta,
                                      oState.dTheta_dt,
@@ -9525,31 +9358,31 @@ namespace {
                                      oState.rho,
                                      oState.drho_dt);
 
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.Theta[0])));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.Theta[1])));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.dTheta_dt[0])));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.dTheta_dt[1])));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.T)));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(oState.dT_dt)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.Theta[0])));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.Theta[1])));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.dTheta_dt[0])));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.dTheta_dt[1])));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.T)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(oState.dT_dt)));
     }
 
-    integer HydroActiveComprNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroActiveComprNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return iGetFirstDofIndex(eFunc);
     }
 
-    integer HydroActiveComprNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroActiveComprNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(iGetOffsetIndex(eFunc) != HydroDofOwner::UNKNOWN_OFFSET);
 
         return pGetMesh()->pGetParent()->iGetFirstIndex() + iGetOffsetIndex(eFunc);
     }
 
-    integer HydroActiveComprNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer HydroActiveComprNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
         integer iNumCols = HydroCompressibleNode::iGetNumColsWorkSpace(eFunc);
 
-        if (eFunc & grad::REGULAR_FLAG) {
+        if (eFunc & SpFunctionCall::REGULAR_FLAG) {
             iNumCols += iGetNumDof();
         } else {
             iNumCols += iGetInitialNumDof();
@@ -9613,34 +9446,31 @@ namespace {
     HydroActiveComprNode::Update(const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
                                  doublereal dCoef,
-                                 enum FunctionCall func,
-                                 LocalDofMap* pDofMap)
+                                 SpFunctionCall func)
     {
-        oDofMap.Reset(func);
-
-        if (func & grad::INITIAL_ASS_FLAG) {
+        if (func & SpFunctionCall::INITIAL_ASS_FLAG) {
             oCurrState.Theta[0] = s[0] * XCurr(iGetFirstDofIndex(func));
             HYDRO_ASSERT(std::isfinite(oCurrState.Theta[0]));
         }
 
-        HYDRO_ASSERT(eCurrFunc == (func & grad::STATE_MASK));
+        HYDRO_ASSERT(eCurrFunc == (func & sp_grad::STATE_MASK));
 
         switch (func) {
-        case INITIAL_ASS_RES:
-        case REGULAR_RES:
-            UpdateState(oState, &oDofMap, dCoef);
+        case SpFunctionCall::INITIAL_ASS_RES:
+        case SpFunctionCall::REGULAR_RES:
+            UpdateState(oState, dCoef);
             break;
 
-        case INITIAL_ASS_JAC:
-        case REGULAR_JAC:
-            UpdateState(oState_grad, &oDofMap, dCoef);
+        case SpFunctionCall::INITIAL_ASS_JAC:
+        case SpFunctionCall::REGULAR_JAC:
+            UpdateState(oState_grad, dCoef);
             break;
 
         default:
             NO_OP;
         }
 
-        HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
     }
 
     void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
@@ -9702,52 +9532,52 @@ namespace {
 
     void HydroActiveComprNode::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
         HYDRO_ASSERT(oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
         UpdateCavitationState();
         ResolveCavitationState(XCurr, XPrimeCurr);
     }
 
-    void HydroActiveComprNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetPressure(doublereal& p, doublereal) const
     {
         p = oState.p;
     }
 
-    void HydroActiveComprNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
-        p.Copy(oState_grad.p, pDofMap);
+        p = oState_grad.p;
     }
 
-    void HydroActiveComprNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
     {
         dp_dt = oState.dp_dt;
     }
 
-    void HydroActiveComprNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
-        dp_dt.Copy(oState_grad.dp_dt, pDofMap);
+        dp_dt = oState_grad.dp_dt;
     }
 
-    void HydroActiveComprNode::GetDensity(doublereal& rho, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetDensity(doublereal& rho, doublereal) const
     {
         rho = oState.rho;
     }
 
-    void HydroActiveComprNode::GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetDensity(SpGradient& rho, doublereal dCoef) const
     {
-        rho.Copy(oState_grad.rho, pDofMap);
+        rho = oState_grad.rho;
     }
 
-    void HydroActiveComprNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap*, doublereal) const
+    void HydroActiveComprNode::GetDensityDerTime(doublereal& drho_dt, doublereal) const
     {
         drho_dt = oState.drho_dt;
     }
 
-    void HydroActiveComprNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroActiveComprNode::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
     {
-        drho_dt.Copy(oState_grad.drho_dt, pDofMap);
+        drho_dt = oState_grad.drho_dt;
     }
 
     unsigned int HydroActiveComprNode::iGetNumDof(void) const
@@ -9798,7 +9628,7 @@ namespace {
     std::ostream&
     HydroActiveComprNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
-        const integer iIndex = iGetFirstDofIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+        const integer iIndex = iGetFirstDofIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
         const index_type iNumDof = bInitial ? iGetInitialNumDof() : iGetNumDof();
 
@@ -9812,7 +9642,7 @@ namespace {
     std::ostream&
     HydroActiveComprNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
     {
-        const integer iIndex = iGetFirstDofIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+        const integer iIndex = iGetFirstDofIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
         static const char szEqName[][31] = {
             "compressible Reynolds equation",
@@ -9829,7 +9659,7 @@ namespace {
     }
 
     HydroPassiveComprNode::HydroPassiveComprNode(integer iNodeNo,
-                                                 const Vector<doublereal, 2>& x,
+                                                 const SpColVector<doublereal, 2>& x,
                                                  HydroMesh* pParent,
                                                  ContactModel* pContactModel,
                                                  std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9850,13 +9680,13 @@ namespace {
 
     }
 
-    integer HydroPassiveComprNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroPassiveComprNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    integer HydroPassiveComprNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroPassiveComprNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(0);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -9868,22 +9698,22 @@ namespace {
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    void HydroPassiveComprNode::GetPressure(doublereal& p, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetPressure(doublereal& p, doublereal) const
     {
         const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
         const doublereal h = dGetClearance(pBound);
         p = pBound->dGetPressure(h);
     }
 
-    void HydroPassiveComprNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroPassiveComprNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
         doublereal ps;
 
         GetPressure(ps);
-        p.SetValue(ps);
+        p.ResizeReset(ps, 0);
     }
 
-    void HydroPassiveComprNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
     {
         const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
         doublereal h, dh_dt;
@@ -9892,30 +9722,30 @@ namespace {
         dp_dt = pBound->dGetPressureDerTime(h, dh_dt);
     }
 
-    void HydroPassiveComprNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroPassiveComprNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
         doublereal dps_dt;
 
         GetPressureDerTime(dps_dt);
-        dp_dt.SetValue(dps_dt);
+        dp_dt.ResizeReset(dps_dt, 0);
     }
 
-    void HydroPassiveComprNode::GetDensity(doublereal& rho, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetDensity(doublereal& rho, doublereal) const
     {
         const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
         const doublereal h = dGetClearance(pBound);
         rho = pBound->dGetDensity(h);
     }
 
-    void HydroPassiveComprNode::GetDensity(Gradient<0>& rho, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetDensity(SpGradient& rho, doublereal) const
     {
         doublereal rhos;
 
         GetDensity(rhos);
-        rho.SetValue(rhos);
+        rho.ResizeReset(rhos, 0);
     }
 
-    void HydroPassiveComprNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetDensityDerTime(doublereal& drho_dt, doublereal) const
     {
         const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
         doublereal dh_dt;
@@ -9924,12 +9754,12 @@ namespace {
         drho_dt = pBound->dGetDensityDerTime(h, dh_dt);
     }
 
-    void HydroPassiveComprNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap*, doublereal) const
+    void HydroPassiveComprNode::GetDensityDerTime(SpGradient& drho_dt, doublereal) const
     {
         doublereal drhos_dt;
 
         GetDensityDerTime(drhos_dt);
-        drho_dt.SetValue(drhos_dt);
+        drho_dt.ResizeReset(drhos_dt, 0);
     }
 
     const FluidStateBoundaryCond* HydroPassiveComprNode::pGetFluidBoundCond() const
@@ -9944,7 +9774,7 @@ namespace {
     }
 
     HydroComprOutletNode::HydroComprOutletNode(integer iNodeNo,
-                                               const Vector<doublereal, 2>& x,
+                                               const SpColVector<doublereal, 2>& x,
                                                HydroMesh* pParent,
                                                ContactModel* pContactModel,
                                                std::unique_ptr<FrictionModel>&& pFrictionModel,
@@ -9959,35 +9789,35 @@ namespace {
     {
     }
 
-    void HydroComprOutletNode::GetDensity(doublereal& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroComprOutletNode::GetDensity(doublereal& rho, doublereal dCoef) const
     {
-        pMasterNode->GetDensity(rho, pDofMap, dCoef);
+        pMasterNode->GetDensity(rho, dCoef);
     }
 
-    void HydroComprOutletNode::GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroComprOutletNode::GetDensity(SpGradient& rho, doublereal dCoef) const
     {
-        pMasterNode->GetDensity(rho, pDofMap, dCoef);
+        pMasterNode->GetDensity(rho, dCoef);
     }
 
-    void HydroComprOutletNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroComprOutletNode::GetDensityDerTime(doublereal& drho_dt, doublereal dCoef) const
     {
-        pMasterNode->GetDensityDerTime(drho_dt, pDofMap, dCoef);
+        pMasterNode->GetDensityDerTime(drho_dt, dCoef);
     }
 
-    void HydroComprOutletNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroComprOutletNode::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
     {
-        pMasterNode->GetDensityDerTime(drho_dt, pDofMap, dCoef);
+        pMasterNode->GetDensityDerTime(drho_dt, dCoef);
     }
 
     HydroCoupledComprNode::HydroCoupledComprNode(integer iNodeNo,
-                                                 const Vector<doublereal, 2>& x,
+                                                 const SpColVector<doublereal, 2>& x,
                                                  HydroMesh* pParent,
                                                  ContactModel* pContactModel,
                                                  std::unique_ptr<FrictionModel>&& pFrictionModel,
                                                  PressureNode* pExtNode)
         :HydroCompressibleNode(iNodeNo, x, pParent, pContactModel, std::move(pFrictionModel), COUPLED_NODE),
          pExtNode(pExtNode),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
         if (pExtNode->dGetX() < pGetFluid()->dGetRefPressure()) {
             pExtNode->SetX(pGetFluid()->dGetRefPressure());
@@ -10001,49 +9831,49 @@ namespace {
     {
     }
 
-    integer HydroCoupledComprNode::iGetFirstEquationIndex(grad::FunctionCall eFunc) const
+    integer HydroCoupledComprNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pExtNode->iGetFirstRowIndex() + 1;
     }
 
-    integer HydroCoupledComprNode::iGetFirstDofIndex(grad::FunctionCall eFunc) const
+    integer HydroCoupledComprNode::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
     {
         return pExtNode->iGetFirstColIndex() + 1;
     }
 
-    integer HydroCoupledComprNode::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer HydroCoupledComprNode::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
-        return eFunc & grad::REGULAR_FLAG ? 1 : 0;
+        return eFunc & SpFunctionCall::REGULAR_FLAG ? 1 : 0;
     }
 
-    void HydroCoupledComprNode::GetPressure(doublereal& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetPressure(doublereal& p, doublereal dCoef) const
     {
         p = oState.p;
     }
 
-    void HydroCoupledComprNode::GetPressure(Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetPressure(SpGradient& p, doublereal dCoef) const
     {
-        p.Copy(oState_grad.p, pDofMap);
+        p = oState_grad.p;
     }
 
-    void HydroCoupledComprNode::GetPressureDerTime(doublereal& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetPressureDerTime(doublereal& dp_dt, doublereal dCoef) const
     {
         dp_dt = oState.dp_dt;
     }
 
-    void HydroCoupledComprNode::GetPressureDerTime(Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
     {
-        dp_dt.Copy(oState_grad.dp_dt, pDofMap);
+        dp_dt = oState_grad.dp_dt;
     }
 
-    void HydroCoupledComprNode::GetDensity(doublereal& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetDensity(doublereal& rho, doublereal dCoef) const
     {
         rho = oState.rho;
     }
 
-    void HydroCoupledComprNode::GetDensity(Gradient<0>& rho, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetDensity(SpGradient& rho, doublereal dCoef) const
     {
-        rho.Copy(oState_grad.rho, pDofMap);
+        rho = oState_grad.rho;
     }
 
     HydroFluid::CavitationState HydroCoupledComprNode::GetCavitationState() const
@@ -10051,27 +9881,24 @@ namespace {
         return oState.eCavitationState;
     }
 
-    void HydroCoupledComprNode::GetDensityDerTime(doublereal& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetDensityDerTime(doublereal& drho_dt, doublereal dCoef) const
     {
         drho_dt = oState.drho_dt;
     }
 
-    void HydroCoupledComprNode::GetDensityDerTime(Gradient<0>& drho_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
     {
-        drho_dt.Copy(oState_grad.drho_dt, pDofMap);
+        drho_dt = oState_grad.drho_dt;
     }
 
     void
     HydroCoupledComprNode::Update(const VectorHandler& XCurr,
                                   const VectorHandler& XPrimeCurr,
                                   doublereal dCoef,
-                                  enum FunctionCall func,
-                                  LocalDofMap* pDofMap)
+                                  SpFunctionCall func)
     {
-        oDofMap.Reset(func);
-
-        if (func & grad::REGULAR_FLAG) {
-            eCurrFunc = grad::REGULAR_FLAG;
+        if (func & SpFunctionCall::REGULAR_FLAG) {
+            eCurrFunc = SpFunctionCall::REGULAR_FLAG;
             const integer iIndex = iGetFirstDofIndex(func);
 
             HYDRO_ASSERT(iIndex > 0);
@@ -10079,63 +9906,60 @@ namespace {
 
             pext = XCurr(iIndex);
             dpext_dt = XPrimeCurr(iIndex);
-            eCurrFunc = grad::REGULAR_FLAG;
+            eCurrFunc = SpFunctionCall::REGULAR_FLAG;
         }
 
         switch (func) {
-        case REGULAR_RES:
-        case INITIAL_ASS_RES:
-            UpdateState(oState, &oDofMap, dCoef, func);
+        case SpFunctionCall::REGULAR_RES:
+        case SpFunctionCall::INITIAL_ASS_RES:
+            UpdateState(oState, dCoef, func);
             break;
 
-        case REGULAR_JAC:
-        case INITIAL_ASS_JAC:
-            UpdateState(oState_grad, &oDofMap, dCoef, func);
+        case SpFunctionCall::REGULAR_JAC:
+        case SpFunctionCall::INITIAL_ASS_JAC:
+            UpdateState(oState_grad, dCoef, func);
             break;
 
         default:
             break;
         }
 
-        HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func, pDofMap);
+        HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
     }
 
-    void HydroCoupledComprNode::GetExtPressure(doublereal& p, doublereal& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetExtPressure(doublereal& p, doublereal& dp_dt, doublereal dCoef) const
     {
         p = pext;
         dp_dt = dpext_dt;
     }
 
-    void HydroCoupledComprNode::GetExtPressure(Gradient<0>& p, Gradient<0>& dp_dt, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroCoupledComprNode::GetExtPressure(SpGradient& p, SpGradient& dp_dt, doublereal dCoef) const
     {
-        if (eCurrFunc == grad::REGULAR_FLAG) {
+        if (eCurrFunc == SpFunctionCall::REGULAR_FLAG) {
             const index_type iIndex = iGetFirstDofIndex(eCurrFunc);
 
-            p.SetValuePreserve(pext);
-            p.DerivativeResizeReset(pDofMap, iIndex, MapVectorBase::GLOBAL, -1.);
+	    p.Reset(pext, iIndex, -1.);
 
             // We assume that db0Algebraic == db0Differential
             // In case of the multistep and hope methods this is true only if algebraic and differential spectral radii are the same!
-
-            dp_dt.SetValuePreserve(dpext_dt);
-            dp_dt.DerivativeResizeReset(pDofMap, iIndex, MapVectorBase::GLOBAL, -dCoef);
+            dp_dt.Reset(dpext_dt, iIndex, -dCoef);
         } else {
-            HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+            HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
             HYDRO_ASSERT(dpext_dt == 0.);
 
-            p.SetValue(pext); // ScalarNodes are inactive during initial assembly
-            dp_dt.SetValue(dpext_dt);
+            p.ResizeReset(pext, 0); // ScalarNodes are inactive during initial assembly
+            dp_dt.ResizeReset(dpext_dt, 0);
         }
     }
 
     template <typename G>
-    void HydroCoupledComprNode::UpdateState(FluidState<G>& oStateCurr, LocalDofMap* pDofMap, doublereal dCoef, FunctionCall func) const
+    void HydroCoupledComprNode::UpdateState(FluidState<G>& oStateCurr, doublereal dCoef, SpFunctionCall func) const
     {
         G T, dT_dt, drho_dp, drho_dT;
 
-        GetExtPressure(oStateCurr.p, oStateCurr.dp_dt, pDofMap, dCoef);
-        GetTemperature(T, pDofMap, dCoef);
-        GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
+        GetExtPressure(oStateCurr.p, oStateCurr.dp_dt, dCoef);
+        GetTemperature(T, dCoef);
+        GetTemperatureDerTime(dT_dt, dCoef);
         pGetFluid()->GetDensity(oStateCurr.p, T, oStateCurr.rho, &drho_dp, &drho_dT);
         oStateCurr.eCavitationState = pGetFluid()->Cavitation(oStateCurr.p, &oStateCurr.dp_dt);
 
@@ -10184,7 +10008,7 @@ namespace {
         return rgNodes[iNode];
     }
 
-    integer ComplianceModel::iGetFirstIndex(grad::FunctionCall eFunc) const
+    integer ComplianceModel::iGetFirstIndex(sp_grad::SpFunctionCall eFunc) const
     {
         HYDRO_ASSERT(unsigned(iGetOffsetIndex(eFunc)) <= pGetMesh()->pGetParent()->iGetNumDof());
 
@@ -10296,7 +10120,7 @@ namespace {
          iNumNodes(-1), iNumModes(-1),
          pModalJoint(pModalJoint),
          rgMatrices(std::move(rgMatArg)),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
     }
 
@@ -10310,31 +10134,31 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
     template <typename T>
-    void ComplianceModelNodal::AssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelNodal::AssRes(SpGradientAssVec<T>& WorkVec,
                                       doublereal dCoef,
-                                      const GradientVectorHandler<T>& XCurr,
-                                      const GradientVectorHandler<T>& XPrimeCurr,
-                                      enum FunctionCall func)
+                                      const SpGradientVectorHandler<T>& XCurr,
+                                      const SpGradientVectorHandler<T>& XPrimeCurr,
+                                      SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void ComplianceModelNodal::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                             const GradientVectorHandler<T>& XCurr,
-                                             enum FunctionCall func)
+    void ComplianceModelNodal::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                             const SpGradientVectorHandler<T>& XCurr,
+                                             SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
@@ -10344,28 +10168,27 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &rgDofMap[DOF_PRESS],
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     ComplianceModelNodal::InitialAssRes(SubVectorHandler& WorkVec,
                                         const VectorHandler& XCurr,
-                                        GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<doublereal>::InitialAssRes(this,
+            SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                       WorkVec,
                                                       XCurr,
-                                                      INITIAL_ASS_RES,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
                                                       mode);
         }
     }
@@ -10373,126 +10196,102 @@ namespace {
     void
     ComplianceModelNodal::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
-                                        GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<Gradient<0> >::InitialAssJac(this,
+            SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                         WorkMat,
                                                         XCurr,
-                                                        INITIAL_ASS_JAC,
-                                                        &rgDofMap[DOF_PRESS],
+                                                        SpFunctionCall::INITIAL_ASS_JAC,
                                                         mode);
         }
     }
     
     template <typename T>
-    void ComplianceModelNodal::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelNodal::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                           doublereal dCoef,
-                                          const GradientVectorHandler<T>& XCurr,
-                                          enum FunctionCall func)
+                                          const SpGradientVectorHandler<T>& XCurr,
+                                          SpFunctionCall func)
     {
         HYDRO_ASSERT(iNumNodes > 0);
         HYDRO_ASSERT(iNumModes >= 0);
         HYDRO_ASSERT(C.iGetNumRows() == iNumNodes || C.iGetNumRows() == 0);
         HYDRO_ASSERT(C.iGetNumCols() == iNumNodes || C.iGetNumCols() == 0);
-        
-        rgDofMap[DOF_DEF].Reset(func);
-        
-        Vector<T, DYNAMIC_SIZE> f1(iNumNodes), f2(E.iGetNumRows());
-        T dw_dt;
 
         const doublereal dEquationScale = pGetMesh()->pGetParent()->dGetScale(HydroRootElement::SCALE_ELASTICITY_EQU);
 
-        for (index_type i = 1; i <= f1.iGetNumRows(); ++i) {
-            GetRadialDeformation(f1(i), dw_dt, dCoef, func, &rgDofMap[DOF_DEF], rgNodes[i - 1]);
-            f1(i) *= dEquationScale;
-            HYDRO_TRACE("f1(" << i << ")=" << f1(i) << std::endl);
-        }
+	const integer iEqIndex = iGetFirstIndex(func);
+
+	{
+	     T w, dw_dt;
+	
+	     for (index_type i = 0; i < iNumNodes; ++i) {
+		  GetRadialDeformation(w, dw_dt, dCoef, func, rgNodes[i]);
+		  w *= dEquationScale;
+		  WorkVec.AddItem(iEqIndex + i, w);
+	     }
+	}
 
         if (pModalJoint) {
             HYDRO_ASSERT(pModalJoint->uGetNModes() == E.iGetNumRows());
             HYDRO_ASSERT(pModalJoint->uGetNModes() == D.iGetNumCols());
             HYDRO_ASSERT(iNumNodes == E.iGetNumCols());
-            HYDRO_ASSERT(iNumNodes == D.iGetNumRows());
-            
-            for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
-                SetDofMap(f2(i), &rgDofMap[DOF_DEF]);
-            }
+            HYDRO_ASSERT(iNumNodes == D.iGetNumRows());           
         }
 
-        integer iEqIndex = iGetFirstIndex(func);
+        SpColVector<T> p(iNumNodes, 1);
+	SpColVector<T> pasp(iNumNodes, 12 + 1);
 
-        T p, pasp;
+	for (index_type j = 1; j <= iNumNodes; ++j) {	
+	     pGetMesh()->GetPressure(rgNodes[j - 1], p(j), dCoef);
+	}
+	
+	for (index_type j = 1; j <= iNumNodes; ++j) {	
+	     rgNodes[j - 1]->GetContactPressure(pasp(j));
+	}
 
-        for (index_type j = 1; j <= iNumNodes; ++j) {
-            rgDofMap[DOF_PRESS].Reset(); // reduces the size of the local vector stored in p
+	const SpColVector<T> ptot_scaled = (p + pasp) * dPressScale;
 
-            pGetMesh()->GetPressure(rgNodes[j - 1], p, &rgDofMap[DOF_PRESS], dCoef);
+	SpColVector<T> f1 = C * ptot_scaled;
 
-            if (rgNodes[j - 1]->GetContactPressure(pasp, &rgDofMap[DOF_PRESS])) {
-                p += pasp;
-            }
-
-            p *= dPressScale;
-
-            HYDRO_TRACE("p=" << p << "\n");
-
-            for (index_type i = 1; i <= C.iGetNumRows(); ++i) {
-                HYDRO_TRACE("before: f1(" << i << ")=" <<  f1(i) << "\n");
-
-                f1(i) -= dEquationScale * C(i, j) * p;
-
-                HYDRO_TRACE("after: f1(" << i << ")=" <<  f1(i) << "\n");
-            }
-            
-            if (pModalJoint) {
-                for (index_type i = 1; i <= E.iGetNumRows(); ++i) {
-                    f2(i) += E(i, j) * p;
-                }
-            }
-        }
-
+	f1 *= -dEquationScale;
+	
+	for (index_type i = 0; i < iNumNodes; ++i) {            
+	     WorkVec.AddItem(iEqIndex + i, f1(i + 1));
+	}
+	
         if (pModalJoint) {
+	     const SpColVector<T> f2 = E * ptot_scaled;
+
+            const index_type iEqIndexModal = pModalJoint->iGetFirstIndex() + pModalJoint->uGetNModes();
+            
+            for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {                
+                WorkVec.AddItem(iEqIndexModal + i, f2(i));
+            }
+	     
             HYDRO_ASSERT(pModalJoint->uGetNModes() == D.iGetNumCols());
             HYDRO_ASSERT(D.iGetNumRows() == f1.iGetNumRows());
 
-            T aj;
+            SpColVector<T> a(D.iGetNumCols(), 1);
             
             for (index_type j = 1; j <= D.iGetNumCols(); ++j) {
-                rgDofMap[DOF_PRESS].Reset(); // reduces the size of the local vector stored in a(j)
-                pModalJoint->GetACurr(j, aj, dCoef, func, &rgDofMap[DOF_PRESS]);
-                
-                for (index_type i = 1; i <= f1.iGetNumRows(); ++i) {
-                    f1(i) -= dEquationScale * D(i, j) * aj;
-                }
+		 pModalJoint->GetACurr(j, a(j), dCoef, func);               
             }
-        }
 
-        for (index_type i = 1; i <= f1.iGetNumRows(); ++i) {
-            CHECK_NUM_COLS_WORK_SPACE(this, func, f1(i), iEqIndex);
-            
-            WorkVec.AddItem(iEqIndex++, f1(i));
+	    f1 = D * a;
 
-            HYDRO_TRACE("f1(" << i << ")=" << f1(i) << std::endl);
-        }
+	    f1 *= -dEquationScale;
 
-        if (pModalJoint) {
-            iEqIndex = pModalJoint->iGetFirstIndex() + pModalJoint->uGetNModes() + 1;
-            
-            for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
-                CHECK_NUM_COLS_WORK_SPACE(this, func, f2(i), iEqIndex);
-                
-                WorkVec.AddItem(iEqIndex++, f2(i));
-
-                HYDRO_TRACE("f2(" << i << ")=" << f2(i) << std::endl);
-            }
+	    for (index_type i = 0; i < iNumNodes; ++i) {            
+		 WorkVec.AddItem(iEqIndex + i, f1(i + 1));
+	    }	    
         }
     }
 
-    void ComplianceModelNodal::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void ComplianceModelNodal::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        *piNumRows = iNumNodes;
-        *piNumCols = iNumNodes + (eFunc & grad::REGULAR_FLAG ? iGetNumDof() : iGetInitialNumDof());
+        *piNumRows = 3 * iNumNodes;
+        *piNumCols = iNumNodes + (eFunc & SpFunctionCall::REGULAR_FLAG ? iGetNumDof() : iGetInitialNumDof());
 
         if (pModalJoint) {
             *piNumRows += E.iGetNumRows();
@@ -10509,8 +10308,8 @@ namespace {
         iNumNodes = iGetNumNodes();
         iNumModes = pModalJoint ? pModalJoint->uGetNModes() : 0;
 
-        w.Resize(iNumNodes);
-        dw_dt.Resize(iNumNodes);
+        w.ResizeReset(iNumNodes, 0);
+        dw_dt.ResizeReset(iNumNodes, 0);
 
         ComplianceMatrix::MatrixData oMatData{ComplianceMatrix::LOC_MESH_FIXED,
                 pModalJoint,
@@ -10548,9 +10347,9 @@ namespace {
 
     void ComplianceModelNodal::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
 
         integer iDofIndex = iGetFirstIndex(eCurrFunc);
 
@@ -10572,9 +10371,9 @@ namespace {
         return bDoInitAss ? iGetNumDof() : 0u;
     }
 
-    integer ComplianceModelNodal::iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const
+    integer ComplianceModelNodal::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const
     {
-        return (eFunc & grad::REGULAR_FLAG ? 1 : bDoInitAss) * iNumNodes; // Number of columns per node in this case
+        return (eFunc & SpFunctionCall::REGULAR_FLAG ? 1 : bDoInitAss) * iNumNodes; // Number of columns per node in this case
     }
 
     DofOrder::Order ComplianceModelNodal::GetDofType(unsigned int i) const
@@ -10595,7 +10394,7 @@ namespace {
     ComplianceModelNodal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iDofIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iDofIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
             for (index_type i = 1; i <= w.iGetNumRows(); ++i, ++iDofIndex) {
                 out << prefix << iDofIndex << ": Elasticity dof #" << i << " of node number " << rgNodes[i - 1]->iGetNodeNumber() + 1 << std::endl;
@@ -10609,7 +10408,7 @@ namespace {
     ComplianceModelNodal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iDofIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iDofIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
             for (index_type i = 1; i <= w.iGetNumRows(); ++i, ++iDofIndex) {
                 out << prefix << iDofIndex << ": Elasticity definition equation #" << i << " for node number " << rgNodes[i - 1]->iGetNodeNumber() + 1 << std::endl;
@@ -10619,9 +10418,9 @@ namespace {
         return out;
     }
 
-    void ComplianceModelNodal::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr, doublereal dCoef, FunctionCall func)
+    void ComplianceModelNodal::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr, doublereal dCoef, SpFunctionCall func)
     {
-        if ((func & grad::REGULAR_FLAG) || bDoInitAss) {
+        if ((func & SpFunctionCall::REGULAR_FLAG) || bDoInitAss) {
             integer iDofIndex = iGetFirstIndex(func);
 
             for (index_type i = 1; i <= w.iGetNumRows(); ++i, ++iDofIndex) {
@@ -10630,7 +10429,7 @@ namespace {
 
                 w(i) = XCurr(iDofIndex) * dDefScale;
 
-                if (func & grad::REGULAR_FLAG) {
+                if (func & SpFunctionCall::REGULAR_FLAG) {
                     HYDRO_ASSERT(iDofIndex <= XPrimeCurr.iGetSize());
                     dw_dt(i) = XPrimeCurr(iDofIndex) * dDefScale;
                 }
@@ -10638,7 +10437,7 @@ namespace {
         }
     }
 
-    void ComplianceModelNodal::GetRadialDeformation(doublereal& wi, doublereal& dwi_dt, doublereal, FunctionCall, LocalDofMap*, const HydroUpdatedNode* pNode) const
+    void ComplianceModelNodal::GetRadialDeformation(doublereal& wi, doublereal& dwi_dt, doublereal, SpFunctionCall, const HydroUpdatedNode* pNode) const
     {
         const index_type iCompIndex = pNode->iGetComplianceIndex();
 
@@ -10650,7 +10449,7 @@ namespace {
         dwi_dt = dw_dt(iCompIndex);
     }
 
-    void ComplianceModelNodal::GetRadialDeformation(Gradient<0>& wi, Gradient<0>& dwi_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap, const HydroUpdatedNode* pNode) const
+    void ComplianceModelNodal::GetRadialDeformation(SpGradient& wi, SpGradient& dwi_dt, doublereal dCoef, SpFunctionCall func, const HydroUpdatedNode* pNode) const
     {
         const index_type iCompIndex = pNode->iGetComplianceIndex();
 
@@ -10658,30 +10457,20 @@ namespace {
         HYDRO_ASSERT(iCompIndex <= iGetNumNodes());
         HYDRO_ASSERT(rgNodes[iCompIndex - 1] == pNode);
 
-        if ((func & grad::REGULAR_FLAG) || bDoInitAss) {
+        if ((func & SpFunctionCall::REGULAR_FLAG) || bDoInitAss) {
             index_type iDofIndex = iGetFirstIndex(func) + iCompIndex - 1;
 
-            wi.SetValuePreserve(w(iCompIndex));
+            wi.Reset(w(iCompIndex), iDofIndex, -dCoef * dDefScale);
 
-            wi.DerivativeResizeReset(pDofMap,
-                                     iDofIndex,
-                                     MapVectorBase::GLOBAL,
-                                     -dCoef * dDefScale);
-
-            if (func & grad::REGULAR_FLAG) {
-                dwi_dt.SetValuePreserve(dw_dt(iCompIndex));
-
-                dwi_dt.DerivativeResizeReset(pDofMap,
-                                             iDofIndex,
-                                             MapVectorBase::GLOBAL,
-                                             -dDefScale);
+            if (func & SpFunctionCall::REGULAR_FLAG) {
+		 dwi_dt.Reset(dw_dt(iCompIndex), iDofIndex, -dDefScale);
             } else {
                 HYDRO_ASSERT(dCoef == 1);
-                dwi_dt.SetValue(dw_dt(iCompIndex));
+                dwi_dt.ResizeReset(dw_dt(iCompIndex), 0);
             }
         } else {
-            wi.SetValue(w(iCompIndex));
-            dwi_dt.SetValue(dw_dt(iCompIndex));
+	     wi.ResizeReset(w(iCompIndex), 0);
+	     dwi_dt.ResizeReset(dw_dt(iCompIndex), 0);
         }
     }
 
@@ -10721,7 +10510,7 @@ namespace {
      dMeshRadius(oGeometry.dGetMeshRadius()),
      dMinDistance_2(std::pow(std::numeric_limits<doublereal>::epsilon(), 2./6.)),
      rgMatrices(std::move(rgMatrices)),
-     eCurrFunc(grad::INITIAL_ASS_FLAG),
+     eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
      eInterpolOption(eInterpolOption),
      dAxialThreshold(0.)
     {
@@ -10733,11 +10522,11 @@ namespace {
     }
 
     template <typename T>
-    void ComplianceModelNodalDouble::AssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelNodalDouble::AssRes(SpGradientAssVec<T>& WorkVec,
                                             doublereal dCoef,
-                                            const GradientVectorHandler<T>& XCurr,
-                                            const GradientVectorHandler<T>& XPrimeCurr,
-                                            enum FunctionCall func)
+                                            const SpGradientVectorHandler<T>& XCurr,
+                                            const SpGradientVectorHandler<T>& XPrimeCurr,
+                                            SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
@@ -10747,14 +10536,14 @@ namespace {
                                        doublereal dCoef,
                                        const VectorHandler& XCurr,
                                        const VectorHandler& XPrimeCurr,
-                                       GradientAssVecBase::mode_t mode)
+                                       SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -10763,22 +10552,21 @@ namespace {
                                        doublereal dCoef,
                                        const VectorHandler& XCurr,
                                        const VectorHandler& XPrimeCurr,
-                                       GradientAssVecBase::mode_t mode)
+                                       SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &rgDofMap[DOF_GLOBAL1],
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     template <typename T>
-    void ComplianceModelNodalDouble::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                                   const GradientVectorHandler<T>& XCurr,
-                                                   enum FunctionCall func)
+    void ComplianceModelNodalDouble::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                                   const SpGradientVectorHandler<T>& XCurr,
+                                                   SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
@@ -10786,13 +10574,13 @@ namespace {
     void
     ComplianceModelNodalDouble::InitialAssRes(SubVectorHandler& WorkVec,
                                               const VectorHandler& XCurr,
-                                              GradientAssVecBase::mode_t mode)
+                                              SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<doublereal>::InitialAssRes(this,
+            SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                       WorkVec,
                                                       XCurr,
-                                                      INITIAL_ASS_RES,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
                                                       mode);
         }
     }
@@ -10800,23 +10588,22 @@ namespace {
     void
     ComplianceModelNodalDouble::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                               const VectorHandler& XCurr,
-                                              GradientAssVecBase::mode_t mode)
+                                              SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<Gradient<0> >::InitialAssJac(this,
+            SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                         WorkMat,
                                                         XCurr,
-                                                        INITIAL_ASS_JAC,
-                                                        &rgDofMap[DOF_GLOBAL1],
+                                                        SpFunctionCall::INITIAL_ASS_JAC,
                                                         mode);
         }
     }
 
-    void ComplianceModelNodalDouble::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void ComplianceModelNodalDouble::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        if ((eFunc & grad::REGULAR_FLAG) || bDoInitAss) {
+        if ((eFunc & SpFunctionCall::REGULAR_FLAG) || bDoInitAss) {
             *piNumRows = rgNumNodes[DEHD_BODY_FIXED] + rgNumNodes[DEHD_BODY_MOVING];
-            *piNumCols = rgNumNodes[DEHD_BODY_FIXED] + (eFunc & grad::REGULAR_FLAG ? iGetNumDof() : iGetInitialNumDof());
+            *piNumCols = rgNumNodes[DEHD_BODY_FIXED] + (eFunc & SpFunctionCall::REGULAR_FLAG ? iGetNumDof() : iGetInitialNumDof());
 
             for (index_type i = 0; i < DEHD_BODY_LAST; ++i) {
                 if (rgModalJoints[i]) {
@@ -10886,11 +10673,11 @@ namespace {
         };
         
         for (index_type i = DEHD_DEF_TOTAL; i <= DEHD_DEF_MOVING_INTERP; ++i) {
-            w[i].Resize(rgNumNodes[rgBodyIndexDef[i]]);
+	     w[i].ResizeReset(rgNumNodes[rgBodyIndexDef[i]], 0);
         }
 
         for (index_type i = DEHD_DEF_TOTAL; i <= DEHD_DEF_MOVING; ++i) {
-            dw_dt[i].Resize(rgNumNodes[rgBodyIndexDef[i]]);
+	     dw_dt[i].ResizeReset(rgNumNodes[rgBodyIndexDef[i]], 0);
         }
 
         HYDRO_ASSERT(!rgModalJoints[DEHD_BODY_MOVING] || D[DEHD_BODY_MOVING].iGetNumCols() > 0);
@@ -10944,7 +10731,7 @@ namespace {
                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                     }
 
-                    Matrix<doublereal, GRIDINTERP, POLYORDER> A;
+                    SpMatrixA<doublereal, GRIDINTERP, POLYORDER> A;
                     std::array<index_type, GRIDINTERP> Cidx;
 
                     for (index_type l = 0; l < GRIDINTERP; ++l) {
@@ -10966,8 +10753,9 @@ namespace {
                         }
                     }
 
-                    Matrix<doublereal, POLYORDER, POLYORDER> A_TA = Transpose(A) * A;
-
+                    SpMatrix<doublereal, POLYORDER, POLYORDER> A_TA = Transpose(A) * A;
+		    SpMatrix<doublereal, POLYORDER, GRIDINTERP> pinvA = Transpose(A);
+		    
                     integer INFO;
                     std::array<integer, POLYORDER> IPIV;
 
@@ -10982,13 +10770,13 @@ namespace {
 
                     const integer NRHS = A.iGetNumRows();
 
-                    __FC_DECL__(dgetrs)("N", &N, &NRHS, &A_TA(1, 1), &M, &IPIV[0], &A(1, 1), &N, &INFO);
+                    __FC_DECL__(dgetrs)("N", &N, &NRHS, &A_TA(1, 1), &M, &IPIV[0], &pinvA(1, 1), &N, &INFO);
 
                     if (INFO != 0) {
                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                     }
 
-                    rgPolyData[k].emplace_back(Transpose(A), Cidx);
+                    rgPolyData[k].emplace_back(std::move(pinvA), Cidx);
 
                     HYDRO_ASSERT(static_cast<ssize_t>(rgPolyData[k].size()) == i * nz + j + 1);
                 }
@@ -11039,9 +10827,9 @@ namespace {
 
     void ComplianceModelNodalDouble::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
 
         integer iDofIndex = iGetFirstIndex(eCurrFunc);
 
@@ -11065,9 +10853,9 @@ namespace {
         return bDoInitAss ? iGetNumDof() : 0u;
     }
 
-    integer ComplianceModelNodalDouble::iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const
+    integer ComplianceModelNodalDouble::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const
     {
-        return (eFunc & grad::REGULAR_FLAG ? 1 : bDoInitAss) * iNumNodes; // Number of columns per node in this case
+        return (eFunc & SpFunctionCall::REGULAR_FLAG ? 1 : bDoInitAss) * iNumNodes; // Number of columns per node in this case
     }
 
     DofOrder::Order ComplianceModelNodalDouble::GetDofType(unsigned int i) const
@@ -11088,7 +10876,7 @@ namespace {
     ComplianceModelNodalDouble::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iDofIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iDofIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
             static const char rgDesc[][39] = {" for total deformation",
                                               " for deformation opposite to mesh side"};
@@ -11106,7 +10894,7 @@ namespace {
     ComplianceModelNodalDouble::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iEqIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iEqIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
 
             static const char rgDesc[][39] = {" for total deformation",
                                               " for deformation opposite to mesh side"};
@@ -11125,13 +10913,13 @@ namespace {
     ComplianceModelNodalDouble::Update(const VectorHandler& XCurr,
                                        const VectorHandler& XPrimeCurr,
                                        doublereal dCoef,
-                                       FunctionCall func)
+                                       SpFunctionCall func)
     {
         switch (func) {
-        case INITIAL_ASS_RES:
-        case INITIAL_DER_RES:
-        case REGULAR_RES:
-            if ((func & grad::REGULAR_FLAG) || bDoInitAss) {
+        case SpFunctionCall::INITIAL_ASS_RES:
+        case SpFunctionCall::INITIAL_DER_RES:
+        case SpFunctionCall::REGULAR_RES:
+            if ((func & SpFunctionCall::REGULAR_FLAG) || bDoInitAss) {
                 integer iDofIndex = iGetFirstIndex(func);
 
                 for (index_type k = DEHD_DEF_TOTAL; k <= DEHD_DEF_MOVING; ++k) {
@@ -11141,7 +10929,7 @@ namespace {
 
                         w[k](i) = XCurr(iDofIndex) * dDefScale;
 
-                        if (func & grad::REGULAR_FLAG) {
+                        if (func & SpFunctionCall::REGULAR_FLAG) {
                             HYDRO_ASSERT(iDofIndex <= XPrimeCurr.iGetSize());
                             dw_dt[k](i) = XPrimeCurr(iDofIndex) * dDefScale;
                         }
@@ -11159,22 +10947,20 @@ namespace {
     ComplianceModelNodalDouble::GetRadialDeformation(doublereal& wi,
                                                      doublereal& dwi_dt,
                                                      doublereal dCoef,
-                                                     FunctionCall func,
-                                                     LocalDofMap* pDofMap,
+                                                     SpFunctionCall func,
                                                      const HydroUpdatedNode* pNode) const
     {
-        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pDofMap, pNode);
+        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pNode);
     }
 
     void
-    ComplianceModelNodalDouble::GetRadialDeformation(Gradient<0>& wi,
-                                                     Gradient<0>& dwi_dt,
+    ComplianceModelNodalDouble::GetRadialDeformation(SpGradient& wi,
+                                                     SpGradient& dwi_dt,
                                                      doublereal dCoef,
-                                                     FunctionCall func,
-                                                     LocalDofMap* pDofMap,
+                                                     SpFunctionCall func,
                                                      const HydroUpdatedNode* pNode) const
     {
-        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pDofMap, pNode);
+        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pNode);
     }
 
     template <typename G>
@@ -11182,8 +10968,7 @@ namespace {
     ComplianceModelNodalDouble::GetRadialDeformationTpl(G& wi,
                                                         G& dwi_dt,
                                                         doublereal dCoef,
-                                                        FunctionCall func,
-                                                        LocalDofMap* pDofMap,
+                                                        SpFunctionCall func,
                                                         const HydroUpdatedNode* pNode) const
     {
         const index_type iCompIndex = pNode->iGetComplianceIndex();
@@ -11192,15 +10977,14 @@ namespace {
         HYDRO_ASSERT(iCompIndex <= iGetNumNodes());
         HYDRO_ASSERT(rgNodes[iCompIndex - 1] == pNode);
 
-        GetRadialDeformation(wi, dwi_dt, dCoef, func, pDofMap, DEHD_DEF_TOTAL, iCompIndex);
+        GetRadialDeformation(wi, dwi_dt, dCoef, func, DEHD_DEF_TOTAL, iCompIndex);
     }
 
     void
     ComplianceModelNodalDouble::GetRadialDeformation(doublereal& wi,
                                                      doublereal& dwi_dt,
                                                      doublereal dCoef,
-                                                     FunctionCall func,
-                                                     LocalDofMap* pDofMap,
+                                                     SpFunctionCall func,
                                                      DEhdDeformationIdx eDefIndex,
                                                      index_type iCompIndex) const
     {
@@ -11214,11 +10998,10 @@ namespace {
     }
 
     void
-    ComplianceModelNodalDouble::GetRadialDeformation(Gradient<0>& wi,
-                                                     Gradient<0>& dwi_dt,
+    ComplianceModelNodalDouble::GetRadialDeformation(SpGradient& wi,
+                                                     SpGradient& dwi_dt,
                                                      doublereal dCoef,
-                                                     FunctionCall func,
-                                                     LocalDofMap* pDofMap,
+                                                     SpFunctionCall func,
                                                      DEhdDeformationIdx eDefIndex,
                                                      index_type iCompIndex) const
     {
@@ -11227,34 +11010,24 @@ namespace {
         HYDRO_ASSERT(eDefIndex >= DEHD_DEF_TOTAL);
         HYDRO_ASSERT(eDefIndex <= DEHD_DEF_MOVING);
 
-        if ((func & grad::REGULAR_FLAG) || bDoInitAss) {
+        if ((func & SpFunctionCall::REGULAR_FLAG) || bDoInitAss) {
             index_type iDofIndex = iGetFirstIndex(func) + iCompIndex - 1;
 
             for (index_type k = 0; k < eDefIndex; ++k) {
                 iDofIndex += w[k].iGetNumRows();
             }
 
-            wi.SetValuePreserve(w[eDefIndex](iCompIndex));
+            wi.Reset(w[eDefIndex](iCompIndex), iDofIndex, -dCoef * dDefScale);
 
-            wi.DerivativeResizeReset(pDofMap,
-                                     iDofIndex,
-                                     MapVectorBase::GLOBAL,
-                                     -dCoef * dDefScale);
-
-            if (func & grad::REGULAR_FLAG) {
-                dwi_dt.SetValuePreserve(dw_dt[eDefIndex](iCompIndex));
-
-                dwi_dt.DerivativeResizeReset(pDofMap,
-                                             iDofIndex,
-                                             MapVectorBase::GLOBAL,
-                                             -dDefScale);
+            if (func & SpFunctionCall::REGULAR_FLAG) {
+		 dwi_dt.Reset(dw_dt[eDefIndex](iCompIndex), iDofIndex, -dDefScale);
             } else {
                 HYDRO_ASSERT(dCoef == 1);
-                dwi_dt.SetValue(dw_dt[eDefIndex](iCompIndex));
+                dwi_dt.ResizeReset(dw_dt[eDefIndex](iCompIndex), 0);
             }
         } else {
-            wi.SetValue(w[eDefIndex](iCompIndex));
-            dwi_dt.SetValue(dw_dt[eDefIndex](iCompIndex));
+	     wi.ResizeReset(w[eDefIndex](iCompIndex), 0);
+	     dwi_dt.ResizeReset(dw_dt[eDefIndex](iCompIndex), 0);
         }
     }
 
@@ -11327,16 +11100,12 @@ namespace {
               typename T>
     void ComplianceModelNodalDouble::Interpolate(const index_type i,
                                                  const index_type j,
-                                                 const Vector<T, 2>& dxm_g,
+                                                 const SpColVector<T, 2>& dxm,
                                                  const doublereal dScale,
                                                  T& fij_f,
                                                  const doublereal dCoef,
-                                                 const FunctionCall func,
-                                                 LocalDofMap* const pDofMap) const {
-        
-        const Vector<T, 2> dxm(dxm_g, pDofMap);
-        
-        T alpha(1.);
+                                                 const SpFunctionCall func) const {        
+	T alpha{1.};
         
         static_assert(eMshSrc != eMshDst, "source mesh must be different from destination mesh");
         static_assert((eMshSrc == DEHD_BODY_FIXED && eField == FT_TOTAL_PRESS) || (eMshSrc == DEHD_BODY_MOVING && eField == FT_DEF_MOVING), "interpolation not supported");
@@ -11379,7 +11148,7 @@ namespace {
 
         if (eInterpolOption == INT_AXIAL_LARGE_DISP) {            
             if (z_f < zi[eMshSrc].front() - dAxialThreshold || z_f > zi[eMshSrc].back() + dAxialThreshold) {
-                fij_f = 0.;
+		 SpGradient::ResizeReset(fij_f, 0., 0);
                 return;
             } else if (z_f < zi[eMshSrc].front() + dAxialThreshold) {
                 alpha = (z_f - (zi[eMshSrc].front() - dAxialThreshold)) / (2. * dAxialThreshold);
@@ -11388,9 +11157,9 @@ namespace {
             }
         } else if (eInterpolOption == INT_AXIAL_SMALL_DISP) {
             if (z_f < zi[eMshSrc].front()) {
-                z_f = zi[eMshSrc].front();
+		 SpGradient::ResizeReset(z_f, zi[eMshSrc].front(), 0);
             } else if (z_f > zi[eMshSrc].back()) {
-                z_f = zi[eMshSrc].back();
+		 SpGradient::ResizeReset(z_f, zi[eMshSrc].back(), 0);
             }
         }
 
@@ -11419,12 +11188,12 @@ namespace {
         const std::array<index_type, GRIDINTERPX> i_f = {i1_f, i2_f};
         const std::array<index_type, GRIDINTERPZ> j_f = {j1_f, j2_f};
 
-        fij_f = 0.;
+	SpGradient::ResizeReset(fij_f, 0., GRIDINTERPX * GRIDINTERPZ * (GRIDINTERP + 1));
 
         T wij_f{0.};
 
-        Vector<T, GRIDINTERP + 1> f;
-        Vector<T, GRIDINTERP> Ck_f;
+        SpColVectorA<T, GRIDINTERP + 1> f;
+        SpColVectorA<T, GRIDINTERP> Ck_f;
 
         for (index_type kx = 0; kx < GRIDINTERPX; ++kx) {
             const index_type ik_f = i_f[kx];
@@ -11463,8 +11232,8 @@ namespace {
                         HYDRO_ASSERT(iCompIndex <= w[eMshSrc].iGetNumRows());
                         HYDRO_ASSERT(rgNodes[iCompIndex - 1]->iGetComplianceIndex() == iCompIndex);
 
-                        pGetMesh()->GetPressure(rgNodes[iCompIndex - 1], p, pDofMap, dCoef);
-                        rgNodes[iCompIndex - 1]->GetContactPressure(pasp, pDofMap);
+                        pGetMesh()->GetPressure(rgNodes[iCompIndex - 1], p, dCoef);
+                        rgNodes[iCompIndex - 1]->GetContactPressure(pasp);
 
                         f(l + 1) = (p + pasp) * dScale;
                     } break;
@@ -11479,7 +11248,6 @@ namespace {
                                              dw_dt,
                                              dCoef,
                                              func,
-                                             pDofMap,
                                              DEHD_DEF_MOVING,
                                              iCompIndex);
 
@@ -11489,10 +11257,10 @@ namespace {
                 }
 
                 for (index_type l = 1; l <= GRIDINTERP; ++l) {
-                    Ck_f(l) = f(l) - f(GRIDINTERP + 1);
+		     Ck_f(l) = EvalUnique(f(l) - f(GRIDINTERP + 1));
                 }
 
-                const Vector<T, POLYORDER> ak_f = oPolyData.pinvA * Ck_f;
+                const SpColVector<T, POLYORDER> ak_f = oPolyData.pinvA * Ck_f;
 
                 const T dxk_f = x_f - xi[eMshSrc][ik_f];
                 const T dzk_f = z_f - zi[eMshSrc][jk_f];
@@ -11511,7 +11279,7 @@ namespace {
                 T dk_f_2 = dxk_f * dxk_f + dzk_f * dzk_f;
 
                 if (dk_f_2 < dMinDistance_2) {
-                    dk_f_2 = dMinDistance_2;
+		     SpGradient::ResizeReset(dk_f_2, dMinDistance_2, 0);
                 }
 
                 const T dk_f = sqrt(dk_f_2);
@@ -11523,22 +11291,22 @@ namespace {
             }
         }
 
-        fij_f *= alpha / wij_f;
+        fij_f *= EvalUnique(alpha / wij_f);
     }
 
-    void ComplianceModelNodalDouble::UpdateDefMovingInterp(index_type iCompIndex, doublereal wmi, doublereal dScale)
+    void ComplianceModelNodalDouble::UpdateDefMovingInterp(index_type iCompIndex, doublereal wmi)
     {
         HYDRO_ASSERT(iCompIndex >= 1);
         HYDRO_ASSERT(iCompIndex <= w[DEHD_DEF_MOVING_INTERP].iGetNumRows());
 
-        w[DEHD_DEF_MOVING_INTERP](iCompIndex) = wmi / dScale;
+        w[DEHD_DEF_MOVING_INTERP](iCompIndex) = wmi;
     }
 
     template <typename T>
-    void ComplianceModelNodalDouble::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelNodalDouble::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                                 doublereal dCoef,
-                                                const GradientVectorHandler<T>& XCurr,
-                                                enum FunctionCall func)
+                                                const SpGradientVectorHandler<T>& XCurr,
+                                                SpFunctionCall func)
     {
 #if HYDRO_DEBUG > 0
         for (index_type i = 0; i < DEHD_BODY_LAST; ++i) {
@@ -11548,26 +11316,18 @@ namespace {
             HYDRO_ASSERT((rgNumNodes[i] == E[i].iGetNumCols() && rgModalJoints[i] != nullptr) || (E[i].iGetNumCols() == 0 && rgModalJoints[i] == nullptr));
             HYDRO_ASSERT((rgNumNodes[i] == D[i].iGetNumRows() && rgModalJoints[i] != nullptr) || (D[i].iGetNumRows() == 0 && rgModalJoints[i] == nullptr));
         }
-#endif
-        
-        rgDofMap[DOF_GLOBAL2].Reset(func);
+#endif       
 
         const doublereal dEquationScale = pGetMesh()->pGetParent()->dGetScale(HydroRootElement::SCALE_ELASTICITY_EQU);
         integer iEqIndexHydro = iGetFirstIndex(func);
 
-        Vector<T, 2> dxm;
+        SpColVectorA<T, 2, 12> dxm;
 
-        pGetMesh()->pGetGeometry()->GetMovingMeshOffset(dxm, &rgDofMap[DOF_GLOBAL1]);
+        pGetMesh()->pGetGeometry()->GetMovingMeshOffset(dxm);
 
         T dummy;
 
-        Vector<T, DYNAMIC_SIZE> wm1(rgNumNodes[DEHD_BODY_MOVING]);
-
-        for (index_type i = 1; i <= wm1.iGetNumRows(); ++i) {
-            GetRadialDeformation(wm1(i), dummy, dCoef, func, &rgDofMap[DOF_GLOBAL1], DEHD_DEF_MOVING, i);
-        }
-
-        std::array<Vector<T, DYNAMIC_SIZE>, DEHD_BODY_LAST> a;
+        std::array<SpColVector<T>, DEHD_BODY_LAST> a;
 
         for (index_type k = 0; k < DEHD_BODY_LAST; ++k) {
             if (rgModalJoints[k]) {
@@ -11575,149 +11335,127 @@ namespace {
                 HYDRO_ASSERT((D[k].iGetNumRows() == C[k].iGetNumRows()) || C[k].iGetNumRows() == 0);
                 HYDRO_ASSERT(D[k].iGetNumRows() == w[k].iGetNumRows());
                 
-                a[k].Resize(rgModalJoints[k]->uGetNModes());
+                a[k].ResizeReset(rgModalJoints[k]->uGetNModes(), 1);
 
                 for (index_type j = 1; j <= D[k].iGetNumCols(); ++j) {
-                    rgModalJoints[k]->GetACurr(j, a[k](j), dCoef, func, &rgDofMap[DOF_GLOBAL1]);
+                    rgModalJoints[k]->GetACurr(j, a[k](j), dCoef, func);
                 }
             }
         }
 
         {
-            Vector<T, DYNAMIC_SIZE> p(rgNumNodes[DEHD_BODY_FIXED]), pasp(rgNumNodes[DEHD_BODY_FIXED]);
+	     SpColVector<T> p(rgNumNodes[DEHD_BODY_FIXED], 1);
+	     
+	     for (index_type j = 1; j <= rgNumNodes[DEHD_BODY_FIXED]; ++j) {
+		  pGetMesh()->GetPressure(rgNodes[j - 1], p(j), dCoef);
+	     }
 
-            for (index_type j = 1; j <= p.iGetNumRows(); ++j) {
-                // Do not add fluid and contact pressure for performance reasons (number of FLOPS caused by size of local slices)
-                pGetMesh()->GetPressure(rgNodes[j - 1], p(j), &rgDofMap[DOF_GLOBAL1], dCoef);
+	     SpColVector<T> pasp(rgNumNodes[DEHD_BODY_FIXED], 12 + 1);
+	    
+	     for (index_type j = 1; j <= rgNumNodes[DEHD_BODY_FIXED]; ++j) {
+		  rgNodes[j - 1]->GetContactPressure(pasp(j));
+	     }
 
-                p(j) *= dPressScale;
-            }
+	     SpColVector<T> wtot(rgNumNodes[DEHD_BODY_FIXED], 1);
 
-            for (index_type j = 1; j <= pasp.iGetNumRows(); ++j) {
-                rgNodes[j - 1]->GetContactPressure(pasp(j), &rgDofMap[DOF_GLOBAL2]);
+	     for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_FIXED]; ++i) {
+		  GetRadialDeformation(wtot(i), dummy, dCoef, func, rgNodes[i - 1]);
+	     }
 
-                pasp(j) *= dPressScale;
-            }
+	     SpColVector<T> wm2(rgNumNodes[DEHD_BODY_FIXED], 0);
+	    
+	     for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_FIXED]; ++i) {
+		  const ComplianceMatrix::GridIndex& oGridIdx = rgActGridIdx[DEHD_BODY_FIXED][i - 1];
+		  constexpr doublereal dDefScale = 1.;
+		  
+		  Interpolate<FT_DEF_MOVING, DEHD_BODY_MOVING, DEHD_BODY_FIXED>(oGridIdx.ix,
+										oGridIdx.iz,
+										dxm,
+										dDefScale,
+										wm2(i),
+										dCoef,
+										func);
 
-            T f;
-            
-            for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_FIXED]; ++i) {
-                GetRadialDeformation(f, dummy, dCoef, func, &rgDofMap[DOF_GLOBAL1], rgNodes[i - 1]);
 
-                f *= dEquationScale;
+		  UpdateDefMovingInterp(i, wm2(i));
+	     }
+	    
+	     const SpColVector<T> ptot_scaled = (p + pasp) * dPressScale;
 
-                for (index_type j = 1; j <= C[DEHD_BODY_FIXED].iGetNumCols(); ++j) {
-                    const doublereal Cij = dEquationScale * C[DEHD_BODY_FIXED](i, j);
-                    f -= Cij * p(j); // Do not use `Cij * (p(j) + pasp(j))` because it would be an O(N^2) operation
-                    f -= Cij * pasp(j);
-                }
+	     {
+		  SpColVector<T> f1 = wtot - wm2;
 
-                {
-                    rgDofMap[DOF_LOCAL].Reset(); // Reduce size of local vectors slices during interpolation
+		  if (C[DEHD_BODY_FIXED].iGetNumCols()) {
+		       f1 -= C[DEHD_BODY_FIXED] * ptot_scaled;
+		  }
 
-                    const ComplianceMatrix::GridIndex& oGridIdx = rgActGridIdx[DEHD_BODY_FIXED][i - 1];
+		  if (rgModalJoints[DEHD_BODY_FIXED]) {
+		       f1 -= D[DEHD_BODY_FIXED] * a[DEHD_BODY_FIXED];
+		  }
 
-                    T wm2i;
+		  f1 *= dEquationScale;
+		 
+		  for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_FIXED]; ++i) {
+		       WorkVec.AddItem(iEqIndexHydro++, f1(i));
+		  }
+	     }
 
-                    Interpolate<FT_DEF_MOVING, DEHD_BODY_MOVING, DEHD_BODY_FIXED>(oGridIdx.ix,
-                                                                                  oGridIdx.iz,
-                                                                                  dxm,
-                                                                                  dEquationScale,
-                                                                                  wm2i,
-                                                                                  dCoef,
-                                                                                  func,
-                                                                                  &rgDofMap[DOF_LOCAL]);
-
-                    f -= wm2i;
-
-                    UpdateDefMovingInterp(i, wm2i, dEquationScale);
-                }
-
-                if (rgModalJoints[DEHD_BODY_FIXED]) {
-                    for (index_type j = 1; j <= D[DEHD_BODY_FIXED].iGetNumCols(); ++j) {
-                        f -= dEquationScale * D[DEHD_BODY_FIXED](i, j) * a[DEHD_BODY_FIXED](j);
-                    }
-                }
-
-                WorkVec.AddItem(iEqIndexHydro++, f);
-            }
-
-            if (rgModalJoints[DEHD_BODY_FIXED]) {
-                index_type iEqIndexModal1 = rgModalJoints[DEHD_BODY_FIXED]->iGetFirstIndex() + rgModalJoints[DEHD_BODY_FIXED]->uGetNModes() + 1;
-
-                for (index_type i = 1; i <= E[DEHD_BODY_FIXED].iGetNumRows(); ++i) {
-                    f = 0.;
-
-                    SetDofMap(f, &rgDofMap[DOF_GLOBAL1]);
-                    
-                    for (index_type j = 1; j <= E[DEHD_BODY_FIXED].iGetNumCols(); ++j) {
-                        const doublereal Eij = E[DEHD_BODY_FIXED](i, j);
-
-                        f += Eij * p(j);
-                        f += Eij * pasp(j);
-                    }
-
-                    WorkVec.AddItem(iEqIndexModal1++, f);
-                }
-            }
+	     if (rgModalJoints[DEHD_BODY_FIXED]) {
+		  const SpColVector<T> f2 = E[DEHD_BODY_FIXED] * ptot_scaled;		 
+		  index_type iEqIndexModal1 = rgModalJoints[DEHD_BODY_FIXED]->iGetFirstIndex() + rgModalJoints[DEHD_BODY_FIXED]->uGetNModes() + 1;
+				
+		  for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
+		       WorkVec.AddItem(iEqIndexModal1++, f2(i));
+		  }
+	     }
         }
 
         {
-            Vector<T, DYNAMIC_SIZE> fm1 = wm1 * dEquationScale;
-            Vector<T, DYNAMIC_SIZE> fm2(E[DEHD_BODY_MOVING].iGetNumRows());
+	     SpColVector<T> pm_scaled(rgNumNodes[DEHD_BODY_MOVING], 0);
 
-            for (index_type i = 1; i <= fm2.iGetNumRows(); ++i) {
-                SetDofMap(fm2(i), &rgDofMap[DOF_GLOBAL1]);
-            }
+	     for (index_type j = 1; j <= rgNumNodes[DEHD_BODY_MOVING]; ++j) {
+		  const ComplianceMatrix::GridIndex& oGridIdx = rgActGridIdx[DEHD_BODY_MOVING][j - 1];
+		  Interpolate<FT_TOTAL_PRESS, DEHD_BODY_FIXED, DEHD_BODY_MOVING>(oGridIdx.ix,
+										 oGridIdx.iz,
+										 dxm,
+										 dPressScale,
+										 pm_scaled(j),
+										 dCoef,
+										 func);
+	     }
 
-            for (index_type j = 1; j <= rgNumNodes[DEHD_BODY_MOVING]; ++j) {
-                rgDofMap[DOF_LOCAL].Reset();
+	     {
+		  SpColVector<T> fm1(rgNumNodes[DEHD_BODY_MOVING], 0);
 
-                const ComplianceMatrix::GridIndex& oGridIdx = rgActGridIdx[DEHD_BODY_MOVING][j - 1];
-                T pmij;
+		  for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_MOVING]; ++i) {
+		       GetRadialDeformation(fm1(i), dummy, dCoef, func, DEHD_DEF_MOVING, i);
+		  }
+	    
+		  if (C[DEHD_BODY_MOVING].iGetNumCols()) {
+		       fm1 -= C[DEHD_BODY_MOVING] * pm_scaled;
+		  }
 
-                Interpolate<FT_TOTAL_PRESS, DEHD_BODY_FIXED, DEHD_BODY_MOVING>(oGridIdx.ix,
-                                                                               oGridIdx.iz,
-                                                                               dxm,
-                                                                               dPressScale,
-                                                                               pmij,
-                                                                               dCoef,
-                                                                               func,
-                                                                               &rgDofMap[DOF_LOCAL]);
+		  if (rgModalJoints[DEHD_BODY_MOVING]) {
+		       fm1 -= D[DEHD_BODY_MOVING] * a[DEHD_BODY_MOVING];		 
+		  }
 
-                for (index_type i = 1; i <= C[DEHD_BODY_MOVING].iGetNumRows(); ++i) {
-                    const doublereal Cij = dEquationScale * C[DEHD_BODY_MOVING](i, j);
-                    fm1(i) -= Cij * pmij;
-                }
+		  fm1 *= dEquationScale;
+		  
+		  for (index_type i = 1; i <= rgNumNodes[DEHD_BODY_MOVING]; ++i) {
+		       WorkVec.AddItem(iEqIndexHydro++, fm1(i));
+		  }
+	     }
 
-                if (rgModalJoints[DEHD_BODY_MOVING]) {
-                    for (index_type i = 1; i <= E[DEHD_BODY_MOVING].iGetNumRows(); ++i) {
-                        const doublereal Eij = E[DEHD_BODY_MOVING](i, j);
-                        fm2(i) += Eij * pmij;
-                    }
-                }
-            }
+	     if (rgModalJoints[DEHD_BODY_MOVING]) {
+		  const SpColVector<T> fm2 = E[DEHD_BODY_MOVING] * pm_scaled;
 
-            if (rgModalJoints[DEHD_BODY_MOVING]) {
-                for (index_type i = 1; i <= fm1.iGetNumRows(); ++i) {
-                    for (index_type j = 1; j <= D[DEHD_BODY_MOVING].iGetNumCols(); ++j) {
-                        fm1(i) -= dEquationScale * D[DEHD_BODY_MOVING](i, j) * a[DEHD_BODY_MOVING](j);
-                    }
-                }
-            }
+		  index_type iEqIndexModal2 = rgModalJoints[DEHD_BODY_MOVING]->iGetFirstIndex()
+		       + rgModalJoints[DEHD_BODY_MOVING]->uGetNModes() + 1;
 
-            for (index_type i = 1; i <= fm1.iGetNumRows(); ++i) {
-                WorkVec.AddItem(iEqIndexHydro++, fm1(i));
-            }
-
-            if (rgModalJoints[DEHD_BODY_MOVING]) {
-                index_type iEqIndexModal2 = rgModalJoints[DEHD_BODY_MOVING]->iGetFirstIndex()
-                                          + rgModalJoints[DEHD_BODY_MOVING]->uGetNModes() + 1;
-
-                for (index_type i = 1; i <= fm2.iGetNumRows(); ++i) {
-                    WorkVec.AddItem(iEqIndexModal2++, fm2(i));
-                }
-            }
+		  for (index_type i = 1; i <= E[DEHD_BODY_MOVING].iGetNumRows(); ++i) {
+		       WorkVec.AddItem(iEqIndexModal2++, fm2(i));
+		  }		 
+	     }
         }
     }
 
@@ -11744,7 +11482,7 @@ namespace {
         :ComplianceModel(pMesh, dDefScale, dPressScale),
          iNumModes(0),
          strFileName(strFileName),
-         eCurrFunc(grad::INITIAL_ASS_FLAG)
+         eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
     {
     }
 
@@ -11752,9 +11490,9 @@ namespace {
     {
     }
 
-    void ComplianceModelModal::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void ComplianceModelModal::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        const bool bDoAssembly = bDoInitAss || (eFunc & grad::REGULAR_FLAG);
+        const bool bDoAssembly = bDoInitAss || (eFunc & SpFunctionCall::REGULAR_FLAG);
 
         *piNumRows = iGetNumModes() * bDoAssembly;
         *piNumCols = (rgNodes.size() + iGetNumModes() + pGetMesh()->pGetGeometry()->iGetNumColsWorkSpace(eFunc)) * bDoAssembly;
@@ -11775,8 +11513,8 @@ namespace {
 
         iNumModes = RPhiK.iGetNumRows();
 
-        q.Resize(iNumModes);
-        dq_dt.Resize(iNumModes);
+        q.ResizeReset(iNumModes, 0);
+        dq_dt.ResizeReset(iNumModes, 0);
 
         HYDRO_ASSERT(iNumModes > 0);
         HYDRO_ASSERT(iNumModes < std::numeric_limits<index_type>::max());
@@ -11788,9 +11526,9 @@ namespace {
 
     void ComplianceModelModal::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
     {
-        HYDRO_ASSERT(eCurrFunc == grad::INITIAL_ASS_FLAG);
+        HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
 
-        eCurrFunc = grad::REGULAR_FLAG;
+        eCurrFunc = SpFunctionCall::REGULAR_FLAG;
 
         integer iDofIndex = iGetFirstIndex(eCurrFunc);
         const index_type iNumModes = iGetNumModes();
@@ -11813,9 +11551,9 @@ namespace {
         return bDoInitAss ? iGetNumModes() : 0u;
     }
 
-    integer ComplianceModelModal::iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type iNumNodes) const
+    integer ComplianceModelModal::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type iNumNodes) const
     {
-        return (eFunc & grad::REGULAR_FLAG) || bDoInitAss ? iGetNumModes() : 0;
+        return (eFunc & SpFunctionCall::REGULAR_FLAG) || bDoInitAss ? iGetNumModes() : 0;
     }
 
     DofOrder::Order ComplianceModelModal::GetDofType(unsigned int i) const
@@ -11836,7 +11574,7 @@ namespace {
     ComplianceModelModal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iDofIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iDofIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
             const index_type iNumModes = iGetNumModes();
 
             for (index_type i = 1; i <= iNumModes; ++i, ++iDofIndex) {
@@ -11851,7 +11589,7 @@ namespace {
     ComplianceModelModal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
     {
         if (bDoInitAss || !bInitial) {
-            integer iDofIndex = iGetFirstIndex(bInitial ? grad::INITIAL_ASS_FLAG : grad::REGULAR_FLAG);
+            integer iDofIndex = iGetFirstIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
             const index_type iNumModes = iGetNumModes();
 
             for (index_type i = 1; i <= iNumModes; ++i, ++iDofIndex) {
@@ -11863,9 +11601,9 @@ namespace {
     }
 
 
-    void ComplianceModelModal::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr, doublereal dCoef, FunctionCall func)
+    void ComplianceModelModal::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr, doublereal dCoef, SpFunctionCall func)
     {
-        if (bDoInitAss || (func & grad::REGULAR_FLAG)) {
+        if (bDoInitAss || (func & SpFunctionCall::REGULAR_FLAG)) {
             integer iDofIndex = iGetFirstIndex(func);
             const index_type iNumModes = iGetNumModes();
 
@@ -11875,7 +11613,7 @@ namespace {
 
                 q(i) = XCurr(iDofIndex);
 
-                if (func & grad::REGULAR_FLAG) {
+                if (func & SpFunctionCall::REGULAR_FLAG) {
                     HYDRO_ASSERT(iDofIndex <= XPrimeCurr.iGetSize());
                     dq_dt(i) = XPrimeCurr(iDofIndex);
                 } else {
@@ -11890,31 +11628,31 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
     template <typename T>
-    void ComplianceModelModal::AssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelModal::AssRes(SpGradientAssVec<T>& WorkVec,
                                       doublereal dCoef,
-                                      const GradientVectorHandler<T>& XCurr,
-                                      const GradientVectorHandler<T>& XPrimeCurr,
-                                      enum FunctionCall func)
+                                      const SpGradientVectorHandler<T>& XCurr,
+                                      const SpGradientVectorHandler<T>& XPrimeCurr,
+                                      SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void ComplianceModelModal::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                             const GradientVectorHandler<T>& XCurr,
-                                             enum FunctionCall func)
+    void ComplianceModelModal::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                             const SpGradientVectorHandler<T>& XCurr,
+                                             SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
@@ -11924,28 +11662,27 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofModal,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     ComplianceModelModal::InitialAssRes(SubVectorHandler& WorkVec,
                                         const VectorHandler& XCurr,
-                                        GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<doublereal>::InitialAssRes(this,
+            SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                       WorkVec,
                                                       XCurr,
-                                                      INITIAL_ASS_RES,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
                                                       mode);
         }
     }
@@ -11953,20 +11690,19 @@ namespace {
     void
     ComplianceModelModal::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
-                                        GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<Gradient<0> >::InitialAssJac(this,
+            SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                         WorkMat,
                                                         XCurr,
-                                                        INITIAL_ASS_JAC,
-                                                        &oDofModal,
+                                                        SpFunctionCall::INITIAL_ASS_JAC,
                                                         mode);
         }
     }
 
     template <typename T>
-    void ComplianceModelModal::GetRadialDeformationTpl(T& wi, T& dwi_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap, const HydroUpdatedNode* pNode) const
+    void ComplianceModelModal::GetRadialDeformationTpl(T& wi, T& dwi_dt, doublereal dCoef, SpFunctionCall func, const HydroUpdatedNode* pNode) const
     {
         const index_type iNodeIndex = pNode->iGetComplianceIndex();
         const index_type iNumModes = iGetNumModes();
@@ -11975,22 +11711,22 @@ namespace {
         HYDRO_ASSERT(iNodeIndex <= iGetNumNodes());
         HYDRO_ASSERT(rgNodes[iNodeIndex - 1] == pNode);
 
-        wi = 0.;
-        dwi_dt = 0.;
+	SpGradient::ResizeReset(wi, 0., 0);
+	SpGradient::ResizeReset(dwi_dt, 0., 0);
 
         T qi;
 
         for (index_type iMode = 1; iMode <= iNumModes; ++iMode) {
-            GetModalDeformation(iMode, qi, dCoef, func, pDofMap);
+            GetModalDeformation(iMode, qi, dCoef, func);
 
             wi += Phin(iNodeIndex, iMode) * qi;
         }
 
-        if (func & grad::REGULAR_FLAG) {
+        if (func & SpFunctionCall::REGULAR_FLAG) {
             T dqi_dt;
 
             for (index_type iMode = 1; iMode <= iNumModes; ++iMode) {
-                GetModalDeformationDer(iMode, dqi_dt, dCoef, func, pDofMap);
+                GetModalDeformationDer(iMode, dqi_dt, dCoef, func);
 
                 dwi_dt += Phin(iNodeIndex, iMode) * dqi_dt;
             }
@@ -11999,47 +11735,45 @@ namespace {
         }
     }
 
-    void ComplianceModelModal::GetRadialDeformation(doublereal& wi, doublereal& dwi_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap, const HydroUpdatedNode* pNode) const
+    void ComplianceModelModal::GetRadialDeformation(doublereal& wi, doublereal& dwi_dt, doublereal dCoef, SpFunctionCall func, const HydroUpdatedNode* pNode) const
     {
-        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pDofMap, pNode);
+        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pNode);
     }
 
-    void ComplianceModelModal::GetRadialDeformation(Gradient<0>& wi, Gradient<0>& dwi_dt, doublereal dCoef, FunctionCall func, LocalDofMap* pDofMap, const HydroUpdatedNode* pNode) const
+    void ComplianceModelModal::GetRadialDeformation(SpGradient& wi, SpGradient& dwi_dt, doublereal dCoef, SpFunctionCall func, const HydroUpdatedNode* pNode) const
     {
-        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pDofMap, pNode);
+        GetRadialDeformationTpl(wi, dwi_dt, dCoef, func, pNode);
     }
 
     template <typename T>
-    void ComplianceModelModal::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void ComplianceModelModal::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                           doublereal dCoef,
-                                          const GradientVectorHandler<T>& XCurr,
-                                          enum FunctionCall func)
+                                          const SpGradientVectorHandler<T>& XCurr,
+                                          SpFunctionCall func)
     {
         const index_type iNumModes = iGetNumModes();
         const index_type iNumNodes = rgNodes.size();
         const doublereal dEquationScale = pGetMesh()->pGetParent()->dGetScale(HydroRootElement::SCALE_ELASTICITY_EQU);
 
-        Vector<T, DYNAMIC_SIZE> f(iNumModes);
+        SpColVector<T, SpMatrixSize::DYNAMIC> f(iNumModes, iNumNodes + 1);
 
         for (index_type iMode = 1; iMode <= iNumModes; ++iMode) {
-            GetModalDeformation(iMode, f(iMode), dCoef, func, &oDofModal);
+            GetModalDeformation(iMode, f(iMode), dCoef, func);
         }
 
         T p, pasp;
 
         for (index_type jNode = 1; jNode <= iNumNodes; ++jNode) {
-            oDofPressure.Reset();
+            pGetMesh()->GetPressure(rgNodes[jNode - 1], p, dCoef);
 
-            pGetMesh()->GetPressure(rgNodes[jNode - 1], p, &oDofPressure, dCoef);
-
-            if (rgNodes[jNode - 1]->GetContactPressure(pasp, &oDofPressure)) {
+            if (rgNodes[jNode - 1]->GetContactPressure(pasp)) {
                 p += pasp;
             }
 
             p *= dPressScale;
 
             for (index_type iMode = 1; iMode <= iNumModes; ++iMode) {
-                f(iMode) -= RPhiK(iMode, jNode) * p;
+		 f(iMode) -= EvalUnique(RPhiK(iMode, jNode) * p);
             }
         }
 
@@ -12058,8 +11792,7 @@ namespace {
     ComplianceModelModal::GetModalDeformation(index_type iMode,
                                               doublereal& qi,
                                               doublereal dCoef,
-                                              FunctionCall func,
-                                              LocalDofMap* pDofMap) const
+                                              SpFunctionCall func) const
     {
         HYDRO_ASSERT(iMode >= 1);
         HYDRO_ASSERT(iMode <= iGetNumModes());
@@ -12069,24 +11802,19 @@ namespace {
 
     void
     ComplianceModelModal::GetModalDeformation(index_type iMode,
-                                              Gradient<0>& qi,
+                                              SpGradient& qi,
                                               doublereal dCoef,
-                                              FunctionCall func,
-                                              LocalDofMap* pDofMap) const
+                                              SpFunctionCall func) const
     {
         HYDRO_ASSERT(iMode >= 1);
         HYDRO_ASSERT(iMode <= iGetNumModes());
 
-        if (bDoInitAss || (func & grad::REGULAR_FLAG)) {
+        if (bDoInitAss || (func & SpFunctionCall::REGULAR_FLAG)) {
             const index_type iDofIndex = iGetFirstIndex(eCurrFunc) + iMode - 1;
 
-            qi.SetValuePreserve(q(iMode));
-            qi.DerivativeResizeReset(pDofMap,
-                                     iDofIndex,
-                                     MapVectorBase::GLOBAL,
-                                     -dCoef);
+            qi.Reset(q(iMode), iDofIndex, -dCoef);
         } else {
-            qi.SetValue(q(iMode));
+	     qi.ResizeReset(q(iMode), 0);
         }
     }
 
@@ -12094,8 +11822,7 @@ namespace {
     ComplianceModelModal::GetModalDeformationDer(index_type iMode,
                                                  doublereal& dqi_dt,
                                                  doublereal dCoef,
-                                                 FunctionCall func,
-                                                 LocalDofMap* pDofMap) const
+                                                 SpFunctionCall func) const
     {
         HYDRO_ASSERT(iMode >= 1);
         HYDRO_ASSERT(iMode <= iGetNumModes());
@@ -12105,24 +11832,19 @@ namespace {
 
     void
     ComplianceModelModal::GetModalDeformationDer(index_type iMode,
-                                                 Gradient<0>& dqi_dt,
+                                                 SpGradient& dqi_dt,
                                                  doublereal dCoef,
-                                                 FunctionCall func,
-                                                 LocalDofMap* pDofMap) const
+                                                 SpFunctionCall func) const
     {
         HYDRO_ASSERT(iMode >= 1);
         HYDRO_ASSERT(iMode <= iGetNumModes());
 
-        if (func & grad::REGULAR_FLAG) {
+        if (func & SpFunctionCall::REGULAR_FLAG) {
             const index_type iDofIndex = iGetFirstIndex(eCurrFunc) + iMode - 1;
 
-            dqi_dt.SetValuePreserve(dq_dt(iMode));
-            dqi_dt.DerivativeResizeReset(pDofMap,
-                                         iDofIndex,
-                                         MapVectorBase::GLOBAL,
-                                         -1.);
+            dqi_dt.Reset(dq_dt(iMode), iDofIndex, -1.);
         } else {
-            dqi_dt.SetValue(dq_dt(iMode));
+	     dqi_dt.ResizeReset(dq_dt(iMode), 0);
         }
     }
 
@@ -12169,7 +11891,7 @@ namespace {
 
         for (auto ppNode = rgNodes.begin(); ppNode != rgNodes.end(); ++ppNode) {
             const HydroUpdatedNode* const pNode = *ppNode;
-            const Vector<doublereal, 2>& X = pNode->GetPosition2D();
+            const SpColVector<doublereal, 2>& X = pNode->GetPosition2D();
             const index_type iCompIndex = pNode->iGetComplianceIndex();
 
             HYDRO_ASSERT(iCompIndex >= 1);
@@ -12727,7 +12449,7 @@ namespace {
                                 case MATRIX_C1:
                                 case MATRIX_C2:
                                     pCurrMat = oMatData.rgMatrices.C();
-                                    pCurrMat->Resize(rgCompIndexHyd.size(), rgCompIndexHyd.size());
+                                    pCurrMat->ResizeReset(rgCompIndexHyd.size(), rgCompIndexHyd.size(), 0);
 
                                     if (oMatData.eMeshLocation != LOC_MESH_MOVING) {
                                         HYDRO_ASSERT(static_cast<size_t>(pCurrMat->iGetNumRows()) == rgNodes.size());
@@ -12741,7 +12463,7 @@ namespace {
                                     HYDRO_ASSERT(oMatData.pModalJoint != nullptr);
 
                                     pCurrMat = oMatData.rgMatrices.D();
-                                    pCurrMat->Resize(rgCompIndexHyd.size(), oMatData.pModalJoint->uGetNModes());
+                                    pCurrMat->ResizeReset(rgCompIndexHyd.size(), oMatData.pModalJoint->uGetNModes(), 0);
                                     
                                     if (oMatData.eMeshLocation != LOC_MESH_MOVING) {
                                         HYDRO_ASSERT(static_cast<size_t>(pCurrMat->iGetNumRows()) == rgNodes.size());
@@ -12755,7 +12477,7 @@ namespace {
                                     HYDRO_ASSERT(oMatData.pModalJoint != nullptr);
 
                                     pCurrMat = oMatData.rgMatrices.E();
-                                    pCurrMat->Resize(oMatData.pModalJoint->uGetNModes(), rgCompIndexHyd.size());
+                                    pCurrMat->ResizeReset(oMatData.pModalJoint->uGetNModes(), rgCompIndexHyd.size(), 0);
                                     
                                     if (oMatData.eMeshLocation != LOC_MESH_MOVING) {
                                         HYDRO_ASSERT(static_cast<size_t>(pCurrMat->iGetNumCols()) == rgNodes.size());
@@ -12770,7 +12492,7 @@ namespace {
                                     }
 
                                     pCurrMat = oMatData.rgMatrices.RPhiK();
-                                    pCurrMat->Resize(iNumModes, rgNodes.size());
+                                    pCurrMat->ResizeReset(iNumModes, rgNodes.size(), 0);
                                     break;
 
                                 case MATRIX_Phin:
@@ -12779,7 +12501,7 @@ namespace {
                                     }
 
                                     pCurrMat = oMatData.rgMatrices.Phin();
-                                    pCurrMat->Resize(rgNodes.size(), iNumModes);
+                                    pCurrMat->ResizeReset(rgNodes.size(), iNumModes, 0);
                                     break;
 
                                 default:
@@ -12929,7 +12651,7 @@ namespace {
                                          const NodesContainer& rgNodes,
                                          doublereal dPressScale) const
     {
-        Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE>& C = *oMatData.rgMatrices.C();
+        SpMatrix<doublereal>& C = *oMatData.rgMatrices.C();
         
         const doublereal alpha = 0.25 / (M_PI * Ered * dPressScale);
 
@@ -12946,8 +12668,8 @@ namespace {
             }
         }
 
-        Vector<Vector<doublereal, 2>, 4> X;
-        Vector<doublereal, 2> dX;
+        SpMatrixA<doublereal, 2, 4> X;
+        SpColVectorA<doublereal, 2> dX;
         const BearingGeometry* const pGeometry = pMesh->pGetGeometry();
         const index_type iNumNodes = rgNodes.size();
 
@@ -13029,7 +12751,7 @@ namespace {
         }
         
         if (C.iGetNumRows() == 0 && C.iGetNumCols() == 0) {
-            C.Resize(iNumNodes, iNumNodes);
+	     C.ResizeReset(iNumNodes, iNumNodes, 0);
         } else if (C.iGetNumRows() != iNumNodes || C.iGetNumCols() != iNumNodes) {
             throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
@@ -13047,13 +12769,16 @@ namespace {
 
                     for (integer iNodeElemPress = 0; iNodeElemPress < pElemPress->iGetNumNodes(); ++iNodeElemPress) {
                         const HydroNode* const pNodePress = pElemPress->pGetNode(iNodeElemPress);
-                        X(iNodeElemPress + 1) = pNodePress->GetPosition2D();
+			const auto& Xi = pNodePress->GetPosition2D();
+			for (integer i = 1; i <= 2; ++i) {
+			     X(i, iNodeElemPress + 1) = Xi(i);
+			}
                     }
 
-                    const doublereal dxElem = X(PressureElement::NODE_SE + 1)(1) - X(PressureElement::NODE_SW + 1)(1);
-                    const doublereal dzElem = X(PressureElement::NODE_NW + 1)(2) - X(PressureElement::NODE_SW + 1)(2);
+                    const doublereal dxElem = X(1, PressureElement::NODE_SE + 1) - X(1, PressureElement::NODE_SW + 1);
+                    const doublereal dzElem = X(2, PressureElement::NODE_NW + 1) - X(2, PressureElement::NODE_SW + 1);
                     const doublereal dA = dxElem * dzElem;
-                    const Vector<doublereal, 2> XElemCenter = (X(PressureElement::NODE_NE + 1) + X(PressureElement::NODE_SW + 1)) * 0.5;
+                    const SpColVector<doublereal, 2> XElemCenter = (X.GetCol(PressureElement::NODE_NE + 1) + X.GetCol(PressureElement::NODE_SW + 1)) * 0.5;
                     pGeometry->GetClosestDistance2D(XElemCenter, pNodeRow->GetPosition2D(), dX);
 
                     C(iRowIndex, iColIndex) += alpha * dA / Norm(dX);
@@ -13111,10 +12836,10 @@ namespace {
     }
 
     void
-    BearingGeometry::GetNonNegativeClearance(const Gradient<0>& h,
-                                             Gradient<0>& hn,
-                                             const Gradient<0>* dh_dt,
-                                             Gradient<0>* dhn_dt) const
+    BearingGeometry::GetNonNegativeClearance(const SpGradient& h,
+                                             SpGradient& hn,
+                                             const SpGradient* dh_dt,
+                                             SpGradient* dhn_dt) const
     {
         GetNonNegativeClearanceTpl(h, hn, dh_dt, dhn_dt);
     }
@@ -13166,7 +12891,7 @@ namespace {
         rgMovingGrooves.reserve(n);
     }
 
-    const LubricationGroove* BearingGeometry::pFindMovingLubricationGroove(const Vector<doublereal, 2>& x, Node2D::NodeType eNodeType) const
+    const LubricationGroove* BearingGeometry::pFindMovingLubricationGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType) const
     {
         for (auto i = rgMovingGrooves.begin(); i != rgMovingGrooves.end(); ++i) {
             if ((*i)->pGetGeometry()->bPointIsInside(x) &&
@@ -13180,8 +12905,8 @@ namespace {
 
     doublereal BearingGeometry::dGetNodeDistance2D(const Node2D* pNode1, const Node2D* pNode2, index_type iDirection) const
     {
-        const Vector<doublereal, 2>& x1 = pNode1->GetPosition2D();
-        const Vector<doublereal, 2>& x2 = pNode2->GetPosition2D();
+        const SpColVector<doublereal, 2>& x1 = pNode1->GetPosition2D();
+        const SpColVector<doublereal, 2>& x2 = pNode2->GetPosition2D();
 
         HYDRO_ASSERT(iDirection >= 1);
         HYDRO_ASSERT(iDirection <= 2);
@@ -13193,8 +12918,8 @@ namespace {
 
     RigidBodyBearing::RigidBodyBearing(HydroRootElement* pParent)
         :BearingGeometry(pParent),
-         pNode1(0),
-         pNode2(0)
+         pNode1{nullptr},
+         pNode2{nullptr}
     {
 
     }
@@ -13282,7 +13007,7 @@ namespace {
         connectedNodes[1] = pNode2;
     }
 
-    void RigidBodyBearing::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void RigidBodyBearing::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = 12;
         *piNumCols = iGetNumColsWorkSpace(eFunc);
@@ -13306,9 +13031,9 @@ namespace {
         }
     }
 
-    integer RigidBodyBearing::iGetNumColsWorkSpace(grad::FunctionCall eFunc) const
+    integer RigidBodyBearing::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
     {
-        return eFunc & grad::REGULAR_FLAG ? 12 : 24;
+        return eFunc & SpFunctionCall::REGULAR_FLAG ? 12 : 24;
     }
 
     std::ostream& RigidBodyBearing::PrintLogFile(std::ostream& os) const
@@ -13326,10 +13051,10 @@ namespace {
     }
 
     void
-    RigidBodyBearing::SaveReactionForce(const Vector<doublereal, 3>& F1,
-                                        const Vector<doublereal, 3>& M1,
-                                        const Vector<doublereal, 3>& F2,
-                                        const Vector<doublereal, 3>& M2)
+    RigidBodyBearing::SaveReactionForce(const SpColVector<doublereal, 3>& F1,
+                                        const SpColVector<doublereal, 3>& M1,
+                                        const SpColVector<doublereal, 3>& F2,
+                                        const SpColVector<doublereal, 3>& M2)
     {
         this->F1 = F1;
         this->M1 = M1;
@@ -13338,10 +13063,10 @@ namespace {
     }
 
     void
-    RigidBodyBearing::SaveReactionForce(const Vector<Gradient<0>, 3>& F1,
-                                        const Vector<Gradient<0>, 3>& M1,
-                                        const Vector<Gradient<0>, 3>& F2,
-                                        const Vector<Gradient<0>, 3>& M2)
+    RigidBodyBearing::SaveReactionForce(const SpColVector<SpGradient, 3>& F1,
+                                        const SpColVector<SpGradient, 3>& M1,
+                                        const SpColVector<SpGradient, 3>& F2,
+                                        const SpColVector<SpGradient, 3>& M2)
     {
 
     }
@@ -13442,8 +13167,8 @@ namespace {
 
         RigidBodyBearing::ParseInput(pDM, HP);
     }
-
-    void CylindricalBearing::GetClosestDistance2D(const Vector<doublereal, 2>& x1, const Vector<doublereal, 2>& x2, Vector<doublereal, 2>& dx) const {
+     
+    void CylindricalBearing::GetClosestDistance2D(const SpColVector<doublereal, 2>& x1, const SpColVector<doublereal, 2>& x2, SpColVector<doublereal, 2>& dx) const {
         dx = x2 - x1;
 
         const doublereal c = 2. * M_PI * dGetMeshRadius();
@@ -13455,49 +13180,45 @@ namespace {
         }
     }
 
-    void CylindricalBearing::GetPosition3D(const Vector<doublereal, 2>& x1,
-                                           Vector<doublereal, 3>& v1) const
+    void CylindricalBearing::GetPosition3D(const SpColVector<doublereal, 2>& x1,
+                                           SpColVector<doublereal, 3>& v1) const
     {
         GetPosition3DTpl(x1, v1);
     }
 
-    void CylindricalBearing::GetPosition3D(const Vector<Gradient<0>, 2>& x1,
-                                           Vector<Gradient<0>, 3>& v1) const
+    void CylindricalBearing::GetPosition3D(const SpColVector<SpGradient, 2>& x1,
+                                           SpColVector<SpGradient, 3>& v1) const
     {
         GetPosition3DTpl(x1, v1);
     }
 
     template <typename T>
     inline void
-    CylindricalBearing::GetPosition3DTpl(const Vector<T, 2>& x1,
-                                         Vector<T, 3>& v1) const
+    CylindricalBearing::GetPosition3DTpl(const SpColVector<T, 2>& x1,
+                                         SpColVector<T, 3>& v1) const
     {
-        typedef Vector<doublereal, 2> CVec2;
-        typedef Vector<T, 3> VVec3;
-        typedef Matrix<doublereal, 3, 3> CMat3x3;
-
         const doublereal r = dGetMeshRadius();
         const T Phi1 = x1(1) / r;
         const T& z1 = x1(2);
-        const Pocket* const pPocket = pFindMeshPocket(CVec2(x1));
+        const Pocket* const pPocket = pFindMeshPocket(x1.GetValue());
         T dy;
 
         if (pPocket != 0) {
             pPocket->GetHeight(x1, dy);
         } else {
-            dy = 0.;
+	     SpGradient::ResizeReset(dy, 0., 0);
         }
 
-        const VVec3 v1_Rb((r + dy) * cos(Phi1),
-                          (r + dy) * sin(Phi1),
-                          z1);
+        const SpColVector<T, 3> v1_Rb{(r + dy) * cos(Phi1),
+		  (r + dy) * sin(Phi1),
+		  z1};
 
-        const CMat3x3& Rb = GetOrientationMeshNode();
+        const auto& Rb = GetOrientationMeshNode();
 
         v1 = Rb * v1_Rb;
     }
 
-    doublereal CylindricalBearing::dGetPocketHeightMesh(const Vector<doublereal, 2>& x) const
+    doublereal CylindricalBearing::dGetPocketHeightMesh(const SpColVector<doublereal, 2>& x) const
     {
         const Pocket* const pPocket = pFindMeshPocket(x);
         doublereal dy;
@@ -13511,38 +13232,33 @@ namespace {
         return dy;
     }
 
-    void CylindricalBearing::GetTangentCoordSys(const Vector<doublereal, 2>& x,
-                                                Matrix<doublereal, 3, 3>& Rt) const
+    void CylindricalBearing::GetTangentCoordSys(const SpColVector<doublereal, 2>& x,
+                                                SpMatrix<doublereal, 3, 3>& Rt) const
     {
         GetTangentCoordSysTpl(x, Rt);
     }
 
     void
-    CylindricalBearing::GetTangentCoordSys(const Vector<Gradient<0>, 2>& x,
-                                           Matrix<Gradient<0>, 3, 3>& Rt) const
+    CylindricalBearing::GetTangentCoordSys(const SpColVector<SpGradient, 2>& x,
+                                           SpMatrix<SpGradient, 3, 3>& Rt) const
     {
         GetTangentCoordSysTpl(x, Rt);
     }
 
     template <typename T>
-    void CylindricalBearing::GetTangentCoordSysTpl(const Vector<T, 2>& x1,
-                                                   Matrix<T, 3, 3>& Rbt) const
+    void CylindricalBearing::GetTangentCoordSysTpl(const SpColVector<T, 2>& x1,
+                                                   SpMatrix<T, 3, 3>& Rbt) const
     {
-        typedef Matrix<doublereal, 3, 3> CMat3x3;
-        typedef Vector<doublereal, 2> CVec2;
-        typedef Matrix<T, 3, 3> Mat3x3;
-        typedef Vector<T, 3> Vec3;
-
         const doublereal r = dGetMeshRadius();
         const T Phi1 = x1(1) / r;
 
-        const Mat3x3 Rt{-sin(Phi1),  cos(Phi1), T{0.},
-                -cos(Phi1), -sin(Phi1), T{0.},
-                    T{0.},      T{0.}, T{1.}};
+        const SpMatrix<T, 3, 3> Rt{-sin(Phi1),  cos(Phi1), T{0.},
+				   -cos(Phi1), -sin(Phi1), T{0.},
+				   T{0.},      T{0.}, T{1.}};
 
-        const CMat3x3& Rb = GetOrientationMeshNode();
+        const auto& Rb = GetOrientationMeshNode();
 
-        const Pocket* const pPocket = pFindMeshPocket(CVec2(x1));
+        const Pocket* const pPocket = pFindMeshPocket(x1.GetValue());
 
         if (pPocket) {
             T tan_beta, tan_gamma;
@@ -13550,19 +13266,19 @@ namespace {
             pPocket->GetHeightDerX(x1, tan_beta);
             pPocket->GetHeightDerZ(x1, tan_gamma);
 
-            const Mat3x3 dR{   T{1.},  -tan_beta,     T{0.},
-                                           tan_beta,      T{1.}, tan_gamma,
-                                                                     T{0.}, -tan_gamma,     T{1.}};
+            const SpMatrix<T, 3, 3> dR{T{1.},  -tan_beta,     T{0.},
+				       tan_beta,      T{1.}, tan_gamma,
+				       T{0.}, -tan_gamma,     T{1.}};
 
-            Rbt = Rb * Mat3x3(dR * Rt);
+            Rbt = Rb * dR * Rt;
         } else {
             Rbt = Rb * Rt;
         }
     }
 
-    void CylindricalBearing::GetStructNodeOffset(const HydroNode* pHydroNode, Vector<doublereal, 3>& v) const
+    void CylindricalBearing::GetStructNodeOffset(const HydroNode* pHydroNode, SpColVector<doublereal, 3>& v) const
     {
-        const Vector<doublereal, 2>& x = pHydroNode->GetPosition2D();
+        const SpColVector<doublereal, 2>& x = pHydroNode->GetPosition2D();
         const doublereal r = dGetMeshRadius();
         const doublereal Phi = x(1) / r;
         const doublereal z = x(2);
@@ -13576,18 +13292,17 @@ namespace {
             pPocket->GetHeight(x, dy);
         }
 
-        const Vector<doublereal, 3> v_Rb((r + dy) * cos(Phi),
-                                         (r + dy) * sin(Phi),
-                                         z);
+        const SpColVector<doublereal, 3> v_Rb({(r + dy) * cos(Phi),
+					       (r + dy) * sin(Phi),
+					       z});
 
-        const Matrix<doublereal, 3, 3>& Rb = GetOrientationMeshNode();
+        const SpMatrix<doublereal, 3, 3>& Rb = GetOrientationMeshNode();
 
         v = Rb * v_Rb;
     }
 
-    void CylindricalBearing::Update(doublereal dCoef, enum FunctionCall func, LocalDofMap* pDofMap)
+    void CylindricalBearing::Update(doublereal dCoef, SpFunctionCall func)
     {
-        oDofMap.Reset(func);
     }
 
     std::ostream& CylindricalBearing::PrintLogFile(std::ostream& os) const
@@ -13611,17 +13326,17 @@ namespace {
         return dGetBearingRadius() - dGetShaftRadius();
     }
 
-    const Pocket* CylindricalBearing::pFindBearingPocket(const Vector<doublereal, 2>& x) const
+    const Pocket* CylindricalBearing::pFindBearingPocket(const SpColVector<doublereal, 2>& x) const
     {
         return pFindPocket(x, rgPocketsBearing);
     }
 
-    const Pocket* CylindricalBearing::pFindShaftPocket(const Vector<doublereal, 2>& x) const
+    const Pocket* CylindricalBearing::pFindShaftPocket(const SpColVector<doublereal, 2>& x) const
     {
         return pFindPocket(x, rgPocketsShaft);
     }
 
-    const Pocket* CylindricalBearing::pFindPocket(const Vector<doublereal, 2>& x, const PocketVector& rgPockets)
+    const Pocket* CylindricalBearing::pFindPocket(const SpColVector<doublereal, 2>& x, const PocketVector& rgPockets)
     {
         for (ConstPocketIterator i = rgPockets.begin(); i != rgPockets.end(); ++i) {
             if ((*i)->pGetGeometry()->bPointIsInside(x)) {
@@ -13643,7 +13358,7 @@ namespace {
 
         for (integer i = 0; i < iNumPockets; ++i) {
             std::unique_ptr<Pocket> pPocket(Pocket::Read(pGetParent(), HP, this));
-            Vector<doublereal, 2> x = pPocket->pGetGeometry()->GetPosition();
+            SpColVector<doublereal, 2> x = pPocket->pGetGeometry()->GetPosition();
 
             if (x(1) < 0. || x(1) > c) {
                 // Note: This case makes no sense because of the periodic nature
@@ -13699,26 +13414,19 @@ namespace {
         integer iNumRows, iNumCols;
 
         // Will be always higher than WorkSpaceDim
-        WorkSpaceDim(&iNumRows, &iNumCols, grad::INITIAL_ASS_FLAG);
+        WorkSpaceDim(&iNumRows, &iNumCols, SpFunctionCall::INITIAL_ASS_FLAG);
 
         const unsigned iNumDof = pGetParent()->iGetNumDof() + iNumCols;
 
-        for (integer i = 1; i <= 3; ++i) {
-            oReaction_grad.F1_R1(i).Reserve(iNumDof);
-            oReaction_grad.M1_R1(i).Reserve(iNumDof);
-            oReaction_grad.F2_R1(i).Reserve(iNumDof);
-            oReaction_grad.M2_R1(i).Reserve(iNumDof);
-
-            oReaction_grad.F1_R1(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.M1_R1(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.F2_R1(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.M2_R1(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-        }
+	oReaction_grad.F1_R1.ResizeReset(iNumDof);
+	oReaction_grad.M1_R1.ResizeReset(iNumDof);
+	oReaction_grad.F2_R1.ResizeReset(iNumDof);
+	oReaction_grad.M2_R1.ResizeReset(iNumDof);
     }
 
     template <typename T>
     CylindricalMeshAtShaft::Boundary<T>::Boundary(const CylindricalMeshAtShaft& rParent)
-        :rParent(rParent)
+	 :rParent(rParent)
     {
 
     }
@@ -13726,8 +13434,8 @@ namespace {
     template <typename T>
     void CylindricalMeshAtShaft::Boundary<T>::Initialize()
     {
-        const CMat3x3& Rb2 = rParent.GetOrientationNode2();
-        const CVec3& o2 = rParent.GetOffsetNode2();
+        const auto& Rb2 = rParent.GetOrientationNode2();
+        const auto& o2 = rParent.GetOffsetNode2();
 
         Rb2T_o2 = Transpose(Rb2) * o2;
     }
@@ -13736,23 +13444,22 @@ namespace {
     void
     CylindricalMeshAtShaft::Boundary<T>::Update(
         doublereal dCoef,
-        enum FunctionCall func,
-        LocalDofMap* pDofMap)
+        SpFunctionCall func)
     {
         const StructNode* const pNode1 = rParent.pGetNode1();
         const StructNode* const pNode2 = rParent.pGetNode2();
 
-        pNode1->GetXCurr(X1, dCoef, func, pDofMap);
-        pNode1->GetRCurr(R1, dCoef, func, pDofMap);
-        pNode1->GetVCurr(X1P, dCoef, func, pDofMap);
-        pNode1->GetWCurr(omega1, dCoef, func, pDofMap);
+        pNode1->GetXCurr(X1, dCoef, func);
+        pNode1->GetRCurr(R1, dCoef, func);
+        pNode1->GetVCurr(X1P, dCoef, func);
+        pNode1->GetWCurr(omega1, dCoef, func);
 
-        pNode2->GetXCurr(X2, dCoef, func, pDofMap);
-        pNode2->GetRCurr(R2, dCoef, func, pDofMap);
-        pNode2->GetVCurr(X2P, dCoef, func, pDofMap);
-        pNode2->GetWCurr(omega2, dCoef, func, pDofMap);
+        pNode2->GetXCurr(X2, dCoef, func);
+        pNode2->GetRCurr(R2, dCoef, func);
+        pNode2->GetVCurr(X2P, dCoef, func);
+        pNode2->GetWCurr(omega2, dCoef, func);
 
-        const CMat3x3& Rb2 = rParent.GetOrientationNode2();
+        const auto& Rb2 = rParent.GetOrientationNode2();
 
         Rb2T_R2T = Transpose(Rb2) * Transpose(R2);
     }
@@ -13762,26 +13469,25 @@ namespace {
     CylindricalMeshAtShaft::Boundary<T>::GetBoundaryConditions(HydroNode* pNode,
                                                                T& h,
                                                                T& dh_dt,
-                                                               Vector<T, 2>& U1,
-                                                               Vector<T, 2>& U2,
-                                                               Vector<T, 2>& U,
+                                                               SpColVector<T, 2>& U1,
+                                                               SpColVector<T, 2>& U2,
+                                                               SpColVector<T, 2>& U,
                                                                doublereal dCoef,
-                                                               enum FunctionCall func,
-                                                               LocalDofMap* pDofMap) const
+                                                               SpFunctionCall func) const
     {
-        const CVec3& Rb1_v1 = pNode->GetPosition3D();
-        const CVec3& o1 = rParent.GetOffsetNode1();
-        const CVec3& o2 = rParent.GetOffsetNode2();
-        const CMat3x3& Rb2 = rParent.GetOrientationNode2();
+        const auto& Rb1_v1 = pNode->GetPosition3D();
+        const auto& o1 = rParent.GetOffsetNode1();
+        const auto& o2 = rParent.GetOffsetNode2();
+        const auto& Rb2 = rParent.GetOrientationNode2();
 
-        const VVec3 a0 = R1 * VVec3(o1 + Rb1_v1);
-        const VVec3 a2 = X1 - X2 + a0;
-        const VVec3 a1 = X1P + Cross(omega1, a0)
-            - X2P - Cross(omega2, a2);
-        const VVec3 b = Rb2T_R2T * a2 - Rb2T_o2;
+        const SpColVector<T, 3> a0 = R1 * (o1 + Rb1_v1);
+        const SpColVector<T, 3> a2 = EvalUnique(X1 - X2 + a0);
+        const SpColVector<T, 3> a1 = EvalUnique(X1P + Cross(omega1, a0)
+					- X2P - Cross(omega2, a2));
+        const SpColVector<T, 3> b = EvalUnique(Rb2T_R2T * a2 - Rb2T_o2);
         const doublereal R = rParent.dGetBearingRadius();
 
-        const T a5 = b(1) * b(1) + b(2) * b(2);
+        const T a5 = EvalUnique(b(1) * b(1) + b(2) * b(2));
         const T a3 = sqrt(a5);
 
         const T cos_Phi2 = b(1) / a3;
@@ -13795,8 +13501,8 @@ namespace {
             Phi2 += 2 * M_PI;
         }
 
-        const VVec2 x2(Phi2 * R, z2);
-        const Pocket* const pPocket2 = rParent.pFindBearingPocket(CVec2(x2));
+        const SpColVector<T, 2> x2{Phi2 * R, z2};
+        const Pocket* const pPocket2 = rParent.pFindBearingPocket(x2.GetValue());
 
         T Deltay2, dDeltay2_dx2, dDeltay2_dz2;
 
@@ -13805,18 +13511,18 @@ namespace {
             pPocket2->GetHeightDerX(x2, dDeltay2_dx2);
             pPocket2->GetHeightDerZ(x2, dDeltay2_dz2);
         } else {
-            Deltay2 = 0.;
-            dDeltay2_dx2 = 0.;
-            dDeltay2_dz2 = 0.;
+	     SpGradient::ResizeReset(Deltay2, 0., 0);
+	     SpGradient::ResizeReset(dDeltay2_dx2, 0., 0);
+	     SpGradient::ResizeReset(dDeltay2_dz2, 0., 0);
         }
 
-        const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(CVec2(x2), pNode->GetNodePhysics());
+        const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(x2.GetValue(), pNode->GetNodePhysics());
 
 #if HYDRO_DEBUG > 1
         if (pMovingGroove) {
             HYDRO_TRACE("node(" << pNode->iGetNodeNumber() + 1
                         << ") affected by moving boundary condition at x2("
-                        << CVec2(x2) << ")\n");
+                        << x2.GetValue() << ")\n");
         }
 #endif
 
@@ -13824,79 +13530,76 @@ namespace {
 
         T w, dw_dt;
 
-        pNode->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap);
+        pNode->GetRadialDeformation(w, dw_dt, dCoef, func);
 
         const T h0 = R + Deltay2 - a3;
-        h = h0 + w;
+        h = EvalUnique(h0 + w);
 
-        const VVec3 db_dt = Rb2T_R2T * a1;
+        const SpColVector<T, 3> db_dt = Rb2T_R2T * a1;
         const T dx2_dt = R * (b(1) * db_dt(2) - db_dt(1) * b(2)) / a5;
         const T& dz2_dt = db_dt(3);
         const T dDeltay2_dt = dDeltay2_dx2 * dx2_dt + dDeltay2_dz2 * dz2_dt;
-        dh_dt = dDeltay2_dt - (b(1) * db_dt(1) + b(2) * db_dt(2)) / a3 + dw_dt;
+        dh_dt = EvalUnique(dDeltay2_dt - (b(1) * db_dt(1) + b(2) * db_dt(2)) / a3 + dw_dt);
 
-        const VVec3 v2((R + Deltay2) * cos_Phi2,
-                       (R + Deltay2) * sin_Phi2,
-                       z2);
+        const SpColVector<T, 3> v2{EvalUnique((R + Deltay2) * cos_Phi2),
+				   EvalUnique((R + Deltay2) * sin_Phi2),
+				   z2};
 
-        const VVec3 vh(h0 * cos_Phi2,
-                       h0 * sin_Phi2,
-                       T(0.));
+        const SpColVector<T, 3> vh{EvalUnique(h0 * cos_Phi2),
+				   EvalUnique(h0 * sin_Phi2),
+				   T{}};
 
-        const VVec3 P1Dot = X1P + Cross(omega1, a0);
-        const VVec3 P2Dot = X2P + Cross(omega2, VVec3(R2 * VVec3(o2 + Rb2 * v2))) - Cross(omega1, VVec3(R2 * VVec3(Rb2 * vh)));
+        const SpColVector<T, 3> P1Dot = EvalUnique(X1P + Cross(omega1, a0));
+        const SpColVector<T, 3> P2Dot = EvalUnique(X2P + Cross(omega2, (R2 * (o2 + Rb2 * v2))) - Cross(omega1, (R2 * (Rb2 * vh))));
 
-        const CMat3x3& Rbt1 = pNode->GetTangentCoordSys();
+        const auto& Rbt1 = pNode->GetTangentCoordSys();
 
-        const VVec3 P1Dot_R1 = Transpose(R1) * P1Dot;
-        const VVec3 P2Dot_R1 = Transpose(R1) * P2Dot;
+        const SpColVector<T, 3> P1Dot_R1 = Transpose(R1) * P1Dot;
+        const SpColVector<T, 3> P2Dot_R1 = Transpose(R1) * P2Dot;
 
         U1(1) = Dot(Rbt1.GetCol(1), P1Dot_R1);
         U1(2) = Dot(Rbt1.GetCol(3), P1Dot_R1);
         U2(1) = Dot(Rbt1.GetCol(1), P2Dot_R1);
         U2(2) = Dot(Rbt1.GetCol(3), P2Dot_R1);
 
-        U = (U2 - U1) * 0.5;
+        U = EvalUnique((U2 - U1) * 0.5);
     }
 
     template <typename T>
-    void CylindricalMeshAtShaft::Boundary<T>::GetMovingMeshOffset(Vector<T, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtShaft::Boundary<T>::GetMovingMeshOffset(SpColVector<T, 2>& x) const
     {
-        const CVec3& o1 = rParent.GetOffsetNode1();
-        const CVec3& o2 = rParent.GetOffsetNode2();
-        const CMat3x3& Rb1 = rParent.GetOrientationNode1();
-        const CMat3x3& Rb2 = rParent.GetOrientationNode2();
+        const auto& o1 = rParent.GetOffsetNode1();
+        const auto& o2 = rParent.GetOffsetNode2();
+        const auto& Rb1 = rParent.GetOrientationNode1();
+        const auto& Rb2 = rParent.GetOrientationNode2();
         const doublereal r = rParent.dGetMeshRadius();
 
-        const VVec3 R2_Rb2_e1 = R2 * Rb2.GetCol(1);
+        const SpColVector<T, 3> R2_Rb2_e1 = R2 * Rb2.GetCol(1);
 
-        const T dx = r * atan2(Dot(R1 * Rb1.GetCol(2), R2_Rb2_e1),
+        x(1) = r * atan2(Dot(R1 * Rb1.GetCol(2), R2_Rb2_e1),
                          Dot(R1 * Rb1.GetCol(1), R2_Rb2_e1));
 
-        const T dz = Dot(Rb1.GetCol(3), Transpose(R1) * VVec3(X2 + R2 * o2 - X1) - o1);
-
-        Copy(x(1), dx, pDofMap); // FIXME: Which class is responsible for copying Gradient's
-        Copy(x(2), dz, pDofMap);
+        x(2) = Dot(Rb1.GetCol(3), Transpose(R1) * (X2 + R2 * o2 - X1) - o1);
     }
 
-    void CylindricalMeshAtShaft::GetMovingMeshOffset(Vector<doublereal, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtShaft::GetMovingMeshOffset(SpColVector<doublereal, 2>& x) const
     {
-        oBound.GetMovingMeshOffset(x, pDofMap);
+        oBound.GetMovingMeshOffset(x);
     }
 
-    void CylindricalMeshAtShaft::GetMovingMeshOffset(Vector<Gradient<0>, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtShaft::GetMovingMeshOffset(SpColVector<SpGradient, 2>& x) const
     {
-        oBound_grad.GetMovingMeshOffset(x, pDofMap);
+        oBound_grad.GetMovingMeshOffset(x);
     }
 
-    void CylindricalMeshAtShaft::GetBoundaryConditions(HydroNode* pNode, doublereal& h, doublereal& dh_dt, Vector<doublereal, 2>& U1, Vector<doublereal, 2>& U2, Vector<doublereal, 2>& U, doublereal dCoef, enum FunctionCall func, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtShaft::GetBoundaryConditions(HydroNode* pNode, doublereal& h, doublereal& dh_dt, SpColVector<doublereal, 2>& U1, SpColVector<doublereal, 2>& U2, SpColVector<doublereal, 2>& U, doublereal dCoef, SpFunctionCall func) const
     {
-        oBound.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func, pDofMap);
+        oBound.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func);
     }
 
-    void CylindricalMeshAtShaft::GetBoundaryConditions(HydroNode* pNode, Gradient<0>& h, Gradient<0>& dh_dt, Vector<Gradient<0>, 2>& U1, Vector<Gradient<0>, 2>& U2, Vector<Gradient<0>, 2>& U, doublereal dCoef, enum FunctionCall func, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtShaft::GetBoundaryConditions(HydroNode* pNode, SpGradient& h, SpGradient& dh_dt, SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2, SpColVector<SpGradient, 2>& U, doublereal dCoef, SpFunctionCall func) const
     {
-        oBound_grad.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func, pDofMap);
+        oBound_grad.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func);
     }
 
     doublereal CylindricalMeshAtShaft::dGetMeshRadius() const
@@ -13904,34 +13607,33 @@ namespace {
         return dGetShaftRadius();
     }
 
-    const Matrix<doublereal, 3, 3>&
+    const SpMatrix<doublereal, 3, 3>&
     CylindricalMeshAtShaft::GetOrientationMeshNode() const
     {
         return GetOrientationNode1();
     }
 
     const Pocket*
-    CylindricalMeshAtShaft::pFindMeshPocket(const Vector<doublereal, 2>& x) const
+    CylindricalMeshAtShaft::pFindMeshPocket(const SpColVector<doublereal, 2>& x) const
     {
         return pFindShaftPocket(x);
     }
 
     void
-    CylindricalMeshAtShaft::AddReactionForce(const Vector<doublereal, 2>& x,
-                                             const Vector<doublereal, 3>& v,
-                                             const Matrix<doublereal, 3, 3>& Rt,
-                                             const Vector<doublereal, 3>& dF_0_Rt,
-                                             const Vector<doublereal, 3>& dF_h_Rt,
-                                             const Vector<doublereal, 2>& dM_h_Rt,
+    CylindricalMeshAtShaft::AddReactionForce(const SpColVector<doublereal, 2>& x,
+                                             const SpColVector<doublereal, 3>& v,
+                                             const SpMatrix<doublereal, 3, 3>& Rt,
+                                             const SpColVector<doublereal, 3>& dF_0_Rt,
+                                             const SpColVector<doublereal, 3>& dF_h_Rt,
+                                             const SpColVector<doublereal, 2>& dM_h_Rt,
                                              doublereal dCoef,
-                                             enum FunctionCall func,
-                                             LocalDofMap* pDofMap)
+                                             SpFunctionCall func)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, pDofMap, oReaction);
+        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction);
 
 #if CREATE_PROFILE == 1
         profile.dtAddForce[PROF_RES] += mbdyn_clock_time() - start;
@@ -13939,21 +13641,20 @@ namespace {
     }
 
     void
-    CylindricalMeshAtShaft::AddReactionForce(const Vector<doublereal, 2>& x,
-                                             const Vector<doublereal, 3>& v,
-                                             const Matrix<doublereal, 3, 3>& Rt,
-                                             const Vector<Gradient<0>, 3>& dF_0_Rt,
-                                             const Vector<Gradient<0>, 3>& dF_h_Rt,
-                                             const Vector<Gradient<0>, 2>& dM_h_Rt,
+    CylindricalMeshAtShaft::AddReactionForce(const SpColVector<doublereal, 2>& x,
+                                             const SpColVector<doublereal, 3>& v,
+                                             const SpMatrix<doublereal, 3, 3>& Rt,
+                                             const SpColVector<SpGradient, 3>& dF_0_Rt,
+                                             const SpColVector<SpGradient, 3>& dF_h_Rt,
+                                             const SpColVector<SpGradient, 2>& dM_h_Rt,
                                              doublereal dCoef,
-                                             enum FunctionCall func,
-                                             LocalDofMap* pDofMap)
+                                             SpFunctionCall func)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, pDofMap, oReaction_grad);
+        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction_grad);
 
 #if CREATE_PROFILE == 1
         profile.dtAddForce[PROF_JAC] += mbdyn_clock_time() - start;
@@ -13963,40 +13664,37 @@ namespace {
     template <typename T>
     void CylindricalMeshAtShaft::ReactionForce<T>::Reset()
     {
-        F1_R1.Reset();
-        M1_R1.Reset();
-        F2_R1.Reset();
-        M2_R1.Reset();
+	 F1_R1.ResizeReset(0);
+	 M1_R1.ResizeReset(0);
+	 F2_R1.ResizeReset(0);
+	 M2_R1.ResizeReset(0);
     }
 
     template <typename T>
     inline void
-    CylindricalMeshAtShaft::AddReactionForce(const Vector<doublereal, 2>& x1,
-                                             const Vector<doublereal, 3>& Rb1_v1,
-                                             const Matrix<doublereal, 3, 3>& Rbt1,
-                                             const Vector<T, 3>& dF2_0_Rt1,
-                                             const Vector<T, 3>& dF1_h_Rt1,
-                                             const Vector<T, 2>& dM1_h_Rt1,
+    CylindricalMeshAtShaft::AddReactionForce(const SpColVector<doublereal, 2>& x1,
+                                             const SpColVector<doublereal, 3>& Rb1_v1,
+                                             const SpMatrix<doublereal, 3, 3>& Rbt1,
+                                             const SpColVector<T, 3>& dF2_0_Rt1,
+                                             const SpColVector<T, 3>& dF1_h_Rt1,
+                                             const SpColVector<T, 2>& dM1_h_Rt1,
                                              doublereal dCoef,
-                                             enum FunctionCall func,
-                                             LocalDofMap* pDofMap,
+                                             SpFunctionCall func,
                                              ReactionForce<T>& oReact)
     {
-        typedef Vector<T, 3> VVec3;
-
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
-        const VVec3 dF1_R1 = Rbt1 * dF1_h_Rt1;
-        const VVec3 dM1_h_R1 = Rbt1.GetCol(1) * dM1_h_Rt1(1) + Rbt1.GetCol(3) * dM1_h_Rt1(2);
+        const SpColVector<T, 3> dF1_R1 = EvalUnique(Rbt1 * dF1_h_Rt1);
+        const SpColVector<T, 3> dM1_h_R1 = Rbt1.GetCol(1) * dM1_h_Rt1(1) + Rbt1.GetCol(3) * dM1_h_Rt1(2);
 
         oReact.F1_R1 += dF1_R1;
-        oReact.M1_R1 += Cross(Rb1_v1, dF1_R1) + dM1_h_R1;
+        oReact.M1_R1 += EvalUnique(Cross(Rb1_v1, dF1_R1) + dM1_h_R1);
 
-        const VVec3 dF2_R1 = Rbt1 * dF2_0_Rt1;
+        const SpColVector<T, 3> dF2_R1 = EvalUnique(Rbt1 * dF2_0_Rt1);
 
         oReact.F2_R1 += dF2_R1;
-        oReact.M2_R1 += Cross(Rb1_v1, dF2_R1) - dM1_h_R1;
+        oReact.M2_R1 += EvalUnique(Cross(Rb1_v1, dF2_R1) - dM1_h_R1);
 
 #if GRADIENT_DEBUG >= 2
         for (integer i = 1; i <= 3; ++i)
@@ -14007,7 +13705,7 @@ namespace {
 #endif
 
 #if CREATE_PROFILE == 1
-        profile.dtOperatorPlus[func == REGULAR_JAC ? PROF_JAC : PROF_RES] += mbdyn_clock_time() - start;
+        profile.dtOperatorPlus[func == SpFunctionCall::REGULAR_JAC ? PROF_JAC : PROF_RES] += mbdyn_clock_time() - start;
 #endif
     }
 
@@ -14017,8 +13715,8 @@ namespace {
         return oReaction;
     }
 
-    const CylindricalMeshAtShaft::ReactionForce<Gradient<0> >&
-    CylindricalMeshAtShaft::GetReactionForce(const Gradient<0>&) const
+    const CylindricalMeshAtShaft::ReactionForce<SpGradient >&
+    CylindricalMeshAtShaft::GetReactionForce(const SpGradient&) const
     {
         return oReaction_grad;
     }
@@ -14026,23 +13724,22 @@ namespace {
     void
     CylindricalMeshAtShaft::Update(
         doublereal dCoef,
-        enum FunctionCall func,
-        LocalDofMap* pDofMap)
+        SpFunctionCall func)
     {
-        CylindricalBearing::Update(dCoef, func, pDofMap);
+        CylindricalBearing::Update(dCoef, func);
 
         switch (func) {
-        case REGULAR_RES:
-        case INITIAL_DER_RES:
-        case INITIAL_ASS_RES:
-            oBound.Update(dCoef, func, pDofMap);
+        case SpFunctionCall::REGULAR_RES:
+        case SpFunctionCall::INITIAL_DER_RES:
+        case SpFunctionCall::INITIAL_ASS_RES:
+            oBound.Update(dCoef, func);
             oReaction.Reset();
             break;
 
-        case REGULAR_JAC:
-        case INITIAL_DER_JAC:
-        case INITIAL_ASS_JAC:
-            oBound_grad.Update(dCoef, func, pDofMap);
+        case SpFunctionCall::REGULAR_JAC:
+        case SpFunctionCall::INITIAL_DER_JAC:
+        case SpFunctionCall::INITIAL_ASS_JAC:
+            oBound_grad.Update(dCoef, func);
             oReaction_grad.Reset();
             break;
 
@@ -14056,14 +13753,14 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -14072,106 +13769,98 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     CylindricalMeshAtShaft::InitialAssRes(SubVectorHandler& WorkVec,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     CylindricalMeshAtShaft::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
 
     template <typename T>
-    void CylindricalMeshAtShaft::AssRes(GradientAssVec<T>& WorkMat,
+    void CylindricalMeshAtShaft::AssRes(SpGradientAssVec<T>& WorkMat,
                                         doublereal dCoef,
-                                        const GradientVectorHandler<T>& XCurr,
-                                        const GradientVectorHandler<T>& XPrimeCurr,
-                                        enum FunctionCall func)
+                                        const SpGradientVectorHandler<T>& XCurr,
+                                        const SpGradientVectorHandler<T>& XPrimeCurr,
+                                        SpFunctionCall func)
     {
         UnivAssRes(WorkMat, dCoef, XCurr, func);
     }
 
 
     template <typename T>
-    void CylindricalMeshAtShaft::InitialAssRes(GradientAssVec<T>& WorkMat,
-                                               const GradientVectorHandler<T>& XCurr,
-                                               enum FunctionCall func)
+    void CylindricalMeshAtShaft::InitialAssRes(SpGradientAssVec<T>& WorkMat,
+                                               const SpGradientVectorHandler<T>& XCurr,
+                                               SpFunctionCall func)
     {
         UnivAssRes(WorkMat, 1., XCurr, func);
     }
 
     template <typename T>
-    void CylindricalMeshAtShaft::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void CylindricalMeshAtShaft::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                             doublereal dCoef,
-                                            const GradientVectorHandler<T>& XCurr,
-                                            enum FunctionCall func)
+                                            const SpGradientVectorHandler<T>& XCurr,
+                                            SpFunctionCall func)
     {
 #if GRADIENT_DEBUG >= 2
         std::cerr << "func=" << func << std::endl;
 #endif
 
         const doublereal dInitAss = pGetParent()->dGetStartupFactor();
+        const SpColVector<doublereal, 3>& o1 = GetOffsetNode1();
+        const SpColVector<doublereal, 3>& o2 = GetOffsetNode2();
+        const SpMatrix<doublereal, 3, 3>& Rb1 = GetOrientationNode1();
+        const SpMatrix<doublereal, 3, 3>& Rb2 = GetOrientationNode2();
 
-        typedef Vector<T, 3> VVec3;
-        typedef Matrix<T, 3, 3> VMat3x3;
-        typedef Vector<doublereal, 3> CVec3;
-        typedef Matrix<doublereal, 3, 3> CMat3x3;
-
-        const CVec3& o1 = GetOffsetNode1();
-        const CVec3& o2 = GetOffsetNode2();
-        const CMat3x3& Rb1 = GetOrientationNode1();
-        const CMat3x3& Rb2 = GetOrientationNode2();
-
-        VVec3 X1, X2;
-        VMat3x3 R1, R2;
+        SpColVectorA<T, 3, 1> X1, X2;
+        SpMatrixA<T, 3, 3, 3> R1, R2;
 
         const StructNode* const pNode1 = pGetNode1();
 
-        pNode1->GetXCurr(X1, dCoef, func, &oDofMap);
-        pNode1->GetRCurr(R1, dCoef, func, &oDofMap);
+        pNode1->GetXCurr(X1, dCoef, func);
+        pNode1->GetRCurr(R1, dCoef, func);
 
         const StructNode* const pNode2 = pGetNode2();
 
-        pNode2->GetXCurr(X2, dCoef, func, &oDofMap);
-        pNode2->GetRCurr(R2, dCoef, func, &oDofMap);
+        pNode2->GetXCurr(X2, dCoef, func);
+        pNode2->GetRCurr(R2, dCoef, func);
 
         const ReactionForce<T>& oReact = GetReactionForce(X1(1));
 
-        const T lambda = -Dot(Rb1.GetCol(3), VVec3(Transpose(R1) * VVec3(X1 - X2 - R2 * o2) + o1))
-            / Dot(Rb1.GetCol(3), VVec3(Transpose(R1) * VVec3(R2 * Rb2.GetCol(3))));
-        const VVec3 F1 = (R1 * oReact.F1_R1) * dInitAss;
-        const VVec3 M1 = (R1 * oReact.M1_R1) * dInitAss + Cross(VVec3(R1 * o1), F1);
-        const VVec3 F2 = (R1 * oReact.F2_R1) * dInitAss;
-        const VVec3 M2 = (R1 * oReact.M2_R1) * dInitAss + Cross(VVec3(R2 * VVec3(o2 + Rb2.GetCol(3) * lambda)), F2);
+        const T lambda = -Dot(Rb1.GetCol(3), (Transpose(R1) * (X1 - X2 - R2 * o2) + o1))
+            / Dot(Rb1.GetCol(3), (Transpose(R1) * (R2 * Rb2.GetCol(3))));
+        const SpColVector<T, 3> F1 = EvalUnique((R1 * oReact.F1_R1) * dInitAss);
+        const SpColVector<T, 3> M1 = EvalUnique((R1 * oReact.M1_R1) * dInitAss + Cross((R1 * o1), F1));
+        const SpColVector<T, 3> F2 = EvalUnique((R1 * oReact.F2_R1) * dInitAss);
+        const SpColVector<T, 3> M2 = EvalUnique((R1 * oReact.M2_R1) * dInitAss + Cross((R2 * (o2 + Rb2.GetCol(3) * lambda)), F2));
 
         const integer iFirstMomIndexNode1 = (func & INITIAL_ASS_FLAG) ? pNode1->iGetFirstPositionIndex() : pNode1->iGetFirstMomentumIndex();
         const integer iFirstMomIndexNode2 = (func & INITIAL_ASS_FLAG) ? pNode2->iGetFirstPositionIndex() : pNode2->iGetFirstMomentumIndex();
@@ -14213,7 +13902,7 @@ namespace {
     CylindricalMeshAtShaft::bGetPrivateData(HydroRootBase::PrivateDataType eType,
                                             doublereal& dPrivData) const
     {
-        const Matrix<doublereal, 3, 3>& Rb1 = GetOrientationNode1();
+        const SpMatrix<doublereal, 3, 3>& Rb1 = GetOrientationNode1();
 
         switch (eType) {
         case HydroRootBase::PD_F1x:
@@ -14275,71 +13964,61 @@ namespace {
         integer iNumRows, iNumCols;
 
         // Will be always higher than WorkSpaceDim
-        WorkSpaceDim(&iNumRows, &iNumCols, grad::INITIAL_ASS_FLAG);
+        WorkSpaceDim(&iNumRows, &iNumCols, SpFunctionCall::INITIAL_ASS_FLAG);
 
         const unsigned iNumDof = pGetParent()->iGetNumDof() + iNumCols;
 
-        for (integer i = 1; i <= 3; ++i) {
-            oReaction_grad.F1_R2(i).Reserve(iNumDof);
-            oReaction_grad.M1_R2(i).Reserve(iNumDof);
-            oReaction_grad.F2_R2(i).Reserve(iNumDof);
-            oReaction_grad.M2_R2(i).Reserve(iNumDof);
-
-            oReaction_grad.F1_R2(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.M1_R2(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.F2_R2(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-            oReaction_grad.M2_R2(i).DerivativeResizeReset(&oDofMap, 0, MapVectorBase::LOCAL, 0.);
-        }
+	oReaction_grad.F1_R2.ResizeReset(iNumDof);
+	oReaction_grad.M1_R2.ResizeReset(iNumDof);
+	oReaction_grad.F2_R2.ResizeReset(iNumDof);
+	oReaction_grad.M2_R2.ResizeReset(iNumDof);
     }
 
     void
     CylindricalMeshAtBearing::GetBoundaryConditions(HydroNode* pNode,
                                                     doublereal& h,
                                                     doublereal& dh_dt,
-                                                    Vector<doublereal, 2>& U1,
-                                                    Vector<doublereal, 2>& U2,
-                                                    Vector<doublereal, 2>& U,
+                                                    SpColVector<doublereal, 2>& U1,
+                                                    SpColVector<doublereal, 2>& U2,
+                                                    SpColVector<doublereal, 2>& U,
                                                     doublereal dCoef,
-                                                    enum FunctionCall func,
-                                                    LocalDofMap* pDofMap) const
+                                                    SpFunctionCall func) const
     {
-        oBound.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func, pDofMap);
+        oBound.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func);
     }
 
     void
     CylindricalMeshAtBearing::GetBoundaryConditions(HydroNode* pNode,
-                                                    Gradient<0>& h,
-                                                    Gradient<0>& dh_dt,
-                                                    Vector<Gradient<0>, 2>& U1,
-                                                    Vector<Gradient<0>, 2>& U2,
-                                                    Vector<Gradient<0>, 2>& U,
+                                                    SpGradient& h,
+                                                    SpGradient& dh_dt,
+                                                    SpColVector<SpGradient, 2>& U1,
+                                                    SpColVector<SpGradient, 2>& U2,
+                                                    SpColVector<SpGradient, 2>& U,
                                                     doublereal dCoef,
-                                                    enum FunctionCall func,
-                                                    LocalDofMap* pDofMap) const
+                                                    SpFunctionCall func) const
     {
-        oBound_grad.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func, pDofMap);
+        oBound_grad.GetBoundaryConditions(pNode, h, dh_dt, U1, U2, U, dCoef, func);
     }
 
     void
     CylindricalMeshAtBearing::Update(
         doublereal dCoef,
-        enum FunctionCall func,
-        LocalDofMap* pDofMap)
+        SpFunctionCall func)
     {
-        CylindricalBearing::Update(dCoef, func, pDofMap);
+        CylindricalBearing::Update(dCoef, func);
 
         switch (func) {
-        case REGULAR_RES:
-        case INITIAL_DER_RES:
-        case INITIAL_ASS_RES:
-            oBound.Update(dCoef, func, pDofMap);
+        case SpFunctionCall::REGULAR_RES:
+        case SpFunctionCall::INITIAL_DER_RES:
+        case SpFunctionCall::INITIAL_ASS_RES:
+            oBound.Update(dCoef, func);
             oReaction.Reset();
             break;
 
-        case REGULAR_JAC:
-        case INITIAL_DER_JAC:
-        case INITIAL_ASS_JAC:
-            oBound_grad.Update(dCoef, func, pDofMap);
+        case SpFunctionCall::REGULAR_JAC:
+        case SpFunctionCall::INITIAL_DER_JAC:
+        case SpFunctionCall::INITIAL_ASS_JAC:
+            oBound_grad.Update(dCoef, func);
             oReaction_grad.Reset();
             break;
 
@@ -14353,14 +14032,14 @@ namespace {
                                      doublereal dCoef,
                                      const VectorHandler& XCurr,
                                      const VectorHandler& XPrimeCurr,
-                                     GradientAssVecBase::mode_t mode)
+                                     SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -14369,102 +14048,95 @@ namespace {
                                      doublereal dCoef,
                                      const VectorHandler& XCurr,
                                      const VectorHandler& XPrimeCurr,
-                                     GradientAssVecBase::mode_t mode)
+                                     SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     CylindricalMeshAtBearing::InitialAssRes(SubVectorHandler& WorkVec,
                                             const VectorHandler& XCurr,
-                                            enum GradientAssVecBase::mode_t mode)
+                                            SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     CylindricalMeshAtBearing::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                             const VectorHandler& XCurr,
-                                            GradientAssVecBase::mode_t mode)
+                                            SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
 
     template <typename T>
-    void CylindricalMeshAtBearing::AssRes(GradientAssVec<T>& WorkMat,
+    void CylindricalMeshAtBearing::AssRes(SpGradientAssVec<T>& WorkMat,
                                           doublereal dCoef,
-                                          const GradientVectorHandler<T>& XCurr,
-                                          const GradientVectorHandler<T>& XPrimeCurr,
-                                          FunctionCall func)
+                                          const SpGradientVectorHandler<T>& XCurr,
+                                          const SpGradientVectorHandler<T>& XPrimeCurr,
+                                          SpFunctionCall func)
     {
         UnivAssRes(WorkMat, dCoef, XCurr, func);
     }
 
 
     template <typename T>
-    void CylindricalMeshAtBearing::InitialAssRes(GradientAssVec<T>& WorkMat,
-                                                 const GradientVectorHandler<T>& XCurr,
-                                                 FunctionCall func)
+    void CylindricalMeshAtBearing::InitialAssRes(SpGradientAssVec<T>& WorkMat,
+                                                 const SpGradientVectorHandler<T>& XCurr,
+                                                 SpFunctionCall func)
     {
         UnivAssRes(WorkMat, 1., XCurr, func);
     }
 
     template <typename T>
     void
-    CylindricalMeshAtBearing::UnivAssRes(GradientAssVec<T>& WorkVec,
+    CylindricalMeshAtBearing::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                          doublereal dCoef,
-                                         const GradientVectorHandler<T>& XCurr,
-                                         FunctionCall func)
+                                         const SpGradientVectorHandler<T>& XCurr,
+                                         SpFunctionCall func)
     {
-        typedef Vector<T, 3> VVec3;
-        typedef Matrix<T, 3, 3> VMat3x3;
-        typedef Vector<doublereal, 3> CVec3;
-        typedef Matrix<doublereal, 3, 3> CMat3x3;
-
-        VVec3 X1, X2;
-        VMat3x3 R1, R2;
+	 SpColVectorA<T, 3, 1> X1, X2;
+	 SpMatrixA<T, 3, 3, 3> R1, R2;
 
         const StructNode* const pNode1 = pGetNode1();
         const StructNode* const pNode2 = pGetNode2();
 
-        pNode1->GetXCurr(X1, dCoef, func, &oDofMap);
-        pNode1->GetRCurr(R1, dCoef, func, &oDofMap);
+        pNode1->GetXCurr(X1, dCoef, func);
+        pNode1->GetRCurr(R1, dCoef, func);
 
-        pNode2->GetXCurr(X2, dCoef, func, &oDofMap);
-        pNode2->GetRCurr(R2, dCoef, func, &oDofMap);
+        pNode2->GetXCurr(X2, dCoef, func);
+        pNode2->GetRCurr(R2, dCoef, func);
 
-        const CVec3& o1 = GetOffsetNode1();
-        const CVec3& o2 = GetOffsetNode2();
-        const CMat3x3& Rb1 = GetOrientationNode1();
-        const CMat3x3& Rb2 = GetOrientationNode2();
+        const SpColVector<doublereal, 3>& o1 = GetOffsetNode1();
+        const SpColVector<doublereal, 3>& o2 = GetOffsetNode2();
+        const SpMatrix<doublereal, 3, 3>& Rb1 = GetOrientationNode1();
+        const SpMatrix<doublereal, 3, 3>& Rb2 = GetOrientationNode2();
 
         const ReactionForce<T>& oReact = GetReactionForce(X1(1));
 
         const doublereal dInitAss = pGetParent()->dGetStartupFactor();
 
-        const T lambda = -Dot(Rb2.GetCol(3), VVec3(Transpose(R2) * VVec3(X1 + VVec3(R1 * o1) - X2) - o2))
-            / Dot(Rb2.GetCol(3), VVec3(Transpose(R2) * VVec3(R1 * Rb1.GetCol(3))));
-        const VVec3 F1 = (R2 * oReact.F1_R2) * dInitAss;
-        const VVec3 M1 = (R2 * oReact.M1_R2) * dInitAss + Cross(VVec3(R1 * VVec3(o1 + Rb1.GetCol(3) * lambda)), F1);
-        const VVec3 F2 = (R2 * oReact.F2_R2) * dInitAss;
-        const VVec3 M2 = (R2 * oReact.M2_R2) * dInitAss + Cross(R2 * o2, F2);
+        const T lambda = -Dot(Rb2.GetCol(3), (Transpose(R2) * (X1 + (R1 * o1) - X2) - o2))
+            / Dot(Rb2.GetCol(3), (Transpose(R2) * (R1 * Rb1.GetCol(3))));
+        const SpColVector<T, 3> F1 = EvalUnique((R2 * oReact.F1_R2) * dInitAss);
+        const SpColVector<T, 3> M1 = EvalUnique((R2 * oReact.M1_R2) * dInitAss + Cross((R1 * (o1 + Rb1.GetCol(3) * lambda)), F1));
+        const SpColVector<T, 3> F2 = EvalUnique((R2 * oReact.F2_R2) * dInitAss);
+        const SpColVector<T, 3> M2 = EvalUnique((R2 * oReact.M2_R2) * dInitAss + Cross(R2 * o2, F2));
 
         SaveReactionForce(F1, M1, F2, M2);
 
@@ -14503,7 +14175,7 @@ namespace {
     CylindricalMeshAtBearing::bGetPrivateData(HydroRootBase::PrivateDataType eType,
                                               doublereal& dPrivData) const
     {
-        const Matrix<doublereal, 3, 3>& Rb2 = GetOrientationNode2();
+        const SpMatrix<doublereal, 3, 3>& Rb2 = GetOrientationNode2();
 
         switch (eType) {
         case HydroRootBase::PD_F1x:
@@ -14540,21 +14212,20 @@ namespace {
     }
 
     void
-    CylindricalMeshAtBearing::AddReactionForce(const Vector<doublereal, 2>& x,
-                                               const Vector<doublereal, 3>& v,
-                                               const Matrix<doublereal, 3, 3>& Rt,
-                                               const Vector<doublereal, 3>& dF_0_Rt,
-                                               const Vector<doublereal, 3>& dF_h_Rt,
-                                               const Vector<doublereal, 2>& dM_h_Rt,
+    CylindricalMeshAtBearing::AddReactionForce(const SpColVector<doublereal, 2>& x,
+                                               const SpColVector<doublereal, 3>& v,
+                                               const SpMatrix<doublereal, 3, 3>& Rt,
+                                               const SpColVector<doublereal, 3>& dF_0_Rt,
+                                               const SpColVector<doublereal, 3>& dF_h_Rt,
+                                               const SpColVector<doublereal, 2>& dM_h_Rt,
                                                doublereal dCoef,
-                                               enum FunctionCall func,
-                                               LocalDofMap* pDofMap)
+                                               SpFunctionCall func)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, pDofMap, oReaction);
+        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction);
 
 #if CREATE_PROFILE == 1
         profile.dtAddForce[PROF_RES] += mbdyn_clock_time() - start;
@@ -14562,21 +14233,20 @@ namespace {
     }
 
     void
-    CylindricalMeshAtBearing::AddReactionForce(const Vector<doublereal, 2>& x,
-                                               const Vector<doublereal, 3>& v,
-                                               const Matrix<doublereal, 3, 3>& Rt,
-                                               const Vector<Gradient<0>, 3>& dF_0_Rt,
-                                               const Vector<Gradient<0>, 3>& dF_h_Rt,
-                                               const Vector<Gradient<0>, 2>& dM_h_Rt,
+    CylindricalMeshAtBearing::AddReactionForce(const SpColVector<doublereal, 2>& x,
+                                               const SpColVector<doublereal, 3>& v,
+                                               const SpMatrix<doublereal, 3, 3>& Rt,
+                                               const SpColVector<SpGradient, 3>& dF_0_Rt,
+                                               const SpColVector<SpGradient, 3>& dF_h_Rt,
+                                               const SpColVector<SpGradient, 2>& dM_h_Rt,
                                                doublereal dCoef,
-                                               enum FunctionCall func,
-                                               LocalDofMap* pDofMap)
+                                               SpFunctionCall func)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, pDofMap, oReaction_grad);
+        AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction_grad);
 
 #if CREATE_PROFILE == 1
         profile.dtAddForce[PROF_JAC] += mbdyn_clock_time() - start;
@@ -14586,37 +14256,34 @@ namespace {
     template <typename T>
     void CylindricalMeshAtBearing::ReactionForce<T>::Reset()
     {
-        F1_R2.Reset();
-        M1_R2.Reset();
-        F2_R2.Reset();
-        M2_R2.Reset();
+	 F1_R2.ResizeReset(0);
+	 M1_R2.ResizeReset(0);
+	 F2_R2.ResizeReset(0);
+	 M2_R2.ResizeReset(0);
     }
 
     template <typename T>
     inline void
-    CylindricalMeshAtBearing::AddReactionForce(const Vector<doublereal, 2>& x2,
-                                               const Vector<doublereal, 3>& Rb2_v2,
-                                               const Matrix<doublereal, 3, 3>& Rbt2,
-                                               const Vector<T, 3>& dF2_0_Rt2,
-                                               const Vector<T, 3>& dF1_h_Rt2,
-                                               const Vector<T, 2>& dM1_h_Rt2,
+    CylindricalMeshAtBearing::AddReactionForce(const SpColVector<doublereal, 2>& x2,
+                                               const SpColVector<doublereal, 3>& Rb2_v2,
+                                               const SpMatrix<doublereal, 3, 3>& Rbt2,
+                                               const SpColVector<T, 3>& dF2_0_Rt2,
+                                               const SpColVector<T, 3>& dF1_h_Rt2,
+                                               const SpColVector<T, 2>& dM1_h_Rt2,
                                                doublereal dCoef,
-                                               enum FunctionCall func,
-                                               LocalDofMap* pDofMap,
+                                               SpFunctionCall func,
                                                ReactionForce<T>& oReact)
     {
-        typedef Vector<T, 3> VVec3;
-
-        const VVec3 dF1_R2 = Rbt2 * dF1_h_Rt2;
-        const VVec3 dM1_h_R2 = Rbt2.GetCol(1) * dM1_h_Rt2(1) + Rbt2.GetCol(3) * dM1_h_Rt2(2);
+	 const SpColVector<T, 3> dF1_R2 = EvalUnique(Rbt2 * dF1_h_Rt2);
+	 const SpColVector<T, 3> dM1_h_R2 = Rbt2.GetCol(1) * dM1_h_Rt2(1) + Rbt2.GetCol(3) * dM1_h_Rt2(2);
 
         oReact.F1_R2 += dF1_R2;
-        oReact.M1_R2 += Cross(Rb2_v2, dF1_R2) + dM1_h_R2;
+        oReact.M1_R2 += EvalUnique(Cross(Rb2_v2, dF1_R2) + dM1_h_R2);
 
-        const VVec3 dF2_R2 = Rbt2 * dF2_0_Rt2;
+        const SpColVector<T, 3> dF2_R2 = EvalUnique(Rbt2 * dF2_0_Rt2);
 
         oReact.F2_R2 += dF2_R2;
-        oReact.M2_R2 += Cross(Rb2_v2, dF2_R2) - dM1_h_R2;
+        oReact.M2_R2 += EvalUnique(Cross(Rb2_v2, dF2_R2) - dM1_h_R2);
     }
 
     const CylindricalMeshAtBearing::ReactionForce<doublereal>&
@@ -14625,15 +14292,15 @@ namespace {
         return oReaction;
     }
 
-    const CylindricalMeshAtBearing::ReactionForce<Gradient<0> >&
-    CylindricalMeshAtBearing::GetReactionForce(const Gradient<0>& dummy) const
+    const CylindricalMeshAtBearing::ReactionForce<SpGradient >&
+    CylindricalMeshAtBearing::GetReactionForce(const SpGradient& dummy) const
     {
         return oReaction_grad;
     }
 
     template <typename T>
     CylindricalMeshAtBearing::Boundary<T>::Boundary(const CylindricalMeshAtBearing& rParent)
-        :rParent(rParent)
+	 :rParent(rParent)
     {
 
     }
@@ -14641,31 +14308,30 @@ namespace {
     template <typename T> void
     CylindricalMeshAtBearing::Boundary<T>::Initialize()
     {
-        const CVec3& o1 = rParent.GetOffsetNode1();
-        const CMat3x3& Rb1 = rParent.GetOrientationNode1();
+        const auto& o1 = rParent.GetOffsetNode1();
+        const auto& Rb1 = rParent.GetOrientationNode1();
 
         Rb1T_o1 = Transpose(Rb1) * o1;
     }
 
     template <typename T> void
     CylindricalMeshAtBearing::Boundary<T>::Update(doublereal dCoef,
-                                                  enum FunctionCall func,
-                                                  LocalDofMap* pDofMap)
+                                                  SpFunctionCall func)
     {
         const StructNode* const pNode1 = rParent.pGetNode1();
         const StructNode* const pNode2 = rParent.pGetNode2();
 
-        pNode1->GetXCurr(X1, dCoef, func, pDofMap);
-        pNode1->GetRCurr(R1, dCoef, func, pDofMap);
-        pNode1->GetVCurr(X1P, dCoef, func, pDofMap);
-        pNode1->GetWCurr(omega1, dCoef, func, pDofMap);
+        pNode1->GetXCurr(X1, dCoef, func);
+        pNode1->GetRCurr(R1, dCoef, func);
+        pNode1->GetVCurr(X1P, dCoef, func);
+        pNode1->GetWCurr(omega1, dCoef, func);
 
-        pNode2->GetXCurr(X2, dCoef, func, pDofMap);
-        pNode2->GetRCurr(R2, dCoef, func, pDofMap);
-        pNode2->GetVCurr(X2P, dCoef, func, pDofMap);
-        pNode2->GetWCurr(omega2, dCoef, func, pDofMap);
+        pNode2->GetXCurr(X2, dCoef, func);
+        pNode2->GetRCurr(R2, dCoef, func);
+        pNode2->GetVCurr(X2P, dCoef, func);
+        pNode2->GetWCurr(omega2, dCoef, func);
 
-        const CMat3x3& Rb1 = rParent.GetOrientationNode1();
+        const auto& Rb1 = rParent.GetOrientationNode1();
 
         Rb1T_R1T = Transpose(Rb1) * Transpose(R1);
     }
@@ -14674,23 +14340,22 @@ namespace {
     CylindricalMeshAtBearing::Boundary<T>::GetBoundaryConditions(HydroNode* pNode,
                                                                  T& h,
                                                                  T& dh_dt,
-                                                                 Vector<T, 2>& U1,
-                                                                 Vector<T, 2>& U2,
-                                                                 Vector<T, 2>& U,
+                                                                 SpColVector<T, 2>& U1,
+                                                                 SpColVector<T, 2>& U2,
+                                                                 SpColVector<T, 2>& U,
                                                                  doublereal dCoef,
-                                                                 enum FunctionCall func,
-                                                                 LocalDofMap* pDofMap) const
+                                                                 SpFunctionCall func) const
     {
-        const CVec3& o1 = rParent.GetOffsetNode1();
-        const CVec3& o2 = rParent.GetOffsetNode2();
-        const CMat3x3& Rb1 = rParent.GetOrientationNode1();
-        const CVec3& Rb2_v2 = pNode->GetPosition3D();
+        const auto& o1 = rParent.GetOffsetNode1();
+        const auto& o2 = rParent.GetOffsetNode2();
+        const auto& Rb1 = rParent.GetOrientationNode1();
+        const auto& Rb2_v2 = pNode->GetPosition3D();
 
-        const VVec3 a3 = R2 * CVec3(o2 + Rb2_v2);
-        const VVec3 a1 = X2 + a3 - X1;
-        const VVec3 b = Rb1T_R1T * a1 - Rb1T_o1;
+        const SpColVector<T, 3> a3 = R2 * (o2 + Rb2_v2);
+        const SpColVector<T, 3> a1 = EvalUnique(X2 + a3 - X1);
+        const SpColVector<T, 3> b = Rb1T_R1T * a1 - Rb1T_o1;
         const doublereal r = rParent.dGetShaftRadius();
-        const T a4 = b(1) * b(1) + b(2) * b(2);
+        const T a4 = EvalUnique(b(1) * b(1) + b(2) * b(2));
         const T a0 = sqrt(a4);
 
         const T cos_Phi1 = b(1) / a0;
@@ -14704,100 +14369,97 @@ namespace {
             Phi1 += 2 * M_PI;
         }
 
-        const VVec2 x1(r * Phi1, z1);
-        const Pocket* const pPocket1 = rParent.pFindShaftPocket(CVec2(x1));
+        const SpColVector<T, 2> x1{r * Phi1, z1};
+        const Pocket* const pPocket1 = rParent.pFindShaftPocket(x1.GetValue());
 
         T Deltay1, dDeltay1_dx1, dDeltay1_dz1;
 
         if (pPocket1 == nullptr) {
-            Deltay1 = 0.;
-            dDeltay1_dx1 = 0.;
-            dDeltay1_dz1 = 0.;
+	     SpGradient::ResizeReset(Deltay1, 0., 0);
+	     SpGradient::ResizeReset(dDeltay1_dx1, 0., 0);
+	     SpGradient::ResizeReset(dDeltay1_dz1, 0., 0);
         } else {
             pPocket1->GetHeight(x1, Deltay1);
             pPocket1->GetHeightDerX(x1, dDeltay1_dx1);
             pPocket1->GetHeightDerZ(x1, dDeltay1_dz1);
         }
 
-        const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(CVec2(x1), pNode->GetNodePhysics());
+        const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(x1.GetValue(), pNode->GetNodePhysics());
 
 #if HYDRO_DEBUG > 1
         if (pMovingGroove) {
             HYDRO_TRACE("node(" << pNode->iGetNodeNumber() + 1
                         << ") affected by moving boundary condition at x1("
-                        << CVec2(x1) << ")\n");
+                        << x1.GetValue() << ")\n");
         }
 #endif
         pNode->SetMovingPressBoundCond(pMovingGroove ? pMovingGroove->pGetBoundaryCond() : nullptr);
 
         T w, dw_dt;
 
-        pNode->GetRadialDeformation(w, dw_dt, dCoef, func, pDofMap);
+        pNode->GetRadialDeformation(w, dw_dt, dCoef, func);
 
         const T h0 = a0 - r - Deltay1;
-        h = h0 + w;
+        h = EvalUnique(h0 + w);
 
-        const VVec3 v1((r + Deltay1) * cos_Phi1,
-                       (r + Deltay1) * sin_Phi1,
-                       z1);
+        const SpColVector<T, 3> v1{EvalUnique((r + Deltay1) * cos_Phi1),
+				   EvalUnique((r + Deltay1) * sin_Phi1),
+				   z1};
 
-        const VVec3 db_dt = Rb1T_R1T * VVec3(X2P + Cross(omega2, a3)
-                                             - X1P - Cross(omega1, a1));
+        const SpColVector<T, 3> db_dt = Rb1T_R1T * (X2P + Cross(omega2, a3)
+						    - X1P - Cross(omega1, a1));
 
         const T dx1_dt = r * (b(1) * db_dt(2) - db_dt(1) * b(2)) / a4;
         const T& dz1_dt = db_dt(3);
         const T dDeltay1_dt = dDeltay1_dx1 * dx1_dt + dDeltay1_dz1 * dz1_dt;
 
-        dh_dt = (b(1) * db_dt(1) + b(2) * db_dt(2)) / a0 - dDeltay1_dt + dw_dt;
+        dh_dt = EvalUnique((b(1) * db_dt(1) + b(2) * db_dt(2)) / a0 - dDeltay1_dt + dw_dt);
 
-        const VVec3 vh(h0 * cos_Phi1,
-                       h0 * sin_Phi1,
-                       T(0.));
+        const SpColVector<T, 3> vh{EvalUnique(h0 * cos_Phi1),
+				   EvalUnique(h0 * sin_Phi1),
+				   T{}};
 
-        const VVec3 dP1_dt = X1P + Cross(omega1, VVec3(R1 * VVec3(o1 + Rb1 * v1))) + Cross(omega2, VVec3(R1 * VVec3(Rb1 * vh)));
-        const VVec3 dP2_dt = X2P + Cross(omega2, a3);
+        const SpColVector<T, 3> dP1_dt = X1P + Cross(omega1, (R1 * (o1 + Rb1 * v1))) + Cross(omega2, (R1 * (Rb1 * vh)));
+        const SpColVector<T, 3> dP2_dt = X2P + Cross(omega2, a3);
 
-        const CMat3x3 Rbt2 = pNode->GetTangentCoordSys();
+        const auto& Rbt2 = pNode->GetTangentCoordSys();
 
-        const VVec3 dP1_dt_R2 = Transpose(R2) * dP1_dt;
-        const VVec3 dP2_dt_R2 = Transpose(R2) * dP2_dt;
+        const SpColVector<T, 3> dP1_dt_R2 = Transpose(R2) * dP1_dt;
+        const SpColVector<T, 3> dP2_dt_R2 = Transpose(R2) * dP2_dt;
 
         U1(1) = Dot(Rbt2.GetCol(1), dP1_dt_R2);
         U1(2) = Dot(Rbt2.GetCol(3), dP1_dt_R2);
         U2(1) = Dot(Rbt2.GetCol(1), dP2_dt_R2);
         U2(2) = Dot(Rbt2.GetCol(3), dP2_dt_R2);
 
-        U = (U1 - U2) * 0.5;
+        U = EvalUnique((U1 - U2) * 0.5);
     }
 
     template <typename T>
-    void CylindricalMeshAtBearing::Boundary<T>::GetMovingMeshOffset(Vector<T, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtBearing::Boundary<T>::GetMovingMeshOffset(SpColVector<T, 2>& x) const
     {
-        const CVec3& o1 = rParent.GetOffsetNode1();
-        const CVec3& o2 = rParent.GetOffsetNode2();
-        const CMat3x3& Rb1 = rParent.GetOrientationNode1();
-        const CMat3x3& Rb2 = rParent.GetOrientationNode2();
+        const auto& o1 = rParent.GetOffsetNode1();
+        const auto& o2 = rParent.GetOffsetNode2();
+        const auto& Rb1 = rParent.GetOrientationNode1();
+        const auto& Rb2 = rParent.GetOrientationNode2();
         const doublereal r = rParent.dGetMeshRadius();
 
-        const VVec3 R1_Rb1_e1 = R1 * Rb1.GetCol(1);
+        const SpColVector<T, 3> R1_Rb1_e1 = R1 * Rb1.GetCol(1);
 
-        const T dx = r * atan2(Dot(R2 * Rb2.GetCol(2), R1_Rb1_e1),
+        x(1) = r * atan2(Dot(R2 * Rb2.GetCol(2), R1_Rb1_e1),
                          Dot(R2 * Rb2.GetCol(1), R1_Rb1_e1));
 
-        const T dz = Dot(Rb2.GetCol(3), Transpose(R2) * VVec3(X1 + R1 * o1 - X2) - o2);
-
-        Copy(x(1), dx, pDofMap); // FIXME: Which class is responsible for copying Gradient's
-        Copy(x(2), dz, pDofMap);
+        x(2) = Dot(Rb2.GetCol(3), Transpose(R2) * (X1 + R1 * o1 - X2) - o2);
     }
 
-    void CylindricalMeshAtBearing::GetMovingMeshOffset(Vector<doublereal, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtBearing::GetMovingMeshOffset(SpColVector<doublereal, 2>& x) const
     {
-        oBound.GetMovingMeshOffset(x, pDofMap);
+        oBound.GetMovingMeshOffset(x);
     }
 
-    void CylindricalMeshAtBearing::GetMovingMeshOffset(Vector<Gradient<0>, 2>& x, LocalDofMap* pDofMap) const
+    void CylindricalMeshAtBearing::GetMovingMeshOffset(SpColVector<SpGradient, 2>& x) const
     {
-        oBound_grad.GetMovingMeshOffset(x, pDofMap);
+        oBound_grad.GetMovingMeshOffset(x);
     }
 
     doublereal CylindricalMeshAtBearing::dGetMeshRadius() const
@@ -14805,14 +14467,14 @@ namespace {
         return dGetBearingRadius();
     }
 
-    const Matrix<doublereal, 3, 3>&
+    const SpMatrix<doublereal, 3, 3>&
     CylindricalMeshAtBearing::GetOrientationMeshNode() const
     {
         return GetOrientationNode2();
     }
 
     const Pocket*
-    CylindricalMeshAtBearing::pFindMeshPocket(const Vector<doublereal, 2>& x) const
+    CylindricalMeshAtBearing::pFindMeshPocket(const SpColVector<doublereal, 2>& x) const
     {
         return pFindBearingPocket(x);
     }
@@ -14985,7 +14647,7 @@ namespace {
         return ContactPressureTpl(h, pasp);
     }
 
-    bool GreenwoodTrippCM::GetContactPressure(const Gradient<0>& h, Gradient<0>& pasp) const
+    bool GreenwoodTrippCM::GetContactPressure(const SpGradient& h, SpGradient& pasp) const
     {
         return ContactPressureTpl(h, pasp);
     }
@@ -15004,8 +14666,8 @@ namespace {
 
             return true;
         } else {
-            pasp = 0.;
-            return false;
+	     SpGradient::ResizeReset(pasp, 0., 0);
+	     return false;
         }
     }
 
@@ -15085,7 +14747,7 @@ namespace {
         return ContactPressureTpl(h, pasp);
     }
 
-    bool PenaltyCM::GetContactPressure(const Gradient<0>& h, Gradient<0>& pasp) const
+    bool PenaltyCM::GetContactPressure(const SpGradient& h, SpGradient& pasp) const
     {
         return ContactPressureTpl(h, pasp);
     }
@@ -15103,8 +14765,8 @@ namespace {
 
             return true;
         } else {
-            pasp = 0.;
-            return false;
+	     SpGradient::ResizeReset(pasp, 0., 0);
+	     return false;
         }
     }
 
@@ -15159,12 +14821,12 @@ namespace {
         }
     }
 
-    void CoulombFriction::GetFrictionForce(const doublereal h, const Vector<doublereal, 2>& U, doublereal p, Vector<doublereal, 2>& tau)
+    void CoulombFriction::GetFrictionForce(const doublereal h, const SpColVector<doublereal, 2>& U, doublereal p, SpColVector<doublereal, 2>& tau)
     {
         GetFrictionForceTpl(h, U, p, tau);
     }
 
-    void CoulombFriction::GetFrictionForce(const Gradient<0>& h, const Vector<Gradient<0>, 2>& U, const Gradient<0>& p, Vector<Gradient<0>, 2>& tau)
+    void CoulombFriction::GetFrictionForce(const SpGradient& h, const SpColVector<SpGradient, 2>& U, const SpGradient& p, SpColVector<SpGradient, 2>& tau)
     {
         GetFrictionForceTpl(h, U, p, tau);
     }
@@ -15175,9 +14837,9 @@ namespace {
     }
 
     template <typename T>
-    void CoulombFriction::GetFrictionForceTpl(const T& h, const Vector<T, 2>& U, const T& p, Vector<T, 2>& tau)
+    void CoulombFriction::GetFrictionForceTpl(const T& h, const SpColVector<T, 2>& U, const T& p, SpColVector<T, 2>& tau)
     {
-        Vector<doublereal, 2> u(U); // Do not consider U in the Jacobian matrix for numerical reasons!
+	 SpColVector<doublereal, 2> u{U.GetValue()}; // Do not consider U in the Jacobian matrix for numerical reasons!
 
         const doublereal norm_u = sqrt(Dot(u, u));
 
@@ -15194,9 +14856,20 @@ namespace {
 
     LugreFriction::LugreFriction(HydroMesh* pMesh)
         :FrictionModel(pMesh),
+	 Mk(2, 2, 0),
+	 Mk2(2, 2, 0),
+	 invMk2_sigma0(2, 2, 0),
+	 Ms(2, 2, 0),
+	 Ms2(2, 2, 0),
+	 sigma0(2, 2, 0),
+	 sigma1(2, 2, 0),
          beta(1.),
          vs(0.),
-         gamma(1.)
+         gamma(1.),
+	 zPrev(2, 0),
+	 zCurr(2, 0),
+	 zPPrev(2, 0),
+	 zPCurr(2, 0)
     {
         tCurr = tPrev = pGetMesh()->pGetParent()->dGetTime();
     }
@@ -15332,12 +15005,12 @@ namespace {
         invMk2_sigma0 = Inv(Mk2) * sigma0;
     }
 
-    void LugreFriction::GetFrictionForce(const doublereal h, const Vector<doublereal, 2>& U, doublereal p, Vector<doublereal, 2>& tau)
+    void LugreFriction::GetFrictionForce(const doublereal h, const SpColVector<doublereal, 2>& U, doublereal p, SpColVector<doublereal, 2>& tau)
     {
         GetFrictionForceTpl(h, U, p, tau);
     }
 
-    void LugreFriction::GetFrictionForce(const Gradient<0>& h, const Vector<Gradient<0>, 2>& U, const Gradient<0>& p, Vector<Gradient<0>, 2>& tau)
+    void LugreFriction::GetFrictionForce(const SpGradient& h, const SpColVector<SpGradient, 2>& U, const SpGradient& p, SpColVector<SpGradient, 2>& tau)
     {
         GetFrictionForceTpl(h, U, p, tau);
     }
@@ -15356,26 +15029,21 @@ namespace {
     }
 
     template <typename T>
-    void LugreFriction::GetFrictionForceTpl(const T& h, const Vector<T, 2>& U, const T& p, Vector<T, 2>& tau)
+    void LugreFriction::GetFrictionForceTpl(const T& h, const SpColVector<T, 2>& U, const T& p, SpColVector<T, 2>& tau)
     {
-        typedef Matrix<doublereal, 2, 2> CMat2x2;
-        typedef Vector<doublereal, 2> CVec2;
-        typedef Matrix<T, 2, 2> VMat2x2;
-        typedef Vector<T, 2> VVec2;
-
-        const VVec2 Ueff = U * doublereal(p > 0.);
+	 const SpColVector<T, 2> Ueff = U * doublereal(p > 0.);
 
         const T norm_Ueff = Dot(Ueff, Ueff);
 
         T kappa;
 
         if (norm_Ueff == 0.) {
-            kappa = 0.;
+	     SpGradient::ResizeReset(kappa, 0., 0);
         } else {
-            const VVec2 Mk_U = Mk * Ueff;
-            const VVec2 Ms_U = Ms * Ueff;
-            const VVec2 Mk2_U = Mk2 * Ueff;
-            const VVec2 Ms2_U = Ms2 * Ueff;
+	     const SpColVector<T, 2> Mk_U = Mk * Ueff;
+	     const SpColVector<T, 2> Ms_U = Ms * Ueff;
+	     const SpColVector<T, 2> Mk2_U = Mk2 * Ueff;
+	     const SpColVector<T, 2> Ms2_U = Ms2 * Ueff;
             const T norm_Mk2_U = sqrt(Dot(Mk2_U, Mk2_U));
             const T a0 = norm_Mk2_U / sqrt(Dot(Mk_U, Mk_U));
             const T a1 = sqrt(Dot(Ms2_U, Ms2_U)) / sqrt(Dot(Ms_U, Ms_U));
@@ -15387,18 +15055,18 @@ namespace {
         tCurr = pGetMesh()->pGetParent()->dGetTime();
 
         const doublereal dt = tCurr - tPrev;
-        const VMat2x2 A = invMk2_sigma0 * kappa;
-        const VMat2x2 B = A * (beta * dt) + CMat2x2(1., 0., 0., 1);
+        const SpMatrix<T, 2, 2> A = invMk2_sigma0 * kappa;
+        const SpMatrix<T, 2, 2> B = A * (beta * dt) + SpMatrix<doublereal, 2, 2>{1., 0., 0., 1};
 
-        const Vector<T, 2> zP = Inv(B) * VVec2(Ueff - A * CVec2(zPrev + zPPrev * ((1 - beta) * dt)));
-        const Vector<T, 2> z = zPrev + (zP * beta + zPPrev * (1 - beta)) * dt;
+        const SpColVector<T, 2> zP = Inv(B) * (Ueff - A * (zPrev + zPPrev * ((1 - beta) * dt)));
+        const SpColVector<T, 2> z = zPrev + (zP * beta + zPPrev * (1 - beta)) * dt;
 
         SaveStictionState(z, zP);
 
         tau = (sigma0 * z + sigma1 * zP) * p;
     }
 
-    void LugreFriction::SaveStictionState(const Vector<doublereal, 2>& z, const Vector<doublereal, 2>& zP)
+    void LugreFriction::SaveStictionState(const SpColVector<doublereal, 2>& z, const SpColVector<doublereal, 2>& zP)
     {
         zCurr = z;
         zPCurr = zP;
@@ -15408,7 +15076,7 @@ namespace {
         HYDRO_TRACE( "zP=" << zPCurr << std::endl);
     }
 
-    void LugreFriction::SaveStictionState(const Vector<Gradient<0>, 2>&, const Vector<Gradient<0>, 2>&)
+    void LugreFriction::SaveStictionState(const SpColVector<SpGradient, 2>&, const SpColVector<SpGradient, 2>&)
     {
         // Do Nothing
     }
@@ -15426,7 +15094,7 @@ namespace {
 
     }
 
-    integer HydroElement::iGetNumColsWorkSpace(grad::FunctionCall eFunc, index_type) const
+    integer HydroElement::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc, index_type) const
     {
         const HydroMesh* const pMesh = pGetMesh();
         const BearingGeometry* const pGeometry = pMesh->pGetGeometry();
@@ -15561,6 +15229,8 @@ namespace {
         HYDRO_ASSERT(x[iNodeCenter](1) > x[iNodeWest](1));
     }
 
+    constexpr int LinFD4Elem::iNumNodes;
+     
     LinFD4Elem::LinFD4Elem(HydroMesh* pMesh, ElementType eType)
         :HydroElement(pMesh, eType),
          dx(0.),
@@ -15655,18 +15325,18 @@ namespace {
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
-                                    enum GradientAssVecBase::mode_t mode)
+                                    SpGradientAssVecBase::SpAssMode mode)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
 
 #if CREATE_PROFILE == 1
@@ -15678,19 +15348,18 @@ namespace {
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
-                                    enum GradientAssVecBase::mode_t mode)
+                                    SpGradientAssVecBase::SpAssMode mode)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
 
 #if CREATE_PROFILE == 1
@@ -15700,56 +15369,55 @@ namespace {
 
     void LinFD5ReynoldsElem::InitialAssRes(SubVectorHandler& WorkVec,
                                            const VectorHandler& XCurr,
-                                           enum GradientAssVecBase::mode_t mode)
+                                           SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void LinFD5ReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                            const VectorHandler& XCurr,
-                                           enum GradientAssVecBase::mode_t mode)
+                                           SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
-    void LinFD5ReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD5ReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = 1;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
     }
 
     template <typename T>
-    void LinFD5ReynoldsElem::AssRes(GradientAssVec<T>& WorkVec,
+    void LinFD5ReynoldsElem::AssRes(SpGradientAssVec<T>& WorkVec,
                                     doublereal dCoef,
-                                    const GradientVectorHandler<T>& XCurr,
-                                    const GradientVectorHandler<T>& XPrimeCurr,
-                                    enum FunctionCall func)
+                                    const SpGradientVectorHandler<T>& XCurr,
+                                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                                    SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void LinFD5ReynoldsElem::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                           const GradientVectorHandler<T>& XCurr,
-                                           enum FunctionCall func)
+    void LinFD5ReynoldsElem::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                           const SpGradientVectorHandler<T>& XCurr,
+                                           SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
     template <typename T>
-    void LinFD5ReynoldsElem::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void LinFD5ReynoldsElem::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                         doublereal dCoef,
-                                        const GradientVectorHandler<T>& XCurr,
-                                        enum FunctionCall func)
+                                        const SpGradientVectorHandler<T>& XCurr,
+                                        SpFunctionCall func)
     {
         const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
         const FluidStateBoundaryCond* const pBoundaryCond = pGeometry->pGetMovingPressBoundCond(rgHydroNodes[iNodeCenter]);
@@ -15764,24 +15432,24 @@ namespace {
             std::array<T, iNumFluxNodes> mdot;
 
             for (index_type i = 0; i < iNumFluxNodes; ++i) {
-                rgFluxNodes[i]->GetMassFluxDens(mdot[i], &oDofMap);
+                rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
             }
 
-            rgHydroNodes[iNodeCenter]->GetDensity(rho, &oDofMap, dCoef);
-            rgHydroNodes[iNodeCenter]->GetClearance(h, &oDofMap);
-            rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt, &oDofMap);
+            rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+            rgHydroNodes[iNodeCenter]->GetClearance(h);
+            rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
             pGeometry->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
 
-            if (func & grad::REGULAR_FLAG) {
-                rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, &oDofMap, dCoef);
+            if (func & SpFunctionCall::REGULAR_FLAG) {
+                rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
             } else {
-                drho_dt = 0.;
+		 SpGradient::ResizeReset(drho_dt, 0., 0);
             }
 
-            const T Re = ((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
+            const T Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
                           + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
                           + (drho_dt * h + rho * dh_dt))
-                * dEquationScale;
+					* dEquationScale);
 
             CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
 
@@ -15789,11 +15457,11 @@ namespace {
         } else {
             const doublereal ppre = pBoundaryCond->dGetPressure();
 
-            T pcenter(0);
+            T pcenter{};
 
-            rgHydroNodes[iNodeCenter]->GetPressure(pcenter, &oDofMap, dCoef);
+            rgHydroNodes[iNodeCenter]->GetPressure(pcenter, dCoef);
 
-            const T f = (pcenter - ppre) * dEquationScale;
+            const T f = EvalUnique((pcenter - ppre) * dEquationScale);
 
             HYDRO_TRACE("node=" << rgHydroNodes[iNodeCenter]->iGetNodeNumber() + 1
                         << ":" << rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func)
@@ -15825,14 +15493,14 @@ namespace {
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
-                               enum GradientAssVecBase::mode_t mode)
+                               SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -15841,22 +15509,21 @@ namespace {
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
-                               enum GradientAssVecBase::mode_t mode)
+                               SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     LinFD5CouplingElem::InitialAssRes(SubVectorHandler& WorkVec,
                                       const VectorHandler& XCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
         NO_OP;
     }
@@ -15864,43 +15531,43 @@ namespace {
     void
     LinFD5CouplingElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                       const VectorHandler& XCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
         NO_OP;
     }
 
-    void LinFD5CouplingElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD5CouplingElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        const bool bDoAssembly = eFunc & grad::REGULAR_FLAG;
+        const bool bDoAssembly = eFunc & SpFunctionCall::REGULAR_FLAG;
 
         *piNumRows = 1 * bDoAssembly;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes()) * bDoAssembly;
     }
 
     template <typename T>
-    void LinFD5CouplingElem::AssRes(GradientAssVec<T>& WorkVec,
+    void LinFD5CouplingElem::AssRes(SpGradientAssVec<T>& WorkVec,
                                     doublereal dCoef,
-                                    const GradientVectorHandler<T>& XCurr,
-                                    const GradientVectorHandler<T>& XPrimeCurr,
-                                    enum FunctionCall func)
+                                    const SpGradientVectorHandler<T>& XCurr,
+                                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                                    SpFunctionCall func)
     {
         T h, dh_dt, rho, drho_dt;
 
         std::array<T, iNumFluxNodes> mdot;
 
         for (index_type i = 0; i < iNumFluxNodes; ++i) {
-            rgFluxNodes[i]->GetMassFluxDens(mdot[i], &oDofMap);
+            rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
         }
 
-        rgHydroNodes[iNodeCenter]->GetDensity(rho, &oDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetClearance(h, &oDofMap);
-        rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt, &oDofMap);
+        rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+        rgHydroNodes[iNodeCenter]->GetClearance(h);
+        rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
         pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
-        rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, &oDofMap, dCoef);
+        rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
 
-        const T dm_dt = (mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) * dz
-            + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) * dx
-            + (drho_dt * h + rho * dh_dt) * dA;
+        const T dm_dt = EvalUnique((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) * dz
+				       + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) * dx
+				       + (drho_dt * h + rho * dh_dt) * dA);
 
         const integer iFirstIndex = rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func);
 
@@ -15911,7 +15578,10 @@ namespace {
 
     LinFD4FrictionElem::LinFD4FrictionElem(HydroMesh* pMesh)
         :LinFD4Elem(pMesh, FRICTION_ELEM),
-         dScaleEnergy(0.)
+	 xc(2, 0),
+	 vc(3, 0),
+	 Rtc(3, 3, 0),
+	 dScaleEnergy(0.)
     {
 
 #if CREATE_PROFILE == 1
@@ -15935,18 +15605,18 @@ namespace {
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
-                               enum GradientAssVecBase::mode_t mode)
+                               SpGradientAssVecBase::SpAssMode mode)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
 
 #if CREATE_PROFILE == 1
@@ -15959,19 +15629,18 @@ namespace {
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
-                               enum GradientAssVecBase::mode_t mode)
+                               SpGradientAssVecBase::SpAssMode mode)
     {
 #if CREATE_PROFILE == 1
         doublereal start = mbdyn_clock_time();
 #endif
 
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
 
 #if CREATE_PROFILE == 1
@@ -15982,71 +15651,67 @@ namespace {
     void
     LinFD4FrictionElem::InitialAssRes(SubVectorHandler& WorkVec,
                                       const VectorHandler& XCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     LinFD4FrictionElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                       const VectorHandler& XCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
-    void LinFD4FrictionElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD4FrictionElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = *piNumCols = 0;
     }
 
     template <typename T> inline
-    void LinFD4FrictionElem::AssRes(GradientAssVec<T>& WorkVec,
+    void LinFD4FrictionElem::AssRes(SpGradientAssVec<T>& WorkVec,
                                     doublereal dCoef,
-                                    const GradientVectorHandler<T>& XCurr,
-                                    const GradientVectorHandler<T>& XPrimeCurr,
-                                    enum FunctionCall func)
+                                    const SpGradientVectorHandler<T>& XCurr,
+                                    const SpGradientVectorHandler<T>& XPrimeCurr,
+                                    SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void LinFD4FrictionElem::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                           const GradientVectorHandler<T>& XCurr,
-                                           enum FunctionCall func)
+    void LinFD4FrictionElem::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                           const SpGradientVectorHandler<T>& XCurr,
+                                           SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
     template <typename T>
-    void LinFD4FrictionElem::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void LinFD4FrictionElem::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                         doublereal dCoef,
-                                        const GradientVectorHandler<T>& XCurr,
-                                        enum FunctionCall func)
+                                        const SpGradientVectorHandler<T>& XCurr,
+                                        SpFunctionCall func)
     {
-        typedef Vector<T, 2> VVec2;
-        typedef Vector<T, 3> VVec3;
-
         const bool bUpdateFriction = pGetMesh()->pGetParent()->bUpdateFrictionLoss();
 
         std::array<T, iNumNodes> pi, hi;
-        std::array<VVec2, iNumNodes> U1i, U2i;
+        std::array<SpColVectorA<T, 2, 12>, iNumNodes> U1i, U2i;
         T eta(0.), eta_tmp; // Note: viscosity could depend on density and temperature
 
         for (integer i = 0; i < iNumNodes; ++i) {
-            pGetMesh()->GetPressure(rgHydroNodes[i], pi[i], &oDofMap, dCoef);
-            rgHydroNodes[i]->GetClearance(hi[i], &oDofMap);
-            rgHydroNodes[i]->GetVelocity(U1i[i], U2i[i], &oDofMap);
-            rgHydroNodes[i]->GetViscosity(eta_tmp, &oDofMap, dCoef);
+            pGetMesh()->GetPressure(rgHydroNodes[i], pi[i], dCoef);
+            rgHydroNodes[i]->GetClearance(hi[i]);
+            rgHydroNodes[i]->GetVelocity(U1i[i], U2i[i]);
+            rgHydroNodes[i]->GetViscosity(eta_tmp, dCoef);
             eta += eta_tmp;
         }
 
@@ -16056,14 +15721,14 @@ namespace {
         const T dp_dx = ((pi[iNode1NE] - pi[iNode2NW]) + (pi[iNode4SE] - pi[iNode3SW])) * (0.5 / dx);
         const T dp_dz = ((pi[iNode1NE] - pi[iNode4SE]) + (pi[iNode2NW] - pi[iNode3SW])) * (0.5 / dz);
 
-        VVec2 tauc_0, tauc_0_tmp;
+        SpColVectorA<T, 2, 12> tauc_0, tauc_0_tmp;
         T dPfc{0.}, Pfc_tmp, pasp_tmp;
         index_type iNumNodesWithContact = 0;
 
         for (integer i = 0; i < iNumNodes; ++i) {
-            if (rgHydroNodes[i]->GetContactPressure(pasp_tmp, &oDofMap)) {
-                rgHydroNodes[i]->GetContactStress(tauc_0_tmp, &oDofMap);
-                rgHydroNodes[i]->GetContactFrictionLossDens(Pfc_tmp, &oDofMap);
+            if (rgHydroNodes[i]->GetContactPressure(pasp_tmp)) {
+                rgHydroNodes[i]->GetContactStress(tauc_0_tmp);
+                rgHydroNodes[i]->GetContactFrictionLossDens(Pfc_tmp);
                 pi[i] += pasp_tmp;
                 tauc_0 += tauc_0_tmp;
                 dPfc += Pfc_tmp;
@@ -16074,8 +15739,8 @@ namespace {
         tauc_0 /= iNumNodes;
         dPfc *= dA / iNumNodes;
 
-        const VVec2 U = (U1i[iNode1NE] - U2i[iNode1NE] + U1i[iNode2NW] - U2i[iNode2NW]
-                         + U1i[iNode3SW] - U2i[iNode3SW] + U1i[iNode4SE] - U2i[iNode4SE]) * 0.25;
+        const SpColVector<T, 2> U = (U1i[iNode1NE] - U2i[iNode1NE] + U1i[iNode2NW] - U2i[iNode2NW]
+				     + U1i[iNode3SW] - U2i[iNode3SW] + U1i[iNode4SE] - U2i[iNode4SE]) * 0.25;
 
         const T h = 0.25 * (hi[iNode1NE] + hi[iNode2NW] + hi[iNode3SW] + hi[iNode4SE]);
         const T ptot = 0.25 * (pi[iNode1NE] + pi[iNode2NW] + pi[iNode3SW] + pi[iNode4SE]);
@@ -16101,16 +15766,16 @@ namespace {
             SetStress(rgHydroNodes[i], tau_xy_0, tau_yz_0, tau_xy_h, tau_yz_h);
         }
 
-        VVec3 dF_0_Rt(tau_xy_0 * dA,
-                      -ptot * dA,
-                      tau_yz_0 * dA);
+        SpColVector<T, 3> dF_0_Rt{tau_xy_0 * dA,
+		                  -ptot * dA,
+		                  tau_yz_0 * dA};
 
-        VVec3 dF_h_Rt(-tau_xy_h * dA,
-                      ptot * dA,
-                      -tau_yz_h * dA);
+        SpColVector<T, 3> dF_h_Rt{-tau_xy_h * dA,
+				  ptot * dA,
+				  -tau_yz_h * dA};
 
-        const VVec2 dM_h_Rt((dA * dz / 24) * (pi[iNode3SW] - pi[iNode2NW] + pi[iNode4SE] - pi[iNode1NE]),
-                            T(0.));
+        const SpColVector<T, 2> dM_h_Rt{(dA * dz / 24) * (pi[iNode3SW] - pi[iNode2NW] + pi[iNode4SE] - pi[iNode1NE]),
+                                       T{}};
 
         if (bUpdateFriction) {
             AddFrictionLoss(HydroRootBase::FLUID_FRICTION, U2i, dF_0_Rt(1), dF_0_Rt(3));
@@ -16150,13 +15815,12 @@ namespace {
                                     dF_h_Rt,
                                     dM_h_Rt,
                                     dCoef,
-                                    func,
-                                    &oDofMap);
+                                    func);
     }
 
-    void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<Vector<doublereal, 2>, iNumNodes>& Ui, doublereal dTau_xy, doublereal dTau_yz) const
+     void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<SpColVectorA<doublereal, 2, 12>, iNumNodes>& Ui, doublereal dTau_xy, doublereal dTau_yz) const
     {
-        Vector<doublereal, 2> U;
+        SpColVectorA<doublereal, 2> U;
 
         for (int i = 0; i < iNumNodes; ++i) {
             U += Ui[i];
@@ -16169,7 +15833,7 @@ namespace {
         AddFrictionLoss(type, dPf);
     }
 
-    void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<Vector<Gradient<0>, 2>, iNumNodes>& Ui, const Gradient<0>& dTau_xy, const Gradient<0>& dTau_yz) const
+     void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const std::array<SpColVectorA<SpGradient, 2, 12>, iNumNodes>& Ui, const SpGradient& dTau_xy, const SpGradient& dTau_yz) const
     {
         NO_OP;
     }
@@ -16179,7 +15843,7 @@ namespace {
         pGetMesh()->pGetParent()->AddFrictionLoss(type, dPf);
     }
 
-    void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const Gradient<0>& dPf) const
+    void LinFD4FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const SpGradient& dPf) const
     {
         NO_OP;
     }
@@ -16189,7 +15853,7 @@ namespace {
         pNode->SetStress(tau_xy_0, tau_yz_0, tau_xy_h, tau_yz_h);
     }
 
-    void LinFD4FrictionElem::SetStress(HydroNode*, const Gradient<0>&, const Gradient<0>&, const Gradient<0>&, const Gradient<0>&)
+    void LinFD4FrictionElem::SetStress(HydroNode*, const SpGradient&, const SpGradient&, const SpGradient&, const SpGradient&)
     {
         NO_OP;
     }
@@ -16233,14 +15897,14 @@ namespace {
                             doublereal dCoef,
                             const VectorHandler& XCurr,
                             const VectorHandler& XPrimeCurr,
-                            enum GradientAssVecBase::mode_t mode)
+                            SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -16249,22 +15913,21 @@ namespace {
                             doublereal dCoef,
                             const VectorHandler& XCurr,
                             const VectorHandler& XPrimeCurr,
-                            enum GradientAssVecBase::mode_t mode)
+                            SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     LinFD4MassFlowZ::InitialAssRes(SubVectorHandler& WorkVec,
                                    const VectorHandler& XCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
 
     }
@@ -16272,38 +15935,38 @@ namespace {
     void
     LinFD4MassFlowZ::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                    const VectorHandler& XCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
 
     }
 
-    void LinFD4MassFlowZ::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD4MassFlowZ::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        const bool bDoAssembly = eFunc & grad::REGULAR_FLAG;
+        const bool bDoAssembly = eFunc & SpFunctionCall::REGULAR_FLAG;
 
         *piNumRows = 2 * bDoAssembly;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes()) * bDoAssembly;
     }
 
     template <typename T> inline
-    void LinFD4MassFlowZ::AssRes(GradientAssVec<T>& WorkVec,
+    void LinFD4MassFlowZ::AssRes(SpGradientAssVec<T>& WorkVec,
                                  doublereal dCoef,
-                                 const GradientVectorHandler<T>& XCurr,
-                                 const GradientVectorHandler<T>& XPrimeCurr,
-                                 enum FunctionCall func)
+                                 const SpGradientVectorHandler<T>& XCurr,
+                                 const SpGradientVectorHandler<T>& XPrimeCurr,
+                                 SpFunctionCall func)
     {
         static const index_type rgNodeIdxHydro[iNumFluxNodes] = {iNode1NE, iNode2NW};
         T mdotz;
 
         for (index_type i = 0; i < iNumFluxNodes; ++i) {
-            rgFluxNodes[i]->GetMassFluxDens(mdotz, &oDofMap, FluxNode::PRESSURE_FROM_MESH); // correct mass flux even with non mass conserving cavitation model
+            rgFluxNodes[i]->GetMassFluxDens(mdotz, FluxNode::PRESSURE_FROM_MESH); // correct mass flux even with non mass conserving cavitation model
 
             HYDRO_TRACE("mdotz(Equation " << rgHydroNodes[rgNodeIdxHydro[i]]->iGetFirstEquationIndex(func) <<  ")=" << mdotz << std::endl);
             HYDRO_ASSERT(rgHydroNodes[rgNodeIdxHydro[i]]->bIsNodeType(Node2D::COUPLED_NODE));
 
             CHECK_NUM_COLS_WORK_SPACE(this, func, mdotz, rgHydroNodes[rgNodeIdxHydro[i]]->iGetFirstEquationIndex(func));
 
-            WorkVec.AddItem(rgHydroNodes[rgNodeIdxHydro[i]]->iGetFirstEquationIndex(func), -dx / iNumFluxNodes * mdotz);
+            WorkVec.AddItem(rgHydroNodes[rgNodeIdxHydro[i]]->iGetFirstEquationIndex(func), EvalUnique(-dx / iNumFluxNodes * mdotz));
         }
     }
 
@@ -16349,14 +16012,14 @@ namespace {
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
-                                    enum GradientAssVecBase::mode_t mode)
+                                    SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -16365,72 +16028,70 @@ namespace {
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
-                                    enum GradientAssVecBase::mode_t mode)
+                                    SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     LinFD5ComprReynoldsElem::InitialAssRes(SubVectorHandler& WorkVec,
                                            const VectorHandler& XCurr,
-                                           enum GradientAssVecBase::mode_t mode)
+                                           SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     LinFD5ComprReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                            const VectorHandler& XCurr,
-                                           enum GradientAssVecBase::mode_t mode)
+                                           SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
-    void LinFD5ComprReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD5ComprReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        *piNumRows = eFunc & grad::REGULAR_FLAG ? iNumDofMax : 1;
+        *piNumRows = eFunc & SpFunctionCall::REGULAR_FLAG ? iNumDofMax : 1;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
     }
 
     template <typename G>
-    void LinFD5ComprReynoldsElem::AssRes(GradientAssVec<G>& WorkVec,
+    void LinFD5ComprReynoldsElem::AssRes(SpGradientAssVec<G>& WorkVec,
                                          doublereal dCoef,
-                                         const GradientVectorHandler<G>& XCurr,
-                                         const GradientVectorHandler<G>& XPrimeCurr,
-                                         enum FunctionCall func)
+                                         const SpGradientVectorHandler<G>& XCurr,
+                                         const SpGradientVectorHandler<G>& XPrimeCurr,
+                                         SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename G>
-    void LinFD5ComprReynoldsElem::InitialAssRes(GradientAssVec<G>& WorkVec,
-                                                const GradientVectorHandler<G>& XCurr,
-                                                enum FunctionCall func)
+    void LinFD5ComprReynoldsElem::InitialAssRes(SpGradientAssVec<G>& WorkVec,
+                                                const SpGradientVectorHandler<G>& XCurr,
+                                                SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
     template <typename G>
-    void LinFD5ComprReynoldsElem::UnivAssRes(GradientAssVec<G>& WorkVec,
+    void LinFD5ComprReynoldsElem::UnivAssRes(SpGradientAssVec<G>& WorkVec,
                                              doublereal dCoef,
-                                             const GradientVectorHandler<G>& XCurr,
-                                             enum FunctionCall func)
+                                             const SpGradientVectorHandler<G>& XCurr,
+                                             SpFunctionCall func)
     {
         const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
         const FluidStateBoundaryCond* const pBoundaryCond = pGeometry->pGetMovingPressBoundCond(rgHydroNodes[iNodeCenter]);
@@ -16446,25 +16107,25 @@ namespace {
 
             for (index_type i = 0; i < iNumFluxNodes; ++i) {
                 if (typeid(G) == typeid(doublereal)) {
-                    rgFluxNodes[i]->GetVelocityAvg(w[i], &oDofMap);
+                    rgFluxNodes[i]->GetVelocityAvg(w[i]);
                 }
-                rgFluxNodes[i]->GetMassFluxDens(mdot[i], &oDofMap);
+                rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
             }
 
-            rgHydroNodes[iNodeCenter]->GetDensity(rho, &oDofMap, dCoef);
-            rgHydroNodes[iNodeCenter]->GetClearance(h, &oDofMap);
-            rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt, &oDofMap);
+            rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+            rgHydroNodes[iNodeCenter]->GetClearance(h);
+            rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
             pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
 
-            if (func & grad::REGULAR_FLAG) {
-                rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, &oDofMap, dCoef);
+            if (func & SpFunctionCall::REGULAR_FLAG) {
+                rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
             } else {
-                drho_dt = 0.;
+		 SpGradient::ResizeReset(drho_dt, 0., 0);
             }
 
-            const G Re = ((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
-                          + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
-                          + (drho_dt * h + rho * dh_dt)) * dEquationScale;
+            const G Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
+					 + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
+					 + (drho_dt * h + rho * dh_dt)) * dEquationScale);
 
             SetMaxTimeStep(w);
 
@@ -16472,23 +16133,23 @@ namespace {
 
             WorkVec.AddItem(iFirstIndex, Re);
 
-            if (func & grad::REGULAR_FLAG) {
+            if (func & SpFunctionCall::REGULAR_FLAG) {
                 G f, pc{pGetFluid()->dGetRefPressure()};
 
                 if (rgHydroNodes[iNodeCenter]->GetCavitationState() == HydroFluid::FULL_FILM_REGION) {
                     G T, rhoc;
 
-                    rgHydroNodes[iNodeCenter]->GetTemperature(T, &oDofMap, dCoef);
+                    rgHydroNodes[iNodeCenter]->GetTemperature(T, dCoef);
 
                     pGetFluid()->GetDensity(pc, T, rhoc); // Assume that pc is the cavitation pressure
 
-                    f = (rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF)));
+                    f = EvalUnique((rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
                 } else {
                     G p;
 
-                    rgHydroNodes[iNodeCenter]->GetPressure(p, &oDofMap, dCoef);
+                    rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
 
-                    f = (p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF)));
+                    f = EvalUnique((p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
                 }
 
                 CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex + 1);
@@ -16502,17 +16163,17 @@ namespace {
 
             G rho, p;
 
-            rgHydroNodes[iNodeCenter]->GetDensity(rho, &oDofMap, dCoef);
-            rgHydroNodes[iNodeCenter]->GetPressure(p, &oDofMap, dCoef);
+            rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+            rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
 
             CHECK_NUM_COLS_WORK_SPACE(this, func, p, iFirstIndex);
 
-            WorkVec.AddItem(iFirstIndex, (p - p_pre) * dEquationScale);
+            WorkVec.AddItem(iFirstIndex, EvalUnique((p - p_pre) * dEquationScale));
 
-            if (func & grad::REGULAR_FLAG) {
+            if (func & SpFunctionCall::REGULAR_FLAG) {
                 CHECK_NUM_COLS_WORK_SPACE(this, func, rho, iFirstIndex + 1);
 
-                WorkVec.AddItem(iFirstIndex + 1, (rho - rho_pre) * dEquationScale);
+                WorkVec.AddItem(iFirstIndex + 1, EvalUnique((rho - rho_pre) * dEquationScale));
             }
         }
     }
@@ -16536,7 +16197,7 @@ namespace {
         pParent->SetMaxTimeStep(dtMax);
     }
 
-    void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<Gradient<0>, iNumFluxNodes>&) const
+    void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const
     {
         // Do nothing
     }
@@ -16660,7 +16321,7 @@ namespace {
     }
 
     template <typename G>
-    void LinFD5ThermalElem::EnergyBalance(G& f, G& Qdot0, G& Qdoth, LocalDofMap* pDofMap, doublereal dCoef, grad::FunctionCall func) const
+    void LinFD5ThermalElem::EnergyBalance(G& f, G& Qdot0, G& Qdoth, doublereal dCoef, sp_grad::SpFunctionCall func) const
     {
         const index_type iFluxEval = 2;
 
@@ -16670,10 +16331,10 @@ namespace {
         static const index_type rgFluxIdz[iFluxEval] = {iNodeFlzSouth, iNodeFlzNorth};
 
         for (index_type i = 0; i < iFluxEval; ++i) {
-            rgFluxNodes[rgFluxIdx[i]]->GetVelocityAvg(wx[i], pDofMap);
-            rgFluxNodes[rgFluxIdz[i]]->GetVelocityAvg(wz[i], pDofMap);
-            rgFluxNodes[rgFluxIdx[i]]->GetVolumeFluxDens(qx[i], pDofMap);
-            rgFluxNodes[rgFluxIdz[i]]->GetVolumeFluxDens(qz[i], pDofMap);
+            rgFluxNodes[rgFluxIdx[i]]->GetVelocityAvg(wx[i]);
+            rgFluxNodes[rgFluxIdz[i]]->GetVelocityAvg(wz[i]);
+            rgFluxNodes[rgFluxIdx[i]]->GetVolumeFluxDens(qx[i]);
+            rgFluxNodes[rgFluxIdz[i]]->GetVolumeFluxDens(qz[i]);
         }
 
         SetMaxTimeStep(wx, wz);
@@ -16686,33 +16347,33 @@ namespace {
         std::array<G, iFluxEval> Qx, Qz, A0x, A0z, Ahx, Ahz, Acx, Acz;
 
         for (index_type i = 0; i < iFluxEval; ++i) {
-            rgFluxNodes[rgFluxIdx[i]]->GetEnergyBalance(Qx[i], pDofMap);
-            rgFluxNodes[rgFluxIdz[i]]->GetEnergyBalance(Qz[i], pDofMap);
+            rgFluxNodes[rgFluxIdx[i]]->GetEnergyBalance(Qx[i]);
+            rgFluxNodes[rgFluxIdz[i]]->GetEnergyBalance(Qz[i]);
 
             if (pWall) {
-                rgFluxNodes[rgFluxIdx[i]]->GetDissipationFactors(A0x[i], Ahx[i], Acx[i], pDofMap);
-                rgFluxNodes[rgFluxIdz[i]]->GetDissipationFactors(A0z[i], Ahz[i], Acz[i], pDofMap);
+                rgFluxNodes[rgFluxIdx[i]]->GetDissipationFactors(A0x[i], Ahx[i], Acx[i]);
+                rgFluxNodes[rgFluxIdz[i]]->GetDissipationFactors(A0z[i], Ahz[i], Acz[i]);
             }
         }
 
         std::array<G, iNumNodes> T;
 
         for (index_type i = 0; i < iNumNodes; ++i) {
-            rgThermNodes[i]->GetTemperature(T[i], pDofMap, dCoef);
+            rgThermNodes[i]->GetTemperature(T[i], dCoef);
         }
 
         G p, rho, h, dT_dt, dp_dt, cp, lambda, Pfc;
 
-        rgHydroNodes[iNodeCenter]->GetPressure(p, pDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetDensity(rho, pDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetClearance(h, pDofMap);
+        rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
+        rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+        rgHydroNodes[iNodeCenter]->GetClearance(h);
         pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h);
 
-        rgThermNodes[iNodeCenter]->GetTemperatureDerTime(dT_dt, pDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetPressureDerTime(dp_dt, pDofMap, dCoef);
+        rgThermNodes[iNodeCenter]->GetTemperatureDerTime(dT_dt, dCoef);
+        rgHydroNodes[iNodeCenter]->GetPressureDerTime(dp_dt, dCoef);
         pGetFluid()->GetSpecificHeat(p, T[iNodeCenter], rho, cp, HydroFluid::SPEC_HEAT_TRUE);
         pGetFluid()->GetThermalConductivity(T[iNodeCenter], rho, lambda);
-        rgHydroNodes[iNodeCenter]->GetContactFrictionLossDens(Pfc, pDofMap);
+        rgHydroNodes[iNodeCenter]->GetContactFrictionLossDens(Pfc);
 
         doublereal beta = 0.;
 
@@ -16733,15 +16394,15 @@ namespace {
         const G dTN_dz = (T[iNodeNorth] - T[iNodeCenter]) / (x[iNodeNorth](2) - x[iNodeCenter](2));
         const G dTS_dz = (T[iNodeCenter] - T[iNodeSouth]) / (x[iNodeCenter](2) - x[iNodeSouth](2));
 
-        f = h * (lambda * ((dTE_dx - dTW_dx) / (0.5 * (x[iNodeEast](1) - x[iNodeWest](1)))
-                           + (dTN_dz - dTS_dz) / (0.5 * (x[iNodeNorth](2) - x[iNodeSouth](2))))
-                 - rho * cp * dT_dt + beta * T[iNodeCenter] * dp_dt)
-            + Pfc;
+        f = EvalUnique(h * (lambda * ((dTE_dx - dTW_dx) / (0.5 * (x[iNodeEast](1) - x[iNodeWest](1)))
+					  + (dTN_dz - dTS_dz) / (0.5 * (x[iNodeNorth](2) - x[iNodeSouth](2))))
+				- rho * cp * dT_dt + beta * T[iNodeCenter] * dp_dt)
+			   + Pfc);
 
         G Phi0{0.}, Phih{0.};
 
         for (index_type i = 0; i < iFluxEval; ++i) {
-            if (pWall && (func & grad::REGULAR_FLAG)) {
+            if (pWall && (func & SpFunctionCall::REGULAR_FLAG)) {
                 // Should be most accurate in this way
                 const G Ac = fabs(qx[i]) >= fabs(qz[i])
                     ? alphax[i] * Acx[i]
@@ -16754,14 +16415,14 @@ namespace {
                     + alphaz[i] * Ahz[i] + Ac;
             }
 
-            f += alphax[i] * Qx[i] + alphaz[i] * Qz[i];
+            f += EvalUnique(alphax[i] * Qx[i] + alphaz[i] * Qz[i]);
         }
 
-        if (pWall && (func & grad::REGULAR_FLAG)) {
+        if (pWall && (func & SpFunctionCall::REGULAR_FLAG)) {
             G T0, Th;
 
-            pWall->GetWallTemperature(ThermWallBoundCond::TW_SHAFT, Th, dCoef, func, pDofMap);
-            pWall->GetWallTemperature(ThermWallBoundCond::TW_BEARING, T0, dCoef, func, pDofMap);
+            pWall->GetWallTemperature(ThermWallBoundCond::TW_SHAFT, Th, dCoef, func);
+            pWall->GetWallTemperature(ThermWallBoundCond::TW_BEARING, T0, dCoef, func);
 
             const G h2_lambda = h * h / lambda;
 
@@ -16770,10 +16431,10 @@ namespace {
             const G a3 = h2_lambda * (1. / 4. * Phih + 7. / 12. * Phi0) - 10. * T[iNodeCenter] + 5 * (Th + T0);
             const G a4 = -5. / 24 * h2_lambda * (Phih + Phi0) + 5 * T[iNodeCenter] - 5. / 2. * (Th + T0);
 
-            Qdot0 = -a1 * lambda / h;
-            Qdoth = lambda / h * (a1 + 2 * a2 + 3 * a3 + 4 * a4);
+            Qdot0 = EvalUnique(-a1 * lambda / h);
+            Qdoth = EvalUnique(lambda / h * (a1 + 2 * a2 + 3 * a3 + 4 * a4));
 
-            f += Qdot0 + Qdoth;
+            f += EvalUnique(Qdot0 + Qdoth);
         }
     }
 
@@ -16793,14 +16454,14 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 enum GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -16809,28 +16470,27 @@ namespace {
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
-                                 enum GradientAssVecBase::mode_t mode)
+                                 SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     LinFD5ThermalElemImp::InitialAssRes(SubVectorHandler& WorkVec,
                                         const VectorHandler& XCurr,
-                                        enum GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<doublereal>::InitialAssRes(this,
+            SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                       WorkVec,
                                                       XCurr,
-                                                      INITIAL_ASS_RES,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
                                                       mode);
         }
     }
@@ -16838,35 +16498,34 @@ namespace {
     void
     LinFD5ThermalElemImp::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
-                                        enum GradientAssVecBase::mode_t mode)
+                                        SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<Gradient<0> >::InitialAssJac(this,
+            SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                         WorkMat,
                                                         XCurr,
-                                                        INITIAL_ASS_JAC,
-                                                        &oDofMap,
+                                                        SpFunctionCall::INITIAL_ASS_JAC,
                                                         mode);
         }
     }
 
-    void LinFD5ThermalElemImp::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD5ThermalElemImp::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = 1;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
 
-        if ((eFunc & grad::REGULAR_FLAG) && pGetMesh()->pGetThermWallBoundCond()) {
+        if ((eFunc & SpFunctionCall::REGULAR_FLAG) && pGetMesh()->pGetThermWallBoundCond()) {
             *piNumRows += 2;
             *piNumCols += 2;
         }
     }
 
     template <typename U>
-    void LinFD5ThermalElemImp::AssRes(GradientAssVec<U>& WorkVec,
+    void LinFD5ThermalElemImp::AssRes(SpGradientAssVec<U>& WorkVec,
                                       doublereal dCoef,
-                                      const GradientVectorHandler<U>& XCurr,
-                                      const GradientVectorHandler<U>& XPrimeCurr,
-                                      enum FunctionCall func)
+                                      const SpGradientVectorHandler<U>& XCurr,
+                                      const SpGradientVectorHandler<U>& XPrimeCurr,
+                                      SpFunctionCall func)
     {
         UnivAssRes(WorkVec,
                    dCoef,
@@ -16875,27 +16534,27 @@ namespace {
     }
 
     template <typename T>
-    void LinFD5ThermalElemImp::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                             const GradientVectorHandler<T>& XCurr,
-                                             enum FunctionCall func)
+    void LinFD5ThermalElemImp::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                             const SpGradientVectorHandler<T>& XCurr,
+                                             SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
 
     template <typename G>
-    void LinFD5ThermalElemImp::UnivAssRes(GradientAssVec<G>& WorkVec,
+    void LinFD5ThermalElemImp::UnivAssRes(SpGradientAssVec<G>& WorkVec,
                                           doublereal dCoef,
-                                          const GradientVectorHandler<G>& XCurr,
-                                          enum FunctionCall func)
+                                          const SpGradientVectorHandler<G>& XCurr,
+                                          SpFunctionCall func)
     {
         G f(0.), Qdot0(0.), Qdoth(0.);
 
-        EnergyBalance(f, Qdot0, Qdoth, &oDofMap, dCoef, func);
+        EnergyBalance(f, Qdot0, Qdoth, dCoef, func);
 
         const ThermWallBoundCond* pWall = pGetMesh()->pGetThermWallBoundCond();
 
-        if (pWall && (func & grad::REGULAR_FLAG)) {
+        if (pWall && (func & SpFunctionCall::REGULAR_FLAG)) {
             pWall->AddHeatFlux<G>(ThermWallBoundCond::TW_SHAFT, -dA * Qdoth, WorkVec);
             pWall->AddHeatFlux<G>(ThermWallBoundCond::TW_BEARING, -dA * Qdot0, WorkVec);
         }
@@ -16934,14 +16593,14 @@ namespace {
                                       doublereal dCoef,
                                       const VectorHandler& XCurr,
                                       const VectorHandler& XPrimeCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -16950,28 +16609,27 @@ namespace {
                                       doublereal dCoef,
                                       const VectorHandler& XCurr,
                                       const VectorHandler& XPrimeCurr,
-                                      enum GradientAssVecBase::mode_t mode)
+                                      SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     LinFD5ThermalCouplingElem::InitialAssRes(SubVectorHandler& WorkVec,
                                              const VectorHandler& XCurr,
-                                             enum GradientAssVecBase::mode_t mode)
+                                             SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<doublereal>::InitialAssRes(this,
+            SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                       WorkVec,
                                                       XCurr,
-                                                      INITIAL_ASS_RES,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
                                                       mode);
         }
     }
@@ -16979,21 +16637,20 @@ namespace {
     void
     LinFD5ThermalCouplingElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                              const VectorHandler& XCurr,
-                                             enum GradientAssVecBase::mode_t mode)
+                                             SpGradientAssVecBase::SpAssMode mode)
     {
         if (bDoInitAss) {
-            GradientAssVec<Gradient<0> >::InitialAssJac(this,
+            SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                         WorkMat,
                                                         XCurr,
-                                                        INITIAL_ASS_JAC,
-                                                        &oDofMap,
+                                                        SpFunctionCall::INITIAL_ASS_JAC,
                                                         mode);
         }
     }
 
-    void LinFD5ThermalCouplingElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void LinFD5ThermalCouplingElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
-        if (eFunc & grad::REGULAR_FLAG) {
+        if (eFunc & SpFunctionCall::REGULAR_FLAG) {
             *piNumRows = 3;
             *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
 
@@ -17007,43 +16664,43 @@ namespace {
     }
 
     template <typename G>
-    void LinFD5ThermalCouplingElem::AssRes(GradientAssVec<G>& WorkVec,
+    void LinFD5ThermalCouplingElem::AssRes(SpGradientAssVec<G>& WorkVec,
                                            doublereal dCoef,
-                                           const GradientVectorHandler<G>& XCurr,
-                                           const GradientVectorHandler<G>& XPrimeCurr,
-                                           enum FunctionCall func)
+                                           const SpGradientVectorHandler<G>& XCurr,
+                                           const SpGradientVectorHandler<G>& XPrimeCurr,
+                                           SpFunctionCall func)
     {
         std::array<G, iNumFluxNodes> mdot;
 
         for (index_type i = 0; i < iNumFluxNodes; ++i) {
-            rgFluxNodes[i]->GetMassFluxDens(mdot[i], &oDofMap);
+            rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
         }
 
         G h, dh_dt, rho, drho_dt, p, T, T_sup, cpm, cpm_sup;
 
-        pInletNode->GetTemperature(T, &oDofMap, dCoef);
-        pInletNode->pGetInletNode()->GetTemperature(T_sup, &oDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetPressure(p, &oDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetDensity(rho, &oDofMap, dCoef);
-        rgHydroNodes[iNodeCenter]->GetClearance(h, &oDofMap);
-        rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt, &oDofMap);
+        pInletNode->GetTemperature(T, dCoef);
+        pInletNode->pGetInletNode()->GetTemperature(T_sup, dCoef);
+        rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
+        rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+        rgHydroNodes[iNodeCenter]->GetClearance(h);
+        rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
         pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
-        rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, &oDofMap, dCoef);
+        rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
 
         pGetFluid()->GetSpecificHeat(p, T, rho, cpm, HydroFluid::SPEC_HEAT_AVERAGED);
         pGetFluid()->GetSpecificHeat(p, T_sup, rho, cpm_sup, HydroFluid::SPEC_HEAT_AVERAGED);
 
-        const G mdot_sup = (mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) * dz
-            + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) * dx
-            + (drho_dt * h + rho * dh_dt) * (dx * dz);
+        const G mdot_sup = EvalUnique((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) * dz
+					  + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) * dx
+					  + (drho_dt * h + rho * dh_dt) * (dx * dz));
 
-        const G Qdot_sup = mdot_sup * (cpm_sup * T_sup - cpm * T);
+        const G Qdot_sup = EvalUnique(mdot_sup * (cpm_sup * T_sup - cpm * T));
 
         G f(0.), Qdot0(0.), Qdoth(0.);
 
-        EnergyBalance(f, Qdot0, Qdoth, &oDofMap, dCoef, func);
+        EnergyBalance(f, Qdot0, Qdoth, dCoef, func);
 
-        f += Qdot_sup / (dx * dz);
+        f += EvalUnique(Qdot_sup / (dx * dz));
         f *= dScale;
 
         const ThermWallBoundCond* pWall = pGetMesh()->pGetThermWallBoundCond();
@@ -17067,14 +16724,14 @@ namespace {
     }
 
     template <typename G>
-    void LinFD5ThermalCouplingElem::InitialAssRes(GradientAssVec<G>& WorkVec,
-                                                  const GradientVectorHandler<G>& XCurr,
-                                                  enum FunctionCall func)
+    void LinFD5ThermalCouplingElem::InitialAssRes(SpGradientAssVec<G>& WorkVec,
+                                                  const SpGradientVectorHandler<G>& XCurr,
+                                                  SpFunctionCall func)
     {
         G T, T_sup;
 
-        pInletNode->GetTemperature(T, &oDofMap, 1.);
-        pInletNode->pGetInletNode()->GetTemperature(T_sup, &oDofMap, 1.);
+        pInletNode->GetTemperature(T, 1.);
+        pInletNode->pGetInletNode()->GetTemperature(T_sup, 1.);
 
         const integer iFirstIndexTherm = pInletNode->iGetFirstEquationIndex(func);
 
@@ -17334,8 +16991,8 @@ namespace {
         return rgGauss[iIntegRule].dGetPnt(iGaussPoint);
     }
 
-    index_type QuadFeIso9Elem::iSelectIntegrationRule(const Vector<doublereal, iNumNodes>& pe,
-                                                      const Vector<doublereal, iNumNodes>*const paspe)
+    index_type QuadFeIso9Elem::iSelectIntegrationRule(const SpColVector<doublereal, iNumNodes>& pe,
+                                                      const SpColVector<doublereal, iNumNodes>*const paspe)
     {
         if (iCurrIntegRule == -1) {
             const index_type iMaxInteg = iGetNumIntegrationRules() - 1;
@@ -17381,8 +17038,8 @@ namespace {
         return iCurrIntegRule;
     }
 
-    index_type QuadFeIso9Elem::iSelectIntegrationRule(const Vector<Gradient<0>, iNumNodes>&,
-                                                      const Vector<Gradient<0>, iNumNodes>*)
+    index_type QuadFeIso9Elem::iSelectIntegrationRule(const SpColVector<SpGradient, iNumNodes>&,
+                                                      const SpColVector<SpGradient, iNumNodes>*)
     {
         HYDRO_ASSERT(iCurrIntegRule >= 0);
         HYDRO_ASSERT(iCurrIntegRule < iGetNumIntegrationRules());
@@ -17391,10 +17048,10 @@ namespace {
     }
 
 
-    void QuadFeIso9Elem::NodePositionMatrix(Matrix<doublereal, iNumNodes, 2>& xe) const
+    void QuadFeIso9Elem::NodePositionMatrix(SpMatrix<doublereal, iNumNodes, 2>& xe) const
     {
         for (index_type i = 1; i <= iNumNodes; ++i) {
-            const Vector<doublereal, 2>& xni = rgNodes[i - 1]->GetPosition2D();
+            const SpColVector<doublereal, 2>& xni = rgNodes[i - 1]->GetPosition2D();
 
             for (index_type j = 1; j <= 2; ++j) {
                 xe(i, j) = xni(j);
@@ -17402,7 +17059,7 @@ namespace {
         }
     }
 
-    void QuadFeIso9Elem::PressureInterpolMatrix(Vector<doublereal, iNumNodes>& N,
+    void QuadFeIso9Elem::PressureInterpolMatrix(SpColVector<doublereal, iNumNodes>& N,
                                                 const doublereal r,
                                                 const doublereal s) const
     {
@@ -17417,7 +17074,7 @@ namespace {
         N(9) = (r*r-1)*s*s-r*r+1;
     }
 
-    void QuadFeIso9Elem::PressureInterpolMatrixDer(Matrix<doublereal, 2, iNumNodes>& dN_drv,
+    void QuadFeIso9Elem::PressureInterpolMatrixDer(SpMatrix<doublereal, 2, iNumNodes>& dN_drv,
                                                    const doublereal r,
                                                    const doublereal s) const
     {
@@ -17441,17 +17098,17 @@ namespace {
         dN_drv(2,9) = 2*(r*r-1)*s;
     }
 
-    void QuadFeIso9Elem::PressureGradInterpolMatrix(Matrix<doublereal, 2, iNumNodes>& B,
+    void QuadFeIso9Elem::PressureGradInterpolMatrix(SpMatrix<doublereal, 2, iNumNodes>& B,
                                                     doublereal& detJ,
-                                                    const Matrix<doublereal, iNumNodes, 2>& xe,
+                                                    const SpMatrix<doublereal, iNumNodes, 2>& xe,
                                                     const doublereal r,
                                                     const doublereal s) const
     {
-        Matrix<doublereal, 2, iNumNodes> dN_drv;
+	 SpMatrix<doublereal, 2, iNumNodes> dN_drv(2, iNumNodes, 0);
 
         PressureInterpolMatrixDer(dN_drv, r, s);
 
-        const Matrix<doublereal, 2, 2> J = dN_drv * xe;
+        const SpMatrix<doublereal, 2, 2> J = dN_drv * xe;
         B = Inv(J) * dN_drv;
         detJ = Det(J);
 
@@ -17493,14 +17150,14 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -17509,77 +17166,76 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     QuadFeIso9ReynoldsElem::InitialAssRes(SubVectorHandler& WorkVec,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     QuadFeIso9ReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
-    void QuadFeIso9ReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void QuadFeIso9ReynoldsElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = iNumNodes;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
     }
 
     template <typename T>
-    void QuadFeIso9ReynoldsElem::AssRes(GradientAssVec<T>& WorkMat,
+    void QuadFeIso9ReynoldsElem::AssRes(SpGradientAssVec<T>& WorkMat,
                                         doublereal dCoef,
-                                        const GradientVectorHandler<T>& XCurr,
-                                        const GradientVectorHandler<T>& XPrimeCurr,
-                                        enum FunctionCall func)
+                                        const SpGradientVectorHandler<T>& XCurr,
+                                        const SpGradientVectorHandler<T>& XPrimeCurr,
+                                        SpFunctionCall func)
     {
         UnivAssRes(WorkMat, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void QuadFeIso9ReynoldsElem::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                               const GradientVectorHandler<T>& XCurr,
-                                               enum FunctionCall func)
+    void QuadFeIso9ReynoldsElem::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                               const SpGradientVectorHandler<T>& XCurr,
+                                               SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
     template <typename T>
-    void QuadFeIso9ReynoldsElem::UnivAssRes(GradientAssVec<T>& WorkVec,
+    void QuadFeIso9ReynoldsElem::UnivAssRes(SpGradientAssVec<T>& WorkVec,
                                             doublereal dCoef,
-                                            const GradientVectorHandler<T>& XCurr,
-                                            enum FunctionCall func)
+                                            const SpGradientVectorHandler<T>& XCurr,
+                                            SpFunctionCall func)
     {
         const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
-        Vector<T, iNumNodes> pe, he, hdote;
-        Vector<Vector<T, 2>, iNumNodes> Ue;
-        Vector<doublereal, iNumNodes> etae;
+        SpColVectorA<T, iNumNodes, 1> pe;
+	SpColVectorA<T, iNumNodes, 13> he, hdote;
+	SpMatrixA<T, iNumNodes, 2> Ue;
+        SpColVectorA<doublereal, iNumNodes, 1> etae;
         std::array<index_type, iNumNodes> rgActiveNodes;
 
         struct MovingBoundCond {
@@ -17591,16 +17247,24 @@ namespace {
         index_type iNumActiveNodes = 0, iNumMovingBound = 0;
 
         for (index_type i = 1; i <= iNumNodes; ++i) {
-            rgNodes[i - 1]->GetPressure(pe(i), &oDofMap, dCoef);
-            rgNodes[i - 1]->GetHydraulicVelocity(Ue(i), &oDofMap);
-            rgNodes[i - 1]->GetClearance(he(i), &oDofMap);
-            rgNodes[i - 1]->GetClearanceDerTime(hdote(i), &oDofMap);
-            rgNodes[i - 1]->GetViscosity(etae(i), &oDofMap);
+            rgNodes[i - 1]->GetPressure(pe(i), dCoef);
+
+	    SpColVectorA<T, 2> Ui;
+	    
+            rgNodes[i - 1]->GetHydraulicVelocity(Ui);
+
+	    for (index_type j = 1; j <= 2; ++j) {
+		 Ue(i, j) = Ui(j);
+	    }
+	    
+            rgNodes[i - 1]->GetClearance(he(i));
+            rgNodes[i - 1]->GetClearanceDerTime(hdote(i));
+            rgNodes[i - 1]->GetViscosity(etae(i));
 
             if (rgNodes[i - 1]->bIsNodeType(HydroNode::ACTIVE_NODE)) {
                 const FluidStateBoundaryCond* const pMovingBoundCond = pGeometry->pGetMovingPressBoundCond(rgNodes[i - 1]);
 
-                if (pMovingBoundCond == nullptr) {
+                if (!pMovingBoundCond) {
                     rgActiveNodes[iNumActiveNodes++] = i - 1;
                 } else {
                     rgMovingBound[iNumMovingBound].pMovingBound = pMovingBoundCond;
@@ -17615,7 +17279,7 @@ namespace {
 
         if (iNumActiveNodes > 0) {
             const index_type iNumGauss = iGetNumGaussPoints(iIntegRule);
-            Vector<T, iNumNodes> fe;
+            SpColVectorA<T, iNumNodes> fe;
 
             for (index_type i = 1; i <= iNumGauss; ++i) {
                 for (index_type j = 1; j <= iNumGauss; ++j) {
@@ -17624,42 +17288,24 @@ namespace {
                         * dGetGaussWeight(i, iIntegRule)
                         * dGetGaussWeight(j, iIntegRule)
                         * dEquationScale / dA; // do not scale the residual by surface area
-                    const Vector<doublereal, iNumNodes>& N = rgGaussPntDat[idxGauss].N;
-                    const Matrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[idxGauss].B;
-
+                    const SpColVector<doublereal, iNumNodes>& N = rgGaussPntDat[idxGauss].N;
+                    const SpMatrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[idxGauss].B;
+		    const SpMatrix<doublereal, iNumNodes, iNumNodes>& BTB = rgGaussPntDat[idxGauss].BTB;
+		    
                     T h = Dot(N, he);
-                    T a0 = Dot(N, hdote);
-
+		    T a0 = Dot(N, hdote);
+		    
                     pGeometry->GetNonNegativeClearance(h, h, &a0, &a0);
 
-                    const T h3_alpha = h * h * h * alpha;
-
+		    fe += (BTB * pe) * EvalUnique(pow(h, 3) * alpha);
+		    
                     for (index_type k = 1; k <= 2; ++k) {
-                        const T a1 = Dot(B.GetRow(k), pe) * h3_alpha;
-
-                        for (index_type l = 0; l < iNumActiveNodes; ++l) {
-                            const index_type iRowIdx = rgActiveNodes[l] + 1;
-                            fe(iRowIdx) += B(k, iRowIdx) * a1;
-                        }
+			 a0 += EvalUnique(Dot(N, Ue.GetCol(k)) * Dot(Transpose(B.GetRow(k)), he));
                     }
 
-                    const doublereal eta = Dot(N, etae);
+                    a0 *= 12. * Dot(N, etae) * alpha;
 
-                    for (index_type k = 1; k <= 2; ++k) {
-                        T U(0);
-
-                        for (index_type l = 1; l <= iNumNodes; ++l) {
-                            U += N(l) * Ue(l)(k);
-                        }
-                        a0 += U * Dot(B.GetRow(k), he);
-                    }
-
-                    const T a2 = a0 * (12 * eta * alpha);
-
-                    for (index_type l = 0; l < iNumActiveNodes; ++l) {
-                        const index_type iRowIdx = rgActiveNodes[l] + 1;
-                        fe(iRowIdx) += N(iRowIdx) * a2;
-                    }
+		    fe += N * a0;
                 }
             }
 
@@ -17675,7 +17321,7 @@ namespace {
         for (index_type i = 0; i < iNumMovingBound; ++i) {
             const index_type iNodeIdx = rgMovingBound[i].iNodeIdx;
             const doublereal ppre = rgMovingBound[i].pMovingBound->dGetPressure();
-            const T f = (pe(iNodeIdx + 1) - ppre) * dEquationScale;
+            const T f = EvalUnique((pe(iNodeIdx + 1) - ppre) * dEquationScale);
 
             CHECK_NUM_COLS_WORK_SPACE(this, func, f, rgNodes[iNodeIdx]->iGetFirstEquationIndex(func));
 
@@ -17685,7 +17331,7 @@ namespace {
 
     void QuadFeIso9ReynoldsElem::Initialize()
     {
-        Matrix<doublereal, iNumNodes, 2> xe;
+	 SpMatrix<doublereal, iNumNodes, 2> xe(iNumNodes, 2, 0);
 
         NodePositionMatrix(xe);
 
@@ -17699,6 +17345,10 @@ namespace {
 
                     PressureInterpolMatrix(rgGaussPntDat[idx].N, r, s);
                     PressureGradInterpolMatrix(rgGaussPntDat[idx].B, rgGaussPntDat[idx].detJ, xe, r, s);
+
+		    for (index_type l = 1; l <= 2; ++l) {
+			 rgGaussPntDat[idx].BTB += Transpose(rgGaussPntDat[idx].B.GetRow(l)) * rgGaussPntDat[idx].B.GetRow(l);
+		    }
                 }
             }
         }
@@ -17731,7 +17381,7 @@ namespace {
 
     void QuadFeIso9FrictionElem::Initialize()
     {
-        Matrix<doublereal, iNumNodes, 2> xe;
+	 SpMatrixA<doublereal, iNumNodes, 2> xe;
 
         NodePositionMatrix(xe);
 
@@ -17765,14 +17415,14 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -17781,96 +17431,111 @@ namespace {
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
-                                   enum GradientAssVecBase::mode_t mode)
+                                   SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     QuadFeIso9FrictionElem::InitialAssRes(SubVectorHandler& WorkVec,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::InitialAssRes(this,
+        SpGradientAssVec<doublereal>::InitialAssRes(this,
                                                   WorkVec,
                                                   XCurr,
-                                                  INITIAL_ASS_RES,
+                                                  SpFunctionCall::INITIAL_ASS_RES,
                                                   mode);
     }
 
     void
     QuadFeIso9FrictionElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
-                                          enum GradientAssVecBase::mode_t mode)
+                                          SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::InitialAssJac(this,
+        SpGradientAssVec<SpGradient >::InitialAssJac(this,
                                                     WorkMat,
                                                     XCurr,
-                                                    INITIAL_ASS_JAC,
-                                                    &oDofMap,
+                                                    SpFunctionCall::INITIAL_ASS_JAC,
                                                     mode);
     }
 
-    void QuadFeIso9FrictionElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void QuadFeIso9FrictionElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = 0;
         *piNumCols = 0;
     }
 
     template <typename T>
-    void QuadFeIso9FrictionElem::AssRes(GradientAssVec<T>& WorkVec,
+    void QuadFeIso9FrictionElem::AssRes(SpGradientAssVec<T>& WorkVec,
                                         const doublereal dCoef,
-                                        const GradientVectorHandler<T>& XCurr,
-                                        const GradientVectorHandler<T>& XPrimeCurr,
-                                        const FunctionCall func)
+                                        const SpGradientVectorHandler<T>& XCurr,
+                                        const SpGradientVectorHandler<T>& XPrimeCurr,
+                                        const SpFunctionCall func)
     {
         UnivAssRes(WorkVec, dCoef, XCurr, func);
     }
 
     template <typename T>
-    void QuadFeIso9FrictionElem::InitialAssRes(GradientAssVec<T>& WorkVec,
-                                               const GradientVectorHandler<T>& XCurr,
-                                               const FunctionCall func)
+    void QuadFeIso9FrictionElem::InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                                               const SpGradientVectorHandler<T>& XCurr,
+                                               const SpFunctionCall func)
     {
         UnivAssRes(WorkVec, 1., XCurr, func);
     }
 
     template <typename T>
-    void QuadFeIso9FrictionElem::UnivAssRes(GradientAssVec<T>& WorkMat,
+    void QuadFeIso9FrictionElem::UnivAssRes(SpGradientAssVec<T>& WorkMat,
                                             doublereal dCoef,
-                                            const GradientVectorHandler<T>& XCurr,
-                                            enum FunctionCall func)
+                                            const SpGradientVectorHandler<T>& XCurr,
+                                            SpFunctionCall func)
     {
         const bool bUpdateFriction = pGetMesh()->pGetParent()->bUpdateFrictionLoss();
         BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
 
-        Vector<T, iNumNodes> pe, paspe, he, Pfce;
-        Vector<Vector<T, 2>, iNumNodes> U1e, U2e, tauc_0e;
-        Vector<doublereal, iNumNodes> etae;
-        const Vector<T, 2> dM_h_Rt; // FIXME: currently unused
+        SpColVectorA<T, iNumNodes, 1> pe;
+	SpColVectorA<T, iNumNodes, 13> paspe, he, Pfce;
+	SpMatrixA<T, iNumNodes, 2> U1e, U2e, tauc_0e;
+        SpColVectorA<doublereal, iNumNodes> etae;
+        const SpColVectorA<T, 2> dM_h_Rt; // FIXME: currently unused
         bool bContact = false;
 
         for (index_type i = 1; i <= iNumNodes; ++i) {
-            rgNodes[i - 1]->GetPressure(pe(i), &oDofMap, dCoef); // use pressure from nodes instead of mesh
+            rgNodes[i - 1]->GetPressure(pe(i), dCoef); // use pressure from nodes instead of mesh
 
-            if (rgNodes[i - 1]->GetContactPressure(paspe(i), &oDofMap)) {
-                rgNodes[i - 1]->GetContactStress(tauc_0e(i), &oDofMap);
-                if (bUpdateFriction) {
-                    rgNodes[i - 1]->GetContactFrictionLossDens(Pfce(i), &oDofMap);
-                }
-                bContact = true;
+            if (rgNodes[i - 1]->GetContactPressure(paspe(i))) {
+		 SpColVectorA<T, 2> tauc_0i;
+		 
+		 rgNodes[i - 1]->GetContactStress(tauc_0i);
+
+		 for (index_type j = 1; j <= 2; ++j) {
+		      tauc_0e(i, j) = tauc_0i(j);
+		 }
+		 
+		 if (bUpdateFriction) {
+		      rgNodes[i - 1]->GetContactFrictionLossDens(Pfce(i));
+		 }
+		 
+		 bContact = true;
             }
 
-            rgNodes[i - 1]->GetVelocity(U1e(i), U2e(i), &oDofMap);
-            rgNodes[i - 1]->GetClearance(he(i), &oDofMap);
-            rgNodes[i - 1]->GetViscosity(etae(i), &oDofMap);
+	    SpColVectorA<T, 2> U1i, U2i;
+	    
+            rgNodes[i - 1]->GetVelocity(U1i, U2i);
+
+	    for (index_type j = 1; j <= 2; ++j) {
+		 U1e(i, j) = U1i(j);
+		 U2e(i, j) = U2i(j);
+	    }
+	    
+            rgNodes[i - 1]->GetClearance(he(i));
+            rgNodes[i - 1]->GetViscosity(etae(i));
         }
 
         const index_type iIntegRule = iSelectIntegrationRule(pe, &paspe);
@@ -17881,17 +17546,17 @@ namespace {
                 const index_type iGaussIdx = iGetGaussPointIndex(i, j, iIntegRule);
                 const doublereal r = dGetGaussPos(i, iIntegRule);
                 const doublereal s = dGetGaussPos(j, iIntegRule);
-                const Vector<doublereal, iNumNodes>& N = rgGaussPntDat[iGaussIdx].N;
-                const Matrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[iGaussIdx].B;
+                const SpColVector<doublereal, iNumNodes>& N = rgGaussPntDat[iGaussIdx].N;
+                const SpMatrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[iGaussIdx].B;
                 const doublereal detJ = rgGaussPntDat[iGaussIdx].detJ;
                 T p = Dot(N, pe), dp_dx, dp_dz;
 
                 if (HydroFluid::CAVITATION_REGION == pGetFluid()->Cavitation(p)) {
-                    dp_dx = 0.; // set pressure gradient to zero if pressure is negative according to Guembel boundary condition
-                    dp_dz = 0.;
+		     SpGradient::ResizeReset(dp_dx, 0., 0); // set pressure gradient to zero if pressure is negative according to Guembel boundary condition
+		     SpGradient::ResizeReset(dp_dz, 0., 0);
                 } else {
-                    dp_dx = Dot(B.GetRow(1), pe);
-                    dp_dz = Dot(B.GetRow(2), pe);
+		     dp_dx = Dot(Transpose(B.GetRow(1)), pe);
+		     dp_dz = Dot(Transpose(B.GetRow(2)), pe);
                 }
 
                 T h = Dot(N, he);
@@ -17900,13 +17565,11 @@ namespace {
 
                 const doublereal eta = Dot(N, etae);
 
-                Vector<T, 2> U1, U2, tauc_0;
+                SpColVectorA<T, 2, 13> U1, U2, tauc_0;
 
                 for (index_type k = 1; k <= 2; ++k) {
-                    for (index_type l = 1; l <= iNumNodes; ++l) {
-                        U1(k) += N(l) * U1e(l)(k);
-                        U2(k) += N(l) * U2e(l)(k);
-                    }
+		     U1(k) = Dot(N, U1e.GetCol(k));
+		     U2(k) = Dot(N, U2e.GetCol(k));
                 }
 
                 T pasp{0.};
@@ -17915,42 +17578,40 @@ namespace {
                     pasp = Dot(N, paspe);
 
                     if (pasp < 0.) { // Could happen in the transition region
-                        pasp = 0.;
+			 SpGradient::ResizeReset(pasp, 0., 0);
                     }
 
                     for (index_type k = 1; k <= 2; ++k) {
-                        for (index_type l = 1; l <= iNumNodes; ++l) {
-                            tauc_0(k) += N(l) * tauc_0e(l)(k);
-                        }
+			 tauc_0(k) = Dot(N, tauc_0e.GetCol(k));
                     }
                 }
 
                 const T ptot = p + pasp;
 
-                const Vector<T, 2> dU = U1 - U2;
+                const SpColVector<T, 2> dU = EvalUnique(U1 - U2);
 
                 const T tau_xy_p_h = 0.5 * h * dp_dx;
                 const T tau_xy_U_h = eta * dU(1) / h;
                 const T tau_yz_p_h = 0.5 * h * dp_dz;
                 const T tau_yz_U_h = eta * dU(2) / h;
 
-                const T tau_xy_0 = (-tau_xy_p_h + tau_xy_U_h);
-                const T tau_yz_0 = (-tau_yz_p_h + tau_yz_U_h);
+                const T tau_xy_0 = EvalUnique(-tau_xy_p_h + tau_xy_U_h);
+                const T tau_yz_0 = EvalUnique(-tau_yz_p_h + tau_yz_U_h);
 
-                const T tau_xy_h = (tau_xy_p_h + tau_xy_U_h);
-                const T tau_yz_h = (tau_yz_p_h + tau_yz_U_h);
+                const T tau_xy_h = EvalUnique(tau_xy_p_h + tau_xy_U_h);
+                const T tau_yz_h = EvalUnique(tau_yz_p_h + tau_yz_U_h);
 
                 SetStress(r, s, tau_xy_0, tau_yz_0, tau_xy_h, tau_yz_h);
 
                 const doublereal dA = dGetGaussWeight(i, iIntegRule) * dGetGaussWeight(j, iIntegRule) * detJ;
 
-                Vector<T, 3> dF_0_Rt(tau_xy_0 * dA,
-                                     -ptot * dA,
-                                     tau_yz_0 * dA);
+                SpColVector<T, 3> dF_0_Rt{tau_xy_0 * dA,
+					  -ptot * dA,
+					  tau_yz_0 * dA};
 
-                Vector<T, 3> dF_h_Rt(-tau_xy_h * dA,
-                                     ptot * dA,
-                                     -tau_yz_h * dA);
+                SpColVector<T, 3> dF_h_Rt{-tau_xy_h * dA,
+					  ptot * dA,
+					  -tau_yz_h * dA};
 
                 if (bUpdateFriction) {
                     AddFrictionLoss(HydroRootBase::FLUID_FRICTION, U2, dF_0_Rt(1), dF_0_Rt(3));
@@ -17978,8 +17639,8 @@ namespace {
                         //               as long as the relative clearance is small
                         //               in case of a cylindrical bearing.
 
-                        dF_0_Rt(iReactionIdx[i - 1]) += tauc_0(i) * dA;
-                        dF_h_Rt(iReactionIdx[i - 1]) -= tauc_0(i) * dA;
+			 dF_0_Rt(iReactionIdx[i - 1]) += EvalUnique(tauc_0(i) * dA);
+			 dF_h_Rt(iReactionIdx[i - 1]) -= EvalUnique(tauc_0(i) * dA);
                     }
                 }
 
@@ -17990,20 +17651,19 @@ namespace {
                                             dF_h_Rt,
                                             dM_h_Rt,
                                             dCoef,
-                                            func,
-                                            &oDofMap);
+                                            func);
             }
         }
     }
 
-    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const Vector<doublereal, 2>& U, doublereal dTau_xy, doublereal dTau_yz) const
+    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const SpColVector<doublereal, 2>& U, doublereal dTau_xy, doublereal dTau_yz) const
     {
         const doublereal dPf = U(1) * dTau_xy + U(2) * dTau_yz;
 
         AddFrictionLoss(type, dPf);
     }
 
-    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const Vector<Gradient<0>, 2>& U, const Gradient<0>& dTau_xy, const Gradient<0>& dTau_yz) const
+    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const SpColVector<SpGradient, 2>& U, const SpGradient& dTau_xy, const SpGradient& dTau_yz) const
     {
         NO_OP;
     }
@@ -18013,7 +17673,7 @@ namespace {
         pGetMesh()->pGetParent()->AddFrictionLoss(type, dPf);
     }
 
-    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const Gradient<0>& dPf) const
+    void QuadFeIso9FrictionElem::AddFrictionLoss(HydroRootBase::FrictionLossType type, const SpGradient& dPf) const
     {
         NO_OP;
     }
@@ -18055,14 +17715,14 @@ namespace {
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr,
-                                enum GradientAssVecBase::mode_t mode)
+                                SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<doublereal>::AssRes(this,
+        SpGradientAssVec<doublereal>::AssRes(this,
                                            WorkVec,
                                            dCoef,
                                            XCurr,
                                            XPrimeCurr,
-                                           REGULAR_RES,
+                                           SpFunctionCall::REGULAR_RES,
                                            mode);
     }
 
@@ -18071,56 +17731,55 @@ namespace {
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr,
-                                enum GradientAssVecBase::mode_t mode)
+                                SpGradientAssVecBase::SpAssMode mode)
     {
-        GradientAssVec<Gradient<0> >::AssJac(this,
+        SpGradientAssVec<SpGradient >::AssJac(this,
                                              WorkMat,
                                              dCoef,
                                              XCurr,
                                              XPrimeCurr,
-                                             REGULAR_JAC,
-                                             &oDofMap,
+                                             SpFunctionCall::REGULAR_JAC,
                                              mode);
     }
 
     void
     QuadFeIso9MassFlowZ::InitialAssRes(SubVectorHandler& WorkVec,
                                        const VectorHandler& XCurr,
-                                       enum GradientAssVecBase::mode_t mode)
+                                       SpGradientAssVecBase::SpAssMode mode)
     {
     }
 
     void
     QuadFeIso9MassFlowZ::InitialAssJac(SparseSubMatrixHandler& WorkMat,
                                        const VectorHandler& XCurr,
-                                       enum GradientAssVecBase::mode_t mode)
+                                       SpGradientAssVecBase::SpAssMode mode)
     {
     }
 
-    void QuadFeIso9MassFlowZ::WorkSpaceDim(integer* piNumRows, integer* piNumCols, grad::FunctionCall eFunc) const
+    void QuadFeIso9MassFlowZ::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
     {
         *piNumRows = iNumNodesOutletBound;
         *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
     }
 
     template <typename T>
-    void QuadFeIso9MassFlowZ::AssRes(GradientAssVec<T>& WorkVec,
+    void QuadFeIso9MassFlowZ::AssRes(SpGradientAssVec<T>& WorkVec,
                                      doublereal dCoef,
-                                     const GradientVectorHandler<T>& XCurr,
-                                     const GradientVectorHandler<T>& XPrimeCurr,
-                                     enum FunctionCall func)
+                                     const SpGradientVectorHandler<T>& XCurr,
+                                     const SpGradientVectorHandler<T>& XPrimeCurr,
+                                     SpFunctionCall func)
     {
         const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
-        Vector<T, iNumNodes> pe, he;
-        Vector<Vector<T, 2>, iNumNodes> Ue;
-        Vector<doublereal, iNumNodes> etae, rhoe;
+        SpColVector<T, iNumNodes> pe(iNumNodes, 1), he(iNumNodes, 1);
+	std::array<SpColVectorA<T, 2, 12>, iNumNodes> Ue;
+        SpColVector<doublereal, iNumNodes> etae(iNumNodes, 1), rhoe(iNumNodes, 1);
 
         for (index_type i = 1; i <= iNumNodes; ++i) {
-            pGetMesh()->GetPressure(rgNodes[i - 1], pe(i), &oDofMap, dCoef);
-            rgNodes[i - 1]->GetHydraulicVelocity(Ue(i), &oDofMap);
-            rgNodes[i - 1]->GetClearance(he(i), &oDofMap);
-            rgNodes[i - 1]->GetViscosity(etae(i), &oDofMap, dCoef);
-            rgNodes[i - 1]->GetDensity(rhoe(i), &oDofMap, dCoef);
+            pGetMesh()->GetPressure(rgNodes[i - 1], pe(i), dCoef);
+            rgNodes[i - 1]->GetHydraulicVelocity(Ue[i - 1]);
+            rgNodes[i - 1]->GetClearance(he(i));
+            rgNodes[i - 1]->GetViscosity(etae(i), dCoef);
+            rgNodes[i - 1]->GetDensity(rhoe(i), dCoef);
         }
 
         const index_type iIntegRule = iSelectIntegrationRule(pe);
@@ -18132,14 +17791,14 @@ namespace {
         for (index_type i = 1; i <= iNumGauss; ++i) {
             const index_type idxGauss = iGetGaussPointIndex1D(i, iIntegRule);
             const doublereal dx = rgGaussPntDat[idxGauss].detJr * dGetGaussWeight(i, iIntegRule);
-            const Vector<doublereal, iNumNodes>& N = rgGaussPntDat[idxGauss].N;
-            const Matrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[idxGauss].B;
+            const SpColVector<doublereal, iNumNodes>& N = rgGaussPntDat[idxGauss].N;
+            const SpMatrix<doublereal, 2, iNumNodes>& B = rgGaussPntDat[idxGauss].B;
 
             T h = Dot(N, he);
 
             pGeometry->GetNonNegativeClearance(h, h);
 
-            T dp_dz = Dot(B.GetRow(2), pe);
+            T dp_dz = Dot(Transpose(B.GetRow(2)), pe);
 
             const doublereal eta = Dot(N, etae);
             const doublereal rho = Dot(N, rhoe);
@@ -18147,10 +17806,10 @@ namespace {
             T Uz{0.};
 
             for (index_type l = 1; l <= iNumNodes; ++l) {
-                Uz += N(l) * Ue(l)(2);
+                Uz += N(l) * Ue[l - 1](2);
             }
 
-            mdotz -= (rho * dx / iNumNodesOutletBound) * h * (Uz - h * h * dp_dz / (12. * eta));
+            mdotz -= EvalUnique((rho * dx / iNumNodesOutletBound) * h * (Uz - h * h * dp_dz / (12. * eta)));
         }
 
         HYDRO_TRACE("mdotz(" << sref << ")=" << dGetValue(mdotz) * iNumNodesOutletBound << std::endl);
@@ -18164,8 +17823,8 @@ namespace {
 
     void QuadFeIso9MassFlowZ::Initialize()
     {
-        Matrix<doublereal, iNumNodes, 2> xe;
-        Matrix<doublereal, 2, iNumNodes> dN_drv;
+	 SpMatrix<doublereal, iNumNodes, 2> xe(iNumNodes, 2, 0);
+	 SpMatrix<doublereal, 2, iNumNodes> dN_drv(2, iNumNodes, 0);
 
         NodePositionMatrix(xe);
 
@@ -18182,7 +17841,7 @@ namespace {
                 doublereal ds = 0.;
 
                 for (index_type j = 1; j <= 2; ++j) {
-                    const doublereal dNxe_dr = Dot(dN_drv.GetRow(1), xe.GetCol(j));
+		     const doublereal dNxe_dr = Dot(Transpose(dN_drv.GetRow(1)), xe.GetCol(j));
                     ds += dNxe_dr * dNxe_dr;
                 }
 
@@ -18296,10 +17955,10 @@ namespace {
     }
 
     template <typename U>
-    U ThermalFluidModel::GetViscosityLiquid(const U& T) const
+    void ThermalFluidModel::GetViscosityLiquid(const U& T, U& eta) const
     {
         // Dirk Bartel 2009 equation (6-11)
-        return eta0 * exp(Aeta2_Aeta3 * (T0 - T) / (Aeta3 + T - T0));
+	 eta = eta0 * exp(Aeta2_Aeta3 * (T0 - T) / (Aeta3 + T - T0));
     }
 
     template <typename U>
@@ -18322,7 +17981,7 @@ namespace {
     {
         // Dirk Bartel 2009 equation (6-1)
         if (drho_dT) {
-            *drho_dT = -rho0 * beta;
+	     SpGradient::ResizeReset(*drho_dT, -rho0 * beta, 0);
         }
 
         return rho0 * (1 - beta * (T - T0));
@@ -18396,7 +18055,7 @@ namespace {
         GetDensityTpl(p, T, rho, drho_dp, drho_dT);
     }
 
-    void HydroIncompressibleFluid::GetDensity(const Gradient<0>& p, const Gradient<0>& T, Gradient<0>& rho, Gradient<0>* drho_dp, Gradient<0>* drho_dT) const
+    void HydroIncompressibleFluid::GetDensity(const SpGradient& p, const SpGradient& T, SpGradient& rho, SpGradient* drho_dp, SpGradient* drho_dT) const
     {
         GetDensityTpl(p, T, rho, drho_dp, drho_dT);
     }
@@ -18406,7 +18065,7 @@ namespace {
         GetPressureTpl(rho, T, p, dp_drho, dp_dT);
     }
 
-    void HydroIncompressibleFluid::GetPressure(const Gradient<0>& rho, const Gradient<0>& T,  Gradient<0>& p, Gradient<0>* dp_drho, Gradient<0>* dp_dT) const
+    void HydroIncompressibleFluid::GetPressure(const SpGradient& rho, const SpGradient& T,  SpGradient& p, SpGradient* dp_drho, SpGradient* dp_dT) const
     {
         GetPressureTpl(rho, T, p, dp_drho, dp_dT);
     }
@@ -18416,7 +18075,7 @@ namespace {
         GetViscosityTpl(rho, T, eta);
     }
 
-    void HydroIncompressibleFluid::GetViscosity(const Gradient<0>& rho, const Gradient<0>& T, Gradient<0>& eta) const
+    void HydroIncompressibleFluid::GetViscosity(const SpGradient& rho, const SpGradient& T, SpGradient& eta) const
     {
         GetViscosityTpl(rho, T, eta);
     }
@@ -18435,14 +18094,14 @@ namespace {
     }
 
     void
-    HydroIncompressibleFluid::ThetaToPhysical(const std::array<Gradient<0>, iNumDof>& Theta,
-                                              const std::array<Gradient<0>, iNumDof>& dTheta_dt,
-                                              const Gradient<0>& T,
-                                              const Gradient<0>& dT_dt,
-                                              Gradient<0>& p,
-                                              Gradient<0>& dp_dt,
-                                              Gradient<0>& rho,
-                                              Gradient<0>& drho_dt) const
+    HydroIncompressibleFluid::ThetaToPhysical(const std::array<SpGradient, iNumDof>& Theta,
+                                              const std::array<SpGradient, iNumDof>& dTheta_dt,
+                                              const SpGradient& T,
+                                              const SpGradient& dT_dt,
+                                              SpGradient& p,
+                                              SpGradient& dp_dt,
+                                              SpGradient& rho,
+                                              SpGradient& drho_dt) const
     {
         ThetaToPhysicalTpl(Theta[0], dTheta_dt[0], T, dT_dt, p, dp_dt, rho, drho_dt);
     }
@@ -18477,7 +18136,7 @@ namespace {
         return CavitationTpl(p, dp_dt);
     }
 
-    HydroFluid::CavitationState HydroIncompressibleFluid::Cavitation(Gradient<0>& p, Gradient<0>* dp_dt) const
+    HydroFluid::CavitationState HydroIncompressibleFluid::Cavitation(SpGradient& p, SpGradient* dp_dt) const
     {
         return CavitationTpl(p, dp_dt);
     }
@@ -18488,7 +18147,7 @@ namespace {
         rho = oThermModel.GetDensityLiquid(T, drho_dT);
 
         if (drho_dp) {
-            *drho_dp = 0.;
+	     SpGradient::ResizeReset(*drho_dp, 0., 0);
         }
     }
 
@@ -18501,17 +18160,17 @@ namespace {
     template <typename G> inline void
     HydroIncompressibleFluid::GetViscosityTpl(const G& rho, const G& T, G& eta) const
     {
-        eta = oThermModel.GetViscosityLiquid(T);
+	 oThermModel.GetViscosityLiquid(T, eta);
     }
 
     template <typename T> inline HydroFluid::CavitationState
     HydroIncompressibleFluid::CavitationTpl(T& p, T* dp_dt) const
     {
         if (p < pc) {
-            p = pc;
+	     SpGradient::ResizeReset(p, pc, 0);
 
             if (dp_dt) {
-                *dp_dt = 0.;
+		 SpGradient::ResizeReset(*dp_dt, 0., 0);
             }
 
             return CAVITATION_REGION;
@@ -18544,7 +18203,7 @@ namespace {
         GetDensityTpl(p, T, rho, drho_dp, drho_dT);
     }
 
-    void LinearCompressibleFluid::GetDensity(const Gradient<0>& p, const Gradient<0>& T, Gradient<0>& rho, Gradient<0>* drho_dp, Gradient<0>* drho_dT) const
+    void LinearCompressibleFluid::GetDensity(const SpGradient& p, const SpGradient& T, SpGradient& rho, SpGradient* drho_dp, SpGradient* drho_dT) const
     {
         GetDensityTpl(p, T, rho, drho_dp, drho_dT);
     }
@@ -18554,7 +18213,7 @@ namespace {
         GetPressureTpl(rho, T, p, dp_drho, dp_dT);
     }
 
-    void LinearCompressibleFluid::GetPressure(const Gradient<0>& rho, const Gradient<0>& T, Gradient<0>& p, Gradient<0>* dp_drho, Gradient<0>* dp_dT) const
+    void LinearCompressibleFluid::GetPressure(const SpGradient& rho, const SpGradient& T, SpGradient& p, SpGradient* dp_drho, SpGradient* dp_dT) const
     {
         GetPressureTpl(rho, T, p, dp_drho, dp_dT);
     }
@@ -18564,7 +18223,7 @@ namespace {
         GetViscosityTpl(rho, T, eta);
     }
 
-    void LinearCompressibleFluid::GetViscosity(const Gradient<0>& rho, const Gradient<0>& T, Gradient<0>& eta) const
+    void LinearCompressibleFluid::GetViscosity(const SpGradient& rho, const SpGradient& T, SpGradient& eta) const
     {
         GetViscosityTpl(rho, T, eta);
     }
@@ -18583,14 +18242,14 @@ namespace {
     }
 
     void
-    LinearCompressibleFluid::ThetaToPhysical(const std::array<Gradient<0>, iNumDof>& Theta,
-                                             const std::array<Gradient<0>, iNumDof>& dTheta_dt,
-                                             const Gradient<0>& T,
-                                             const Gradient<0>& dT_dt,
-                                             Gradient<0>& p,
-                                             Gradient<0>& dp_dt,
-                                             Gradient<0>& rho,
-                                             Gradient<0>& drho_dt) const
+    LinearCompressibleFluid::ThetaToPhysical(const std::array<SpGradient, iNumDof>& Theta,
+                                             const std::array<SpGradient, iNumDof>& dTheta_dt,
+                                             const SpGradient& T,
+                                             const SpGradient& dT_dt,
+                                             SpGradient& p,
+                                             SpGradient& dp_dt,
+                                             SpGradient& rho,
+                                             SpGradient& drho_dt) const
     {
         ThetaToPhysicalTpl(Theta, dTheta_dt, T, dT_dt, p, dp_dt, rho, drho_dt);
     }
@@ -18616,10 +18275,10 @@ namespace {
         rho = rhoc * Theta[1];
         drho_dt = drhoc_dT * dT_dt * Theta[1] + rhoc * dTheta_dt[1];
 
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(p)));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(dp_dt)));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(rho)));
-        HYDRO_ASSERT(std::isfinite(grad::dGetValue(drho_dt)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(p)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(dp_dt)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(rho)));
+        HYDRO_ASSERT(std::isfinite(SpGradient::dGetValue(drho_dt)));
     }
 
     doublereal LinearCompressibleFluid::GetTheta0(index_type iDofIndex) const
@@ -18642,7 +18301,7 @@ namespace {
         return CavitationTpl(p, dp_dt);
     }
 
-    HydroFluid::CavitationState LinearCompressibleFluid::Cavitation(Gradient<0>& p, Gradient<0>* dp_dt) const
+    HydroFluid::CavitationState LinearCompressibleFluid::Cavitation(SpGradient& p, SpGradient* dp_dt) const
     {
         return CavitationTpl(p, dp_dt);
     }
@@ -18657,7 +18316,7 @@ namespace {
             rho = rhoc;
 
             if (drho_dp) {
-                *drho_dp = 0.;
+		 SpGradient::ResizeReset(*drho_dp, 0., 0);
             }
         } else {
             // Since pressure below the cavity pressure is not possible,
@@ -18677,14 +18336,14 @@ namespace {
     template <typename G> inline void
     LinearCompressibleFluid::GetPressureTpl(const G& rho, const G& T, G& p, G* dp_drho, G* dp_dT) const
     {
-        p = pc;
+	 SpGradient::ResizeReset(p, pc, 0);
 
         if (dp_drho) {
-            *dp_drho = 0.;
+	     SpGradient::ResizeReset(*dp_drho, 0., 0);
         }
 
         if (dp_dT) {
-            *dp_dT = 0.;
+	     SpGradient::ResizeReset(*dp_dT, 0., 0);
         }
     }
 
@@ -18692,7 +18351,8 @@ namespace {
     LinearCompressibleFluid::GetViscosityTpl(const G& rho, const G& T, G& eta) const
     {
         const G rholiq = oThermModel.GetDensityLiquid(T);
-        eta = oThermModel.GetViscosityLiquid(T);
+	
+        oThermModel.GetViscosityLiquid(T, eta);
 
         if (rho < rholiq) {
             eta *= ((1. - etavap_etaliq) * rho / rholiq + etavap_etaliq);
@@ -18703,10 +18363,10 @@ namespace {
     LinearCompressibleFluid::CavitationTpl(T& p, T* dp_dt) const
     {
         if (p < pc) {
-            p = pc;
+	     SpGradient::ResizeReset(p, pc, 0);
 
             if (dp_dt) {
-                *dp_dt = 0.;
+		 SpGradient::ResizeReset(*dp_dt, 0., 0);
             }
 
             return CAVITATION_REGION;
@@ -19099,7 +18759,7 @@ namespace {
         return iNumNodes;
     }
 
-    std::unique_ptr<PressureCouplingSlave> PressureCouplingMaster::Clone(const Vector<doublereal, 2>& x)
+    std::unique_ptr<PressureCouplingSlave> PressureCouplingMaster::Clone(const SpColVector<doublereal, 2>& x)
     {
         return std::unique_ptr<PressureCouplingSlave>{new PressureCouplingSlave(this, pGetGeometry()->Clone(x))};
     }
@@ -19235,7 +18895,7 @@ namespace {
                                                                                              pDM,
                                                                                              HP)};
 
-                Vector<doublereal, 2> x = pCoupling->pGetGeometry()->GetPosition();
+                SpColVector<doublereal, 2> x = pCoupling->pGetGeometry()->GetPosition();
 
                 const doublereal c = 2 * M_PI * pGeometry->dGetMeshRadius();
 
@@ -19381,7 +19041,7 @@ namespace {
                 rgBoundaryCond.emplace_back(pGroove->pReleaseBoundaryCond());
 
                 // Take into account the periodic nature of the cylindrical bearing
-                Vector<doublereal, 2> x = pGroove->pGetGeometry()->GetPosition();
+                SpColVector<doublereal, 2> x = pGroove->pGetGeometry()->GetPosition();
 
                 const doublereal c = 2 * M_PI * pGeometry->dGetMeshRadius();
 
@@ -19704,15 +19364,15 @@ namespace {
         }
     }
 
-    void HydroMesh::GetPressure(const HydroNode* pNode, doublereal& p, LocalDofMap*, doublereal) const
+    void HydroMesh::GetPressure(const HydroNode* pNode, doublereal& p, doublereal) const
     {
         pNode->GetPressure(p);
         pGetParent()->pGetFluid()->Cavitation(p);
     }
 
-    void HydroMesh::GetPressure(const HydroNode* pNode, Gradient<0>& p, LocalDofMap* pDofMap, doublereal dCoef) const
+    void HydroMesh::GetPressure(const HydroNode* pNode, SpGradient& p, doublereal dCoef) const
     {
-        pNode->GetPressure(p, pDofMap, dCoef);
+        pNode->GetPressure(p, dCoef);
         pGetParent()->pGetFluid()->Cavitation(p);
     }
 
@@ -19734,10 +19394,9 @@ namespace {
     void
     HydroMesh::Update(const VectorHandler& XCurr,
                       const VectorHandler& XPrimeCurr, doublereal dCoef,
-                      enum FunctionCall func,
-                      LocalDofMap* pDofMap)
+                      SpFunctionCall func)
     {
-        pGetGeometry()->Update(dCoef, func, pDofMap);
+        pGetGeometry()->Update(dCoef, func);
 
         if (pCompliance) {
             pCompliance->Update(XCurr, XPrimeCurr, dCoef, func);
@@ -19760,7 +19419,7 @@ namespace {
         return os;
     }
 
-    LubricationGroove* HydroMesh::pFindGroove(const Vector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId)
+    LubricationGroove* HydroMesh::pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId)
     {
         LubricationGroove* pGroove = nullptr;
 
@@ -19783,7 +19442,7 @@ namespace {
         return pGroove;
     }
 
-    PressureCouplingCond* HydroMesh::pFindCouplingCond(const Vector<doublereal, 2>& x, integer iNodeId)
+    PressureCouplingCond* HydroMesh::pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId)
     {
         PressureCouplingCond* pCouplingCond = 0;
 
@@ -20202,7 +19861,7 @@ namespace {
         // active pressure nodes
         for (integer i = 1; i <= M - 1; ++i) {
             for (integer j = 1; j <= N - 1; ++j) {
-                const Vector<doublereal, 2> x = GetNodePosition(i, j);
+                const SpColVector<doublereal, 2> x = GetNodePosition(i, j);
                 const integer iNodeIndex = iGetNodeIndexHydro(i, j);
                 LubricationGroove* pGroove = pFindGroove(x, Node2D::HYDRAULIC_NODE, iNodeIndex);
                 PressureCouplingCond* pCoupling = pFindCouplingCond(x, iNodeIndex);
@@ -20293,7 +19952,7 @@ namespace {
         for (integer i = 0; i <= M; i += M) {
             for (integer j = 1; j <= N - 1; ++j) {
                 const integer iNodeIndex = iGetNodeIndexHydro(i, j);
-                const Vector<doublereal, 2> x = GetNodePosition(i, j);
+                const SpColVector<doublereal, 2> x = GetNodePosition(i, j);
                 std::unique_ptr<HydroNode> pNode;
                 std::unique_ptr<FrictionModel> pFrictionNode;
 
@@ -20435,7 +20094,7 @@ namespace {
 
             for (integer i = 1; i <= M - 1; ++i) {
                 for (integer j = 1; j <= N - 1; ++j) {
-                    const Vector<doublereal, 2> x = GetNodePosition(i, j);
+                    const SpColVector<doublereal, 2> x = GetNodePosition(i, j);
                     const integer iNodeIndex = iGetNodeIndexTherm(i, j);
                     LubricationGroove* pGroove = pFindGroove(x, Node2D::THERMAL_NODE, iNodeIndex);
                     PressureCouplingCond* pCoupling = pFindCouplingCond(x, iNodeIndex);
@@ -20474,7 +20133,7 @@ namespace {
             for (integer i = 0; i <= M; i += M) {
                 for (integer j = 1; j <= N - 1; ++j) {
                     const integer iNodeIndex = iGetNodeIndexTherm(i, j);
-                    const Vector<doublereal, 2> x = GetNodePosition(i, j);
+                    const SpColVector<doublereal, 2> x = GetNodePosition(i, j);
                     std::unique_ptr<ThermoHydrNode> pNode;
 
                     if (bUseOutletAxial) {
@@ -20678,14 +20337,14 @@ namespace {
         return os;
     }
 
-    Vector<doublereal, 2> LinFDMesh::GetNodePosition(integer i, integer j) const
+    SpColVector<doublereal, 2> LinFDMesh::GetNodePosition(integer i, integer j) const
     {
         HYDRO_ASSERT(i >= 0);
         HYDRO_ASSERT(size_t(i) < z.size());
         HYDRO_ASSERT(j >= 0);
         HYDRO_ASSERT(size_t(j) < x.size());
 
-        return Vector<doublereal, 2>(x[j], z[i]);
+        return SpColVector<doublereal, 2>{x[j], z[i]};
     }
 
     integer LinFDMesh::iGetNodeIndexHydro(integer i, integer j) const
@@ -20823,7 +20482,7 @@ namespace {
 
             const index_type iNumNodesZ = 2 * iNumElemZ + 1;
 
-            z.Resize(iNumNodesZ);
+            z.ResizeReset(iNumNodesZ, 0);
 
             const doublereal w = pGeometry->dGetBearingWidth();
 
@@ -20855,7 +20514,7 @@ namespace {
 
             const index_type iNumNodesPhi = 2 * iNumElemPhi + 1;
 
-            x.Resize(iNumNodesPhi);
+            x.ResizeReset(iNumNodesPhi, 0);
 
             const doublereal c = 2 * M_PI * pGeometry->dGetMeshRadius();
 
@@ -20960,7 +20619,7 @@ namespace {
             const integer Nz = 2 * ceil(B / dx) + 1;
             const doublereal dz = B / (Nz - 1);
 
-            x.Resize(Nx);
+            x.ResizeReset(Nx, 0);
 
             index_type ix = 1;
 
@@ -20994,7 +20653,7 @@ namespace {
 
             HYDRO_ASSERT(fabs((x(ix) - x(ix - 1)) / (dx3 / (Nx3 - 1)) - 1.) < sqrt(std::numeric_limits<doublereal>::epsilon()));
 
-            z.Resize(Nz);
+            z.ResizeReset(Nz, 0);
 
             for (index_type i = 1; i <= Nz; ++i) {
                 z(i) = (i - 1) * dz - 0.5 * B;
@@ -21057,7 +20716,7 @@ namespace {
 
         for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
             for (index_type j = 1; j <= z.iGetNumRows(); ++j) {
-                const Vector<doublereal, 2> xn = GetNodePosition(i, j);
+                const SpColVector<doublereal, 2> xn = GetNodePosition(i, j);
                 const index_type iNodeIndex = iGetNodeIndex(i, j);
                 LubricationGroove* const pGroove = pFindGroove(xn, Node2D::HYDRAULIC_NODE, iNodeIndex);
                 const FluidStateBoundaryCond* pBoundCond = pGroove ? pGroove->pGetBoundaryCond() : pFindBoundaryCond(i, j);
@@ -21190,9 +20849,9 @@ namespace {
         return iNode;
     }
 
-    Vector<doublereal, 2> QuadFeIso9Mesh::GetNodePosition(index_type i, index_type j) const
+    SpColVector<doublereal, 2> QuadFeIso9Mesh::GetNodePosition(index_type i, index_type j) const
     {
-        return Vector<doublereal, 2>(x(i) + dSkewMesh * z(j) / pGeometry->dGetBearingWidth(), z(j));
+	 return SpColVector<doublereal, 2>{x(i) + dSkewMesh * z(j) / pGeometry->dGetBearingWidth(), z(j)};
     }
 
     const FluidStateBoundaryCond* QuadFeIso9Mesh::pFindBoundaryCond(index_type i, index_type j) const
@@ -21206,26 +20865,10 @@ namespace {
 
 
 #if HYDRO_DEBUG > 0
-    const HydroRootElement* pGetRootElement(const HydroElement* pElement)
+    template <typename ElementType>
+    bool bCheckNumColsWorkSpace(const ElementType* pElem, sp_grad::SpFunctionCall eFunc, const SpGradient& g, index_type iRowIndex)
     {
-        return pElement->pGetMesh()->pGetParent();
-    }
-
-    const HydroRootElement* pGetRootElement(const BearingGeometry* pGeometry)
-    {
-        return pGeometry->pGetParent();
-    }
-
-    template <typename ElementType, index_type N_SIZE>
-    bool bCheckNumColsWorkSpace(const ElementType* pElem, grad::FunctionCall eFunc, const Gradient<N_SIZE>& g, index_type iRowIndex)
-    {
-        index_type iNumCols = 0;
-
-        for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
-            if (g.dGetDerivativeLocal(i)) {
-                ++iNumCols;
-            }
-        }
+	 index_type iNumCols = g.iGetSize();
 
         integer iMaxRows, iMaxCols;
 
@@ -21241,30 +20884,6 @@ namespace {
 
 
             std::cerr << std::setw(12) << g.dGetValue() << std::endl;
-            const LocalDofMap* pDofMap = g.pGetDofMap();
-
-            if (pDofMap) {
-                std::vector<index_type> rgGlobalDof;
-                rgGlobalDof.reserve(g.iGetLocalSize());
-                for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
-                    rgGlobalDof.push_back(g.iGetGlobalDof(i));
-                }
-
-                std::sort(rgGlobalDof.begin(), rgGlobalDof.end());
-
-                for (size_t i = 0; i < rgGlobalDof.size(); ++i) {
-                    const index_type iGlobal = rgGlobalDof[i];
-
-                    std::cerr << iGlobal
-                              << ": "
-                              << pGetRootElement(pElem)->pGetDataManager()->GetDofDescription(iGlobal)
-                              << " = "
-                              << g.dGetDerivativeGlobal(iGlobal)
-                              << std::endl;
-                }
-
-                std::cerr << std::endl;
-            }
 
             return false;
         }
@@ -21314,11 +20933,11 @@ namespace {
         // y = -0.5 * Hg * (1. + tanh(M_PI * (2. * (fabs(x) - 0.5 * Ws) / Wc - 1.)));
 
         if (fabs(x) <= 0.5 * Ws) {
-            y = 0.;
+	     SpGradient::ResizeReset(y, 0., 0);
         } else if (fabs(x) <= 0.5 * Ws + Wc) {
             y = -Hg * (fabs(x) - 0.5 * Ws) / Wc;
         } else {
-            y = -Hg;
+	     SpGradient::ResizeReset(y, -Hg, 0);
         }
     }
 
@@ -21333,14 +20952,15 @@ namespace {
 
     doublereal GrooveShapeDriveCaller::dGetP(const doublereal& dVar) const
     {
-        Gradient<1> x, y;
+        SpGradient x, y;
 
-        x.SetValuePreserve(dVar);
-        x.DerivativeResizeReset(0, 0, MapVectorBase::LOCAL, 1.);
+        x.Reset(dVar, 1, 1.);
 
         dGet(x, y);
 
-        return y.dGetDerivativeLocal(0);
+	SP_GRAD_ASSERT(y.begin() < y.end());
+	
+        return y.begin()->dDer;
     }
 
     bool GrooveShapeDriveCaller::bIsDifferentiable(void) const
@@ -21412,7 +21032,7 @@ namespace {
 
 bool hydrodynamic_plain_bearing2_set(void)
 {
-#if defined(USE_AUTODIFF) && __cplusplus >= 201103L
+#if defined(USE_SPARSE_AUTODIFF) && __cplusplus >= 201103L
     UserDefinedElemRead *pElemRead = new UDERead<HydroRootElement>;
 
     if (!SetUDE("hydrodynamic" "plain" "bearing2", pElemRead))

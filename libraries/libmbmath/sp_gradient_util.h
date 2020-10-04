@@ -50,15 +50,25 @@ namespace sp_grad {
      namespace util {
 
           template <typename Expr>
-          void ExprEvalHelper<SpGradCommon::ExprEvalUncompressed>::Eval(SpGradient& g, const SpGradBase<Expr>& f) {
+          void ExprEvalHelper<SpGradCommon::ExprEvalDuplicate>::Eval(SpGradient& g, const SpGradBase<Expr>& f) {
                g.Assign(f);
           }
 
+          template <typename Func, typename Expr>
+          void ExprEvalHelper<SpGradCommon::ExprEvalDuplicate>::AssignOper(SpGradient& g1, const SpGradBase<Expr>& g2) {
+               g1.AssignOper<Func, Expr>(g2);
+          }
+	  
           template <typename Expr>
-          void ExprEvalHelper<SpGradCommon::ExprEvalCompressed>::Eval(SpGradient& g, const SpGradBase<Expr>& f) {
+          void ExprEvalHelper<SpGradCommon::ExprEvalUnique>::Eval(SpGradient& g, const SpGradBase<Expr>& f) {
                g.MapAssign(f);
           }
 
+	  template <typename Func, typename Expr>
+          void ExprEvalHelper<SpGradCommon::ExprEvalUnique>::AssignOper(SpGradient& g1, const SpGradBase<Expr>& g2) {
+               g1.MapAssignOper<Func, Expr>(g2);
+          }
+	  
           template <typename AVAL, typename BVAL>
           struct InnerProductHelper {
                template <typename AITER, typename BITER>

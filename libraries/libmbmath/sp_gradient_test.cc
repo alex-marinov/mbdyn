@@ -72,6 +72,14 @@
 #include "sp_gradient_test_func.h"
 
 namespace sp_grad_test {
+     inline doublereal* front(std::vector<doublereal>& v) {
+	  return v.size() ? &v.front() : nullptr;
+     }
+
+     inline const doublereal* front(const std::vector<doublereal>& v) {
+	  return v.size() ? &v.front() : nullptr;
+     }
+     
 #ifdef USE_AUTODIFF
 	inline void SetDofMap(doublereal& g, grad::LocalDofMap*) {
 		g = 0;
@@ -106,7 +114,7 @@ namespace sp_grad_test {
 
 		u.Reset(v, ud);
 
-		u.Compress();
+		u.Sort();
 
 		return u.iGetSize();
 	}
@@ -156,14 +164,38 @@ namespace sp_grad_test {
 		  Vec3 g;
 		  Vec3 b;
 		  doublereal d;
-
-		  sp_grad_rand_gen(d, randnz, randdof, randval, gen);
+		  SpMatrix<doublereal, 2, 2> E2x2(2, 2, 0);
+		  SpMatrix<SpGradient, 3, 3> X1(3, 3, 0);
+		  SpMatrix<doublereal, 3, 3> X2(3, 3, 0);
+		  SpMatrix<SpGradient, 3, 3> X3a(3, 3, 0), X4a(3, 3, 0), X5a(3, 3, 0);
+		  SpMatrix<SpGradient, 3, 3> X3b(3, 3, 0), X4b(3, 3, 0), X5b(3, 3, 0);
+		  SpMatrixA<SpGradient, 3, 3, 10> X6a, X6b;
+		  SpMatrixA<SpGradient, 3, 3> X7a(10), X7b(0);
+		  SpColVectorA<SpGradient, 3, 10> X8a, X8b;
+		  SpRowVectorA<SpGradient, 3, 10> X9a, X9b;
+		  SpMatrix<SpGradient> X10a, X10b, X11a(3, 3, 10), X11b(3, 3, 10);
+		  SpMatrixA<SpGradient, 2, 3> X12a, X12b, X12c;
+		  SpMatrixA<SpGradient, 3, 2> X13a, X12d;
+		  SpRowVectorA<SpGradient, 3> X14a, X14b;
+		  SpMatrixA<SpGradient, 3, 3> X15a, X15b;
 		  
+		  X10a.ResizeReset(3, 3, 10);
+		  X10b.ResizeReset(3, 3, 10);
+		  
+		  sp_grad_rand_gen(d, randnz, randdof, randval, gen);
+
+		  for (index_type i = 1; i <= 2; ++i) {
+		       for (index_type j = 1; j <= 2; ++j) {
+			    sp_grad_rand_gen(E2x2(i, j), randnz, randdof, randval, gen);
+		       }
+		  }
+
 		  for (index_type i = 1; i <= 3; ++i) {
 		       for (index_type j = 1; j <= 3; ++j) {
 			    sp_grad_rand_gen(A(i, j), randnz, randdof, randval, gen);
 			    sp_grad_rand_gen(C(i, j), randnz, randdof, randval, gen);
-
+			    sp_grad_rand_gen(X1(i, j), randnz, randdof, randval, gen);
+			    sp_grad_rand_gen(X2(i, j), randnz, randdof, randval, gen);
 			    Ann(i, j) = An3(i, j) = A3n(i, j) = A(i, j);
 			    Cnn(i, j) = Cn3(i, j) = C3n(i, j) = C(i, j);
 		       }
@@ -172,13 +204,31 @@ namespace sp_grad_test {
 		       sp_grad_rand_gen(g(i), randnz, randdof, randval, gen);
 		  }
 
+		  for (index_type i = 1; i <= 3; ++i) {
+		       for (index_type j = 1; j <= 2; ++j) {
+			    sp_grad_rand_gen(X12a(j, i), randnz, randdof, randval, gen);
+			    sp_grad_rand_gen(X13a(i, j), randnz, randdof, randval, gen);
+		       }
+		  }
+
 		  SpMatrix<doublereal, 3, 3> Asp(A), Csp(C);
+		  SpMatrix<doublereal, 2, 2> InvE2x2 = Inv(E2x2);
+		  SpMatrix<doublereal, 2, 2> InvE2x2_E2x2 = InvE2x2 * E2x2;
+		  SpMatrix<doublereal, 3, 3> Asp4{A(1, 1), A(2, 1), A(3, 1),
+						  A(1, 2), A(2, 2), A(3, 2),
+						  A(1, 3), A(2, 3), A(3, 3)};
+		  Mat3x3 A4(A(1, 1), A(2, 1), A(3, 1),
+			    A(1, 2), A(2, 2), A(3, 2),
+			    A(1, 3), A(2, 3), A(3, 3));
 		  SpColVector<doublereal, 3> gsp(g);
+		  SpColVector<doublereal, 3> gsp4{g(1), g(2), g(3)};
+		  SpRowVector<doublereal, 3> gsp5{g(1), g(2), g(3)};
 		  Mat3x3 RDelta(CGR_Rot::MatR, g);
 		  Mat3x3 RVec = RotManip::Rot(g);
 		  Vec3 g2 = RotManip::VecRot(RVec);
 		  Vec3 g3 = -g2;
 		  SpMatrix<SpGradient, 3, 3> Asp2{Asp}, Asp3{A};
+		  SpMatrix<doublereal, 3, 3> Asp5{Asp2.GetValue()};
 		  SpColVector<SpGradient, 3> gsp3{g};
 		  Asp2 = Transpose(A);
 		  gsp3 = 2 * g / Dot(g, g);
@@ -187,17 +237,21 @@ namespace sp_grad_test {
 		  SpColVector<doublereal, 3> gsp2 = VecRotMat(RVecsp);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, 3> Aspn(3, 3, 0), Cspn(3, 3, 0);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Aspnn(3, 3, 0), Cspnn(3, 3, 0);
-		  
+		  SpColVector<SpGradient, 3> xsp{g};
+		  xsp /= Norm(xsp);
+		  SpGradient nx = Norm(xsp);
+
+
 		  for (index_type i = 1; i <= 3; ++i) {
 		       for (index_type j = 1; j <= 3; ++j) {
 			    Aspnn(i, j) = Aspn(i, j) = A(i, j);
 			    Cspnn(i, j) = Cspn(i, j) = C(i, j);
 		       }
 		  }
-		  
+
 		  SpColVector<doublereal, 3> bsp(b);
 		  SpColVector<doublereal, SpMatrixSize::DYNAMIC> bspn(3, 0);
-		  
+
 		  Asp = A;
 		  bsp = b;
 
@@ -209,10 +263,10 @@ namespace sp_grad_test {
 		  SpColVector<doublereal, 3> csp2 = A * bsp;
 		  SpColVector<doublereal, 3> csp3 = Asp * bsp;
 		  SpColVector<doublereal, 3> csp4{A * b};
-		  
+
 		  SpColVector<doublereal, 3> q = csp1;
 		  q = 3. * q + 1.5 * q;
-		  
+
 		  Vec3 c = A * b;
 
 		  Mat3x3 D = A * C;
@@ -252,7 +306,7 @@ namespace sp_grad_test {
 		  SpMatrix<doublereal, 3, 3> Esp8 = Transpose(Transpose(Csp) * Asp);
 		  SpMatrix<doublereal, 3, 3> Esp9 = Transpose(Transpose(C) * Asp);
 		  SpMatrix<doublereal, 3, 3> Esp10 = Transpose(Transpose(Csp) * A);
-		  
+
 		  Mat3x3 F = A.Transpose() + C;
 		  SpMatrix<doublereal, 3, 3> Fsp1 = Transpose(Asp) + Csp;
 		  SpMatrix<doublereal, 3, 3> Fsp2 = A.Transpose() + Csp;
@@ -275,7 +329,7 @@ namespace sp_grad_test {
 		  SpMatrix<doublereal, 3, 3> Isp1 = Transpose(Asp) * d;
 		  SpMatrix<doublereal, 3, 3> Isp2{A.Transpose() * d};
 		  SpMatrix<doublereal, 3, 3> Isp3 = d * Transpose(Asp);
-		  
+
 		  Mat3x3 J = C.Transpose() * (A.Transpose() * 5. * (C * 0.5 + b.Tens(b) / b.Dot() * 2.5)).Transpose() * (3. / 2.) * C;
 		  SpMatrix<doublereal, 3, 3> Jsp1 = Transpose(Csp) * Transpose(5. * Transpose(Asp) * (Csp * 0.5 + bsp * Transpose(bsp) / Dot(bsp, bsp) * 2.5)) * (3. / 2.) * Csp;
 		  SpMatrix<doublereal, 3, 3> Jsp2 = C.Transpose() * Transpose(5. * Transpose(Asp) * (Csp * 0.5 + bsp * Transpose(bsp) / Dot(bsp, bsp) * 2.5)) * (3. / 2.) * Csp;
@@ -284,7 +338,7 @@ namespace sp_grad_test {
 		  SpMatrix<doublereal, 3, 3> Jsp5 = Transpose(Csp) * Transpose(A.Transpose() * 5. * (Csp * 0.5 + bsp * Transpose(bsp) / Dot(bsp, bsp) * 2.5)) * (3. / 2.) * Csp;
 		  SpMatrix<doublereal, 3, 3> Jsp6 = Transpose(Csp) * Transpose(5. * Transpose(Asp) * (Csp * 0.5 + b * Transpose(bsp) / Dot(bsp, bsp) * 2.5)) * (3. / 2.) * Csp;
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Jsp7 = Transpose(Cnn) * Transpose(5. * Transpose(Ann) * (Cnn * 0.5 + bspn * Transpose(bspn) / Dot(bspn, bspn) * 2.5)) * (3. / 2.) * Cnn;
-				  
+
 		  Mat3x3 K = A.Transpose() / d;
 		  SpMatrix<doublereal, 3, 3> Ksp1 = Transpose(Asp) / d;
 		  SpMatrix<doublereal, 3, 3> Ksp2{A.Transpose() / d};
@@ -292,9 +346,177 @@ namespace sp_grad_test {
 		  SpMatrix<doublereal, 3, 3> L = b.Tens();
 		  SpMatrix<doublereal, 3, 3> Lsp1 = bsp * Transpose(bsp);
 		  SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Lsp2 = bspn * Transpose(bspn);
-		  
+
 		  constexpr doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
+		  sp_grad_assert_equal(nx.dGetValue(), 1.0, dTol);
+
+		  for (index_type i = 1; i <= 2; ++i) {
+		       for (index_type j = 1; j <= 2; ++j) {
+			    sp_grad_assert_equal(InvE2x2_E2x2(i, j), ::Eye3(i, j), dTol);
+		       }
+		  }
+
+		  X3a = X1 + X2;
+		  X3b = X1;
+		  X3b += X2;
+		  X4a = X1 * 2. + X2 / 3.;
+		  X4b = X1;
+		  X4b *= 2.;
+		  X4b += X2 / 3.;
+		  X5a = (X1 + X2) * 3. + (X3a - X4a) / 4. + (X1 - X2) / 2.;
+		  X5b = X1;
+		  X5b += X2;
+		  X5b *= 3.;
+		  X5b += X3b / 4.;
+		  X5b -= X4b * 0.25;
+		  X5b += X1 * 0.5;
+		  X5b -= X2 / 2.;
+		  X6a = (X1 + X2) * 3. + (X3a - X4a) / 4. + (X1 - X2) / 2.;
+		  X6b = X1;
+		  X6b += X2;
+		  X6b *= 3.;
+		  X6b += X3b / 4.;
+		  X6b -= X4b * 0.25;
+		  X6b += X1 * 0.5;
+		  X6b -= X2 / 2.;
+		  X7a = (X1 + X2) * 3. + (X3a - X4a) / 4. + (X1 - X2) / 2.;
+		  X7b = X1;
+		  X7b += X2;
+		  X7b *= 3.;
+		  X7b += X3b / 4.;
+		  X7b -= X4b * 0.25;
+		  X7b += X1 * 0.5;
+		  X7b -= X2 / 2.;
+
+		  X8a = (X1.GetCol(3) + X2.GetCol(3)) * 3. + (X3a.GetCol(3) - X4a.GetCol(3)) / 4. + (X1.GetCol(3) - X2.GetCol(3)) / 2.;
+
+		  X8b = X1.GetCol(3);
+		  X8b += X2.GetCol(3);
+		  X8b *= 3.;
+		  X8b += X3b.GetCol(3) / 4.;
+		  X8b -= X4b.GetCol(3) * 0.25;
+		  X8b += X1.GetCol(3) * 0.5;
+		  X8b -= X2.GetCol(3) / 2.;
+
+		  X9a = (Transpose(X1.GetCol(3)) + Transpose(X2.GetCol(3))) * 3. + (Transpose(X3a.GetCol(3)) - Transpose(X4a.GetCol(3))) / 4. + Transpose(X1.GetCol(3) - X2.GetCol(3)) / 2.;
+
+		  X9b = Transpose(X1.GetCol(3));
+		  X9b += Transpose(X2.GetCol(3));
+		  X9b *= 3.;
+		  X9b += Transpose(X3b.GetCol(3) / 4.);
+		  X9b -= Transpose(X4b.GetCol(3) * 0.25);
+		  X9b += Transpose(X1.GetCol(3)) * 0.5;
+		  X9b -= Transpose(X2.GetCol(3)) / 2.;
+
+		  X12a = Transpose(X13a) * 3.;
+		  X12b = Transpose(X13a);
+		  X12b += Transpose(X13a) * 2.;
+		  X12c = Transpose(X13a) / Norm(X13a.GetCol(1));
+		  X12c *= 3. * Norm(X13a.GetCol(1));
+		  X12d += Transpose(Transpose(X13a) / Norm(X13a.GetCol(1)));
+		  X12d *= 3. * Norm(X13a.GetCol(1));
+		  
+		  X14a = Transpose(X13a.GetCol(1) + X13a.GetCol(2));
+
+		  for (index_type i = 1; i <= X13a.iGetNumCols(); ++i) {
+		       X14b += Transpose(X13a.GetCol(i));
+		  }
+
+		  X15a = Transpose(X1) * X2 + X3a * Transpose(X4a) - X5a / Norm(X5a.GetCol(1)) + X2 * Transpose(X2);
+		  X15b += Transpose(X1) * X2;
+		  X15b += X3a * Transpose(X4a);
+		  X15b -= X5a / Norm(X5a.GetCol(1));
+		  X15b += X2 * Transpose(X2);
+		  
+		  for (index_type i = 0; i < 10; ++i) {
+		       SpMatrix<SpGradient, 3, 3> X3c{X3a};
+		       SpGradient X3a11 = X3c(1, 1), X3a0;
+
+		       X3a11 *= 3.;
+		       X3a11 += X3a0;
+		       X3a0 += X3a11;
+
+		       {
+			    SpGradient X3a01 = std::move(X3a0);
+			    SpGradient X3a02 = std::move(X3a01);
+			    X3a0 = std::move(X3a02);		     
+			    X3a11 = X3a0;
+			    X3a11 = X3c(1, 1);
+			    X3a01 = std::move(X3a11);
+			    X3a02 = std::move(X3a01);
+			    X3a11 = std::move(X3a02);
+		       }
+		       SpMatrix<SpGradient, 3, 3> X3d = std::move(X3c);
+		       SpMatrix<SpGradient, 3, 3> X3e = std::move(X3d);
+		       SpGradient X3a03 = X3e(1, 1);
+		       SpGradient X3a04 = X3a03 + X3a11;
+		       SpGradient X3a05 = std::move(X3a04);
+		       SpGradient X3a07 = std::move(X3e(1,1)) + std::move(X3e(2,2));
+		       SpGradient X3a08 = X3e(1,1) + X3e(2,2) + X3e(3,3);
+		       SpGradient X3a09 = std::move(X3e(1, 1));
+		       {
+			    SpGradient X3e10 = std::move(X3a09);
+		       }
+		       X3e(1,1) = std::move(X3a09);
+		       X3e(2,2) = std::move(X3a05);
+		       X3e(3,3) += X3e(1, 1) + X3e(2, 2) + 2. * X3e(3, 3);
+		       X3a07 = std::move(X3a08);
+		       SpMatrix<SpGradient, 3, 3> X3f = X3e;
+		       X3e += X3f;
+		       X3f = std::move(X3e);
+		       {
+			    SpGradient X3e11;
+			    X3a07 += X3e11;
+			    X3e11 *= 10.;
+			    X3e11 += 10.;
+			    X3a07 = std::move(X3e11);
+		       }
+		       X3e(1,1) = std::move(X3a07);
+
+		       {
+			    std::vector<SpGradient> rgVec;
+		       
+			    rgVec.reserve(10);
+
+			    for (index_type i = 1; i <= 3; ++i) {
+				 for (index_type j = 1; j <= 3; ++j) {
+				      rgVec.emplace_back(std::move(X3e(i,j)));
+				 }
+			    }
+
+			    rgVec.push_back(rgVec.front());
+			    rgVec.push_back(rgVec.back());
+			    rgVec.push_back(X3e(1, 1));
+			    rgVec.emplace_back(X3e(3, 2));
+			    rgVec.push_back(X3e(1, 1) + X3e(2,2));
+			    rgVec.emplace_back(X3e(1, 1) + X3e(2,2));
+			    X3e(3, 3) = std::move(rgVec.front());
+			    X3e(1, 2) = std::move(rgVec[3]);
+		       }
+		  }
+		  for (index_type i = 1; i <= 3; ++i) {
+		       for (index_type j = 1; j <= 3; ++j) {
+			    X10a(i, j) = (X1(i, j) + X2(i, j)) * 3. + (X3a(i, j) - X4a(i, j)) / 4. + (X1(i, j) - X2(i, j)) / 2.;
+			    X10b(i, j) = X1(i, j);
+			    X10b(i, j) += X2(i, j);
+			    X10b(i, j) *= 3.;
+			    X10b(i, j) += X3b(i, j) / 4.;
+			    X10b(i, j) -= X4b(i, j) * 0.25;
+			    X10b(i, j) += X1(i, j) * 0.5;
+			    X10b(i, j) -= X2(i, j) / 2.;		   
+		  
+			    X11a(i, j) = (X1(i, j) + X2(i, j)) * 3. + (X3a(i, j) - X4a(i, j)) / 4. + (X1(i, j) - X2(i, j)) / 2.;
+			    X11b(i, j) = X1(i, j);
+			    X11b(i, j) += X2(i, j);
+			    X11b(i, j) *= 3.;
+			    X11b(i, j) += X3b(i, j) / 4.;
+			    X11b(i, j) -= X4b(i, j) * 0.25;
+			    X11b(i, j) += X1(i, j) * 0.5;
+			    X11b(i, j) -= X2(i, j) / 2.;
+		       }
+		  }
+		  
 		  for (index_type i = 1; i <= 3; ++i) {
 		       sp_grad_assert_equal(csp1(i), c(i), dTol);
 		       sp_grad_assert_equal(csp2(i), c(i), dTol);
@@ -303,7 +525,9 @@ namespace sp_grad_test {
 		       sp_grad_assert_equal(q(i), 4.5 * c(i), dTol);
 		       sp_grad_assert_equal(gsp2(i), gsp(i), dTol);
 		       sp_grad_assert_equal(gsp2(i), g(i), dTol);
-		       
+		       sp_grad_assert_equal(gsp4(i), g(i), dTol);
+		       sp_grad_assert_equal(gsp5(i), g(i), dTol);
+
 		       for (index_type j = 1; j <= 3; ++j) {
 			    sp_grad_assert_equal(Dsp1(i, j), D(i, j), dTol);
 			    sp_grad_assert_equal(Dsp2(i, j), D(i, j), dTol);
@@ -328,7 +552,7 @@ namespace sp_grad_test {
 			    sp_grad_assert_equal(Dsp21(i, j), D(i, j), dTol);
 			    sp_grad_assert_equal(Dsp22(i, j), D(i, j), dTol);
 			    sp_grad_assert_equal(Dsp23(i, j), D(i, j), dTol);
-			    
+
 			    sp_grad_assert_equal(Esp1(i, j), E(i, j), dTol);
 			    sp_grad_assert_equal(Esp2(i, j), E(i, j), dTol);
 			    sp_grad_assert_equal(Esp3(i, j), E(i, j), dTol);
@@ -374,6 +598,35 @@ namespace sp_grad_test {
 
 			    sp_grad_assert_equal(RDeltasp(i, j), RDelta(i, j), dTol);
 			    sp_grad_assert_equal(RVecsp(i, j), RVec(i, j), dTol);
+			    sp_grad_assert_equal(Asp4(i, j), A(i, j), dTol);
+			    sp_grad_assert_equal(Asp4(i, j), A4(i, j), dTol);
+			    sp_grad_assert_equal(X3a(i, j), X3b(i, j), dTol);
+			    sp_grad_assert_equal(X4a(i, j), X4b(i, j), dTol);
+			    sp_grad_assert_equal(X5b(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X6a(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X6b(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X7a(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X7b(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X10a(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X10b(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X11a(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(X11b(i, j), X5a(i, j), dTol);
+			    sp_grad_assert_equal(Asp5(i, j), A(i, j), dTol);
+			    sp_grad_assert_equal(X15b(i, j), X15a(i, j), dTol);			    
+		       }
+		       sp_grad_assert_equal(X8a(i), X5a(i, 3), dTol);
+		       sp_grad_assert_equal(X8b(i), X5a(i, 3), dTol);
+                       sp_grad_assert_equal(X9a(i), X5a(i, 3), dTol);
+                       sp_grad_assert_equal(X9b(i), X5a(i, 3), dTol);
+		       sp_grad_assert_equal(X14b(i), X14a(i), dTol);
+		       sp_grad_assert_equal(X14a(i), X13a(i, 1) + X13a(i, 2), dTol);
+		  }
+
+		  for (index_type i = 1; i <= X12a.iGetNumRows(); ++i) {
+		       for (index_type j = 1; j <= X12a.iGetNumCols(); ++j) {
+			    sp_grad_assert_equal(X12b(i, j), X12a(i, j), dTol);
+			    sp_grad_assert_equal(X12c(i, j), X12a(i, j), dTol);
+			    sp_grad_assert_equal(X12d(j, i), X12a(i, j), dTol);
 		       }
 		  }
 	     }
@@ -543,7 +796,7 @@ namespace sp_grad_test {
 
 			funz += f.iGetSize();
 
-			f.Compress();
+			f.Sort();
 
 			fnz += f.iGetSize();
 #ifdef USE_AUTODIFF
@@ -571,7 +824,7 @@ namespace sp_grad_test {
 
 			f2unz += f2.iGetSize();
 
-			f2.Compress();
+			f2.Sort();
 
 			f2nz += f2.iGetSize();
 
@@ -602,15 +855,15 @@ namespace sp_grad_test {
 
 			func_scalar1_dv(nbdirs,
 					u.dGetValue(),
-					&ud.front(),
+					front(ud),
 					v.dGetValue(),
-					&vd.front(),
+					front(vd),
 					w.dGetValue(),
-					&wd.front(),
+					front(wd),
 					e,
 					fVal,
-					&fd.front(),
-					&work.front());
+					front(fd),
+					front(work));
 
 			c_full_time += high_resolution_clock::now() - c_full_start;
 
@@ -792,7 +1045,7 @@ namespace sp_grad_test {
 
 			funz += SpGradient::iGetSize(f);
 
-			SpGradient::Compress(f);
+			SpGradient::Sort(f);
 
 			fnz += SpGradient::iGetSize(f);
 
@@ -804,7 +1057,7 @@ namespace sp_grad_test {
 
 			f2unz += SpGradient::iGetSize(f2);
 
-			SpGradient::Compress(f2);
+			SpGradient::Sort(f2);
 
 			f2nz += SpGradient::iGetSize(f2);
 
@@ -816,7 +1069,7 @@ namespace sp_grad_test {
 
 			f3unz += SpGradient::iGetSize(f3);
 
-			SpGradient::Compress(f3);
+			SpGradient::Sort(f3);
 
 			f3nz += SpGradient::iGetSize(f3);
 
@@ -850,12 +1103,12 @@ namespace sp_grad_test {
 			auto c_full_start = high_resolution_clock::now();
 
 			func_mat_mul1_dv(imatsize,
-					 &Av.front(),
-					 &Ad.front(),
-					 &Bv.front(),
-					 &Bd.front(),
+					 front(Av),
+					 front(Ad),
+					 front(Bv),
+					 front(Bd),
 					 fVal,
-					 &fd.front(),
+					 front(fd),
 					 s.iMaxDof);
 
 			c_full_time += high_resolution_clock::now() - c_full_start;
@@ -1080,7 +1333,7 @@ namespace sp_grad_test {
 			}
 
 			for (auto& b5i: b5) {
-				SpGradient::Compress(b5i);
+				SpGradient::Sort(b5i);
 			}
 
 			for (const auto& b5i: b5) {
@@ -1120,12 +1373,12 @@ namespace sp_grad_test {
 			func_mat_mul4<TA, TX>(imatrows,
 					      imatcols,
 					      nbdirs,
-					      &Av.front(),
-					      &Ad.front(),
-					      &xv.front(),
-					      &xd.front(),
-					      &bv.front(),
-					      &bd.front());
+					      front(Av),
+					      front(Ad),
+					      front(xv),
+					      front(xd),
+					      front(bv),
+					      front(bd));
 
 			c_full_time += high_resolution_clock::now() - c_full_start;
 
@@ -1263,21 +1516,21 @@ namespace sp_grad_test {
 			index_type irescnt = randresizecnt(gen);
 
 			for (index_type i = 0; i < irescnt; ++i) {
-				rgVec[randresizeidx(gen)] += EvalCompressed(rgVec[randresizeidx(gen)] * randval(gen) * rgVec[randresizeidx(gen)]);
-				rgVec[randresizeidx(gen)] *= EvalCompressed(rgVec[randresizeidx(gen)] * randval(gen) - rgVec[randresizeidx(gen)] * randval(gen));
-				rgVec[randresizeidx(gen)] -= EvalCompressed(rgVec[randresizeidx(gen)] * randval(gen) / (rgVec[randresizeidx(gen)] * randval(gen) + randval(gen)));
-				rgVec[randresizeidx(gen)] /= EvalCompressed((rgVec[randresizeidx(gen)] * randval(gen) + randval(gen)));
+				rgVec[randresizeidx(gen)] += EvalUnique(rgVec[randresizeidx(gen)] * randval(gen) * rgVec[randresizeidx(gen)]);
+				rgVec[randresizeidx(gen)] *= EvalUnique(rgVec[randresizeidx(gen)] * randval(gen) - rgVec[randresizeidx(gen)] * randval(gen));
+				rgVec[randresizeidx(gen)] -= EvalUnique(rgVec[randresizeidx(gen)] * randval(gen) / (rgVec[randresizeidx(gen)] * randval(gen) + randval(gen)));
+				rgVec[randresizeidx(gen)] /= EvalUnique((rgVec[randresizeidx(gen)] * randval(gen) + randval(gen)));
 
 				rgVec[randresizeidx(gen)] *= randval(gen);
 				rgVec[randresizeidx(gen)] /= randval(gen);
 				rgVec[randresizeidx(gen)] += randval(gen);
 				rgVec[randresizeidx(gen)] -= randval(gen);
 				rgVec[randresizeidx(gen)] = rgVec[randresizeidx(gen)];
-				rgVec[randresizeidx(gen)] = EvalCompressed(rgVec[randresizeidx(gen)] * (1 + randval(gen)) / (2. + randval(gen) + pow(rgVec[randresizeidx(gen)], 2)));
+				rgVec[randresizeidx(gen)] = EvalUnique(rgVec[randresizeidx(gen)] * (1 + randval(gen)) / (2. + randval(gen) + pow(rgVec[randresizeidx(gen)], 2)));
 			}
 
 			for (auto& vi: rgVec) {
-				vi.Compress();
+				vi.Sort();
 			}
 
 			A = std::move(E);
@@ -1307,9 +1560,9 @@ namespace sp_grad_test {
 				*(A.begin() + randresizeidx(gen)) += randval(gen);
 				*(A.begin() + randresizeidx(gen)) -= randval(gen);
 				*(A.begin() + randresizeidx(gen)) = *(A.begin() + randresizeidx(gen));
-				*(A.begin() + randresizeidx(gen)) = EvalCompressed(*(A.begin() + randresizeidx(gen)) * (1 + randval(gen)) / (2. + randval(gen) + pow(*(A.begin() + randresizeidx(gen)), 2)));
+				*(A.begin() + randresizeidx(gen)) = EvalUnique(*(A.begin() + randresizeidx(gen)) * (1 + randval(gen)) / (2. + randval(gen) + pow(*(A.begin() + randresizeidx(gen)), 2)));
 
-				*(A.begin() + randresizeidx(gen)) += EvalCompressed(rgVec[randresizeidx(gen)] * randval(gen) * *(A.begin() + randresizeidx(gen)));
+				*(A.begin() + randresizeidx(gen)) += EvalUnique(rgVec[randresizeidx(gen)] * randval(gen) * *(A.begin() + randresizeidx(gen)));
 				rgVec[randresizeidx(gen)] *= *(A.begin() + randresizeidx(gen)) * randval(gen) - rgVec[randresizeidx(gen)] * randval(gen);
 				*(A.begin() + randresizeidx(gen)) -= rgVec[randresizeidx(gen)] * randval(gen) / (*(A.begin() + randresizeidx(gen)) * randval(gen) + randval(gen));
 				*(A.begin() + randresizeidx(gen)) /= (rgVec[randresizeidx(gen)] * randval(gen) + randval(gen));
@@ -1414,14 +1667,14 @@ namespace sp_grad_test {
 
 			func_mat_add7<TA, TB, TC>(imatrows * imatcols,
 						  nbdirs,
-						  &Av.front(),
-						  &Ad.front(),
-						  &Bv.front(),
-						  &Bd.front(),
-						  &Cv.front(),
-						  &Cd.front(),
-						  &Dv.front(),
-						  &Dd.front());
+						  front(Av),
+						  front(Ad),
+						  front(Bv),
+						  front(Bd),
+						  front(Cv),
+						  front(Cd),
+						  front(Dv),
+						  front(Dd));
 
 			c_full_time += high_resolution_clock::now() - start;
 
@@ -1513,6 +1766,8 @@ namespace sp_grad_test {
 		SpMatrixBase<TB, NumCols, NumRows> B_T(imatcols, imatrows, inumnz);
 		TC C;
 		SpMatrixBase<TD, NumRows, NumCols> D(imatrows, imatcols, 3 * inumnz);
+		SpMatrixBase<TD, NumRows, NumCols> Da(imatrows, imatcols, 3 * inumnz);
+		SpMatrixBase<TD, NumRows, NumCols> Db(imatrows, imatcols, 3 * inumnz);
 		SpMatrixBase<TD, NumCols, NumRows> D_T(imatcols, imatrows, 3 * inumnz);
 		vector<doublereal> Av(imatrows * imatcols), Ad,
 			Bv(imatrows * imatcols), Bd,
@@ -1525,7 +1780,7 @@ namespace sp_grad_test {
 		Cd.reserve(inumnz);
 		Dd.reserve(imatrows * imatcols * inumnz);
 
-		duration<long long, ratio<1L, 1000000000L> > sp_grad_time(0), sp_grad_time9(0), c_full_time(0);
+		duration<long long, ratio<1L, 1000000000L> > sp_grad_time(0), sp_grad_a_time(0), sp_grad_b_time(0), sp_grad_time9(0), c_full_time(0);
 
 		for (index_type iloop = 0; iloop < inumloops; ++iloop) {
 			SpGradDofStat s;
@@ -1580,14 +1835,14 @@ namespace sp_grad_test {
 
 			func_mat_add8(imatrows * imatcols,
 				      nbdirs,
-				      &Av.front(),
-				      &Ad.front(),
-				      &Bv.front(),
-				      &Bd.front(),
+				      front(Av),
+				      front(Ad),
+				      front(Bv),
+				      front(Bd),
 				      Cv,
-				      &Cd.front(),
-				      &Dv.front(),
-				      &Dd.front());
+				      front(Cd),
+				      front(Dv),
+				      front(Dd));
 
 			c_full_time += high_resolution_clock::now() - start;
 
@@ -1596,6 +1851,18 @@ namespace sp_grad_test {
 			func_mat_add8(A, B, C, D);
 
 			sp_grad_time += high_resolution_clock::now() - start;
+
+			start = high_resolution_clock::now();
+
+			func_mat_add8a(A, B, C, Da);
+
+			sp_grad_a_time += high_resolution_clock::now() - start;
+
+			start = high_resolution_clock::now();
+
+			func_mat_add8b(A, B, C, Db);
+
+			sp_grad_b_time += high_resolution_clock::now() - start;
 
 			start = high_resolution_clock::now();
 
@@ -1608,27 +1875,43 @@ namespace sp_grad_test {
 					const doublereal dij1 = SpGradient::dGetValue(D.GetElem(i, j));
 					const doublereal dij2 = Dv[(j - 1) * imatrows + i - 1];
 					const doublereal dij3 = SpGradient::dGetValue(D_T.GetElem(j, i));
+					const doublereal dij4 = SpGradient::dGetValue(Da.GetElem(i, j));
+					const doublereal dij5 = SpGradient::dGetValue(Db.GetElem(i, j));
 
 					assert(fabs(dij1 - dij2) / std::max(1., fabs(dij2)) < dTol);
 					assert(fabs(dij3 - dij2) / std::max(1., fabs(dij2)) < dTol);
+					assert(fabs(dij4 - dij2) / std::max(1., fabs(dij2)) < dTol);
+					assert(fabs(dij5 - dij2) / std::max(1., fabs(dij2)) < dTol);
 
 					for (index_type k = 1; k <= nbdirs; ++k) {
 						const doublereal ddij1 = SpGradient::dGetDeriv(D.GetElem(i, j), k);
 						const doublereal ddij2 = Dd[((j - 1) * imatrows + (i - 1) + (k - 1) * imatrows * imatcols)];
 						const doublereal ddij3 = SpGradient::dGetDeriv(D_T.GetElem(j, i), k);
+						const doublereal ddij4 = SpGradient::dGetDeriv(Da.GetElem(i, j), k);
+						const doublereal ddij5 = SpGradient::dGetDeriv(Db.GetElem(i, j), k);
 						assert(fabs(ddij1 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
 						assert(fabs(ddij3 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
+						assert(fabs(ddij4 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
+						assert(fabs(ddij5 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
 					}
 				}
 			}
 		}
 
 		auto sp_grad_time_ns = duration_cast<nanoseconds>(sp_grad_time).count();
+		auto sp_grad_a_time_ns = duration_cast<nanoseconds>(sp_grad_a_time).count();
+		auto sp_grad_b_time_ns = duration_cast<nanoseconds>(sp_grad_b_time).count();
 		auto sp_grad_time9_ns = duration_cast<nanoseconds>(sp_grad_time9).count();
 		auto c_full_time_ns = duration_cast<nanoseconds>(c_full_time).count();
 
 		cerr << "test8: sp_grad_time = " << fixed << setprecision(6)
 		     << static_cast<doublereal>(sp_grad_time_ns) / 1e9
+		     << endl;
+		cerr << "test8: sp_grad_a_time = " << fixed << setprecision(6)
+		     << static_cast<doublereal>(sp_grad_a_time_ns) / 1e9
+		     << endl;
+		cerr << "test8: sp_grad_b_time = " << fixed << setprecision(6)
+		     << static_cast<doublereal>(sp_grad_b_time_ns) / 1e9
 		     << endl;
 		cerr << "test8: sp_grad_time9 = " << fixed << setprecision(6)
 		     << static_cast<doublereal>(sp_grad_time9_ns) / 1e9
@@ -1763,12 +2046,12 @@ namespace sp_grad_test {
 				       iamatcols,
 				       ibmatcols,
 				       nbdirs,
-				       &Av.front(),
-				       &Ad.front(),
-				       &Bv.front(),
-				       &Bd.front(),
-				       &Cv.front(),
-				       &Cd.front());
+				       front(Av),
+				       front(Ad),
+				       front(Bv),
+				       front(Bd),
+				       front(Cv),
+				       front(Cd));
 
 			c_full_time += high_resolution_clock::now() - start;
 
@@ -2010,18 +2293,18 @@ namespace sp_grad_test {
 
 			func_mat_mul11(imatrows,
 				       nbdirs,
-				       &Av.front(),
-				       &Ad.front(),
-				       &Bv.front(),
-				       &Bd.front(),
-				       &Cv.front(),
-				       &Cd.front(),
-				       &Dv.front(),
-				       &Dd.front(),
-				       &Tmp1.front(),
-				       &Tmp1d.front(),
-				       &Tmp2.front(),
-				       &Tmp2d.front());
+				       front(Av),
+				       front(Ad),
+				       front(Bv),
+				       front(Bd),
+				       front(Cv),
+				       front(Cd),
+				       front(Dv),
+				       front(Dd),
+				       front(Tmp1),
+				       front(Tmp1d),
+				       front(Tmp2),
+				       front(Tmp2d));
 
 			c_full_time += high_resolution_clock::now() - start;
 
@@ -2183,16 +2466,16 @@ namespace sp_grad_test {
 				       imatcolsb,
 				       imatcolsc,
 				       nbdirs,
-				       &Av.front(),
-				       &Ad.front(),
-				       &Bv.front(),
-				       &Bd.front(),
-				       &Cv.front(),
-				       &Cd.front(),
-				       &Dv.front(),
-				       &Dd.front(),
-				       &Tmp1.front(),
-				       &Tmp1d.front());
+				       front(Av),
+				       front(Ad),
+				       front(Bv),
+				       front(Bd),
+				       front(Cv),
+				       front(Cd),
+				       front(Dv),
+				       front(Dd),
+				       front(Tmp1),
+				       front(Tmp1d));
 
 			c_full_time += high_resolution_clock::now() - start;
 
@@ -2338,7 +2621,7 @@ namespace sp_grad_test {
 			SpRowVector<T, 3> r = Transpose(A * v1);
 			SpColVector<T, 3> x = C.GetCol(1) + C.GetCol(2);
 			SpColVector<T, 3> vm1 = Cross(Transpose(r), Transpose(s));
-			SpColVector<T, 3> vm2 = EvalCompressed(Cross(Transpose(r), Transpose(s)));
+			SpColVector<T, 3> vm2 = EvalUnique(Cross(Transpose(r), Transpose(s)));
 			SpColVector<T, 3> vr1(3, 0), vr2(3, 0);
 
 			const T x1 = r(1), y1 = r(2), z1 = r(3);
@@ -2348,11 +2631,11 @@ namespace sp_grad_test {
 			vr1(2) = -(x1 * z2 - x2 * z1);
 			vr1(3) = x1 * y2 - x2 * y1;
 
-			vr2(1) = EvalCompressed(y1 * z2 - y2 * z1);
-			vr2(2) = -EvalCompressed(x1 * z2 - x2 * z1);
-			vr2(3) = EvalCompressed(x1 * y2 - x2 * y1);
+			vr2(1) = EvalUnique(y1 * z2 - y2 * z1);
+			vr2(2) = -EvalUnique(x1 * z2 - x2 * z1);
+			vr2(3) = EvalUnique(x1 * y2 - x2 * y1);
 
-			SpMatrix<T, 3, 3> y;
+			SpMatrix<T, 3, 3> y(3, 3, 0);
 
 			for (index_type i = 1; i <= F.iGetNumRows(); ++i) {
 				for (index_type j = 1; j <= F.iGetNumCols(); ++j) {
@@ -2466,7 +2749,7 @@ namespace sp_grad_test {
 		     << endl;
 	}
 
-     	template <typename T>
+	template <typename T>
 	void test15(const index_type inumloops,
 		    const index_type inumnz,
 		    const index_type inumdof)
@@ -2475,7 +2758,7 @@ namespace sp_grad_test {
 		using namespace std::chrono;
 
 		cerr << __PRETTY_FUNCTION__ << ":\n";
-		
+
 		random_device rd;
 		mt19937 gen(rd());
 		uniform_real_distribution<doublereal> randval(-M_PI, M_PI);
@@ -2502,12 +2785,12 @@ namespace sp_grad_test {
 			     if (sqrt(Dot(Phi, Phi)) < M_PI) {
 				  sp_grad_assert_equal(Phi2(i), Phi(i), dTol);
 			     }
-			     
+
 			     for (index_type j = 1; j <= 3; ++j) {
-				  sp_grad_assert_equal(R2(i, j), R(i, j), dTol);				  
+				  sp_grad_assert_equal(R2(i, j), R(i, j), dTol);
 			     }
 			}
-				  
+
 		}
 	}
 }
@@ -2631,6 +2914,13 @@ int main(int argc, char* argv[])
 		if (SP_GRAD_RUN_TEST(15.1)) test15<doublereal>(inumloops, inumnz, inumdof);
 		if (SP_GRAD_RUN_TEST(15.2)) test15<SpGradient>(inumloops, inumnz, inumdof);
 
+#ifdef SP_GRAD_DEBUG
+		cerr << "remaining references for SpGradient::oNullData: " << SpGradient::iGetRefCntNullData() << endl;
+		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData::iGetRefCntNullData() << endl;
+#endif
+		SP_GRAD_ASSERT(SpGradient::iGetRefCntNullData() == 1);
+		SP_GRAD_ASSERT(SpMatrixBaseData::iGetRefCntNullData() == 1);
+		
 		cerr << "All tests passed\n"
 		     << "\n\tloops performed: " << inumloops
 		     << "\n\tmax nonzeros: " << inumnz

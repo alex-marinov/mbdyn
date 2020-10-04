@@ -184,7 +184,7 @@ namespace sp_grad {
      template <typename ScalarType>
      class SpGradConstExpr: public SpGradBase<SpGradConstExpr<ScalarType> > {
      public:
-	  static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUncompressed;
+	  static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalDuplicate;
                 
 	  explicit constexpr SpGradConstExpr(ScalarType  u)
 	       :u(u) {
@@ -232,7 +232,7 @@ namespace sp_grad {
      template <typename Expr>
      class SpGradComprExpr: public SpGradBase<SpGradComprExpr<Expr> > {
      public:
-	  static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalCompressed;
+	  static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUnique;
                 
 	  constexpr SpGradComprExpr(const Expr&  u)
 	       :u(u) {

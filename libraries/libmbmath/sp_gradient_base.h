@@ -77,7 +77,7 @@
 namespace sp_grad {
      typedef integer index_type;
      
-     enum struct SpFunctionCall: index_type {
+     enum SpFunctionCall: index_type {
 	  // FIXME: There should be a flag for the initial derivatives phase
 	  // 		  However this information is not available for elements at the moment
 	  //		  The prototype for Element::AssRes and Element::AssJac should be changed like
@@ -143,13 +143,13 @@ namespace sp_grad {
 	  SpDerivData(doublereal dVal,
 		      index_type iSizeRes,
 		      index_type iSizeCurr,
-		      bool bCompressed,
+		      unsigned uFlags,
 		      index_type iRefCnt,
 		      SpMatrixData<SpGradient>* pOwner) noexcept
 	       :dVal(dVal),
 		iSizeRes(iSizeRes),
 		iSizeCurr(iSizeCurr),
-		bCompressed(bCompressed),
+		uFlags(uFlags),
 		iRefCnt(iRefCnt),
 		pOwner(pOwner) {
 	  }
@@ -158,11 +158,15 @@ namespace sp_grad {
 	       return pOwner == pMatData;
 	  }
 
+	  enum Flags: unsigned {
+	       DER_SORTED = 0x1u,
+	       DER_UNIQUE = 0x2u
+	  };
      private:
 	  doublereal dVal;
 	  index_type iSizeRes;
 	  index_type iSizeCurr;
-	  bool bCompressed;
+	  unsigned uFlags;
 	  index_type iRefCnt;
 	  SpMatrixData<SpGradient>* pOwner;
 	  SpDerivRec rgDer[];
@@ -187,8 +191,8 @@ namespace sp_grad {
 	  };
 
 	  enum ExprEvalFlags {
-	       ExprEvalCompressed,
-	       ExprEvalUncompressed
+	       ExprEvalUnique,
+	       ExprEvalDuplicate
 	  };
      };
 
@@ -252,38 +256,42 @@ namespace sp_grad {
 	  };
 
 	  template <>
-	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalCompressed, SpGradCommon::ExprEvalCompressed> {
-	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalCompressed;
+	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalUnique, SpGradCommon::ExprEvalUnique> {
+	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUnique;
 	  };
 
 	  template <>
-	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalUncompressed, SpGradCommon::ExprEvalCompressed> {
-	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalCompressed;
+	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalDuplicate, SpGradCommon::ExprEvalUnique> {
+	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUnique;
 	  };
 
 	  template <>
-	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalCompressed, SpGradCommon::ExprEvalUncompressed> {
-	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalCompressed;
+	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalUnique, SpGradCommon::ExprEvalDuplicate> {
+	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUnique;
 	  };
 
 	  template <>
-	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalUncompressed, SpGradCommon::ExprEvalUncompressed> {
-	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalUncompressed;;
+	  struct ExprEvalFlagsHelper<SpGradCommon::ExprEvalDuplicate, SpGradCommon::ExprEvalDuplicate> {
+	       static constexpr SpGradCommon::ExprEvalFlags eExprEvalFlags = SpGradCommon::ExprEvalDuplicate;;
 	  };
 
 	  template <SpGradCommon::ExprEvalFlags EXPR_EVAL_FLAGS>
 	  struct ExprEvalHelper;
 
 	  template <>
-	  struct ExprEvalHelper<SpGradCommon::ExprEvalUncompressed> {
+	  struct ExprEvalHelper<SpGradCommon::ExprEvalDuplicate> {
 	       template <typename Expr>
 	       static inline void Eval(SpGradient& g, const SpGradBase<Expr>& f);
+	       template <typename Func, typename Expr>
+	       static inline void AssignOper(SpGradient& g, const SpGradBase<Expr>& f);
 	  };
 
 	  template <>
-	  struct ExprEvalHelper<SpGradCommon::ExprEvalCompressed> {
+	  struct ExprEvalHelper<SpGradCommon::ExprEvalUnique> {
 	       template <typename Expr>
 	       static inline void Eval(SpGradient& g, const SpGradBase<Expr>& f);
+	       template <typename Func, typename Expr>
+	       static inline void AssignOper(SpGradient& g, const SpGradBase<Expr>& f);
 	  };
      }
 }

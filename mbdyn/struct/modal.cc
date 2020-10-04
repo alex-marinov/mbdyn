@@ -204,7 +204,7 @@ b(*bb),
 bPrime(NModes, 0.),
 SND(snd)
 {
-	ASSERT(pModalNode->GetStructNodeType() == StructNode::MODAL);
+	ASSERT(pModalNode == nullptr || pModalNode->GetStructNodeType() == StructNode::MODAL);
 }
 
 Modal::~Modal(void)
@@ -2124,8 +2124,8 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	  }
 
 	  if (pInv8 && pInv9) {
-	       Inv9jkajak = EvalCompressed(Inv9jkajak);
-	       Inv9jkajaPk = EvalCompressed(Inv9jkajaPk);
+	       Inv9jkajak = EvalUnique(Inv9jkajak);
+	       Inv9jkajaPk = EvalUnique(Inv9jkajaPk);
 	  }
      }
 
@@ -2173,7 +2173,7 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       }
 	  }
 
-	  J = EvalCompressed(J);
+	  J = EvalUnique(J);
 
 	  J = (R * J) * Transpose(R);
 
@@ -2230,8 +2230,8 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       MTmp += Cross(S, GravityAcceleration);
 	  }
 #endif
-	  const Vec3 f1 = EvalCompressed(v - xP);
-	  const Vec3 f2 = EvalCompressed(w - MatGVec(g) * gP - MatRVec(g) * wr);
+	  const Vec3 f1 = EvalUnique(v - xP);
+	  const Vec3 f2 = EvalUnique(w - MatGVec(g) * gP - MatRVec(g) * wr);
 
 	  WorkVec.AddItem(iRigidIndex + 1, f1);
 	  WorkVec.AddItem(iRigidIndex + 4, f2);
@@ -2300,11 +2300,11 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       d += Dot(w, R * (MatTmp * RTw));
 	  }
 		
-	  WorkVec.AddItem(iModalIndex + NModes + jMode, EvalCompressed(d));
+	  WorkVec.AddItem(iModalIndex + NModes + jMode, EvalUnique(d));
      }
 
      for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-	  WorkVec.AddItem(iModalIndex + iCnt, EvalCompressed(b(iCnt) - aPrime(iCnt)));
+	  WorkVec.AddItem(iModalIndex + iCnt, EvalUnique(b(iCnt) - aPrime(iCnt)));
      }
 
      for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
@@ -2349,7 +2349,7 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
 	  for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 	       const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
-	       const T d = Dot(EvalCompressed(-vtemp), pPHIt->GetVec(iOffset));
+	       const T d = Dot(EvalUnique(-vtemp), pPHIt->GetVec(iOffset));
 	       WorkVec.AddItem(iModalIndex + NModes + jMode, d);
 	  }
 
@@ -2371,19 +2371,19 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
 	  for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 	       const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
-	       const T d = Dot(EvalCompressed(-vtemp), pPHIr->GetVec(iOffset));
+	       const T d = Dot(EvalUnique(-vtemp), pPHIr->GetVec(iOffset));
 	       WorkVec.AddItem(iModalIndex + NModes + jMode, d);
 	  }
 
 	  ASSERT(dCoef != 0.);
 
-	  const Vec3 f1 = EvalCompressed((x2 + dTmp2 - x - d1tot) / dCoef);
-	  const Vec3 f2 = EvalCompressed(ThetaCurr / -dCoef);
+	  const Vec3 f1 = EvalUnique((x2 + dTmp2 - x - d1tot) / dCoef);
+	  const Vec3 f2 = EvalUnique(ThetaCurr / -dCoef);
 
 	  WorkVec.AddItem(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 1, f1);
 	  WorkVec.AddItem(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 4, f2);
 
-	  const Vec3 MTmp2 = EvalCompressed(Cross(dTmp2, F) + R2_M);
+	  const Vec3 MTmp2 = EvalUnique(Cross(dTmp2, F) + R2_M);
 
 	  WorkVec.AddItem(iNodeFirstMomIndex + 1, F);
 	  WorkVec.AddItem(iNodeFirstMomIndex + 4, MTmp2);
@@ -2392,8 +2392,8 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      }
 
      if (pModalNode) {
-	  FTmp = EvalCompressed(FTmp);
-	  MTmp = EvalCompressed(MTmp);
+	  FTmp = EvalUnique(FTmp);
+	  MTmp = EvalUnique(MTmp);
 	     
 	  WorkVec.AddItem(iRigidIndex + 7, FTmp);
 	  WorkVec.AddItem(iRigidIndex + 10, MTmp);

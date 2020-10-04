@@ -1272,8 +1272,11 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputJac())
 		{
-			silent_cout("Jacobian:" << std::endl
-					<< *pMatHdl);
+		     if (silent_out) {
+			silent_cout("Jacobian:" << std::endl);
+			// Use the same format like the nonlinear solver
+			pMatHdl->Print(std::cout, MatrixHandler::MAT_PRINT_TRIPLET);
+		     }
 		}
 
 		/* Fattorizza e risolve con jacobiano e residuo appena calcolati */

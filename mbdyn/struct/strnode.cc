@@ -1464,7 +1464,7 @@ RCurr(R0),
 gRef(Zero3),
 gCurr(Zero3),
 gPRef(Zero3),
-gPCurr(Zero3),
+gPCurr(W0), /* Needed only for the first iteration of initial assembly when gPCurr == WCurr must hold */
 WPrev(W0),
 WRef(W0),
 WCurr(W0),
@@ -2029,14 +2029,13 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g,
 inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const {
 	using namespace grad;
 
-	integer iFirstIndexLocal;
+	integer iFirstIndexLocal = -1; // Always start from zero in order to save memory
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
 		GRADIENT_ASSERT(dCoef == 1.);
 	case INITIAL_DER_JAC:
 	case REGULAR_JAC:
-		iFirstIndexLocal = -1; // Always start from zero in order to save memory
 		break;
 
 	default:
@@ -2050,9 +2049,9 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g
 		Gradient<iNumADVars>& gP_i = gP(i);
 		gP_i.SetValuePreserve(gPCurr(i));
 		gP_i.DerivativeResizeReset(0,
-								   iFirstIndexLocal + i,
-								   MapVectorBase::LOCAL,
-								   -1.);
+					   iFirstIndexLocal + i,
+					   MapVectorBase::LOCAL,
+					   -1.);
 	}
 }
 #endif
@@ -2148,7 +2147,7 @@ inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, con
      RDelta(3,2) = (tmp5 + g(1)) * d;
      RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
 
-     R = EvalCompressed(RDelta * RRef);
+     R = EvalUnique(RDelta * RRef);
 
      switch (func) {
      case SpFunctionCall::INITIAL_ASS_JAC:
@@ -2174,7 +2173,7 @@ inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, con
 	  G(3,2) = tmp7;
 	  G(3,3) = d;
 
-	  W = EvalCompressed(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
+	  W = EvalUnique(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
      }
      break;
 
@@ -2341,7 +2340,7 @@ void StructNode::UpdateRotation(doublereal dCoef, sp_grad::SpFunctionCall func) 
 	       {
 #endif
 		    dCoefGrad = dCoef;
-		    sp_grad::SpColVector<sp_grad::SpGradient, 3> gCurr_grad, gPCurr_grad;
+		    sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 1> gCurr_grad, gPCurr_grad;
 
 		    GetgCurr(gCurr_grad, dCoef, func);
 		    GetgPCurr(gPCurr_grad, dCoef, func);
@@ -2388,8 +2387,6 @@ void StructNode::UpdateRotation(doublereal dCoef, sp_grad::SpFunctionCall func) 
 				   }
 				   std::cerr << std::endl;
 			      }
-
-			      std::cerr << "RCurr_grad=" << std::endl;
 
 			      std::cerr << "RRef=" << std::endl;
 			      for (integer i = 1; i <= 3; ++i) {
@@ -2481,7 +2478,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 	Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 
 	RCurr = RDelta*RRef;
-	WCurr = Vec3(X, iFirstIndex + 10);
+	gPCurr = WCurr = Vec3(X, iFirstIndex + 10); /* Make sure, that gPCurr and WCurr are equal during assembly */
 }
 
 /* Inverse Dynamics: */

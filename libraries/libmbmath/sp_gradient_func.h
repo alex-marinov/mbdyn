@@ -46,8 +46,28 @@
 #include "sp_gradient_base.h"
 
 namespace sp_grad {
-     class SpGradBinPlus {
-     public:
+     struct SpGradAssignNoUpdateU {
+     	  static constexpr void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
+	       // u* = f(u, v)
+	       // f(u, v) = {u + v, u - v}
+	       // df/du == 1
+	       // u*' = u' + df/dv * v'	       
+	  }
+     };
+
+     struct SpGradAssignUpdateU {
+	  static constexpr void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
+	       // u* = f(u, v)
+	       // f(u, v) = {u * v, u / v}
+	       // u*' = df/du * u' + df/dv * v'
+	       while (pFirstU < pLastU) {
+		    pFirstU->dDer *= df_du;
+		    ++pFirstU;
+	       }
+	  }
+     };
+     
+     struct SpGradBinPlus: SpGradAssignNoUpdateU {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return u + v;
 	  }
@@ -59,7 +79,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, doublereal v) {
 	       return 1.;
 	  }
-
+	  
 #ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "+";
@@ -67,8 +87,7 @@ namespace sp_grad {
 #endif
      };
 
-     class SpGradBinMinus {
-     public:
+     struct SpGradBinMinus: SpGradAssignNoUpdateU {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return u - v;
 	  }
@@ -88,8 +107,7 @@ namespace sp_grad {
 #endif
      };
 
-     class SpGradBinMult {
-     public:
+     struct SpGradBinMult: SpGradAssignUpdateU {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return u * v;
 	  }
@@ -101,7 +119,6 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, doublereal v) {
 	       return u;
 	  }
-
 #ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "*";
@@ -109,8 +126,7 @@ namespace sp_grad {
 #endif
      };
 
-     class SpGradBinDiv {
-     public:
+     struct SpGradBinDiv: SpGradAssignUpdateU {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return u / v;
 	  }
@@ -122,6 +138,7 @@ namespace sp_grad {
 	  static constexpr doublereal df_dv(doublereal u, doublereal v) {
 	       return -u / (v * v);
 	  }
+	  
 #ifdef SP_GRAD_DEBUG
 	  static void Print(std::ostream& os) {
 	       os << "/";
@@ -129,8 +146,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBinPow {
-     public:
+     struct SpGradBinPow {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return pow(u, v);
 	  }
@@ -149,8 +165,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBinPowInt {
-     public:
+     struct SpGradBinPowInt {
 	  static constexpr doublereal f(doublereal u, integer v) {
 	       return pow(u, v);
 	  }
@@ -169,8 +184,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBinAtan2 {
-     public:
+     struct SpGradBinAtan2 {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return atan2(u, v);
 	  }
@@ -190,8 +204,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBinCopysign {
-     public:
+     struct SpGradBinCopysign {
 	  static doublereal f(doublereal u, doublereal v) {
 	       return std::copysign(u, v);
 	  }
@@ -211,8 +224,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBinFmod {
-     public:
+     struct SpGradBinFmod {
 	  static constexpr doublereal f(doublereal u, doublereal v) {
 	       return fmod(u, v);
 	  }
@@ -248,8 +260,7 @@ namespace sp_grad {
      };
 
 
-     class SpGradFabs {
-     public:
+     struct SpGradFabs {
 	  static doublereal f(doublereal u) {
 	       return fabs(u);
 	  }
@@ -265,8 +276,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradSqrt {
-     public:
+     struct SpGradSqrt {
 	  static constexpr doublereal f(doublereal u) {
 	       return sqrt(u);
 	  }
@@ -281,8 +291,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradExp {
-     public:
+     struct SpGradExp {
 	  static constexpr doublereal f(doublereal u) {
 	       return exp(u);
 	  }
@@ -297,8 +306,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradLog {
-     public:
+     struct SpGradLog {
 	  static constexpr doublereal f(doublereal u) {
 	       return log(u);
 	  }
@@ -313,8 +321,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradSin {
-     public:
+     struct SpGradSin {
 	  static constexpr doublereal f(doublereal u) {
 	       return sin(u);
 	  }
@@ -329,8 +336,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradCos {
-     public:
+     struct SpGradCos {
 	  static constexpr doublereal f(doublereal u) {
 	       return cos(u);
 	  }
@@ -345,8 +351,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradTan {
-     public:
+     struct SpGradTan {
 	  static constexpr doublereal f(doublereal u) {
 	       return tan(u);
 	  }
@@ -361,8 +366,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradSinh {
-     public:
+     struct SpGradSinh {
 	  static constexpr doublereal f(doublereal u) {
 	       return sinh(u);
 	  }
@@ -377,8 +381,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradCosh {
-     public:
+     struct SpGradCosh {
 	  static constexpr doublereal f(doublereal u) {
 	       return cosh(u);
 	  }
@@ -393,8 +396,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradTanh {
-     public:
+     struct SpGradTanh {
 	  static constexpr doublereal f(doublereal u) {
 	       return tanh(u);
 	  }
@@ -409,8 +411,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAsin {
-     public:
+     struct SpGradAsin {
 	  static constexpr doublereal f(doublereal u) {
 	       return asin(u);
 	  }
@@ -425,8 +426,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAcos {
-     public:
+     struct SpGradAcos {
 	  static constexpr doublereal f(doublereal u) {
 	       return acos(u);
 	  }
@@ -441,8 +441,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAtan {
-     public:
+     struct SpGradAtan {
 	  static constexpr doublereal f(doublereal u) {
 	       return atan(u);
 	  }
@@ -457,8 +456,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAsinh {
-     public:
+     struct SpGradAsinh {
 	  static constexpr doublereal f(doublereal u) {
 	       return asinh(u);
 	  }
@@ -473,8 +471,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAcosh {
-     public:
+     struct SpGradAcosh {
 	  static constexpr doublereal f(doublereal u) {
 	       return acosh(u);
 	  }
@@ -489,8 +486,7 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradAtanh {
-     public:
+     struct SpGradAtanh {
 	  static constexpr doublereal f(doublereal u) {
 	       return atanh(u);
 	  }
@@ -505,43 +501,37 @@ namespace sp_grad {
 #endif                
      };
 
-     class SpGradBoolLessThan {
-     public:
+     struct SpGradBoolLessThan {
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u < v;
 	  }
      };
 
-     class SpGradBoolLessEqual {
-     public:
+     struct SpGradBoolLessEqual {
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u <= v;
 	  }
      };
 
-     class SpGradBoolGreaterThan {
-     public:
+     struct SpGradBoolGreaterThan {
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u > v;
 	  }
      };
 
-     class SpGradBoolGreaterEqual {
-     public:
+     struct SpGradBoolGreaterEqual {
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u >= v;
 	  }
      };
 
-     class SpGradBoolEqualTo {
-     public:
+     struct SpGradBoolEqualTo {
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u == v;
 	  }
      };
 
-     class SpGradBoolNotEqualTo {
-     public:
+     struct SpGradBoolNotEqualTo {     
 	  static constexpr bool f(doublereal u, doublereal v) {
 	       return u != v;
 	  }

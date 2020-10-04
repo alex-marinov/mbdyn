@@ -456,7 +456,7 @@ inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
 	  SP_GRAD_ASSERT(false);
      }
      
-     X.ResizeReset(3, 1, 1);
+     X.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	  X(i).Reset(XCurr(i), iFirstDofIndex + i, -dCoef);
@@ -487,7 +487,7 @@ inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
 	  SP_GRAD_ASSERT(false);
      }
      
-     V.ResizeReset(3, 1, 1);
+     V.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	  V(i).Reset(VCurr(i), iFirstDofIndex + i, -1.);
@@ -866,8 +866,8 @@ protected:
 #endif
 
 #ifdef USE_SPARSE_AUTODIFF
-     mutable sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3> RCurr_grad;
-     mutable sp_grad::SpColVector<sp_grad::SpGradient, 3> WCurr_grad;
+     mutable sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3, 3> RCurr_grad;
+     mutable sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 3> WCurr_grad;
 
      void UpdateRotation(doublereal dCoef, enum sp_grad::SpFunctionCall func) const;
 		
@@ -965,7 +965,7 @@ public:
 	template <grad::index_type N_SIZE>
 	inline void GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
-                inline void GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+        inline void GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
                 
 	template <grad::index_type N_SIZE>
 	inline void GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
@@ -1206,10 +1206,13 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
+	     iFirstDofIndex = iGetFirstIndex() + 9;
+	     break;
+	     
 	case INITIAL_DER_JAC:
 	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
+	     iFirstDofIndex = iGetFirstIndex() + 3;
+	     break;
 
 	default:
 		GRADIENT_ASSERT(false);
@@ -1223,7 +1226,7 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
                                           iFirstDofIndex + 7,
                                           MapVectorBase::GLOBAL,
                                           0.);
-		g_i.SetDerivativeGlobal(iFirstDofIndex + i + 3, -1.);
+		g_i.SetDerivativeGlobal(iFirstDofIndex + i, -1.);
 	}
 }
 
@@ -1409,7 +1412,7 @@ inline void StructNode::GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g
 	  SP_GRAD_ASSERT(false);
      }
 
-     g.ResizeReset(3, 1, 1);
+     g.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	  g(i).Reset(gCurr(i), iFirstDofIndex + i + 3, -dCoef);
@@ -1427,19 +1430,22 @@ inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& 
 
      switch (func) {
      case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
+	  iFirstDofIndex = iGetFirstIndex() + 9;
+	  break;
+	  
      case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
      case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex();
+	  iFirstDofIndex = iGetFirstIndex() + 3;
 	  break;
 
      default:
 	  SP_GRAD_ASSERT(false);
      }
 
-     gP.ResizeReset(3, 1, 1);
+     gP.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  gP(i).Reset(gPCurr(i), iFirstDofIndex + i + 3, -1.);
+	  gP(i).Reset(gPCurr(i), iFirstDofIndex + i, -1.);
      }
 }
 
@@ -1915,7 +1921,7 @@ ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doubler
 		SP_GRAD_ASSERT(false);
 	}
 
-	XPP.ResizeReset(3, 1, 1);
+	XPP.ResizeReset(3, 1);
 	
 	for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	     XPP(i).Reset(XPPCurr(i), iFirstDofIndex + i + 6, -1.);
@@ -1943,7 +1949,7 @@ ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublerea
 		SP_GRAD_ASSERT(false);
 	}
 
-	WP.ResizeReset(3, 1, 1);
+	WP.ResizeReset(3, 1);
 	
 	for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	     WP(i).Reset(WPCurr(i), iFirstDofIndex + i + 9, -1.);

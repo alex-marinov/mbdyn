@@ -1117,9 +1117,9 @@ void QrSparseSolver::Data::InitQR(void)
                 R.Print(std::cerr, MatrixHandler::MAT_PRINT_FULL);
 
                 DEBUGCERR("];\n");
-
-                std::cerr.precision(prec);
 #endif
+		std::cerr.precision(prec); // Fix unused variable if DEBUG is defined
+		
                 FullMatrixHandler Atest(A.iGetNumRows());
 
                 Q.MatMatMul(Atest, R);

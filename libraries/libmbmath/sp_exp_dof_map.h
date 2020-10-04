@@ -41,26 +41,21 @@
 #ifndef __SP_EXP_DOF_MAP_H__INCLUDED__
 #define __SP_EXP_DOF_MAP_H__INCLUDED__
 
-#define SP_GRAD_USE_FLAT_VECTOR
-
-#if defined(SP_GRAD_USE_DENSE_HASH_MAP) && defined(USE_DENSE_HASH_MAP)
-#include <dense_hash_map>
-#elif defined(SP_GRAD_USE_SPARSE_HASH_MAP) && defined(USE_DENSE_HASH_MAP)
-#include <sparse_hash_map>
-#elif defined(SP_GRAD_USE_UNORDERED_MAP)
-#include <unordered_map>
-#endif
-
 #include <vector>
+
 #include "sp_gradient_base.h"
 
 namespace sp_grad {
      class SpGradExpDofMap {
      public:
 	  inline SpGradExpDofMap();
+	  inline SpGradExpDofMap(const SpGradExpDofMap&)=delete;
 	  inline explicit SpGradExpDofMap(const SpGradDofStat& s);
-
-	  inline void InsertDof(index_type iDof);
+	  inline ~SpGradExpDofMap();
+	  
+	  inline SpGradExpDofMap& operator=(const SpGradExpDofMap)=delete;
+	  
+	  inline bool InsertDof(index_type iDof);
 
 	  inline void InsertDone();
 
@@ -71,33 +66,26 @@ namespace sp_grad {
 	  inline index_type iGetGlobalIndex(index_type iSlot) const;
 
 	  inline void Reset(const SpGradDofStat& s);
-     private:
-#ifdef SP_GRAD_USE_DENSE_HASH_MAP
-	  typedef google::dense_hash_map<index_type, index_type> MapType;
-#elif defined(SP_GRAD_USE_SPARSE_HASH_MAP)
-	  typedef google::sparse_hash_map<index_type, index_type> MapType;
-#elif defined(SP_GRAD_USE_UNORDERED_MAP)
-	  typedef std::unordered_map<index_type, index_type> MapType;
-#elif defined(SP_GRAD_USE_FLAT_VECTOR)
-	  typedef std::vector<index_type> MapType;
-	  index_type iMinDof, iMaxDof;
+	  
+#ifdef SP_GRAD_DEBUG
+	  inline bool bValid() const;
 #endif
-	  MapType rgIdx;
-	  std::vector<index_type> rgPerm;
+     private:
+	  index_type iMinDof, iMaxDof, iNumNzCurr, iNumNzMax;
+	  index_type* pIdx;
+	  index_type* pPerm;
+	  std::vector<index_type> rgData;
      };
 
      SpGradExpDofMap::SpGradExpDofMap()
-#ifdef SP_GRAD_USE_FLAT_VECTOR
 	  :iMinDof(std::numeric_limits<index_type>::max()),
-	   iMaxDof(std::numeric_limits<index_type>::min())
-#endif
+	   iMaxDof(std::numeric_limits<index_type>::min()),
+	   iNumNzCurr(0),
+	   iNumNzMax(0),
+	   pIdx(nullptr),
+	   pPerm(nullptr)
      {
-#if defined(SP_GRAD_USE_DENSE_HASH_MAP)
-	  rgIdx.set_empty_key(SpGradCommon::iInvalidDof);
-#endif
-#if defined(SP_GRAD_USE_DENSE_HASH_MAP) || defined(SP_GRAD_USE_SPARSE_HASH_MAP)
-	  rgIdx.set_deleted_key(SpGradCommon::iDeletedDof);
-#endif
+	  SP_GRAD_ASSERT(bValid());
      }
 
      SpGradExpDofMap::SpGradExpDofMap(const SpGradDofStat& s)
@@ -106,106 +94,130 @@ namespace sp_grad {
 	  Reset(s);
      }
 
-     void SpGradExpDofMap::InsertDof(index_type iDof)
+     SpGradExpDofMap::~SpGradExpDofMap()
+     {
+	  SP_GRAD_ASSERT(bValid());
+     }
+
+     bool SpGradExpDofMap::InsertDof(index_type iDof)
      {
 	  SP_GRAD_ASSERT(iDof != SpGradCommon::iInvalidDof);
 	  SP_GRAD_ASSERT(iDof != SpGradCommon::iDeletedDof);
 	  SP_GRAD_ASSERT(iDof >= iMinDof);
 	  SP_GRAD_ASSERT(iDof <= iMaxDof);
 
-#ifdef SP_GRAD_USE_FLAT_VECTOR
-	  SP_GRAD_ASSERT(static_cast<size_t>(iMaxDof - iMinDof + 1) == rgIdx.size());
-	  SP_GRAD_ASSERT(static_cast<size_t>(iDof - iMinDof) < rgIdx.size());
+	  SP_GRAD_ASSERT(static_cast<size_t>(iNumNzMax + iMaxDof - iMinDof + 1) == rgData.size());
+	  SP_GRAD_ASSERT(pIdx + iDof >= &rgData.front() + iNumNzMax);
+	  SP_GRAD_ASSERT(pIdx + iDof <= &rgData.back());
 
-	  index_type& p = rgIdx[iDof - iMinDof];
+	  index_type& p = pIdx[iDof];
 
 	  if (p != SpGradCommon::iInvalidDof) {
-	       SP_GRAD_ASSERT(static_cast<size_t>(p) < rgPerm.size());
-	       SP_GRAD_ASSERT(rgPerm[p] == iDof);
+	       SP_GRAD_ASSERT(p < iNumNzCurr);
+	       SP_GRAD_ASSERT(pPerm[p] == iDof);
+	       
+	       return false;
 	  } else {
-	       p = rgPerm.size();
+	       p = iNumNzCurr;
 
-	       SP_GRAD_ASSERT(rgPerm.capacity() > rgPerm.size());
+	       SP_GRAD_ASSERT(iNumNzCurr < iNumNzMax);
+	       SP_GRAD_ASSERT(pPerm[iNumNzCurr] == SpGradCommon::iInvalidDof);
 
-	       rgPerm.push_back(iDof);
+	       pPerm[iNumNzCurr++] = iDof;
+
+	       SP_GRAD_ASSERT(iNumNzCurr <= iNumNzMax);
+	       
+	       return true;
 	  }
-#else
-	  auto p = rgIdx.find(iDof);
-
-	  if (p == rgIdx.end()) {
-	       rgIdx.insert(std::make_pair(iDof, rgIdx.size()));
-	  }
-#endif
      }
 
      void SpGradExpDofMap::InsertDone()
      {
-#if !defined(SP_GRAD_USE_FLAT_VECTOR)
-	  rgPerm.resize(iGetLocalSize());
-
-	  for (auto idx: rgIdx) {
-	       rgPerm[idx.second] = idx.first;
-	  }
-#endif
+	  SP_GRAD_ASSERT(bValid());
      }
 
      index_type SpGradExpDofMap::iGetLocalSize() const {
-#ifdef SP_GRAD_USE_FLAT_VECTOR
-	  return rgPerm.size();
-#else
-	  return rgIdx.size();
-#endif
+	  SP_GRAD_ASSERT(iNumNzCurr <= iNumNzMax);
+	  
+	  return iNumNzCurr;
      }
 
      index_type SpGradExpDofMap::iGetGlobalIndex(index_type iSlot) const {
 	  SP_GRAD_ASSERT(iSlot >= 0);
 	  SP_GRAD_ASSERT(iSlot < iGetLocalSize());
-#ifdef SP_GRAD_USE_FLAT_VECTOR
-	  SP_GRAD_ASSERT(rgPerm[iSlot] >= iMinDof);
-	  SP_GRAD_ASSERT(rgPerm[iSlot] <= iMaxDof);
-	  SP_GRAD_ASSERT(rgIdx.size() == static_cast<size_t>(iMaxDof - iMinDof + 1));
-	  SP_GRAD_ASSERT(rgIdx[rgPerm[iSlot] - iMinDof] == iSlot);
-#else
-	  SP_GRAD_ASSERT(rgPerm.size() == rgIdx.size());
-#endif
-	  return rgPerm[iSlot];
+	  SP_GRAD_ASSERT(rgData.size() == static_cast<size_t>(iNumNzMax + iMaxDof - iMinDof + 1));
+	  SP_GRAD_ASSERT(pPerm[iSlot] >= iMinDof);
+	  SP_GRAD_ASSERT(pPerm[iSlot] <= iMaxDof);
+	  SP_GRAD_ASSERT(pIdx[pPerm[iSlot]] == iSlot);
+	  
+	  return pPerm[iSlot];
      }
 
-     index_type SpGradExpDofMap::iGetLocalIndex(index_type iDof) const
-     {
-#ifdef SP_GRAD_USE_FLAT_VECTOR
+     index_type SpGradExpDofMap::iGetLocalIndex(index_type iDof) const {
 	  SP_GRAD_ASSERT(iDof >= iMinDof);
 	  SP_GRAD_ASSERT(iDof <= iMaxDof);
-	  SP_GRAD_ASSERT(static_cast<size_t>(iDof - iMinDof) < rgIdx.size());
-	  SP_GRAD_ASSERT(rgIdx[iDof - iMinDof] >= 0);
-	  SP_GRAD_ASSERT(rgIdx[iDof - iMinDof] < iGetLocalSize());
-	  SP_GRAD_ASSERT(rgPerm[rgIdx[iDof - iMinDof]] == iDof);
-
-	  return rgIdx[iDof - iMinDof];
-#else
-	  auto p = rgIdx.find(iDof);
-
-	  if (p != rgIdx.end()) {
-	       return p->second;
-	  }
-
-	  SP_GRAD_ASSERT(false);
-
-	  return SpGradCommon::iInvalidDof;
-#endif
+	  SP_GRAD_ASSERT(&rgData.front() + iNumNzMax == pIdx + iMinDof);
+	  SP_GRAD_ASSERT(pIdx + iDof >= &rgData.front() + iNumNzMax);
+	  SP_GRAD_ASSERT(pIdx + iDof <= &rgData.back());
+	  SP_GRAD_ASSERT(pIdx[iDof] >= 0);
+	  SP_GRAD_ASSERT(pIdx[iDof] < iGetLocalSize());
+	  SP_GRAD_ASSERT(pPerm[pIdx[iDof]] == iDof);
+	  return pIdx[iDof];
      }
 
      void SpGradExpDofMap::Reset(const SpGradDofStat& s) {
-#ifdef SP_GRAD_USE_FLAT_VECTOR
+	  SP_GRAD_ASSERT(bValid());
+	  
 	  iMinDof = s.iMinDof;
 	  iMaxDof = s.iMaxDof;
-	  rgIdx.clear();
-	  rgIdx.resize(s.iMaxDof - s.iMinDof + 1, SpGradCommon::iInvalidDof);
-	  rgPerm.clear();
-	  rgPerm.reserve(s.iNumNz);
-#else
-	  rgIdx.clear();
-#endif
+	  iNumNzCurr = 0;
+	  iNumNzMax = s.iNumNz;
+	  rgData.clear();
+	  rgData.resize(iNumNzMax + iMaxDof - iMinDof + 1, SpGradCommon::iInvalidDof);
+	  pPerm = &rgData.front();
+	  pIdx = &rgData.front() + iNumNzMax - iMinDof;
+
+	  SP_GRAD_ASSERT(bValid());
      }
+
+#ifdef SP_GRAD_DEBUG
+     bool SpGradExpDofMap::bValid() const {
+	  SP_GRAD_ASSERT(iNumNzCurr >= 0);
+	  SP_GRAD_ASSERT(iNumNzMax >= 0);
+	  SP_GRAD_ASSERT(iNumNzCurr <= iNumNzMax);
+	  
+	  if (iNumNzCurr > 0) {
+	       SP_GRAD_ASSERT(iMinDof <= iMaxDof);
+	       SP_GRAD_ASSERT(iMinDof >= 1);
+	  }
+	  
+	  SP_GRAD_ASSERT(iNumNzMax == 0 || rgData.size() == static_cast<size_t>(iMaxDof - iMinDof + 1 + iNumNzMax));
+
+	  std::vector<bool> v(iMaxDof - iMinDof + 1, false);
+	  
+	  for (index_type i = 0; i < iNumNzCurr; ++i) {
+	       SP_GRAD_ASSERT(iGetLocalIndex(iGetGlobalIndex(i)) == i);
+
+	       index_type idx = pPerm[i] - iMinDof;
+
+	       SP_GRAD_ASSERT(!v[idx]);
+	       
+	       v[idx] = true;
+	  }
+
+	  for (index_type i = iNumNzCurr; i < iNumNzMax; ++i) {
+	       SP_GRAD_ASSERT(pPerm[i] == SpGradCommon::iInvalidDof);
+	  }
+
+	  for (index_type i = iMinDof; i <= iMaxDof; ++i) {
+	       if (pIdx[i] != SpGradCommon::iInvalidDof) {
+		    index_type p = iGetLocalIndex(i);	       
+		    SP_GRAD_ASSERT(iGetGlobalIndex(p) == i);
+	       }
+	  }
+	  
+	  return true;
+     }
+#endif
 }
 #endif

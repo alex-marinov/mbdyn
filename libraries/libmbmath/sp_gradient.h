@@ -73,9 +73,18 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(bValid());
      }
 
+     SpGradient::SpGradient(doublereal d)
+	  :SpGradient(pGetNullData()) {
+
+	  ResizeReset(d, 0);
+	  
+	  SP_GRAD_ASSERT(bValid());
+     }
+
      SpGradient::SpGradient(const SpGradient& g)
 	  :SpGradient(g.pData) {
 
+	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT(g.bValid());
      }
 
@@ -121,18 +130,29 @@ namespace sp_grad {
      SpGradient::~SpGradient() {
 	  SP_GRAD_ASSERT(bValid());
 
-	  Free();
+	  Cleanup(); // Avoid incrementing oNullData.iRefCnt here, because it could overflow
      }
 
      SpGradient& SpGradient::operator=(const SpGradient& g) {
 	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT(g.bValid());
 
-	  Assign(g);
+	  if (&g == this) {
+	       return *this;
+	  }
+	  
+	  Cleanup();
+
+	  pData = g.pData;
+	  ++pData->iRefCnt;
+
+	  if (pData->pOwner) {
+	       pData->pOwner->Attach(this);
+	  }
 
 	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT(g.bValid());
-
+	  
 	  return *this;
      }
 
@@ -176,7 +196,9 @@ namespace sp_grad {
      SpGradient& SpGradient::operator+=(const SpGradBase<Expr>& g) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  AssignOper<AssignAdd>(g);
+	  typedef util::ExprEvalHelper<std::remove_reference<Expr>::type::eExprEvalFlags> EvalHelp;
+	  
+	  EvalHelp::template AssignOper<SpGradBinPlus, Expr>(*this, g);
 
 	  SP_GRAD_ASSERT(bValid());
 
@@ -187,7 +209,9 @@ namespace sp_grad {
      SpGradient& SpGradient::operator-=(const SpGradBase<Expr>& g) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  AssignOper<AssignSub>(g);
+	  typedef util::ExprEvalHelper<std::remove_reference<Expr>::type::eExprEvalFlags> EvalHelp;
+	  
+	  EvalHelp::template AssignOper<SpGradBinMinus, Expr>(*this, g);	 
 
 	  SP_GRAD_ASSERT(bValid());
 
@@ -197,7 +221,7 @@ namespace sp_grad {
      SpGradient& SpGradient::operator+=(doublereal b) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  MakeUnique();
+	  UniqueOwner();
 
 	  pData->dVal += b;
 
@@ -209,7 +233,7 @@ namespace sp_grad {
      SpGradient& SpGradient::operator-=(doublereal b) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  MakeUnique();
+	  UniqueOwner();
 
 	  pData->dVal -= b;
 
@@ -222,7 +246,9 @@ namespace sp_grad {
      SpGradient& SpGradient::operator*=(const SpGradBase<Expr>& g) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  AssignOper<AssignMul>(g);
+	  typedef util::ExprEvalHelper<std::remove_reference<Expr>::type::eExprEvalFlags> EvalHelp;
+	  
+	  EvalHelp::template AssignOper<SpGradBinMult, Expr>(*this, g);	 
 
 	  SP_GRAD_ASSERT(bValid());
 
@@ -233,31 +259,49 @@ namespace sp_grad {
      SpGradient& SpGradient::operator/=(const SpGradBase<Expr>& g) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  AssignOper<AssignDiv>(g);
+	  typedef util::ExprEvalHelper<std::remove_reference<Expr>::type::eExprEvalFlags> EvalHelp;
+	  
+	  EvalHelp::template AssignOper<SpGradBinDiv, Expr>(*this, g);	 	  
 
 	  SP_GRAD_ASSERT(bValid());
 
 	  return *this;
      }
 
-     SpGradient& SpGradient::operator*=(doublereal b) {
+     SpGradient& SpGradient::operator*=(const doublereal v) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  MakeUnique();
+	  UniqueOwner();
 
-	  AssignOper<AssignMulConst>(b);
+	  pData->dVal *= v;
+
+	  SpDerivRec* pCurr = pData->rgDer;
+	  SpDerivRec* pEnd = pCurr + pData->iSizeCurr;
+
+	  while (pCurr < pEnd) {
+	       pCurr->dDer *= v;
+	       ++pCurr;
+	  }
 
 	  SP_GRAD_ASSERT(bValid());
 
 	  return *this;
      }
 
-     SpGradient& SpGradient::operator/=(doublereal b) {
+     SpGradient& SpGradient::operator/=(const doublereal v) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  MakeUnique();
+	  UniqueOwner();
 
-	  AssignOper<AssignDivConst>(b);
+	  pData->dVal /= v;
+
+	  SpDerivRec* pCurr = pData->rgDer;
+	  SpDerivRec* pEnd = pCurr + pData->iSizeCurr;
+
+	  while (pCurr < pEnd) {
+	       pCurr->dDer /= v;
+	       ++pCurr;
+	  }
 
 	  SP_GRAD_ASSERT(bValid());
 
@@ -287,7 +331,7 @@ namespace sp_grad {
 	  pData->dVal = dVal;
 	  pData->rgDer[0].iDof = iDof;
 	  pData->rgDer[0].dDer = dDer;
-	  pData->bCompressed = true;
+	  pData->uFlags = SpDerivData::DER_SORTED | SpDerivData::DER_UNIQUE;
 
 	  SP_GRAD_ASSERT(bValid());
      }
@@ -306,7 +350,7 @@ namespace sp_grad {
      }
 
      void SpGradient::ResizeReset(doublereal& g, doublereal dVal, index_type) {
-	  g = dVal;
+     	  g = dVal;
      }
 
      void SpGradient::SetValuePreserve(doublereal dVal) {
@@ -314,15 +358,8 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(pData != pGetNullData());
 
 	  pData->dVal = dVal;
-	  pData->bCompressed = false;
-     }
 
-     void SpGradient::SetValuePreserve(SpGradient& g, doublereal dVal) {
-	  g.SetValuePreserve(dVal);
-     }
-
-     void SpGradient::SetValuePreserve(doublereal& g, doublereal dVal) {
-	  g = dVal;
+	  SP_GRAD_ASSERT(bValid());
      }
 
      template <typename Expr>
@@ -353,7 +390,7 @@ namespace sp_grad {
      doublereal SpGradient::dGetDeriv(index_type iDof) const {
 	  SP_GRAD_ASSERT(bValid());
 
-	  MaybeCompress();
+	  MaybeSort();
 
 	  auto pRec = pFindRec(iDof);
 
@@ -363,12 +400,20 @@ namespace sp_grad {
      }
 
      void SpGradient::InsertDeriv(SpGradient& g, doublereal dCoef) const {
+	  SP_GRAD_ASSERT(bValid());
+	  SP_GRAD_ASSERT(g.bValid());
+	  
 	  for (const auto& r: *this) {
 	       g.pInsertRec(r.iDof, r.dDer * dCoef);
 	  }
+
+	  SP_GRAD_ASSERT(bValid());
+	  SP_GRAD_ASSERT(g.bValid());	  
      }
 
      void SpGradient::InsertDof(SpGradExpDofMap& oExpDofMap) const {
+	  SP_GRAD_ASSERT(bValid());
+
 	  for (const auto& r: *this) {
 	       oExpDofMap.InsertDof(r.iDof);
 	  }
@@ -382,6 +427,9 @@ namespace sp_grad {
      }
 
      void SpGradient::AddDeriv(SpGradient& g, const doublereal dCoef, const SpGradExpDofMap& oDofMap) const {
+	  SP_GRAD_ASSERT(g.bValid());
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  
 	  SpDerivRec* const p = g.pData->rgDer;
 
 	  SP_GRAD_ASSERT(g.pData != pGetNullData());
@@ -392,10 +440,12 @@ namespace sp_grad {
 
 	       SP_GRAD_ASSERT(i >= 0);
 	       SP_GRAD_ASSERT(i < g.pData->iSizeCurr);
-	       SP_GRAD_ASSERT(p[i].iDof == r.iDof);
-
+	       SP_GRAD_ASSERT(p[i].iDof == r.iDof);	     
 	       p[i].dDer += dCoef * r.dDer;
 	  }
+
+	  SP_GRAD_ASSERT(g.bValid());
+	  SP_GRAD_ASSERT(oDofMap.bValid());
      }
 
      void SpGradient::AddDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef, const SpGradExpDofMap& oDofMap) {
@@ -403,20 +453,14 @@ namespace sp_grad {
      }
 
      const SpDerivRec* SpGradient::begin() const {
-	  SP_GRAD_ASSERT(bValid());
-
 	  return pData->rgDer;
      }
 
      const SpDerivRec* SpGradient::end() const {
-	  SP_GRAD_ASSERT(bValid());
-
 	  return pData->rgDer + pData->iSizeCurr;
      }
 
      index_type SpGradient::iGetSize() const {
-	  SP_GRAD_ASSERT(bValid());
-
 	  return pData->iSizeCurr;
      }
 
@@ -430,6 +474,7 @@ namespace sp_grad {
 
      template <typename AITER, typename BITER>
      void SpGradient::MapInnerProduct(AITER pAFirst, AITER pALast, index_type iAOffset, BITER pBFirst, BITER pBLast, index_type iBOffset) {
+	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT((pBLast - pBFirst) / iBOffset == (pALast - pAFirst) / iAOffset);
 	  SP_GRAD_ASSERT((pALast - pAFirst) % iAOffset == 0);
 	  SP_GRAD_ASSERT((pBLast - pBFirst) % iBOffset == 0);
@@ -441,12 +486,18 @@ namespace sp_grad {
 
 	  SpGradExpDofMap oDofMap(s);
 
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+
 	  InnerProductInsertDof(pAFirst, pALast, iAOffset, oDofMap);
 	  InnerProductInsertDof(pBFirst, pBLast, iBOffset, oDofMap);
-
+	  
 	  oDofMap.InsertDone();
 
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+
 	  MapInnerProduct(pAFirst, pALast, iAOffset, pBFirst, pBLast, iBOffset, oDofMap);
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
      template <typename AITER, typename BITER>
@@ -462,7 +513,11 @@ namespace sp_grad {
 
 	  SP_GRAD_ASSERT(bValid());
 
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  
 	  InitDeriv(oDofMap);
+
+	  SP_GRAD_ASSERT(oDofMap.bValid());
 
 	  while (pAFirst < pALast) {
 	       const auto& ai = *pAFirst;
@@ -479,6 +534,7 @@ namespace sp_grad {
 	       pBFirst += iBOffset;
 	  }
 
+	  SP_GRAD_ASSERT(oDofMap.bValid());
 	  SP_GRAD_ASSERT(bValid());
      }
 
@@ -514,7 +570,7 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(bValid());
      }
 
-     void SpGradient::MakeUnique() {
+     void SpGradient::UniqueOwner() {
 	  Allocate(pData->iSizeRes, pData->iSizeCurr, ALLOC_UNIQUE);
      }
 
@@ -545,17 +601,11 @@ namespace sp_grad {
 	  f.InsertDeriv(g, dCoef);
      }
 
-     void SpGradient::InsertDeriv(const doublereal&, SpGradient&, doublereal) {
+     void SpGradient::Sort(doublereal) {
      }
 
-     void SpGradient::InsertDeriv(const doublereal&, doublereal&, doublereal) {
-     }
-
-     void SpGradient::Compress(doublereal) {
-     }
-
-     void SpGradient::Compress(SpGradient& g) {
-	  g.Compress();
+     void SpGradient::Sort(SpGradient& g) {
+	  g.Sort();
      }
 
      void SpGradient::GetDofStat(const SpGradient& g, SpGradDofStat& s) {
@@ -577,72 +627,54 @@ namespace sp_grad {
 	  return offsetof(SpDerivData, rgDer[iSizeRes]);
      }
 
-     void SpGradient::Free() {
+     void SpGradient::Cleanup() {
+	  SP_GRAD_ASSERT(bValid());
+	  
 	  --pData->iRefCnt;
 
 	  SP_GRAD_ASSERT(pData->iRefCnt >= 0);
 
 	  if (pData->pOwner) {
 	       pData->pOwner->Detach(this);
-	  } else if (!pData->iRefCnt) {
+	  } else if (!pData->iRefCnt && pData != &oNullData) {
 	       std::free(pData);
-	  }
+	  }	  
+     }
+     
+     void SpGradient::Free() {	  
+	  Cleanup();
 
 	  pData = pGetNullData();
 
 	  SP_GRAD_ASSERT(pData->iRefCnt >= 0);
 
 	  ++pData->iRefCnt;
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
      constexpr  bool SpGradient::bRecCompareWithDof(const SpDerivRec& a, index_type b) {
 	  return a.iDof < b;
      }
 
-     doublereal SpGradient::AssignAdd(doublereal a, doublereal b, doublereal& df_db) {
-	  df_db = 1.;
-	  return a + b;
-     }
-
-     doublereal SpGradient::AssignSub(doublereal a, doublereal b, doublereal& df_db) {
-	  df_db = -1.;
-	  return a - b;
-     }
-
-     doublereal SpGradient::AssignMul(doublereal a, doublereal b, doublereal& df_da, doublereal& df_db) {
-	  df_da = b;
-	  df_db = a;
-	  return a * b;
-     }
-
-     doublereal SpGradient::AssignDiv(doublereal a, doublereal b, doublereal& df_da, doublereal& df_db) {
-	  df_da = 1. / b;
-	  df_db = -a / (b * b);
-	  return a / b;
-     }
-
-     constexpr  doublereal SpGradient::AssignMulConst(doublereal a, doublereal b) {
-	  return a * b;
-     }
-
-     constexpr  doublereal SpGradient::AssignDivConst(doublereal a, doublereal b) {
-	  return a / b;
-     }
-
-     void SpGradient::MaybeCompress() const {
-	  if (!bIsCompressed()) {
-	       const_cast<SpGradient*>(this)->Compress();
+     void SpGradient::MaybeSort() const {
+	  if (!bIsSorted()) {
+	       const_cast<SpGradient*>(this)->Sort();
 	  }
 
-	  SP_GRAD_ASSERT(bIsCompressed());
+	  SP_GRAD_ASSERT(bIsSorted());
      }
 
-     bool SpGradient::bIsCompressed() const {
-	  return pData->bCompressed;
+     bool SpGradient::bIsSorted() const {
+	  return (pData->uFlags & SpDerivData::DER_SORTED) != 0u;
+     }
+
+     bool SpGradient::bIsUnique() const {
+	  return (pData->uFlags & SpDerivData::DER_UNIQUE) != 0u;
      }
 
      SpDerivRec* SpGradient::pFindRec(index_type iDof) const {
-	  SP_GRAD_ASSERT(bIsCompressed());
+	  SP_GRAD_ASSERT(bIsSorted());
 
 	  auto pBegin = pData->rgDer;
 	  auto pEnd = pData->rgDer + pData->iSizeCurr;
@@ -679,12 +711,15 @@ namespace sp_grad {
 
 	       std::uninitialized_copy(std::begin(rgDer), std::end(rgDer), pData->rgDer);
 
-	       SP_GRAD_ASSERT(!bIsCompressed());
+	       SP_GRAD_ASSERT(!bIsSorted());
+	       SP_GRAD_ASSERT(!bIsUnique());
 	  }
      }
 
      template <typename Expr>
      void SpGradient::Assign(const SpGradBase<Expr>& g) {
+	  SP_GRAD_ASSERT(bValid());
+	  
 	  SpGradient f;
 
 	  if (!g.bHaveRefTo(*this)) {
@@ -699,11 +734,15 @@ namespace sp_grad {
 
 	  *this = std::move(f);
 
-	  SP_GRAD_ASSERT(!bIsCompressed());
+	  SP_GRAD_ASSERT(!bIsUnique());
+	  SP_GRAD_ASSERT(!bIsSorted());
+	  SP_GRAD_ASSERT(bValid());
      }
 
      template <typename Expr>
      void SpGradient::MapAssign(const SpGradBase<Expr>& g) {
+	  SP_GRAD_ASSERT(bValid());
+	  
 	  SpGradient f;
 
 	  if (!g.bHaveRefTo(*this)) {
@@ -727,28 +766,36 @@ namespace sp_grad {
 	  f.InitDeriv(oDofMap);
 
 	  g.AddDeriv(f, 1., oDofMap);
-
+	  
 	  *this = std::move(f);
 
-	  SP_GRAD_ASSERT(!bIsCompressed());
+	  SP_GRAD_ASSERT(!bIsSorted());
 	  SP_GRAD_ASSERT(bIsUnique());
+	  SP_GRAD_ASSERT(bValid());
      }
-
+     
      void SpGradient::InitDeriv(const SpGradExpDofMap& oExpDofMap) {
+	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT(pData != pGetNullData());       
+
+	  pData->uFlags |= SpDerivData::DER_UNIQUE;
 	  
 	  for (index_type i = 0; i < oExpDofMap.iGetLocalSize(); ++i) {
 	       pInsertRec(oExpDofMap.iGetGlobalIndex(i), 0.);
 	  }
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
-     template <doublereal AssOpFn(doublereal, doublereal, doublereal&), typename Expr>
+     template <typename Func, typename Expr>
      void SpGradient::AssignOper(const SpGradBase<Expr>& g) {
-	  const doublereal a = dGetValue();
-	  const doublereal b = g.dGetValue();
-	  // Assume df_da == 1
-	  doublereal df_db;
-	  const doublereal f = AssOpFn(a, b, df_db);
+	  SP_GRAD_ASSERT(bValid());
+	  
+	  const doublereal u = dGetValue();
+	  const doublereal v = g.dGetValue();
+	  const doublereal f = Func::f(u, v);
+	  const doublereal df_du = Func::df_du(u, v);
+	  const doublereal df_dv = Func::df_dv(u, v);
 	  const index_type iSizePrev = iGetSize();
 
 	  SpGradient r;
@@ -763,49 +810,125 @@ namespace sp_grad {
 
 	  r.pData->dVal = f;
 
-	  g.InsertDeriv(r, df_db);
+	  Func::update_u(df_du, r.pData->rgDer, r.pData->rgDer + r.pData->iSizeCurr);
+	  
+	  g.InsertDeriv(r, df_dv);
 
+	  r.pData->uFlags = 0u;
+	  
 	  *this = std::move(r);
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
-     template <doublereal AssOpFn(doublereal, doublereal, doublereal&, doublereal&), typename Expr>
-     void SpGradient::AssignOper(const SpGradBase<Expr>& g) {
-	  const doublereal a = dGetValue();
-	  const doublereal b = g.dGetValue();
-	  doublereal df_da, df_db;
-	  const doublereal f = AssOpFn(a, b, df_da, df_db);
-
+     template <typename Func, typename Expr>
+     void SpGradient::MapAssignOper(const SpGradBase<Expr>& g) {
+	  SP_GRAD_ASSERT(bValid());
+	  
+	  const doublereal u = dGetValue();
+	  const doublereal v = g.dGetValue();
+	  const doublereal f = Func::f(u, v);
+	  const doublereal df_du = Func::df_du(u, v);
+	  const doublereal df_dv = Func::df_dv(u, v);
+	  
 	  SpGradient r;
 
-	  r.Allocate(iGetSize() + g.iGetSize(), 0, ALLOC_RESIZE);
+	  if (!g.bHaveRefTo(*this)) {
+	       r = std::move(*this);
+	  } else {
+	       r = *this;
+	  }
 
-	  r.pData->dVal = f;
+	  if (!r.bIsUnique()) {
+	       r.MakeUnique();
+	  }
+	  
+	  SpGradDofStat s;
 
-	  InsertDeriv(r, df_da);
-	  g.InsertDeriv(r, df_db);
+	  r.GetDofStat(s);
+	  g.GetDofStat(s);
+
+	  SpGradExpDofMap oDofMap(s);
+
+	  r.InsertDof(oDofMap);
+	  g.InsertDof(oDofMap);
+	  
+	  oDofMap.InsertDone();
+
+	  r.template InitDerivAssign<Func>(f, df_du, oDofMap);	     
+
+	  g.AddDeriv(r, df_dv, oDofMap);
 
 	  *this = std::move(r);
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
-     template<doublereal AssOpFn(doublereal, doublereal)>
-     void SpGradient::AssignOper(doublereal b) {
-	  if (pData == pGetNullData()) {
-	       // f = 0 * b
-	       // f' = 0' * b + 0 * b'
-	       return;
+     template <typename Func>
+     void SpGradient::InitDerivAssign(const doublereal f, const doublereal df_du, const SpGradExpDofMap& oDofMap) {
+	  SP_GRAD_ASSERT(bValid());
+	  SP_GRAD_ASSERT(bIsUnique());
+
+	  const index_type iNumNz = oDofMap.iGetLocalSize();
+	  
+	  Allocate(iNumNz, iGetSize(), ALLOC_RESIZE);
+	  
+	  pData->dVal = f; // Must execute after Allocate
+
+	  SP_GRAD_ASSERT(bValid());
+	  
+	  SP_GRAD_ASSERT(iNumNz <= pData->iSizeRes);
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  
+	  SpDerivRec* const pBegin = pData->rgDer;
+	  SpDerivRec* pCurrEnd = pBegin + pData->iSizeCurr;
+	  SpDerivRec* const pEndOfStorage = pBegin + iNumNz;
+
+	  Func::update_u(df_du, pBegin, pCurrEnd);
+
+#ifdef SP_GRAD_DEBUG
+	  for (const SpDerivRec* pCurr = pBegin; pCurr < pCurrEnd; ++pCurr) {
+	       SP_GRAD_ASSERT(pCurr->iDof == oDofMap.iGetGlobalIndex(pCurr - pBegin));
+	  }
+#endif
+
+	  SP_GRAD_ASSERT(bValid());
+	  
+	  while (pCurrEnd < pEndOfStorage) {
+	       pCurrEnd->iDof = oDofMap.iGetGlobalIndex(pCurrEnd - pBegin);
+	       pCurrEnd->dDer = 0.;
+	       ++pCurrEnd;
 	  }
 
-	  const doublereal a = pData->dVal;
-	  const doublereal f = AssOpFn(a, b);
-	  const doublereal df_da = b;
-
-	  pData->dVal = f;
-
-	  for (SpDerivRec* p = pData->rgDer; p < pData->rgDer + pData->iSizeCurr; ++p) {
-	       p->dDer = AssOpFn(p->dDer, df_da);
+#ifdef SP_GRAD_DEBUG
+	  for (const SpDerivRec* pCurr = pBegin; pCurr < pEndOfStorage; ++pCurr) {
+	       SP_GRAD_ASSERT(pCurr->iDof == oDofMap.iGetGlobalIndex(pCurr - pBegin));
 	  }
+#endif
+
+	  pData->iSizeCurr = iNumNz;
+	  pData->uFlags |= SpDerivData::DER_UNIQUE;
+
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  SP_GRAD_ASSERT(bValid());
      }
 
+     template <typename Func>
+     void SpGradient::InitDerivAssign(const doublereal f, const doublereal df_du) {
+	  SP_GRAD_ASSERT(bValid());
+	  
+	  Allocate(pData->iSizeRes, pData->iSizeCurr, ALLOC_UNIQUE);
+
+	  pData->dVal = f; // Must execute after Allocate
+	  
+	  SpDerivRec* pBegin = pData->rgDer;
+	  SpDerivRec* pCurrEnd = pBegin + pData->iSizeCurr;
+
+	  Func::update_u(df_du, pBegin, pCurrEnd);
+
+	  SP_GRAD_ASSERT(bValid());
+     }
+     
      void SpGradient::InnerProductAddDer(const SpGradient& g, const doublereal dVal) {
 	  auto pFirst = g.begin();
 	  auto pLast = g.end();
@@ -818,10 +941,14 @@ namespace sp_grad {
 
      template <typename ITER>
      void SpGradient::InnerProductInsertDof(ITER pFirst, ITER pLast, index_type iOffset, SpGradExpDofMap& oDofMap) {
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  
 	  while (pFirst < pLast) {
 	       InsertDof(*pFirst, oDofMap);
 	       pFirst += iOffset;
 	  }
+
+	  SP_GRAD_ASSERT(oDofMap.bValid());
      }
 
      template <typename ITER>
@@ -837,7 +964,12 @@ namespace sp_grad {
      }
 
      void SpGradient::InnerProductAddDer(const SpGradient& g, doublereal dVal, const SpGradExpDofMap& oDofMap) {
+	  SP_GRAD_ASSERT(bValid());
+	  SP_GRAD_ASSERT(oDofMap.bValid());
+	  
 	  g.AddDeriv(*this, dVal, oDofMap);
+
+	  SP_GRAD_ASSERT(bValid());
      }
 
      template <typename ITER>
@@ -853,7 +985,8 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(oNullData.iSizeCurr == 0);
 	  SP_GRAD_ASSERT(oNullData.iSizeRes == 0);
 	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 1);
-	  SP_GRAD_ASSERT(oNullData.bCompressed);
+	  SP_GRAD_ASSERT(oNullData.uFlags & SpDerivData::DER_UNIQUE);
+	  SP_GRAD_ASSERT(oNullData.uFlags & SpDerivData::DER_SORTED);
 	  SP_GRAD_ASSERT(oNullData.pOwner == nullptr);
 	  
 	  return &oNullData;

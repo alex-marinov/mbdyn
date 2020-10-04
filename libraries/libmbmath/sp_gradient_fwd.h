@@ -52,9 +52,11 @@ namespace sp_grad {
      public:
 	  friend util::SpMatrixDataTraits<SpGradient>;
 
-	  static constexpr ExprEvalFlags eExprEvalFlags = ExprEvalUncompressed;
+	  static constexpr ExprEvalFlags eExprEvalFlags = ExprEvalDuplicate;
 
 	  inline SpGradient();
+
+	  inline explicit SpGradient(doublereal d);
 
 	  inline SpGradient(const SpGradient& g);
 
@@ -104,16 +106,10 @@ namespace sp_grad {
 
 	  inline void ResizeReset(doublereal dVal, index_type iSize);
 
-	  inline void SetValuePreserve(doublereal dVal);
-
-	  static inline void SetValuePreserve(SpGradient& g, doublereal dVal);
-
-	  static inline void SetValuePreserve(doublereal& g, doublereal dVal);
-
 	  static inline void ResizeReset(SpGradient& g, doublereal dVal, index_type iSize);
 
 	  static inline void ResizeReset(doublereal& g, doublereal dVal, index_type iSize);
-
+	  
 	  template <typename Expr>
 	  inline constexpr bool bHaveRefTo(const SpGradBase<Expr>&) const;
 
@@ -185,8 +181,6 @@ namespace sp_grad {
 		       BITER pBLast,
 		       index_type iBOffset);
 
-	  inline void MakeUnique();
-
 	  template <typename Expr>
 	  static constexpr inline doublereal
 	  dGetValue(const SpGradBase<Expr>& a);
@@ -202,12 +196,12 @@ namespace sp_grad {
 	  iGetSize(doublereal a);
 
 	  static inline void InsertDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef);
-	  static inline void InsertDeriv(const doublereal& f, SpGradient& g, doublereal dCoef);
-	  static inline void InsertDeriv(const doublereal& f, doublereal& g, doublereal dCoef);
+	  static inline void InsertDeriv(const doublereal& f, SpGradient& g, doublereal dCoef) noexcept {}
+	  static inline void InsertDeriv(const doublereal& f, doublereal& g, doublereal dCoef) noexcept {}
+	  
+	  static inline void Sort(doublereal);
 
-	  static inline void Compress(doublereal);
-
-	  static inline void Compress(SpGradient& g);
+	  static inline void Sort(SpGradient& g);
 
 	  inline static void GetDofStat(const SpGradient& g, SpGradDofStat& s);
 
@@ -223,19 +217,35 @@ namespace sp_grad {
 	  template <typename Expr>
 	  inline void MapAssign(const SpGradBase<Expr>& g);
 
+	  template <typename Func, typename Expr>
+	  inline void AssignOper(const SpGradBase<Expr>& g);
+
+	  template <typename Func, typename Expr>
+	  inline void MapAssignOper(const SpGradBase<Expr>& g);	  
+
+	  template <typename Func>
+	  inline void InitDerivAssign(doublereal f, doublereal df_du, const SpGradExpDofMap& oExpDofMap);
+
+	  template <typename Func>
+	  inline void InitDerivAssign(doublereal f, doublereal df_du);
+	  
 	  inline void InitDeriv(const SpGradExpDofMap& oExpDofMap);
+	  
+	  void Sort();
 
-	  void Compress();
+	  inline bool bIsSorted() const;
+	  inline bool bIsUnique() const;
 
-	  inline bool bIsCompressed() const;
-
+	  void MakeUnique();
+	  
 #ifdef SP_GRAD_DEBUG
 	  bool bValid() const;
-	  bool bIsUnique() const;
+	  bool bCheckUnique() const;
 	  static bool bIsUnique(const SpGradient& g) { return g.bIsUnique(); }
-	  static bool bIsUnique(doublereal) { return true; }
+	  static bool bIsUnique(doublereal) { return true; }	  
 	  void PrintValue(std::ostream& os) const;
 	  void PrintDeriv(std::ostream& os, doublereal dCoef) const;
+	  static index_type iGetRefCntNullData() { return pGetNullData()->iRefCnt; }
 #endif
      private:
 	  enum AllocFlags {
@@ -243,8 +253,12 @@ namespace sp_grad {
 	       ALLOC_UNIQUE
 	  };
 
+	  inline void UniqueOwner();
+	  
 	  inline explicit SpGradient(SpDerivData* pData);
 
+	  inline void SetValuePreserve(doublereal dVal);
+	  
 	  inline static constexpr size_t uGetAllocSize(index_type iSizeRes);
 
 	  inline static SpDerivData* pAllocMem(SpDerivData* ptr, index_type iSize);
@@ -252,22 +266,15 @@ namespace sp_grad {
 	  void Allocate(index_type iSizeRes, index_type iSizeInit, AllocFlags eAllocFlags);
 
 	  inline void Free();
+	  inline void Cleanup();
 
 	  inline constexpr static bool bRecCompareWithDof(const SpDerivRec& a, index_type b);
-
-	  inline static doublereal AssignAdd(doublereal a, doublereal b, doublereal& df_db);
-
-	  inline static doublereal AssignSub(doublereal a, doublereal b, doublereal& df_db);
-
-	  inline static doublereal AssignMul(doublereal a, doublereal b, doublereal& df_da, doublereal& df_db);
-
-	  inline static doublereal AssignDiv(doublereal a, doublereal b, doublereal& df_da, doublereal& df_db);
 
 	  inline constexpr static doublereal AssignMulConst(doublereal a, doublereal b);
 
 	  inline constexpr static doublereal AssignDivConst(doublereal a, doublereal b);
 
-	  inline void MaybeCompress() const;
+	  inline void MaybeSort() const;
 
 	  inline SpDerivRec* pFindRec(index_type iDof) const;
 
@@ -275,10 +282,7 @@ namespace sp_grad {
 
 	  template <typename CONT_TYPE>
 	  inline void CopyDeriv(doublereal dVal, const CONT_TYPE& rgDer);
-
-	  template <doublereal AssOpFn(doublereal, doublereal, doublereal&), typename Expr>
-	  inline void AssignOper(const SpGradBase<Expr>& g);
-
+	  
 	  template <doublereal AssOpFn(doublereal, doublereal, doublereal&, doublereal&), typename Expr>
 	  inline void AssignOper(const SpGradBase<Expr>& g);
 

@@ -115,11 +115,11 @@ namespace sp_grad {
 
      template <typename Expr>
      constexpr inline SpGradComprExpr<const SpGradBase<Expr>&>
-     EvalCompressed(const SpGradBase<Expr>& g) noexcept {
-	  return decltype(EvalCompressed(g))(g);
+     EvalUnique(const SpGradBase<Expr>& g) noexcept {
+	  return decltype(EvalUnique(g))(g);
      }
 
-     inline constexpr doublereal EvalCompressed(doublereal d) noexcept { return d; }
+     inline constexpr doublereal EvalUnique(doublereal d) noexcept { return d; }
 
 #ifdef SP_GRAD_DEBUG
      template <typename Expr>

@@ -51,7 +51,7 @@
 #include "sp_gradient_op.h"
 
 namespace sp_grad {
-     SpDerivData SP_GRAD_THREAD_LOCAL SpGradient::oNullData{0., 0, 0, true, 1, nullptr};
+     SpDerivData SP_GRAD_THREAD_LOCAL SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};
 
      SpDerivData* SpGradient::pAllocMem(SpDerivData* ptr, index_type iSize) {
 	  ptr = reinterpret_cast<SpDerivData*>(std::realloc(ptr, uGetAllocSize(iSize)));
@@ -77,8 +77,9 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT((bHaveOwner && eAllocFlags == ALLOC_RESIZE) ? (pData->iSizeRes == 0 || pData->iSizeRes >= iSizeRes) : true);
 
 	  if (bHaveOwner && pData->iSizeRes >= iSizeRes && eAllocFlags == ALLOC_RESIZE) {
+	       SP_GRAD_ASSERT(pData != pGetNullData());
 	       pData->iSizeCurr = iSizeInit;
-	       pData->bCompressed = false;
+	       pData->uFlags = 0u;
 	       return;
 	  } else if (pData->pOwner || pData->iRefCnt > 1 || pData->iSizeRes < iSizeRes) {
 	       pMem = pAllocMem(nullptr, iSizeRes);
@@ -89,14 +90,20 @@ namespace sp_grad {
 	       Free();
 	  } else {
 	       SP_GRAD_ASSERT(!pData->pOwner);
-
+	       SP_GRAD_ASSERT(pData != pGetNullData());
+	       
 	       pMem = pAllocMem(pData, iSizeRes);
 	  }
 
-	  pData = new(pMem) SpDerivData(dVal, iSizeRes, iSizeInit, false, 1, nullptr);
+	  if (pData == pGetNullData()) {
+	       // Avoid possible integer overflow of oNullData.iRefCnt
+	       --pData->iRefCnt;
+	  }
+	  
+	  pData = new(pMem) SpDerivData(dVal, iSizeRes, iSizeInit, 0u, 1, nullptr);
      }
 
-     void SpGradient::Compress() {
+     void SpGradient::Sort() {
 	  auto ibeg = pData->rgDer;
 	  auto iend = pData->rgDer + pData->iSizeCurr;
 
@@ -132,9 +139,13 @@ namespace sp_grad {
 	       }
 	  }
 
-	  pData->bCompressed = true;
+	  pData->uFlags = SpDerivData::DER_SORTED | SpDerivData::DER_UNIQUE;
      }
 
+     void SpGradient::MakeUnique() {
+	  *this = EvalUnique(*this);
+     }
+     
 #ifdef SP_GRAD_DEBUG
      bool SpGradient::bValid() const {
 	  SP_GRAD_ASSERT(pData != nullptr);
@@ -144,19 +155,21 @@ namespace sp_grad {
 	       SP_GRAD_ASSERT(pData->iSizeCurr == 0);
 	       SP_GRAD_ASSERT(pData->iSizeRes == 0);
 	       SP_GRAD_ASSERT(pData->iRefCnt >= 1);
-	       SP_GRAD_ASSERT(pData->bCompressed);
+	       SP_GRAD_ASSERT(pData->uFlags & SpDerivData::DER_SORTED);
+	       SP_GRAD_ASSERT(pData->uFlags & SpDerivData::DER_UNIQUE);
 	  }
 
 	  SP_GRAD_ASSERT(std::isfinite(pData->dVal));
 	  SP_GRAD_ASSERT(pData->iSizeRes >= 0);
 	  SP_GRAD_ASSERT(pData->iSizeCurr <= pData->iSizeRes);
 	  SP_GRAD_ASSERT(pData->iRefCnt > 0);
-
+	  SP_GRAD_ASSERT(!bIsUnique() || bCheckUnique());
+	  
 	  for (index_type i = 0; i < pData->iSizeCurr; ++i) {
 	       SP_GRAD_ASSERT(std::isfinite(pData->rgDer[i].dDer));
 	       SP_GRAD_ASSERT(pData->rgDer[i].iDof > 0);
 	       
-	       if (i > 0 && pData->bCompressed) {
+	       if (i > 0 && bIsSorted()) {
 	       	    SP_GRAD_ASSERT(pData->rgDer[i].iDof > pData->rgDer[i - 1].iDof);
 	       }
 	  }
@@ -164,7 +177,7 @@ namespace sp_grad {
 	  return true;
      }
 
-     bool SpGradient::bIsUnique() const {
+     bool SpGradient::bCheckUnique() const {
 	  SpGradDofStat s;
 	  
 	  GetDofStat(s);

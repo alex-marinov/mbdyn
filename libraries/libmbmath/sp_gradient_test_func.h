@@ -233,6 +233,18 @@ namespace sp_grad_test {
 			doublereal Dd[]);
 
      template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
+     void func_mat_add8a(const SpMatrixBase<TA, NumRows, NumCols>& A,
+			 const SpMatrixBase<TB, NumRows, NumCols>& B,
+			 const TC& c,
+			 SpMatrixBase<typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type, NumRows, NumCols>& D);
+
+     template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
+     void func_mat_add8b(const SpMatrixBase<TA, NumRows, NumCols>& A,
+			 const SpMatrixBase<TB, NumRows, NumCols>& B,
+			 const TC& c,
+			 SpMatrixBase<typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type, NumRows, NumCols>& D);
+     
+     template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
      void func_mat_add9(const SpMatrixBase<TA, NumRows, NumCols>& A,
 			const SpMatrixBase<TB, NumCols, NumRows>& B,
 			const TC& c,

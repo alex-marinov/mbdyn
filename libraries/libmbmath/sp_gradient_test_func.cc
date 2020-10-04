@@ -64,7 +64,7 @@ namespace sp_grad_test {
 #endif
      template <typename T>
      void func_scalar1_compressed(const T& u, const T& v, const T& w, doublereal e, T& f) {
-          f = EvalCompressed(((((3 * u + 2 * v) * (u - v) / (1 - w) * pow(fabs(u/w), v - 1) * sin(v) * cos(w) * (1 - tan(-w + v))) * e + 1. - 11. + 4.5 - 1.) * 3.5 / 2.8 + u - v) * w / u);
+          f = EvalUnique(((((3 * u + 2 * v) * (u - v) / (1 - w) * pow(fabs(u/w), v - 1) * sin(v) * cos(w) * (1 - tan(-w + v))) * e + 1. - 11. + 4.5 - 1.) * 3.5 / 2.8 + u - v) * w / u);
      }
 
      template
@@ -758,7 +758,7 @@ namespace sp_grad_test {
 
           for (index_type j = 0; j < iNumCols; ++j) {
                for (index_type i = 0; i < iNumRows; ++i) {
-                    b[i] += EvalCompressed(A[j * iNumRows + i] * x[j]);
+                    b[i] += EvalUnique(A[j * iNumRows + i] * x[j]);
                }
           }
      }
@@ -1210,7 +1210,7 @@ namespace sp_grad_test {
           SP_GRAD_ASSERT(A.iGetNumRows() == C.iGetNumRows());
           SP_GRAD_ASSERT(A.iGetNumCols() == C.iGetNumCols());
 
-          D = EvalCompressed(-A / 3. + (B * 5. - C / 4.) * 1.5);
+          D = EvalUnique(-A / 3. + (B * 5. - C / 4.) * 1.5);
      }
 
      template
@@ -1540,6 +1540,347 @@ namespace sp_grad_test {
                         const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
                         const SpGradient&,
                         SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+
+     template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
+     void func_mat_add8a(const SpMatrixBase<TA, NumRows, NumCols>& A,
+                        const SpMatrixBase<TB, NumRows, NumCols>& B,
+                        const TC& c,
+                        SpMatrixBase<typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type, NumRows, NumCols>& D) {
+
+	  typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TE;
+	  
+          SP_GRAD_ASSERT(A.iGetNumRows() == B.iGetNumRows());
+          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumCols());
+
+	  D = A;
+	  D /= 2.;
+	  D /= exp(c);
+	  D += B * 3.;
+	  D *= sin(c - 1.);
+
+	  SpMatrixBase<TE, NumRows, NumCols> E = B;
+	  
+	  E *= 0.25;
+	  E -= A * 5.;
+	  E *= cos(c + 1.);
+	  E /= pow(c - 1., 2);
+	  D += E;
+     }
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<doublereal>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<doublereal>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<doublereal>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<doublereal>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8a(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+     
+     template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
+     void func_mat_add8b(const SpMatrixBase<TA, NumRows, NumCols>& A,
+                        const SpMatrixBase<TB, NumRows, NumCols>& B,
+                        const TC& c,
+                        SpMatrixBase<typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type, NumRows, NumCols>& D) {
+
+	  typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TE;
+	  
+          SP_GRAD_ASSERT(A.iGetNumRows() == B.iGetNumRows());
+          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumCols());
+
+	  D = A;
+	  D /= 2.;
+	  D /= EvalUnique(exp(c));
+	  D += EvalUnique(B * 3.);
+	  D *= EvalUnique(sin(c - 1.));
+
+	  SpMatrixBase<TE, NumRows, NumCols> E = B;
+	  
+	  E *= 0.25;
+	  E -= EvalUnique(A * 5.);
+	  E *= EvalUnique(cos(c + 1.));
+	  E /= EvalUnique(pow(c - 1., 2));
+	  D += E;
+     }
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<doublereal>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<doublereal>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<doublereal>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal>&,
+                        const SpMatrixBase<SpGradient>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient>&,
+                        const SpMatrixBase<doublereal>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic1, iNumColsStatic1>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic1, iNumColsStatic1>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const doublereal&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
+
+     template
+     void func_mat_add8b(const SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpMatrixBase<doublereal, iNumRowsStatic2, iNumColsStatic2>&,
+                        const SpGradient&,
+                        SpMatrixBase<SpGradient, iNumRowsStatic2, iNumColsStatic2>&);
      
      template <typename TA, typename TB, typename TC, index_type NumRows, index_type NumCols>
      void func_mat_add9(const SpMatrixBase<TA, NumRows, NumCols>& A,
@@ -1552,7 +1893,7 @@ namespace sp_grad_test {
 
           D = Transpose((Transpose(Transpose(A) / (2. * exp(c))) + Transpose(B * 3)) * sin(c - 1) + (Transpose(B) / 4. - A * 5.) * (cos(c + 1) / pow(c - 1., 2)));
      }
-
+     
      template
      void func_mat_add9(const SpMatrixBase<SpGradient, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC>&,
                         const SpMatrixBase<SpGradient, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC>&,
@@ -1696,6 +2037,7 @@ namespace sp_grad_test {
                         const SpMatrixBase<doublereal, iNumColsStatic2, iNumRowsStatic2>&,
                         const SpGradient&,
                         SpMatrixBase<SpGradient, iNumColsStatic2, iNumRowsStatic2>&);
+
      
      template <typename TA, typename TB>
      void func_mat_mul10(const SpMatrixBase<TA>& A,
