@@ -52,12 +52,12 @@
 #include <dataman.h>
 #include <userelem.h>
 
-#include <gradient.h>
-#include <matvec.h>
-#include <matvecass.h>
-#include "module-triangular_contact.h"
+#ifdef USE_SPARSE_AUTODIFF
 
-#ifdef USE_AUTODIFF
+#include <sp_gradient.h>
+#include <sp_matrix_base.h>
+#include <sp_matvecass.h>
+#include "module-triangular_contact.h"
 
 class LugreData
 {
@@ -76,7 +76,7 @@ public:
 
 private:
      const DataManager* const pDM;
-     grad::Matrix<doublereal, 2, 2> Mk, Mk2, invMk2_sigma0, Ms, Ms2, sigma0, sigma1;
+     sp_grad::SpMatrixA<doublereal, 2, 2> Mk, Mk2, invMk2_sigma0, Ms, Ms2, sigma0, sigma1;
      doublereal beta, vs, gamma;
 };
 
@@ -88,9 +88,9 @@ public:
 
      template <typename T>
      void GetFrictionForce(doublereal dt,
-			   const grad::Vector<T, 2>& U,
+			   const sp_grad::SpColVector<T, 2>& U,
 			   const T& p,
-			   grad::Vector<T, 2>& tau);
+			   sp_grad::SpColVector<T, 2>& tau);
 
      void AfterConvergence();
 
@@ -120,15 +120,14 @@ public:
      }
 
 private:
-     void SaveStictionState(const grad::Vector<doublereal, 2>& z,
-			    const grad::Vector<doublereal, 2>& zP);
+     void SaveStictionState(const sp_grad::SpColVector<doublereal, 2>& z,
+			    const sp_grad::SpColVector<doublereal, 2>& zP);
 
-     template <grad::index_type N>
-     void SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>& z,
-			    const grad::Vector<grad::Gradient<N>, 2>& zP);
+     void SaveStictionState(const sp_grad::SpColVector<sp_grad::SpGradient, 2>& z,
+			    const sp_grad::SpColVector<sp_grad::SpGradient, 2>& zP);
 
      const LugreData* const pData;
-     grad::Vector<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
+     sp_grad::SpColVectorA<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
 };
 
 class TriangularContact: virtual public Elem, public UserDefinedElem
@@ -150,16 +149,16 @@ public:
 	    const VectorHandler& XPrimeCurr);
      template <typename T>
      inline void
-     AssRes(grad::GradientAssVec<T>& WorkVec,
+     AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	    doublereal dCoef,
-	    const grad::GradientVectorHandler<T>& XCurr,
-	    const grad::GradientVectorHandler<T>& XPrimeCurr,
-	    enum grad::FunctionCall func);
+	    const sp_grad::SpGradientVectorHandler<T>& XCurr,
+	    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+	    enum sp_grad::SpFunctionCall func);
      template <typename T>
      inline void
-     InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-		   const grad::GradientVectorHandler<T>& XCurr,
-		   enum grad::FunctionCall func);
+     InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+		   const sp_grad::SpGradientVectorHandler<T>& XCurr,
+		   enum sp_grad::SpFunctionCall func);
      virtual void AfterConvergence(const VectorHandler& X,
 				   const VectorHandler& XP);
      int iGetNumConnectedNodes(void) const;
@@ -257,28 +256,26 @@ private:
 
      void ContactSearch();
 
-     doublereal GetContactForce(doublereal dz, grad::LocalDofMap*) const;
+     doublereal GetContactForce(doublereal dz) const;
 
-     template <grad::index_type N>
-     grad::Gradient<N> GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const;
+     sp_grad::SpGradient GetContactForce(const sp_grad::SpGradient& dz) const;
 
      template <typename T>
      void
-     UnivAssRes(grad::GradientAssVec<T>& WorkVec,
+     UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 		doublereal dCoef,
-		const grad::GradientVectorHandler<T>& XCurr,
-		enum grad::FunctionCall func);
+		const sp_grad::SpGradientVectorHandler<T>& XCurr,
+		enum sp_grad::SpFunctionCall func);
 
      std::vector<TargetFace> rgTargetMesh;
      std::vector<ContactNode> rgContactMesh;
      const StructNode* pTargetNode;
      doublereal dSearchRadius;
-     grad::LocalDofMap oDofMap;
      const DifferentiableScalarFunction* pCL;
      const DataManager* const pDM;
      doublereal tCurr, tPrev;
-     static constexpr grad::index_type iNumDofGradient = 13;
-
+     static constexpr sp_grad::index_type iNumDofGradient = 13;
+     
      enum class FrictionModel {
 	  None,
 	  Lugre
@@ -295,7 +292,7 @@ LugreData::LugreData(const DataManager* pDM)
 
 void LugreData::ParseInput(const Elem* pParent, MBDynParser& HP)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
      if (HP.IsKeyWord("method")) {
 	  if (HP.IsKeyWord("explicit" "euler")) {
@@ -430,16 +427,16 @@ void LugreState::AfterConvergence()
 
 template <typename T>
 void LugreState::GetFrictionForce(const doublereal dt,
-				  const grad::Vector<T, 2>& U,
+				  const sp_grad::SpColVector<T, 2>& U,
 				  const T& p,
-				  grad::Vector<T, 2>& tau)
+				  sp_grad::SpColVector<T, 2>& tau)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
-     typedef Matrix<doublereal, 2, 2> CMat2x2;
-     typedef Vector<doublereal, 2> CVec2;
-     typedef Matrix<T, 2, 2> VMat2x2;
-     typedef Vector<T, 2> VVec2;
+     typedef SpMatrix<doublereal, 2, 2> CMat2x2;
+     typedef SpColVector<doublereal, 2> CVec2;
+     typedef SpMatrix<T, 2, 2> VMat2x2;
+     typedef SpColVector<T, 2> VVec2;
 
      const VVec2 Ueff = U * doublereal(p > 0.);
 
@@ -448,7 +445,7 @@ void LugreState::GetFrictionForce(const doublereal dt,
      T kappa;
 
      if (norm_Ueff == 0.) {
-	  kappa = 0.;
+	  SpGradient::ResizeReset(kappa, 0., 0);
      } else {
 	  const VVec2 Mk_U = pData->Mk * Ueff;
 	  const VVec2 Ms_U = pData->Ms * Ueff;
@@ -463,26 +460,25 @@ void LugreState::GetFrictionForce(const doublereal dt,
      }
 
      const VMat2x2 A = pData->invMk2_sigma0 * kappa;
-     const VMat2x2 B = A * (pData->beta * dt) + CMat2x2(1., 0., 0., 1);
+     const VMat2x2 B = A * (pData->beta * dt) + CMat2x2{1., 0., 0., 1};
 
-     const Vector<T, 2> zP = Inv(B) * VVec2(Ueff - A * CVec2(zPrev + zPPrev * ((1 - pData->beta) * dt)));
-     const Vector<T, 2> z = zPrev + (zP * pData->beta + zPPrev * (1 - pData->beta)) * dt;
+     const SpColVector<T, 2> zP = Inv(B) * VVec2(Ueff - A * CVec2(zPrev + zPPrev * ((1 - pData->beta) * dt)));
+     const SpColVector<T, 2> z = zPrev + (zP * pData->beta + zPPrev * (1 - pData->beta)) * dt;
 
      SaveStictionState(z, zP);
 
      tau = (pData->sigma0 * z + pData->sigma1 * zP) * p;
 }
 
-void LugreState::SaveStictionState(const grad::Vector<doublereal, 2>& z,
-				   const grad::Vector<doublereal, 2>& zP)
+void LugreState::SaveStictionState(const sp_grad::SpColVector<doublereal, 2>& z,
+				   const sp_grad::SpColVector<doublereal, 2>& zP)
 {
      zCurr = z;
      zPCurr = zP;
 }
 
-template <grad::index_type N>
-void LugreState::SaveStictionState(const grad::Vector<grad::Gradient<N>, 2>&,
-				   const grad::Vector<grad::Gradient<N>, 2>&)
+void LugreState::SaveStictionState(const sp_grad::SpColVector<sp_grad::SpGradient, 2>&,
+				   const sp_grad::SpColVector<sp_grad::SpGradient, 2>&)
 {
      // Do nothing
 }
@@ -827,29 +823,21 @@ TriangularContact::~TriangularContact(void)
 
 }
 
-doublereal TriangularContact::GetContactForce(doublereal dz, grad::LocalDofMap*) const {
+doublereal TriangularContact::GetContactForce(doublereal dz) const {
      return (*pCL)(dz);
 }
 
-template <grad::index_type N>
-grad::Gradient<N> TriangularContact::GetContactForce(const grad::Gradient<N>& dz, grad::LocalDofMap* pDofMap) const
+sp_grad::SpGradient TriangularContact::GetContactForce(const sp_grad::SpGradient& dz) const
 {
-     using namespace grad;
+     using namespace sp_grad;
 
-     Gradient<N> F2n;
+     SpGradient F2n;
 
-     F2n.SetValuePreserve((*pCL)(dz.dGetValue()));
+     F2n.ResizeReset((*pCL)(dz.dGetValue()), dz.iGetSize());
 
      const doublereal dF_dz = pCL->ComputeDiff(dz.dGetValue());
 
-     const index_type iStartIndex = dz.iGetStartIndexLocal();
-     const index_type iEndIndex = dz.iGetEndIndexLocal();
-
-     F2n.DerivativeResizeReset(pDofMap, iStartIndex, iEndIndex, MapVectorBase::LOCAL, 0.);
-
-     for (index_type i = iStartIndex; i < iEndIndex; ++i) {
-	  F2n.SetDerivativeLocal(i, dF_dz * dz.dGetDerivativeLocal(i));
-     }
+     dz.InsertDeriv(F2n, dF_dz);
 
      return F2n;
 }
@@ -1010,61 +998,61 @@ void TriangularContact::ContactSearch()
 
 template <typename T>
 inline void
-TriangularContact::AssRes(grad::GradientAssVec<T>& WorkVec,
+TriangularContact::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 			  doublereal dCoef,
-			  const grad::GradientVectorHandler<T>& XCurr,
-			  const grad::GradientVectorHandler<T>& XPrimeCurr,
-			  enum grad::FunctionCall func)
+			  const sp_grad::SpGradientVectorHandler<T>& XCurr,
+			  const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+			  enum sp_grad::SpFunctionCall func)
 {
      UnivAssRes(WorkVec, dCoef, XCurr, func);
 }
 
 template <typename T>
 inline void
-TriangularContact::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-				 const grad::GradientVectorHandler<T>& XCurr,
-				 enum grad::FunctionCall func)
+TriangularContact::InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+				 const sp_grad::SpGradientVectorHandler<T>& XCurr,
+				 enum sp_grad::SpFunctionCall func)
 {
      UnivAssRes(WorkVec, 1., XCurr, func);
 }
 
 template <typename T>
 inline void
-TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
+TriangularContact::UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 			      doublereal dCoef,
-			      const grad::GradientVectorHandler<T>& XCurr,
-			      enum grad::FunctionCall func)
+			      const sp_grad::SpGradientVectorHandler<T>& XCurr,
+			      enum sp_grad::SpFunctionCall func)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
      tCurr = pDM->dGetTime();
 
      const doublereal dt = tCurr - tPrev;
      const integer iFirstIndex2 = pTargetNode->iGetFirstMomentumIndex();
-     Vector<T, 3> X1, X2, F1, M1, F2, M2;
-     Vector<T, 3> XP1, XP2, omega1, omega2;
-     Vector<T, 2> U, tau;
-     Matrix<T, 3, 3> R1, R2;
+     SpColVectorA<T, 3, 1> X1, X2;
+     SpColVectorA<T, 3> F1, M1, F2, M2;
+     SpColVectorA<T, 3, 1> XP1, XP2;
+     SpColVectorA<T, 3, 3> omega1, omega2;
+     SpColVectorA<T, 2> U, tau;
+     SpMatrixA<T, 3, 3, 3> R1, R2;
 
      for (auto& rNode: rgContactMesh) {
 	  const doublereal dr = rNode.dr->dGet();
 	  
 	  F1 = M1 = F2 = M2 = ::Zero3;
 
-	  oDofMap.Reset();
+	  rNode.pContNode->GetXCurr(X1, dCoef, func);
+	  rNode.pContNode->GetRCurr(R1, dCoef, func);
 
-	  rNode.pContNode->GetXCurr(X1, dCoef, func, &oDofMap);
-	  rNode.pContNode->GetRCurr(R1, dCoef, func, &oDofMap);
-
-	  pTargetNode->GetXCurr(X2, dCoef, func, &oDofMap);
-	  pTargetNode->GetRCurr(R2, dCoef, func, &oDofMap);
+	  pTargetNode->GetXCurr(X2, dCoef, func);
+	  pTargetNode->GetRCurr(R2, dCoef, func);
 
 	  if (eFrictionModel != FrictionModel::None) {
-	       rNode.pContNode->GetVCurr(XP1, dCoef, func, &oDofMap);
-	       rNode.pContNode->GetWCurr(omega1, dCoef, func, &oDofMap);
+	       rNode.pContNode->GetVCurr(XP1, dCoef, func);
+	       rNode.pContNode->GetWCurr(omega1, dCoef, func);
 
-	       pTargetNode->GetVCurr(XP2, dCoef, func, &oDofMap);
-	       pTargetNode->GetWCurr(omega2, dCoef, func, &oDofMap);
+	       pTargetNode->GetVCurr(XP2, dCoef, func);
+	       pTargetNode->GetWCurr(omega2, dCoef, func);
 	  }
 
 	  for (auto& oContPair: rNode.rgContCurr) {
@@ -1075,30 +1063,30 @@ TriangularContact::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 	       const Mat3x3& R2i = oTargetFace.rgVert[0].R;
 	       const Vec3& o2i = oTargetFace.rgVert[0].o;
 
-	       const Vector<T, 3> n3 = R2 * R2i.GetCol(3);
-	       const Vector<T, 3> l1 = R1 * o1;
-	       const Vector<T, 3> l2 = X1 + l1 - X2;
-	       const T dz = Dot(n3, Vector<T, 3>(l2 - R2 * o2i));
-	       const Vector<T, 3> l2c = l2 - n3 * dz;
-	       const Vector<T, 3> l1c = l1 - n3 * dz;
+	       const SpColVector<T, 3> n3 = R2 * R2i.GetCol(3);
+	       const SpColVector<T, 3> l1 = R1 * o1;
+	       const SpColVector<T, 3> l2 = X1 + l1 - X2;
+	       const T dz = Dot(n3, l2 - R2 * o2i);
+	       const SpColVector<T, 3> l2c = l2 - n3 * dz;
+	       const SpColVector<T, 3> l1c = l1 - n3 * dz;
 	       const T pz = dz - r1;
-	       const T F2in = GetContactForce(pz, &oDofMap);
-	       Vector<T, 3> F2i = n3 * F2in;
+	       const T F2in = GetContactForce(pz);
+	       SpColVector<T, 3> F2i = n3 * F2in;
 	       
 	       if (eFrictionModel != FrictionModel::None) {
 		    LugreState& oFrictState = oContPair.second.oFrictState;
 
-		    const Vector<T, 3> dV = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
-		    const Vector<T, 3> dV_R2 = Transpose(R2) * dV;
+		    const SpColVector<T, 3> dV = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
+		    const SpColVector<T, 3> dV_R2 = Transpose(R2) * dV;
 
 		    for (index_type i = 1; i <= 2; ++i) {
-			 U(i) = Dot(Direct(R2i.GetCol(i)), dV_R2);
+			 U(i) = Dot(R2i.GetCol(i), dV_R2);
 		    }
 
 		    oFrictState.GetFrictionForce(dt, U, T(fabs(F2in)), tau);
 
 		    for (index_type i = 1; i <= 2; ++i) {
-			 F2i += R2 * (Direct(R2i.GetCol(i)) * tau(i));
+			 F2i += R2 * (R2i.GetCol(i) * tau(i));
 		    }
 	       }
 
@@ -1123,9 +1111,9 @@ TriangularContact::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
-     GradientAssVec<Gradient<iNumDofGradient> >::AssJac(this, WorkMat.SetSparse(), dCoef, XCurr, XPrimeCurr, REGULAR_JAC, &oDofMap);
+     SpGradientAssVec<SpGradient>::AssJac(this, WorkMat.SetSparse(), dCoef, XCurr, XPrimeCurr, REGULAR_JAC);
 
      return WorkMat;
 }
@@ -1136,11 +1124,11 @@ TriangularContact::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
      ContactSearch();
      
-     GradientAssVec<doublereal>::AssRes(this, WorkVec, dCoef, XCurr, XPrimeCurr, REGULAR_RES);
+     SpGradientAssVec<doublereal>::AssRes(this, WorkVec, dCoef, XCurr, XPrimeCurr, REGULAR_RES);
 
      return WorkVec;
 }
@@ -1149,9 +1137,9 @@ VariableSubMatrixHandler&
 TriangularContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				 const VectorHandler& XCurr)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
-     GradientAssVec<Gradient<2 * iNumDofGradient> >::InitialAssJac(this, WorkMat.SetSparse(), XCurr, INITIAL_ASS_JAC, &oDofMap);
+     SpGradientAssVec<SpGradient>::InitialAssJac(this, WorkMat.SetSparse(), XCurr, INITIAL_ASS_JAC);
 
      return WorkMat;
 }
@@ -1159,11 +1147,11 @@ TriangularContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 TriangularContact::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 {
-     using namespace grad;
+     using namespace sp_grad;
 
      ContactSearch();
      
-     GradientAssVec<doublereal>::InitialAssRes(this, WorkVec, XCurr, INITIAL_ASS_RES);
+     SpGradientAssVec<doublereal>::InitialAssRes(this, WorkVec, XCurr, INITIAL_ASS_RES);
 
      return WorkVec;
 }
@@ -1187,7 +1175,7 @@ void TriangularContact::AfterConvergence(const VectorHandler& X,
 
 bool triangular_contact_set(void)
 {
-#ifdef USE_AUTODIFF
+#ifdef USE_SPARSE_AUTODIFF
      UserDefinedElemRead *rf = new UDERead<TriangularContact>;
 
      if (!SetUDE("triangular" "contact", rf))
