@@ -57,6 +57,9 @@ namespace sp_grad {
      template <typename ValueType, typename ScalarExpr, index_type NumRows = 1, index_type NumCols = 1>
      class SpMatElemScalarExpr;
 
+     template <typename ValueType, typename Expr>
+     class SpMatElemComprExpr;
+     
      namespace util {
 	  template <typename UValue, typename UExpr, typename VValue, typename VExpr>
 	  struct MatrixSizeHelper {
@@ -113,6 +116,35 @@ namespace sp_grad {
 	       // It makes no sense to allocate a class SpGradExprDofMap for a doublereal
 	       static const SpGradCommon::ExprEvalFlags eComprFlag = SpGradCommon::ExprEvalDuplicate;
 	  };
+
+	  template <typename Expr, bool bUseTempExpr>
+	  struct TempExprHelper;
+
+	  template <typename Expr>
+	  struct TempExprHelper<Expr, true> {
+	       typedef typename remove_all<Expr>::type ExprType;
+	       typedef typename ExprType::ValueType ValueType;
+	       
+	       template <typename Value, typename ExprType>
+	       constexpr static SpMatElemComprExpr<Value, const SpMatElemExprBase<Value, ExprType>&>
+	       EvalUnique(const SpMatElemExprBase<Value, ExprType>& oExpr) {
+		    return decltype(EvalUnique(oExpr)){oExpr};
+	       }
+	       
+	       // Don't use const here in order to enable move constructors
+	       typedef SpMatrixBase<ValueType, ExprType::iNumRowsStatic, ExprType::iNumColsStatic> Type;
+	  };
+
+	  template <typename Expr>
+	  struct TempExprHelper<Expr, false> {
+	       template <typename Value, typename ExprType>
+	       constexpr static const SpMatElemExprBase<Value, ExprType>&
+	       EvalUnique(const SpMatElemExprBase<Value, ExprType>& oExpr) {
+		    return oExpr;
+	       }
+	       
+	       typedef const Expr Type;
+	  };	  
      }
 
      template <typename ValueType, typename BinaryFunc, typename LhsExpr, typename RhsExpr>
@@ -2271,8 +2303,11 @@ namespace sp_grad {
 	  constexpr bool bUseTmpExprLhs = !(LhsExprType::iNumElemOps == 0 && bLhsUsesIterators);
 	  constexpr bool bUseTmpExprRhs = !(RhsExprType::iNumElemOps == 0 && bRhsUsesIterators);
 
-	  typename util::TempExprHelper<LhsExpr, bUseTmpExprLhs>::Type utmp = u;
-	  typename util::TempExprHelper<RhsExpr, bUseTmpExprRhs>::Type vtmp = v;
+	  typedef util::TempExprHelper<LhsExpr, bUseTmpExprLhs> UTmpType;
+	  typedef util::TempExprHelper<RhsExpr, bUseTmpExprRhs> VTmpType;
+	  
+	  typename UTmpType::Type utmp{UTmpType::EvalUnique(u)};
+	  typename VTmpType::Type vtmp{VTmpType::EvalUnique(v)};
 
 	  static_assert(utmp.iNumElemOps == 0);
 	  static_assert(vtmp.iNumElemOps == 0);

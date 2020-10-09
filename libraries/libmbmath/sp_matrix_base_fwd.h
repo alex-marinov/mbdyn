@@ -233,23 +233,6 @@ namespace sp_grad {
 	       ITERATORS = 0x2,
 	       MATRIX_WISE = 0x4
 	  };
-
-	  template <typename Expr, bool bUseTempExpr>
-	  struct TempExprHelper;
-
-	  template <typename Expr>
-	  struct TempExprHelper<Expr, true> {
-	       typedef typename remove_all<Expr>::type ExprType;
-	       typedef typename ExprType::ValueType ValueType;
-
-	       // Don't use const here in order to enable move constructors
-	       typedef SpMatrixBase<ValueType, ExprType::iNumRowsStatic, ExprType::iNumColsStatic> Type;
-	  };
-
-	  template <typename Expr>
-	  struct TempExprHelper<Expr, false> {
-	       typedef const Expr Type;
-	  };
      };
 
      template <typename VALUE, typename DERIVED>
