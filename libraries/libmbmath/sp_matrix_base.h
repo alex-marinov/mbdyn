@@ -1205,7 +1205,7 @@ namespace sp_grad {
 	  static bool bValid(doublereal d);
 #endif
      private:
-	  typedef SpMatrixDataCTD<typename std::remove_cv<ValueType>::type, iNumRowsStatic, iNumColsStatic> SpMatrixDataType;
+	  typedef SpMatrixDataCTD<ValueType, iNumRowsStatic, iNumColsStatic> SpMatrixDataType;
 
 	  explicit inline SpMatrixBase(SpMatrixDataType* pData);
 
@@ -1481,6 +1481,10 @@ namespace sp_grad {
 	  return iNumDeriv;
      }
 
+     bool SpMatrixBaseData::bCheckSize(index_type iNumRowsReq, index_type iNumColsReq, index_type iNumDerivReq) const noexcept {
+	  return iNumRowsReq == iNumRows && iNumColsReq == iNumCols && iNumDerivReq <= iNumDeriv && iRefCnt <= 1;
+     }
+     
      SpMatrixBaseData* SpMatrixBaseData::pGetNullData() noexcept {
 	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 0);
 	  SP_GRAD_ASSERT(oNullData.iNumRows == 0);
@@ -1694,7 +1698,7 @@ namespace sp_grad {
 	  struct MatrixDataSizeHelper {
 	       static_assert(iSizeStatic > 0);
 
-	       static constexpr index_type iGetSizeStatic(index_type iSize) {
+	       static constexpr index_type iGetSizeStatic(index_type) {
 		    return iSizeStatic;
 	       }
 	  };
@@ -1704,6 +1708,7 @@ namespace sp_grad {
 	       static_assert(SpMatrixSize::DYNAMIC < 0);
 
 	       static constexpr index_type iGetSizeStatic(index_type iSize) {
+		    SP_GRAD_ASSERT(iSize >= 0);
 		    return iSize;
 	       }
 	  };
@@ -1722,6 +1727,16 @@ namespace sp_grad {
 				   pExtraMem) {
      }
 
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     inline constexpr index_type SpMatrixDataCTD<ValueType, NumRows, NumCols>::iGetNumRows() const noexcept {
+	  return util::MatrixDataSizeHelper<NumRows>::iGetSizeStatic(SpMatrixData<ValueType>::iGetNumRows());
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     inline constexpr index_type SpMatrixDataCTD<ValueType, NumRows, NumCols>::iGetNumCols() const noexcept {
+	  return util::MatrixDataSizeHelper<NumCols>::iGetSizeStatic(SpMatrixData<ValueType>::iGetNumCols());
+     }
+     
      template <typename ValueType, index_type NumRows, index_type NumCols>
      SpMatrixDataCTD<ValueType, NumRows, NumCols>*
      SpMatrixDataCTD<ValueType, NumRows, NumCols>::pAllocate(index_type iNumRows, index_type iNumCols, index_type iNumDeriv) {
@@ -1752,7 +1767,7 @@ namespace sp_grad {
 #elif defined(HAVE_ALIGNED_ALLOC)
 	  char* pMem = reinterpret_cast<char*>(aligned_alloc(uAlign, uSize));
 #else
-	  char* pMem = malloc(uSize);
+	  char* pMem = reinterpret_cast<char*>(malloc(uSize));
 #endif
 
 	  if (!pMem) {
@@ -2435,11 +2450,7 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(iNumRows == NumRows || NumRows == SpMatrixSize::DYNAMIC);
 	  SP_GRAD_ASSERT(iNumCols == NumCols || NumCols == SpMatrixSize::DYNAMIC);
 
-	  if (iNumRows == pData->iGetNumRows() &&
-	      iNumCols == pData->iGetNumCols() &&
-	      iNumDeriv <= pData->iGetMaxDeriv() &&
-	      pData->iGetRefCnt() <= 1) {
-
+	  if (pData->bCheckSize(iNumRows, iNumCols, iNumDeriv)) {
 	       for (ValueType& g: *pData) {
 		    SpGradient::ResizeReset(g, 0, iNumDeriv);
 	       }

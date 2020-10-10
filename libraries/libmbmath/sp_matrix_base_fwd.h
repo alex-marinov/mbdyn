@@ -95,6 +95,11 @@ namespace sp_grad {
 	  inline index_type iGetNumElem() const noexcept;
 	  inline index_type iGetRefCnt() const noexcept;
 	  inline index_type iGetMaxDeriv() const noexcept;
+	  inline bool
+	  bCheckSize(index_type iNumRowsReq,
+		     index_type iNumColsReq,
+		     index_type iNumDerivReq) const noexcept;
+	  
 	  inline static SpMatrixBaseData* pGetNullData() noexcept;
 	  
 #ifdef SP_GRAD_DEBUG
@@ -150,6 +155,8 @@ namespace sp_grad {
 				 index_type iNumDeriv,
 				 void* pExtraMem);
      public:
+	  inline constexpr index_type iGetNumRows() const noexcept;
+	  inline constexpr index_type iGetNumCols() const noexcept;	  
 	  static inline SpMatrixDataCTD* pAllocate(index_type iNumRows, index_type iNumCols, index_type iNumDeriv);
      };
 
