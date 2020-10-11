@@ -438,9 +438,15 @@ void LugreState::GetFrictionForce(const doublereal dt,
      typedef SpMatrix<T, 2, 2> VMat2x2;
      typedef SpColVector<T, 2> VVec2;
 
-     const VVec2 Ueff = U * doublereal(p > 0.);
-
-     const T norm_Ueff = Dot(Ueff, Ueff);
+     SpColVectorA<T, 2> Ueff;
+     T norm_Ueff;
+     
+     if (p > 0.) {
+	  Ueff = U;
+	  norm_Ueff = Dot(Ueff, Ueff);
+     } else {
+	  SpGradient::ResizeReset(norm_Ueff, 0., 0);
+     }
 
      T kappa;
 
@@ -456,13 +462,13 @@ void LugreState::GetFrictionForce(const doublereal dt,
 	  const T a1 = sqrt(Dot(Ms2_U, Ms2_U)) / sqrt(Dot(Ms_U, Ms_U));
 	  const T g = a0 + (a1 - a0) * exp(-pow(sqrt(norm_Ueff) / pData->vs, pData->gamma));
 
-	  kappa = norm_Mk2_U / g;
+	  kappa = EvalUnique(norm_Mk2_U / g);
      }
 
      const VMat2x2 A = pData->invMk2_sigma0 * kappa;
-     const VMat2x2 B = A * (pData->beta * dt) + CMat2x2{1., 0., 0., 1};
+     const VMat2x2 B = EvalUnique(A * (pData->beta * dt) + CMat2x2{1., 0., 0., 1});
 
-     const SpColVector<T, 2> zP = Inv(B) * VVec2(Ueff - A * CVec2(zPrev + zPPrev * ((1 - pData->beta) * dt)));
+     const SpColVector<T, 2> zP = Inv(B) * (Ueff - A * (zPrev + zPPrev * ((1 - pData->beta) * dt)));
      const SpColVector<T, 2> z = zPrev + (zP * pData->beta + zPPrev * (1 - pData->beta)) * dt;
 
      SaveStictionState(z, zP);
@@ -1036,6 +1042,14 @@ TriangularContact::UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      SpColVectorA<T, 2> U, tau;
      SpMatrixA<T, 3, 3, 3> R1, R2;
 
+     pTargetNode->GetXCurr(X2, dCoef, func);
+     pTargetNode->GetRCurr(R2, dCoef, func);
+
+     if (eFrictionModel != FrictionModel::None) {
+	  pTargetNode->GetVCurr(XP2, dCoef, func);
+	  pTargetNode->GetWCurr(omega2, dCoef, func);
+     }
+     
      for (auto& rNode: rgContactMesh) {
 	  const doublereal dr = rNode.dr->dGet();
 	  
@@ -1044,15 +1058,9 @@ TriangularContact::UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	  rNode.pContNode->GetXCurr(X1, dCoef, func);
 	  rNode.pContNode->GetRCurr(R1, dCoef, func);
 
-	  pTargetNode->GetXCurr(X2, dCoef, func);
-	  pTargetNode->GetRCurr(R2, dCoef, func);
-
 	  if (eFrictionModel != FrictionModel::None) {
 	       rNode.pContNode->GetVCurr(XP1, dCoef, func);
 	       rNode.pContNode->GetWCurr(omega1, dCoef, func);
-
-	       pTargetNode->GetVCurr(XP2, dCoef, func);
-	       pTargetNode->GetWCurr(omega2, dCoef, func);
 	  }
 
 	  for (auto& oContPair: rNode.rgContCurr) {
@@ -1067,8 +1075,8 @@ TriangularContact::UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       const SpColVector<T, 3> l1 = R1 * o1;
 	       const SpColVector<T, 3> l2 = X1 + l1 - X2;
 	       const T dz = Dot(n3, l2 - R2 * o2i);
-	       const SpColVector<T, 3> l2c = l2 - n3 * dz;
-	       const SpColVector<T, 3> l1c = l1 - n3 * dz;
+	       const SpColVector<T, 3> l2c = EvalUnique(l2 - n3 * dz);
+	       const SpColVector<T, 3> l1c = EvalUnique(l1 - n3 * dz);
 	       const T pz = dz - r1;
 	       const T F2in = GetContactForce(pz);
 	       SpColVector<T, 3> F2i = n3 * F2in;
@@ -1076,17 +1084,17 @@ TriangularContact::UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       if (eFrictionModel != FrictionModel::None) {
 		    LugreState& oFrictState = oContPair.second.oFrictState;
 
-		    const SpColVector<T, 3> dV = XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c);
+		    const SpColVector<T, 3> dV = EvalUnique(XP1 + Cross(omega1, l1c) - XP2 - Cross(omega2, l2c));
 		    const SpColVector<T, 3> dV_R2 = Transpose(R2) * dV;
 
 		    for (index_type i = 1; i <= 2; ++i) {
 			 U(i) = Dot(R2i.GetCol(i), dV_R2);
 		    }
 
-		    oFrictState.GetFrictionForce(dt, U, T(fabs(F2in)), tau);
+		    oFrictState.GetFrictionForce<T>(dt, U, fabs(F2in), tau);
 
 		    for (index_type i = 1; i <= 2; ++i) {
-			 F2i += R2 * (R2i.GetCol(i) * tau(i));
+			 F2i += R2 * R2i.GetCol(i) * tau(i);
 		    }
 	       }
 
