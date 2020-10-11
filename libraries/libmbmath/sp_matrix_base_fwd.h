@@ -130,17 +130,17 @@ namespace sp_grad {
 	  inline ValueType* pGetData(index_type iRow) noexcept;
 	  inline const ValueType* pGetData() const noexcept;
 	  inline const ValueType* pGetData(index_type iRow) const noexcept;
-	  inline ValueType* pGetData(index_type iRow, index_type iCol) noexcept;
-	  inline const ValueType* pGetData(index_type iRow, index_type iCol) const noexcept;
 	  inline void Attach(ValueType* pData) noexcept;
 	  inline void Detach(ValueType* pData);
 	  inline void IncRef() noexcept;
 	  inline void DecRef();
 	  inline ValueType* begin() noexcept;
-	  inline ValueType* end() noexcept;
 	  inline const ValueType* begin() const noexcept;
-	  inline const ValueType* end() const noexcept;
 	  constexpr inline bool bIsOwnerOf(const ValueType* pData) const noexcept;
+	  
+     protected:
+	  inline ValueType* end() noexcept;
+	  inline const ValueType* end() const noexcept;
      };
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
@@ -155,8 +155,14 @@ namespace sp_grad {
 				 index_type iNumDeriv,
 				 void* pExtraMem);
      public:
+	  using SpMatrixData<ValueType>::pGetData;
 	  inline constexpr index_type iGetNumRows() const noexcept;
-	  inline constexpr index_type iGetNumCols() const noexcept;	  
+	  inline constexpr index_type iGetNumCols() const noexcept;
+	  inline constexpr index_type iGetNumElem() const noexcept;
+	  inline ValueType* pGetData(index_type iRow, index_type iCol) noexcept;
+	  inline const ValueType* pGetData(index_type iRow, index_type iCol) const noexcept;
+	  inline ValueType* end() noexcept;
+	  inline const ValueType* end() const noexcept;
 	  static inline SpMatrixDataCTD* pAllocate(index_type iNumRows, index_type iNumCols, index_type iNumDeriv);
      };
 
