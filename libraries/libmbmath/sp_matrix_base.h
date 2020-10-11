@@ -1578,26 +1578,6 @@ namespace sp_grad {
      }
 
      template <typename ValueType>
-     const ValueType* SpMatrixData<ValueType>::pGetData(index_type iRow, index_type iCol) const noexcept {
-	  SP_GRAD_ASSERT(iRow >= 1);
-	  SP_GRAD_ASSERT(iRow <= iGetNumRows());
-	  SP_GRAD_ASSERT(iCol >= 1);
-	  SP_GRAD_ASSERT(iCol <= iGetNumCols());
-
-	  return pGetData() + (iCol - 1) * iGetNumRows() + iRow - 1;
-     }
-
-     template <typename ValueType>
-     ValueType* SpMatrixData<ValueType>::pGetData(index_type iRow, index_type iCol) noexcept {
-	  SP_GRAD_ASSERT(iRow >= 1);
-	  SP_GRAD_ASSERT(iRow <= iGetNumRows());
-	  SP_GRAD_ASSERT(iCol >= 1);
-	  SP_GRAD_ASSERT(iCol <= iGetNumCols());
-
-	  return pGetData() + (iCol - 1) * iGetNumRows() + iRow - 1;
-     }
-
-     template <typename ValueType>
      ValueType* SpMatrixData<ValueType>::pGetData() noexcept {
 	  auto pVal = reinterpret_cast<ValueType*>(this + 1);
 
@@ -1727,6 +1707,46 @@ namespace sp_grad {
 				   pExtraMem) {
      }
 
+     template <typename ValueType, index_type NumRows, index_type NumCols>     
+     constexpr index_type SpMatrixDataCTD<ValueType, NumRows, NumCols>::iGetNumElem() const noexcept {
+	  SP_GRAD_ASSERT(iGetNumRows() >= 0);
+	  SP_GRAD_ASSERT(iGetNumCols() >= 0);
+
+	  constexpr bool bDynamicSize = NumRows == SpMatrixSize::DYNAMIC || NumCols == SpMatrixSize::DYNAMIC;
+	  constexpr index_type iNumElemStatic = bDynamicSize ? SpMatrixSize::DYNAMIC : NumRows * NumCols;
+	  return util::MatrixDataSizeHelper<iNumElemStatic>::iGetSizeStatic(iGetNumRows() * iGetNumCols());
+     }
+     
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     const ValueType* SpMatrixDataCTD<ValueType, NumRows, NumCols>::pGetData(index_type iRow, index_type iCol) const noexcept {
+	  SP_GRAD_ASSERT(iRow >= 1);
+	  SP_GRAD_ASSERT(iRow <= iGetNumRows());
+	  SP_GRAD_ASSERT(iCol >= 1);
+	  SP_GRAD_ASSERT(iCol <= iGetNumCols());
+
+	  return pGetData() + (iCol - 1) * iGetNumRows() + iRow - 1;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     ValueType* SpMatrixDataCTD<ValueType, NumRows, NumCols>::pGetData(index_type iRow, index_type iCol) noexcept {
+	  SP_GRAD_ASSERT(iRow >= 1);
+	  SP_GRAD_ASSERT(iRow <= iGetNumRows());
+	  SP_GRAD_ASSERT(iCol >= 1);
+	  SP_GRAD_ASSERT(iCol <= iGetNumCols());
+
+	  return pGetData() + (iCol - 1) * iGetNumRows() + iRow - 1;
+     }
+     
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     ValueType* SpMatrixDataCTD<ValueType, NumRows, NumCols>::end() noexcept {
+	  return pGetData() + iGetNumElem();
+     }
+     
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     const ValueType* SpMatrixDataCTD<ValueType, NumRows, NumCols>::end() const noexcept {
+	  return pGetData() + iGetNumElem();
+     }
+     
      template <typename ValueType, index_type NumRows, index_type NumCols>
      inline constexpr index_type SpMatrixDataCTD<ValueType, NumRows, NumCols>::iGetNumRows() const noexcept {
 	  return util::MatrixDataSizeHelper<NumRows>::iGetSizeStatic(SpMatrixData<ValueType>::iGetNumRows());
