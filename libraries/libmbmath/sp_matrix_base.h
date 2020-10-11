@@ -147,6 +147,25 @@ namespace sp_grad {
 
 	       typedef const Expr Type;
 	  };
+
+	  template <index_type iSizeStatic>
+	  struct MatrixDataSizeHelper {
+	       static_assert(iSizeStatic > 0);
+
+	       static constexpr index_type iGetSizeStatic(index_type) {
+		    return iSizeStatic;
+	       }
+	  };
+
+	  template <>
+	  struct MatrixDataSizeHelper<SpMatrixSize::DYNAMIC> {
+	       static_assert(SpMatrixSize::DYNAMIC < 0);
+
+	       static constexpr index_type iGetSizeStatic(index_type iSize) {
+		    SP_GRAD_ASSERT(iSize >= 0);
+		    return iSize;
+	       }
+	  };
      }
 
      template <typename ValueType, typename BinaryFunc, typename LhsExpr, typename RhsExpr>
@@ -1165,7 +1184,7 @@ namespace sp_grad {
 	  inline const ValueType* begin() const;
 	  inline const ValueType* end() const;
 	  static inline constexpr index_type iGetRowOffset() noexcept { return 1; }
-	  inline constexpr index_type iGetColOffset() const noexcept { return iGetNumRows(); }
+	  inline constexpr index_type iGetColOffset() const noexcept { return util::MatrixDataSizeHelper<NumRows>::iGetSizeStatic(iGetNumRows()); }
 	  inline bool bHaveSameRep(const SpMatrixBase& A) const noexcept;
 	  template <typename ValueTypeB>
 	  constexpr static inline bool bIsOwnerOf(const SpMatrixData<ValueTypeB>*) noexcept { return false; }
@@ -1671,27 +1690,6 @@ namespace sp_grad {
      template <typename ValueType>
      constexpr bool SpMatrixData<ValueType>::bIsOwnerOf(const ValueType* pData) const noexcept {
 	  return pData >= begin() && pData < end();
-     }
-
-     namespace util {
-	  template <index_type iSizeStatic>
-	  struct MatrixDataSizeHelper {
-	       static_assert(iSizeStatic > 0);
-
-	       static constexpr index_type iGetSizeStatic(index_type) {
-		    return iSizeStatic;
-	       }
-	  };
-
-	  template <>
-	  struct MatrixDataSizeHelper<SpMatrixSize::DYNAMIC> {
-	       static_assert(SpMatrixSize::DYNAMIC < 0);
-
-	       static constexpr index_type iGetSizeStatic(index_type iSize) {
-		    SP_GRAD_ASSERT(iSize >= 0);
-		    return iSize;
-	       }
-	  };
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
