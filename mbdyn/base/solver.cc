@@ -3974,6 +3974,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 #endif /* USE_MULTITHREAD */
 }
 
+#if defined USE_LAPACK || defined USE_ARPACK || defined USE_JDQZ
 static int
 do_eig(const doublereal& b, const doublereal& re,
 	const doublereal& im, const doublereal& h,
@@ -4071,6 +4072,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 		Out << std::endl;
 	}
 }
+#endif // defined USE_LAPACK || defined USE_ARPACK || defined USE_JDQZ
 
 #ifdef USE_LAPACK
 // Computes eigenvalues and eigenvectors using LAPACK's
