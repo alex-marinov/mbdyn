@@ -198,419 +198,425 @@ Dofs()
 
 	mbdyn_cleanup_register(datamanager_cleanup, &ppCleanupData);
 	*ppCleanupData = (void *)this;
-
-	OutHdl.SetExceptions(std::ios::badbit); // terminate if disk is full
-
-	/* pseudocostruttori */
-	ElemManager();
-	NodeManager();
-	DofManager();
-
-	InitDriveData();
-	InitUDE();
-	InitGustData();
-
-	/* registra il plugin per i dofs */
-	HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
-
-	/* registra il plugin per i dati privati dei nodi */
-	HP.GetMathParser().RegisterPlugIn("node", node_priv_plugin, this);
-
-	/* registra il plugin per i dati privati degli elementi */
-	HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
-
-	/* registra il namespace del modello */
-
-	HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
-
-	/* Setta il tempo al valore iniziale */
-	SetTime(dInitialTime, 0., 0, false);
-
-	DEBUGLCOUT(MYDEBUG_INIT, "Global symbol table:"
-		<< MathPar.GetSymbolTable() << std::endl);
-
-	/*
-	 * Possiede MathParser, con relativa SymbolTable.
-	 * Crea ExternKeyTable, MBDynParser,
-	 * e legge i dati esterni. Quindi, quando trova
-	 * i dati di controllo, chiama la relativa
-	 * funzione di lettura (distinta per comodita')
-	 */
-
-	/* parole chiave */
-	const char* sKeyWords[] = {
-		"begin",
-		"control" "data",
-		"scalar" "function",
-		"nodes",
-		"elements",
-		"drivers",
-		"output",
-		0
-	};
-
-	/* enum delle parole chiave */
-	enum KeyWords {
-		BEGIN = 0,
-		CONTROLDATA,
-		SCALARFUNCTION,
-		NODES,
-		ELEMENTS,
-		DRIVERS,
-		OUTPUT,
-		LASTKEYWORD
-	};
-
-	/* tabella delle parole chiave */
-	KeyTable K(HP, sKeyWords);
-
-	KeyWords CurrDesc = KeyWords(HP.GetDescription());
-	/* legge i dati di controllo */
-	if (CurrDesc != BEGIN) {
-		DEBUGCERR("");
-		silent_cerr("<begin> expected at line "
-			<< HP.GetLineData() << std::endl);
-
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (KeyWords(HP.GetWord()) != CONTROLDATA) {
-		DEBUGCERR("");
-		silent_cerr("<begin: control data;> expected at line "
-			<< HP.GetLineData() << std::endl);
-
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	ReadControl(HP, sInputFileName);
+	
 	try {
-		CurrDesc = KeyWords(HP.GetDescription());
-	} catch (EndOfFile& e) {
-		NO_OP;
-	}
+	     OutHdl.SetExceptions(std::ios::badbit); // terminate if disk is full
 
-	/* fine lettura dati di controllo */
+	     /* pseudocostruttori */
+	     ElemManager();
+	     NodeManager();
+	     DofManager();
+
+	     InitDriveData();
+	     InitUDE();
+	     InitGustData();
+
+	     /* registra il plugin per i dofs */
+	     HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
+
+	     /* registra il plugin per i dati privati dei nodi */
+	     HP.GetMathParser().RegisterPlugIn("node", node_priv_plugin, this);
+
+	     /* registra il plugin per i dati privati degli elementi */
+	     HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
+
+	     /* registra il namespace del modello */
+
+	     HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
+
+	     /* Setta il tempo al valore iniziale */
+	     SetTime(dInitialTime, 0., 0, false);
+
+	     DEBUGLCOUT(MYDEBUG_INIT, "Global symbol table:"
+			<< MathPar.GetSymbolTable() << std::endl);
+
+	     /*
+	      * Possiede MathParser, con relativa SymbolTable.
+	      * Crea ExternKeyTable, MBDynParser,
+	      * e legge i dati esterni. Quindi, quando trova
+	      * i dati di controllo, chiama la relativa
+	      * funzione di lettura (distinta per comodita')
+	      */
+
+	     /* parole chiave */
+	     const char* sKeyWords[] = {
+		  "begin",
+		  "control" "data",
+		  "scalar" "function",
+		  "nodes",
+		  "elements",
+		  "drivers",
+		  "output",
+		  0
+	     };
+
+	     /* enum delle parole chiave */
+	     enum KeyWords {
+		  BEGIN = 0,
+		  CONTROLDATA,
+		  SCALARFUNCTION,
+		  NODES,
+		  ELEMENTS,
+		  DRIVERS,
+		  OUTPUT,
+		  LASTKEYWORD
+	     };
+
+	     /* tabella delle parole chiave */
+	     KeyTable K(HP, sKeyWords);
+
+	     KeyWords CurrDesc = KeyWords(HP.GetDescription());
+	     /* legge i dati di controllo */
+	     if (CurrDesc != BEGIN) {
+		  DEBUGCERR("");
+		  silent_cerr("<begin> expected at line "
+			      << HP.GetLineData() << std::endl);
+
+		  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	     }
+
+	     if (KeyWords(HP.GetWord()) != CONTROLDATA) {
+		  DEBUGCERR("");
+		  silent_cerr("<begin: control data;> expected at line "
+			      << HP.GetLineData() << std::endl);
+
+		  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	     }
+
+	     ReadControl(HP, sInputFileName);
+	     try {
+		  CurrDesc = KeyWords(HP.GetDescription());
+	     } catch (EndOfFile& e) {
+		  NO_OP;
+	     }
+
+	     /* fine lettura dati di controllo */
 
 
 
-	/*
-	 * a questo punto ElemManager contiene i numeri totali di elementi;
-	 * NodeManager contiene i numeri totali di nodi;
-	 * DofManager contiene i numeri totali di potenziali possessori di gradi
-	 * di liberta'; quindi si puo' cominciare ad allocare matrici
-	 */
+	     /*
+	      * a questo punto ElemManager contiene i numeri totali di elementi;
+	      * NodeManager contiene i numeri totali di nodi;
+	      * DofManager contiene i numeri totali di potenziali possessori di gradi
+	      * di liberta'; quindi si puo' cominciare ad allocare matrici
+	      */
 
 
 
-	/* Costruzione struttura DofData e creazione array DofOwner */
-	DofDataInit();
+	     /* Costruzione struttura DofData e creazione array DofOwner */
+	     DofDataInit();
 
-	/* Costruzione struttura NodeData e creazione array Node* */
-	NodeDataInit();
+	     /* Costruzione struttura NodeData e creazione array Node* */
+	     NodeDataInit();
 
-	/*
-	 * legge i nodi, crea gli item della struttura ppNodes
-	 * e contemporaneamente aggiorna i dof
-	 */
-	if (iTotNodes > 0) {
-		if (CurrDesc != BEGIN) {
-			DEBUGCERR("");
-			silent_cerr("<begin> expected at line "
-				<< HP.GetLineData() << std::endl);
+	     /*
+	      * legge i nodi, crea gli item della struttura ppNodes
+	      * e contemporaneamente aggiorna i dof
+	      */
+	     if (iTotNodes > 0) {
+		  if (CurrDesc != BEGIN) {
+		       DEBUGCERR("");
+		       silent_cerr("<begin> expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		if (KeyWords(HP.GetWord()) != NODES) {
-			DEBUGCERR("");
-			silent_cerr("<begin: nodes;> expected at line "
-				<< HP.GetLineData() << std::endl);
+		  if (KeyWords(HP.GetWord()) != NODES) {
+		       DEBUGCERR("");
+		       silent_cerr("<begin: nodes;> expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		ReadNodes(HP);
-		try {
-			CurrDesc = KeyWords(HP.GetDescription());
-		} catch (EndOfFile& e) {}
-	} else {
-		DEBUGCERR("");
-		silent_cerr("warning, no nodes are defined" << std::endl);
-	}
-	/* fine lettura nodi */
+		  ReadNodes(HP);
+		  try {
+		       CurrDesc = KeyWords(HP.GetDescription());
+		  } catch (EndOfFile& e) {}
+	     } else {
+		  DEBUGCERR("");
+		  silent_cerr("warning, no nodes are defined" << std::endl);
+	     }
+	     /* fine lettura nodi */
 
-	/*
-	 * Costruzione struttura ElemData, DriveData
-	 * e creazione array Elem* e Drive*
-	 */
-	ElemDataInit();
+	     /*
+	      * Costruzione struttura ElemData, DriveData
+	      * e creazione array Elem* e Drive*
+	      */
+	     ElemDataInit();
 
-	/* legge i drivers, crea la struttura ppDrive */
-	bool bGotDrivers = false;
-	if (iTotDrive > 0) {
-		if (CurrDesc != BEGIN) {
-			DEBUGCERR("");
-			silent_cerr("\"begin\" expected at line "
-				<< HP.GetLineData() << std::endl);
+	     /* legge i drivers, crea la struttura ppDrive */
+	     bool bGotDrivers = false;
+	     if (iTotDrive > 0) {
+		  if (CurrDesc != BEGIN) {
+		       DEBUGCERR("");
+		       silent_cerr("\"begin\" expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		if (KeyWords(HP.GetWord()) != DRIVERS) {
-			DEBUGCERR("");
-			silent_cerr("\"begin: drivers;\" expected at line "
-				<< HP.GetLineData() << std::endl);
+		  if (KeyWords(HP.GetWord()) != DRIVERS) {
+		       DEBUGCERR("");
+		       silent_cerr("\"begin: drivers;\" expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		bGotDrivers = true;
+		  bGotDrivers = true;
 
-		ReadDrivers(HP);
-		try {
-			CurrDesc = KeyWords(HP.GetDescription());
-		} catch (EndOfFile& e) {}
+		  ReadDrivers(HP);
+		  try {
+		       CurrDesc = KeyWords(HP.GetDescription());
+		  } catch (EndOfFile& e) {}
 
-	} else {
-		DEBUGCERR("warning, no drivers are defined" << std::endl);
-	}
+	     } else {
+		  DEBUGCERR("warning, no drivers are defined" << std::endl);
+	     }
 
-	/* fine lettura drivers */
+	     /* fine lettura drivers */
 
 
-	/*
-	 * legge gli elementi, crea la struttura ppElems
-	 * e contemporaneamente aggiorna i dof
-	 */
-	if (!Elems.empty()) {
-		if (CurrDesc != BEGIN) {
-			DEBUGCERR("");
-			silent_cerr("\"begin\" expected at line "
-				<< HP.GetLineData() << std::endl);
+	     /*
+	      * legge gli elementi, crea la struttura ppElems
+	      * e contemporaneamente aggiorna i dof
+	      */
+	     if (!Elems.empty()) {
+		  if (CurrDesc != BEGIN) {
+		       DEBUGCERR("");
+		       silent_cerr("\"begin\" expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		switch (KeyWords(HP.GetWord())) {
-		case ELEMENTS:
-			break;
+		  switch (KeyWords(HP.GetWord())) {
+		  case ELEMENTS:
+		       break;
 
-		case DRIVERS:
-			if (!bGotDrivers) {
-				silent_cerr("got unexpected \"begin: drivers;\" "
+		  case DRIVERS:
+		       if (!bGotDrivers) {
+			    silent_cerr("got unexpected \"begin: drivers;\" "
 					"at line " << HP.GetLineData() << std::endl
 					<< "(hint: define \"file drivers\" in \"control data\" block)"
 					<< std::endl);
-			}
-			// fallthru
+		       }
+		       // fallthru
 
-		default:
-			DEBUGCERR("");
-			silent_cerr("\"begin: elements;\" expected at line "
-				<< HP.GetLineData() << std::endl);
+		  default:
+		       DEBUGCERR("");
+		       silent_cerr("\"begin: elements;\" expected at line "
+				   << HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		  }
 
-		ReadElems(HP);
+		  ReadElems(HP);
 #if 0
-		/* FIXME: we don't check extra statements after "end: elements;"
-		 * because there might be more... */
-		try {
-			CurrDesc = KeyWords(HP.GetDescription());
-		} catch (EndOfFile) {}
+		  /* FIXME: we don't check extra statements after "end: elements;"
+		   * because there might be more... */
+		  try {
+		       CurrDesc = KeyWords(HP.GetDescription());
+		  } catch (EndOfFile) {}
 #endif
-	} else {
-		DEBUGCERR("");
-		silent_cerr("warning, no elements are defined" << std::endl);
-	}
+	     } else {
+		  DEBUGCERR("");
+		  silent_cerr("warning, no elements are defined" << std::endl);
+	     }
 
-	if (bOutputFrames) {
-		OutHdl.Open(OutputHandler::REFERENCEFRAMES);
-		HP.OutputFrames(OutHdl.ReferenceFrames());
-	}
+	     if (bOutputFrames) {
+		  OutHdl.Open(OutputHandler::REFERENCEFRAMES);
+		  HP.OutputFrames(OutHdl.ReferenceFrames());
+	     }
 
-	/* fine lettura elementi */
+	     /* fine lettura elementi */
 
-	// if output is defined and at least one node wants to output,
-	// open file
-	for (int i = 0; i < Node::LASTNODETYPE; i++) {
-		if (NodeData[i].OutFile != OutputHandler::UNKNOWN)
-		{
-			for (NodeContainerType::const_iterator n = NodeData[i].NodeContainer.begin();
-				n != NodeData[i].NodeContainer.end(); ++n)
-			{
-				if (n->second->bToBeOutput()) {
-					OutHdl.Open(NodeData[i].OutFile);
-					break;
-				}
-			}
-		}
-	}
+	     // if output is defined and at least one node wants to output,
+	     // open file
+	     for (int i = 0; i < Node::LASTNODETYPE; i++) {
+		  if (NodeData[i].OutFile != OutputHandler::UNKNOWN)
+		  {
+		       for (NodeContainerType::const_iterator n = NodeData[i].NodeContainer.begin();
+			    n != NodeData[i].NodeContainer.end(); ++n)
+		       {
+			    if (n->second->bToBeOutput()) {
+				 OutHdl.Open(NodeData[i].OutFile);
+				 break;
+			    }
+		       }
+		  }
+	     }
 
-	// if output is defined and at least one element wants to output,
-	// open file
-	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-		if (ElemData[i].OutFile != OutputHandler::UNKNOWN)
-		{
-			for (ElemContainerType::const_iterator e = ElemData[i].ElemContainer.begin();
-				e != ElemData[i].ElemContainer.end(); ++e)
-			{
-				if (e->second->bToBeOutput()) {
-					OutHdl.Open(ElemData[i].OutFile);
-					break;
-				}
-			}
-		}
-	}
+	     // if output is defined and at least one element wants to output,
+	     // open file
+	     for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
+		  if (ElemData[i].OutFile != OutputHandler::UNKNOWN)
+		  {
+		       for (ElemContainerType::const_iterator e = ElemData[i].ElemContainer.begin();
+			    e != ElemData[i].ElemContainer.end(); ++e)
+		       {
+			    if (e->second->bToBeOutput()) {
+				 OutHdl.Open(ElemData[i].OutFile);
+				 break;
+			    }
+		       }
+		  }
+	     }
 
-	// open drive output & trave files only if needed
-	const MBDynParser::DCType& DC = MBPar.GetDriveCallerContainer();
-	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
-		if (i->second->fToBeTraced()) {
-			OutHdl.Open(OutputHandler::TRACES);
-			break;
-		}
-	}
+	     // open drive output & trave files only if needed
+	     const MBDynParser::DCType& DC = MBPar.GetDriveCallerContainer();
+	     for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		  if (i->second->fToBeTraced()) {
+		       OutHdl.Open(OutputHandler::TRACES);
+		       break;
+		  }
+	     }
 
-	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
-		if (i->second->bToBeOutput()) {
-			OutHdl.Open(OutputHandler::DRIVECALLERS);
-			break;
-		}
-	}
+	     for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		  if (i->second->bToBeOutput()) {
+		       OutHdl.Open(OutputHandler::DRIVECALLERS);
+		       break;
+		  }
+	     }
 
-	/* Verifica dei dati di controllo */
+	     /* Verifica dei dati di controllo */
 #ifdef DEBUG
-	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
-		/* mostra in modo succinto il numero di DofOwner per tipo */
-		for (int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
-			std::cout << "DofType " << i << " "
-				"(" << psDofOwnerNames[i] << "), "
-				"n. of owners: " << DofData[i].iNum
-				<< std::endl;
-		}
+	     if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
+		  /* mostra in modo succinto il numero di DofOwner per tipo */
+		  for (int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
+		       std::cout << "DofType " << i << " "
+			    "(" << psDofOwnerNames[i] << "), "
+			    "n. of owners: " << DofData[i].iNum
+				 << std::endl;
+		  }
 
-		/* mostra in modo succinto il numero di nodi per tipo */
-		for (int i = 0; i < Node::LASTNODETYPE; i++) {
-			std::cout << "NodeType " << i << " "
-				"(" << psNodeNames[i] << "), "
-				"n. of nodes: " << NodeData[i].NodeContainer.size()
-				<< std::endl;
-		}
+		  /* mostra in modo succinto il numero di nodi per tipo */
+		  for (int i = 0; i < Node::LASTNODETYPE; i++) {
+		       std::cout << "NodeType " << i << " "
+			    "(" << psNodeNames[i] << "), "
+			    "n. of nodes: " << NodeData[i].NodeContainer.size()
+				 << std::endl;
+		  }
 
-		/* mostra in modo succinto il numero di elementi per tipo */
-		for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-			std::cout << "Element Type " << i << " "
-				"(" << psElemNames[i] << "), "
-				"n. of elems: " << ElemData[i].ElemContainer.size()
-				<< std::endl;
-		}
+		  /* mostra in modo succinto il numero di elementi per tipo */
+		  for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
+		       std::cout << "Element Type " << i << " "
+			    "(" << psElemNames[i] << "), "
+			    "n. of elems: " << ElemData[i].ElemContainer.size()
+				 << std::endl;
+		  }
 
-		/* mostra in modo succinto il numero di drivers per tipo */
-		for (int i = 0; i < Drive::LASTDRIVETYPE; i++) {
-			std::cout << "DriveType " << i << " "
-				"(" << psDriveNames[i] << "), "
-				"n. of drivers: " << DriveData[i].iNum
-				<< std::endl;
-		}
-	}
+		  /* mostra in modo succinto il numero di drivers per tipo */
+		  for (int i = 0; i < Drive::LASTDRIVETYPE; i++) {
+		       std::cout << "DriveType " << i << " "
+			    "(" << psDriveNames[i] << "), "
+			    "n. of drivers: " << DriveData[i].iNum
+				 << std::endl;
+		  }
+	     }
 #endif /* DEBUG */
 
-	if (bAbortAfterInput) {
-		silent_cout("Only input is required" << std::endl);
-		return;
-	}
+	     if (bAbortAfterInput) {
+		  silent_cout("Only input is required" << std::endl);
+		  return;
+	     }
 
 #ifdef USE_SOCKET
-	/* waits for all pending sockets to connect */
-	WaitSocketUsers();
+	     /* waits for all pending sockets to connect */
+	     WaitSocketUsers();
 #endif // USE_SOCKET
 
-	/* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
-	 * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto
-	 * e la lascio generare correttamente.
-	 * L'assemblaggio iniziale viene gestito dal DataManager perche'
-	 * concettualmente la consistenza dei dati deve essere assicurata da lui,
-	 * che conosce gli aspetti fisici del problema
-	 */
+	     /* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
+	      * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto
+	      * e la lascio generare correttamente.
+	      * L'assemblaggio iniziale viene gestito dal DataManager perche'
+	      * concettualmente la consistenza dei dati deve essere assicurata da lui,
+	      * che conosce gli aspetti fisici del problema
+	      */
 
-	if (!bInitialJointAssemblyToBeDone) {
-		for (int i = 0; i < Elem::LASTELEMTYPE; ++i) {
-			if (ElemData[i].bToBeUsedInAssembly() && !ElemData[i].ElemContainer.empty()) {
-				bInitialJointAssemblyToBeDone = true;
-				break;
-			}
-		}
-	}
+	     if (!bInitialJointAssemblyToBeDone) {
+		  for (int i = 0; i < Elem::LASTELEMTYPE; ++i) {
+		       if (ElemData[i].bToBeUsedInAssembly() && !ElemData[i].ElemContainer.empty()) {
+			    bInitialJointAssemblyToBeDone = true;
+			    break;
+		       }
+		  }
+	     }
 
-	if (bInitialJointAssemblyToBeDone) {
-		if (!bSkipInitialJointAssembly && !bInverseDynamics) {
-			InitialJointAssembly();
+	     if (bInitialJointAssemblyToBeDone) {
+		  if (!bSkipInitialJointAssembly && !bInverseDynamics) {
+		       InitialJointAssembly();
 
-		} else {
-			silent_cout("Skipping initial joints assembly" << std::endl);
-		}
+		  } else {
+		       silent_cout("Skipping initial joints assembly" << std::endl);
+		  }
 
-	} else {
-		silent_cout("No initial assembly is required since no joints are defined"
-			<< std::endl);
-	}
+	     } else {
+		  silent_cout("No initial assembly is required since no joints are defined"
+			      << std::endl);
+	     }
 
-	/* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
+	     /* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
 
-	/* Aggiornamento DofOwner degli elementi (e dei nodi) */
-	if (bInverseDynamics) {
-		IDDofOwnerSet();
-	} else	{
-		DofOwnerSet();
-	}
+	     /* Aggiornamento DofOwner degli elementi (e dei nodi) */
+	     if (bInverseDynamics) {
+		  IDDofOwnerSet();
+	     } else	{
+		  DofOwnerSet();
+	     }
 
-	/* Verifica dei dati di controllo */
+	     /* Verifica dei dati di controllo */
 #ifdef DEBUG
-	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
-		/* mostra in modo succinto i DofOwners */
-		int k = 0;
-		for (int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
-			std::cout << "DofType " << i << ':' << std::endl;
-			for (int j = 0; j < DofData[i].iNum; j++) {
-				std::cout << "DofOwner " << j << ", n. of dofs: "
-					<< DofOwners[k++].iNumDofs << std::endl;
-			}
-		}
-	}
+	     if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
+		  /* mostra in modo succinto i DofOwners */
+		  int k = 0;
+		  for (int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
+		       std::cout << "DofType " << i << ':' << std::endl;
+		       for (int j = 0; j < DofData[i].iNum; j++) {
+			    std::cout << "DofOwner " << j << ", n. of dofs: "
+				      << DofOwners[k++].iNumDofs << std::endl;
+		       }
+		  }
+	     }
 #endif /* DEBUG */
 
-	/* a questo punto i dof sono completamente scritti in quanto a numero.
-	 * Rimane da sistemare il vettore con gli indici "interni" ed il tipo */
+	     /* a questo punto i dof sono completamente scritti in quanto a numero.
+	      * Rimane da sistemare il vettore con gli indici "interni" ed il tipo */
 
-	/* Costruzione array DofOwner e Dof */
-	if(bInverseDynamics)	{
-		IDDofInit();
-	} else	{
-		DofInit();
-	}
+	     /* Costruzione array DofOwner e Dof */
+	     if(bInverseDynamics)	{
+		  IDDofInit();
+	     } else	{
+		  DofInit();
+	     }
 
-	/* Aggiornamento Dof di proprieta' degli elementi e dei nodi */
+	     /* Aggiornamento Dof di proprieta' degli elementi e dei nodi */
 //	if(bInverseDynamics)	{
 //		InverseDofOwnerInit();
 //	} else	{
-		DofOwnerInit();
+	     DofOwnerInit();
 //	}
 
-	/* Creazione strutture di lavoro per assemblaggio e residuo */
-	ElemAssInit();
+	     /* Creazione strutture di lavoro per assemblaggio e residuo */
+	     ElemAssInit();
 
 #ifdef DEBUG
-	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
-		for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
-			std::cout << "Dof " << std::setw(4) << iCnt+1 << ": order "
-				<< Dofs[iCnt].Order << std::endl;
-		}
-	}
+	     if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
+		  for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
+		       std::cout << "Dof " << std::setw(4) << iCnt+1 << ": order "
+				 << Dofs[iCnt].Order << std::endl;
+		  }
+	     }
 #endif /* DEBUG */
-
-
+	}
+	catch (...)
+	{
+	     // Avoid invalid memory access in datamanager_cleanup!
+	     *ppCleanupData = 0;
+	     throw;
+	}
 } /* End of DataManager::DataManager() */
 
 
