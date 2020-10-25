@@ -654,15 +654,11 @@ resolve_filename(const char *filename_in)
 error_return:;
 	if (filename != NULL) {		
 		if (res == NULL) {
-		        if (filename != filename_in) {
-				SAFESTRDUP(res, filename);
-			} else {
-				SAFESTRDUP(res, filename_in);
-			}
-		} else {
-			if (filename != filename_in) {
-				SAFEDELETEARR(filename);
-			}
+			SAFESTRDUP(res, filename);
+		}
+
+		if (!(filename >=  filename_in && filename <= filename_in + strlen(filename_in))) {
+			SAFEDELETEARR(filename);
 		}
 	}
 
