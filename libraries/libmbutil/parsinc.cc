@@ -652,10 +652,10 @@ resolve_filename(const char *filename_in)
    	}
 
 error_return:;
-	if (filename != NULL) {
+	if (filename != NULL) {		
 		if (res == NULL) {
-			if (filename != filename_in) {
-				res = filename;
+		        if (filename != filename_in) {
+				SAFESTRDUP(res, filename);
 			} else {
 				SAFESTRDUP(res, filename_in);
 			}
