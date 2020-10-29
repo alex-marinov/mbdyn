@@ -50,6 +50,7 @@ functions/variables for C::E Model:MBDyn_CE_CEModel_XxxYyy
 #include <vector>
 
 extern "C" {
+    
 // IDs of coupling bodies and motors in C::E
 // a set of IDs
 // Body_Label: body label in C::E;

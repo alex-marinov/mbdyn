@@ -118,16 +118,16 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			}
 		}
 	}
-	MBDyn_CE_CEMotorType = 0; // by default
+	MBDyn_CE_CEMotorType = 1; // by default, using the position
 	if (HP.IsKeyWord("motor" "type"))
 	{
-		if (HP.IsKeyWord("setpoint"))
+		if (HP.IsKeyWord("velocity"))
 		{
-			MBDyn_CE_CEMotorType = 0;
+			MBDyn_CE_CEMotorType = 0; // velocity is imposed to objects in Chrono::Engine
 		}
-		else if (HP.IsKeyWord("spline"))
+		else if (HP.IsKeyWord("position"))
 		{
-			MBDyn_CE_CEMotorType = 1;
+			MBDyn_CE_CEMotorType = 1; // position is imposed to objects in Chrono::Engine
 		}
 		else
 		{

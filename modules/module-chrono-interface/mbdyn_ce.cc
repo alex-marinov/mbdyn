@@ -122,25 +122,29 @@ const int& MBDyn_CE_CouplingType)
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)));
 				pMBDyn_CE_CEModel->Add(motor3d_body_i);
 
-				// cosim using spline/line interpolation for position
 				if (MBDyn_CE_CEMotorType == 0)
 				{
-					// cosim using setpoint for position, velocity, and acceleration
+					// the setpoint function can be used for co-simulation by position, or velocity, or both(
+					// if both position and velocity are imposed to C::E objects, there are small errors in the resulting 
+					// position and velocity of coupled bodies.)					).
+					// here, we use it to achieve co-simulation by velocity, which means that the resulting velocity of the
+					// coupled bodies are totally equal to the inputting values.
 					auto motor3d_function_pos = std::make_shared<ChFunctionPosition_setpoint>();;
 					motor3d_function_pos->SetMode(ChFunctionPosition_setpoint::eChSetpointMode::OVERRIDE);
 					auto motor3d_function_rot = std::make_shared<ChFunctionRotation_setpoint>();
 					motor3d_function_rot->SetMode(ChFunctionRotation_setpoint::eChSetpointMode::OVERRIDE);
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
-					std::cout<<"\t\t\tmotor type is setpoint\n";
+					std::cout<<"\t\t\tmotor type is velocity (using function setpoint)\n";
 				}
 				else if (MBDyn_CE_CEMotorType == 1)
 				{
+					// cosim using spline/line interpolation for position
 					auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>();
 					auto motor3d_function_rot = std::make_shared<ChFunctionRotation_spline>();
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
-					std::cout<<"\t\t\tmotor type is spline\n";
+					std::cout<<"\t\t\tmotor type is position (using function spline)\n";
 				}				
 				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label = motor3d_body_i->GetIdentifier();
 				std::cout << "C::E motor " << i + 1 << " ID: " << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label
@@ -614,7 +618,7 @@ bool bMBDyn_CE_Verbose)
 				mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());
 				mbdynce_tempframeM2_start = mbdynce_tempframe1G_start >> (mbdynce_tempframe2G.GetInverse()); // expressed in Frame 2
 				mbdynce_tempframeM2_end = mbdynce_tempMBDynG_end >> (mbdynce_tempframe2G.GetInverse()); // pos and rot of the node expressed in Frame 2
-				if (MBDyn_CE_CEMotorType == 0)
+				if (MBDyn_CE_CEMotorType == 0) // co-simulation by velocity 
 				{
 					// when using setpoint function, end position/rotation == start position/rotation.
 					mbdynce_tempframeM2_end = mbdynce_tempframeM2_start;
@@ -648,7 +652,7 @@ bool bMBDyn_CE_Verbose)
 					std::cout << "\t\t\tmbdynce_tempframeM2_end(yaw-pitch-roll-Euler321): " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 				}
 
-				if (MBDyn_CE_CEMotorType == 0)
+				if (MBDyn_CE_CEMotorType == 0) // velocity
 				{
 					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_setpoint>(motor3d_function_pos_base);
 					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_setpoint>(motor3d_function_rot_base);
@@ -659,7 +663,7 @@ bool bMBDyn_CE_Verbose)
 					//std::cout << "\t\t\tpos_dt in frame 2 (pos_function): " << motor3d_function_pos->Get_p_ds(time)<< "\n";
 					//std::cout << "\t\t\trot_dt in frame M (rot_function): " << motor3d_function_rot->Get_w_loc(time)<< "\n";
 				}
-				else if (MBDyn_CE_CEMotorType == 1)
+				else if (MBDyn_CE_CEMotorType == 1) // position
 				{
 					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_line>(motor3d_function_pos_base);
 					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_spline>(motor3d_function_rot_base);
