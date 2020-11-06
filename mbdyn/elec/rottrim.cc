@@ -154,9 +154,9 @@ RotorTrimBase::AssRes(SubVectorHandler& WorkVec,
 	doublereal dX3 = pvNodes[2]->dGetX();
 
 	if (Trigger.dGet() == 0.) {
-		WorkVec.PutCoef(1, -dX1);
-		WorkVec.PutCoef(2, -dX2);
-		WorkVec.PutCoef(3, -dX3);
+		WorkVec.PutCoef(1, 0.);
+		WorkVec.PutCoef(2, 0.);
+		WorkVec.PutCoef(3, 0.);
 
 		return WorkVec;
 	}
