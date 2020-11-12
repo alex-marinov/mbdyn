@@ -199,13 +199,12 @@ Rotor::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-		std::ostringstream os;
-		os << "elem.inducedvelocity." << GetLabel() << ".";
-		std::string name = os.str();
-		(void)OH.CreateVar(name, "Rotor");
-
 		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+			std::ostringstream os;
+			os << "elem.inducedvelocity." << GetLabel() << ".";
+			std::string name = os.str();
+			(void)OH.CreateVar(name, "Rotor");
 			Var_f = OH.CreateVar<Vec3>(name + "f",
 					OutputHandler::Dimensions::Force,
 					"rotor force in x, y and z directions (lon, lat, thrust)");
@@ -1772,6 +1771,8 @@ DynamicInflowRotor::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
+	     if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		/* The first part of the output is the same for Rotor and
 		 * DynamicInflowRotor
 		 */
@@ -1789,7 +1790,7 @@ DynamicInflowRotor::OutputPrepare(OutputHandler& OH)
 		Var_dVCosine= OH.CreateVar<doublereal>(name + "VCosine",
 				OutputHandler::Dimensions::Velocity,
 				"cosine inflow state (longitudinal)");
-
+	     }
 #endif // USE_NETCDF
 	}
 }
