@@ -50,6 +50,8 @@
 
 from __future__ import print_function, division
 import sys
+from numbers import Number, Integral
+import pdb
 
 if sys.version_info[0] < 3:
         import __builtin__ as builtins
@@ -514,6 +516,194 @@ class Body:
         s = s + ';\n'
         return s
 
+
+class StructuralForce:
+    def __init__(self, idx, node, ftype, position, force_drive, 
+            force_orientation = [], moment_orientation = [],
+            moment_drive = [], output = 'yes'):
+        assert isinstance(node, Integral) or (len(node) == 1), (
+            '\n-------------------\nERROR:' + 
+            ' defining a structural force with incompatible' + 
+            ' node tag or multiple node tags;' + 
+            '\n-------------------\n')
+        assert isinstance(position, Position), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a structural force, the relative arm must be' +
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert ftype in {'absolute', 'follower', 'total'}, (
+            '\n-------------------\nERROR:' + 
+            ' unrecognised type of structural force: ' + str(ftype) + 
+            '\n-------------------\n')
+        if ftype == 'total':
+            assert isinstance(force_orientation, Position), (
+                '\n-------------------\nERROR:' + 
+                ' in defining a structural total force, the force orientation ' +
+                ' must be an instance of the Position class;' + 
+                '\n-------------------\n')
+            assert isinstance(moment_orientation, Position), (
+                '\n-------------------\nERROR:' + 
+                ' in defining a structural total force, the moment orientation ' +
+                ' must be an instance of the Position class;' + 
+                '\n-------------------\n')
+        self.idx = idx
+        self.node = node
+        self.ftype = ftype
+        self.position = position
+        self.force_drive = force_drive
+        self.force_orientation = force_orientation
+        self.moment_orientation = moment_orientation
+        self.moment_drive = moment_drive
+        self.output = output
+    def __str__(self):
+        s = 'force: ' + str(self.idx) + ', ' + self.ftype
+        s = s + ',\n\t' + str(self.node)
+        s = s + ',\n\t\tposition, ' + str(self.position)
+        if self.ftype == 'total':
+            s = s + ',\n\t\tforce orientation, ' + str(self.force_orientation)
+            s = s + ',\n\t\tmoment orientation, ' + str(self.moment_orientation)
+            s = s + ',\n\t\tforce, ' + ', '.join(str(i) for i in self.force_drive)
+            s = s + ',\n\t\tmoment, ' + ', '.join(str(i) for i in self.moment_drive)
+        else: # ftype = { absolute|follower }
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+
+class StructuralInternalForce:
+    def __init__(self, idx, nodes, ftype, positions, force_drive, 
+            force_orientation = [], moment_orientation = [],
+            moment_drive = [], output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a structural internal force with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        assert all(isinstance(pos, Position) for pos in positions) , (
+            '\n-------------------\nERROR:' + 
+            ' in defining a structural internal force all relative arms ' +
+            ' must be instances of the Position class;' + 
+            '\n-------------------\n')
+        assert ftype in {'absolute', 'follower', 'total'}, (
+            '\n-------------------\nERROR:' + 
+            ' unrecognised type of structural internal force: ' + str(ftype) + 
+            '\n-------------------\n')
+        if ftype == 'total':
+            assert all(isinstance(pos, Position) for pos in force_orientation), (
+                '\n-------------------\nERROR:' + 
+                ' in defining a structural total internal force all the ' +
+                ' force orientations must be instances of the Position class;' + 
+                '\n-------------------\n')
+            assert all(isinstance(pos, Position) for pos in moment_orientation), (
+                '\n-------------------\nERROR:' + 
+                ' in defining a structural total internal force all the ' +
+                ' moment orientations must be instances of the Position class;' + 
+                '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.ftype = ftype
+        self.positions = positions
+        self.force_drive = force_drive
+        self.force_orientation = force_orientation
+        self.moment_orientation = moment_orientation
+        self.moment_drive = moment_drive
+        self.output = output
+    def __str__(self):
+        s = 'force: ' + str(self.idx) + ', ' + self.ftype + ' internal'
+        s = s + ',\n\t' + str(self.nodes[0])
+        s = s + ',\n\t\tposition, ' + str(self.positions[0])
+        if self.ftype == 'total':
+            s = s + ',\n\t\tforce orientation, ' + str(self.force_orientation[0])
+            s = s + ',\n\t\tmoment orientation, ' + str(self.moment_orientation[0])
+        s = s + ',\n\t' + str(self.nodes[1])
+        s = s + ',\n\t\tposition, ' + str(self.positions[1])
+        if self.ftype == 'total':
+            s = s + ',\n\t\tforce orientation, ' + str(self.force_orientation[1])
+            s = s + ',\n\t\tmoment orientation, ' + str(self.moment_orientation[1])
+            s = s + ',\n\t\tforce, ' + ', '.join(str(i) for i in self.force_drive)
+            s = s + ',\n\t\tmoment, ' + ', '.join(str(i) for i in self.moment_drive)
+        else: # ftype = { absolute|follower }
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+
+class StructuralCouple:
+    def __init__(self, idx, node, ctype, position, moment_drive, output = 'yes'):
+        assert isinstance(node, Integral) or (len(node)) == 1, (
+            '\n-------------------\nERROR:' + 
+            ' defining a structural couple with incompatible' + 
+            ' node tag or multiple node tags;' + 
+            '\n-------------------\n')
+        assert isinstance(position, Position), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a structural couple, the relative arm must be' +
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert ctype in {'absolute', 'follower'}, (
+            '\n-------------------\nERROR:' + 
+            ' unrecognised type of structural couple: ' + str(ctype) + 
+            ';\n-------------------\n')
+        self.idx = idx
+        self.node = node
+        self.ctype = ctype
+        self.position = position
+        self.moment_drive = moment_drive
+        self.output = output
+    def __str__(self):
+        s = 'couple: ' + str(self.idx) + ', ' + self.ctype
+        s = s + ',\n\t' + str(self.node)
+        if len(self.position):
+            s = s + ',\n\t\tposition, ' + str(self.position)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+
+class StructuralInternalCouple:
+    def __init__(self, idx, nodes, ctype, positions, moment_drive, output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a structural internal couple with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        assert len(positions) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a structural internal couple with ' + str(len(positions)) + 
+            ' relative positions (!= 2);' +
+            '\n-------------------\n')
+        assert all(isinstance(pos, Position) for pos in positions), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a structural internal couple all the relative positions ' +
+            ' must be instances of the Position class;' + 
+            '\n-------------------\n')
+        assert ctype in {'absolute', 'follower'}, (
+            '\n-------------------\nERROR:' + 
+            ' unrecognised type of structural internal couple: ' + str(ctype) + 
+            '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.ctype = ctype
+        self.positions = positions
+        self.moment_drive = moment_drive
+        self.output = output
+    def __str__(self):
+        s = 'couple: ' + str(self.idx) + ', ' + self.ctype + ' inernal'
+        s = s + ',\n\t' + str(self.nodes[0])
+        s = s + ',\n\t\tposition, ' + str(self.position[0])
+        s = s + ',\n\t' + str(self.nodes[1])
+        s = s + ',\n\t\tposition, ' + str(self.position[1])
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+
 class Clamp:
     def __init__(self, idx, node, pos = Position('', 'node'), 
             orient = Position('', 'node'), output = 'yes'):
@@ -530,6 +720,7 @@ class Clamp:
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
         return s
+
 
 class TotalJoint:
     def __init__(self, idx, nodes, positions, \
@@ -592,6 +783,81 @@ class TotalJoint:
                 s = s + ',\n\t\tposition orientation, ' + str(pos_or)
             if not(rot_or.iseye()):
                 s = s + ',\n\t\trotation orientation, ' + str(rot_or)
+        if sum(self.position_constraints):
+            s = s + ',\n\tposition constraint, '\
+                    + ', '.join(str(pc) for pc in self.position_constraints)
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.position_drive)
+        if sum(self.orientation_constraints):
+            s = s + ',\n\torientation constraint, '\
+                    + ', '.join(str(oc) for oc in self.orientation_constraints)
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.orientation_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+
+class TotalPinJoint:
+    def __init__(self, idx, node, 
+            positions, position_orientations, rotation_orientations, 
+            position_constraints, orientation_constraints, 
+            position_drive, orientation_drive,
+            output = 'yes'):
+        assert isinstance(node, Integral) or (len(node) == 1), (
+            '\n-------------------\nERROR:' + 
+            ' defining a total pin joint with incompatible' +  
+            ' node tag or multiple node tags;' + 
+            '\n-------------------\n')
+        assert len(positions) in [1, 2], (
+            '\n-------------------\nERROR:' +
+            ' defining a total pin joint with ' + str(len(positions)) + 
+            ' relative positions;' + '\n-------------------\n')
+        assert len(position_orientations) in [1, 2], (
+            '\n-------------------\nERROR:' +
+            ' defining a total joint with ' + str(len(positions_orientations)) + 
+            ' position orientations;' + '\n-------------------\n')
+        assert len(rotation_orientations) in [1, 2], (
+            '\n-------------------\nERROR:' +
+            ' defining a total joint with ' + str(len(rotation_orientations)) + 
+            ' rotation orientations;' + '\n-------------------\n')
+        assert len(position_constraints) == 3, (
+            '\n-------------------\nERROR:' +
+            ' defining a total joint with ' + str(len(position_constrains)) + 
+            ' position constraints;' + '\n-------------------\n')
+        assert len(orientation_constraints) == 3, (
+            '\n-------------------\nERROR:' +
+            ' defining a total joint with ' + str(len(orientation_constrains)) + 
+            ' orientation constraints;' + '\n-------------------\n')
+        assert all([isinstance(pos, Position) for pos in positions]), (
+            '\n-------------------\nERROR:' +
+            ' in defining a total joint all offsets must be instances of ' + 
+            ' the class Position;' + '\n-------------------\n')
+        self.idx = idx
+        self.node = node
+        self.positions = positions
+        self.position_orientations = position_orientations
+        self.rotation_orientations = rotation_orientations
+        self.position_constraints = position_constraints
+        self.orientation_constraints = orientation_constraints
+        self.position_drive = position_drive
+        self.orientation_drive = orientation_drive
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', total pin joint'
+        s = s + ',\n\t' + str(self.node)
+        if not(self.positions[0].isnull()):
+            s = s + ',\n\t\tposition, ' + str(self.positions[0])
+        if not(self.position_orientations[0].iseye()):
+            s = s + ',\n\t\tposition orientation, ' + str(self.position_orientations[0])
+        if not(self.rotation_orientations[0].iseye()):
+            s = s + ',\n\t\trotation orientation, ' + str(self.rotation_orientations[0])
+        if len(self.positions) == 2 and not(self.positions[1].isnull()):
+            s = s + ',\n\t# GROUND'
+            s = s + '\n\t\tposition, ' + str(self.positions[1])
+        if len(self.position_orientations) == 2 and not(self.position_orientations[1].iseye()):
+            s = s + ',\n\t\tposition orientation, ' + str(self.position_orientations[1])
+        if len(self.rotation_orientations) == 2 and not(self.rotation_orientations[1].iseye()):
+            s = s + ',\n\t\trotation orientation, ' + str(self.rotation_orientations[1])
         if sum(self.position_constraints):
             s = s + ',\n\tposition constraint, '\
                     + ', '.join(str(pc) for pc in self.position_constraints)
@@ -705,5 +971,197 @@ class Beam:
                 s  = s + ', '.join(str(i) for i in cl)
         if self.output != 'yes':
             s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class AerodynamicBody:
+    def __init__(self, idx, node, 
+            position, orientation, span,
+            chord, aero_center, b_c_point, twist, integration_points,
+            induced_velocity = [], tip_loss = [], control = [], 
+            airfoil_data = [], unsteady = [], 
+            jacobian = 'no', custom_output = [], output = 'yes'):
+        assert isinstance(node, Integral) or (len(node) == 1), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic body with an incompatible' + 
+            ' node tag or multiple node tags;' + 
+            '\n-------------------\n')
+        assert isinstance(position, Position), (
+            '\n-------------------\nERROR:' + 
+            ' in defining an aerodynamic body the' + 
+            ' relative surface offset must be an instance of the' + 
+            ' Position class;' + '\n-------------------\n')
+        assert isinstance(orientation, Position), (
+            '\n-------------------\nERROR:' + 
+            ' in defining an aerodynamic body the '
+            ' relative surface orientation must be an instance of the' 
+            ' Position class;' + '\n-------------------\n')
+        assert isinstance(span, (Number)) or (isinstance(span, MBVar) and (span.var_type in ('real', 'const real'))), (
+            '\n-------------------\nERROR:' + 
+            ' in defining an aerodynamic body, the' + 
+            ' surface span must be numeric' + 
+            '\n-------------------\n')
+        assert (isinstance(integration_points, Integral) and (integration_points > 0)) \
+                or (isinstance(integration_points, MBVar) and integration_points.var_type in ('integer', 'const integer')), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic body with ' + str(integration_points) +
+            ' integration_points' + '\n-------------------\n')
+        assert (induced_velocity == []) or isinstance(induced_velocity, (Integral, MBVar)), (
+            '\n-------------------\nERROR:' + 
+            ' in defining an aerodynamic body the '
+            ' induced velocity elment tag must be an integer or MBVar;' 
+            '\n-------------------\n')
+        assert not(len(unsteady)) or ((len(unsteady) > 0)*'bielawa' == 'bielawa'), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic body with unrecognised unsteady flag'
+            '\n-------------------\n')
+        assert (jacobian in {'yes', 'no'}) or isinstance(jacobian, bool), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic body with unrecognised jacobian flag'
+            '\n-------------------\n')
+        self.idx = idx
+        self.node = node
+        self.position = position
+        self.orientation = orientation
+        self.span = span
+        self.chord = chord
+        self.aero_center = aero_center
+        self.b_c_point = b_c_point
+        self.twist = twist
+        self.integration_points = integration_points
+        self.induced_velocity = induced_velocity
+        self.tip_loss = tip_loss
+        self.control = control
+        self.airfoil_data = airfoil_data
+        self.unsteady = unsteady
+        self.jacobian = jacobian
+        self.custom_output = custom_output
+        self.output = output
+    def __str__(self):
+        s = 'aerodynamic body: ' + str(self.idx)
+        s = s + ',\n\t ' + str(self.node)
+        if self.induced_velocity:
+            s = s + ',\n\t\tinduced velocity ' + str(self.induced_velocity)
+        s = s + ',\n\t\t' + str(self.position)
+        s = s + ',\n\t\t' + str(self.orientation)
+        s = s + ',\n\t\t' + str(self.span)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.chord)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.aero_center)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.b_c_point)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.twist)
+        if len(self.tip_loss):
+            s = s + ',\n\t\ttip loss, ' + ', '.join(str(i) for i in self.tip_loss)
+        s = s + '\n\t\t' + str(self.integration_points)
+        if len(self.control):
+            s = s + ',\n\t\tcontrol, ' + ', '.join(str(i) for i in self.control)
+        if len(self.airfoil_data):
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.airfoil_data)
+        if len(self.unsteady):
+            s = s + ',\n\t\tunsteady, ' + str(self.unsteady)
+        if len(self.jacobian):
+            s = s + ',\n\t\tjacobian, ' + str(self.jacobian)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        if len(self.custom_output):
+            s = s + ',\n\tcustom output, ' + ', '.join(str(i) for i in self.custom_output)
+        s = s + ';\n'
+        return s
+
+
+class AerodynamicBeam:
+    def __init__(self, idx, beam, 
+            positions, orientations,
+            chord, aero_center, b_c_point, twist, integration_points, 
+            induced_velocity = [], tip_loss = [], control = [], 
+            airfoil_data = [], unsteady = [], 
+            jacobian = 'no', custom_output = [], output = 'yes'):
+        assert isinstance(beam, Integral) or (len(beam) == 1), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with an incompatible' + 
+            ' beam tag or multiple beam tags;' + 
+            '\n-------------------\n')
+        assert len(positions) in {2,3}, (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with ' + str(len(positions)) +
+            ' relative surface offsets (not in [2,3])' + '\n-------------------\n')
+        assert all(isinstance(pos, Position) for pos in positions), (
+            ' in defining an aerodynamic beam the' + 
+            ' relative surface offsets must be instances of the' + 
+            ' Position class;' + '\n-------------------\n')
+        assert len(orientations) in {2,3}, (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with ' + str(len(orientations)) +
+            ' relative surface orientations (not in [2,3])' + '\n-------------------\n')
+        assert all(isinstance(pos, Position) for pos in orientations), (
+            ' in defining an aerodynamic beam the' + 
+            ' relative surface orientations must be instances of the' + 
+            ' Position class;' + '\n-------------------\n')
+        assert len(positions) == len(orientations), (
+            '\n-------------------\nERROR:' + 
+            ' definining an aerodynamic beam with ' + str(len(positions)) + 
+            ' relative surface offsets and ' + str(len(orientations)) + 
+            ' relative surface orientations' + '\n-------------------\n')
+        assert (isinstance(integration_points, Integral) and (integration_points > 0))\
+                or (isinstance(integration_points, MBVar) and integration_points.var_type in ('integer', 'const integer')), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with ' + str(integration_points) +
+            ' integration_points' + '\n-------------------\n')
+        assert (induced_velocity == []) or isinstance(induced_velocity, (Integral, MBVar)), (
+            '\n-------------------\nERROR:' + 
+            ' in defining an aerodynamic body the '
+            ' induced velocity elment tag must be an integer or an MBVar;' 
+            '\n-------------------\n')
+        assert not(len(unsteady)) or ((len(unsteady) > 0)*'bielawa' == 'bielawa'), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with unrecognised unsteady flag'
+            '\n-------------------\n')
+        assert (jacobian in {'yes', 'no'}) or isinstance(jacobian, bool), (
+            '\n-------------------\nERROR:' + 
+            ' defining an aerodynamic beam with unrecognised jacobian flag'
+            '\n-------------------\n')
+        self.idx = idx
+        self.beam = beam
+        self.positions = positions
+        self.orientations = orientations
+        self.chord = chord
+        self.aero_center = aero_center
+        self.b_c_point = b_c_point
+        self.twist = twist
+        self.integration_points = integration_points
+        self.induced_velocity = induced_velocity
+        self.tip_loss = tip_loss
+        self.control = control
+        self.airfoil_data = airfoil_data
+        self.unsteady = unsteady
+        self.jacobian = jacobian
+        self.custom_output = custom_output
+        self.output = output
+    def __str__(self):
+        s = 'aerodynamic beam' + str(len(self.positions)) + ': ' + str(self.idx)
+        s = s + ',\n\t ' + str(self.beam)
+        if self.induced_velocity:
+            s = s + ',\n\t\tinduced velocity ' + str(self.induced_velocity)
+        for (pos, ori) in zip(self.positions, self.orientations):
+            s = s + ',\n\t\t' + str(pos)
+            s = s + ',\n\t\t' + str(ori)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.chord)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.aero_center)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.b_c_point)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.twist)
+        if len(self.tip_loss):
+            s = s + ',\n\t\ttip loss, ' + ', '.join(str(i) for i in self.tip_loss)
+        s = s + ',\n\t\t' + str(self.integration_points)
+        if len(self.control):
+            s = s + ',\n\t\tcontrol, ' + ', '.join(str(i) for i in self.control)
+        if len(self.airfoil_data):
+            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.airfoil_data)
+        if len(self.unsteady):
+            s = s + ',\n\t\tunsteady, ' + str(self.unsteady)
+        if self.jacobian == 'yes':
+            s = s + ',\n\t\tjacobian, ' + str(self.jacobian)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        if len(self.custom_output):
+            s = s + ',\n\tcustom output, ' + ', '.join(str(i) for i in self.custom_output)
         s = s + ';\n'
         return s
