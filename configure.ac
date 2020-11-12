@@ -2227,6 +2227,20 @@ if test $ol_with_lapack != no ; then
 	LIBS="$save_LIBS"
 fi
 
+if test $ol_link_lapack = no ; then
+	case "$ol_with_lapack" in
+	yes)
+		AC_MSG_ERROR([Could not locate Lapack])
+		;;
+	auto)
+		AC_MSG_WARN([Lapack not supported])
+		;;
+	*)
+		;;
+	esac
+fi
+
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Umfpack
