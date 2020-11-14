@@ -296,7 +296,7 @@ public:
 	int GetLineNumber(void) const;
 
 public:
-   
+
 	/* i token che il lex riconosce */
 	enum Token {
 		ENDOFFILE = -2,
@@ -507,6 +507,8 @@ public:
 
 	/* validates a name */
 	bool bNameValidate(const std::string& s) const;
+
+	const char *token2str(Token token) const;
 };
 
 extern std::ostream&

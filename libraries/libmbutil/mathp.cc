@@ -3305,6 +3305,109 @@ MathParser::bNameValidate(const std::string& s) const
 	return true;
 }
 
+const char *
+MathParser::token2str(Token token) const
+{
+	switch (token)
+	{
+	case ENDOFFILE:
+		return "EOF";
+
+	case UNKNOWNTOKEN:
+		return "UNKNOWN";
+
+	case MP_INT:
+		return "INTEGER";
+
+	case MP_REAL:
+		return "REAL";
+
+	case MP_STRING:
+		return "STRING";
+
+	case NUM:
+		return "NUMBER";
+
+	case NAME:
+		return "NAME";
+
+	case EXP:
+		return "EXPONENT";
+
+	case MULT:
+		return "MULTIPLICATION";
+
+	case DIV:
+		return "DIVISION";
+
+	case MOD:
+		return "MODULUS";
+
+	case MINUS:
+		return "MINUS";
+
+	case PLUS:
+		return "PLUS";
+
+	case GT:
+		return "GREATER_THAN";
+
+	case GE:
+		return "GREATER_THAN_OR_EQUAL_TO";
+
+	case EQ:
+		return "EQUAL_TO";
+
+	case LE:
+		return "LESS_THAN_OR_EQUAL_TO";
+
+	case LT:
+		return "LESS_THAN";
+
+	case NE:
+		return "NOT_EQUAL";
+
+	case NOT:
+		return "LOGICAL_NOT";
+
+	case AND:
+		return "LOGICAL_AND";
+
+	case OR:
+		return "LOGICAL_OR";
+
+	case XOR:
+		return "LOGICA_EXCLUSIVE_OR";
+
+	case OBR:
+		return "OPEN_BRACKET";
+
+	case CBR:
+		return "CLOSE_BRACKET";
+
+	case OPGIN:
+		return "OPEN_PLUGIN";
+
+	case CPGIN:
+		return "CLOSE_PLUGIN";
+
+	case STMTSEP:
+		return "STATEMENT_SEPARATOR";
+
+	case ARGSEP:
+		return "ARGUMENT_SEPARATOR";
+
+	case NAMESPACESEP:
+		return "NAMESPACE_SEPARATOR";
+
+	case ASSIGN:
+		return "ASSIGNMENT";
+
+	default:
+		return "unknown token";
+	};
+}
+
 #ifdef DO_NOT_USE_EE
 TypedValue
 MathParser::logical(void)
@@ -5022,6 +5125,7 @@ MathParser::expr(void)
 				return new EE_Value(v->GetVal());
 			}
 
+#if 0
 			switch (currtoken) {
 			case NAME:
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unexpected name \"") + namebuf + "\"");
@@ -5030,6 +5134,8 @@ MathParser::expr(void)
 				// TODO: output token!
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unexpected token");
 			}
+#endif
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unexpected name \"") + name + "\" followed by " + token2str(currtoken));
 		}
 
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unknown name \"") + name + "\"");
