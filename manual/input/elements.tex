@@ -3219,9 +3219,10 @@ at the sides of the valve body and participate in the force balance.
 
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} ,
+        \bnt{pipe_diameter} ,
         \bnt{orifice_area} ,
-        [ \kw{area} , \bnt{pipe_area} , ]
-        [ \kw{reynolds} , \bnt{critical_reynolds_number} , ]
+        [ \kw{area} , \bnt{pipe_area} , ] # defaults to (\bnt{pipe_diameter}/2)^2*pi
+        [ \kw{reynolds} , \bnt{critical_reynolds_number} , ] # defaults to 10
         \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
