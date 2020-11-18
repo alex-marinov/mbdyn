@@ -906,7 +906,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Area_diaf: " << area_diaf << std::endl);
   
        /* Area del tubo */
-       doublereal area_pipe = diameter*diameter*0.785;
+       doublereal area_pipe = diameter*diameter*M_PI/4.;
        if (HP.IsKeyWord("area")) 
 	 {
 	    area_pipe = HP.GetReal();
