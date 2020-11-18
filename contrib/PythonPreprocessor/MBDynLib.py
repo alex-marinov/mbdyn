@@ -420,6 +420,30 @@ class Position:
 class Node:
     def __init__(self, idx, pos, orient, vel, angular_vel, node_type = 'dynamic',
             scale = 'default', output = 'yes'):
+        assert isinstance(pos, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the initial position of a node must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(orient, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the initial orientation of a node must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(vel, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the initial velocity of a node must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(angular_vel, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the initial angular velocity of a node must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert node_type in ('dynamic', 'static',), (
+            '\n-------------------\nERROR:' + 
+            ' unrecognised or unsupported node type;' + 
+            '\n-------------------\n')
         self.idx = idx
         self.position = pos
         self.orientation = orient
@@ -493,6 +517,16 @@ class PointMass:
 class Body:
     def __init__(self, idx, node, mass, position, inertial_matrix, inertial = null,
             output = 'yes'):
+        assert isinstance(position, Position), (
+            '\n-------------------\nERROR:' +
+            ' in defining a body, the center of mass relative position ' + 
+            ' mass must be an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(inertial_matrix, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a body, the inertial matrix' + 
+            ' must be a list;' + 
+            '\n-------------------\n')
         self.idx = idx
         self.node = node
         self.mass = mass
@@ -521,11 +555,6 @@ class StructuralForce:
     def __init__(self, idx, node, ftype, position, force_drive, 
             force_orientation = [], moment_orientation = [],
             moment_drive = [], output = 'yes'):
-        assert isinstance(node, Integral) or (len(node) == 1), (
-            '\n-------------------\nERROR:' + 
-            ' defining a structural force with incompatible' + 
-            ' node tag or multiple node tags;' + 
-            '\n-------------------\n')
         assert isinstance(position, Position), (
             '\n-------------------\nERROR:' + 
             ' in defining a structural force, the relative arm must be' +
@@ -633,11 +662,6 @@ class StructuralInternalForce:
 
 class StructuralCouple:
     def __init__(self, idx, node, ctype, position, moment_drive, output = 'yes'):
-        assert isinstance(node, Integral) or (len(node)) == 1, (
-            '\n-------------------\nERROR:' + 
-            ' defining a structural couple with incompatible' + 
-            ' node tag or multiple node tags;' + 
-            '\n-------------------\n')
         assert isinstance(position, Position), (
             '\n-------------------\nERROR:' + 
             ' in defining a structural couple, the relative arm must be' +
@@ -658,7 +682,7 @@ class StructuralCouple:
         s = s + ',\n\t' + str(self.node)
         if len(self.position):
             s = s + ',\n\t\tposition, ' + str(self.position)
-        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.moment_drive)
         if self.output != 'yes':
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
@@ -697,7 +721,7 @@ class StructuralInternalCouple:
         s = s + ',\n\t\tposition, ' + str(self.position[0])
         s = s + ',\n\t' + str(self.nodes[1])
         s = s + ',\n\t\tposition, ' + str(self.position[1])
-        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.force_drive)
+        s = s + ',\n\t\t' + ', '.join(str(i) for i in self.moment_drive)
         if self.output != 'yes':
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
@@ -728,30 +752,60 @@ class TotalJoint:
             position_constraints, orientation_constraints, \
             position_drive, orientation_drive,
             output = 'yes'):
+        assert isinstance(nodes, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a total joint, the' +
+            ' nodes must be given in a list' + 
+            '\n-------------------\n')
         assert len(nodes) == 2, (
             '\n-------------------\nERROR:' + 
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes' + '\n-------------------\n')
+        assert isinstance(positions, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a total joint, the' +
+            ' relative positions must be given in a list' + 
+            '\n-------------------\n')    
         assert len(nodes) == len(positions), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
+            '\n-------------------\n')
+        assert isinstance(position_orientations, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a total joint, the' +
+            ' relative position orientations must be given in a list' + 
             '\n-------------------\n')
         assert len(nodes) == len(position_orientations), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions_orientations)) + ' position orientations;\n' +
             '\n-------------------\n')
+        assert isinstance(rotation_orientations, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a total joint, the' +
+            ' relative rotation orientations must be given in a list' + 
+            '\n-------------------\n')
         assert len(nodes) == len(rotation_orientations), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(rotation_orientations)) + ' rotation orientations;\n' +
+            '\n-------------------\n')
+        assert isinstance(position_constraints, list), (
+            '\n-------------------\nERROR:' +
+            ' in defining a total joint, ' 
+            ' position constraints must be given as a list;' + 
             '\n-------------------\n')
         assert len(position_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' +
             str(len(position_constrains)) + ' position constraints;\n' +
             '\n-------------------\n')
+        assert isinstance(orientation_constraints, list), (
+            '\n-------------------\nERROR:' +
+            ' in defining a total joint, ' 
+            ' orientation constraints must be given as a list;' + 
+            '\n-------------------\n')    
         assert len(orientation_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' +
@@ -803,35 +857,48 @@ class TotalPinJoint:
             position_constraints, orientation_constraints, 
             position_drive, orientation_drive,
             output = 'yes'):
-        assert isinstance(node, Integral) or (len(node) == 1), (
-            '\n-------------------\nERROR:' + 
-            ' defining a total pin joint with incompatible' +  
-            ' node tag or multiple node tags;' + 
+        if not isinstance(positions, list):
+            positions = [positions]
+        assert (len(positions) in [1, 2]) and all([isinstance(pos, Position) for pos in positions]), (
+            '\n-------------------\nERROR:' +
+            ' in defining a total pin joint, ' + 
+            ' relative positions must be given as a single instance' + 
+            ' of the Position class or as a list of Position instances' + 
             '\n-------------------\n')
-        assert len(positions) in [1, 2], (
+        if not isinstance(position_orientations, list):
+            position_orientations = [position_orientations]
+        assert ((len(position_orientations) in [1, 2]) and all([isinstance(pos, Position) for pos in position_orientations])), (
             '\n-------------------\nERROR:' +
-            ' defining a total pin joint with ' + str(len(positions)) + 
-            ' relative positions;' + '\n-------------------\n')
-        assert len(position_orientations) in [1, 2], (
+            ' in defining a total pin joint, ' + 
+            ' relative position orientations must be given as a single instance' + 
+            ' of the Position class or as a list of Position instances' + 
+            '\n-------------------\n')
+        if not isinstance(rotation_orientations, list):
+            rotation_orientations = [rotation_orientations]
+        assert ((len(rotation_orientations) in [1, 2]) and all([isinstance(pos, Position) for pos in rotation_orientations])), (
             '\n-------------------\nERROR:' +
-            ' defining a total joint with ' + str(len(positions_orientations)) + 
-            ' position orientations;' + '\n-------------------\n')
-        assert len(rotation_orientations) in [1, 2], (
+            ' in defining a total pin joint, ' + 
+            ' relative rotation orientations must be given as a single instance' + 
+            ' of the Position class or as a list of Position instances' + 
+            '\n-------------------\n')
+        assert isinstance(position_constraints, list), (
             '\n-------------------\nERROR:' +
-            ' defining a total joint with ' + str(len(rotation_orientations)) + 
-            ' rotation orientations;' + '\n-------------------\n')
+            ' in defining a total joint, ' 
+            ' position constraints must be given as a list;' + 
+            '\n-------------------\n')
         assert len(position_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(position_constrains)) + 
             ' position constraints;' + '\n-------------------\n')
+        assert isinstance(orientation_constraints, list), (
+            '\n-------------------\nERROR:' +
+            ' in defining a total joint, ' 
+            ' orientation constraints must be given as a list;' + 
+            '\n-------------------\n')
         assert len(orientation_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(orientation_constrains)) + 
             ' orientation constraints;' + '\n-------------------\n')
-        assert all([isinstance(pos, Position) for pos in positions]), (
-            '\n-------------------\nERROR:' +
-            ' in defining a total joint all offsets must be instances of ' + 
-            ' the class Position;' + '\n-------------------\n')
         self.idx = idx
         self.node = node
         self.positions = positions
@@ -871,6 +938,24 @@ class TotalPinJoint:
         s = s + ';\n'
         return s
 
+class JointRegularization:
+    def __init__(self, idx, coefficients):
+        assert (isinstance(coefficients, list) and len(coefficients) >= 1) or (isinstance(coefficients, Number)), (
+            '\n-------------------\nERROR:' + 
+            ' joint regularization needs at least one' +
+            ' coefficient ' + '\n-------------------\n')
+        self.idx = idx
+        self.coefficients = coefficients
+    def __str__(self):
+        s = 'joint regularization: ' + str(self.idx) + ", tikhonov"
+        if isinstance(self.coefficients, list):
+            s = s + 'list, ' + ', '.join(str(co) for co in self.coefficients)
+        else:
+            s = s + ', ' + str(self.coefficients)
+        s = s + ';\n'
+        return s
+
+
 class Rod:
     def __init__(self, idx, nodes, positions, const_law, length = 'from nodes', 
             output = 'yes'):
@@ -883,6 +968,8 @@ class Rod:
             ' defining a rod with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
             '\n-------------------\n')
+        if not isinstance(positions, list):
+            positions = [positions]
         assert all([isinstance(pos, Position) for pos in positions]), (
             '\n-------------------\nERROR:' +
             ' in defining a rod all offsets must be instances of ' + 
@@ -981,11 +1068,6 @@ class AerodynamicBody:
             induced_velocity = [], tip_loss = [], control = [], 
             airfoil_data = [], unsteady = [], 
             jacobian = 'no', custom_output = [], output = 'yes'):
-        assert isinstance(node, Integral) or (len(node) == 1), (
-            '\n-------------------\nERROR:' + 
-            ' defining an aerodynamic body with an incompatible' + 
-            ' node tag or multiple node tags;' + 
-            '\n-------------------\n')
         assert isinstance(position, Position), (
             '\n-------------------\nERROR:' + 
             ' in defining an aerodynamic body the' + 
@@ -1075,11 +1157,6 @@ class AerodynamicBeam:
             induced_velocity = [], tip_loss = [], control = [], 
             airfoil_data = [], unsteady = [], 
             jacobian = 'no', custom_output = [], output = 'yes'):
-        assert isinstance(beam, Integral) or (len(beam) == 1), (
-            '\n-------------------\nERROR:' + 
-            ' defining an aerodynamic beam with an incompatible' + 
-            ' beam tag or multiple beam tags;' + 
-            '\n-------------------\n')
         assert len(positions) in {2,3}, (
             '\n-------------------\nERROR:' + 
             ' defining an aerodynamic beam with ' + str(len(positions)) +
