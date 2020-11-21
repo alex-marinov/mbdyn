@@ -104,12 +104,12 @@ c
       r=ha(l3,6)
       index=ha(l3,4)+r
       rnr(index)=i
-      if(r.eq.0)go to 70
-      if(j.eq.l1)go to 70
-      if(rnr(index-1).ne.i)go to 70
+      if(r.eq.0)go to 68
+      if(j.eq.l1)go to 68
+      if(rnr(index-1).ne.i)go to 68
       ifail=11
       go to 22
-      ha(l3,6)=r+1
+   68 ha(l3,6)=r+1
    69 END DO
    70 END DO
       do 90 i=1,n
