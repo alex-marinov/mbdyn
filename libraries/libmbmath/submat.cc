@@ -611,6 +611,43 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 	ASSERT(MH.iGetNumRows() >= iNumRows);
 	ASSERT(MH.iGetNumCols() >= iNumCols);
 
+#ifdef USE_SPARSE_AUTODIFF
+	sp_grad::SpGradient oRow, oItem;
+
+#ifdef USE_MULTITHREAD
+	std::vector<bool> rgStatus(iNumRows, false);
+	bool bRepeatLoop;
+
+	do {
+	     bRepeatLoop = false;
+#endif
+	     for (integer r = 1; r <= iNumRows; ++r) {
+#ifdef USE_MULTITHREAD
+		  if (rgStatus[r - 1]) {
+		       continue;
+		  }
+#endif
+		  oRow.ResizeReset(0., iNumCols);
+	     
+		  for (integer c = 1; c <= iNumCols; ++c) {
+		       oItem.Reset(0., piColm1[c], ppdColsm1[c][r]);
+		       oRow += oItem;
+		  }
+	     
+		  bool bStatus = MH.AddItem(piRowm1[r], oRow);
+
+#ifdef USE_MULTITHREAD		  
+		  if (bStatus) {
+		       rgStatus[r - 1] = bStatus;
+		  } else {
+		       bRepeatLoop = true;
+		  }
+#endif
+	     }
+#ifdef USE_MULTITHREAD
+	} while (bRepeatLoop);
+#endif
+#else
 	for (integer c = iNumCols; c > 0; c--) {
 		ASSERT(piColm1[c] > 0);
 		ASSERT(piColm1[c] <= MH.iGetNumCols());
@@ -622,7 +659,7 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 			MH(piRowm1[r], piColm1[c]) += ppdColsm1[c][r];
 		}
 	}
-
+#endif
 	return MH;
 }
 
@@ -1419,6 +1456,37 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 	MH.IsValid();
 #endif /* DEBUG */
 
+#ifdef USE_SPARSE_AUTODIFF
+	sp_grad::SpGradient oItem;
+
+#ifdef USE_MULTITHREAD
+	std::vector<bool> rgStatus(iNumItems, false);
+	bool bRepeatLoop;
+	
+	do {
+	     bRepeatLoop = false;
+#endif	
+	     for (integer i = 1; i <= iNumItems; ++i) {
+#ifdef USE_MULTITHREAD
+		  if (rgStatus[i - 1]) {
+		       continue;
+		  }
+#endif
+		  oItem.Reset(0., piColm1[i], pdMatm1[i]);
+		  bool bStatus = MH.AddItem(piRowm1[i], oItem);
+
+#ifdef USE_MULTITHREAD
+		  if (bStatus) {
+		       rgStatus[i - 1] = bStatus;
+		  } else {
+		       bRepeatLoop = true;
+		  }
+#endif
+	     }
+#ifdef USE_MULTITHREAD
+	} while (bRepeatLoop);
+#endif
+#else
 	for (integer i = iNumItems; i > 0; i--) {
 		ASSERT(piRowm1[i] > 0);
 		ASSERT(piRowm1[i] <= MH.iGetNumRows());
@@ -1427,7 +1495,7 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 
 		MH(piRowm1[i], piColm1[i]) += pdMatm1[i];
 	}
-
+#endif
 	return MH;
 }
 
@@ -1594,6 +1662,162 @@ SparseSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
 
 /* SparseSubMatrixHandler - end */
 
+#ifdef USE_SPARSE_AUTODIFF
+SpGradientSubMatrixHandler::SpGradientSubMatrixHandler(integer iNumItemsMax) {
+     oVec.reserve(iNumItemsMax);
+}
+
+SpGradientSubMatrixHandler::~SpGradientSubMatrixHandler()
+{
+}
+
+void SpGradientSubMatrixHandler::Resize(integer iNumRows, integer)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+void SpGradientSubMatrixHandler::Reset()
+{
+     oVec.clear();
+}
+
+void SpGradientSubMatrixHandler::ResizeReset(integer iNumRows, integer iNumCols)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+doublereal& SpGradientSubMatrixHandler::operator()(integer iRow, integer iCol)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+const doublereal& SpGradientSubMatrixHandler::operator()(integer iRow, integer iCol) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+integer SpGradientSubMatrixHandler::iGetNumRows() const
+{
+     return oVec.size();
+}
+
+integer SpGradientSubMatrixHandler::iGetNumCols() const
+{
+     return 0;
+}
+
+void SpGradientSubMatrixHandler::PutRowIndex(integer iSubIt, integer iRow)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+void SpGradientSubMatrixHandler::PutColIndex(integer iSubIt, integer iRow)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+integer SpGradientSubMatrixHandler::iGetRowIndex(integer) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+integer SpGradientSubMatrixHandler::iGetColIndex(integer) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
+{
+#ifdef USE_MULTITHREAD
+     for (const auto& oItem: oVec) {
+	  oItem.bInserted = false;
+     }
+
+     bool bRepeatLoop;
+
+     do {
+	  bRepeatLoop = false;
+#endif	  
+	  for (const auto& oItem: oVec) {
+#ifdef USE_MULTITHREAD
+	       if (oItem.bInserted) {
+		    continue;
+	       }
+#endif
+	       bool bStatus = MH.AddItem(oItem.iEquationIdx, oItem.oResidual);
+
+#ifdef USE_MULTITHREAD	  
+	       if (bStatus) {
+		    oItem.bInserted = bStatus;
+	       } else {
+		    bRepeatLoop = true;
+	       }
+#endif
+	  }
+
+#ifdef USE_MULTITHREAD
+     } while (bRepeatLoop);
+#endif
+     return MH;
+}
+
+MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const
+{
+     for (const auto& oItem: oVec) {
+	  for (const auto& oRec: oItem.oResidual) {
+	       if (oRec.dDer) {
+		    MH(oItem.iEquationIdx, oRec.iDof) -= oRec.dDer;
+	       }
+	  }
+     }
+
+     return MH;
+}
+
+MatrixHandler& SpGradientSubMatrixHandler::AddToT(MatrixHandler& MH) const
+{
+     for (const auto& oItem: oVec) {
+	  for (const auto& oRec: oItem.oResidual) {
+	       if (oRec.dDer) {
+		    MH(oRec.iDof, oItem.iEquationIdx) += oRec.dDer;
+	       }
+	  }
+     }    
+
+     return MH;
+}
+
+MatrixHandler& SpGradientSubMatrixHandler::SubFromT(MatrixHandler& MH) const
+{
+     for (const auto& oItem: oVec) {
+	  for (const auto& oRec: oItem.oResidual) {
+	       if (oRec.dDer) {
+		    MH(oRec.iDof, oItem.iEquationIdx) -= oRec.dDer;
+	       }
+	  }
+     }    
+
+     return MH;
+}
+
+bool SpGradientSubMatrixHandler::AddItem(integer iEquationIdx, const sp_grad::SpGradient& oResidual)
+{
+     SP_GRAD_ASSERT(oVec.size() < oVec.capacity());
+     
+     oVec.emplace_back(iEquationIdx, oResidual);
+
+     return true;
+}
+
+#ifdef DEBUG
+void SpGradientSubMatrixHandler::IsValid(void) const
+{
+     for (const auto& oItem: oVec) {
+	  SP_GRAD_ASSERT(oItem.oResidual.bValid());
+     }
+}
+#endif
+#endif
 
 /* MySubVectorHandler - begin */
 

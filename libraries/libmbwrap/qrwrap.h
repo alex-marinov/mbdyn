@@ -63,6 +63,9 @@
 
 #if defined(USE_SUITESPARSE_QR)
 #include "spmapmh.h"
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#endif
 #endif
 
 class QrDenseSolver: public LinearSolver {
@@ -203,6 +206,7 @@ private:
         CholModCommon& oCommon;
 };
 
+template <typename MatrixHandlerType>
 class QrSparseSolver: public LinearSolver {
 public:
         class Data {
@@ -237,7 +241,7 @@ public:
 
                 unsigned ordering;
                 CholModCommon oCommon; // Must be initialized before any CholModVectorHandler!
-                SpMapMatrixHandler A;
+                MatrixHandlerType A;
                 FullMatrixHandler Q, R;
                 CholModVectorHandler B, X, V;
                 
@@ -274,10 +278,11 @@ public:
         void UpdateQR(VectorHandler& u, VectorHandler& v);
 };
 
+template <typename MatrixHandlerType>
 class QrSparseSolutionManager: public QrSolutionManager {
 private:
-        mutable QrSparseSolver::Data oData;
-        inline QrSparseSolver* pGetLS() const;
+        mutable typename QrSparseSolver<MatrixHandlerType>::Data oData;
+        inline QrSparseSolver<MatrixHandlerType>* pGetLS() const;
 
 public:
         explicit QrSparseSolutionManager(integer Dim, unsigned flags);

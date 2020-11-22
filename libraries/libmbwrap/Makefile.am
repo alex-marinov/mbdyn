@@ -136,6 +136,7 @@ AM_CPPFLAGS = \
 -I$(srcdir)/../libmbmath \
 -I$(srcdir)/../liby12 \
 -I$(srcdir)/../libcolamd \
--I$(srcdir)/../libnaive
+-I$(srcdir)/../libnaive \
+@PASTIX_INC@
 
 include $(top_srcdir)/build/bot.mk

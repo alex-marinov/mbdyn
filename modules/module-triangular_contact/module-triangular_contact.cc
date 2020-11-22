@@ -882,15 +882,15 @@ void TriangularContact::GetConnectedNodes(std::vector<const Node *>& connectedNo
 
 void TriangularContact::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-     *piNumRows = -(rgContactMesh.size() * iNumDofGradient);
-     *piNumCols = iNumDofGradient;
+     *piNumRows = rgContactMesh.size() * iNumDofGradient;
+     *piNumCols = 0;
 }
 
 void
 TriangularContact::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-     *piNumRows = -(rgContactMesh.size() * iNumDofGradient);
-     *piNumCols = 2 * iNumDofGradient;
+     *piNumRows = rgContactMesh.size() * iNumDofGradient;
+     *piNumCols = 0;
 }
 
 void TriangularContact::ContactSearch()
@@ -1121,7 +1121,7 @@ TriangularContact::AssJac(VariableSubMatrixHandler& WorkMat,
 {
      using namespace sp_grad;
 
-     SpGradientAssVec<SpGradient>::AssJac(this, WorkMat.SetSparse(), dCoef, XCurr, XPrimeCurr, REGULAR_JAC);
+     SpGradientAssVec<SpGradient>::AssJac(this, WorkMat.SetSparseGradient(), dCoef, XCurr, XPrimeCurr, REGULAR_JAC);
 
      return WorkMat;
 }
@@ -1147,7 +1147,7 @@ TriangularContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 {
      using namespace sp_grad;
 
-     SpGradientAssVec<SpGradient>::InitialAssJac(this, WorkMat.SetSparse(), XCurr, INITIAL_ASS_JAC);
+     SpGradientAssVec<SpGradient>::InitialAssJac(this, WorkMat.SetSparseGradient(), XCurr, INITIAL_ASS_JAC);
 
      return WorkMat;
 }

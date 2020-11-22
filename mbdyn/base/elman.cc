@@ -366,14 +366,14 @@ DataManager::ElemAssInit(void)
 	SAFENEWWITHCONSTRUCTOR(pWorkMatA,
 			VariableSubMatrixHandler,
 			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-				iMaxWorkNumColsJac,
-				iMaxWorkNumItemsJac));
+						 iMaxWorkNumColsJac,
+						 iMaxWorkNumItemsJac));
 
 	SAFENEWWITHCONSTRUCTOR(pWorkMatB,
 			VariableSubMatrixHandler,
 			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-				iMaxWorkNumColsJac,
-				iMaxWorkNumItemsJac));
+						 iMaxWorkNumColsJac,
+						 iMaxWorkNumItemsJac));
 
 	pWorkMat = pWorkMatA;
 
@@ -396,8 +396,22 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	ASSERT(pWorkMat != NULL);
 	ASSERT(Elems.begin() != Elems.end());
 
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+	NodesUpdateJac(dCoef, NodeIter);
+#endif	
 	AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 }
+
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+void DataManager::NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter)
+{
+     Node* pNode = nullptr;
+
+     for (bool bStatus = Iter.bGetFirst(pNode); bStatus; bStatus = Iter.bGetNext(pNode)) {
+	  pNode->UpdateJac(dCoef);
+     }
+}
+#endif
 
 void
 DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
@@ -419,7 +433,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 		}
 	}
 #endif
-
+	
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {

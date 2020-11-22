@@ -45,9 +45,9 @@
 #include <cmath>
 #endif
 
+#include "submat.h"
 #include "sp_gradient.h"
 #include "sp_matrix_base.h"
-#include "submat.h"
 
 namespace sp_grad {
      template <typename T>
@@ -187,18 +187,15 @@ namespace sp_grad {
      template <>
      class SpGradientAssVec<SpGradient>: public SpGradientAssVecBase {
      public:
-	  SpGradientAssVec(SparseSubMatrixHandler& mh, SpAssMode mode = RESET)
-	       :WorkMat(mh) {
+	  SpGradientAssVec(SpGradientSubMatrixHandler& mh, SpAssMode mode = RESET)
+	       :oWorkMat(mh) {
 
 	       switch (mode) {
 	       case RESET:
-		    iNextItem = 1;
-		    WorkMat.ResizeReset(iNextItem, 0);
-		    WorkMat.PutItem(1, 1, 1, 0.); //FIXME: avoid SIGSEGV if the matrix is empty
+		    oWorkMat.Reset();
 		    break;
 
 	       case APPEND:
-		    iNextItem = WorkMat.iGetNumRows() + 1;
 		    break;
 
 	       default:
@@ -209,7 +206,7 @@ namespace sp_grad {
 
 	  template <typename T>
 	  static void AssJac(T* pElem,
-			     SparseSubMatrixHandler& WorkMat,
+			     SpGradientSubMatrixHandler& WorkMat,
 			     doublereal dCoef,
 			     const VectorHandler& XCurr,
 			     const VectorHandler& XPrimeCurr,
@@ -226,7 +223,7 @@ namespace sp_grad {
 
 	  template <typename T>
 	  static void InitialAssJac(T* pElem,
-				    SparseSubMatrixHandler& WorkMat,
+				    SpGradientSubMatrixHandler& WorkMat,
 				    const VectorHandler& XCurr,
 				    SpFunctionCall func,
 				    SpAssMode mode = RESET) {
@@ -238,20 +235,8 @@ namespace sp_grad {
 	       pElem->InitialAssRes(WorkMat_grad, XCurr_grad, func);
 	  }
 
-	  void AddItem(integer iRow, const SpGradient& g) {
-	       for (const auto& r:g) {
-		    const double dCoef = r.dDer;
-		    
-		    if (dCoef) {
-			 const index_type iDofIndex = r.iDof;
-			 WorkMat.Resize(iNextItem, 0);
-			 
-			 SP_GRAD_ASSERT(iNextItem <= WorkMat.iGetNumRows());
-			 SP_GRAD_ASSERT(std::isfinite(dCoef));
-
-			 WorkMat.PutItem(iNextItem++, iRow, iDofIndex, dCoef);
-		    }
-	       }
+	  void AddItem(integer iRow, const SpGradient& oGrad) {
+	       oWorkMat.AddItem(iRow, oGrad);
 	  }
 
 	  template <index_type N_rows>
@@ -263,8 +248,7 @@ namespace sp_grad {
 	       }
 	  }
      private:
-	  SparseSubMatrixHandler& WorkMat;
-	  integer iNextItem;
+	  SpGradientSubMatrixHandler& oWorkMat;
      };
 
 } // namespace

@@ -49,6 +49,11 @@
 #include <matvec3.h>
 #include <matvec3n.h>
 
+#ifdef USE_SPARSE_AUTODIFF
+#include <sp_gradient.h>
+#include <vector>
+#endif
+
 /* SubMatrixHandler - begin */
 
 /*
@@ -1097,6 +1102,54 @@ public:
 	MatrixHandler& SubFromT(FullMatrixHandler& MH) const;
 };
 
+#ifdef USE_SPARSE_AUTODIFF
+class SpGradientSubMatrixHandler: public SubMatrixHandler {
+public:
+     explicit SpGradientSubMatrixHandler(integer iNumItemsMax);
+     virtual ~SpGradientSubMatrixHandler();
+     virtual void Resize(integer, integer) override;
+     virtual void Reset() override;
+     virtual void ResizeReset(integer, integer) override;
+     virtual doublereal& operator()(integer iRow, integer iCol) override;
+     virtual const doublereal& operator()(integer iRow, integer iCol) const override;
+     virtual integer iGetNumRows() const override;
+     virtual integer iGetNumCols() const override;
+     virtual void PutRowIndex(integer iSubIt, integer iRow) override;
+     virtual void PutColIndex(integer iSubIt, integer iRow) override;
+     virtual integer iGetRowIndex(integer) const override;
+     virtual integer iGetColIndex(integer) const override;
+     virtual MatrixHandler& AddTo(MatrixHandler& HM) const override;
+     virtual MatrixHandler& SubFrom(MatrixHandler& HM) const override;
+     virtual MatrixHandler& AddToT(MatrixHandler& HM) const override;
+     virtual MatrixHandler& SubFromT(MatrixHandler& HM) const override;
+
+#ifdef DEBUG
+     virtual void IsValid(void) const;
+#endif
+     
+     bool AddItem(integer iEquationIdx, const sp_grad::SpGradient& oResidual) override;
+     
+private:
+     struct ResidualItem {
+	  ResidualItem(integer iEquationIdx, const sp_grad::SpGradient& oResidual)
+	       :iEquationIdx(iEquationIdx),
+#ifdef USE_MULTITHREAD
+		bInserted(false),
+#endif
+		oResidual(oResidual) {
+	  }
+	  
+	  integer iEquationIdx;
+#ifdef USE_MULTITHREAD
+	  mutable bool bInserted;
+#endif
+	  sp_grad::SpGradient oResidual;
+     };
+     
+     std::vector<ResidualItem> oVec;
+};
+#endif
+
 /* SparseSubMatrixHandler - end */
 
 
@@ -1111,14 +1164,25 @@ public:
  */
 
 class VariableSubMatrixHandler
-: public FullSubMatrixHandler, public SparseSubMatrixHandler {
+     : public FullSubMatrixHandler, public SparseSubMatrixHandler
+#ifdef USE_SPARSE_AUTODIFF
+     , public SpGradientSubMatrixHandler
+#endif
+{
 	friend class NaiveMatrixHandler;
 	friend class NaivePermMatrixHandler;
 private:
 	/*
 	 * Stato della matrice.
 	 */
-	enum { NULLMATRIX, FULL, SPARSE } eStatus;
+	enum {
+	     NULLMATRIX,
+	     FULL,
+	     SPARSE
+#ifdef USE_SPARSE_AUTODIFF
+	     ,SPARSE_GRADIENT
+#endif
+	} eStatus;
 
 	VariableSubMatrixHandler(const VariableSubMatrixHandler&);
 
@@ -1137,15 +1201,21 @@ public:
 			integer iDoubleSize, doublereal* pdDouble,
 			integer iMaxRows, integer iMaxCols)
 	: FullSubMatrixHandler(iMaxRows, iMaxCols),
-	SparseSubMatrixHandler(iIntSize, piInt, iDoubleSize, pdDouble),
-	eStatus(NULLMATRIX) {
+	  SparseSubMatrixHandler(iIntSize, piInt, iDoubleSize, pdDouble),
+#ifdef USE_SPARSE_AUTODIFF
+	  SpGradientSubMatrixHandler(iMaxRows),
+#endif
+	  eStatus(NULLMATRIX) {
 		NO_OP;
 	};
 
-	VariableSubMatrixHandler(integer iMaxRows, integer iMaxCols, integer iNumItems = -1)
+        VariableSubMatrixHandler(integer iMaxRows, integer iMaxCols, integer iNumItems = -1)
 	: FullSubMatrixHandler(iMaxRows, iMaxCols),
-	SparseSubMatrixHandler(iNumItems >= 0 ? iNumItems : iMaxRows * iMaxCols),
-	eStatus(NULLMATRIX)
+	  SparseSubMatrixHandler(iNumItems >= 0 ? iNumItems : iMaxRows * iMaxCols),
+#ifdef USE_SPARSE_AUTODIFF
+          SpGradientSubMatrixHandler(iMaxRows),
+#endif
+	  eStatus(NULLMATRIX)
 	{
 		NO_OP;
 	};
@@ -1167,7 +1237,7 @@ public:
 	 */
 	FullSubMatrixHandler& SetFull(void) {
 		eStatus = FULL;
-		return *dynamic_cast<FullSubMatrixHandler *>(this);
+		return *this;
 	};
 
 	/*
@@ -1177,9 +1247,15 @@ public:
 	 */
 	SparseSubMatrixHandler& SetSparse(void) {
 		eStatus = SPARSE;
-		return *dynamic_cast<SparseSubMatrixHandler *>(this);
+		return *this;
 	};
 
+#ifdef USE_SPARSE_AUTODIFF
+	SpGradientSubMatrixHandler& SetSparseGradient() {
+		eStatus = SPARSE_GRADIENT;
+		return *this;
+	}
+#endif		
 	/*
 	 * Verifica se la matrice e' vuota.
 	 */
@@ -1201,6 +1277,11 @@ public:
 		return (eStatus == SPARSE);
 	};
 
+#ifdef USE_SPARSE_AUTODIFF
+	bool bIsSparseGradient() const {
+		return (eStatus == SPARSE_GRADIENT);
+	}
+#endif
 #if 0
 	/*
 	 * Numero di righe della sottomatrice
@@ -1212,7 +1293,7 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::iGetNumRows();
-
+			
 		default:
 			return 0;
 		}
@@ -1228,7 +1309,7 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::iGetNumCols();
-
+			
 		default:
 			return 0;
 		}
@@ -1265,7 +1346,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::AddTo(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::AddTo(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1281,7 +1365,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::AddToT(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::AddToT(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1297,7 +1384,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::AddTo(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::AddTo(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1313,7 +1403,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::AddToT(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::AddToT(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1329,7 +1422,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::SubFrom(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::SubFrom(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1345,7 +1441,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::SubFromT(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::SubFromT(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1361,7 +1460,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::SubFrom(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::SubFrom(MH);
+#endif
 		default:
 			return MH;
 		}
@@ -1377,7 +1479,10 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::SubFromT(MH);
-
+#ifdef USE_SPARSE_AUTODIFF
+		case SPARSE_GRADIENT:
+			return SpGradientSubMatrixHandler::SubFromT(MH);
+#endif
 		default:
 			return MH;
 		}

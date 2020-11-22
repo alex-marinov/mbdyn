@@ -71,6 +71,7 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dirccmh.h"
+#include "cscmhtpl.h"
 #include "umfpackwrap.h"
 #include "dgeequ.h"
 #include <cstring>
@@ -113,35 +114,34 @@
 #define SYS_VALUE 			UMFPACK_A
 #define SYS_VALUET 			UMFPACK_Aat
 
-#ifdef UMFPACK_PROFILE
-#include "clock_time.h"
+#ifdef MBDYN_ENABLE_PROFILE
+#include <chrono>
 #endif
 
 /* UmfpackSolver - begin */
 	
 UmfpackSolver::UmfpackSolver(const integer &size,
-	const doublereal &dPivot,
-	const doublereal &dDropTolerance,
-	const unsigned blockSize,
-	Scale scale,
-	integer iMaxIter)
-: LinearSolver(0),
+			     const doublereal &dPivot,
+			     const doublereal &dDropTolerance,
+			     const unsigned blockSize,
+			     Scale scale,
+			     integer iMaxIter,
+			     integer iVerbose)
+: LinearSolver(nullptr),
 iSize(size),
-Axp(0),
-Aip(0),
-App(0),
+Axp(nullptr),
+Aip(nullptr),
+App(nullptr),
 iNumNonZeros(-1),
-Symbolic(0),
-Numeric(0),
+Symbolic(nullptr),
+Numeric(nullptr),
 bHaveCond(false)
 {
 	// silence static analyzers
 	memset(&Info[0], 0, sizeof(Info));
 	UMFPACKWRAP_defaults(Control);
 
-#ifdef UMFPACK_REPORT
-        Control[UMFPACK_PRL] = 2;
-#endif
+	Control[UMFPACK_PRL] = iVerbose;
         
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
 		/*
@@ -176,10 +176,10 @@ bHaveCond(false)
 UmfpackSolver::~UmfpackSolver(void)
 {
 	UMFPACKWRAP_free_symbolic(&Symbolic);
-	ASSERT(Symbolic == 0);
+	ASSERT(Symbolic == nullptr);
 
 	UMFPACKWRAP_free_numeric(&Numeric);
-	ASSERT(Numeric == 0);
+	ASSERT(Numeric == nullptr);
 }
 
 void UmfpackSolver::ResetNumeric(void) const
@@ -188,7 +188,7 @@ void UmfpackSolver::ResetNumeric(void) const
 
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
-		ASSERT(Numeric == 0);
+		ASSERT(Numeric == nullptr);
 	}
 
 	bHasBeenReset = true;
@@ -198,7 +198,7 @@ void UmfpackSolver::ResetSymbolic(void) const
 {
         if (Symbolic) {
                 UMFPACKWRAP_free_symbolic(&Symbolic);
-                ASSERT(Symbolic == 0);
+                ASSERT(Symbolic == nullptr);
         }
 
         ResetNumeric();
@@ -232,8 +232,9 @@ UmfpackSolver::Solve(bool bTranspose) const
 		
 	int status;
 
-#ifdef UMFPACK_PROFILE
-        doublereal start = mbdyn_clock_time();
+#ifdef MBDYN_ENABLE_PROFILE
+	using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 	/*
 	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
@@ -250,7 +251,7 @@ UmfpackSolver::Solve(bool bTranspose) const
 		
 		/* de-allocate memory */
 		UMFPACKWRAP_free_numeric(&Numeric);
-		ASSERT(Numeric == 0);
+		ASSERT(Numeric == nullptr);
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -261,13 +262,11 @@ UmfpackSolver::Solve(bool bTranspose) const
 		             << "Umfpack warning: The flag \"max iterations\" of the linear solver is too small or the condition number of the Jacobian matrix is too high" << std::endl);
 	}
 
-#ifdef UMFPACK_REPORT
 	UMFPACKWRAP_report_info(Control, Info);
-#endif /* UMFPACK_REPORT */
 
-#ifdef UMFPACK_PROFILE
-        doublereal dt = mbdyn_clock_time() - start;
-        silent_cout("UMFPACK: solve takes " << dt << "s\n");
+#ifdef MBDYN_ENABLE_PROFILE	
+        auto dt = high_resolution_clock::now() - start;
+        silent_cout("UMFPACK: solve takes " << dt.count() << "ns\n");
 #endif
 }
 
@@ -275,21 +274,20 @@ void
 UmfpackSolver::Factor(void)
 {
 	int status;
-#ifdef UMFPACK_PROFILE
-        doublereal start = mbdyn_clock_time();
+#ifdef MBDYN_ENABLE_PROFILE
+	using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 	/*
 	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
 	 */
 		
-	if (Symbolic == 0 && !bPrepareSymbolic()) {
+	if (Symbolic == nullptr && !bPrepareSymbolic()) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-#ifdef UMFPACK_REPORT
         UMFPACKWRAP_report_symbolic (Symbolic, Control) ;
 	UMFPACKWRAP_report_info(Control, Info);
-#endif /* UMFPACK_REPORT */
 
 	status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
 			&Numeric, Control, Info);
@@ -314,21 +312,19 @@ UmfpackSolver::Factor(void)
 		/* de-allocate memory */
 		UMFPACKWRAP_free_symbolic(&Symbolic);
 		UMFPACKWRAP_free_numeric(&Numeric);
-		ASSERT(Numeric == 0);
+		ASSERT(Numeric == nullptr);
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	} else {
 		bHaveCond = true;
 	}
 		
-#ifdef UMFPACK_REPORT
         UMFPACKWRAP_report_numeric (Numeric, Control);
 	UMFPACKWRAP_report_info(Control, Info);
-#endif /* UMFPACK_REPORT */
 
-#ifdef UMFPACK_PROFILE
-        doublereal dt = mbdyn_clock_time() - start;
-        silent_cout("UMFPACK: factorization takes " << dt << "s\n");
+#ifdef MBDYN_ENABLE_PROFILE
+        auto dt = high_resolution_clock::now() - start;
+        silent_cout("UMFPACK: factorization takes " << dt.count() << "ns\n");
 #endif
 }
 
@@ -370,7 +366,7 @@ UmfpackSolver::bPrepareSymbolic(void)
 
 		/* de-allocate memory */
 		UMFPACKWRAP_free_symbolic(&Symbolic);
-		ASSERT(Symbolic == 0);
+		ASSERT(Symbolic == nullptr);
 
 		return false;
 	}
@@ -392,20 +388,21 @@ bool UmfpackSolver::bGetConditionNumber(doublereal& dCond)
 /* UmfpackSolver - end */
 
 /* UmfpackSparseSolutionManager - begin */
-
-UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
-		doublereal dPivot,
-		doublereal dDropTolerance,
-		const unsigned blockSize,
-		const ScaleOpt& s,
-		integer iMaxIter)
-: A(Dim),
+template <typename SparseMatrixHandlerType>
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::UmfpackSparseSolutionManager(integer Dim,
+										    doublereal dPivot,
+										    doublereal dDropTolerance,
+										    const unsigned blockSize,
+										    const ScaleOpt& s,
+										    integer iMaxIter,
+										    integer iVerbose)
+: A(Dim, Dim),
 x(Dim),
 b(Dim),
 xVH(Dim, &x[0]),
 bVH(Dim, &b[0]),
 scale(s),
-pMatScale(0)
+pMatScale(nullptr)
 {
 	UmfpackSolver::Scale uscale = UmfpackSolver::SCALE_UNDEF;
 
@@ -435,57 +432,62 @@ pMatScale(0)
 	}
 
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
-			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, uscale, iMaxIter));
+			       UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, uscale, iMaxIter, iVerbose));
 
 	pLS->pdSetResVec(&b[0]);
 	pLS->pdSetSolVec(&x[0]);
 	pLS->SetSolutionManager(this);
 }
 
-UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
+template <typename SparseMatrixHandlerType>
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::~UmfpackSparseSolutionManager(void) 
 {
 	if (pMatScale) {
 		SAFEDELETE(pMatScale);
-		pMatScale = 0;
+		pMatScale = nullptr;
 	}
 }
 
-void
-UmfpackSparseSolutionManager::MatrReset(void)
+template <typename SparseMatrixHandlerType>
+void UmfpackSparseSolutionManager<SparseMatrixHandlerType>::MatrReset(void)
 {
 	pLS->Reset();
 }
 
-void UmfpackSparseSolutionManager::MatrInitialize(void)
+template <typename SparseMatrixHandlerType>
+void UmfpackSparseSolutionManager<SparseMatrixHandlerType>::MatrInitialize(void)
 {
         pGetSolver()->ResetSymbolic();
 }
 
+template <typename SparseMatrixHandlerType>
 void
-UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::MakeCompressedColumnForm(void)
 {
-#ifdef UMFPACK_PROFILE
-    doublereal start = mbdyn_clock_time();
-#endif
-    
-	ScaleMatrixAndRightHandSide<SpMapMatrixHandler>(A);
-
-#ifdef UMFPACK_PROFILE
-    doublereal dt = mbdyn_clock_time() - start;
-    silent_cout("UMFPACK: scaling A takes " << dt << "s\n");
-    start = mbdyn_clock_time();
-#endif
-    
+#ifdef MBDYN_ENABLE_PROFILE
+	using namespace std::chrono;
+	auto start = high_resolution_clock::now();
+#endif    
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-    
-#ifdef UMFPACK_PROFILE
-    dt = mbdyn_clock_time() - start;
-    silent_cout("UMFPACK: making compact form takes " << dt << "s\n");
-#endif
+	
+#ifdef MBDYN_ENABLE_PROFILE
+	dt = high_resolution_clock::now() - start;
+	silent_cout("UMFPACK: making compact form takes " << dt.count() << "ns\n");
+	start = high_resolution_clock::now();
+#endif	
+	CSCMatrixHandlerTpl<doublereal, integer, 0> Atmp(&Ax.front(), &Ai.front(), &Ap.front(), A.iGetNumCols(), A.Nz());
+
+	ScaleMatrixAndRightHandSide(Atmp);
+
+#ifdef MBDYN_ENABLE_PROFILE
+	auto dt = high_resolution_clock::now() - start;
+	silent_cout("UMFPACK: scaling A takes " << dt.count() << "ns\n");
+#endif	
 }
 
+template <typename SparseMatrixHandlerType>
 template <typename MH>
-void UmfpackSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
+void UmfpackSparseSolutionManager<SparseMatrixHandlerType>::ScaleMatrixAndRightHandSide(MH& mh)
 {
 	if (scale.when != SCALEW_NEVER) {
 		MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
@@ -508,10 +510,11 @@ void UmfpackSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
 	}
 }
 
+template <typename SparseMatrixHandlerType>
 template <typename MH>
-MatrixScale<MH>& UmfpackSparseSolutionManager::GetMatrixScale()
+MatrixScale<MH>& UmfpackSparseSolutionManager<SparseMatrixHandlerType>::GetMatrixScale()
 {
-	if (pMatScale == 0) {
+	if (pMatScale == nullptr) {
 		pMatScale = MatrixScale<MH>::Allocate(scale);
 	}
 
@@ -519,18 +522,20 @@ MatrixScale<MH>& UmfpackSparseSolutionManager::GetMatrixScale()
 	return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
 }
 
-void UmfpackSparseSolutionManager::ScaleSolution(void)
+template <typename SparseMatrixHandlerType>
+void UmfpackSparseSolutionManager<SparseMatrixHandlerType>::ScaleSolution(void)
 {
 	if (scale.when != SCALEW_NEVER) {
-		ASSERT(pMatScale != 0);
+		ASSERT(pMatScale != nullptr);
 		// scale solution
 		pMatScale->ScaleSolution(xVH);
 	}
 }
 
 /* Risolve il sistema Fattorizzazione + Backward Substitution */
+template <typename SparseMatrixHandlerType>
 void
-UmfpackSparseSolutionManager::Solve(void)
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::Solve(void)
 {
 	MakeCompressedColumnForm();
 
@@ -540,8 +545,9 @@ UmfpackSparseSolutionManager::Solve(void)
 }
 
 /* Risolve il sistema (trasposto) Fattorizzazione + Backward Substitution */
+template <typename SparseMatrixHandlerType>
 void
-UmfpackSparseSolutionManager::SolveT(void)
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::SolveT(void)
 {
 	MakeCompressedColumnForm();
 
@@ -551,38 +557,48 @@ UmfpackSparseSolutionManager::SolveT(void)
 }
 
 /* Rende disponibile l'handler per la matrice */
+template <typename SparseMatrixHandlerType>
 MatrixHandler*
-UmfpackSparseSolutionManager::pMatHdl(void) const
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::pMatHdl(void) const
 {
 	return &A;
 }
 
 /* Rende disponibile l'handler per il termine noto */
+template <typename SparseMatrixHandlerType>
 MyVectorHandler*
-UmfpackSparseSolutionManager::pResHdl(void) const
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::pResHdl(void) const
 {
 	return &bVH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
+template <typename SparseMatrixHandlerType>
 MyVectorHandler*
-UmfpackSparseSolutionManager::pSolHdl(void) const
+UmfpackSparseSolutionManager<SparseMatrixHandlerType>::pSolHdl(void) const
 {
 	return &xVH;
 }
+
+template class UmfpackSparseSolutionManager<SpMapMatrixHandler>;
+
+#ifdef USE_SPARSE_AUTODIFF
+template class UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>;
+#endif
 
 /* UmfpackSparseSolutionManager - end */
 
 template <class CC>
 UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
-		doublereal dPivot,
-		doublereal dDropTolerance,
-		const unsigned& blockSize,
-		const ScaleOpt& scale,
-		integer iMaxIter)
-: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter),
+								   doublereal dPivot,
+								   doublereal dDropTolerance,
+								   const unsigned& blockSize,
+								   const ScaleOpt& scale,
+								   integer iMaxIter,
+								   integer iVerbose)
+: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter, iVerbose),
 CCReady(false),
-Ac(0)
+Ac(nullptr)
 {
 	NO_OP;
 }
@@ -609,7 +625,7 @@ UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 	if (!CCReady) {
 		pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 
-		if (Ac == 0) {
+		if (Ac == nullptr) {
 			SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
 		}
 
@@ -632,10 +648,10 @@ UmfpackSparseCCSolutionManager<CC>::MatrInitialize()
 		// if zero entries in the matrix become nonzero.
 		// For that reason we have to reinitialize Ac!
 		SAFEDELETE(Ac);
-		Ac = 0;
+		Ac = nullptr;
 	}
 
-        UmfpackSparseSolutionManager::MatrInitialize();
+        UmfpackSparseSolutionManager<SpMapMatrixHandler>::MatrInitialize();
 }
 	
 /* Rende disponibile l'handler per la matrice */
@@ -647,7 +663,7 @@ UmfpackSparseCCSolutionManager<CC>::pMatHdl(void) const
 		return &A;
 	}
 
-	ASSERT(Ac != 0);
+	ASSERT(Ac != nullptr);
 	return Ac;
 }
 

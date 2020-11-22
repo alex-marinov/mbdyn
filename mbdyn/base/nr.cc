@@ -40,7 +40,6 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <unistd.h>
-#include "clock_time.h"
 #include "solver.h"
 #include "nr.h"  
 #ifdef USE_MPI

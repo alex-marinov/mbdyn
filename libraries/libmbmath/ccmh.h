@@ -42,8 +42,8 @@
 #include "spmh.h"
 
 /* Sparse Matrix in columns form */
-template <int off>
-class CColMatrixHandler : public CompactSparseMatrixHandler_tpl<off> {
+template <int off, typename idx_type = integer>
+class CColMatrixHandler : public CompactSparseMatrixHandler_tpl<off, idx_type> {
 private:
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -53,32 +53,32 @@ private:
 
 public:
 	CColMatrixHandler(std::vector<doublereal>& x,
-			const std::vector<integer>& i,
-			const std::vector<integer>& p);
+			  const std::vector<idx_type>& i,
+			  const std::vector<idx_type>& p);
 
 	virtual ~CColMatrixHandler();
 
 	/* used by MultiThreadDataManager to duplicate the storage array
 	 * while preserving the CC indices */
-	CompactSparseMatrixHandler *Copy(void) const;
+        CompactSparseMatrixHandler *Copy(void) const;
 
 public:
 	doublereal & operator()(integer i_row, integer i_col) {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
+		ASSERTMSGBREAK(i_row > 0 && i_row <= this->iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
+		ASSERTMSGBREAK(i_col > 0 && i_col <= this->iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
-		integer row_begin = CompactSparseMatrixHandler_tpl<off>::Ap[i_col - 1] - off;
-		integer row_end = CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off - 1;
-		integer idx;
-		integer row;
+		idx_type row_begin = this->Ap[i_col - 1] - off;
+		idx_type row_end = this->Ap[i_col] - off - 1;
+		idx_type idx;
+		idx_type row;
 
-		if (row_begin == (CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off)
-				|| (CompactSparseMatrixHandler_tpl<off>::Ai[row_begin] - off) > i_row
-				|| (CompactSparseMatrixHandler_tpl<off>::Ai[row_end] - off) < i_row)
+		if (row_begin == (this->Ap[i_col] - off)
+				|| (this->Ai[row_begin] - off) > i_row
+				|| (this->Ai[row_end] - off) < i_row)
 		{
 			/* matrix must be rebuilt */
 			throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
@@ -86,13 +86,13 @@ public:
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off;
+			row = this->Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
 				row_begin = idx + 1;
 			} else {
-				return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
+				return this->Ax[idx];
 			}
 		}
 
@@ -101,34 +101,34 @@ public:
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
+		ASSERTMSGBREAK(i_row > 0 && i_row <= this->iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
+		ASSERTMSGBREAK(i_col > 0 && i_col <= this->iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
-		integer row_begin = CompactSparseMatrixHandler_tpl<off>::Ap[i_col - 1] - off;
-		integer row_end = CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off - 1;
-		integer idx;
-		integer row;
+		idx_type row_begin = this->Ap[i_col - 1] - off;
+		idx_type row_end = this->Ap[i_col] - off - 1;
+		idx_type idx;
+		idx_type row;
 
-		if (row_begin == CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off
-				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_begin] - off > i_row
-				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_end] - off < i_row)
+		if (row_begin == this->Ap[i_col] - off
+				|| this->Ai[row_begin] - off > i_row
+				|| this->Ai[row_end] - off < i_row)
 		{
 			return ::Zero1;
 		}
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off;
+			row = this->Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
 				row_begin = idx + 1;
 			} else {
-				return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
+				return this->Ax[idx];
 			}
 		}
 

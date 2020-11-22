@@ -42,5 +42,5 @@
 #include "sp_matrix_base.h"
 
 namespace sp_grad {
-     SpMatrixBaseData SP_GRAD_THREAD_LOCAL SpMatrixBaseData::oNullData{0, 0, 1, 0};
+     SpMatrixBaseData SpMatrixBaseData::oNullData{0, 0, 1, 0};
 }

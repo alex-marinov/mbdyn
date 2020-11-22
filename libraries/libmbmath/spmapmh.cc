@@ -66,7 +66,7 @@
 #include "spmapmh.h"
 
 SpMapMatrixHandler::SpMapMatrixHandler(const integer &n, const integer &nn)
-: SparseMatrixHandler(n, nn), m_end(*this, true)
+: SparseMatrixHandler(n, nn), m_end(*this, true), NZ(0)
 {
 	col_indices.resize(NCols);
 }
@@ -76,11 +76,14 @@ SpMapMatrixHandler::~SpMapMatrixHandler()
 	NO_OP;
 }
 
-integer
-SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-		integer *const Ai, integer *const Ap, int offset) const
+template <typename idx_type>
+
+idx_type SpMapMatrixHandler::MakeCompressedColumnFormTpl(doublereal *const Ax,
+							 idx_type *const Ai,
+							 idx_type *const Ap,
+							 int offset) const
 {
-	integer x_ptr = 0;
+	idx_type x_ptr = 0;
 
 	row_cont_type::iterator ri;
 	row_cont_type::const_iterator re;
@@ -99,20 +102,26 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 			"SpMapMatrixHandler::MakeCompressedColumnForm");
 
 	Ap[NCols] = x_ptr + offset;
-
-	return Nz();
+	
+	return x_ptr;     
 }
 
 integer
-SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                std::vector<integer>& Ai, std::vector<integer>& Ap,
-		int offset) const
+SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
+					     integer *const Ai,
+					     integer *const Ap,
+					     int offset) const
 {
-	Ax.resize(Nz());
-	Ai.resize(Nz());
-	Ap.resize(iGetNumCols() + 1);
+     return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
+}
 
-	return MakeCompressedColumnForm(&Ax[0], &Ai[0], &Ap[0], offset);
+int64_t
+SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
+					     int64_t *const Ai,
+					     int64_t *const Ap,
+					     int offset) const
+{
+     return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
 }
 
 integer
@@ -203,6 +212,16 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 		out(ri->first + 1) = ri->second;
 	}
 	return out;
+}
+
+void SpMapMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     IteratorScale(*this, oRowScale, oColScale);
+}
+
+integer SpMapMatrixHandler::Nz() const
+{
+     return NZ;
 }
 
 /* Prodotto Matrice per Matrice */
@@ -454,4 +473,11 @@ std::ostream& SpMapMatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat
     } else {
         return SparseMatrixHandler::Print(os, eFormat);
     }
+}
+
+void SpMapMatrixHandler::ForceSymmetricGraph()
+{
+     for (const auto& oItem: *this) {
+	  (*this)(oItem.iCol + 1, oItem.iRow + 1);
+     }
 }

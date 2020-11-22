@@ -399,6 +399,7 @@ HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
 PASTIX_LIBS=
+PASTIX_INC=
 QRUPDATE_LIBS=
 SUITESPARSEQR_LIBS=
 ARPACK_LIBS=
@@ -2802,55 +2803,56 @@ dnl Check for Pastix
 dnl
 ol_link_pastix=no
 if test $ol_with_pastix != no ; then
-	AC_CHECK_HEADERS(pastix.h)
+        have_pastix="no"
 
-	if test "$ac_cv_header_pastix_h" = "yes" ; then
-		AC_MSG_CHECKING([for Pastix library])
-		try_pastix_LIBS="-lpastix"
-		save_LIBS="$LIBS"
-		have_pastix="no"
-	        LIBS="$try_pastix_LIBS $save_LIBS -lm"
-			AC_TRY_LINK([
-#include <stdint.h>
-#include <pastix.h>
-],[
-                pastix_data_t* pastix_data;
-                pastix_int_t* colptr;
-                pastix_int_t* rows;
-                pastix_float_t* avals;
-                pastix_int_t* perm;
-                pastix_int_t* iperm;
-                pastix_int_t ncols;
-                pastix_float_t* x;
-                pastix_int_t iparm[IPARM_SIZE];
-                double dparm[DPARM_SIZE];
-                iparm[IPARM_START_TASK] = API_TASK_INIT;
-                iparm[IPARM_END_TASK] = API_TASK_REFINE;
-                pastix(&pastix_data,
-                       0,
-                       ncols,
-                       colptr,
-                       rows,
-                       avals,
-                       perm,
-                       iperm,
-                       x,
-                       1,
-                       iparm,
-                       dparm);
-			],[have_pastix="yes"])
+	if test -z "${PASTIX_INC}"; then
+     	        if ! test -z "${PKG_CONFIG}"; then
+     	                PASTIX_INC="`${PKG_CONFIG} --cflags pastix`"
+     	        fi
+	fi
 
-                LIBS="$save_LIBS"
-
-                if test "$have_pastix" = "yes"; then
-                   AC_MSG_RESULT([yes])
-                   ol_link_pastix=yes
-                   PASTIX_LIBS="$try_pastix_LIBS"
-                   AC_DEFINE(USE_PASTIX,1,[define if you want to use Pastix])
+   	if test -z "${PASTIX_LIBS}"; then
+     	        if ! test -z "${PKG_CONFIG}"; then
+                        PASTIX_LIBS="`${PKG_CONFIG} --libs pastix`"
                 else
-                   AC_MSG_RESULT([no])
-		fi
+                        PASTIX_LIBS="-lpastix -lpastix_kernels -lspm -lhwloc"
+                fi
         fi
+
+        save_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="${PASTIX_INC} ${CPPFLAGS}"
+
+	AC_CHECK_HEADER([pastix.h])
+
+	if test "${ac_cv_header_pastix_h}" = yes; then
+	        save_LIBS="$LIBS"
+	        LIBS="${PASTIX_LIBS} $save_LIBS -lm"
+
+	        AC_CHECK_FUNCS([pastixInit \
+	                        pastixInitParam \
+			        pastix_task_analyze \
+			        pastix_task_numfact \
+			        pastix_task_solve \
+				pastix_task_refine \
+				pastixFinalize \
+				spmNorm \
+				spmScalMatrix \
+				spmScalVector \
+				spmExit \
+				spmCheckAxb],[have_pastix=yes],[have_pastix=no])
+
+		LIBS="$save_LIBS"
+	fi
+
+	CPPFLAGS="${save_CPPFLAGS}"
+	
+	if test "${have_pastix}" = "yes"; then
+		ol_link_pastix=yes
+	        AC_DEFINE([USE_PASTIX],1,[Define if PaStiX can be used])
+	else
+		PASTIX_LIBS=""
+		PASTIX_INC=""
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -3595,6 +3597,7 @@ AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
+AC_SUBST(PASTIX_INC)
 AC_SUBST(PASTIX_LIBS)
 AC_SUBST(QRUPDATE_LIBS)
 AC_SUBST(SUITESPARSEQR_LIBS)
@@ -3645,6 +3648,7 @@ AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
 AM_CONDITIONAL(USE_SPARSE_AUTODIFF,[test "$ol_enable_sparse_autodiff" = yes])
+AM_CONDITIONAL([USE_PASTIX],[test "$ol_link_pastix" = "yes"])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 

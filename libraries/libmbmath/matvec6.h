@@ -77,7 +77,7 @@ class Vec6 {
       return v[1];
    };
    
-   inline const Vec3& GetVec(unsigned short int i) const {
+   inline const Vec3& GetVec(integer i) const {
       ASSERT(i == 0 || i == 1);
       return v[i];
    };
@@ -90,12 +90,12 @@ class Vec6 {
       return v[1];
    };
 
-   Vec3 GetVec(unsigned short int i) {
+   Vec3 GetVec(integer i) {
       ASSERT(i == 0 || i == 1);
       return v[i];
    };
    
-   inline const doublereal* pGetVec(unsigned short int i) const {
+   inline const doublereal* pGetVec(integer i) const {
       ASSERT(i == 0 || i == 1);
       return v[i].pGetVec();
    };
@@ -179,33 +179,33 @@ class Vec6 {
       return sqrt(v[0].Dot() + v[1].Dot());
    };
 
-   inline const doublereal& dGet(unsigned short int i) const {
+   inline const doublereal& dGet(integer i) const {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
 	 throw ErrRowIndexOutOfRange(i, 1, 6, MBDYN_EXCEPT_ARGS);
       }
-      unsigned short int j = (i - 1)/3;
+      integer j = (i - 1)/3;
       return v[j].dGet(i - 3*j);
    };
 
-   inline const doublereal& operator ()(unsigned short int i) const {
+   inline const doublereal& operator ()(integer i) const {
       ASSERT(i > 0 && i < 7);
-      unsigned short int j = (i - 1)/3;
+      integer j = (i - 1)/3;
       return v[j](i - 3*j);
    };
    
-   inline doublereal& operator ()(unsigned short int i) {
+   inline doublereal& operator ()(integer i) {
       ASSERT(i > 0 && i < 7);
-      unsigned short int j = (i - 1)/3;
+      integer j = (i - 1)/3;
       return v[j](i - 3*j);
    };
    
-   inline void Put(unsigned short int i, const doublereal& d) {
+   inline void Put(integer i, const doublereal& d) {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
 	 throw ErrRowIndexOutOfRange(i, 1, 6, MBDYN_EXCEPT_ARGS);
       }
-      unsigned short int j = (i-1)/3;
+      integer j = (i-1)/3;
       v[j].Put(i-3*j, d);
    };
    
@@ -333,7 +333,7 @@ class Mat6x6 {
       return m[1][1];
    };
    
-   Mat3x3 GetMat(unsigned short int i, unsigned short int j) {
+   Mat3x3 GetMat(integer i, integer j) {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       return m[i][j];
    };
@@ -354,8 +354,8 @@ class Mat6x6 {
       return m[1][1];
    };
    
-   inline const Mat3x3& GetMat(unsigned short int i, 
-			       unsigned short int j) const {
+   inline const Mat3x3& GetMat(integer i, 
+			       integer j) const {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       return m[i][j];
    };
@@ -377,7 +377,7 @@ class Mat6x6 {
       m[1][1] = x;
    };
    
-   void PutMat(unsigned short int i, unsigned short int j, const Mat3x3& x) {
+   void PutMat(integer i, integer j, const Mat3x3& x) {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       m[i][j] = x;
    };
@@ -399,7 +399,7 @@ class Mat6x6 {
       m[1][1] += x;
    };
    
-   void AddMat(unsigned short int i, unsigned short int j, const Mat3x3& x) {
+   void AddMat(integer i, integer j, const Mat3x3& x) {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       m[i][j] += x;
    };
@@ -421,7 +421,7 @@ class Mat6x6 {
       m[1][1] -= x;
    };
    
-   void SubMat(unsigned short int i, unsigned short int j, const Mat3x3& x) {
+   void SubMat(integer i, integer j, const Mat3x3& x) {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       m[i][j] -= x;
    };
@@ -429,8 +429,8 @@ class Mat6x6 {
    
 
    
-   inline const doublereal* pGetMat(unsigned short int i, 
-				    unsigned short int j) const {
+   inline const doublereal* pGetMat(integer i, 
+				    integer j) const {
       ASSERT((i == 0 || i == 1) && (j == 0 || j == 1));
       return m[i][j].pGetMat();
    };
@@ -535,7 +535,7 @@ class Mat6x6 {
 		    m[1][1].Transpose());
    };   
 
-   const doublereal& dGet(unsigned short int ir, unsigned short int ic) const {
+   const doublereal& dGet(integer ir, integer ic) const {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
       if (ir < 1 || ir > 6) {
 	 throw ErrRowIndexOutOfRange(ir, 1, 6, MBDYN_EXCEPT_ARGS);
@@ -543,26 +543,26 @@ class Mat6x6 {
       if (ic < 1 || ic > 6) {
 	 throw ErrColIndexOutOfRange(ic, 1, 6, MBDYN_EXCEPT_ARGS);
       }
-      unsigned short int jr = (ir-1)/3;
-      unsigned short int jc = (ic-1)/3;
+      integer jr = (ir-1)/3;
+      integer jc = (ic-1)/3;
       return m[jr][jc].dGet(ir-3*jr, ic-3*jc);
    };      
    
-   const doublereal& operator ()(unsigned short int ir, unsigned short int ic) const {
+   const doublereal& operator ()(integer ir, integer ic) const {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
-      unsigned short int jr = (ir - 1)/3;
-      unsigned short int jc = (ic - 1)/3;
+      integer jr = (ir - 1)/3;
+      integer jc = (ic - 1)/3;
       return m[jr][jc](ir - 3*jr, ic - 3*jc);
    };
    
-   doublereal& operator ()(unsigned short int ir, unsigned short int ic) {
+   doublereal& operator ()(integer ir, integer ic) {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
-      unsigned short int jr = (ir - 1)/3;
-      unsigned short int jc = (ic - 1)/3;
+      integer jr = (ir - 1)/3;
+      integer jc = (ic - 1)/3;
       return m[jr][jc](ir - 3*jr, ic - 3*jc);
    };
    
-   void Put(unsigned short int ir, unsigned short int ic, const doublereal& d) {
+   void Put(integer ir, integer ic, const doublereal& d) {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
       if (ir < 1 || ir > 6) {
 	 throw ErrRowIndexOutOfRange(ir, 1, 6, MBDYN_EXCEPT_ARGS);
@@ -570,8 +570,8 @@ class Mat6x6 {
       if (ic < 1 || ic > 6) {
 	 throw ErrColIndexOutOfRange(ic, 1, 6, MBDYN_EXCEPT_ARGS);
       }
-      unsigned short int jr = (ir-1)/3;
-      unsigned short int jc = (ic-1)/3;
+      integer jr = (ir-1)/3;
+      integer jc = (ic-1)/3;
       m[jr][jc].Put(ir-3*jr, ic-3*jc, d);
    };      
    

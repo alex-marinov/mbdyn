@@ -104,11 +104,15 @@ namespace sp_grad {
 
 	  inline void Reset(doublereal dVal, index_type iDof, doublereal dDer);
 
+	  inline void ResetNumeric();
+
 	  inline void ResizeReset(doublereal dVal, index_type iSize);
 
 	  static inline void ResizeReset(SpGradient& g, doublereal dVal, index_type iSize);
 
 	  static inline void ResizeReset(doublereal& g, doublereal dVal, index_type iSize);
+
+	  inline void Scale(doublereal dRowScale, const std::vector<doublereal>& oColScale);
 	  
 	  template <typename Expr>
 	  inline constexpr bool bHaveRefTo(const SpGradBase<Expr>&) const;
@@ -227,7 +231,7 @@ namespace sp_grad {
 	  inline void InitDerivAssign(doublereal f, doublereal df_du, const SpGradExpDofMap& oExpDofMap);
 
 	  template <typename Func>
-	  inline void InitDerivAssign(doublereal f, doublereal df_du);
+	  inline void InitDerivAssign(doublereal f, doublereal df_du, index_type iSizeRes);
 	  
 	  inline void InitDeriv(const SpGradExpDofMap& oExpDofMap);
 	  
@@ -248,11 +252,6 @@ namespace sp_grad {
 	  static index_type iGetRefCntNullData() { return pGetNullData()->iRefCnt; }
 #endif
      private:
-	  enum AllocFlags {
-	       ALLOC_RESIZE,
-	       ALLOC_UNIQUE
-	  };
-
 	  inline void UniqueOwner();
 	  
 	  inline explicit SpGradient(SpDerivData* pData);
@@ -263,7 +262,7 @@ namespace sp_grad {
 
 	  inline static SpDerivData* pAllocMem(SpDerivData* ptr, index_type iSize);
 
-	  void Allocate(index_type iSizeRes, index_type iSizeInit, AllocFlags eAllocFlags);
+	  void Allocate(index_type iSizeRes, index_type iSizeInit, unsigned uFlags);
 
 	  inline void Free();
 	  inline void Cleanup();
@@ -321,7 +320,7 @@ namespace sp_grad {
 	  inline static SpDerivData* pGetNullData();
 
 	  SpDerivData* pData;
-	  static SP_GRAD_THREAD_LOCAL SpDerivData oNullData;
+	  static SpDerivData oNullData;
      };
 }
 #endif

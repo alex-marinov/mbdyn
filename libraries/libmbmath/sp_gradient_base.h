@@ -50,6 +50,10 @@
 #include "ac/f2c.h"
 #include "myassert.h"
 
+#ifdef USE_MULTITHREAD
+#include <atomic>
+#endif
+
 #ifdef DEBUG
 #define SP_GRAD_DEBUG DEBUG
 #endif
@@ -133,6 +137,10 @@ namespace sp_grad {
 	       :iDof(iDof), dDer(dDer) {
 	  }
 
+	  bool operator<(const SpDerivRec& oRec) const {
+	       return iDof < oRec.iDof;
+	  }
+	  
 	  index_type iDof;
 	  doublereal dDer;
      } SP_GRAD_ALIGNMENT(16);
@@ -159,6 +167,7 @@ namespace sp_grad {
 	  }
 
 	  enum Flags: unsigned {
+	       DER_GENERAL = 0x0u,
 	       DER_SORTED = 0x1u,
 	       DER_UNIQUE = 0x2u
 	  };
@@ -167,7 +176,11 @@ namespace sp_grad {
 	  index_type iSizeRes;
 	  index_type iSizeCurr;
 	  unsigned uFlags;
+#ifdef USE_MULTITHREAD
+	  std::atomic<index_type> iRefCnt;
+#else
 	  index_type iRefCnt;
+#endif
 	  SpMatrixData<SpGradient>* pOwner;
 	  SpDerivRec rgDer[];
      } SP_GRAD_ALIGNMENT(alignof(SpDerivRec));

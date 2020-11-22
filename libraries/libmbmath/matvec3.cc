@@ -776,8 +776,8 @@ MatR2LinParam(const Mat3x3& m)
 
 /* Calcolo della matrice R a partire da due vettori sghembi */
 
-Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va, 
-		unsigned short int ib, const Vec3& vb)
+Mat3x3 MatR2vec(integer ia, const Vec3& va, 
+		integer ib, const Vec3& vb)
 {
    ASSERT(ia >= 1 && ia <= 3); 
    ASSERT(ib >= 1 && ib <= 3); 

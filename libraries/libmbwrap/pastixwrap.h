@@ -52,9 +52,10 @@
 #include "ls.h"
 #include "solman.h"
 #include "spmapmh.h"
-#include "dirccmh.h"
-#include "ccmh.h"
-#include "dgeequ.h"
+
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#endif
 
 #define MPI_COMM_WORLD 0
 
@@ -64,58 +65,63 @@ extern "C" {
 
 class PastixSolver: public LinearSolver {
 private:
-    const integer iDim;
-    const integer iNumIter;
-    const integer iNumThreads;
+     struct SpMatrix: spmatrix_t {
+	  SpMatrix();
+	  SpMatrix(const SpMatrix&)=delete;	 
+	  ~SpMatrix();
 
-    mutable pastix_float_t* Axp;
-    mutable pastix_int_t* Aip;
-    mutable pastix_int_t* App;
-    mutable pastix_data_t *pastix_data;
-    mutable pastix_int_t iparm[IPARM_SIZE];
-    mutable doublereal dparm[DPARM_SIZE];
-    mutable std::vector<pastix_int_t> perm;
-    mutable std::vector<pastix_int_t> iperm;    
-    mutable bool bDoOrdering;
-    mutable integer iNumNonZeros;
-    pastix_int_t PastixCall(pastix_int_t iStartTask, pastix_int_t iEndTask) const;
-    pastix_int_t CheckMatrix() const;
-    
+	  SpMatrix& operator=(const SpMatrix&)=delete;
+
+	  bool MakeCompactForm(const SparseMatrixHandler& mh);
+	  
+	  doublereal* pAx() const { return reinterpret_cast<doublereal*>(values); }
+	  pastix_int_t* pAi() const { return rowptr; }
+	  pastix_int_t* pAp() const { return colptr; }
+	  
+     private:
+	  template <typename T>
+	  static inline T* pAllocate(T* pMem, size_t nSize);
+	  void Allocate(size_t iNumNZ, size_t iMatSize);
+	  integer iNumNonZeros;
+     };
+     
+     pastix_int_t iparm[IPARM_SIZE];
+     doublereal dparm[DPARM_SIZE];
+     pastix_data_t* pastix_data;
+     mutable SpMatrix spm;
+     mutable bool bDoOrdering;
+     
 public:
-    explicit PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter, integer iNumThreads);
-    ~PastixSolver();
+     explicit PastixSolver(SolutionManager* pSM,
+			   integer iDim,
+			   integer iNumIter,
+			   integer iNumThreads,
+			   integer iVerbose);
+     ~PastixSolver();
 
 #ifdef DEBUG
-    void IsValid(void) const;
+     void IsValid(void) const;
 #endif /* DEBUG */
 
-    void Initialize() { bDoOrdering = true; }
-    virtual void Solve(void) const;
-    virtual void MakeCompactForm(SparseMatrixHandler& mh,
-                                 std::vector<doublereal>& Ax,
-                                 std::vector<integer>& Ai,
-                                 std::vector<integer>& Ac,
-                                 std::vector<integer>& Ap) const;
+     void Initialize() { bDoOrdering = true; }
+     virtual void Solve(void) const;
+     SpMatrix& MakeCompactForm(SparseMatrixHandler& mh);
 };
 
+template <typename MatrixHandlerType>
 class PastixSolutionManager: public SolutionManager {
 private:
-    std::vector<pastix_float_t> x;
-    std::vector<pastix_float_t> b;
+    std::vector<doublereal> x;
+    std::vector<doublereal> b;
     mutable MyVectorHandler xVH, bVH;
     ScaleOpt scale;
     MatrixScaleBase* pMatScale;
 
 protected:
-    mutable SpMapMatrixHandler A;
-    std::vector<pastix_float_t> Ax;
-    std::vector<pastix_int_t> Ai;
-    std::vector<pastix_int_t> Adummy;
-    std::vector<pastix_int_t> Ap;
+    mutable MatrixHandlerType A;
 
-    void ForceSymmetricGraph(SpMapMatrixHandler& A) const;
     PastixSolver* pGetSolver() { return static_cast<PastixSolver*>(pLS); }
-    
+
     template <typename MH>
     void ScaleMatrixAndRightHandSide(MH &mh);
 
@@ -123,12 +129,13 @@ protected:
     MatrixScale<MH>& GetMatrixScale();
 
     void ScaleSolution(void);
-    
+
 public:
     PastixSolutionManager(integer iDim,
-                          integer iNumThreads,
-                          integer iNumIter,
-                          const ScaleOpt& scale = ScaleOpt());
+			  integer iNumThreads,
+			  integer iNumIter,
+			  const ScaleOpt& scale = ScaleOpt(),
+			  integer iVerbose = 0);
     virtual ~PastixSolutionManager(void);
 #ifdef DEBUG
     virtual void IsValid(void) const;
@@ -141,29 +148,6 @@ public:
     virtual VectorHandler* pResHdl(void) const;
     virtual VectorHandler* pSolHdl(void) const;
 };
-
-template <typename CC>
-class PastixCCSolutionManager: public PastixSolutionManager {
-protected:
-    bool CCReady;
-    CC *Ac;
-
-    virtual void MatrReset(void);
-    virtual void MakeCompressedColumnForm(void);
-	
-public:
-    PastixCCSolutionManager(integer iDim,
-                            integer iNumThreads,
-                            integer iNumIter,
-                            const ScaleOpt& scale = ScaleOpt());
-    
-    virtual ~PastixCCSolutionManager(void);
-    
-    virtual void MatrInitialize(void);
-    
-    virtual MatrixHandler* pMatHdl(void) const;
-};
-
 
 #endif
 

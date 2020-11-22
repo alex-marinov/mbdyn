@@ -322,7 +322,23 @@ MultiThreadDataManager::thread(void *p)
 			}
 			break;
 		}
-
+#ifdef USE_SPARSE_AUTODIFF
+		case MultiThreadDataManager::OP_ASSJAC_GRAD:
+		{
+		     arg->pDM->DataManager::AssJac(arg->oGradJacHdl,
+						   arg->dCoef,
+						   arg->ElemIter,
+						   *arg->pWorkMat);
+		     break;
+		}
+#endif
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
+		case MultiThreadDataManager::OP_NODES_UPDATE:
+		{
+		     arg->pDM->DataManager::NodesUpdateJac(arg->dCoef, arg->NodeIter);
+		     break;
+		}
+#endif
 #ifdef MBDYN_X_MT_ASSRES
 		case MultiThreadDataManager::OP_ASSRES:
 			arg->pResHdl->Reset();
@@ -373,6 +389,11 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 			SAFEDELETEARR(arg->ppNaiveJacHdl);
 		}
 	}
+
+#ifdef USE_SPARSE_AUTODIFF
+	arg->oGradJacHdl.~SpGradientSparseMatrixWrapper();
+#endif
+	
 	sem_destroy(&arg->sem);
 
 #ifdef HAVE_SYS_TIMES_H	
@@ -423,6 +444,9 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pDM = this;
 		sem_init(&thread_data[i].sem, 0, 0);
 		thread_data[i].threadNumber = i;
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
+		thread_data[i].NodeIter.Init(&Nodes[0], Nodes.size());
+#endif
 		thread_data[i].ElemIter.Init(&Elems[0], Elems.size());
 		thread_data[i].lock = 0;
 
@@ -431,15 +455,15 @@ MultiThreadDataManager::ThreadSpawn(void)
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-					iMaxWorkNumColsJac,
-					iMaxWorkNumItemsJac));
+							 iMaxWorkNumColsJac,
+							 iMaxWorkNumItemsJac));
 
 		thread_data[i].pWorkMatB = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-					iMaxWorkNumColsJac,
-					iMaxWorkNumItemsJac));
+							 iMaxWorkNumColsJac,
+							 iMaxWorkNumItemsJac));
 
 		thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
@@ -454,6 +478,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 		/* set by AssJac when in Naive form */
 		thread_data[i].ppNaiveJacHdl = 0;
 
+#ifdef USE_SPARSE_AUTODIFF
+		new(&thread_data[i].oGradJacHdl) SpGradientSparseMatrixWrapper(nullptr);
+#endif
+		
 		/* set below */
 		thread_data[i].pResHdl = 0;	
 
@@ -484,6 +512,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+	NodesUpdateJac(dCoef);
+#endif
+
 retry:;
 	switch (AssMode) {
 	case ASS_CC:
@@ -534,6 +566,14 @@ retry:;
 
 	case ASS_UNKNOWN:
 	{
+#ifdef USE_SPARSE_AUTODIFF
+	     auto* pGradJacHdl = dynamic_cast<SpGradientSparseMatrixHandler*>(&JacHdl);
+
+	     if (pGradJacHdl) {
+		  AssMode = ASS_GRAD;
+		  goto retry;
+	     }
+#endif	     
 		NaiveMatrixHandler *pNaiveJacHdl = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);	
 		if (pNaiveJacHdl) {
 			AssMode = ASS_NAIVE;
@@ -578,7 +618,13 @@ retry:;
 		AssMode = ASS_CC;
 		goto retry;
 	}
-
+#ifdef USE_SPARSE_AUTODIFF
+	case ASS_GRAD:
+	{
+	     GradAssJac(JacHdl, dCoef);
+	     break;
+	}
+#endif
 	default:
 		silent_cerr("unable to detect jacobian matrix type "
 				"for multithread assembly" << std::endl);
@@ -593,8 +639,7 @@ MultiThreadDataManager::CCAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	AO_CLEAR(&propagate_ErrMatrixRebuild);
 
-	CompactSparseMatrixHandler *pMH
-		= dynamic_cast<CompactSparseMatrixHandler *>(&JacHdl);
+	auto *pMH = dynamic_cast<CompactSparseMatrixHandler*>(&JacHdl);
 
 	while (false) {
 retry:;
@@ -612,7 +657,7 @@ retry:;
 		DEBUGCERR("CC_NO => CC_FIRST" << std::endl);
 
 		ASSERT(dynamic_cast<SpMapMatrixHandler *>(&JacHdl) != 0);
-
+		
 		DataManager::AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 		CCReady = CC_FIRST;
 
@@ -752,6 +797,70 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	
 	pthread_mutex_unlock(&thread_mutex);
 }
+
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+void MultiThreadDataManager::NodesUpdateJac(doublereal dCoef)
+{
+#ifdef MBDYN_X_NODES_UPDATE_JAC_PARALLEL
+	thread_data[0].NodeIter.ResetAccessData();
+	op = MultiThreadDataManager::OP_NODES_UPDATE;
+
+	thread_count = nThreads - 1;
+
+	for (unsigned i = 1; i < nThreads; i++) {
+		thread_data[i].dCoef = dCoef;
+	
+		sem_post(&thread_data[i].sem);
+	}
+
+	DataManager::NodesUpdateJac(dCoef, thread_data[0].NodeIter);
+
+	pthread_mutex_lock(&thread_mutex);
+	if (thread_count > 0) {
+		pthread_cond_wait(&thread_cond, &thread_mutex);
+	}
+	pthread_mutex_unlock(&thread_mutex);
+#else
+	DataManager::NodesUpdateJac(dCoef, NodeIter);
+#endif
+}
+#endif
+
+#ifdef USE_SPARSE_AUTODIFF
+void
+MultiThreadDataManager::GradAssJac(MatrixHandler& JacHdl, doublereal dCoef)
+{
+	ASSERT(thread_data != NULL);
+
+	auto& oMH = dynamic_cast<SpGradientSparseMatrixHandler&>(JacHdl);
+	
+	AO_CLEAR(&propagate_ErrMatrixRebuild);
+
+	oMH.Reset(); // FIXME: Matrix cannot be reset in parallel by DataManager::AssJac
+
+	thread_data[0].ElemIter.ResetAccessData();
+	thread_data[0].oGradJacHdl.SetMatrixHandler(&oMH);
+	op = MultiThreadDataManager::OP_ASSJAC_GRAD;
+	thread_count = nThreads - 1;
+
+	for (unsigned i = 1; i < nThreads; i++) {
+		thread_data[i].dCoef = dCoef;
+		thread_data[i].oGradJacHdl.SetMatrixHandler(&oMH);
+		sem_post(&thread_data[i].sem);
+	}
+	
+	DataManager::AssJac(thread_data[0].oGradJacHdl, dCoef, thread_data[0].ElemIter,
+			    *thread_data[0].pWorkMat);
+
+	pthread_mutex_lock(&thread_mutex);
+	
+	if (thread_count > 0) {
+		pthread_cond_wait(&thread_cond, &thread_mutex);
+	}
+	
+	pthread_mutex_unlock(&thread_mutex);
+}
+#endif
 
 #ifdef MBDYN_X_MT_ASSRES
 void

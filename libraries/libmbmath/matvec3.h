@@ -281,7 +281,7 @@ class Vec3
     Assegnazione di un coefficiente. 
     Nota: l'indice ha base 1, in stile FORTRAN.
     */
-   inline void Put(unsigned short int iRow, const doublereal& dCoef) {
+   inline void Put(integer iRow, const doublereal& dCoef) {
       ASSERT(iRow >= 1 && iRow <= 3);   
       pdVec[--iRow] = dCoef;
    };
@@ -290,27 +290,27 @@ class Vec3
     Lettura di un coefficiente.
     Nota: l'indice ha base 1, in stile FORTRAN.
     */
-   inline const doublereal& dGet(unsigned short int iRow) const {
+   inline const doublereal& dGet(integer iRow) const {
       ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
-   inline doublereal& operator () (unsigned short int iRow) {
+   inline doublereal& operator () (integer iRow) {
       ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
-   inline const doublereal& operator () (unsigned short int iRow) const {
+   inline const doublereal& operator () (integer iRow) const {
       ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
-   inline doublereal& operator [] (unsigned short int iRow) {
+   inline doublereal& operator [] (integer iRow) {
       ASSERT(iRow <= 2);
       return pdVec[iRow];
    };
 
-   inline const doublereal& operator [] (unsigned short int iRow) const {
+   inline const doublereal& operator [] (integer iRow) const {
       ASSERT(iRow <= 2);
       return pdVec[iRow];
    };
@@ -779,8 +779,8 @@ class Mat3x3
     Assegnazione di un coefficiente.
     Nota: gli indici hanno base 1, in stile FORTRAN.
     */
-   inline void Put(unsigned short int iRow,
-		   unsigned short int iCol, 
+   inline void Put(integer iRow,
+		   integer iCol, 
 		   const doublereal& dCoef) {
       ASSERT(iRow >= 1 && iRow <= 3);
       ASSERT(iCol >= 1 && iCol <= 3);      
@@ -791,22 +791,22 @@ class Mat3x3
     Lettura di un coefficiente.
     Nota: gli indici hanno base 1, in stile FORTRAN.
     */
-   inline const doublereal& dGet(unsigned short int iRow, 
-				 unsigned short int iCol) const {
+   inline const doublereal& dGet(integer iRow, 
+				 integer iCol) const {
       ASSERT(iRow >= 1 && iRow <= 3);
       ASSERT(iCol >= 1 && iCol <= 3);      
       return pdMat[--iRow+3*--iCol];
    };
 
-   inline doublereal& operator () (unsigned short int iRow, 
-		   unsigned short int iCol) {
+   inline doublereal& operator () (integer iRow, 
+		   integer iCol) {
        ASSERT(iRow >= 1 && iRow <= 3);
        ASSERT(iCol >= 1 && iCol <= 3);
        return pdMat[--iRow+3*--iCol];
    };
 
-   inline const doublereal& operator () (unsigned short int iRow, 
-		   unsigned short int iCol) const {
+   inline const doublereal& operator () (integer iRow, 
+		   integer iCol) const {
        ASSERT(iRow >= 1 && iRow <= 3);
        ASSERT(iCol >= 1 && iCol <= 3);
        return pdMat[--iRow+3*--iCol];
@@ -914,7 +914,7 @@ class Mat3x3
     Ottiene un sottovettore dalla matrice.
     Nota: l'indice e' a base 1, in stile FORTRAN.
     */
-   Vec3 GetVec(unsigned short int i) const {
+   Vec3 GetVec(integer i) const {
       ASSERT(i >= 1 && i <= 3);
       return Vec3(pdMat+3*--i);
    };
@@ -924,7 +924,7 @@ class Mat3x3
     Nota: l'indice e' a base 1, in stile FORTRAN.
     Alias di GetVec()
     */
-   Vec3 GetCol(unsigned short int i) const {
+   Vec3 GetCol(integer i) const {
       ASSERT(i >= 1 && i <= 3);
       return Vec3(pdMat + 3*--i);
    };
@@ -933,13 +933,13 @@ class Mat3x3
     Ottiene un sottovettore dalla matrice.
     Nota: l'indice e' a base 1, in stile FORTRAN.
     */
-   Vec3 GetRow(unsigned short int i) const {
+   Vec3 GetRow(integer i) const {
       ASSERT(i >= 1 && i <= 3);
       --i;
       return Vec3(pdMat[i], pdMat[3 + i], pdMat[6 + i]);
    };
 
-   void PutVec(unsigned short int i, const Vec3& v) {
+   void PutVec(integer i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
       i--; i = 3*i;
@@ -948,7 +948,7 @@ class Mat3x3
       pdMat[i] = v.pdVec[V3];
    };
 
-   void AddVec(unsigned short int i, const Vec3& v) {
+   void AddVec(integer i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
       i--; i = 3*i;
@@ -957,7 +957,7 @@ class Mat3x3
       pdMat[i] += v.pdVec[V3];
    };
 
-   void SubVec(unsigned short int i, const Vec3& v) {
+   void SubVec(integer i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
       i--; i = 3*i;
@@ -1664,9 +1664,9 @@ extern Vec3 MatR2LinParam(const Mat3x3& R);
  normale al prodotto vettore tra va e vb viene assunta come
  componente ib nel sistema locale.
  */
-extern Mat3x3 MatR2vec(unsigned short int ia, 
+extern Mat3x3 MatR2vec(integer ia, 
 		       const Vec3& va, 
-		       unsigned short int ib, 
+		       integer ib, 
 		       const Vec3& vb);
 
 

@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -56,10 +56,10 @@ Uso:
 		con il nome del file ed il numero di riga da cui proviene la chiamata.
 		Prima della scrittura viene forzato il flush dello standard output
 		nel	caso che i due flussi di uscita facessero capo alla stessa device.
-                Infine le macro DEBUGCOUT(msg) e DEBUGCERR(msg) che scrivono
-                il messaggio desiderato sui rispettivi flussi in uscita
-                solo se e' definito #define DEBUG. Attenzione, se si concatenano
-                piu' item con l'operatore << non occorre usare parentesi strane.
+		Infine le macro DEBUGCOUT(msg) e DEBUGCERR(msg) che scrivono
+		il messaggio desiderato sui rispettivi flussi in uscita
+		solo se e' definito #define DEBUG. Attenzione, se si concatenano
+		piu' item con l'operatore << non occorre usare parentesi strane.
 
 ******************************************************************************/
 
@@ -67,11 +67,24 @@ Uso:
 #ifndef MYASSERT_H
 #define MYASSERT_H
 
+#ifdef USE_MULTITHREAD
+#ifdef __cplusplus
+#include <mutex>
+#endif
+#endif
+
 #include <stdlib.h>
 #include <iostream>
 #include <except.h>
 
 #define NO_OP do {} while(0)
+
+#if defined(USE_MULTITHREAD) && defined(__cplusplus)
+extern std::mutex mbdyn_lock_cout;
+#define MYASSERT_LOCK_COUT() std::lock_guard<std::mutex> mbdyn_lock_cout_guard(::mbdyn_lock_cout)
+#else
+#define MYASSERT_LOCK_COUT() static_cast<void>(0)
+#endif
 
 #ifdef DEBUG
 /* predefined debug level flags (reserved from 0x0000001 to 0x00000080) */
@@ -92,7 +105,7 @@ struct debug_array {
 };
 
 extern int get_debug_options(const char *const s, const debug_array da[]);
-   
+
 
 
 
@@ -109,33 +122,33 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
 
 #define ASSERT(expr) \
     do { \
-        if (!(expr)) { \
-            _Assert(__FILE__, __LINE__); \
-        } \
+	if (!(expr)) { \
+	    _Assert(__FILE__, __LINE__); \
+	} \
     } while (0)
 
 
 #define ASSERTBREAK(expr) \
     do { \
-        if (!(expr)) { \
-            _Assert(__FILE__, __LINE__); \
-            throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
-        } \
+	if (!(expr)) { \
+	    _Assert(__FILE__, __LINE__); \
+	    throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
+	} \
     } while (0)
 
 #define ASSERTMSG(expr, msg) \
     do { \
-        if (!(expr)) { \
-            _Assert(__FILE__, __LINE__, (msg)); \
-        } \
+	if (!(expr)) { \
+	    _Assert(__FILE__, __LINE__, (msg)); \
+	} \
     } while (0)
 
 #define ASSERTMSGBREAK(expr, msg) \
     do { \
-        if (!(expr)) { \
-            _Assert(__FILE__, __LINE__, (msg)); \
-            throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
-        } \
+	if (!(expr)) { \
+	    _Assert(__FILE__, __LINE__, (msg)); \
+	    throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
+	} \
     } while (0)
 
 
@@ -151,12 +164,14 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
 
 #define DEBUGCOUT(msg) \
     do { \
-        _Out(std::cout, __FILE__, __LINE__) << msg; std::cout.flush(); \
+	 MYASSERT_LOCK_COUT();					       \
+	_Out(std::cout, __FILE__, __LINE__) << msg; std::cout.flush(); \
     } while (0)
 
 #define DEBUGCERR(msg) \
     do { \
-        _Out(std::cerr, __FILE__, __LINE__) << msg; std::cerr.flush(); \
+	 MYASSERT_LOCK_COUT();					       \
+	_Out(std::cerr, __FILE__, __LINE__) << msg; std::cerr.flush(); \
     } while (0)
 
 #define DEBUG_LEVEL(level) \
@@ -167,42 +182,42 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
 
 #define DEBUGLCOUT(level, msg) \
     do { \
-        if (::debug_level & (level)) { \
-            DEBUGCOUT(msg); \
-        } \
+	if (::debug_level & (level)) { \
+	    DEBUGCOUT(msg); \
+	} \
     } while (0)
 
 #define DEBUGLCERR(level, msg) \
     do { \
-        if (::debug_level & (level)) { \
-            DEBUGCERR(msg); \
-        } \
+	if (::debug_level & (level)) { \
+	    DEBUGCERR(msg); \
+	} \
     } while (0)
 
 #define DEBUGLMCOUT(level, msg) \
     do { \
-        if ((::debug_level & (level)) == (level)) { \
-            DEBUGCOUT(msg); \
-        } \
+	if ((::debug_level & (level)) == (level)) { \
+	    DEBUGCOUT(msg); \
+	} \
     } while (0)
 
 #define DEBUGLMCERR(level, msg) \
     do { \
-        if ((::debug_level & (level)) == (level)) { \
-            DEBUGCERR(msg); \
-        } \
+	if ((::debug_level & (level)) == (level)) { \
+	    DEBUGCERR(msg); \
+	} \
     } while (0)
 
 #if defined(__GNUC__)
 #define DEBUGCOUTFNAME(fname) \
     do { \
-        if (::debug_level & MYDEBUG_FNAMES) { \
-            if (::debug_level & MYDEBUG_PRETTYFN) { \
-                DEBUGCOUT("Entering `" << __PRETTY_FUNCTION__ << "'" << std::endl); \
-            } else { \
-                DEBUGCOUT("Entering `" << __FUNCTION__ << "'" << std::endl); \
-            } \
-        } \
+	if (::debug_level & MYDEBUG_FNAMES) { \
+	    if (::debug_level & MYDEBUG_PRETTYFN) { \
+		DEBUGCOUT("Entering `" << __PRETTY_FUNCTION__ << "'" << std::endl); \
+	    } else { \
+		DEBUGCOUT("Entering `" << __FUNCTION__ << "'" << std::endl); \
+	    } \
+	} \
     } while (0)
 #else /* !__GNUC__ */
 #define DEBUGCOUTFNAME(fname) \
@@ -230,7 +245,7 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
 
 
 #define DEBUGCOUT(msg) \
-    do { } while (0)        
+    do { } while (0)
 
 #define DEBUGCERR(msg) \
     do { } while (0)
@@ -242,13 +257,13 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     0
 
 #define DEBUGLCOUT(level, msg) \
-    do { } while (0)        
+    do { } while (0)
 
 #define DEBUGLCERR(level, msg) \
     do { } while (0)
 
 #define DEBUGLMCOUT(level, msg) \
-    do { } while (0)        
+    do { } while (0)
 
 #define DEBUGLMCERR(level, msg) \
     do { } while (0)

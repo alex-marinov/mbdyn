@@ -39,11 +39,11 @@
 */
 
 #include <cstdlib>
+#include <algorithm>
 
 #ifdef SP_GRAD_DEBUG
 #include <cmath>
 #include <vector>
-
 #endif
 
 #include "sp_gradient.h"
@@ -51,7 +51,7 @@
 #include "sp_gradient_op.h"
 
 namespace sp_grad {
-     SpDerivData SP_GRAD_THREAD_LOCAL SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};
+     SpDerivData SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};
 
      SpDerivData* SpGradient::pAllocMem(SpDerivData* ptr, index_type iSize) {
 	  ptr = reinterpret_cast<SpDerivData*>(std::realloc(ptr, uGetAllocSize(iSize)));
@@ -63,83 +63,52 @@ namespace sp_grad {
 	  return ptr;
      }
 
-     void SpGradient::Allocate(index_type iSizeRes, index_type iSizeInit, AllocFlags eAllocFlags) {
+     void SpGradient::Allocate(index_type iSizeRes, index_type iSizeInit, unsigned uFlags) {
 	  SP_GRAD_ASSERT(iSizeRes >= 0);
 	  SP_GRAD_ASSERT(iSizeInit >= 0);
 	  SP_GRAD_ASSERT(iSizeRes >= iSizeInit);
-
+	  SP_GRAD_ASSERT(pData->iRefCnt >= 1);
+	  
 	  const doublereal dVal = pData->dVal;
 
 	  SpDerivData* pMem;
 
-	  const bool bHaveOwner = pData->pOwner && pData->pOwner->bIsOwnerOf(this);
+	  const bool bNeedToGrow = iSizeRes > pData->iSizeRes;
+	  const bool bCannotReuse = pData->iRefCnt > 1 || (pData->pOwner && (bNeedToGrow || !pData->pOwner->bIsOwnerOf(this)));	  
 
-	  SP_GRAD_ASSERT((bHaveOwner && eAllocFlags == ALLOC_RESIZE) ? (pData->iSizeRes == 0 || pData->iSizeRes >= iSizeRes) : true);
-
-	  if (bHaveOwner && pData->iSizeRes >= iSizeRes && eAllocFlags == ALLOC_RESIZE) {
-	       SP_GRAD_ASSERT(pData != pGetNullData());
-	       pData->iSizeCurr = iSizeInit;
-	       pData->uFlags = 0u;
-	       return;
-	  } else if (pData->pOwner || pData->iRefCnt > 1 || pData->iSizeRes < iSizeRes) {
+	  if (bCannotReuse) {
 	       pMem = pAllocMem(nullptr, iSizeRes);
 	       index_type iSizeCopy = std::min(pData->iSizeCurr, iSizeInit);
 	       std::uninitialized_copy(pData->rgDer,
 				       pData->rgDer + iSizeCopy,
 				       pMem->rgDer);
-	       Free();
-	  } else {
+	       Cleanup();
+	  } else if (bNeedToGrow) {
 	       SP_GRAD_ASSERT(!pData->pOwner);
 	       SP_GRAD_ASSERT(pData != pGetNullData());
 	       
 	       pMem = pAllocMem(pData, iSizeRes);
-	  }
-
-	  if (pData == pGetNullData()) {
-	       // Avoid possible integer overflow of oNullData.iRefCnt
-	       --pData->iRefCnt;
+	  } else {
+	       SP_GRAD_ASSERT(((pData->pOwner && pData->pOwner->bIsOwnerOf(this))) ? (pData->iSizeRes == 0 || pData->iSizeRes >= iSizeRes) : true);
+	       SP_GRAD_ASSERT(pData != pGetNullData());
+	       pData->iSizeCurr = iSizeInit;
+	       pData->uFlags = uFlags;
+	       return;
 	  }
 	  
-	  pData = new(pMem) SpDerivData(dVal, iSizeRes, iSizeInit, 0u, 1, nullptr);
+	  pData = new(pMem) SpDerivData(dVal, iSizeRes, iSizeInit, uFlags, 1, nullptr);
      }
 
      void SpGradient::Sort() {
-	  auto ibeg = pData->rgDer;
-	  auto iend = pData->rgDer + pData->iSizeCurr;
-
-	  index_type iMaxDof = std::numeric_limits<index_type>::min();
-	  index_type iMinDof = std::numeric_limits<index_type>::max();
-
-	  for (auto i = ibeg; i < iend; ++i) {
-	       iMaxDof = std::max(iMaxDof, i->iDof);
-	       iMinDof = std::min(iMinDof, i->iDof);
+	  if (!(pData->uFlags & SpDerivData::DER_UNIQUE)) {
+	       MakeUnique();
 	  }
 
-	  index_type iSizeFlat = iMaxDof - iMinDof + 1;
+	  if (!(pData->uFlags & SpDerivData::DER_SORTED)) {
+	       std::sort(pData->rgDer, pData->rgDer + pData->iSizeCurr);
 
-	  std::vector<doublereal> vtmp(iSizeFlat, 0.);
-
-	  index_type iSizeCompr = 0;
-
-	  for (auto i = ibeg; i < iend; ++i) {
-	       auto& v = vtmp[i->iDof - iMinDof];
-
-	       if (!v) {
-		    ++iSizeCompr;
-	       }
-
-	       v += i->dDer;
+	       pData->uFlags |= SpDerivData::DER_SORTED;
 	  }
-
-	  Allocate(iSizeCompr, 0, ALLOC_RESIZE);
-
-	  for (index_type i = 0; i < iSizeFlat; ++i) {
-	       if (auto d = vtmp[i]) {
-		    pInsertRec(i + iMinDof, d);
-	       }
-	  }
-
-	  pData->uFlags = SpDerivData::DER_SORTED | SpDerivData::DER_UNIQUE;
      }
 
      void SpGradient::MakeUnique() {

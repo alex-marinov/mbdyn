@@ -102,6 +102,12 @@ str2nodetype(const char *const s)
 	return Node::UNKNOWN;
 }
 
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+void Node::UpdateJac(doublereal dCoef)
+{
+}
+#endif
+
 /* Node - end */
 
 

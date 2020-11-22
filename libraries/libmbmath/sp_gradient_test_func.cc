@@ -363,7 +363,7 @@ namespace sp_grad_test {
      void func_mat_mul2(typename util::ResultType<TA, TB>::Type& s, const std::vector<TA>& a, const std::vector<TB>& b) {
           SP_GRAD_ASSERT(a.size() == b.size());
 
-          const index_type n = a.size();
+          const index_type n = static_cast<index_type>(a.size());
 
           typedef typename util::ResultType<TA, TB>::Type T;
 
@@ -438,8 +438,8 @@ namespace sp_grad_test {
      void func_mat_mul4(const std::vector<TA>& A, const std::vector<TX>& x, std::vector<typename util::ResultType<TA, TX>::Type>& b) {
           SP_GRAD_ASSERT(A.size() == x.size() * b.size());
 
-          const index_type iRowsA = b.size();
-          const index_type iColsA = x.size();
+          const index_type iRowsA = static_cast<index_type>(b.size());
+          const index_type iColsA = static_cast<index_type>(x.size());
 
           for (index_type iRow = 0; iRow < iRowsA; ++iRow) {
                util::MapInnerProduct(b[iRow],
@@ -465,8 +465,8 @@ namespace sp_grad_test {
      void func_mat_mul4<doublereal, SpGradient>(const std::vector<doublereal>& A, const std::vector<SpGradient>& x, std::vector<SpGradient>& b) {
           SP_GRAD_ASSERT(A.size() == x.size() * b.size());
 
-          const index_type iRowsA = b.size();
-          const index_type iColsA = x.size();
+          const index_type iRowsA = static_cast<index_type>(b.size());
+          const index_type iColsA = static_cast<index_type>(x.size());
 
           SpGradDofStat s;
 
@@ -675,8 +675,8 @@ namespace sp_grad_test {
      void func_mat_mul4m(const std::vector<TA>& A, const std::vector<TX>& x, std::vector<typename util::ResultType<TA,TX>::Type>& b) {
           SP_GRAD_ASSERT(A.size() == x.size() * b.size());
 
-          const index_type iRowsA = b.size();
-          const index_type iColsA = x.size();
+          const index_type iRowsA = static_cast<index_type>(b.size());
+          const index_type iColsA = static_cast<index_type>(x.size());
 
           for (index_type iRow = 0; iRow < iRowsA; ++iRow) {
                util::InnerProduct(b[iRow],
@@ -707,8 +707,8 @@ namespace sp_grad_test {
 
           typedef typename util::ResultType<TA, TX>::Type TB;
 
-          const sp_grad::index_type iNumRows = b.size();
-          const sp_grad::index_type iNumCols = x.size();
+          const sp_grad::index_type iNumRows = static_cast<index_type>(b.size());
+          const sp_grad::index_type iNumCols = static_cast<index_type>(x.size());
 
           for (sp_grad::index_type i = 0; i < iNumRows; ++i) {
                b[i] = TB();
@@ -749,8 +749,8 @@ namespace sp_grad_test {
 
           typedef typename util::ResultType<TA, TX>::Type TB;
 
-          const index_type iNumRows = b.size();
-          const index_type iNumCols = x.size();
+          const index_type iNumRows = static_cast<index_type>(b.size());
+          const index_type iNumCols = static_cast<index_type>(x.size());
 
           for (index_type i = 0; i < iNumRows; ++i) {
                b[i] = TB();

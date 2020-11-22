@@ -44,6 +44,10 @@
 #include "matvec3.h"
 #include "ac/lapack.h"
 
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient.h"
+#endif
+
 /* MatrixHandler - begin */
 
 MatrixHandler::~MatrixHandler(void)
@@ -474,8 +478,6 @@ namespace {
 	}
 }
 
-//#define DEBUG
-
 doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 {
 #if HAVE_CONDITION_NUMBER
@@ -547,6 +549,45 @@ doublereal MatrixHandler::Norm(enum Norm_t eNorm)const
 
 	return LapackMatrixNorm(A, M, N, eNorm);
 }
+
+void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     // This function will be slow and should be overwritten for any sparse matrix handler
+     const integer iNumRows = iGetNumRows();
+     const integer iNumCols = iGetNumCols();
+
+     const bool bScaleRows = !oRowScale.empty();
+     const bool bScaleCols = !oColScale.empty();
+
+     for (integer j = 1; j <= iNumCols; ++j) {
+	  const doublereal dColScale = bScaleCols ? oColScale[j - 1] : 1.;
+	  
+	  for (integer i = 1; i <= iNumRows; ++i) {
+	       const doublereal dRowScale = bScaleRows ? oRowScale[i - 1] : 1.;
+	       
+	       (*this)(i, j) *= dColScale * dRowScale;
+	  }
+     }
+}
+
+#ifdef USE_SPARSE_AUTODIFF
+bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
+{
+     SP_GRAD_ASSERT(iRow >= 1);
+     SP_GRAD_ASSERT(iRow <= iGetNumRows());
+     
+     for (const auto& oRec: oItem) {
+	  SP_GRAD_ASSERT(oRec.iDof >= 1);
+	  SP_GRAD_ASSERT(oRec.iDof <= iGetNumCols());
+	  
+	  if (oRec.dDer) {
+	       (*this)(iRow, oRec.iDof) += oRec.dDer;
+	  }
+     }
+
+     return true; // Note: not thread safe (need to duplicate matrix data for each thread)
+}
+#endif
 
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)

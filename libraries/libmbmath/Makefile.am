@@ -10,6 +10,7 @@ bisec.cc \
 bisec.h \
 ccmh.cc \
 ccmh.h \
+cscmhtpl.h \
 dgeequ.cc \
 dgeequ.h \
 dirccmh.cc \
@@ -79,7 +80,9 @@ sp_gradient_util.h \
 sp_matrix_base_fwd.h \
 sp_matrix_base.h \
 sp_gradient.cc \
-sp_matrix_base.cc
+sp_matrix_base.cc \
+sp_gradient_spmh.h \
+sp_gradient_spmh.cc
 endif
 
 if USE_SCHUR
@@ -258,7 +261,24 @@ sp_gradient_test_func.cc
 
 sp_gradient_test_LDADD = \
 libmbmath.la \
-../libmbutil/libmbutil.la
+../libmbutil/libmbutil.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@PASTIX_LIBS@ \
+@QRUPDATE_LIBS@ \
+@SUITESPARSEQR_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@FCLIBS@ \
+@LIBS@ \
+@RT_LIBS@
 
 AM_CPPFLAGS = \
 -I../../include \

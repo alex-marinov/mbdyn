@@ -1201,6 +1201,10 @@ DataManager::InitialJointAssembly(void)
 		/* Assemblo lo jacobiano e risolvo */
 		pSM->MatrInitialize();
 
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+		NodesUpdateJac(1., NodeIter);
+#endif	
+		
 		/* Contributo dei nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)

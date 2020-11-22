@@ -498,6 +498,35 @@ NonlinearSolver::~NonlinearSolver(void)
 	SAFEDELETE(pSolTest);
 }
 
+std::ostream& NonlinearSolver::PrintSolverTime(std::ostream& os) const
+{
+     using namespace std;
+     using namespace std::chrono;
+     typedef duration<float, std::ratio<1, 1> > FloatSec;
+	     
+     auto prec = os.precision();
+     auto fmt = os.flags();
+     os.setf(ios::fixed);
+     os.precision(3);
+
+     os << "nonlinear solver time:\n";
+     os << "\toverall CPU time spent in AssRes:\t" << FloatSec(dTimeCPU[CPU_RESIDUAL]).count() << "s\n";
+     os << "\toverall CPU time spent in AssJac:\t" << FloatSec(dTimeCPU[CPU_JACOBIAN]).count() << "s\n";
+     os << "\toverall CPU time spent in Solve:\t" << FloatSec(dTimeCPU[CPU_LINEAR_SOLVER]).count() << "s\n";
+
+     nanoseconds total(0);
+
+     for (size_t i = 0; i < CPU_LAST_TYPE; ++i) {
+	  total += dTimeCPU[i];
+     }
+
+     os << "sum of CPU time spent in nonlinear solver:\t" << FloatSec(total).count() << "s\n";
+	  
+     os.precision(prec);
+     os.flags(fmt);
+     return os;
+}
+
 integer
 NonlinearSolver::TotalAssembledJacobian(void)
 {

@@ -37,10 +37,6 @@
 #include "rbk.h"
 #include "invdyn.h"
 
-#if defined(USE_MULTITHREAD) && (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF))
-#include "veciter.h"
-#endif
-
 #ifdef USE_AUTODIFF
 #include "gradient.h"
 #include "matvec.h"
@@ -781,7 +777,7 @@ StaticStructDispNode::iGetInitialFirstIndexPrime() const
  * (non ancora implementate). */
 
 class StructNode : virtual public StructDispNode
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
 , public grad::AlignedAlloc
 #endif
 {
@@ -843,36 +839,38 @@ protected:
 	// bool bOutputAccels;
 
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-#ifdef USE_MULTITHREAD
-	mutable InUse gradInUse;
-#endif
-	mutable bool bUpdateRotation;
-	mutable doublereal dCoefGrad;
+private:
+	mutable bool bNeedRotation, bUpdateRotation;
 #endif
 
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-        void UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) const;
+	grad::FunctionCall eCurrFunc;
+        void UpdateRotation(doublereal dCoef) const;
 		
 	static const grad::index_type iNumADVars = 3; // Account for the initial assembly phase
 	mutable grad::Matrix<grad::Gradient<iNumADVars>, 3, 3> RCurr_grad;
 	mutable grad::Vector<grad::Gradient<iNumADVars>, 3> WCurr_grad;
 
 	template <typename T>
-	inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& RCurr, grad::Vector<T, 3>& WCurr, enum grad::FunctionCall func) const;
+	inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& RCurr, grad::Vector<T, 3>& WCurr, doublereal dCoef, enum grad::FunctionCall func) const;
 
-	inline void GetgCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const;
+	inline void GetgCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const;
 
-	inline void GetgPCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const;
+	inline void GetgPCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const;
+        inline void GetWCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const;
 #endif
 
 #ifdef USE_SPARSE_AUTODIFF
-     mutable sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3, 3> RCurr_grad;
-     mutable sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 3> WCurr_grad;
+        sp_grad::SpFunctionCall eCurrFunc;
+        mutable sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3, 3> RCurr_grad;
+        mutable sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 3> WCurr_grad;
 
-     void UpdateRotation(doublereal dCoef, enum sp_grad::SpFunctionCall func) const;
+        void UpdateRotation(doublereal dCoef) const;
 		
-     template <typename T>
-     inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& RCurr, sp_grad::SpColVector<T, 3>& WCurr, sp_grad::SpFunctionCall func) const;
+        template <typename T>
+        inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& RCurr, sp_grad::SpColVector<T, 3>& WCurr, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+        inline void GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+        inline void GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
 
 public:
@@ -998,7 +996,10 @@ public:
 
 	inline void GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
-     
+
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        virtual void UpdateJac(doublereal dCoef) override;
+#endif
 	virtual inline bool bOmegaRotates(void) const;
 
 	virtual void OutputPrepare(OutputHandler &OH);
@@ -1206,8 +1207,8 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
-	     iFirstDofIndex = iGetFirstIndex() + 9;
-	     break;
+	     gP = gPCurr;
+	     return;
 	     
 	case INITIAL_DER_JAC:
 	case REGULAR_JAC:
@@ -1222,8 +1223,8 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
 		Gradient<N_SIZE>& g_i = gP(i);
 		g_i.SetValuePreserve(gPCurr(i));
 		g_i.DerivativeResizeReset(pDofMap,
-                                          iFirstDofIndex + 4,
-                                          iFirstDofIndex + 7,
+                                          iFirstDofIndex + 1,
+                                          iFirstDofIndex + 3,
                                           MapVectorBase::GLOBAL,
                                           0.);
 		g_i.SetDerivativeGlobal(iFirstDofIndex + i, -1.);
@@ -1232,19 +1233,17 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
 
 inline void StructNode::GetRCurr(grad::Matrix<doublereal, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
 {
+	bNeedRotation = true;
 	R = RCurr;
 }
 
 template <grad::index_type N_SIZE>
 inline void StructNode::GetRCurr(grad::Matrix<grad::Gradient<N_SIZE>, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
 {
+     GRADIENT_ASSERT(bNeedRotation);
+     GRADIENT_ASSERT(!bUpdateRotation);
+     
      using namespace grad;
-
-#if !defined(USE_SPARSE_AUTODIFF)
-     UpdateRotation(dCoef, func);     
-#else
-     UpdateRotation(dCoef, static_cast<sp_grad::SpFunctionCall>(func));
-#endif       
 
 #if !defined(USE_SPARSE_AUTODIFF)
      index_type iFirstDofIndex = -1;
@@ -1300,6 +1299,7 @@ inline void StructNode::GetRCurr(grad::Matrix<grad::Gradient<N_SIZE>, 3, 3>& R, 
 
 inline void StructNode::GetWCurr(grad::Vector<doublereal, 3>& W, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
 {
+	bNeedRotation = true;
 	W = WCurr;
 }
 
@@ -1308,11 +1308,8 @@ inline void StructNode::GetWCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& W, dou
 {
 	using namespace grad;
 
-#if !defined(USE_SPARSE_AUTODIFF)
-	UpdateRotation(dCoef, func);
-#else
-	UpdateRotation(dCoef, static_cast<sp_grad::SpFunctionCall>(func));
-#endif
+	GRADIENT_ASSERT(bNeedRotation);
+	GRADIENT_ASSERT(!bUpdateRotation);
 
 #if !defined(USE_SPARSE_AUTODIFF)
 	index_type iFirstDofIndex = -1;
@@ -1430,8 +1427,8 @@ inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& 
 
      switch (func) {
      case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 9;
-	  break;
+	  gP = gPCurr;
+	  return;
 	  
      case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
      case sp_grad::SpFunctionCall::REGULAR_JAC:
@@ -1451,26 +1448,55 @@ inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& 
 
 inline void StructNode::GetRCurr(sp_grad::SpMatrix<doublereal, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
+     bNeedRotation = true;
      R = RCurr;
 }
 
 inline void StructNode::GetRCurr(sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-     UpdateRotation(dCoef, func);
+     SP_GRAD_ASSERT(bNeedRotation);
+     SP_GRAD_ASSERT(!bUpdateRotation);
      
      R = RCurr_grad;
 }
 
 inline void StructNode::GetWCurr(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
+     bNeedRotation = true;
      W = WCurr;
 }
 
 inline void StructNode::GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-     UpdateRotation(dCoef, func);
+     SP_GRAD_ASSERT(bNeedRotation);
+     SP_GRAD_ASSERT(!bUpdateRotation);
 
      W = WCurr_grad;
+}
+
+inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     W = WCurr;
+}
+
+inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     sp_grad::index_type iFirstDofIndex = -1;
+
+     switch (func) {
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
+	  iFirstDofIndex = iGetFirstIndex() + 9;
+	  break;
+
+     default:
+	  SP_GRAD_ASSERT(false);
+     }
+
+     W.ResizeReset(3, 1);
+
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+	  W(i).Reset(WCurr(i), iFirstDofIndex + i, -1.);
+     }     
 }
 #endif
 

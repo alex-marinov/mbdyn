@@ -43,6 +43,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <vector>
+
 #include "ac/f2c.h"
 
 /* per il debugging */
@@ -51,6 +53,10 @@
 #include "except.h"
 
 #include "vh.h"
+
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_base.h"
+#endif
 
 class SubMatrixHandler;
 class VariableSubMatrixHandler;
@@ -193,6 +199,10 @@ protected:
 				const doublereal& dCoef),
 			VectorHandler& out, const VectorHandler& in) const;
 
+        template <typename T>
+        static void IteratorScale(T& oMH,
+				  const std::vector<doublereal>& oRowScale,
+				  const std::vector<doublereal>& oColScale);
 public:
 	virtual VectorHandler&
 	MatVecMul(VectorHandler& out, const VectorHandler& in) const;
@@ -208,6 +218,11 @@ public:
 	MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const;
 	virtual doublereal ConditionNumber(enum Norm_t eNorm = NORM_1) const;
 	virtual doublereal Norm(enum Norm_t eNorm = NORM_1) const;
+        virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale);
+     
+#ifdef USE_SPARSE_AUTODIFF
+        virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem);
+#endif
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */
@@ -235,6 +250,32 @@ inline integer*
 MatrixHandler::piGetCols(void) const
 {
 	return NULL;
+}
+
+template <typename T>
+void MatrixHandler::IteratorScale(T& oMH, const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     static_assert(std::is_base_of<MatrixHandler, T>::value, "argument oMH must be a matrix handler");
+     
+     const bool bScaleRows = !oRowScale.empty();
+     const bool bScaleCols = !oColScale.empty();
+
+     ASSERT(!bScaleRows || oRowScale.size() == static_cast<size_t>(oMH.iGetNumRows()));
+     ASSERT(!bScaleCols || oColScale.size() == static_cast<size_t>(oMH.iGetNumCols()));
+
+     for (const auto& oItem: oMH) {
+	  doublereal dCoef = oItem.dCoef;
+
+	  if (bScaleRows) {
+	       dCoef *= oRowScale[oItem.iRow];
+	  }
+
+	  if (bScaleCols) {
+	       dCoef *= oColScale[oItem.iCol];
+	  }
+
+	  oMH(oItem.iRow + 1, oItem.iCol + 1) = dCoef;
+     }
 }
 
 extern std::ostream&

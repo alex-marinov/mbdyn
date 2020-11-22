@@ -41,6 +41,11 @@
 #include "dataman.h"
 #include "spmh.h"
 #include "naivemh.h"
+
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#endif
+
 class Solver;
 
 /* MultiThreadDataManager - begin */
@@ -53,7 +58,9 @@ protected:
 
 		ASS_CC,			/* use native column-compressed form */
 		ASS_NAIVE,		/* use native H-P sparse solver */
-
+#ifdef USE_SPARSE_AUTODIFF
+		ASS_GRAD,
+#endif
 		ASS_LAST
 	} AssMode;
 
@@ -71,7 +78,9 @@ protected:
 		pthread_t thread;
 		sem_t sem;
 		clock_t	cputime;
-
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
+	        mutable MT_VecIter<Node *> NodeIter;
+#endif
 		mutable MT_VecIter<Elem *> ElemIter;
 	
 		VariableSubMatrixHandler *pWorkMatA;	/* Working SubMatrix */
@@ -80,10 +89,14 @@ protected:
 		MySubVectorHandler *pWorkVec;
 
 		/* for CC assembly */
-		CompactSparseMatrixHandler* pJacHdl;
+	        CompactSparseMatrixHandler* pJacHdl;
 
 		/* for Naive assembly */
 		NaiveMatrixHandler** ppNaiveJacHdl;
+
+#ifdef USE_SPARSE_AUTODIFF
+	        SpGradientSparseMatrixWrapper oGradJacHdl;
+#endif
 		AO_TS_t* lock;
 
 		VectorHandler* pResHdl;
@@ -99,7 +112,12 @@ protected:
 
 		OP_ASSJAC_NAIVE,
 		OP_SUM_NAIVE,
-
+#ifdef USE_SPARSE_AUTODIFF
+		OP_ASSJAC_GRAD,
+#endif
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
+		OP_NODES_UPDATE,
+#endif		
 		/* used only #ifdef MBDYN_X_MT_ASSRES */
 		OP_ASSRES,
 
@@ -135,9 +153,15 @@ protected:
 	void ThreadSpawn(void);
 	clock_t ThreadDestroy(void);
 
-	/* specialized assembly */
+	/* specialized assembly */     
 	virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
 	virtual void NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef);
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        void NodesUpdateJac(doublereal dCoef);
+#endif
+#ifdef USE_SPARSE_AUTODIFF
+        void GradAssJac(MatrixHandler& JacHdl, doublereal dCoef);
+#endif
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	MultiThreadDataManager(MBDynParser& HP,

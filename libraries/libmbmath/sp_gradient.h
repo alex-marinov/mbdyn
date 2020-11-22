@@ -327,19 +327,38 @@ namespace sp_grad {
      void SpGradient::Reset(doublereal dVal, index_type iDof, doublereal dDer) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  Allocate(1, 1, ALLOC_RESIZE);
+	  Allocate(1, 1, SpDerivData::DER_SORTED | SpDerivData::DER_UNIQUE);
 	  pData->dVal = dVal;
 	  pData->rgDer[0].iDof = iDof;
 	  pData->rgDer[0].dDer = dDer;
-	  pData->uFlags = SpDerivData::DER_SORTED | SpDerivData::DER_UNIQUE;
 
 	  SP_GRAD_ASSERT(bValid());
+     }
+
+     // Preserves the nonzero pattern (needed for different sparse solvers)
+     void SpGradient::ResetNumeric()
+     {
+	  SP_GRAD_ASSERT(bValid());
+
+	  UniqueOwner();
+	  
+	  pData->dVal = 0.;
+
+	  SpDerivRec* pCurr = pData->rgDer;
+	  SpDerivRec* pEnd = pCurr + pData->iSizeCurr;
+	  
+	  while (pCurr != pEnd) {
+	       pCurr->dDer = 0.;
+	       ++pCurr;
+	  }	       
+	  
+	  SP_GRAD_ASSERT(bValid());	  
      }
 
      void SpGradient::ResizeReset(doublereal dVal, index_type iSize) {
 	  SP_GRAD_ASSERT(bValid());
 
-	  Allocate(iSize, 0, ALLOC_RESIZE);
+	  Allocate(iSize, 0, SpDerivData::DER_GENERAL);
 	  pData->dVal = dVal;
 
 	  SP_GRAD_ASSERT(bValid());
@@ -351,6 +370,21 @@ namespace sp_grad {
 
      void SpGradient::ResizeReset(doublereal& g, doublereal dVal, index_type) {
      	  g = dVal;
+     }
+
+     void SpGradient::Scale(doublereal dRowScale, const std::vector<doublereal>& oColScale) {
+	  UniqueOwner();
+
+	  SpDerivRec* pCurr = pData->rgDer;
+	  SpDerivRec* pEnd = pCurr + pData->iSizeCurr;
+	  
+	  while (pCurr < pEnd) {
+	       SP_GRAD_ASSERT(pCurr->iDof >= 1);
+	       SP_GRAD_ASSERT(oColScale.size() >= static_cast<size_t>(pCurr->iDof));
+	       
+	       pCurr->dDer *= dRowScale * oColScale[pCurr->iDof - 1];
+	       ++pCurr;
+	  }
      }
 
      void SpGradient::SetValuePreserve(doublereal dVal) {
@@ -507,7 +541,7 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT((pALast - pAFirst) % iAOffset == 0);
 	  SP_GRAD_ASSERT((pBLast - pBFirst) % iBOffset == 0);
 
-	  Allocate(oDofMap.iGetLocalSize(), 0, ALLOC_RESIZE);
+	  Allocate(oDofMap.iGetLocalSize(), 0, SpDerivData::DER_UNIQUE);
 
 	  SetValuePreserve(0.);
 
@@ -548,7 +582,7 @@ namespace sp_grad {
 	  iNumNz = InnerProductSize(pAFirst, pALast, iAOffset);
 	  iNumNz += InnerProductSize(pBFirst, pBLast, iBOffset);
 
-	  Allocate(iNumNz, 0, ALLOC_RESIZE);
+	  Allocate(iNumNz, 0, SpDerivData::DER_GENERAL);
 
 	  SetValuePreserve(0.);
 
@@ -571,7 +605,7 @@ namespace sp_grad {
      }
 
      void SpGradient::UniqueOwner() {
-	  Allocate(pData->iSizeRes, pData->iSizeCurr, ALLOC_UNIQUE);
+	  Allocate(pData->iSizeRes, pData->iSizeCurr, pData->uFlags);
      }
 
 
@@ -702,10 +736,10 @@ namespace sp_grad {
 
      template <typename CONT_TYPE>
      void SpGradient::CopyDeriv(doublereal dVal, const CONT_TYPE& rgDer) {
-	  index_type iSize = rgDer.size();
+	  index_type iSize = static_cast<index_type>(rgDer.size());
 
 	  if (iSize > 0) {
-	       Allocate(iSize, iSize, ALLOC_RESIZE);
+	       Allocate(iSize, iSize, SpDerivData::DER_GENERAL);
 
 	       pData->dVal = dVal;
 
@@ -726,7 +760,7 @@ namespace sp_grad {
 	       f = std::move(*this);
 	  }
 
-	  f.Allocate(g.iGetSize(), 0, ALLOC_RESIZE);
+	  f.Allocate(g.iGetSize(), 0, SpDerivData::DER_GENERAL);
 
 	  f.pData->dVal = g.dGetValue();
 
@@ -759,7 +793,7 @@ namespace sp_grad {
 
 	  oDofMap.InsertDone();
 
-	  f.Allocate(oDofMap.iGetLocalSize(), 0, ALLOC_RESIZE);
+	  f.Allocate(oDofMap.iGetLocalSize(), 0, SpDerivData::DER_UNIQUE);
 
 	  f.pData->dVal = g.dGetValue();
 
@@ -806,7 +840,7 @@ namespace sp_grad {
 	       r = *this;
 	  }
 
-	  r.Allocate(iSizePrev + g.iGetSize(), iSizePrev, ALLOC_RESIZE);
+	  r.Allocate(iSizePrev + g.iGetSize(), iSizePrev, SpDerivData::DER_GENERAL);
 
 	  r.pData->dVal = f;
 
@@ -871,7 +905,7 @@ namespace sp_grad {
 
 	  const index_type iNumNz = oDofMap.iGetLocalSize();
 	  
-	  Allocate(iNumNz, iGetSize(), ALLOC_RESIZE);
+	  Allocate(iNumNz, iGetSize(), SpDerivData::DER_UNIQUE);
 	  
 	  pData->dVal = f; // Must execute after Allocate
 
@@ -907,17 +941,17 @@ namespace sp_grad {
 #endif
 
 	  pData->iSizeCurr = iNumNz;
-	  pData->uFlags |= SpDerivData::DER_UNIQUE;
 
+	  SP_GRAD_ASSERT(bIsUnique());
 	  SP_GRAD_ASSERT(oDofMap.bValid());
 	  SP_GRAD_ASSERT(bValid());
      }
 
      template <typename Func>
-     void SpGradient::InitDerivAssign(const doublereal f, const doublereal df_du) {
+     void SpGradient::InitDerivAssign(const doublereal f, const doublereal df_du, index_type iSizeRes) {
 	  SP_GRAD_ASSERT(bValid());
 	  
-	  Allocate(pData->iSizeRes, pData->iSizeCurr, ALLOC_UNIQUE);
+	  Allocate(iSizeRes, pData->iSizeCurr, SpDerivData::DER_GENERAL);
 
 	  pData->dVal = f; // Must execute after Allocate
 	  

@@ -365,6 +365,9 @@ public:
 	// end of inverse dynamics
 
 protected:
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        void NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter);
+#endif
 	/* specialized functions, called by above general helpers */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
@@ -607,6 +610,9 @@ protected:
 	ElemVecType Elems;
 
 	/* NOTE: will be removed? */
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        mutable VecIter<Node *> NodeIter;
+#endif
 	mutable VecIter<Elem *> ElemIter;
 	/* end of NOTE: will be removed? */
 

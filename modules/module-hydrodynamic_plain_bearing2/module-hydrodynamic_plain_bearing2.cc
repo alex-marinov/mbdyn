@@ -38,12 +38,8 @@
   in the GNU Public License version 2.1
 */
 
-// #define GRADIENT_DEBUG 1
-// #define MATVEC_DEBUG 1
-// #define HYDRO_DEBUG 1
-
-#ifndef CREATE_PROFILE
-#define CREATE_PROFILE 0
+#ifndef MBDYN_ENABLE_PROFILE
+#define MBDYN_ENABLE_PROFILE 0
 #endif
 
 #ifndef HYDRO_DEBUG
@@ -54,6 +50,9 @@
 #include <array>
 #include <cassert>
 #include <cfloat>
+#if MBDYN_ENABLE_PROFILE
+#include <chrono>
+#endif
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -71,7 +70,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <ac/lapack.h>
-#include <clock_time.h>
 #include <dataman.h>
 #include <gauss.h>
 #include <sp_gradient.h>
@@ -2206,7 +2204,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -2218,7 +2216,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode)=0;
 
@@ -2255,11 +2253,11 @@ namespace {
         virtual doublereal dGetMinClearance() const=0;
         virtual doublereal dGetPocketHeightMesh(const SpColVector<doublereal, 2>& x) const=0;
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         enum { PROF_RES = 0, PROF_JAC = 1};
         struct {
-            doublereal dtAddForce[2];
-            doublereal dtOperatorPlus[2];
+	     std::chrono::nanoseconds dtAddForce[2];
+	     std::chrono::nanoseconds dtOperatorPlus[2];
         } profile;
 #endif
 
@@ -2465,7 +2463,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -2477,7 +2475,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -2645,7 +2643,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -2657,7 +2655,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -2939,7 +2937,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -2951,7 +2949,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode)=0;
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode)=0;
 
@@ -3070,7 +3068,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3082,7 +3080,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3107,16 +3105,16 @@ namespace {
                         const SpGradientVectorHandler<T>& XCurr,
                         SpFunctionCall func);
     private:
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         enum { PROF_RES = 0, PROF_JAC = 1 };
         static struct ProfileData {
-            doublereal dtAss[2];
+	    std::chrono::nanoseconds dtAss[2];
             HydroElement* pLastElem;
         } profile;
 #endif
     };
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
     LinFD5ReynoldsElem::ProfileData LinFD5ReynoldsElem::profile;
 #endif
 
@@ -3133,7 +3131,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3145,7 +3143,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3172,7 +3170,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3184,7 +3182,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3223,16 +3221,16 @@ namespace {
         SpMatrix<doublereal, 3, 3> Rtc;
         doublereal dScaleEnergy;
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         enum { PROF_RES = 0, PROF_JAC = 1 };
         static struct ProfileData {
-            doublereal dtAss[2];
+            std::chrono::nanoseconds dtAss[2];
             HydroElement* pLastElem;
         } profile;
 #endif
     };
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
     LinFD4FrictionElem::ProfileData LinFD4FrictionElem::profile;
 #endif
 
@@ -3249,7 +3247,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3261,7 +3259,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3299,7 +3297,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3311,7 +3309,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3376,7 +3374,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3388,7 +3386,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3429,7 +3427,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3441,7 +3439,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3610,7 +3608,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3622,7 +3620,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3671,7 +3669,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3683,7 +3681,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -3764,7 +3762,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -3776,7 +3774,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -4285,7 +4283,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -4302,7 +4300,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -4407,7 +4405,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -4424,7 +4422,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -4580,7 +4578,7 @@ namespace {
                SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        AssJac(SparseSubMatrixHandler& WorkMat,
+        AssJac(SpGradientSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
@@ -4597,7 +4595,7 @@ namespace {
                       SpGradientAssVecBase::SpAssMode mode);
 
         virtual void
-        InitialAssJac(SparseSubMatrixHandler& WorkMat,
+        InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                       const VectorHandler& XCurr,
                       SpGradientAssVecBase::SpAssMode mode);
 
@@ -4902,18 +4900,18 @@ namespace {
             doublereal dDefault;
         } rgPrivData[iNumPrivData];
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         enum {
             PROF_RES = 0,
             PROF_JAC = 1
         };
         struct {
-            doublereal dtRes;
-            doublereal dtJac;
-            doublereal dtUpdateGeom[2];
-            doublereal dtUpdateNodes[2];
-            doublereal dtElemAss[2];
-            doublereal dtGeomAss[2];
+	     std::chrono::nanoseconds dtRes;
+	     std::chrono::nanoseconds dtJac;
+	     std::chrono::nanoseconds dtUpdateGeom[2];
+	     std::chrono::nanoseconds dtUpdateNodes[2];
+	     std::chrono::nanoseconds dtElemAss[2];
+	     std::chrono::nanoseconds dtGeomAss[2];
         } profile;
 #endif
     };
@@ -5371,7 +5369,7 @@ namespace {
 
         out << std::endl;
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         memset(&profile, 0, sizeof(profile));
 #endif
     }
@@ -5428,18 +5426,18 @@ namespace {
     {
         // destroy private data
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         std::cerr << "hydrodynamic plain bearing2(" << GetLabel() << ")" << std::endl;
 
-        std::cerr << "dtRes=" << profile.dtRes << std::endl;
+        std::cerr << "dtRes=" << profile.dtRes.count() << "ns\n";
 
-        std::cerr << "dtJac=" << profile.dtJac << std::endl;
+        std::cerr << "dtJac=" << profile.dtJac.count() << "ns\n";
 
         for (int i = PROF_RES; i <= PROF_JAC; ++i) {
-            std::cerr << "dtUpdateGeom[" << i << "]=" << profile.dtUpdateGeom[i] << std::endl;
-            std::cerr << "dtUpdateNodes[" << i << "]=" << profile.dtUpdateNodes[i] << std::endl;
-            std::cerr << "dtElemAss[" << i << "]=" << profile.dtElemAss[i] << std::endl;
-            std::cerr << "dtGeomAss[" << i << "]=" << profile.dtGeomAss[i] << std::endl;
+	     std::cerr << "dtUpdateGeom[" << i << "]=" << profile.dtUpdateGeom[i].count() << "ns\n";
+	     std::cerr << "dtUpdateNodes[" << i << "]=" << profile.dtUpdateNodes[i].count() << "ns\n";
+	     std::cerr << "dtElemAss[" << i << "]=" << profile.dtElemAss[i].count() << "ns\n";
+	     std::cerr << "dtGeomAss[" << i << "]=" << profile.dtGeomAss[i].count() << "ns\n";
         }
 
         std::cerr << std::endl;
@@ -5494,27 +5492,22 @@ namespace {
     void HydroRootElement::UnivWorkSpaceDim(integer* piNumRows, integer* piNumCols, SpFunctionCall eFunc) const
     {
         integer iNumRowsTotal = 0;
-        integer iNumItemsTotal = 0;
-
         integer iNumRowsElem = 0, iNumColsElem = 0;
 
         pMesh->pGetGeometry()->WorkSpaceDim(&iNumRowsElem, &iNumColsElem, eFunc);
 
-        iNumItemsTotal += iNumRowsElem * iNumColsElem;
         iNumRowsTotal += iNumRowsElem;
 
         for (auto i = rgElements.cbegin(); i != rgElements.cend(); ++i) {
             (*i)->WorkSpaceDim(&iNumRowsElem, &iNumColsElem, eFunc);
-            iNumItemsTotal += iNumRowsElem * iNumColsElem;
             iNumRowsTotal += iNumRowsElem;
         }
 
-        *piNumRows = -iNumRowsTotal;
-        *piNumCols = iNumItemsTotal / iNumRowsTotal + 1;
+        *piNumRows = iNumRowsTotal;
+        *piNumCols = 0;
 
         HYDRO_TRACE("iNumRows=" << *piNumRows << std::endl);
         HYDRO_TRACE("iNumCols=" << *piNumCols << std::endl);
-        HYDRO_TRACE("iMaxItems=" << *piNumRows * *piNumCols << std::endl);
     }
 
     unsigned int HydroRootElement::iGetNumDof(void) const
@@ -5607,47 +5600,44 @@ namespace {
                              const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         pMesh->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_JAC);
 
-#if CREATE_PROFILE == 1
-        profile.dtUpdateGeom[PROF_JAC] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtUpdateGeom[PROF_JAC] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         for (auto i = rgNodes.begin(); i != rgNodes.end(); ++i) {
             (*i)->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_JAC);
         }
 
-#if CREATE_PROFILE == 1
-        profile.dtUpdateNodes[PROF_JAC] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtUpdateNodes[PROF_JAC] += high_resolution_clock::now() - start;
+	start = high_resolution_clock::now();
 #endif
 
-        SparseSubMatrixHandler& WorkMat = WorkMatVar.SetSparse();
-        WorkMat.Resize(1, 1);
-        WorkMat.PutItem(1, 1, 1, 0); // FIXME: Avoid a segmentation fault if the matrix is empty
-
-        SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
+        SpGradientSubMatrixHandler& WorkMat = WorkMatVar.SetSparseGradient();
+	WorkMat.Reset();
 
         for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-            (*i)->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr, mode);
-            mode = SpGradientAssVecBase::APPEND;
+            (*i)->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr, SpGradientAssVecBase::APPEND);
         }
 
-#if CREATE_PROFILE == 1
-        profile.dtElemAss[PROF_JAC] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtElemAss[PROF_JAC] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
-        pMesh->pGetGeometry()->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr, mode);
+        pMesh->pGetGeometry()->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr, SpGradientAssVecBase::APPEND);
 
-#if CREATE_PROFILE == 1
-        profile.dtGeomAss[PROF_JAC] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtGeomAss[PROF_JAC] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         return WorkMatVar;
@@ -5659,8 +5649,9 @@ namespace {
                              const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+	 using namespace std::chrono;
+	 auto start = high_resolution_clock::now();
 #endif
         if (bUpdatePrivData) {
             for (int i = 0; i < iNumPrivData; ++i) {
@@ -5672,9 +5663,9 @@ namespace {
 
         pMesh->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_RES);
 
-#if CREATE_PROFILE == 1
-        profile.dtUpdateGeom[PROF_RES] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtUpdateGeom[PROF_RES] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         for (auto i = rgBoundaryCond.begin(); i != rgBoundaryCond.end(); ++i) {
@@ -5687,9 +5678,9 @@ namespace {
             (*i)->Update(XCurr, XPrimeCurr, dCoef, SpFunctionCall::REGULAR_RES);
         }
 
-#if CREATE_PROFILE == 1
-        profile.dtUpdateNodes[PROF_RES] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtUpdateNodes[PROF_RES] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
@@ -5699,16 +5690,16 @@ namespace {
             mode = SpGradientAssVecBase::APPEND;
         }
 
-#if CREATE_PROFILE == 1
-        profile.dtElemAss[PROF_RES] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtElemAss[PROF_RES] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         pMesh->pGetGeometry()->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, mode);
 
-#if CREATE_PROFILE == 1
-        profile.dtGeomAss[PROF_RES] += mbdyn_clock_time() - start;
-        start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        profile.dtGeomAss[PROF_RES] += high_resolution_clock::now() - start;
+        start = high_resolution_clock::now();
 #endif
 
         if (bUpdatePrivData) {
@@ -5909,18 +5900,14 @@ namespace {
                 (*i)->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_JAC);
             }
 
-            SparseSubMatrixHandler& WorkMat = WorkMatVar.SetSparse();
-            WorkMat.Resize(1, 1);
-            WorkMat.PutItem(1, 1, 1, 0); // FIXME: Avoid a segmentation fault if the matrix is empty
-
-            SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
-
+            SpGradientSubMatrixHandler& WorkMat = WorkMatVar.SetSparseGradient();
+	    WorkMat.Reset();
+	    
             for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                (*i)->InitialAssJac(WorkMat, XCurr, mode);
-                mode = SpGradientAssVecBase::APPEND;
+                (*i)->InitialAssJac(WorkMat, XCurr, SpGradientAssVecBase::APPEND);
             }
 
-            pMesh->pGetGeometry()->InitialAssJac(WorkMat, XCurr, mode);
+            pMesh->pGetGeometry()->InitialAssJac(WorkMat, XCurr, SpGradientAssVecBase::APPEND);
         } else {
             WorkMatVar.SetNullMatrix();
         }
@@ -10164,7 +10151,7 @@ namespace {
     }
 
     void
-    ComplianceModelNodal::AssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelNodal::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
@@ -10194,7 +10181,7 @@ namespace {
     }
 
     void
-    ComplianceModelNodal::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelNodal::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
                                         SpGradientAssVecBase::SpAssMode mode)
     {
@@ -10548,7 +10535,7 @@ namespace {
     }
 
     void
-    ComplianceModelNodalDouble::AssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelNodalDouble::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                        doublereal dCoef,
                                        const VectorHandler& XCurr,
                                        const VectorHandler& XPrimeCurr,
@@ -10586,7 +10573,7 @@ namespace {
     }
 
     void
-    ComplianceModelNodalDouble::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelNodalDouble::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                               const VectorHandler& XCurr,
                                               SpGradientAssVecBase::SpAssMode mode)
     {
@@ -11658,7 +11645,7 @@ namespace {
     }
 
     void
-    ComplianceModelModal::AssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelModal::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
@@ -11688,7 +11675,7 @@ namespace {
     }
 
     void
-    ComplianceModelModal::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    ComplianceModelModal::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
                                         SpGradientAssVecBase::SpAssMode mode)
     {
@@ -12810,17 +12797,17 @@ namespace {
     BearingGeometry::BearingGeometry(HydroRootElement* pParent)
         :pParent(pParent)
     {
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         memset(&profile, 0, sizeof(profile));
 #endif
     }
 
     BearingGeometry::~BearingGeometry()
     {
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         for (int i = PROF_RES; i <= PROF_JAC; ++i) {
-            std::cerr << "dtAddForce[" << i << "]=" << profile.dtAddForce[i] << std::endl;
-            std::cerr << "dtOperatorPlus[" << i << "]=" << profile.dtOperatorPlus[i] << std::endl;
+	     std::cerr << "dtAddForce[" << i << "]=" << profile.dtAddForce[i].count() << "ns\n";
+	     std::cerr << "dtOperatorPlus[" << i << "]=" << profile.dtOperatorPlus[i].count() << "ns\n";
         }
 
 #endif
@@ -13557,10 +13544,8 @@ namespace {
         const SpColVector<T, 3> P1Dot_R1 = Transpose(R1) * P1Dot;
         const SpColVector<T, 3> P2Dot_R1 = Transpose(R1) * P2Dot;
 
-        U1(1) = Dot(Rbt1.GetCol(1), P1Dot_R1);
-        U1(2) = Dot(Rbt1.GetCol(3), P1Dot_R1);
-        U2(1) = Dot(Rbt1.GetCol(1), P2Dot_R1);
-        U2(2) = Dot(Rbt1.GetCol(3), P2Dot_R1);
+	U1 = Transpose(SubMatrix<1, 1, 3, 1, 2, 2>(Rbt1)) * P1Dot_R1;
+	U2 = Transpose(SubMatrix<1, 1, 3, 1, 2, 2>(Rbt1)) * P2Dot_R1;
 
         U = EvalUnique((U2 - U1) * 0.5);
     }
@@ -13629,14 +13614,15 @@ namespace {
                                              doublereal dCoef,
                                              SpFunctionCall func)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+	using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction);
 
-#if CREATE_PROFILE == 1
-        profile.dtAddForce[PROF_RES] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAddForce[PROF_RES] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -13650,14 +13636,15 @@ namespace {
                                              doublereal dCoef,
                                              SpFunctionCall func)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction_grad);
 
-#if CREATE_PROFILE == 1
-        profile.dtAddForce[PROF_JAC] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAddForce[PROF_JAC] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -13682,8 +13669,9 @@ namespace {
                                              SpFunctionCall func,
                                              ReactionForce<T>& oReact)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
         const SpColVector<T, 3> dF1_R1 = EvalUnique(Rbt1 * dF1_h_Rt1);
         const SpColVector<T, 3> dM1_h_R1 = Rbt1.GetCol(1) * dM1_h_Rt1(1) + Rbt1.GetCol(3) * dM1_h_Rt1(2);
@@ -13704,8 +13692,8 @@ namespace {
         }
 #endif
 
-#if CREATE_PROFILE == 1
-        profile.dtOperatorPlus[func == SpFunctionCall::REGULAR_JAC ? PROF_JAC : PROF_RES] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtOperatorPlus[func == SpFunctionCall::REGULAR_JAC ? PROF_JAC : PROF_RES] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -13765,7 +13753,7 @@ namespace {
     }
 
     void
-    CylindricalMeshAtShaft::AssJac(SparseSubMatrixHandler& WorkMat,
+    CylindricalMeshAtShaft::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
@@ -13793,7 +13781,7 @@ namespace {
     }
 
     void
-    CylindricalMeshAtShaft::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    CylindricalMeshAtShaft::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
                                           SpGradientAssVecBase::SpAssMode mode)
     {
@@ -14044,7 +14032,7 @@ namespace {
     }
 
     void
-    CylindricalMeshAtBearing::AssJac(SparseSubMatrixHandler& WorkMat,
+    CylindricalMeshAtBearing::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                      doublereal dCoef,
                                      const VectorHandler& XCurr,
                                      const VectorHandler& XPrimeCurr,
@@ -14072,7 +14060,7 @@ namespace {
     }
 
     void
-    CylindricalMeshAtBearing::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    CylindricalMeshAtBearing::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                             const VectorHandler& XCurr,
                                             SpGradientAssVecBase::SpAssMode mode)
     {
@@ -14221,14 +14209,15 @@ namespace {
                                                doublereal dCoef,
                                                SpFunctionCall func)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction);
 
-#if CREATE_PROFILE == 1
-        profile.dtAddForce[PROF_RES] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAddForce[PROF_RES] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -14242,14 +14231,15 @@ namespace {
                                                doublereal dCoef,
                                                SpFunctionCall func)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         AddReactionForce(x, v, Rt, dF_0_Rt, dF_h_Rt, dM_h_Rt, dCoef, func, oReaction_grad);
 
-#if CREATE_PROFILE == 1
-        profile.dtAddForce[PROF_JAC] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAddForce[PROF_JAC] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -14427,10 +14417,8 @@ namespace {
         const SpColVector<T, 3> dP1_dt_R2 = Transpose(R2) * dP1_dt;
         const SpColVector<T, 3> dP2_dt_R2 = Transpose(R2) * dP2_dt;
 
-        U1(1) = Dot(Rbt2.GetCol(1), dP1_dt_R2);
-        U1(2) = Dot(Rbt2.GetCol(3), dP1_dt_R2);
-        U2(1) = Dot(Rbt2.GetCol(1), dP2_dt_R2);
-        U2(2) = Dot(Rbt2.GetCol(3), dP2_dt_R2);
+	U1 = Transpose(SubMatrix<1, 1, 3, 1, 2, 2>(Rbt2)) * dP1_dt_R2;
+	U2 = Transpose(SubMatrix<1, 1, 3, 1, 2, 2>(Rbt2)) * dP2_dt_R2;
 
         U = EvalUnique((U1 - U2) * 0.5);
     }
@@ -15044,16 +15032,15 @@ namespace {
 	     const SpColVector<T, 2> Ms_U = Ms * Ueff;
 	     const SpColVector<T, 2> Mk2_U = Mk2 * Ueff;
 	     const SpColVector<T, 2> Ms2_U = Ms2 * Ueff;
-            const T norm_Mk2_U = sqrt(Dot(Mk2_U, Mk2_U));
-            const T a0 = norm_Mk2_U / sqrt(Dot(Mk_U, Mk_U));
-            const T a1 = sqrt(Dot(Ms2_U, Ms2_U)) / sqrt(Dot(Ms_U, Ms_U));
-            const T g = a0 + (a1 - a0) * exp(-pow(sqrt(norm_Ueff) / vs, gamma));
-
-            kappa = norm_Mk2_U / g;
+	     const T norm_Mk2_U = sqrt(Dot(Mk2_U, Mk2_U));
+	     const T a0 = norm_Mk2_U / sqrt(Dot(Mk_U, Mk_U));
+	     const T a1 = sqrt(Dot(Ms2_U, Ms2_U) / Dot(Ms_U, Ms_U));
+	     
+	     kappa = EvalUnique(norm_Mk2_U / (a0 + (a1 - a0) * exp(-pow(sqrt(norm_Ueff) / vs, gamma))));
         }
 
         tCurr = pGetMesh()->pGetParent()->dGetTime();
-
+	
         const doublereal dt = tCurr - tPrev;
         const SpMatrix<T, 2, 2> A = invMk2_sigma0 * kappa;
         const SpMatrix<T, 2, 2> B = A * (beta * dt) + SpMatrix<doublereal, 2, 2>{1., 0., 0., 1};
@@ -15063,7 +15050,7 @@ namespace {
 
         SaveStictionState(z, zP);
 
-        tau = (sigma0 * z + sigma1 * zP) * p;
+        tau = EvalUnique((sigma0 * z + sigma1 * zP) * p);
     }
 
     void LugreFriction::SaveStictionState(const SpColVector<doublereal, 2>& z, const SpColVector<doublereal, 2>& zP)
@@ -15305,17 +15292,17 @@ namespace {
         :LinFD5Elem(pMesh, REYNOLDS_ELEM)
     {
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         profile.pLastElem = this;
 #endif
     }
 
     LinFD5ReynoldsElem::~LinFD5ReynoldsElem()
     {
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         if (profile.pLastElem == this) {
             for (int i = PROF_RES; i <= PROF_JAC; ++i) {
-                std::cerr << "LinFDReynoldsElem::dtAss[" << i << "]=" << profile.dtAss[i] << std::endl;
+		 std::cerr << "LinFDReynoldsElem::dtAss[" << i << "]=" << profile.dtAss[i].count() << "ns\n";
             }
         }
 #endif
@@ -15327,8 +15314,9 @@ namespace {
                                     const VectorHandler& XPrimeCurr,
                                     SpGradientAssVecBase::SpAssMode mode)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         SpGradientAssVec<doublereal>::AssRes(this,
@@ -15339,19 +15327,20 @@ namespace {
                                            SpFunctionCall::REGULAR_RES,
                                            mode);
 
-#if CREATE_PROFILE == 1
-        profile.dtAss[PROF_RES] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAss[PROF_RES] += high_resolution_clock::now() - start;
 #endif
     }
 
-    void LinFD5ReynoldsElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    void LinFD5ReynoldsElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
                                     SpGradientAssVecBase::SpAssMode mode)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         SpGradientAssVec<SpGradient >::AssJac(this,
@@ -15362,8 +15351,8 @@ namespace {
                                              SpFunctionCall::REGULAR_JAC,
                                              mode);
 
-#if CREATE_PROFILE == 1
-        profile.dtAss[PROF_JAC] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAss[PROF_JAC] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -15378,7 +15367,7 @@ namespace {
                                                   mode);
     }
 
-    void LinFD5ReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    void LinFD5ReynoldsElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                            const VectorHandler& XCurr,
                                            SpGradientAssVecBase::SpAssMode mode)
     {
@@ -15505,7 +15494,7 @@ namespace {
     }
 
     void
-    LinFD5CouplingElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5CouplingElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
@@ -15529,7 +15518,7 @@ namespace {
     }
 
     void
-    LinFD5CouplingElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5CouplingElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                       const VectorHandler& XCurr,
                                       SpGradientAssVecBase::SpAssMode mode)
     {
@@ -15584,17 +15573,17 @@ namespace {
 	 dScaleEnergy(0.)
     {
 
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         profile.pLastElem = this;
 #endif
     }
 
     LinFD4FrictionElem::~LinFD4FrictionElem()
     {
-#if CREATE_PROFILE == 1
+#if MBDYN_ENABLE_PROFILE
         if (profile.pLastElem == this) {
             for (int i = PROF_RES; i <= PROF_JAC; ++i) {
-                std::cerr << "LinFDFrictionElem::dtAss[" << i << "]=" << profile.dtAss[i] << std::endl;
+		 std::cerr << "LinFDFrictionElem::dtAss[" << i << "]=" << profile.dtAss[i].count() << "ns\n";
             }
         }
 #endif
@@ -15607,8 +15596,9 @@ namespace {
                                const VectorHandler& XPrimeCurr,
                                SpGradientAssVecBase::SpAssMode mode)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         SpGradientAssVec<doublereal>::AssRes(this,
@@ -15619,20 +15609,21 @@ namespace {
                                            SpFunctionCall::REGULAR_RES,
                                            mode);
 
-#if CREATE_PROFILE == 1
-        profile.dtAss[PROF_RES] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAss[PROF_RES] += high_resolution_clock::now() - start;
 #endif
     }
 
     void
-    LinFD4FrictionElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD4FrictionElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                doublereal dCoef,
                                const VectorHandler& XCurr,
                                const VectorHandler& XPrimeCurr,
                                SpGradientAssVecBase::SpAssMode mode)
     {
-#if CREATE_PROFILE == 1
-        doublereal start = mbdyn_clock_time();
+#if MBDYN_ENABLE_PROFILE
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 #endif
 
         SpGradientAssVec<SpGradient >::AssJac(this,
@@ -15643,8 +15634,8 @@ namespace {
                                              SpFunctionCall::REGULAR_JAC,
                                              mode);
 
-#if CREATE_PROFILE == 1
-        profile.dtAss[PROF_JAC] += mbdyn_clock_time() - start;
+#if MBDYN_ENABLE_PROFILE
+        profile.dtAss[PROF_JAC] += high_resolution_clock::now() - start;
 #endif
     }
 
@@ -15661,7 +15652,7 @@ namespace {
     }
 
     void
-    LinFD4FrictionElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD4FrictionElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                       const VectorHandler& XCurr,
                                       SpGradientAssVecBase::SpAssMode mode)
     {
@@ -15909,7 +15900,7 @@ namespace {
     }
 
     void
-    LinFD4MassFlowZ::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD4MassFlowZ::AssJac(SpGradientSubMatrixHandler& WorkMat,
                             doublereal dCoef,
                             const VectorHandler& XCurr,
                             const VectorHandler& XPrimeCurr,
@@ -15933,7 +15924,7 @@ namespace {
     }
 
     void
-    LinFD4MassFlowZ::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD4MassFlowZ::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                    const VectorHandler& XCurr,
                                    SpGradientAssVecBase::SpAssMode mode)
     {
@@ -16024,7 +16015,7 @@ namespace {
     }
 
     void
-    LinFD5ComprReynoldsElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ComprReynoldsElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr,
@@ -16052,7 +16043,7 @@ namespace {
     }
 
     void
-    LinFD5ComprReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ComprReynoldsElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                            const VectorHandler& XCurr,
                                            SpGradientAssVecBase::SpAssMode mode)
     {
@@ -16466,7 +16457,7 @@ namespace {
     }
 
     void
-    LinFD5ThermalElemImp::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ThermalElemImp::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr,
@@ -16496,7 +16487,7 @@ namespace {
     }
 
     void
-    LinFD5ThermalElemImp::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ThermalElemImp::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                         const VectorHandler& XCurr,
                                         SpGradientAssVecBase::SpAssMode mode)
     {
@@ -16605,7 +16596,7 @@ namespace {
     }
 
     void
-    LinFD5ThermalCouplingElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ThermalCouplingElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                       doublereal dCoef,
                                       const VectorHandler& XCurr,
                                       const VectorHandler& XPrimeCurr,
@@ -16635,7 +16626,7 @@ namespace {
     }
 
     void
-    LinFD5ThermalCouplingElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    LinFD5ThermalCouplingElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                              const VectorHandler& XCurr,
                                              SpGradientAssVecBase::SpAssMode mode)
     {
@@ -17162,7 +17153,7 @@ namespace {
     }
 
     void
-    QuadFeIso9ReynoldsElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9ReynoldsElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
@@ -17190,7 +17181,7 @@ namespace {
     }
 
     void
-    QuadFeIso9ReynoldsElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9ReynoldsElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
                                           SpGradientAssVecBase::SpAssMode mode)
     {
@@ -17427,7 +17418,7 @@ namespace {
     }
 
     void
-    QuadFeIso9FrictionElem::AssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9FrictionElem::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                    doublereal dCoef,
                                    const VectorHandler& XCurr,
                                    const VectorHandler& XPrimeCurr,
@@ -17455,7 +17446,7 @@ namespace {
     }
 
     void
-    QuadFeIso9FrictionElem::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9FrictionElem::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                           const VectorHandler& XCurr,
                                           SpGradientAssVecBase::SpAssMode mode)
     {
@@ -17727,7 +17718,7 @@ namespace {
     }
 
     void
-    QuadFeIso9MassFlowZ::AssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9MassFlowZ::AssJac(SpGradientSubMatrixHandler& WorkMat,
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr,
@@ -17750,7 +17741,7 @@ namespace {
     }
 
     void
-    QuadFeIso9MassFlowZ::InitialAssJac(SparseSubMatrixHandler& WorkMat,
+    QuadFeIso9MassFlowZ::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
                                        const VectorHandler& XCurr,
                                        SpGradientAssVecBase::SpAssMode mode)
     {

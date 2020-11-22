@@ -58,6 +58,10 @@ se msg e' definito, viene aggiunto in coda al messaggio di default
 int fSilent = 0;
 int fPedantic = 0;
 
+#ifdef USE_MULTITHREAD
+std::mutex mbdyn_lock_cout;
+#endif
+
 #ifdef DEBUG
 
 long int debug_level = MYDEBUG_ANY;

@@ -625,9 +625,10 @@ void CholModVectorHandler::Free()
         }
 }
 
-QrSparseSolver::Data::Data(integer iSize, unsigned flags)
+template <typename MatrixHandlerType>
+QrSparseSolver<MatrixHandlerType>::Data::Data(integer iSize, unsigned flags)
         :ordering(0),
-         A(iSize),
+         A(iSize, iSize),
          Q(iSize), R(iSize),
          B(iSize, oCommon),
          X(iSize, oCommon),
@@ -659,21 +660,24 @@ QrSparseSolver::Data::Data(integer iSize, unsigned flags)
         }
 }
 
-QrSparseSolver::Data::~Data()
+template <typename MatrixHandlerType>
+QrSparseSolver<MatrixHandlerType>::Data::~Data()
 {
         FactorClean();
         MatrixClean();
 }
 
-void QrSparseSolver::Data::Reset(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::Reset(void)
 {
         eState = ST_MAT_MAP_HDL;
 }
 
+template <typename MatrixHandlerType>
 VectorHandler&
-QrSparseSolver::Data::MatVecOp(QrSolutionManager::MatVecOpType op,
-                               VectorHandler& a,
-                               const VectorHandler& b)
+QrSparseSolver<MatrixHandlerType>::Data::MatVecOp(QrSolutionManager::MatVecOpType op,
+						  VectorHandler& a,
+						  const VectorHandler& b)
 {
         if (eState < ST_FACT_SPARSE) {
                 ASSERT(0);
@@ -767,22 +771,26 @@ QrSparseSolver::Data::MatVecOp(QrSolutionManager::MatVecOpType op,
         return a;
 }
 
-MatrixHandler* QrSparseSolver::Data::pMatHdl()
+template <typename MatrixHandlerType>
+MatrixHandler* QrSparseSolver<MatrixHandlerType>::Data::pMatHdl()
 {
         return &A;
 }
 
-VectorHandler* QrSparseSolver::Data::pResHdl()
+template <typename MatrixHandlerType>
+VectorHandler* QrSparseSolver<MatrixHandlerType>::Data::pResHdl()
 {
         return &B;
 }
 
-VectorHandler* QrSparseSolver::Data::pSolHdl()
+template <typename MatrixHandlerType>
+VectorHandler* QrSparseSolver<MatrixHandlerType>::Data::pSolHdl()
 {
         return &X;
 }
 
-void QrSparseSolver::Data::MakeCompressedColumnForm(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::MakeCompressedColumnForm(void)
 {
         const size_t nr = A.iGetNumRows();
         const size_t nc = A.iGetNumCols();
@@ -804,42 +812,17 @@ void QrSparseSolver::Data::MakeCompressedColumnForm(void)
         ASSERT(nr == pA->nrow);
         ASSERT(nc == pA->ncol);
 
-        auto const colptr = reinterpret_cast<SuiteSparse_long*>(pA->p);
-        auto const rowptr = reinterpret_cast<SuiteSparse_long*>(pA->i);
-        auto const values = reinterpret_cast<doublereal*>(pA->x);
+        auto const Ap = reinterpret_cast<SuiteSparse_long*>(pA->p);
+        auto const Ai = reinterpret_cast<SuiteSparse_long*>(pA->i);
+        auto const Ax = reinterpret_cast<doublereal*>(pA->x);
 
-        SuiteSparse_long j = -1, k = 0;
-
-        for (const auto& elem: A) {
-                ASSERT(elem.iRow >= 0);
-                ASSERT(elem.iRow < A.iGetNumRows());
-                ASSERT(elem.iCol >= 0);
-                ASSERT(elem.iCol < A.iGetNumCols());
-
-                if (j != elem.iCol) {
-                        ASSERT(j == -1 || elem.iCol == j + 1);
-
-                        colptr[elem.iCol] = k;
-                        j = elem.iCol;
-                }
-
-                rowptr[k] = elem.iRow;
-                values[k] = elem.dCoef;
-
-#ifdef DEBUG
-                if (!std::isfinite(elem.dCoef)) {
-                        throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
-                }
-#endif
-                ++k;
-        }
-
-        colptr[j + 1] = k;
+	A.MakeCompressedColumnForm(Ax, Ai, Ap, 0);
 
         eState = ST_MAT_COMPR_COL;
 }
 
-void QrSparseSolver::Data::MatrixClean(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::MatrixClean(void)
 {
         if (pA) {
                 cholmod_l_free_sparse(&pA, oCommon);
@@ -850,7 +833,8 @@ void QrSparseSolver::Data::MatrixClean(void)
         eState = ST_MAT_MAP_HDL;
 }
 
-void QrSparseSolver::Data::FactorClean(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::FactorClean(void)
 {
         if (pQ) {
                 cholmod_l_free_sparse(&pQ, oCommon);
@@ -868,7 +852,8 @@ void QrSparseSolver::Data::FactorClean(void)
         }
 }
 
-void QrSparseSolver::Data::Factor(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::Factor(void)
 {
         if (eState < ST_MAT_COMPR_COL) {
                 MakeCompressedColumnForm();
@@ -896,7 +881,8 @@ void QrSparseSolver::Data::Factor(void)
         eState = ST_FACT_SPARSE;
 }
 
-void QrSparseSolver::Data::UpdateQR(VectorHandler& u, VectorHandler& v)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::UpdateQR(VectorHandler& u, VectorHandler& v)
 {
         if (eState < ST_FACT_UPDATE) {
                 InitQR();
@@ -929,7 +915,8 @@ void QrSparseSolver::Data::UpdateQR(VectorHandler& u, VectorHandler& v)
                             &w[0]);
 }
 
-void QrSparseSolver::Data::UTSolve(const cholmod_sparse* const pR, cholmod_dense* const pX)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::UTSolve(const cholmod_sparse* const pR, cholmod_dense* const pX)
 {
         // Upper triangular solve: GNU-Octave dSparse.cc
         const SuiteSparse_long nc = pR->ncol;
@@ -960,7 +947,8 @@ void QrSparseSolver::Data::UTSolve(const cholmod_sparse* const pR, cholmod_dense
         }
 }
 
-void QrSparseSolver::Data::Permute(VectorHandler& X, SuiteSparse_long* const perm)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::Permute(VectorHandler& X, SuiteSparse_long* const perm)
 {
         // Permute vector: Pastix bvec_dcompute.c
         auto const x = X.pdGetVec();
@@ -993,8 +981,9 @@ void QrSparseSolver::Data::Permute(VectorHandler& X, SuiteSparse_long* const per
         }
 }
 
+template <typename MatrixHandlerType>
 template <typename T>
-void QrSparseSolver::Data::MatVecOp(const cholmod_sparse* const pMat, const T& op)
+void QrSparseSolver<MatrixHandlerType>::Data::MatVecOp(const cholmod_sparse* const pMat, const T& op)
 {
         const auto cidx = reinterpret_cast<const SuiteSparse_long*>(pMat->p);
         const auto ridx = reinterpret_cast<const SuiteSparse_long*>(pMat->i);
@@ -1008,7 +997,8 @@ void QrSparseSolver::Data::MatVecOp(const cholmod_sparse* const pMat, const T& o
         }
 }
 
-void QrSparseSolver::Data::MatTVecIncMul(const cholmod_sparse* pMat, VectorHandler& out, const VectorHandler& in)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::MatTVecIncMul(const cholmod_sparse* pMat, VectorHandler& out, const VectorHandler& in)
 {
         ASSERT(out.iGetSize() == static_cast<ssize_t>(pMat->ncol));
         ASSERT(in.iGetSize() == static_cast<ssize_t>(pMat->nrow));
@@ -1024,7 +1014,8 @@ void QrSparseSolver::Data::MatTVecIncMul(const cholmod_sparse* pMat, VectorHandl
                  });
 }
 
-void QrSparseSolver::Data::MatTVecDecMul(const cholmod_sparse* pMat, VectorHandler& out, const VectorHandler& in)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::MatTVecDecMul(const cholmod_sparse* pMat, VectorHandler& out, const VectorHandler& in)
 {
         ASSERT(out.iGetSize() == static_cast<ssize_t>(pMat->ncol));
         ASSERT(in.iGetSize() == static_cast<ssize_t>(pMat->nrow));
@@ -1040,9 +1031,10 @@ void QrSparseSolver::Data::MatTVecDecMul(const cholmod_sparse* pMat, VectorHandl
                  });
 }
 
-void QrSparseSolver::Data::MatVecDecMul(const cholmod_sparse* pMat,
-                                        VectorHandler& out,
-                                        const VectorHandler& in)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::MatVecDecMul(const cholmod_sparse* pMat,
+							   VectorHandler& out,
+							   const VectorHandler& in)
 {
         ASSERT(out.iGetSize() == static_cast<ssize_t>(pMat->nrow));
         ASSERT(in.iGetSize() == static_cast<ssize_t>(pMat->ncol));
@@ -1058,7 +1050,8 @@ void QrSparseSolver::Data::MatVecDecMul(const cholmod_sparse* pMat,
                  });
 }
 
-void QrSparseSolver::Data::InitQR(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::InitQR(void)
 {
         if (eState < ST_FACT_SPARSE) {
                 Factor();
@@ -1111,13 +1104,12 @@ void QrSparseSolver::Data::InitQR(void)
 
 #ifdef DEBUG
         {
-#if DEBUG > 1
                 DEBUGCERR("];\nR=[" << std::endl);
 
                 R.Print(std::cerr, MatrixHandler::MAT_PRINT_FULL);
 
                 DEBUGCERR("];\n");
-#endif
+		
 		std::cerr.precision(prec); // Fix unused variable if DEBUG is defined
 		
                 FullMatrixHandler Atest(A.iGetNumRows());
@@ -1126,11 +1118,9 @@ void QrSparseSolver::Data::InitQR(void)
 
                 doublereal dErrA = 0;
 
-                for (integer i = 1; i <= Atest.iGetNumRows(); ++i) {
-                        for (integer j = 1; j <= Atest.iGetNumCols(); ++j) {
-                                dErrA = std::max(dErrA, fabs(Atest.dGetCoef(i, j) - A.dGetCoef(i, j)));
-                        }
-                }
+		for (const auto& Aij: A) {
+		     dErrA = std::max(dErrA, fabs(Atest.dGetCoef(Aij.iRow + 1, Einv[Aij.iCol] + 1) - Aij.dCoef));
+		}	       
 
                 dErrA /= A.Norm();
 
@@ -1163,7 +1153,8 @@ void QrSparseSolver::Data::InitQR(void)
         eState = ST_FACT_UPDATE;
 }
 
-void QrSparseSolver::Data::SolveR(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::SolveR(void)
 {
         if (eState < ST_FACT_SPARSE) {
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1224,7 +1215,8 @@ void QrSparseSolver::Data::SolveR(void)
 #endif
 }
 
-void QrSparseSolver::Data::SolveQR(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Data::SolveQR(void)
 {
         if (eState < ST_FACT_SPARSE) {
                 Factor();
@@ -1241,117 +1233,143 @@ void QrSparseSolver::Data::SolveQR(void)
         SolveR();
 }
 
-QrSparseSolver::QrSparseSolver(Data* pData)
+template <typename MatrixHandlerType>
+QrSparseSolver<MatrixHandlerType>::QrSparseSolver(Data* pData)
         :pData(pData)
 {
 }
 
-QrSparseSolver::~QrSparseSolver(void)
+template <typename MatrixHandlerType>
+QrSparseSolver<MatrixHandlerType>::~QrSparseSolver(void)
 {
 }
 
-void QrSparseSolver::Reset(void)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Reset(void)
 {
         pData->Reset();
 }
 
-void QrSparseSolver::Factor(void) const
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Factor(void) const
 {
         pData->Factor();
 }
 
-void QrSparseSolver::Solve(void) const
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::Solve(void) const
 {
         pData->SolveQR();
 }
 
-void QrSparseSolver::SolveR(void) const
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::SolveR(void) const
 {
         pData->SolveR();
 }
 
-void QrSparseSolver::InitQR()
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::InitQR()
 {
         Factor();
 }
 
-void QrSparseSolver::UpdateQR(VectorHandler& u, VectorHandler& v)
+template <typename MatrixHandlerType>
+void QrSparseSolver<MatrixHandlerType>::UpdateQR(VectorHandler& u, VectorHandler& v)
 {
         pData->UpdateQR(u, v);
 }
 
-QrSparseSolutionManager::QrSparseSolutionManager(integer Dim, unsigned flags)
+template <typename MatrixHandlerType>
+QrSparseSolutionManager<MatrixHandlerType>::QrSparseSolutionManager(integer Dim, unsigned flags)
         :oData(Dim, flags)
 {
         SAFENEWWITHCONSTRUCTOR(pLS,
-                               QrSparseSolver,
-                               QrSparseSolver(&oData));
+                               QrSparseSolver<MatrixHandlerType>,
+                               QrSparseSolver<MatrixHandlerType>(&oData));
 
         pLS->SetSolutionManager(this);
 }
 
-QrSparseSolutionManager::~QrSparseSolutionManager(void)
+template <typename MatrixHandlerType>
+QrSparseSolutionManager<MatrixHandlerType>::~QrSparseSolutionManager(void)
 {
 }
 
-QrSparseSolver* QrSparseSolutionManager::pGetLS() const
+template <typename MatrixHandlerType>
+QrSparseSolver<MatrixHandlerType>* QrSparseSolutionManager<MatrixHandlerType>::pGetLS() const
 {
-        return dynamic_cast<QrSparseSolver*>(pLS);
+     return dynamic_cast<QrSparseSolver<MatrixHandlerType>*>(pLS);
 }
 
 #ifdef DEBUG
-void QrSparseSolutionManager::IsValid(void) const
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::IsValid(void) const
 {
                 NO_OP;
 };
 #endif /* DEBUG */
 
-void QrSparseSolutionManager::MatrReset(void)
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::MatrReset(void)
 {
         pLS->Reset();
 }
 
-void QrSparseSolutionManager::Solve(void)
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::Solve(void)
 {
         pLS->Solve();
 }
 
-MatrixHandler* QrSparseSolutionManager::pMatHdl(void) const
+template <typename MatrixHandlerType>
+MatrixHandler* QrSparseSolutionManager<MatrixHandlerType>::pMatHdl(void) const
 {
         return oData.pMatHdl();
 }
 
-VectorHandler* QrSparseSolutionManager::pResHdl(void) const
+template <typename MatrixHandlerType>
+VectorHandler* QrSparseSolutionManager<MatrixHandlerType>::pResHdl(void) const
 {
         return oData.pResHdl();
 }
 
-VectorHandler* QrSparseSolutionManager::pSolHdl(void) const
+template <typename MatrixHandlerType>
+VectorHandler* QrSparseSolutionManager<MatrixHandlerType>::pSolHdl(void) const
 {
         return oData.pSolHdl();
 }
 
-void QrSparseSolutionManager::SolveR(void)
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::SolveR(void)
 {
         pGetLS()->SolveR();
 }
 
-void QrSparseSolutionManager::InitQR(void)
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::InitQR(void)
 {
         pGetLS()->InitQR();
 }
 
-void QrSparseSolutionManager::UpdateQR(VectorHandler& u, VectorHandler& v)
+template <typename MatrixHandlerType>
+void QrSparseSolutionManager<MatrixHandlerType>::UpdateQR(VectorHandler& u, VectorHandler& v)
 {
         pGetLS()->UpdateQR(u, v);
 }
 
+template <typename MatrixHandlerType>
 VectorHandler&
-QrSparseSolutionManager::MatVecOp(MatVecOpType op,
-                                  VectorHandler& a,
-                                  const VectorHandler& b) const
+QrSparseSolutionManager<MatrixHandlerType>::MatVecOp(MatVecOpType op,
+						     VectorHandler& a,
+						     const VectorHandler& b) const
 {
         return oData.MatVecOp(op, a, b);
 }
 
+template class QrSparseSolutionManager<SpMapMatrixHandler>;
+
+#ifdef USE_SPARSE_AUTODIFF
+template class QrSparseSolutionManager<SpGradientSparseMatrixHandler>;
+#endif
 #endif
