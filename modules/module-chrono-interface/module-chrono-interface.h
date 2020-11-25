@@ -69,23 +69,23 @@ class ChronoInterfaceBaseElem
 {
 private:
     DataManager *m_pDM;
-    // A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
+    //- A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CELengthScale);
-    // A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
+    //- A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
     double MBDyn_CE_CalculateError(); // calculate the error of coupling force.
 
 protected:
-    std::vector<double> MBDyn_CE_CouplingKinematic; // for coupling motion
-    std::vector<double> MBDyn_CE_CouplingDynamic; // for coupling forces
-    std::vector<double> MBDyn_CE_CouplingDynamic_pre; // for coupling forces in last iterations.
-    double *pMBDyn_CE_CouplingKinematic_x = NULL; // consistent with the external struc force element
+    std::vector<double> MBDyn_CE_CouplingKinematic; //- for coupling motion
+    std::vector<double> MBDyn_CE_CouplingDynamic; //- for coupling forces
+    std::vector<double> MBDyn_CE_CouplingDynamic_pre; //- for coupling forces in last iterations.
+    double *pMBDyn_CE_CouplingKinematic_x = NULL; //- consistent with the external struc force element
     double *pMBDyn_CE_CouplingKinematic_R = NULL;
     double *pMBDyn_CE_CouplingKinematic_xp = NULL;
     double *pMBDyn_CE_CouplingKinematic_omega = NULL;
     double *pMBDyn_CE_CouplingKinematic_xpp = NULL;
     double *pMBDyn_CE_CouplingKinematic_omegap = NULL;
-    double *pMBDyn_CE_CEFrame = NULL; // the position [3] and the orietation [9] of chrono ground coordinate
+    double *pMBDyn_CE_CEFrame = NULL; //- the position [3] and the orietation [9] of chrono ground coordinate
     double *pMBDyn_CE_CouplingDynamic_f = NULL;
     double *pMBDyn_CE_CouplingDynamic_m = NULL;
     double *pMBDyn_CE_CouplingDynamic_f_pre = NULL;
@@ -94,61 +94,71 @@ protected:
         unsigned Size_Kinematic;
         unsigned Size_Dynamic;
     } MBDyn_CE_CouplingSize;
-    // some parameters about the convergence
+    //- some parameters about the convergence
     unsigned MBDyn_CE_CouplingIter_Max;
     unsigned MBDyn_CE_CouplingIter_Count;
     double MBDyn_CE_Coupling_Tol; 
 
 protected:
-    Converged MBDyn_CE_CEModel_Converged; // denote whether the coupling variables are converged
-    bool bMBDyn_CE_CEModel_DoStepDynamics;         // detect whether CEModel is needed to be simulated and sends back data
-    bool bMBDyn_CE_FirstSend;      // whether the current residual is the first or not..
-    bool bMBDyn_CE_Verbose; // whether C::E codes print the solution process at each iteration. 
-    bool bMBDyn_CE_Output; // whether to output C::E bodies' data
+    Converged MBDyn_CE_CEModel_Converged;  //- denote whether the coupling variables are converged
+    bool bMBDyn_CE_CEModel_DoStepDynamics; //- detect whether CEModel is needed to be simulated and sends back data
+    bool bMBDyn_CE_FirstSend;      //- whether the current residual is the first or not..
+    bool bMBDyn_CE_Verbose; //- whether C::E codes print the solution process at each iteration. 
+    bool bMBDyn_CE_Output; //- whether to output C::E bodies' data
 
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;
-    std::vector<double> MBDyn_CE_CEModel_Data; // for reload C::E data in the tight coupling scheme
-    // Coupling nodes information
+    std::vector<double> MBDyn_CE_CEModel_Data; //- for reload C::E data in the tight coupling scheme
+    std::vector<MBDYN_CE_CEMODELDATA> MBDyn_CE_CEModel_Label; //- IDs of coupling bodies and motors in C::E model, and output cmd
+    double MBDyn_CE_CEScale[4]; //- the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEScale * Unit() in Chrono::Engine;
+
+    //- Coupling nodes information
     struct MBDYN_CE_POINTDATA {
         unsigned MBDyn_CE_uLabel;
-        unsigned MBDyn_CE_CEBody_Label; //coupling bodies in C::E model
+        unsigned MBDyn_CE_CEBody_Label; //- coupling bodies in C::E model
         const StructNode *pMBDyn_CE_Node;
         Vec3 MBDyn_CE_Offset;
 		Vec3 MBDyn_CE_F;
 		Vec3 MBDyn_CE_M;
-    };
-
-    std::vector<MBDYN_CE_CEMODELDATA> MBDyn_CE_CEModel_Label; //IDs of coupling bodies and motors in C::E model, and output cmd
-    // MBDyn_CE_CEScale[0]=length_scale, MBDyn_CE_CEScale[1]=mass_scale
-    // MBDyn_CE_CEScale[2]=force_scale, MBDyn_CE_CEScale[3]=torque_scale
-    double MBDyn_CE_CEScale[4]; // the Unit used in Chrono::Engine. 1 Unit(m) in MBDyn = MBDyn_CE_CEScale * Unit() in Chrono::Engine;
-
+    }; 
 protected:
     double time_step;
-    std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes;
-    unsigned MBDyn_CE_NodesNum; // for now, only the case of one node
+    std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes; //- Nodes infor in MBDyn
+    unsigned MBDyn_CE_NodesNum; 
 public:
-    // 0: loose interface
-    // 1: tight coupling
-    // >1: exchange every iCoupling iterations // TO DO
+    //- 0: loose interface
+    //- 1: tight coupling
+    //- >1: exchange every iCoupling iterations // TO DO
     enum MBDyn_CE_COUPLING
     {
         COUPLING_NONE = -2,
-        COUPLING_STSTAGGERED = -1, // meanless, only for consistent with strext
-        COUPLING_LOOSE = 0,
+        COUPLING_STSTAGGERED = -1, // not implenmented, only for consistent with strext
+        COUPLING_LOOSE = 0,        // loose
         COUPLING_TIGHT = 1,
         //COUPLING_MULTIRATE >1 // TO DO
     };
     int MBDyn_CE_CouplingType;
+    enum MBDyn_CE_COUPLING_LOOSE
+    {
+        TIGHT=0, //- meaningless
+        LOOSE_EMBEDDED = 1,
+        LOOSE_JACOBIAN = 2,
+        LOOSE_GAUSS = 3,
+    };
+    int MBDyn_CE_CouplingType_loose;
+    enum MBDyn_CE_CEMOTORTYPE
+    {
+        VELOCITY = 0,
+        POSITION = 1,
+    };
     int MBDyn_CE_CEMotorType;
 
     // constructor
     
-    ChronoInterfaceBaseElem(unsigned uLabel,     // Label
-                        const DofOwner *pDO, // ？
-                        DataManager *pDM,    // a lot of information for solvers (nodes, elements, solver...)
-                        MBDynParser &HP);    // for obtain data from mbdyn script);
+    ChronoInterfaceBaseElem(unsigned uLabel,     //- Label
+                        const DofOwner *pDO, // 
+                        DataManager *pDM,    //- information for solvers (nodes, elements, solver...)
+                        MBDynParser &HP);    //- for obtain data from mbdyn script);
     virtual ~ChronoInterfaceBaseElem(void);
 
 
@@ -163,13 +173,13 @@ public:
                                   const VectorHandler &XP);
     virtual void AfterPredict(VectorHandler &X,
                               VectorHandler &XP);
-    //unsigned int iGetNumPrivData(void) const;
+    //- unsigned int iGetNumPrivData(void) const;
     /* functions that introduces methods to handle the simulation: start*/
 
 
 
     /* functions for element, set the Jac and Res: start*/
-    // Initial Assemble
+    //- Initial Assemble
     virtual void
     InitialWorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
     VariableSubMatrixHandler &
@@ -177,7 +187,7 @@ public:
                   const VectorHandler &XCurr);
     SubVectorHandler &
     InitialAssRes(SubVectorHandler &WorkVec, const VectorHandler &XCurr);
-    // Assemble
+    //- Assemble
     virtual void WorkSpaceDim(integer *piNumRows,
                               integer *piNumCols) const;
     VariableSubMatrixHandler &
@@ -198,29 +208,11 @@ public:
     /* functions for coupling variables: start*/
 
     /*Miscellaneous refers to the module-template2.cc and force.h: start*/
-    
-    virtual void Output(OutputHandler &OH) const;                                              // for output;
+    virtual void Output(OutputHandler &OH) const;   // for output;
     std::ostream &Restart(std::ostream &out) const; // module information
     virtual unsigned int iGetInitialNumDof(void) const { 
 		return 0;
-	}; // force style
+	}; //- force style
     /*Miscellaneous refers to the module-template2.cc and force.h: end*/
 };
-
-/*// Read struct and read function; can use the UDERead <> instead;
-
-struct ChronoInterfaceElemRead : public UserDefinedElemRead{
-    virtual ~ChronoInterfaceElemRead(void) { NO_OP; };
-    virtual ChronoInterfaceBaseElem *
-    Read(unsigned uLabel, const DofOwner* pDO,
-         DataManager* const pDM, MBDynParser& HP) const; 
-};
-
-ChronoInterfaceBaseElem *
-ChronoInterfaceElemRead::Read(unsigned uLabel, const DofOwner *pDO,
-                              DataManager *const pDM, MBDynParser &HP) const
-{
-    // Read element: obtain information from MBDyn script
-    return new ChronoInterfaceBaseElem(uLabel, pDO, pDM, HP);
-}*/
 #endif
