@@ -33,7 +33,7 @@ To use this module, users need to preinstall Chrono::Engine and the develop vers
 >
 > \<nodes_ID\>, \[offset, \<Vec3\>\], \<CEBodies_ID\>, output, \[yes | no\]
 >
-> \[ground, \<C::E_ground_ID\>, \<Vec3\>, \<Matr3x3\>\],
+> \[ground, \<C::E_ground_ID\>, \<Vec3\>, \<Mat3x3\>\],
 >
 > verbose, \[yes | no\];
 
@@ -44,7 +44,7 @@ To use this module, users need to preinstall Chrono::Engine and the develop vers
 - [List of commits](https://public.gitlab.polimi.it/DAER/mbdyn/-/commits/gsoc_chrono_interface)
 
 ## Future study
-Although goals of GSoC have been achieved, algorithms for co-simulation between MBDyn and Chrono::Engine are still worth of futhur in-depth study, such as:
-- Losse/explicit co-simulation scheme;
+Although goals of GSoC have been achieved, algorithms for co-simulation between MBDyn and Chrono::Engine are still worth of further in-depth study, such as:
+- Loose/explicit co-simulation scheme;
 - Multirate co-simulation scheme;
 - ...
