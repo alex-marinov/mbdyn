@@ -99,9 +99,9 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 		pMBDyn_CE_CEModel->Set_G_acc(mbdynce_temp_frameMBDyn.TransformDirectionLocalToParent(MBDyn_CE_CEScale[0]*pMBDyn_CE_CEModel->Get_G_acc()));
 		std::cout << pMBDyn_CE_CEModel->Get_G_acc()<<"\n";
 		//---------- initial motor for coupling bodies.
-		if (MBDyn_CE_CouplingType >= -1) //coupling
+		if (MBDyn_CE_CouplingType >= -1) //- coupling
 		{
-			unsigned mbdynce_temp_bodies_num = MBDyn_CE_CEModel_Label.size() - 1;
+			unsigned mbdynce_temp_bodies_num = MBDyn_CE_CEModel_Label.size() - 1; //- num of coupling bodies
 			unsigned mbdynce_temp_ground_id = MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEBody_Label; //- ground ID is set in the last element
 			MBDyn_CE_CEModel_Label[mbdynce_temp_bodies_num].MBDyn_CE_CEMotor_Label = 0;								 //- the last label is invalid
 			auto mbdynce_temp_ground = pMBDyn_CE_CEModel->SearchBodyID(mbdynce_temp_ground_id);
@@ -112,6 +112,7 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 				pMBDyn_CE_CEModel = NULL;
 				return NULL;
 			}
+			//----- create motor for each coupling body
 			for (unsigned i = 0; i < mbdynce_temp_bodies_num; i++)
 			{
 				unsigned body_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label;
@@ -166,7 +167,7 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 			std::cout << "Coupling none in C::E model.\n";
 		}
 
-		//---------- allocate space for C::E_Model_Data;
+		//---------- allocate space for C::E_Model_Data; 
 		unsigned int bodies_size = pMBDyn_CE_CEModel->Get_bodylist().size();
 		unsigned int system_size = (3 * 3 + 3 * 4) * bodies_size + 1; // +1: save Chtime; system_size=body_size+1(time)
 		MBDyn_CE_CEModel_Data.resize(system_size, 0.0);

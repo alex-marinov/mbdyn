@@ -126,31 +126,9 @@ protected:
     std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes; //- Nodes infor in MBDyn
     unsigned MBDyn_CE_NodesNum; 
 public:
-    //- 0: loose interface
-    //- 1: tight coupling
-    //- >1: exchange every iCoupling iterations // TO DO
-    enum MBDyn_CE_COUPLING
-    {
-        COUPLING_NONE = -2,
-        COUPLING_STSTAGGERED = -1, // not implenmented, only for consistent with strext
-        COUPLING_LOOSE = 0,        // loose
-        COUPLING_TIGHT = 1,
-        //COUPLING_MULTIRATE >1 // TO DO
-    };
+    
     int MBDyn_CE_CouplingType;
-    enum MBDyn_CE_COUPLING_LOOSE
-    {
-        TIGHT=0, //- meaningless
-        LOOSE_EMBEDDED = 1,
-        LOOSE_JACOBIAN = 2,
-        LOOSE_GAUSS = 3,
-    };
     int MBDyn_CE_CouplingType_loose;
-    enum MBDyn_CE_CEMOTORTYPE
-    {
-        VELOCITY = 0,
-        POSITION = 1,
-    };
     int MBDyn_CE_CEMotorType;
 
     // constructor

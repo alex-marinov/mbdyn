@@ -56,11 +56,40 @@ extern "C" {
 //- Body_Label: body label in C::E;
 //- Motor_Label: motor label in C::E;
 //- bool output: output the body motion in C::E;
-struct MBDYN_CE_CEMODELDATA{
+struct MBDYN_CE_CEMODELDATA
+{
     unsigned MBDyn_CE_CEBody_Label;
     unsigned MBDyn_CE_CEMotor_Label; 
     bool bMBDyn_CE_CEBody_Output;
 };
+
+//- 0: loose interface
+    //- 1: tight coupling
+    //- >1: exchange every iCoupling iterations // TO DO
+enum MBDyn_CE_COUPLING
+{
+    COUPLING_NONE = -2,
+    COUPLING_STSTAGGERED = -1, // not implenmented, only for consistent with strext
+    COUPLING_LOOSE = 0,        // loose
+    COUPLING_TIGHT = 1,
+    //COUPLING_MULTIRATE >1 // TO DO
+};
+
+enum MBDyn_CE_COUPLING_LOOSE
+{
+    TIGHT = 0, //- meaningless
+    LOOSE_EMBEDDED = 1,
+    LOOSE_JACOBIAN = 2,
+    LOOSE_GAUSS = 3,
+};
+
+enum MBDyn_CE_CEMOTORTYPE
+{
+    VELOCITY = 0,
+    POSITION = 1,
+};
+
+
 //- opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
 

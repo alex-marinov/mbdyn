@@ -86,37 +86,37 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	//--------------- read the coupling type
     MBDyn_CE_CouplingIter_Count=0;
 	MBDyn_CE_Coupling_Tol = 1.0e-3; // by default, tolerance == 1.0e-6;
-	MBDyn_CE_CouplingType = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE;
+	MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_NONE;
 	if (HP.IsKeyWord("coupling")){
 		if (HP.IsKeyWord("none"))
 		{
-			MBDyn_CE_CouplingType = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE;
+			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_NONE;
 			MBDyn_CE_CouplingIter_Max = 1;
 		}
 		else if (HP.IsKeyWord("loose"))
 		{
-			MBDyn_CE_CouplingType = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE;
+			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_LOOSE;
 			// By default, using embedded scheme.
-			MBDyn_CE_CouplingType_loose = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED;
+			MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED;
 			MBDyn_CE_CouplingIter_Max = 1;
 			std::cout << "Embedded-loose method is chosen" << std::endl;
 			if (HP.IsKeyWord("embedded"))
 			{
-				MBDyn_CE_CouplingType_loose = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED;
+				MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED;
 			}
 			else if (HP.IsKeyWord("jacobian"))
 			{
-				MBDyn_CE_CouplingType_loose = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN;
+				MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN;
 			}
 			else if (HP.IsKeyWord("gauss"))
 			{
-				MBDyn_CE_CouplingType_loose = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS;
+				MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS;
 			}
 		}
 		else if (HP.IsKeyWord("tight"))
 		{
-			MBDyn_CE_CouplingType = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT;
-			MBDyn_CE_CouplingType_loose = ChronoInterfaceBaseElem::MBDyn_CE_COUPLING_LOOSE::TIGHT; // meaningless. 
+			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_TIGHT;
+			MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::TIGHT; // meaningless. 
 			MBDyn_CE_CouplingIter_Max = HP.GetInt();
 			if (HP.IsKeyWord("tolerance"))
 			{
@@ -145,11 +145,11 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	{
 		if (HP.IsKeyWord("velocity"))
 		{
-			MBDyn_CE_CEMotorType = ChronoInterfaceBaseElem::MBDyn_CE_CEMOTORTYPE::VELOCITY; // velocity is imposed to objects in Chrono::Engine
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; // velocity is imposed to objects in Chrono::Engine
 		}
 		else if (HP.IsKeyWord("position"))
 		{
-			MBDyn_CE_CEMotorType = ChronoInterfaceBaseElem::MBDyn_CE_CEMOTORTYPE::POSITION; // position is imposed to objects in Chrono::Engine
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::POSITION; // position is imposed to objects in Chrono::Engine
 		}
 		else
 		{
@@ -292,7 +292,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				}
 			}
 			bMBDyn_CE_Output = (bMBDyn_CE_Output || MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output);
-			//- save the ref in two pointer double [];
+			//- save the ref Vec3 in double [] (can also use functions: void MBDyn_CE_Vec3D() and  void MBDyn_CE_Mat3x3D());
 			for (unsigned i = 0; i < 3; i++)
 			{
 				mbdyn_ce_ref_x[i] = (mbdyn_ce_ref_x_Vec3.pGetVec())[i] * MBDyn_CE_CEScale[0];
@@ -328,12 +328,12 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	/* initialization (std::vector<>) - start*/
 	//---------- allocate space for coupling variables (std::vectors for the coupling variables, motion and force)
 	//- kinematic motion + 12 (for the global coordinate in chrono)
-	MBDyn_CE_CouplingSize.Size_Kinematic = MBDyn_CE_NodesNum * (3 + 9 + 3 + 3 + 3 + 3) + 12; 
+	MBDyn_CE_CouplingSize.Size_Kinematic = MBDyn_CE_NodesNum * (3 + 9 + 3 + 3 + 3 + 3) + 12; //- motion
 	MBDyn_CE_CouplingSize.Size_Dynamic = MBDyn_CE_NodesNum*(3 + 3); //- dynamic variables
 
 	MBDyn_CE_CouplingKinematic.resize(MBDyn_CE_CouplingSize.Size_Kinematic, 0.0);
 	MBDyn_CE_CouplingDynamic.resize(MBDyn_CE_CouplingSize.Size_Dynamic, 0.0);
-	MBDyn_CE_CouplingDynamic_pre.resize(MBDyn_CE_CouplingSize.Size_Dynamic,0.0);
+	MBDyn_CE_CouplingDynamic_pre.resize(MBDyn_CE_CouplingSize.Size_Dynamic,0.0); //- vector for last iteration
 	//- pointer to motion
 	pMBDyn_CE_CouplingKinematic_x = &MBDyn_CE_CouplingKinematic[0];
 	pMBDyn_CE_CouplingKinematic_R = &MBDyn_CE_CouplingKinematic[3*MBDyn_CE_NodesNum];
@@ -383,17 +383,17 @@ ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
 	bMBDyn_CE_CEModel_DoStepDynamics = false;	
 	switch (MBDyn_CE_CouplingType)
 	{
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
+	case MBDyn_CE_COUPLING::COUPLING_NONE:
 		break; //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT:
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
 		if (MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data)) //- save data in MBDyn_CE_CEModel_Data
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		break;
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default: //- multirate  to do 
 		break; 
 	}
@@ -469,14 +469,14 @@ ChronoInterfaceBaseElem::AfterConvergence(const VectorHandler &X,
 {
 	switch (MBDyn_CE_CouplingType)
 	{
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
+	case MBDyn_CE_COUPLING::COUPLING_NONE:
 		pedantic_cout("\tMBDyn::AfterConvergence()\n");
 		break; //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT:
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
 		pedantic_cout("\tMBDyn::AfterConvergence()\n");
 		break;
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default:
 		break; 
 	}
@@ -495,7 +495,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 
 	switch (MBDyn_CE_CouplingType)
 	{
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
+	case MBDyn_CE_COUPLING::COUPLING_NONE:
 		pedantic_cout("\tMBDyn::AfterPredict()\n");		
 		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
 		if(MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel, time_step, bMBDyn_CE_Verbose))
@@ -507,7 +507,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 		bMBDyn_CE_CEModel_DoStepDynamics = false; //- only do time integration once
 		MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
 		break; // do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT:
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
 		pedantic_cout("\tMBDyn::AfterPredict()\n");
 		if(MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
 		{
@@ -519,8 +519,8 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 		bMBDyn_CE_CEModel_DoStepDynamics = true;
 		MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
 		break;
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default: // multirate to do 
 		break; 
 	}
@@ -630,12 +630,12 @@ ChronoInterfaceBaseElem::InitialAssJac(
 	WorkMat.SetNullMatrix();
 	switch (MBDyn_CE_CouplingType)
 	{
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:
+	case MBDyn_CE_COUPLING::COUPLING_NONE:
 		break; //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT: //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT: //- do nothing
 		break;
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE: //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- do nothing
 	default:
 		break; 
 	}
@@ -651,12 +651,12 @@ ChronoInterfaceBaseElem::InitialAssRes(
 	WorkVec.ResizeReset(0);
 	switch (MBDyn_CE_CouplingType)
 	{
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_NONE:	
+	case MBDyn_CE_COUPLING::COUPLING_NONE:	
 		break; //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_TIGHT: //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT: //- do nothing
 		break;
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_LOOSE:	   //- do nothing
-	case ChronoInterfaceBaseElem::MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE:	   //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- do nothing
 	default:
 		break; 
 	}
