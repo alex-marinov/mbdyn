@@ -53,7 +53,7 @@ main(void)
 	const integer IHA = N;	/* size of HA */
 	integer HA[22];		/* work array IHA*11 */
 
-	doublereal AFLAG[8];	/* ? */
+	doublereal AFLAG[8] = {0., 0., 0., 0., 0., 0., 0., 0.};	/* ? */
 	integer IFLAG[10];	/* ? */
 
 	integer IFAIL = 0;	/* diagnostics */
@@ -87,7 +87,7 @@ main(void)
 
 	B[0] = 1.;
 	B[1] = 1.;
-
+	printf("AA %d\n", NN1);
 	__FC_DECL__(y12mcf)((integer *)&N, (integer *)&Z, A, SNR, 
 			(integer *)&NN, RNR, 
 			(integer *)&NN1, PIVOT, B, HA, (integer *)&IHA, AFLAG, 
