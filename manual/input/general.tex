@@ -600,17 +600,18 @@ This string returns the absolute $x$ component of the position of node ``\verb;N
 				$Z$ component of rel.\ angular velocity between structural nodes \\
 		\kw{current}	& Real	& String		& allows to retrieve data specific to the current context \\
 \hline
-		\kw{drive}	& Real	& Integer, Real		&
+		\kw{drive}	& Real	& Integer, [Real]		&
 				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
 				indicated by its label (the first argument)
-				for the input specified as second argument \\
-		\kw{sf}\texttt{::}\bnt{name}	& Real	& Real, (opt)Integer	&
+				for the input specified as second (optional) argument
+				(\kw{Time} is used instead, if needed) \\
+		\kw{sf}\texttt{::}\bnt{name}	& Real	& Real, [Integer]	&
 				evaluates the \htmlref{\kw{scalar function}}{sec:ScalarFunction}
 				\nt{name} for the input specified as argument (value, optional derivative order) \\
 		\kw{node}\texttt{::}\bnt{type} & Real & Integer, String	&
 				evaluates a private datum of a node (label, string) \\
-		\kw{element}\texttt{::}\bnt{type} & Real & (opt)Integer, String	&
-				evaluates a private datum of an element (label, string) \\
+		\kw{element}\texttt{::}\bnt{type} & Real & [Integer], String	&
+				evaluates a private datum of an element ((optional)label, string) \\
 		\hline
 	\end{tabular}
 	\end{center}

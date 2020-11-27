@@ -761,14 +761,29 @@ drive(const MathParser::MathArgs& args)
 		}
 	}
 
-	doublereal val = (*arg_val)();
+	bool b_val(true);
+	if (arg_val->IsFlag(MathParser::AF_OPTIONAL_NON_PRESENT)) {
+		b_val = false;
+	}
+	doublereal val;
+	if (b_val) {
+		val = (*arg_val)();
+	}
 	if (p) {
 		ASSERT(pDC->bIsDifferentiable());
 
-		*out = pDC->dGetP(val);
+		if (b_val) {
+			*out = pDC->dGetP(val);
+		} else{
+			*out = pDC->dGetP();
+		}
 
 	} else {
-		*out = pDC->dGet(val);
+		if (b_val) {
+			*out = pDC->dGet(val);
+		} else {
+			*out = pDC->dGet();
+		}
 	}
 
 	return 0;
@@ -2619,7 +2634,7 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	f->args.resize(1 + 2 + 2);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t(0, MathParser::AF_OPTIONAL);
 	f->args[3] = new MathArgDCPtr(0);
 	f->args[4] = new MathArgDM(pDM);
 	f->f = drive<false>;
@@ -2639,7 +2654,7 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	f->args.resize(1 + 2 + 2);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t(0, MathParser::AF_OPTIONAL);
 	f->args[3] = new MathArgDCPtr(0);
 	f->args[4] = new MathArgDM(pDM);
 	f->f = drive<true>;
