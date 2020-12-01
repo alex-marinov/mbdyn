@@ -74,6 +74,8 @@ private:
     //- A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
     void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
     double MBDyn_CE_CalculateError(); // calculate the error of coupling force.
+    // a testing case;
+    double xpm1, xpm2, xm1, xm2, xp, x;
 
 protected:
     std::vector<double> MBDyn_CE_CouplingKinematic; //- for coupling motion

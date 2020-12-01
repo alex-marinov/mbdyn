@@ -132,7 +132,7 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)));
 				pMBDyn_CE_CEModel->Add(motor3d_body_i);
 
-				if (MBDyn_CE_CEMotorType == 0) //- coupling by velocity
+				if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::VELOCITY) //- coupling by velocity
 				{
 					// the setpoint function can be used for co-simulation by position, or velocity, or both(
 					// if both position and velocity are imposed to C::E objects, there are small errors in the resulting 
@@ -145,16 +145,16 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 					motor3d_function_rot->SetMode(ChFunctionRotation_setpoint::eChSetpointMode::OVERRIDE);
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
-					std::cout<<"\t\t\tmotor type is velocity (using function setpoint)\n";
+					std::cout<<"motor type is velocity (using function setpoint)\n";
 				}
-				else if (MBDyn_CE_CEMotorType == 1) //- coupling by position
+				else if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::POSITION) //- coupling by position
 				{
 					// cosim using spline/line interpolation for position
 					auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>();
 					auto motor3d_function_rot = std::make_shared<ChFunctionRotation_spline>();
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
-					std::cout<<"\t\t\tmotor type is position (using function spline)\n";
+					std::cout<<"motor type is position (using function spline)\n";
 				}				
 				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label = motor3d_body_i->GetIdentifier();
 				//----- output motor information
@@ -167,10 +167,26 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 			std::cout << "Coupling none in C::E model.\n";
 		}
 
-		//---------- allocate space for C::E_Model_Data; 
-		unsigned int bodies_size = pMBDyn_CE_CEModel->Get_bodylist().size();
-		unsigned int system_size = (3 * 3 + 3 * 4) * bodies_size + 1; // +1: save Chtime; system_size=body_size+1(time)
-		MBDyn_CE_CEModel_Data.resize(system_size, 0.0);
+		//---------- allocate space for C::E_Model_Data;
+		unsigned int bodies_size, system_size;
+		bodies_size = pMBDyn_CE_CEModel->Get_bodylist().size();
+		switch (MBDyn_CE_CouplingType)
+		{
+			case MBDyn_CE_COUPLING::COUPLING_TIGHT:
+			{
+				system_size = (3 * 3 + 3 * 4) * bodies_size + 1; // +1: save Chtime; system_size=body_size+1(time)
+				MBDyn_CE_CEModel_Data.resize(system_size, 0.0);
+				break;
+			}
+			case MBDyn_CE_COUPLING::COUPLING_NONE: //- for these three cases, it
+			case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED:
+			case MBDyn_CE_COUPLING::COUPLING_LOOSE:
+			default:
+			{
+				system_size = 0; //- save nothing
+				MBDyn_CE_CEModel_Data.resize(system_size, 0.0);
+			}
+		}
 
 		//---------- print model information after adding motor
 		std::cout << "there is the coupling C::E model \n";
@@ -476,7 +492,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			std::cout << "\t\t\tWvel_par: " << tempsys->Get_bodylist()[i]->GetWvel_par() << "\n";
 			std::cout << "\t\t\tWacc_par: " << tempsys->Get_bodylist()[i]->GetWacc_par() << "\n";
 		}
-		for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
+		/*for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
 		{
 			std::cout << "\t\tLink " << tempsys->Get_linklist()[i]->GetIdentifier() << "\n";
 			auto motor_3d=std::dynamic_pointer_cast<ChLinkMotionImposed>(tempsys->Get_linklist()[i]);
@@ -499,7 +515,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 				std::cout << "\t\t\tbody2pos_dtdt: " << motor_3d->GetBody2()->GetPos_dtdt() << "\n";
 				std::cout << "\t\t\tbody2Wacc_par: " << motor_3d->GetBody2()->GetWacc_par() << "\n";
 			}
-		}
+		}*/
 	}
 	tempsys->DoStepDynamics(time_step);
 	if (true)
@@ -525,7 +541,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			std::cout << "\t\t\tWvel_par: " << tempsys->Get_bodylist()[i]->GetWvel_par() << "\n";
 			std::cout << "\t\t\tWacc_par: " << tempsys->Get_bodylist()[i]->GetWacc_par() << "\n";
 		}
-		for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
+		/*for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
 		{
 			std::cout << "\t\tLink " << tempsys->Get_linklist()[i]->GetIdentifier() << "\n";
 			auto motor_3d=std::dynamic_pointer_cast<ChLinkMotionImposed>(tempsys->Get_linklist()[i]);
@@ -548,7 +564,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 				std::cout << "\t\t\tbody2pos_dtdt: " << motor_3d->GetBody2()->GetPos_dtdt() << "\n";
 				std::cout << "\t\t\tbody2Wacc_par: " << motor_3d->GetBody2()->GetWacc_par() << "\n";
 			}
-		}
+		}*/
 	}
 	return 0;
 }
@@ -626,7 +642,7 @@ bool bMBDyn_CE_Verbose)
 				mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());
 				mbdynce_tempframeM2_start = mbdynce_tempframe1G_start >> (mbdynce_tempframe2G.GetInverse()); // expressed in Frame 2
 				mbdynce_tempframeM2_end = mbdynce_tempMBDynG_end >> (mbdynce_tempframe2G.GetInverse()); // pos and rot of the node expressed in Frame 2
-				if (MBDyn_CE_CEMotorType == 0) // co-simulation by velocity 
+				if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::VELOCITY) // co-simulation by velocity 
 				{
 					//- when using setpoint function to impose velocity, end position/rotation == start position/rotation.
 					mbdynce_tempframeM2_end = mbdynce_tempframeM2_start;
@@ -647,20 +663,20 @@ bool bMBDyn_CE_Verbose)
 				if (bMBDyn_CE_Verbose)
 				{
 					// data receive from MBDyn
-					std::cout << "\t\tData receives from MBDyn, and the motor ID is: "<< motor3d_motor_i_id << " motions start at: \n";
+					std::cout << "\t\tData receives from MBDyn, and the motor ID is: " << motor3d_motor_i_id << " \n";//motions start at: \n";
 					std::cout << "\t\t\tpos in frame C::E Ground: " << mbdynce_tempmbdyn_pos << "\n";
 					std::cout << "\t\t\tpos_dt in frame C::E Ground: " << mbdynce_tempmbdyn_pos_dt << "\n";
-					std::cout << "\t\t\tpos_dt in frame 2: " << mbdynce_tempframeM2_end_pos_dt << "\n";
+					//std::cout << "\t\t\tpos_dt in frame 2: " << mbdynce_tempframeM2_end_pos_dt << "\n";
 					std::cout << "\t\t\tpos_dtdt in frame C::E Ground: " << mbdynce_tempmbdyn_pos_dtdt << "\n";
 					std::cout << "\t\t\trot in frame C::E Ground: " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 					std::cout << "\t\t\trot_dt in frame C::E Ground: " << mbdynce_tempmbdyn_Wvel_par << "\n";
 					std::cout << "\t\t\trot_dtdt in frame C::E Ground: " << mbdynce_tempmbdyn_Wacc_par << "\n";
-					std::cout << "\t\t\tmbdynce_tempframeM2_end_Wvel_loc: " << mbdynce_tempframeM2_end_Wvel_loc << "\n";
-					std::cout << "\t\t\tmbdynce_tempmbdyn_Wvel_par: " << mbdynce_tempmbdyn_Wvel_par << "\n";
+					std::cout << "\t\t\tmbdynce_tempframeM2_end_Wvel_loc (in local ref.): " << mbdynce_tempframeM2_end_Wvel_loc << "\n";
+					//std::cout << "\t\t\tmbdynce_tempmbdyn_Wvel_par (in C::E ref.: " << mbdynce_tempmbdyn_Wvel_par << "\n";
 					std::cout << "\t\t\tmbdynce_tempframeM2_end(yaw-pitch-roll-Euler321): " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 				}
 
-				if (MBDyn_CE_CEMotorType == 0) //- velocity
+				if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::VELOCITY) //- velocity
 				{
 					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_setpoint>(motor3d_function_pos_base);
 					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_setpoint>(motor3d_function_rot_base);
@@ -671,7 +687,7 @@ bool bMBDyn_CE_Verbose)
 					//- std::cout << "\t\t\tpos_dt in frame 2 (pos_function): " << motor3d_function_pos->Get_p_ds(time)<< "\n";
 					//- std::cout << "\t\t\trot_dt in frame M (rot_function): " << motor3d_function_rot->Get_w_loc(time)<< "\n";
 				}
-				else if (MBDyn_CE_CEMotorType == 1) //- position
+				else if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::POSITION) //- position
 				{
 					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_line>(motor3d_function_pos_base);
 					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_spline>(motor3d_function_rot_base);
@@ -681,21 +697,24 @@ bool bMBDyn_CE_Verbose)
 					//- chrono_types::make_shared<>: a more safety case in C::E
 					motor3d_function_pos->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
 					//- rotation function
+					if (mbdynce_tempframeM2_start.GetRot().Dot(mbdynce_tempframeM2_end.GetRot())<0)
+					{
+						mbdynce_tempframeM2_end.GetRot() = -mbdynce_tempframeM2_end.GetRot();
+					}
 					std::vector<ChQuaternion<>> mbdynce_temp_rot_spline = {{mbdynce_tempframeM2_start.GetRot()}, {mbdynce_tempframeM2_end.GetRot()}};
 					motor3d_function_rot->SetupData(1, mbdynce_temp_rot_spline);
 					motor3d_function_rot->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
 				}	
 				if(bMBDyn_CE_Verbose)
 				{
-					//- ChVector<double> dp_du, va, vb;
-					std::cout << "\t\tC::E model motor " << motor3d_motor_i_id << " function start at: \n";
-					std::cout << "\t\t\tpos in C::E: " << mbdynce_tempframeM2_start.GetPos() << "\n";
-					std::cout << "\t\t\treceived from MBDyn: " << mbdynce_tempframeM2_end.GetPos() << "\n";
+					std::cout << "\t\tC::E model motor " << motor3d_motor_i_id << " function start at (expressed in Frame M): \n";
+					//std::cout << "\t\t\tpos in C::E: " << mbdynce_tempframeM2_start.GetPos() << "\n";
+					//std::cout << "\t\t\treceived from MBDyn: " << mbdynce_tempframeM2_end.GetPos() << "\n";
 					std::cout << "\t\t\tpos: " << motor3d_motor_i->GetPositionFunction()->Get_p(time) << "\n";
 					std::cout << "\t\t\trot: " << motor3d_motor_i->GetRotationFunction()->Get_q(time) << "\n";
 					std::cout << "\t\t\tpos_dt: " << motor3d_motor_i->GetPositionFunction()->Get_p_ds(time) << "\n";
 					std::cout << "\t\t\tWvel_loc: " << motor3d_motor_i->GetRotationFunction()->Get_w_loc(time) << "\n";
-					std::cout << "\t\tC::E model motor " << motor3d_motor_i_id << " function end at: \n";
+					std::cout << "\t\tC::E model motor " << motor3d_motor_i_id << " function end at (expressed in Frame M): \n";
 					std::cout << "\t\t\tpos: " << motor3d_motor_i->GetPositionFunction()->Get_p(time + time_step) << "\n";
 					std::cout << "\t\t\trot: " << motor3d_motor_i->GetRotationFunction()->Get_q(time + time_step) << "\n";
 					std::cout << "\t\t\tpos_dt: " << motor3d_motor_i->GetPositionFunction()->Get_p_ds(time + time_step) << "\n";

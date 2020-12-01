@@ -91,7 +91,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		if (HP.IsKeyWord("none"))
 		{
 			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_NONE;
-			MBDyn_CE_CouplingIter_Max = 1;
+			MBDyn_CE_CouplingIter_Max = 0;
 		}
 		else if (HP.IsKeyWord("loose"))
 		{
@@ -140,14 +140,14 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 
 
 	//--------------- read the motor type	
-	MBDyn_CE_CEMotorType = 1; // by default, using the position motor 
+	MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; // by default, using the position motor 
 	if (HP.IsKeyWord("motor" "type"))
 	{
-		if (HP.IsKeyWord("velocity"))
+		if (HP.IsKeyWord("vel"))
 		{
 			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; // velocity is imposed to objects in Chrono::Engine
 		}
-		else if (HP.IsKeyWord("position"))
+		else if (HP.IsKeyWord("pos"))
 		{
 			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::POSITION; // position is imposed to objects in Chrono::Engine
 		}
@@ -381,22 +381,6 @@ ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
 	MBDyn_CE_CouplingIter_Count = MBDyn_CE_CouplingIter_Max;
 	bMBDyn_CE_FirstSend = false;
 	bMBDyn_CE_CEModel_DoStepDynamics = false;	
-	switch (MBDyn_CE_CouplingType)
-	{
-	case MBDyn_CE_COUPLING::COUPLING_NONE:
-		break; //- do nothing
-	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
-		if (MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data)) //- save data in MBDyn_CE_CEModel_Data
-		{
-			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		break;
-	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
-	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
-	default: //- multirate  to do 
-		break; 
-	}
 
 	//---------- set gravity 
 	//- the default graivity is: (0.0,-9.81,0.0)
@@ -409,12 +393,29 @@ ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
 	std::cout << "\t\tgravity is: " << mbdynce_mbdyn_gravity[0] << "\t"<<mbdynce_mbdyn_gravity[1]<<"\t"<<mbdynce_mbdyn_gravity[2]<<"\n"; //- print in screen
 	
 	//---------- initial check
-	MBDyn_CE_SendDataToBuf(); //- send data to BUF, where C::E model can read infromation.
+	MBDyn_CE_SendDataToBuf(); //- send initial data to BUF, where C::E model can read infromation.
 	if (!MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, mbdynce_mbdyn_gravity))
 	{
 		silent_cerr("ChronoInterface(" << uLabel << ") data in C::E and in MBDyn are inconsistent " << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+	switch (MBDyn_CE_CouplingType)
+	{
+	case MBDyn_CE_COUPLING::COUPLING_NONE:
+		break; //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
+		if (MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data)) //- save data in MBDyn_CE_CEModel_Data
+		{
+			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		break;
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE:
+		break; //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
+	default: //- multirate  to do 
+		break; 
+	}	
 }
 
 void 
@@ -423,17 +424,18 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 {
 	//---------- A regular step to update C::E model
 	//---------- 1. mbdyn writes kinematic coupling variables to buffer;
-	//---------- 2. C::E models reload data (tight coupling scheme);
+	//---------- 2. C::E models reload data (only tight coupling scheme);
 	//---------- 3. C::E models read the coupling data from buffer;
 	//---------- 4. C::E models do integration (one step);
 	//---------- 5. C::E models sends data to the buffer;
 	pedantic_cout("\tMBDyn::Update()\n");
 	if (bMBDyn_CE_CEModel_DoStepDynamics || bMBDyn_CE_FirstSend)
 	{
+		pedantic_cout("\tMBDyn-C::E::Update a regular step\n");
 		//---------- 1. mbdyn writes kinematic coupling variables to buffer;
 		MBDyn_CE_SendDataToBuf();
 		//---------- 2. C::E models reload data (tight coupling scheme);
-		if(MBDyn_CE_CouplingType >=1) //- tight coupling
+		if(MBDyn_CE_CouplingType == MBDyn_CE_COUPLING::COUPLING_TIGHT) //- tight coupling
 		{
 			if(MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
 			{
@@ -443,7 +445,7 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 		}
 		//---------- 3. C::E models read the coupling data from buffer;
 		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
-		if(MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label,MBDyn_CE_CEMotorType, time_step, bMBDyn_CE_Verbose))
+		if (MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, MBDyn_CE_CEMotorType, time_step, bMBDyn_CE_Verbose))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") C::E receiving data process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -459,6 +461,23 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") C::E writting force process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		//---------- 6. MBDyn receives data from Buf;
+		MBDyn_CE_RecvDataFromBuf();
+		switch (MBDyn_CE_CouplingType)
+		{
+		case MBDyn_CE_COUPLING::COUPLING_TIGHT:
+			bMBDyn_CE_FirstSend = false;
+			bMBDyn_CE_CEModel_DoStepDynamics = true;
+			MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
+			break;
+		case MBDyn_CE_COUPLING::COUPLING_LOOSE:
+		case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED:
+		default:
+			bMBDyn_CE_CEModel_DoStepDynamics = false;
+			bMBDyn_CE_FirstSend = false;
+			MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
+			break;
 		}
 	}
 }
@@ -476,9 +495,45 @@ ChronoInterfaceBaseElem::AfterConvergence(const VectorHandler &X,
 		pedantic_cout("\tMBDyn::AfterConvergence()\n");
 		break;
 	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
+		pedantic_cout("\tMBDyn::AfterConvergence()\n");
+		break;
 	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default:
 		break; 
+	}
+	if (bMBDyn_CE_Verbose)
+	{
+		double time;
+		time = m_pDM->dGetTime();
+		std::cout << "\t\ttime in MBDyn: " << time << "\t forces obtained: " << pMBDyn_CE_CouplingDynamic_f[0] << "\n";
+		const MBDYN_CE_POINTDATA &mbdynce_point = MBDyn_CE_Nodes[0];
+		//- rotation and position
+		const Mat3x3 &mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
+		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
+		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXCurr() + mbdynce_f;
+		//- angular velocity and velocity
+		const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWCurr();
+		Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);
+		Vec3 mbdynce_v = mbdynce_point.pMBDyn_CE_Node->GetVCurr() + mbdynce_wCrossf;
+		//- angular acceleration and acceleration
+		const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPCurr();
+		Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPCurr() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
+
+		double mbdynce_tempvec3_x[3];
+		double mbdynce_tempvec3_v[3];
+		double mbdynce_tempvec3_a[3];
+		double mbdynce_tempvec3_w[3];
+		double mbdynce_tempvec3_wp[3];
+		MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
+		MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
+		double mbdynce_tempmat3x3_R[9];
+		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+		std::cout << "\t\tpos: " << mbdynce_tempvec3_x[0] - 1000 << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
+				  << "\t\tvel: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
+				  << "\t\tacc: " << mbdynce_tempvec3_a[0] << "\t" << mbdynce_tempvec3_a[1] << "\t" << mbdynce_tempvec3_a[2] << "\n";
 	}
 	return;
 }
@@ -496,7 +551,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 	switch (MBDyn_CE_CouplingType)
 	{
 	case MBDyn_CE_COUPLING::COUPLING_NONE:
-		pedantic_cout("\tMBDyn::AfterPredict()\n");		
+		pedantic_cout("\tMBDyn::AfterPredict() -no_coupling\n");		
 		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
 		if(MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel, time_step, bMBDyn_CE_Verbose))
 		{
@@ -506,20 +561,33 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 		bMBDyn_CE_FirstSend = false;
 		bMBDyn_CE_CEModel_DoStepDynamics = false; //- only do time integration once
 		MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
-		break; // do nothing
+		break; 
 	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
-		pedantic_cout("\tMBDyn::AfterPredict()\n");
+		pedantic_cout("\tMBDyn::AfterPredict() -tight_embedded\n");
 		if(MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		Update(X, XP); //- A regular step in C::E.
-		bMBDyn_CE_FirstSend = false;
-		bMBDyn_CE_CEModel_DoStepDynamics = true;
-		MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
 		break;
-	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: 
+	{
+		switch (MBDyn_CE_CouplingType_loose)
+		{
+		case MBDyn_CE_COUPLING_LOOSE::TIGHT:
+			break; //- do nothing (the work is finished in case MBDyn_CE_COUPLING::COUPLING_TIGHT)
+		case MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED:
+			pedantic_cout("\tMBDyn::AfterPredict() -Loose_embedded\n");	
+			Update(X, XP); //- A regular step in C::E.
+			break;
+		case MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN: //- to do 
+		case MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS: //- to do
+		default: //- to do
+			break;
+		}
+		break;
+	}
 	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default: // multirate to do 
 		break; 
@@ -540,7 +608,7 @@ ChronoInterfaceBaseElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	pedantic_cout("\t\tMBDyn::AssJac()" << std::endl);
+	pedantic_cout("\tMBDyn::AssJac()" << std::endl);
 	WorkMat.SetNullMatrix();
 	return WorkMat;
 }
@@ -558,23 +626,21 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 		return WorkVec;
 	}
 
-	else if (MBDyn_CE_CouplingType == MBDyn_CE_COUPLING::COUPLING_TIGHT)
+	else if (MBDyn_CE_CouplingType >=-1) //- coupling case
 	{
 		//---------- A regular step in MBDyn
-		//---------- 1. mbdyn receive data from buffer;
-		//---------- 2. detect the convergence of coupling data;
-		//---------- 3. add forces to Res;
+		//---------- 1. detect the convergence of coupling data;
+		//---------- 2. add forces to Res;
 		pedantic_cout("\tMBDyn::AssRes()\n");
-		if(bMBDyn_CE_CEModel_DoStepDynamics)
+		
+		//---------- 1. detect the convergence of coupling data;
+		if((bMBDyn_CE_CEModel_DoStepDynamics) && (MBDyn_CE_CouplingType==MBDyn_CE_COUPLING::COUPLING_TIGHT)) //- tight coupling case
 		{
 			pedantic_cout("\t\tAss_Coupling_Error()\n");
-			//---------- 1. mbdyn receive data from buffer;
-			MBDyn_CE_RecvDataFromBuf();
-			pedantic_cout("\t\titerations: " << MBDyn_CE_CouplingIter_Count << "\n");
-			//---------- 2. detect the convergence of coupling data;
+			pedantic_cout("\t\titerations: " << MBDyn_CE_CouplingIter_Count << "\n");			
 			MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
 			bMBDyn_CE_CEModel_DoStepDynamics = true;
-			if (MBDyn_CE_CouplingIter_Count > 0)
+			if (MBDyn_CE_CouplingIter_Count > 0) //- iters 2nd 
 			{
 				double mbdynce_error;
 				mbdynce_error = MBDyn_CE_CalculateError();
@@ -591,10 +657,11 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 			}
 			MBDyn_CE_CouplingIter_Count++;
 		}
-		//---------- 3. add forces to Nodes;
+		//---------- 2. add forces to Nodes;
 		const int iOffset = 6;
 		WorkVec.ResizeReset(iOffset * MBDyn_CE_NodesNum);
-		for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++) {
+		for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++) 
+		{
 			const MBDYN_CE_POINTDATA& point = MBDyn_CE_Nodes[i];
 
 			integer iFirstIndex = point.pMBDyn_CE_Node->iGetFirstMomentumIndex();
@@ -603,8 +670,8 @@ ChronoInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 			}
 
 			WorkVec.Add(i*iOffset + 1, point.MBDyn_CE_F);
-			WorkVec.Add(i*iOffset + 4, point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr()*point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F)); //- AssJac
-			//- save the force of last iteration
+			WorkVec.Add(i*iOffset + 4, point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr()*point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F));
+			//- save the force of last iteration (only used in tight co-simulation)
 			memcpy(&pMBDyn_CE_CouplingDynamic_f_pre[3 * i], &pMBDyn_CE_CouplingDynamic_f[3 * i], 3 * sizeof(double));
 			memcpy(&pMBDyn_CE_CouplingDynamic_m_pre[3 * i], &pMBDyn_CE_CouplingDynamic_m[3 * i], 3 * sizeof(double));
 		} 
