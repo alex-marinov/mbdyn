@@ -96,6 +96,9 @@ public:
 			   integer iDim,
 			   integer iNumIter,
 			   integer iNumThreads,
+			   unsigned uSolverFlags,
+			   doublereal dCompressTol,
+			   doublereal dMinRatio,
 			   integer iVerbose);
      ~PastixSolver();
 
@@ -135,6 +138,9 @@ public:
 			  integer iNumThreads,
 			  integer iNumIter,
 			  const ScaleOpt& scale = ScaleOpt(),
+			  unsigned uSolverFlags = 0u,
+			  doublereal dCompressTol = 0.,
+			  doublereal dMinRatio = 1.,
 			  integer iVerbose = 0);
     virtual ~PastixSolutionManager(void);
 #ifdef DEBUG

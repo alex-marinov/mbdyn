@@ -44,6 +44,7 @@
 #include <algorithm>
 #include "cscmhtpl.h"
 #include "dgeequ.h"
+#include "linsol.h"
 #include "pastixwrap.h"
 
 PastixSolver::SpMatrix::SpMatrix()
@@ -100,7 +101,7 @@ bool PastixSolver::SpMatrix::MakeCompactForm(const SparseMatrixHandler& mh)
      return bNewPattern;
 }
 
-PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter, integer iNumThreads, integer iVerbose)
+PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter, integer iNumThreads, unsigned uSolverFlags, doublereal dCompressTol, doublereal dMinRatio, integer iVerbose)
     :LinearSolver(pSM),
      pastix_data(nullptr),
      bDoOrdering(true)
@@ -113,6 +114,38 @@ PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter,
     iparm[IPARM_THREAD_NBR] = iNumThreads;
     iparm[IPARM_ITERMAX] = iNumIter;
 
+    if (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH) {
+	 iparm[IPARM_ORDERING] = PastixOrderScotch;
+    } else if (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_METIS) {
+	 iparm[IPARM_ORDERING] = PastixOrderMetis;
+    }
+
+    const unsigned uCompressionFlag = uSolverFlags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK;
+
+    if (uCompressionFlag) {	 
+	 switch (uCompressionFlag) {
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_SVD:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodSVD;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_PQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodPQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodRQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_TQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodTQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodRQRRT;
+	      break;
+	 }
+	 
+	 iparm[IPARM_COMPRESS_WHEN] = PastixCompressWhenEnd;
+	 dparm[DPARM_COMPRESS_TOLERANCE] = dCompressTol;
+	 dparm[DPARM_COMPRESS_MIN_RATIO] = dMinRatio;
+    }
+    
     pastixInit(&pastix_data, MPI_COMM_WORLD, iparm, dparm);
 }
 
@@ -206,7 +239,7 @@ PastixSolver::SpMatrix& PastixSolver::MakeCompactForm(SparseMatrixHandler& mh)
 }
 
 template <typename MatrixHandlerType>
-PastixSolutionManager<MatrixHandlerType>::PastixSolutionManager(integer iDim, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, integer iVerbose)
+PastixSolutionManager<MatrixHandlerType>::PastixSolutionManager(integer iDim, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, unsigned uSolverFlags, doublereal dCompressTol, doublereal dMinRatio, integer iVerbose)
     :x(iDim),
      b(iDim),
      xVH(iDim, &x[0]),
@@ -217,7 +250,7 @@ PastixSolutionManager<MatrixHandlerType>::PastixSolutionManager(integer iDim, in
 {
     SAFENEWWITHCONSTRUCTOR(pLS,
                            PastixSolver,
-                           PastixSolver(this, iDim, iNumIter, iNumThreads, iVerbose));
+                           PastixSolver(this, iDim, iNumIter, iNumThreads, uSolverFlags, dCompressTol, dMinRatio, iVerbose));
 
     pLS->pdSetResVec(&b[0]);
     pLS->pdSetSolVec(&x[0]);

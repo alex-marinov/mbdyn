@@ -191,16 +191,14 @@ MultiThreadDataManager::~MultiThreadDataManager(void)
 {
 	pthread_mutex_destroy(&thread_mutex);
 	pthread_cond_destroy(&thread_cond);
+	ThreadDestroy();
 }
 
-clock_t
-MultiThreadDataManager::ThreadDestroy(void)
+void MultiThreadDataManager::ThreadDestroy(void)
 {
 	if (thread_data == 0) {
-		return 0;
+		return;
 	}
-
-	clock_t cputime = 0;
 
 	op = MultiThreadDataManager::OP_EXIT;
 	thread_count = nThreads - 1;
@@ -214,19 +212,15 @@ MultiThreadDataManager::ThreadDestroy(void)
 					<< std::endl);
 			/* already shutting down ... */
 		}
-
-		cputime += thread_data[i].cputime;
 	}
 
 	if (thread_data[0].lock) {
 		SAFEDELETEARR(thread_data[0].lock);
-	}
+	}	
 	thread_cleanup(&thread_data[0]);
 
 	SAFEDELETEARR(thread_data);
 	thread_data = 0;
-
-	return cputime;
 }
 
 
@@ -381,7 +375,9 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 		if (arg->pJacHdl) {
 			SAFEDELETE(arg->pJacHdl);
 		}
+#ifdef MBDYN_X_MT_ASSRES
 		SAFEDELETE(arg->pResHdl);
+#endif
 
 	} else {
 		if (arg->ppNaiveJacHdl) {
@@ -405,10 +401,7 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 		<< "\tutime:  " << tmsbuf.tms_utime << std::endl
 		<< "\tstime:  " << tmsbuf.tms_stime << std::endl
 		<< "\tcutime: " << tmsbuf.tms_cutime << std::endl
-		<< "\tcstime: " << tmsbuf.tms_cstime << std::endl);
-			
-	arg->cputime = tmsbuf.tms_utime + tmsbuf.tms_cutime
-		+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+		<< "\tcstime: " << tmsbuf.tms_cstime << std::endl);			
 #endif /* HAVE_SYS_TIMES_H */
 }
 
@@ -481,10 +474,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 #ifdef USE_SPARSE_AUTODIFF
 		new(&thread_data[i].oGradJacHdl) SpGradientSparseMatrixWrapper(nullptr);
 #endif
-		
+#ifdef MBDYN_X_MT_ASSRES
 		/* set below */
 		thread_data[i].pResHdl = 0;	
-
+#endif
 		/* to be sure... */
 		thread_data[i].pMatA = 0;
 		thread_data[i].pMatB = 0;
@@ -492,10 +485,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 		if (i == 0) {
 			continue;
 		}
-
+#ifdef MBDYN_X_MT_ASSRES
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
-
+#endif
 		/* create thread */
 		if (pthread_create(&thread_data[i].thread, NULL, thread,
 					&thread_data[i]) != 0) {
@@ -893,12 +886,6 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	}
 }
 #endif /* MBDYN_X_MT_ASSRES */
-
-clock_t
-MultiThreadDataManager::GetCPUTime(void) const
-{
-	return const_cast<MultiThreadDataManager *>(this)->ThreadDestroy();
-}
 
 #endif /* USE_MULTITHREAD */
 

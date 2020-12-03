@@ -77,7 +77,6 @@ protected:
 		integer threadNumber;
 		pthread_t thread;
 		sem_t sem;
-		clock_t	cputime;
 #if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
 	        mutable MT_VecIter<Node *> NodeIter;
 #endif
@@ -98,8 +97,9 @@ protected:
 	        SpGradientSparseMatrixWrapper oGradJacHdl;
 #endif
 		AO_TS_t* lock;
-
+#ifdef MBDYN_X_MT_ASSRES
 		VectorHandler* pResHdl;
+#endif
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;
 		doublereal dCoef;
@@ -151,7 +151,7 @@ protected:
 
 	/* starts the helper threads */
 	void ThreadSpawn(void);
-	clock_t ThreadDestroy(void);
+	void ThreadDestroy(void);
 
 	/* specialized assembly */     
 	virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
@@ -184,9 +184,6 @@ public:
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
 		/*throw(ChangedEquationStructure)*/;
 #endif /* MBDYN_X_MT_ASSRES */
-
-	/* additional CPU time, if any */
-	virtual clock_t GetCPUTime(void) const;
 };
 
 /* MultiThreadDataManager - end */

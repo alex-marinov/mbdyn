@@ -31,9 +31,11 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <typeinfo>
+#include <random>
 
 #include "dgeequ.h"
 
@@ -78,6 +80,19 @@ main(int argc, char* argv[])
 	scale.iMaxIter = argc >= 2 ? atoi(argv[1]) : 100;
 	scale.dTol = argc >= 3 ? atof(argv[2]) : sqrt(std::numeric_limits<doublereal>::epsilon());
 
+	for (int i = 1; i < argc; ++i) {
+	     if (0 == strcmp(argv[i], "-r")) {
+		  std::mt19937 e1;
+		  std::uniform_real_distribution<doublereal> uniform_dist(-1e16, 1e16);
+		 
+		  for (integer iRow = 0; iRow < 5; ++iRow) {
+		       for (integer iCol = 0; iCol < 5; ++iCol) {
+			    mat[iRow][iCol] = uniform_dist(e1);
+		       }
+		  }
+	     }
+	}
+	
 	struct {
 		MatrixScale<NaiveMatrixHandler>* pNaive;
 		MatrixScale<NaivePermMatrixHandler>* pNaivePerm;

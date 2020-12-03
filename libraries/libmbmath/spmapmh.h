@@ -87,7 +87,18 @@ private:
 					     idx_type *const Ai,
 					     idx_type *const Ap,
 					     int offset) const;
-		
+
+	template <typename idx_type>
+	idx_type MakeCompressedRowFormTpl(doublereal *const Ax,
+					  idx_type *const Ai,
+					  idx_type *const Ap,
+					  int offset) const;
+     
+        template <typename idx_type>
+	idx_type MakeIndexFormTpl(doublereal *const Ax,
+				  idx_type *const Arow, idx_type *const Acol,
+				  idx_type *const AcolSt,
+				  int offset = 0) const;
 #ifdef DEBUG
 	void IsValid(void) const {
 		NO_OP;
@@ -263,15 +274,26 @@ public:
 					 int64_t *const Ap,
 					 int offset = 0) const override;
 
-	integer MakeIndexForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const AcolSt,
-			int offset = 0) const;
+        int32_t MakeCompressedRowForm(doublereal *const Ax,
+				      int32_t *const Ai,
+				      int32_t *const Ap,
+				      int offset = 0) const override;
 
-        integer MakeIndexForm(std::vector<doublereal>& Ax,
-			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const;
+       int64_t MakeCompressedRowForm(doublereal *const Ax,
+				     int64_t *const Ai,
+				     int64_t *const Ap,
+				     int offset = 0) const override;
+     
+       int32_t MakeIndexForm(doublereal *const Ax,
+			     int32_t *const Arow, int32_t *const Acol,
+			     int32_t *const AcolSt,
+			     int offset = 0) const override;
+
+       int64_t MakeIndexForm(doublereal *const Ax,
+			     int64_t *const Arow, int64_t *const Acol,
+			     int64_t *const AcolSt,
+			     int offset = 0) const override;
+
 
 	void Reset(void);
 
@@ -317,7 +339,6 @@ protected:
 
 public:
         virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const;
-	virtual void ForceSymmetricGraph() override;
 };
 
 #endif /* SpMapMatrixHandler_hh */

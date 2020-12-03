@@ -49,6 +49,22 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 	NO_OP;
 }
 
+int32_t SparseMatrixHandler::MakeCompressedColumnForm(doublereal* Ax,
+						      int32_t* Ai,
+						      int32_t* Ap,
+						      int offset) const     
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+int64_t SparseMatrixHandler::MakeCompressedColumnForm(doublereal* Ax,
+						      int64_t* Ai,
+						      int64_t* Ap,
+						      int offset) const     
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 
 int32_t SparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 						      std::vector<int32_t>& Ai,
@@ -74,9 +90,92 @@ int64_t SparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& A
      return MakeCompressedColumnForm(&Ax.front(), &Ai.front(), &Ap.front(), offset);
 }
 
-void SparseMatrixHandler::ForceSymmetricGraph()
+
+int32_t SparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+						   int32_t *const Ai,
+						   int32_t *const Ap,
+						   int offset) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+int32_t SparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>& Ax,
+						   std::vector<int32_t>& Ai,
+						   std::vector<int32_t>& Ap,
+						   int offset) const
+{
+     Ax.resize(Nz());
+     Ai.resize(Nz());
+     Ap.resize(iGetNumRows() + 1);
+     
+     return MakeCompressedRowForm(&Ax.front(), &Ai.front(), &Ap.front(), offset);
+}
+
+int64_t SparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+						   int64_t *const Ai,
+						   int64_t *const Ap,
+						   int offset) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+int64_t SparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>& Ax,
+						   std::vector<int64_t>& Ai,
+						   std::vector<int64_t>& Ap,
+						   int offset) const
+{
+     Ax.resize(Nz());
+     Ai.resize(Nz());
+     Ap.resize(iGetNumRows() + 1);
+     
+     return MakeCompressedRowForm(&Ax.front(), &Ai.front(), &Ap.front(), offset);     
+}
+
+
+	
+int32_t SparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
+					   int32_t *const Arow, int32_t *const Acol,
+					   int32_t *const AcolSt,
+					   int offset) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+	
+int32_t SparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
+					   std::vector<int32_t>& Arow, std::vector<int32_t>& Acol,
+					   std::vector<int32_t>& Ap,
+					   int offset) const
+{
+     Ax.resize(Nz());
+     Arow.resize(Nz());
+     Acol.resize(Nz());
+     Ap.resize(iGetNumCols() + 1);
+
+     return MakeIndexForm(&Ax.front(), &Arow.front(), &Acol.front(), &Ap.front(), offset);
+}
+
+	
+int64_t SparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
+					   int64_t *const Arow, int64_t *const Acol,
+					   int64_t *const AcolSt,
+					   int offset) const
+{
+     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+	
+int64_t SparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
+					   std::vector<int64_t>& Arow, std::vector<int64_t>& Acol,
+					   std::vector<int64_t>& Ap,
+					   int offset) const
+{
+     Ax.resize(Nz());
+     Arow.resize(Nz());
+     Acol.resize(Nz());
+     Ap.resize(iGetNumCols() + 1);
+
+     return MakeIndexForm(&Ax.front(), &Arow.front(), &Acol.front(), &Ap.front(), offset);
 }
 
 CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
@@ -89,40 +188,6 @@ CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
 CompactSparseMatrixHandler::~CompactSparseMatrixHandler()
 {
 
-}
-
-int32_t
-CompactSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-						     int32_t *const Ai,
-						     int32_t *const Ap,
-						     int offset) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-int64_t
-CompactSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-						     int64_t *const Ai,
-						     int64_t *const Ap,
-						     int offset) const
-{
-     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-integer
-CompactSparseMatrixHandler::MakeIndexForm(doublereal *const rAx,
-					  integer *const Arow, integer *const Acol,
-					  integer *const AcolSt, int offset) const
-{
-     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-integer
-CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
-					  std::vector<integer>& Arow, std::vector<integer>& Acol,
-					  std::vector<integer>& AcolSt, int offset) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 template <int off, typename idx_type>

@@ -318,6 +318,46 @@ int64_t SpGradientSparseMatrixHandler::MakeCompressedColumnForm(doublereal *cons
      return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
 }
 
+template <typename idx_type>
+idx_type SpGradientSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const Ax,
+								 idx_type *const Ai,
+								 idx_type *const Ap,
+								 int offset) const
+{
+     idx_type iPtr = 0;
+     size_t iRow;
+     
+     for (iRow = 0; iRow < oRows.size(); ++iRow) {
+	  Ap[iRow] = iPtr + offset;
+
+	  for (const auto& oItem: oRows[iRow]) {
+	       Ai[iPtr] = oItem.iDof + offset - 1;
+	       Ax[iPtr] = oItem.dDer;
+	       ++iPtr;
+	  }
+     }
+
+     Ap[iRow] = iPtr + offset;
+
+     return iPtr;
+}
+
+int32_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+							     int32_t *const Ai,
+							     int32_t *const Ap,
+							     int offset) const
+{
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
+}
+
+int64_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+							     int64_t *const Ai,
+							     int64_t *const Ap,
+							     int offset) const
+{
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
+}
+
 bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      SP_GRAD_ASSERT(iRow >= 1);
@@ -360,21 +400,93 @@ bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradi
      return true;
 }
 
-integer SpGradientSparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
-						     integer *const Arow, integer *const Acol,
-						     integer *const AcolSt,
+
+int32_t SpGradientSparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
+						     int32_t *const Arow, int32_t *const Acol,
+						     int32_t *const Ap,
 						     int offset) const
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     return MakeIndexFormTpl(Ax, Arow, Acol, Ap, offset);
 }
 
 
-integer SpGradientSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
-						     std::vector<integer>& Arow, std::vector<integer>& Acol,
-						     std::vector<integer>& AcolSt,
+int64_t SpGradientSparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
+						     int64_t *const Arow, int64_t *const Acol,
+						     int64_t *const Ap,
 						     int offset) const
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     return MakeIndexFormTpl(Ax, Arow, Acol, Ap, offset);
+}
+
+template <typename idx_type>
+idx_type SpGradientSparseMatrixHandler::MakeIndexFormTpl(doublereal *const Ax,
+							 idx_type *const Arow, idx_type *const Acol,
+							 idx_type *const Ap,
+							 int offset) const
+{
+    std::vector<idx_type> oColSize(NCols, 0);
+
+     for (const auto& oRow: oRows) {
+	  SP_GRAD_ASSERT(oRow.bValid());
+	  SP_GRAD_ASSERT(oRow.iGetSize() > 0);
+	  SP_GRAD_ASSERT(oRow.bIsUnique());
+	  
+	  for (const auto& oDer: oRow) {
+	       SP_GRAD_ASSERT(oDer.iDof >= 1);
+	       SP_GRAD_ASSERT(oDer.iDof <= NCols);
+	       
+	       ++oColSize[oDer.iDof - 1];
+	  }
+     }
+     
+     idx_type iPtr = offset;
+
+     for (integer iCol = 0; iCol < NCols; ++iCol) {
+	  Ap[iCol] = iPtr;
+
+	  SP_GRAD_ASSERT(oColSize[iCol] >= 0);
+	  SP_GRAD_ASSERT(oColSize[iCol] <= NRows);
+	  
+	  iPtr += oColSize[iCol];
+     }
+     
+     Ap[NCols] = iPtr;
+
+     SP_GRAD_ASSERT(iPtr - offset == Nz());     
+
+     std::fill(oColSize.begin(), oColSize.end(), 0);
+
+#ifdef SP_GRAD_DEBUG
+     constexpr idx_type iInvalidIndex = -1;
+     constexpr doublereal dInvalidValue = std::numeric_limits<doublereal>::infinity();
+     
+     std::fill(Arow, Arow + Nz(), iInvalidIndex);
+     std::fill(Acol, Acol + Nz(), iInvalidIndex);
+     std::fill(Ax, Ax + Nz(), dInvalidValue);
+#endif
+     
+     for (integer iRow = 0; iRow < NRows; ++iRow) {
+	  for (const auto& oDer: oRows[iRow]) {
+	       const integer iColIdx = oDer.iDof - 1;
+
+	       SP_GRAD_ASSERT(iColIdx >= 0);
+	       SP_GRAD_ASSERT(iColIdx < NCols);
+	       
+	       const idx_type iSlot = Ap[iColIdx] - offset + oColSize[iColIdx]++;
+
+	       SP_GRAD_ASSERT(iSlot >= 0);
+	       SP_GRAD_ASSERT(iSlot < Nz());
+	       SP_GRAD_ASSERT(Arow[iSlot] == iInvalidIndex);
+	       SP_GRAD_ASSERT(Acol[iSlot] == iInvalidIndex);
+	       SP_GRAD_ASSERT(Ax[iSlot] == dInvalidValue);
+	       
+	       Arow[iSlot] = iRow + offset;
+	       Acol[iSlot] = iColIdx + offset;
+	       Ax[iSlot] = oDer.dDer;
+	  }
+     }
+
+     return iPtr - offset;
 }
 
 
@@ -447,20 +559,6 @@ doublereal SpGradientSparseMatrixHandler::Norm(Norm_t eNorm) const
 
 integer SpGradientSparseMatrixHandler::Nz() const {
      return NZ;
-}
-
-void SpGradientSparseMatrixHandler::ForceSymmetricGraph()
-{
-     using namespace sp_grad;
-     
-     SpGradient aij;
-     
-     for (size_t iRow = 0; iRow < oRows.size(); ++iRow) {
-	  for (const SpDerivRec& oRec: oRows[iRow]) {
-	       aij.Reset(0., iRow + 1, 0.);
-	       AddItem(oRec.iDof, aij);
-	  }
-     }
 }
 
 std::ostream& SpGradientSparseMatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const

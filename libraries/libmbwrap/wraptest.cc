@@ -63,6 +63,7 @@ extern "C" {
 #include "wsmpwrap.h"
 #include "pastixwrap.h"
 #include "qrwrap.h"
+#include "strumpackwrap.h"
 
 const char *solvers[] = {
 #if defined(USE_Y12)
@@ -95,6 +96,9 @@ const char *solvers[] = {
                 "qr",
 #if defined(USE_SUITESPARSE_QR)
                 "spqr",
+#endif
+#if defined(USE_STRUMPACK)
+		"strumpack",
 #endif
 		"naive",
 		NULL
@@ -836,7 +840,21 @@ main(int argc, char *argv[])
 #ifdef USE_SPARSE_AUTODIFF
 			}
 #endif
-#endif                        
+#endif
+#if defined(USE_STRUMPACK)
+	} else if (strcasecmp(solver, "strumpack") == 0) {
+#ifdef USE_SPARSE_AUTODIFF
+	     if (gradmh) {
+		  SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpGradientSparseMatrixHandler>,
+					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 10));
+	     } else {
+#endif
+		  SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpMapMatrixHandler>,
+					 StrumpackSolutionManager<SpMapMatrixHandler>(size, nt, 10));
+#ifdef USE_SPARSE_AUTODIFF
+	     }
+#endif
+#endif
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (dpivot == -1.) {

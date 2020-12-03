@@ -120,7 +120,7 @@ public:
 	int32_t MakeCompressedColumnForm(doublereal *const Ax,
 					 int32_t *const Ai,
 					 int32_t *const Ap,
-					 int offset = 0) const = 0;
+					 int offset = 0) const;
 
 	virtual
 	int32_t MakeCompressedColumnForm(std::vector<doublereal>& Ax,
@@ -132,31 +132,66 @@ public:
 	int64_t MakeCompressedColumnForm(doublereal *const Ax,
 					 int64_t *const Ai,
 					 int64_t *const Ap,
-					 int offset = 0) const = 0;
+					 int offset = 0) const;
 
 	virtual
 	int64_t MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 					 std::vector<int64_t>& Ai,
 					 std::vector<int64_t>& Ap,
 					 int offset = 0) const;
+
+     virtual
+     int32_t MakeCompressedRowForm(doublereal *const Ax,
+				   int32_t *const Ai,
+				   int32_t *const Ap,
+				   int offset = 0) const;
+
+     virtual
+     int32_t MakeCompressedRowForm(std::vector<doublereal>& Ax,
+				   std::vector<int32_t>& Ai,
+				   std::vector<int32_t>& Ap,
+				   int offset = 0) const;
+
+     virtual
+     int64_t MakeCompressedRowForm(doublereal *const Ax,
+				   int64_t *const Ai,
+				   int64_t *const Ap,
+				   int offset = 0) const;
+
+     virtual
+     int64_t MakeCompressedRowForm(std::vector<doublereal>& Ax,
+				   std::vector<int64_t>& Ai,
+				   std::vector<int64_t>& Ap,
+				   int offset = 0) const;
+
      
 	virtual
-	integer MakeIndexForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const AcolSt,
-			int offset = 0) const = 0;
+	int32_t MakeIndexForm(doublereal *const Ax,
+			      int32_t *const Arow, int32_t *const Acol,
+			      int32_t *const AcolSt,
+			      int offset = 0) const;
 
 	virtual
-	integer MakeIndexForm(std::vector<doublereal>& Ax,
-			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const = 0;
+	int32_t MakeIndexForm(std::vector<doublereal>& Ax,
+			      std::vector<int32_t>& Arow, std::vector<int32_t>& Acol,
+			      std::vector<int32_t>& AcolSt,
+			      int offset = 0) const;
 
+	virtual
+	int64_t MakeIndexForm(doublereal *const Ax,
+			      int64_t *const Arow, int64_t *const Acol,
+			      int64_t *const AcolSt,
+			      int offset = 0) const;
+
+	virtual
+	int64_t MakeIndexForm(std::vector<doublereal>& Ax,
+			      std::vector<int64_t>& Arow, std::vector<int64_t>& Acol,
+			      std::vector<int64_t>& AcolSt,
+			      int offset = 0) const;
+     
 	/* Estrae una colonna da una matrice */
 	virtual VectorHandler& GetCol(integer icol,
-			VectorHandler& out) const = 0;
-
-        virtual void ForceSymmetricGraph(); // Needed for symmetric ordering strategies (e.g. Scotch, Metis)
+				      VectorHandler& out) const = 0;
 };
 
 /* Sparse Matrix in compact form */
@@ -177,31 +212,7 @@ public:
 	virtual CompactSparseMatrixHandler *Copy(void) const = 0;
 
 	/* used to sum CC matrices with identical indices */
-        virtual void AddUnchecked(const CompactSparseMatrixHandler& m) = 0;     
-public:
-	virtual
-	int32_t MakeCompressedColumnForm(doublereal *const Ax,
-					 int32_t *const Ai,
-					 int32_t *const Ap,
-					 int offset = 0) const override;
-
-     	virtual
-	int64_t MakeCompressedColumnForm(doublereal *const Ax,
-					 int64_t *const Ai,
-					 int64_t *const Ap,
-					 int offset = 0) const override;
-
-	virtual
-	integer MakeIndexForm(doublereal *const Ax,
-			      integer *const Arow, integer *const Acol,
-			      integer *const AcolSt,
-			      int offset = 0) const override;
-
-	virtual
-	integer MakeIndexForm(std::vector<doublereal>& Ax,
-			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const override;
+        virtual void AddUnchecked(const CompactSparseMatrixHandler& m) = 0;
 };
 
 /* Sparse Matrix in compact form */

@@ -110,19 +110,31 @@ public:
 				      int64_t *const Ai,
 				      int64_t *const Ap,
 				      int offset = 0) const override;
+
+     virtual
+     int32_t MakeCompressedRowForm(doublereal *const Ax,
+				   int32_t *const Ai,
+				   int32_t *const Ap,
+				   int offset = 0) const override;
+
+     virtual
+     int64_t MakeCompressedRowForm(doublereal *const Ax,
+				   int64_t *const Ai,
+				   int64_t *const Ap,
+				   int offset = 0) const override;
      
      virtual
-     integer MakeIndexForm(doublereal *const Ax,
-			   integer *const Arow, integer *const Acol,
-			   integer *const AcolSt,
+     int32_t MakeIndexForm(doublereal *const Ax,
+			   int32_t *const Arow, int32_t *const Acol,
+			   int32_t *const AcolSt,
 			   int offset = 0) const override;
 
      virtual
-     integer MakeIndexForm(std::vector<doublereal>& Ax,
-			   std::vector<integer>& Arow, std::vector<integer>& Acol,
-			   std::vector<integer>& AcolSt,
+     int64_t MakeIndexForm(doublereal *const Ax,
+			   int64_t *const Arow, int64_t *const Acol,
+			   int64_t *const AcolSt,
 			   int offset = 0) const override;
-
+     
      virtual
      VectorHandler& GetCol(integer icol,
 			   VectorHandler& out) const override;
@@ -136,8 +148,6 @@ public:
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
      virtual integer Nz() const override;
-
-     virtual void ForceSymmetricGraph() override;
      
 protected:
      virtual MatrixHandler&
@@ -165,6 +175,19 @@ private:
 					  idx_type *const Ai,
 					  idx_type *const Ap,
 					  int offset) const;
+
+     template <typename idx_type>
+     idx_type MakeCompressedRowFormTpl(doublereal *const Ax,
+				       idx_type *const Ai,
+				       idx_type *const Ap,
+				       int offset) const;
+     
+     template <typename idx_type>
+     idx_type MakeIndexFormTpl(doublereal *const Ax,
+			       idx_type *const Arow,
+			       idx_type* const Acol,
+			       idx_type *const Ap,			       
+			       int offset) const;
      
      struct SparseRow: sp_grad::SpGradient {
 #ifdef USE_MULTITHREAD	  

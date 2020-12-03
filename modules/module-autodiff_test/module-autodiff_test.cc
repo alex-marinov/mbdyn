@@ -462,7 +462,7 @@ DeformableJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 #ifdef USE_SPARSE_AUTODIFF
      case SPARSE_TEMPLATE_META_PROG:
 	  sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
-								 WorkMat.SetSparse(),
+								 WorkMat.SetSparseGradient(),
 								 dCoef,
 								 XCurr,
 								 XPrimeCurr,
@@ -1030,8 +1030,8 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 				      sp_grad::SpFunctionCall func)
 {
      using namespace sp_grad;
-     typedef SpMatrix<T, 3, 3> Mat3x3;
-     typedef SpColVector<T, 3> Vec3;
+     typedef SpMatrixA<T, 3, 3> Mat3x3;
+     typedef SpColVectorA<T, 3> Vec3;
 
 #if CREATE_PROFILE == 1
      doublereal start = mbdyn_clock_time();
@@ -1519,7 +1519,7 @@ InlineJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 							       &dof);
 #else
      sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
-							    WorkMat.SetSparse(),
+							    WorkMat.SetSparseGradient(),
 							    dCoef,
 							    XCurr,
 							    XPrimeCurr,
@@ -1614,8 +1614,8 @@ InlineJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 		      sp_grad::SpFunctionCall func) {
      using namespace sp_grad;
      
-     typedef SpColVector<T, 3> Vec3;
-     typedef SpMatrix<T, 3, 3> Mat3x3;
+     typedef SpColVectorA<T, 3> Vec3;
+     typedef SpMatrixA<T, 3, 3> Mat3x3;
 
      const integer iFirstIndex = iGetFirstIndex();
      const integer iFirstMomentumIndexNode1 = pNode1->iGetFirstMomentumIndex();
@@ -1727,7 +1727,7 @@ InlineJointAD::InitialAssJac(
 									     &dof);
 #else
      sp_grad::SpGradientAssVec<sp_grad::SpGradient>::InitialAssJac(this,
-								   WorkMat.SetSparse(),
+								   WorkMat.SetSparseGradient(),
 								   XCurr,
 								   sp_grad::SpFunctionCall::INITIAL_ASS_JAC);     
 #endif
@@ -1827,8 +1827,8 @@ InlineJointAD::InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 			     const sp_grad::SpGradientVectorHandler<T>& XCurr,
 			     sp_grad::SpFunctionCall func) {
      using namespace sp_grad;
-     typedef SpColVector<T, 3> Vec3;
-     typedef SpMatrix<T, 3, 3> Mat3x3;
+     typedef SpColVectorA<T, 3> Vec3;
+     typedef SpMatrixA<T, 3, 3> Mat3x3;
 
      Vec3 X1, XP1, X2, XP2, omega1, omega2;
      Mat3x3 R1, R2;

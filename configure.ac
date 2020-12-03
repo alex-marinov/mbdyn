@@ -255,6 +255,7 @@ OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[au
 with_suitesparseqr_default=auto
 OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],$with_suitesparseqr_default,[auto yes no])
 OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],$with_suitesparseqr_default,[auto yes no])
+OL_ARG_WITH(strumpack,[  --with-strumpack        with STRUMPACK library],auto,[auto yes no])  
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
@@ -402,6 +403,7 @@ PASTIX_LIBS=
 PASTIX_INC=
 QRUPDATE_LIBS=
 SUITESPARSEQR_LIBS=
+STRUMPACK_LIBS=
 ARPACK_LIBS=
 JDQZ_LIBS=
 SECURITY_LIBS=
@@ -2952,17 +2954,65 @@ if test $ol_with_suitesparseqr != no ; then
                    AC_MSG_RESULT([no])
                 fi
         fi
+fi
 
-        AC_LANG_C
-        if test "$have_fc_f77" = "no" ; then
-                if test $ol_with_y12 = yes ; then
-                        AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for STRUMPACK
+dnl
+ol_link_strumpack=no
+if test $ol_with_strumpack != no ; then
+        AC_LANG_CPLUSPLUS
+        AC_CHECK_HEADERS(StrumpackSparseSolver.hpp)
+
+        if test "$ac_cv_header_StrumpackSparseSolver_hpp" = "yes" ; then
+                AC_MSG_CHECKING([for STRUMPACK library])
+                try_strumpack_LIBS="-lstrumpack"
+                save_LIBS="$LIBS"
+                have_strumpack="no"
+                LIBS="$try_strumpack_LIBS $save_LIBS"
+                AC_TRY_LINK([
+                        #include <StrumpackSparseSolver.hpp>
+			 ],[
+			   double Ax[] = {1., 2., 3., 4.};
+  			   int Ar[] = {0, 1, 2, 3, 4};
+			   int Ac[] = {0, 1, 2, 3};
+			   double x[4];
+			   double b[4];
+			   using namespace strumpack;
+			   StrumpackSparseSolver<double, int> sp;							 
+                           sp.options().set_compression(CompressionType::HSS);
+	                   sp.options().set_rel_tol(1e-8);
+	                   sp.options().set_abs_tol(1e-8);
+	                   sp.options().set_gmres_restart(10);     
+			   sp.set_csr_matrix(4, Ar, Ac, Ax);
+			   sp.reorder();
+			   sp.factor();
+			   sp.solve(b, x);
+                ],[have_strumpack="yes"])
+
+                LIBS="$save_LIBS"
+
+                if test "$have_strumpack" = "yes"; then
+                   AC_MSG_RESULT([yes])
+                   ol_link_strumpack=yes
+                   STRUMPACK_LIBS="$try_strumpack_LIBS"
+                   AC_DEFINE(USE_STRUMPACK,1,[define if you want to use STRUMPACK])
+                else
+                   AC_MSG_RESULT([no])
                 fi
-        else
-                ol_link_y12=yes
-                AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
-                Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
         fi
+fi
+
+AC_LANG_C
+if test "$have_fc_f77" = "no" ; then
+   	if test $ol_with_y12 = yes ; then
+           	AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+	fi
+else
+	ol_link_y12=yes
+	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
+	Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
 fi
 
 dnl ----------------------------------------------------------------
@@ -3601,6 +3651,7 @@ AC_SUBST(PASTIX_INC)
 AC_SUBST(PASTIX_LIBS)
 AC_SUBST(QRUPDATE_LIBS)
 AC_SUBST(SUITESPARSEQR_LIBS)
+AC_SUBST(STRUMPACK_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)

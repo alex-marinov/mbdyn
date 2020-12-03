@@ -3964,7 +3964,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 #ifdef USE_MULTITHREAD
 	if (bSolverThreads) {
-		if (CurrLinearSolver.SetNumThreads(nSolverThreads)) {
+		if (!CurrLinearSolver.SetNumThreads(nSolverThreads)) {
 			silent_cerr("linear solver "
 					<< CurrLinearSolver.GetSolverName()
 					<< " does not support "

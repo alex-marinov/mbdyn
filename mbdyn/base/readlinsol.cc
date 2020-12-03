@@ -54,6 +54,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
+		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		NULL
 	};
 
@@ -72,7 +73,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 PASTIX,
                 QR,
                 SPQR,
-
+		STRUMPACK,
+		
 		LASTKEYWORD
 	};
 
@@ -213,6 +215,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 bGotIt = true;
 #endif
 		break;
+
+	case STRUMPACK:
+	     cs.SetSolver(LinSol::STRUMPACK_SOLVER);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Using STRUMPACK solver\n");
+#ifdef USE_STRUMPACK
+	     bGotIt = true;
+#endif
+	     break;
                 
 	default:
 		silent_cerr("unknown solver" << std::endl);
@@ -422,6 +432,18 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                                         << currSolver.s_name
                                         << " solver" << std::endl);
                 }                
+	} else if (HP.IsKeyWord("scotch")) {
+                if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH) {
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH);
+                        pedantic_cout("using scotch preordering for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+
+                } else {
+                        pedantic_cerr("scotch preordering is meaningless for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+                }                
 	}
 
 	/* multithread? */
@@ -527,6 +549,69 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		if (currSolver.s_drop_tolerance != -1.) {
 			cs.SetDropTolerance(currSolver.s_drop_tolerance);
 		}
+	}
+
+	if (HP.IsKeyWord("low" "rank" "compression")) {
+	     const char* sKeyWords[] = {
+		  "hss",
+		  "blr",
+		  "hodlr",
+		  "svd",
+		  "pqrcp",
+		  "rqrcp",
+		  "tqrcp",
+		  "rqrrt",
+		  NULL
+	     };
+
+	     enum KeyWords {
+		  HSS,
+		  BLR,
+		  HODLR,
+		  SVD,
+		  PQRCP,
+		  RQRCP,
+		  TQRCP,
+		  RQRRT,		
+		  LASTKEYWORD
+	     };
+
+	     KeyTable K(HP, sKeyWords);
+	     unsigned uKeyWord = HP.GetWord();
+
+	     if (!(uKeyWord >= HSS && uKeyWord < LASTKEYWORD)) {
+		  silent_cerr("keywords {hss|blr|hodlr|svd|pqrcp|rqrcp|tqrcp|rqrrt} expected at line " << HP.GetLineData() << std::endl);
+		  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	     }
+	     
+	     unsigned uCompression = LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_HSS << uKeyWord;	    
+	     	     
+	     if (currSolver.s_flags & uCompression) {
+		  cs.AddSolverFlags(LinSol::SOLVER_FLAGS_COMPRESSION_MASK, uCompression);
+		  pedantic_cout("using compression " << sKeyWords[uKeyWord] << " for "
+				<< currSolver.s_name
+				<< " solver" << std::endl);
+	     } else {
+		  pedantic_cerr("compression " << sKeyWords[uKeyWord] << " is meaningless for "
+				<< currSolver.s_name
+				<< " solver" << std::endl);
+	     }
+
+	     if (HP.IsKeyWord("low" "rank" "tolerance")) {
+		  if (!cs.SetLowRankCompressTol(HP.GetReal())) {
+		       pedantic_cerr("low rank tolerance is meaningless for "
+				     << currSolver.s_name
+				     << " solver" << std::endl);		       
+		  }
+	     }
+
+	     if (HP.IsKeyWord("low" "rank" "min" "ratio")) {
+		  if (!cs.SetLowRankCompressMinRatio(HP.GetReal())) {
+		       pedantic_cerr("low rank min ratio is meaningless for "
+				     << currSolver.s_name
+				     << " solver" << std::endl);
+		  }
+	     }
 	}
 
 	if (HP.IsKeyWord("block" "size")) {

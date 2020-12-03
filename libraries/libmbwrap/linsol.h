@@ -34,6 +34,7 @@
 #ifndef LINEARSOLVER_H
 #define LINEARSOLVER_H
 
+#include "solman.h"
 /* Integrator - begin */
 
 class LinSol {
@@ -52,6 +53,7 @@ public:
                 PASTIX_SOLVER,
                 QR_SOLVER,
                 SPQR_SOLVER,
+		STRUMPACK_SOLVER,
 		LAST_SOLVER
 	};
 
@@ -75,6 +77,7 @@ public:
                 SOLVER_FLAGS_ALLOWS_AMD = 0x2000U,
                 SOLVER_FLAGS_ALLOWS_METIS = 0x4000U,
                 SOLVER_FLAGS_ALLOWS_GIVEN = 0x8000U,
+		SOLVER_FLAGS_ALLOWS_SCOTCH = 0x10000U,
 		SOLVER_FLAGS_PERM_MASK = 
 			SOLVER_FLAGS_ALLOWS_COLAMD |
 			SOLVER_FLAGS_ALLOWS_MMDATA |
@@ -85,7 +88,25 @@ public:
                         SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION |
                         SOLVER_FLAGS_ALLOWS_AMD |
                         SOLVER_FLAGS_ALLOWS_METIS |
-                        SOLVER_FLAGS_ALLOWS_GIVEN
+                        SOLVER_FLAGS_ALLOWS_GIVEN |
+		        SOLVER_FLAGS_ALLOWS_SCOTCH,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_HSS = 0x20000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_BLR = 0x40000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_HODLR = 0x80000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_SVD = 0x100000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_PQRCP =  0x200000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRCP =  0x400000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_TQRCP =  0x800000U,
+		SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT = 0x1000000U,
+		SOLVER_FLAGS_COMPRESSION_MASK =
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_HSS |
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_BLR | 
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_HODLR | 
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_SVD |
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_PQRCP | 
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRCP |
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_TQRCP |
+		        SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT 
 	};
 
 	/* solver data */
@@ -148,6 +169,8 @@ protected:
 	 */
 	SolutionManager::ScaleOpt scale;
 
+        doublereal dLowRankCompressTol; /* Tolerance for low-rank kernels (PaStiX) */
+        doublereal dLowRankCompressMinRatio; /* Min ratio for rank w.r.t. strict rank (PaStiX) */
 	/*
 	 * maximum number of iterations for iterative refinement
 	 * used only by:
@@ -185,6 +208,8 @@ public:
 	bool SetDropTolerance(const doublereal &d);
 	bool SetBlockSize(unsigned bs);
 	bool SetScale(const SolutionManager::ScaleOpt& scale);
+        bool SetLowRankCompressTol(const doublereal& d);
+	bool SetLowRankCompressMinRatio(const doublereal& d);
 	bool SetMaxIterations(integer iMaxIter);
         bool SetVerbose(integer iVerb);
 	SolutionManager *const

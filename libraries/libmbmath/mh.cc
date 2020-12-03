@@ -526,7 +526,7 @@ doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 
 	__FC_DECL__(dgecon)(&norm, &N, &A[0], &M, &ANORM, &RCOND, &WORK[0], &IWORK[0], &INFO);
 
-	ASSERT(INFO == 0); // should not fail
+	//ASSERT(INFO == 0); // should not fail
 
 #ifdef DEBUG
 	std::cerr << "RCOND=" << RCOND << std::endl;
