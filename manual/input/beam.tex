@@ -1568,6 +1568,83 @@ private data related to point II are numbered from 28 to 54.
 
 
 
+\subsubsection{Inertia Properties}
+So-called ``consistent inertia'' is not implemented for beam elements; one needs to use \kw{body} (rigid-body) elements instead.
+Their suggested usage is detailed here.
+
+In principle, from the inertial point of view, the beam should be split in ``chunks'' as discussed earlier.
+Distributed inertia loads are associated with the motion of each chunk.
+For moderate straining, one can safely assume that the chunks remain rigid with respect to inertia loads computation.
+
+For the sake of simplicity, it is assumed that the beam is straight, with uniform inertia properties,
+where the $x$ axis is the beam axis, and $y$ and $z$ are principal inertia axes of the section.
+Moreover, it is assumed that the nodes are equally spaced (i.e.\ the mid-node is at midspan).
+
+Consider the mass per unit span $m$, the inertia moment per unit span about the beam's axis, $i_{xx}$,
+and those about the two remaining axes, $i_{yy}$, $i_{zz}$, with $i_{xx} = i_{yy} + i_{zz}$.
+The length of the beam element is $\ell$.
+
+According to the theory, the beam is cut at two stations, set at $\pm \ell/(2 \sqrt{3})$ from the mid-node.
+As a consequence, the length of the middle chunk is $\ell_{\text{mid}} = \ell/\sqrt{3}$, whereas that of the end chunks is
+$\ell_{\text{end}} = \ell (1 - 1/\sqrt{3})/2$.
+
+The corresponding bodies are
+\begin{verbatim}
+# body associated with first end node
+body: 1,
+    1, # label of first end node
+    m*ell_end, # mass associated with first end node
+    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk is offset along the beam axis
+    diag,
+        i_xx*ell_end,
+        i_yy*ell_end + m*ell_end^3/12, # i_yy may often be neglected
+        i_zz*ell_end + m*ell_end^3/12; # i_zz may often be neglected
+
+# body associated with mid-node
+body: 2,
+    2, # label of mid-node
+    m*ell_mid, # mass associated with mid-node
+    reference, node, null, # the center of mass of this chunk is at the node
+    diag,
+        i_xx*ell_mid,
+        i_yy*ell_mid + m*ell_mid^3/12,
+        i_zz*ell_mid + m*ell_mid^3/12;
+
+# body associated with last end node
+body: 3,
+    3, # label of last end node
+    m*ell_end,
+    reference, node, -ell_end/2, 0., 0.,
+    diag,
+        i_xx*ell_end,
+        i_yy*ell_end + m*ell_end^3/12,
+        i_zz*ell_end + m*ell_end^3/12;
+\end{verbatim}
+Often, $i_{yy}$ and $i_{zz}$ can be neglected, significantly when the beam element is slender enough
+(i.e.\ when $\ell \sqrt{m A/i_{yy}} \approx \ell \sqrt{m A/i_{zz}} \ll 1$).
+
+Moreover, the chunks do not necessarily need to be cut exactly at $\pm \ell / (2 \sqrt{3})$;
+setting $\ell_{\text{mid}} = \ell/2$ and $\ell_{\text{end}} = \ell/4$ gives good results.
+
+When assembling strings of beam elements, one would need to connect two \kw{body} elements to each end node,
+each of them accounting from the inertial contribution of the two adjacent beam elements.
+Alternatively, a single \kw{body} can be used, which accounts for the contribution of the two elements.
+If the two adjacent beam elements are identical (i.e.\ same inertia properties, same length $\ell$),
+an end body would look like
+\begin{verbatim}
+body: 3,
+    3, # label of last end node
+    m*(2*ell_end),
+    reference, node, null,
+    diag,
+        i_xx*(2*ell_end),
+        i_yy*(2*ell_end) + m*(2*ell_end)^3/12,
+        i_zz*(2*ell_end) + m*(2*ell_end)^3/12;
+\end{verbatim}
+If the two adjacent beam elements differ, one can use the \kw{condense} option
+to collect the inertia contributions from each beam element and let the solver
+do the merge.
+See Section~\ref{sec:EL:BODY} for more details.
 
 
 
@@ -1665,6 +1742,35 @@ matrix is presented:
 \end{verbatim}
 Note that the shear terms have been na\"{\i}vely inverted to eliminate
 shear locking, according to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
+
+
+\subsubsection{Inertia Properties}
+According to the theory, the beam is cut in half.
+As a consequence, the length of each chunk is $\ell_{\text{end}} = \ell/2$.
+
+With reference to the symbols defined for the three-node beam element, the corresponding bodies are
+\begin{verbatim}
+# body associated with first end node
+body: 1,
+    1, # label of first end node
+    m*ell_end, # mass associated with first end node
+    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk is offset along the beam axis
+    diag,
+        i_xx*ell_end,
+        i_yy*ell_end + m*ell_end^3/12, # i_yy may often be neglected
+        i_zz*ell_end + m*ell_end^3/12; # i_zz may often be neglected
+
+# body associated with last end node
+body: 2,
+    2, # label of last end node
+    m*ell_end,
+    reference, node, -ell_end/2, 0., 0.,
+    diag,
+        i_xx*ell_end,
+        i_yy*ell_end + m*ell_end^3/12,
+        i_zz*ell_end + m*ell_end^3/12;
+\end{verbatim}
+Similar considerations to those made for the three-node beam element apply also in this case.
 
 
 
