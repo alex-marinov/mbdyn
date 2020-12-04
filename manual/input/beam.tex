@@ -1569,7 +1569,8 @@ private data related to point II are numbered from 28 to 54.
 
 
 \subsubsection{Inertia Properties}
-So-called ``consistent inertia'' is not implemented for beam elements; one needs to use \kw{body} (rigid-body) elements instead.
+So-called ``consistent inertia'' is not implemented for beam elements; one needs to use \kw{body} (rigid-body) elements 
+(Section~\ref{sec:EL:BODY}) instead.
 Their suggested usage is detailed here.
 
 In principle, from the inertial point of view, the beam should be split in ``chunks'' as discussed earlier.
@@ -1594,7 +1595,8 @@ The corresponding bodies are
 body: 1,
     1, # label of first end node
     m*ell_end, # mass associated with first end node
-    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk is offset along the beam axis
+    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk
+                                        # is offset along the beam axis
     diag,
         i_xx*ell_end,
         i_yy*ell_end + m*ell_end^3/12, # i_yy may often be neglected
@@ -1645,6 +1647,11 @@ If the two adjacent beam elements differ, one can use the \kw{condense} option
 to collect the inertia contributions from each beam element and let the solver
 do the merge.
 See Section~\ref{sec:EL:BODY} for more details.
+
+If the beam element is significantly curved, one needs to evaluate the correct position of the center of mass,
+and correct the inertia tensor accordingly.
+
+If axes $y$, $z$ are not principal inertia axes, one needs to take into account the cross-coupling terms in the inertia tensor.
 
 
 
@@ -1754,7 +1761,8 @@ With reference to the symbols defined for the three-node beam element, the corre
 body: 1,
     1, # label of first end node
     m*ell_end, # mass associated with first end node
-    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk is offset along the beam axis
+    reference, node, ell_end/2, 0., 0., # the center of mass of this chunk
+                                        # is offset along the beam axis
     diag,
         i_xx*ell_end,
         i_yy*ell_end + m*ell_end^3/12, # i_yy may often be neglected
