@@ -85,10 +85,10 @@ enum MBDyn_CE_COUPLING_LOOSE
 
 enum MBDyn_CE_CEMOTORTYPE
 {
-    VELOCITY = 0,
-    POSITION = 1,
+    POSITION = 0,
+    VELOCITY = 1,
+    ACCELERATION = 2,
 };
-
 
 //- opaque pointer to C::E system
 typedef  void* pMBDyn_CE_CEModel_t;
@@ -121,6 +121,7 @@ MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
                                   const unsigned &MBDyn_CE_NodesNum,
                                   const std::vector<MBDYN_CE_CEMODELDATA> &MBDyn_CE_CEModel_Label,
                                   const int MBDyn_CE_CEMotorType,
+                                  double* MBDyn_CE_CEMotorType_coeff,
                                   double time_step,
                                   bool bMBDyn_CE_Verbose);
 

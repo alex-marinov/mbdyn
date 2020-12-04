@@ -70,12 +70,12 @@ class ChronoInterfaceBaseElem
 private:
     DataManager *m_pDM;
     //- A function that transfer doublereal Vec3 to double Vec3 [data between MBDyn and C::E should use the same type]
-    void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CELengthScale);
+    void MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double *mbdynce_temp, double MBDyn_CE_CELengthScale) const;
     //- A function that transfer doublereal Mat3x3 to double Mat3x3 [data between MBDyn and C::E should use the same type]
-    void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp);
+    void MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp) const;
     double MBDyn_CE_CalculateError(); // calculate the error of coupling force.
-    // a testing case;
-    double xpm1, xpm2, xm1, xm2, xp, x;
+    //- A function that prints coupling data on screen.
+    void MBDyn_CE_MBDynPrint() const;
 
 protected:
     std::vector<double> MBDyn_CE_CouplingKinematic; //- for coupling motion
@@ -132,6 +132,7 @@ public:
     int MBDyn_CE_CouplingType;
     int MBDyn_CE_CouplingType_loose;
     int MBDyn_CE_CEMotorType;
+    double MBDyn_CE_CEMotorType_coeff[3]={0.0,0.0,0.0};// [0]=\alpha, [1]=\beta, [2]=\gamma
 
     // constructor
     
@@ -153,10 +154,9 @@ public:
                                   const VectorHandler &XP);
     virtual void AfterPredict(VectorHandler &X,
                               VectorHandler &XP);
+    virtual void BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHandler &XPrev, VectorHandler & XPPrev) const;
     //- unsigned int iGetNumPrivData(void) const;
     /* functions that introduces methods to handle the simulation: start*/
-
-
 
     /* functions for element, set the Jac and Res: start*/
     //- Initial Assemble

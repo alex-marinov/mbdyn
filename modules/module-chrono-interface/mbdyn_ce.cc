@@ -149,13 +149,24 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 				}
 				else if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::POSITION) //- coupling by position
 				{
-					// cosim using spline/line interpolation for position
+					//- cosim using spline/line interpolation for position
 					auto motor3d_function_pos = std::make_shared<ChFunctionPosition_line>();
 					auto motor3d_function_rot = std::make_shared<ChFunctionRotation_spline>();
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
 					std::cout<<"motor type is position (using function spline)\n";
-				}				
+				}	
+				else if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::ACCELERATION) //- coupling by velocity
+				{
+					//- the motor is the same as that for motortype::velocity
+					auto motor3d_function_pos = std::make_shared<ChFunctionPosition_setpoint>();;
+					motor3d_function_pos->SetMode(ChFunctionPosition_setpoint::eChSetpointMode::OVERRIDE);
+					auto motor3d_function_rot = std::make_shared<ChFunctionRotation_setpoint>();
+					motor3d_function_rot->SetMode(ChFunctionRotation_setpoint::eChSetpointMode::OVERRIDE);
+					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
+					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
+					std::cout<<"motor type is acceleration (using function setpoint)\n";
+				}			
 				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label = motor3d_body_i->GetIdentifier();
 				//----- output motor information
 				std::cout << "C::E motor " << i + 1 << " ID: " << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label
@@ -576,6 +587,7 @@ const std::vector<double>& MBDyn_CE_CouplingKinematic,
 const unsigned& MBDyn_CE_NodesNum,
 const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
 const int MBDyn_CE_CEMotorType,
+double* MBDyn_CE_CEMotorType_coeff, //- only used for motor type: acceleration
 double time_step,
 bool bMBDyn_CE_Verbose)
 {
@@ -637,28 +649,11 @@ bool bMBDyn_CE_Verbose)
 				ChVector<> mbdynce_tempframeM2_end_pos_dt, mbdynce_tempframeM2_end_pos_dtdt;
 				ChVector<> mbdynce_tempframeM2_end_Wvel_loc, mbdynce_tempframeM2_end_Wacc_loc; // angular velocity and acceleration in frame M loc
 
-				//- start/end position
+				//- start/end position in frame 2
 				mbdynce_tempframe1b1_start = motor3d_motor_i->GetFrame1();
 				mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());
 				mbdynce_tempframeM2_start = mbdynce_tempframe1G_start >> (mbdynce_tempframe2G.GetInverse()); // expressed in Frame 2
 				mbdynce_tempframeM2_end = mbdynce_tempMBDynG_end >> (mbdynce_tempframe2G.GetInverse()); // pos and rot of the node expressed in Frame 2
-				if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::VELOCITY) // co-simulation by velocity 
-				{
-					//- when using setpoint function to impose velocity, end position/rotation == start position/rotation.
-					mbdynce_tempframeM2_end = mbdynce_tempframeM2_start;
-				}
-
-				//- end linear veloctiy/acceleration; 
-				//- expressed in frame M2 (setpoint function)
-				mbdynce_tempframeM2_end_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dt);
-				mbdynce_tempframeM2_end_pos_dtdt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dtdt);
-
-				//- end angular veloctiy/acceleration;
-				//- expressed in frame M (setpoint function)
-				mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wvel_par); //- angular velocity: expressed in frame 2
-				mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wacc_par);
-				mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframeM2_end.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wvel_loc); //- angular velocity: expressed in frame M
-				mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframeM2_end.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wacc_loc); //- should be expressed in the get_q(s) frame, namely, frame M.						
 
 				if (bMBDyn_CE_Verbose)
 				{
@@ -676,8 +671,86 @@ bool bMBDyn_CE_Verbose)
 					std::cout << "\t\t\tmbdynce_tempframeM2_end(yaw-pitch-roll-Euler321): " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 				}
 
+				if (MBDyn_CE_CEMotorType==MBDyn_CE_CEMOTORTYPE::ACCELERATION) //- accelerations
+				{
+					// using setpoint functions for position and rotation
+					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_setpoint>(motor3d_function_pos_base);
+					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_setpoint>(motor3d_function_rot_base);
+					
+					//- the velocity includes three part, 1. {(x_k+1-x_k)/h}, 2. {xp_k+1}, 3. {xp_k+h*xpp_k+1}
+					//- 1. {(x_k+1-x_k)/h} velocity by position difference
+					ChVector<> mbdynce_accmotor_posdt1, mbdynce_accmotor_posdt2, mbdynce_accmotor_posdt3;
+					ChVector<> mbdynce_accmotor_w_loc1, mbdynce_accmotor_w_loc2, mbdynce_accmotor_w_loc3;
+					//- position function using line/spline interpolation, in frame 2
+					auto mbdynce_temp_pos_func = std::make_shared<ChFunctionPosition_line>(); //- a position function
+					auto mbdynce_temp_pos_line = chrono_types::make_shared<geometry::ChLineSegment>(mbdynce_tempframeM2_start.GetPos(), mbdynce_tempframeM2_end.GetPos());
+					mbdynce_temp_pos_func->SetLine(mbdynce_temp_pos_line);
+					//- chrono_types::make_shared<>: a more safety case in C::E
+					mbdynce_temp_pos_func->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
+					//- rotation function using Slerp interpolation, in frame 2
+					auto mbdynce_temp_rot_func = std::make_shared<ChFunctionRotation_spline>();
+					if (mbdynce_tempframeM2_start.GetRot().Dot(mbdynce_tempframeM2_end.GetRot()) < 0)
+					{
+						mbdynce_tempframeM2_end.GetRot() = -mbdynce_tempframeM2_end.GetRot();
+					}
+					std::vector<ChQuaternion<>> mbdynce_temp_rot_spline = {{mbdynce_tempframeM2_start.GetRot()}, {mbdynce_tempframeM2_end.GetRot()}};
+					mbdynce_temp_rot_func->SetupData(1, mbdynce_temp_rot_spline);
+					mbdynce_temp_rot_func->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
+					mbdynce_accmotor_posdt1 = mbdynce_temp_pos_func->Get_p_ds(time); //- constant velocity, expressed in frame 2
+					mbdynce_accmotor_w_loc1 = mbdynce_temp_rot_func->Get_w_loc(time); //- constant angular velocity, expressed in local ref: {mbdynce_tempframeM2_start.GetRot()}
+
+					//- 2. {xp_k+1} velocity obtained from coupled velocity.
+					//- linear velocity and acceleration expressed in frame 2 (setpoint function);
+					mbdynce_tempframeM2_end_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dt);
+					mbdynce_tempframeM2_end_pos_dtdt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dtdt);
+					//- angular veloctiy/acceleration expressed in frame M (in real: mbdynce_tempframeM2_start=mbdynce_tempframeM2_end) (setpoint function)
+					mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wvel_par); //- angular velocity: expressed in frame 2
+					mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wacc_par);
+					mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wvel_loc); //- angular velocity: expressed in frame M
+					mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wacc_loc); //- should be expressed in the get_q(s) frame, namely, frame M.
+					mbdynce_accmotor_posdt2 = mbdynce_tempframeM2_end_pos_dt;
+					mbdynce_accmotor_w_loc2 = mbdynce_tempframeM2_end_Wvel_loc;
+
+					//- 3. {xp_k+h*xpp_k+1} velocity obtained from accleration*h.
+					ChVector<> mbdynce_tempframeG_start_pos_dt, mbdynce_tempframeG_start_Wvel_par;
+					mbdynce_tempframeG_start_pos_dt = motor3d_motor_i->GetBody1()->GetPos_dt(); //- pos_dt expressed in C::E global ref.
+					mbdynce_tempframeG_start_Wvel_par = motor3d_motor_i->GetBody1()->GetWvel_par(); //- Wvel expressed in C::E global ref. 
+					ChVector<> mbdynce_tempframeM2_start_pos_dt, mbdynce_tempframeM2_start_Wvel_loc;
+					mbdynce_tempframeM2_start_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempframeG_start_pos_dt); //- expressed in frame 2.
+					mbdynce_tempframeM2_start_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempframeG_start_Wvel_par); //- expressed in frame 2.
+					mbdynce_tempframeM2_start_Wvel_loc = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_tempframeM2_start_Wvel_loc); //- expressed in frame loc
+					mbdynce_accmotor_posdt3 = mbdynce_tempframeM2_start_pos_dt + time_step * mbdynce_tempframeM2_end_pos_dtdt;
+					mbdynce_accmotor_w_loc3 = mbdynce_tempframeM2_start_Wvel_loc + time_step * mbdynce_tempframeM2_end_Wacc_loc;
+
+					//- average velocit of velocity 1, 2 and 3
+					mbdynce_tempframeM2_end_pos_dt = time_step * MBDyn_CE_CEMotorType_coeff[0] * mbdynce_accmotor_posdt1 + MBDyn_CE_CEMotorType_coeff[1] * mbdynce_accmotor_posdt2 + MBDyn_CE_CEMotorType_coeff[2] / time_step * mbdynce_accmotor_posdt3;
+					mbdynce_tempframeM2_end_Wvel_loc = time_step * MBDyn_CE_CEMotorType_coeff[0] * mbdynce_accmotor_w_loc1 + MBDyn_CE_CEMotorType_coeff[1] * mbdynce_accmotor_w_loc2 + MBDyn_CE_CEMotorType_coeff[2] / time_step * mbdynce_accmotor_w_loc3;
+					double coeff = time_step / (MBDyn_CE_CEMotorType_coeff[0] * time_step * time_step + MBDyn_CE_CEMotorType_coeff[1] * time_step + MBDyn_CE_CEMotorType_coeff[2]);
+					mbdynce_tempframeM2_end_pos_dt *= coeff;
+					mbdynce_tempframeM2_end_Wvel_loc *= coeff;
+
+					//- position function using setpoint functions
+					motor3d_function_pos->SetSetpointAndDerivatives(mbdynce_tempframeM2_start.GetPos(), mbdynce_tempframeM2_end_pos_dt, mbdynce_tempframeM2_end_pos_dtdt);
+					motor3d_function_rot->SetSetpointAndDerivatives(mbdynce_tempframeM2_start.GetRot(), mbdynce_tempframeM2_end_Wvel_loc, mbdynce_tempframeM2_end_Wacc_loc);
+				}
 				if (MBDyn_CE_CEMotorType == MBDyn_CE_CEMOTORTYPE::VELOCITY) //- velocity
 				{
+					//- when using setpoint function to impose velocity, 
+					//- end position/rotation == start position/rotation.
+					mbdynce_tempframeM2_end = mbdynce_tempframeM2_start;
+
+					//- end linear veloctiy/acceleration;
+					//- expressed in frame 2 (setpoint function);
+					mbdynce_tempframeM2_end_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dt);
+					mbdynce_tempframeM2_end_pos_dtdt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dtdt);
+					//- end angular veloctiy/acceleration;
+					//- expressed in frame M (setpoint function)
+					mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wvel_par); //- angular velocity: expressed in frame 2
+					mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_Wacc_par);
+					mbdynce_tempframeM2_end_Wvel_loc = mbdynce_tempframeM2_end.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wvel_loc); //- angular velocity: expressed in frame M
+					mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframeM2_end.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wacc_loc); //- should be expressed in the get_q(s) frame, namely, frame M.	
+
+					// get the pointer to functions
 					auto motor3d_function_pos = std::dynamic_pointer_cast<ChFunctionPosition_setpoint>(motor3d_function_pos_base);
 					auto motor3d_function_rot = std::dynamic_pointer_cast<ChFunctionRotation_setpoint>(motor3d_function_rot_base);
 

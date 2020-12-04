@@ -112,6 +112,11 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			{
 				MBDyn_CE_CouplingType_loose = MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS;
 			}
+			else 
+			{
+				silent_cerr("The type of loose coupling scheme at line " << HP.GetLineData() << " is unknown \n");
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 		else if (HP.IsKeyWord("tight"))
 		{
@@ -127,29 +132,41 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				MBDyn_CE_Coupling_Tol = 1.0e-3; //pDM -> GetSolver()->pGetStepIntegrator()->GetIntegratorDTol();
 			}
 		}
-		else{
-			MBDyn_CE_CouplingType = HP.GetInt();
-			if (MBDyn_CE_CouplingType > 1)
-			{
-				MBDyn_CE_CouplingIter_Max = HP.GetInt();
-				std::cout << "multirate coupling C::E interface: not implemented" << std::endl;
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+		else
+		{
+			silent_cerr("Unknown coupling type at line " << HP.GetLineData() << " \n");
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+	}
+	else
+	{
+		silent_cerr("Unknown keyword at line " << HP.GetLineData() << "\n"); //- the first keywork must be "coupling"
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 
 	//--------------- read the motor type	
-	MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; // by default, using the position motor 
+	MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; //- by default, using the position motor 
 	if (HP.IsKeyWord("motor" "type"))
 	{
 		if (HP.IsKeyWord("vel"))
 		{
-			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; // velocity is imposed to objects in Chrono::Engine
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; //- velocity is imposed to objects in Chrono::Engine
 		}
 		else if (HP.IsKeyWord("pos"))
 		{
-			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::POSITION; // position is imposed to objects in Chrono::Engine
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::POSITION; //- position is imposed to objects in Chrono::Engine
+		}
+		else if (HP.IsKeyWord("acc"))
+		{
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::ACCELERATION; //- \alpha*(x2-x1)+\beta*(xp2-xp1)+\gamma*(xpp2-xpp1)
+			MBDyn_CE_CEMotorType_coeff[0] = HP.GetReal();			   //- alpha>=0
+			MBDyn_CE_CEMotorType_coeff[1] = HP.GetReal();			   //- beta>=0
+			MBDyn_CE_CEMotorType_coeff[2] = HP.GetReal();			   //- gamma>=0
+			std::cout << "\t\tcoeffs for the motor(acceleration type) are: "
+					  << MBDyn_CE_CEMotorType_coeff[0] << "\t"
+					  << MBDyn_CE_CEMotorType_coeff[1] << "\t"
+					  << MBDyn_CE_CEMotorType_coeff[2] << "\n";
 		}
 		else
 		{
@@ -399,19 +416,20 @@ ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
 		silent_cerr("ChronoInterface(" << uLabel << ") data in C::E and in MBDyn are inconsistent " << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
 	switch (MBDyn_CE_CouplingType)
 	{
-	case MBDyn_CE_COUPLING::COUPLING_NONE:
-		break; //- do nothing
-	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
+	case MBDyn_CE_COUPLING::COUPLING_NONE: //- do nothing
+		break; 
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT: //- save data
 		if (MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data)) //- save data in MBDyn_CE_CEModel_Data
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") data saving process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		break;
-	case MBDyn_CE_COUPLING::COUPLING_LOOSE:
-		break; //- do nothing
+	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- do nothing
+		break; 
 	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default: //- multirate  to do 
 		break; 
@@ -445,7 +463,7 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 		}
 		//---------- 3. C::E models read the coupling data from buffer;
 		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
-		if (MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, MBDyn_CE_CEMotorType, time_step, bMBDyn_CE_Verbose))
+		if (MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, MBDyn_CE_CEMotorType, MBDyn_CE_CEMotorType_coeff, time_step, bMBDyn_CE_Verbose))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") C::E receiving data process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -483,58 +501,30 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 }
 
 void 
+ChronoInterfaceBaseElem::BeforePredict(VectorHandler &X, VectorHandler &XP, 
+VectorHandler &XPrev, VectorHandler & XPPrev) const
+{
+	pedantic_cout("\tMBDyn::BeforePredict()\n");
+}
+
+void 
 ChronoInterfaceBaseElem::AfterConvergence(const VectorHandler &X,
                                   const VectorHandler &XP)
 {
+	pedantic_cout("\tMBDyn::AfterConvergence()\n");
 	switch (MBDyn_CE_CouplingType)
 	{
-	case MBDyn_CE_COUPLING::COUPLING_NONE:
-		pedantic_cout("\tMBDyn::AfterConvergence()\n");
-		break; //- do nothing
-	case MBDyn_CE_COUPLING::COUPLING_TIGHT:
-		pedantic_cout("\tMBDyn::AfterConvergence()\n");
+	case MBDyn_CE_COUPLING::COUPLING_NONE: //- do nothing
+		break; 
+	case MBDyn_CE_COUPLING::COUPLING_TIGHT: //- do nothing
 		break;
 	case MBDyn_CE_COUPLING::COUPLING_LOOSE: //- to do
-		pedantic_cout("\tMBDyn::AfterConvergence()\n");
-		break;
 	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
 	default:
 		break; 
 	}
 	if (bMBDyn_CE_Verbose)
-	{
-		double time;
-		time = m_pDM->dGetTime();
-		std::cout << "\t\ttime in MBDyn: " << time << "\t forces obtained: " << pMBDyn_CE_CouplingDynamic_f[0] << "\n";
-		const MBDYN_CE_POINTDATA &mbdynce_point = MBDyn_CE_Nodes[0];
-		//- rotation and position
-		const Mat3x3 &mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
-		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
-		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXCurr() + mbdynce_f;
-		//- angular velocity and velocity
-		const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWCurr();
-		Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);
-		Vec3 mbdynce_v = mbdynce_point.pMBDyn_CE_Node->GetVCurr() + mbdynce_wCrossf;
-		//- angular acceleration and acceleration
-		const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPCurr();
-		Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPCurr() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
-
-		double mbdynce_tempvec3_x[3];
-		double mbdynce_tempvec3_v[3];
-		double mbdynce_tempvec3_a[3];
-		double mbdynce_tempvec3_w[3];
-		double mbdynce_tempvec3_wp[3];
-		MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
-		MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
-		MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
-		MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
-		MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
-		double mbdynce_tempmat3x3_R[9];
-		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
-		std::cout << "\t\tpos: " << mbdynce_tempvec3_x[0] - 1000 << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
-				  << "\t\tvel: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
-				  << "\t\tacc: " << mbdynce_tempvec3_a[0] << "\t" << mbdynce_tempvec3_a[1] << "\t" << mbdynce_tempvec3_a[2] << "\n";
-	}
+		MBDyn_CE_MBDynPrint();
 	return;
 }
 
@@ -547,7 +537,8 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 	MBDyn_CE_CouplingIter_Count = 0;
 	bMBDyn_CE_FirstSend = true;
 	bMBDyn_CE_CEModel_DoStepDynamics = true;
-
+	if (bMBDyn_CE_Verbose)
+		MBDyn_CE_MBDynPrint();
 	switch (MBDyn_CE_CouplingType)
 	{
 	case MBDyn_CE_COUPLING::COUPLING_NONE:
@@ -819,7 +810,7 @@ ChronoInterfaceBaseElem::Restart(std::ostream& out) const
 
 /* private functions: start*/
 void 
-ChronoInterfaceBaseElem::MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double* mbdynce_temp, double MBDyn_CE_CELengthScale)
+ChronoInterfaceBaseElem::MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double* mbdynce_temp, double MBDyn_CE_CELengthScale) const
 {
 	mbdynce_temp[0] = MBDyn_CE_CELengthScale * static_cast<double>(*(mbdynce_Vec3.pGetVec()));
 	mbdynce_temp[1] = MBDyn_CE_CELengthScale * static_cast<double>(*(mbdynce_Vec3.pGetVec() + 1));
@@ -827,7 +818,7 @@ ChronoInterfaceBaseElem::MBDyn_CE_Vec3D(const Vec3& mbdynce_Vec3, double* mbdync
 }
 
 void 
-ChronoInterfaceBaseElem::MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp)
+ChronoInterfaceBaseElem::MBDyn_CE_Mat3x3D(const Mat3x3& mbdynce_Mat3x3, double *mbdynce_temp) const
 {
 	for (unsigned i = 0; i < 9;i++)
 	{
@@ -849,6 +840,81 @@ ChronoInterfaceBaseElem::MBDyn_CE_CalculateError() //- calculate the error of co
 		
 	}
 	return sqrt(mbdynce_temp_error);
+}
+
+void
+ChronoInterfaceBaseElem::MBDyn_CE_MBDynPrint() const
+{
+	//- print the data calculated in MBDyn
+	for (unsigned mbdynce_i = 0; mbdynce_i < MBDyn_CE_NodesNum; mbdynce_i++)
+	{
+		double time;
+		time = m_pDM->dGetTime();
+		const MBDYN_CE_POINTDATA &mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
+		std::cout << "\t\ttime in MBDyn: " << time << "\t"
+				  << "coupling node" << mbdynce_point.MBDyn_CE_uLabel << "\n"
+				  << "\t\tforces obtained: " << pMBDyn_CE_CouplingDynamic_f[mbdynce_i] << "\n";
+		{
+			//- rotation and position
+			const Mat3x3 &mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
+			Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
+			Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXCurr() + mbdynce_f;
+			//- angular velocity and velocity
+			const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWCurr();
+			Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);
+			Vec3 mbdynce_v = mbdynce_point.pMBDyn_CE_Node->GetVCurr() + mbdynce_wCrossf;
+			//- angular acceleration and acceleration
+			const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPCurr();
+			Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPCurr() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
+
+			double mbdynce_tempvec3_x[3];
+			double mbdynce_tempvec3_v[3];
+			double mbdynce_tempvec3_a[3];
+			double mbdynce_tempvec3_w[3];
+			double mbdynce_tempvec3_wp[3];
+			MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
+			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
+			double mbdynce_tempmat3x3_R[9];
+			MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+			std::cout << "\t\tpos: " << mbdynce_tempvec3_x[0] << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
+					  << "\t\tvel: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
+					  << "\t\tacc: " << mbdynce_tempvec3_a[0] << "\t" << mbdynce_tempvec3_a[1] << "\t" << mbdynce_tempvec3_a[2] << "\n";
+		}
+
+		{
+			//- data of last step
+			//- rotation and position
+			const Mat3x3 &mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRPrev();
+			Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
+			Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXPrev() + mbdynce_f;
+			//- angular velocity and velocity
+			const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWPrev();
+			Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);
+			Vec3 mbdynce_v = mbdynce_point.pMBDyn_CE_Node->GetVPrev() + mbdynce_wCrossf;
+			//- angular acceleration and acceleration
+			const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPPrev();
+			Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPPrev() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
+
+			double mbdynce_tempvec3_x[3];
+			double mbdynce_tempvec3_v[3];
+			double mbdynce_tempvec3_a[3];
+			double mbdynce_tempvec3_w[3];
+			double mbdynce_tempvec3_wp[3];
+			MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
+			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
+			double mbdynce_tempmat3x3_R[9];
+			MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+			std::cout << "\t\tpos_prev: " << mbdynce_tempvec3_x[0] << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
+					  << "\t\tvel_prev: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
+					  << "\t\tacc_prev: " << mbdynce_tempvec3_a[0] << "\t" << mbdynce_tempvec3_a[1] << "\t" << mbdynce_tempvec3_a[2] << "\n";
+		}
+		}
 }
 /* private functions: end*/
 
