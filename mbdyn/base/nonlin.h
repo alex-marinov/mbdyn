@@ -296,8 +296,8 @@ protected:
     public:
         explicit CPUStopWatch(NonlinearSolver& oSolver, CPUTimeType eType)
             :oSolver(oSolver),
-	     eStatus(SWST_INACTIVE),
              eType(eType),
+	     eStatus(SWST_INACTIVE),	     
              dStartTimeCPU(std::chrono::nanoseconds(0)),
              dElapsedCPU(std::chrono::nanoseconds(0)) {
         }

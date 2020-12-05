@@ -82,6 +82,7 @@ namespace sp_grad {
 	  };
      }
 
+     template <typename ValueType>
      class SpMatrixBaseData {
      protected:
 	  inline SpMatrixBaseData(index_type iNumRows,
@@ -99,13 +100,11 @@ namespace sp_grad {
 	  bCheckSize(index_type iNumRowsReq,
 		     index_type iNumColsReq,
 		     index_type iNumDerivReq) const noexcept;
-	  
-	  inline static SpMatrixBaseData* pGetNullData() noexcept;
-	  
+
+	  inline static SpMatrixBaseData* pGetNullData() noexcept;	  
 #ifdef SP_GRAD_DEBUG
 	  static inline index_type iGetRefCntNullData() { return oNullData.iRefCnt; }
 #endif
-	  
      protected:
 	  index_type iNumRows;
 	  index_type iNumCols;
@@ -115,12 +114,17 @@ namespace sp_grad {
 	  index_type iRefCnt;
 #endif
 	  index_type iNumDeriv;
-
-	  static SpMatrixBaseData oNullData;
+	  
+	  ValueType rgData[0];
+	  
+	  static SpMatrixBaseData oNullData;	  
      };
 
      template <typename ValueType>
-     class SpMatrixData: public SpMatrixBaseData {
+     SpMatrixBaseData<ValueType> SpMatrixBaseData<ValueType>::oNullData{0, 0, 1, 0};
+     
+     template <typename ValueType>
+     class SpMatrixData: public SpMatrixBaseData<ValueType> {
      protected:
 	  inline SpMatrixData(index_type iNumRows,
 			      index_type iNumCols,

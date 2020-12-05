@@ -99,7 +99,7 @@ namespace {
 #define HYDRO_TRACE(expr) static_cast<void>(0)
 #endif
 
-#if HYDRO_DEBUG > 0
+#if HYDRO_DEBUG > 1
     template <typename ElementType>
     bool bCheckNumColsWorkSpace(const ElementType* pElem, sp_grad::SpFunctionCall eFunc, doublereal g, index_type iRowIndex)
     {

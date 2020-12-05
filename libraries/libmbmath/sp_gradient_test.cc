@@ -3012,7 +3012,6 @@ namespace sp_grad_test {
 	  MyVectorHandler X(iNumCols), Y(iNumRows), Z1(iNumRows), W1(iNumCols), Z2(iNumRows), W2(iNumCols);
 
 	  for (index_type iloop = 0; iloop < inumloops; ++iloop) {
-	       integer iNumRes = randnz(gen);
 	       integer k = randadd(gen);
 
 	       doublereal a, b;
@@ -3249,10 +3248,12 @@ int main(int argc, char* argv[])
 
 #ifdef SP_GRAD_DEBUG
 		cerr << "remaining references for SpGradient::oNullData: " << SpGradient::iGetRefCntNullData() << endl;
-		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData::iGetRefCntNullData() << endl;
+		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData<SpGradient>::iGetRefCntNullData() << endl;
+		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData<doublereal>::iGetRefCntNullData() << endl;
 #endif
 		SP_GRAD_ASSERT(SpGradient::iGetRefCntNullData() == 1);
-		SP_GRAD_ASSERT(SpMatrixBaseData::iGetRefCntNullData() == 1);
+		SP_GRAD_ASSERT(SpMatrixBaseData<SpGradient>::iGetRefCntNullData() == 1);
+		SP_GRAD_ASSERT(SpMatrixBaseData<doublereal>::iGetRefCntNullData() == 1);
 
 		cerr << "All tests passed\n"
 		     << "\n\tloops performed: " << inumloops

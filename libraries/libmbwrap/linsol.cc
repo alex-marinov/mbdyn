@@ -462,7 +462,7 @@ LinSol::SetDropTolerance(const doublereal& d)
 bool
 LinSol::SetLowRankCompressTol(const doublereal& d)
 {
-     if (0 == ::solver[currSolver].s_flags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK) {
+     if (0 == (::solver[currSolver].s_flags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK)) {
 	  return false;
      }
 
@@ -473,7 +473,7 @@ LinSol::SetLowRankCompressTol(const doublereal& d)
 
 bool LinSol::SetLowRankCompressMinRatio(const doublereal& d)
 {
-     if (0 == ::solver[currSolver].s_flags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK) {
+     if (0 == (::solver[currSolver].s_flags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK)) {
 	  return false;
      }
 

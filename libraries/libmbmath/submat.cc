@@ -633,8 +633,11 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 		       oItem.Reset(0., piColm1[c], ppdColsm1[c][r]);
 		       oRow += oItem;
 		  }
-	     
-		  bool bStatus = MH.AddItem(piRowm1[r], oRow);
+
+#ifdef USE_MULTITHREAD
+		  bool bStatus =
+#endif
+		       MH.AddItem(piRowm1[r], oRow);
 
 #ifdef USE_MULTITHREAD		  
 		  if (bStatus) {
@@ -1473,7 +1476,11 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 		  }
 #endif
 		  oItem.Reset(0., piColm1[i], pdMatm1[i]);
-		  bool bStatus = MH.AddItem(piRowm1[i], oItem);
+
+#ifdef USE_MULTITHREAD
+		  bool bStatus =
+#endif
+		       MH.AddItem(piRowm1[i], oItem);
 
 #ifdef USE_MULTITHREAD
 		  if (bStatus) {
@@ -1744,7 +1751,11 @@ MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
 		    continue;
 	       }
 #endif
-	       bool bStatus = MH.AddItem(oItem.iEquationIdx, oItem.oResidual);
+
+#ifdef USE_MULTITHREAD
+	       bool bStatus =
+#endif
+		    MH.AddItem(oItem.iEquationIdx, oItem.oResidual);
 
 #ifdef USE_MULTITHREAD	  
 	       if (bStatus) {

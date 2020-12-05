@@ -115,8 +115,8 @@ private:
      
      inline StrumpackSolver* pGetSolver() const;
 
-     mutable MyVectorHandler x, b;
      mutable MatrixHandlerType A;
+     mutable MyVectorHandler x, b;
      std::vector<integer> Ai, Ap;
      std::vector<doublereal> Ax;
      MatrixScaleBase* pMatScale;

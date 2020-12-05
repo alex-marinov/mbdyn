@@ -71,7 +71,6 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dirccmh.h"
-#include "cscmhtpl.h"
 #include "umfpackwrap.h"
 #include "dgeequ.h"
 #include <cstring>
@@ -467,22 +466,21 @@ UmfpackSparseSolutionManager<SparseMatrixHandlerType>::MakeCompressedColumnForm(
 #ifdef MBDYN_ENABLE_PROFILE
 	using namespace std::chrono;
 	auto start = high_resolution_clock::now();
-#endif    
+#endif
+	ScaleMatrixAndRightHandSide(A);
+
+#ifdef MBDYN_ENABLE_PROFILE
+	auto dt = high_resolution_clock::now() - start;
+	silent_cout("UMFPACK: scaling A takes " << dt.count() << "ns\n");
+	start = high_resolution_clock::now();
+#endif
+
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 	
 #ifdef MBDYN_ENABLE_PROFILE
 	dt = high_resolution_clock::now() - start;
 	silent_cout("UMFPACK: making compact form takes " << dt.count() << "ns\n");
-	start = high_resolution_clock::now();
-#endif	
-	CSCMatrixHandlerTpl<doublereal, integer, 0> Atmp(&Ax.front(), &Ai.front(), &Ap.front(), A.iGetNumCols(), A.Nz());
-
-	ScaleMatrixAndRightHandSide(Atmp);
-
-#ifdef MBDYN_ENABLE_PROFILE
-	auto dt = high_resolution_clock::now() - start;
-	silent_cout("UMFPACK: scaling A takes " << dt.count() << "ns\n");
-#endif	
+#endif
 }
 
 template <typename SparseMatrixHandlerType>

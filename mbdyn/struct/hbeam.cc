@@ -209,7 +209,7 @@ HBeam::dGetPrivData(unsigned int i) const
 	case 10:
 	case 11:
 	case 12:
-		return AzLoc.dGet(i);
+		return AzLoc.dGet(i - 6);
 
 	case 2:
 	case 3:

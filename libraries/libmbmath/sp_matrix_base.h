@@ -2022,57 +2022,65 @@ namespace sp_grad {
 	  }
      };
 
-     index_type SpMatrixBaseData::iGetNumRows() const noexcept {
+     template <typename ValueType>
+     index_type SpMatrixBaseData<ValueType>::iGetNumRows() const noexcept {
 	  SP_GRAD_ASSERT(iNumRows >= 0);
 	  SP_GRAD_ASSERT(iNumCols >= 0);
 	  return iNumRows;
      }
 
-     index_type SpMatrixBaseData::iGetNumCols() const noexcept {
+     template <typename ValueType>
+     index_type SpMatrixBaseData<ValueType>::iGetNumCols() const noexcept {
 	  SP_GRAD_ASSERT(iNumRows >= 0);
 	  SP_GRAD_ASSERT(iNumCols >= 0);
 
 	  return iNumCols;
      }
 
-     index_type SpMatrixBaseData::iGetNumElem() const noexcept {
+     template <typename ValueType>
+     index_type SpMatrixBaseData<ValueType>::iGetNumElem() const noexcept {
 	  SP_GRAD_ASSERT(iNumRows >= 0);
 	  SP_GRAD_ASSERT(iNumCols >= 0);
 
 	  return iNumRows * iNumCols;
      }
 
-     index_type SpMatrixBaseData::iGetRefCnt() const noexcept {
+     template <typename ValueType>
+     index_type SpMatrixBaseData<ValueType>::iGetRefCnt() const noexcept {
 	  SP_GRAD_ASSERT(iRefCnt >= 0);
 
 	  return iRefCnt;
      }
 
-     index_type SpMatrixBaseData::iGetMaxDeriv() const noexcept {
+     template <typename ValueType>
+     index_type SpMatrixBaseData<ValueType>::iGetMaxDeriv() const noexcept {
 	  SP_GRAD_ASSERT(iNumDeriv >= 0);
 
 	  return iNumDeriv;
      }
 
-     bool SpMatrixBaseData::bCheckSize(index_type iNumRowsReq, index_type iNumColsReq, index_type iNumDerivReq) const noexcept {
+     template <typename ValueType>
+     bool SpMatrixBaseData<ValueType>::bCheckSize(index_type iNumRowsReq, index_type iNumColsReq, index_type iNumDerivReq) const noexcept {
 	  return iNumRowsReq == iNumRows && iNumColsReq == iNumCols && iNumDerivReq <= iNumDeriv && iRefCnt <= 1;
      }
 
-     SpMatrixBaseData* SpMatrixBaseData::pGetNullData() noexcept {
-	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 0);
-	  SP_GRAD_ASSERT(oNullData.iNumRows == 0);
-	  SP_GRAD_ASSERT(oNullData.iNumCols == 0);
-
-	  return &oNullData;
-     }
-
-     SpMatrixBaseData::SpMatrixBaseData(index_type iNumRows, index_type iNumCols, index_type iRefCnt, index_type iNumDeriv) noexcept
+     template <typename ValueType>
+     SpMatrixBaseData<ValueType>::SpMatrixBaseData(index_type iNumRows, index_type iNumCols, index_type iRefCnt, index_type iNumDeriv) noexcept
 	  :iNumRows(iNumRows),
 	   iNumCols(iNumCols),
 	   iRefCnt(iRefCnt),
 	   iNumDeriv(iNumDeriv) {
      }
 
+     template <typename ValueType>
+     SpMatrixBaseData<ValueType>* SpMatrixBaseData<ValueType>::pGetNullData() noexcept {
+	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 0);
+	  SP_GRAD_ASSERT(oNullData.iNumRows == 0);
+	  SP_GRAD_ASSERT(oNullData.iNumCols == 0);
+
+	  return &oNullData;
+     }
+     
      namespace util {
 	  template <typename ValueType>
 	  void SpMatrixDataTraits<ValueType>::Construct(SpMatrixData<ValueType>& oData, index_type iNumDeriv, void* pExtraMem) {
@@ -2138,7 +2146,7 @@ namespace sp_grad {
 					   index_type iRefCnt,
 					   index_type iNumDeriv,
 					   void* pExtraMem)
-	  :SpMatrixBaseData(iNumRows, iNumCols, iRefCnt, iNumDeriv) {
+	  :SpMatrixBaseData<ValueType>(iNumRows, iNumCols, iRefCnt, iNumDeriv) {
 
 	  util::SpMatrixDataTraits<ValueType>::Construct(*this, iNumDeriv, pExtraMem);
      }
@@ -2147,55 +2155,49 @@ namespace sp_grad {
      SpMatrixData<ValueType>::~SpMatrixData() {
 	  for (auto& g: *this) {
 	       g.~ValueType();
-	  }
+	  }	  
      }
 
      template <typename ValueType>
-     ValueType* SpMatrixData<ValueType>::pGetData() noexcept {
-	  auto pVal = reinterpret_cast<ValueType*>(this + 1);
-
-	  SP_GRAD_ASSERT(reinterpret_cast<size_t>(pVal) % alignof(ValueType) == 0);
-
-	  return pVal;
+     ValueType* SpMatrixData<ValueType>::pGetData() noexcept {	 
+	  return this->rgData;
      }
 
      template <typename ValueType>
      ValueType* SpMatrixData<ValueType>::pGetData(index_type iRow) noexcept {
 	  SP_GRAD_ASSERT(iRow >= 1);
-	  SP_GRAD_ASSERT(iRow <= iNumRows * iNumCols);
+	  SP_GRAD_ASSERT(iRow <= this->iNumRows * this->iNumCols);
 
 	  return pGetData() + iRow - 1;
      }
 
      template <typename ValueType>
      const ValueType* SpMatrixData<ValueType>::pGetData() const noexcept {
-	  auto pVal = reinterpret_cast<const ValueType*>(this + 1);
-
-	  SP_GRAD_ASSERT(reinterpret_cast<size_t>(pVal) % alignof(ValueType) == 0);
-
-	  return pVal;
+	  return this->rgData;
      }
 
      template <typename ValueType>
      const ValueType* SpMatrixData<ValueType>::pGetData(index_type iRow) const noexcept {
 	  SP_GRAD_ASSERT(iRow >= 1);
-	  SP_GRAD_ASSERT(iRow <= iNumRows * iNumCols);
+	  SP_GRAD_ASSERT(iRow <= this->iNumRows * this->iNumCols);
 
 	  return pGetData() + iRow - 1;
      }
 
      template <typename ValueType>
      void SpMatrixData<ValueType>::IncRef() noexcept {
-	  SP_GRAD_ASSERT(iRefCnt >= 0);
-	  ++iRefCnt;
+	  SP_GRAD_ASSERT(this->iRefCnt >= 0);
+	  ++this->iRefCnt;
      }
 
      template <typename ValueType>
      void SpMatrixData<ValueType>::DecRef() {
-	  SP_GRAD_ASSERT(iRefCnt >= 1);
+	  SP_GRAD_ASSERT(this->iRefCnt >= 1);
 
-	  if (--iRefCnt == 0) {
-	       if (this != &oNullData) {
+	  if (--this->iRefCnt == 0) {
+	       SP_GRAD_ASSERT(this != &this->oNullData);
+
+	       if (this != &this->oNullData) {
 		    this->~SpMatrixData();
 
 #if defined(HAVE_ALIGNED_MALLOC)
@@ -2228,7 +2230,7 @@ namespace sp_grad {
 
      template <typename ValueType>
      ValueType* SpMatrixData<ValueType>::end() noexcept {
-	  return pGetData() + iGetNumElem();
+	  return pGetData() + this->iGetNumElem();
      }
 
      template <typename ValueType>
@@ -2238,7 +2240,7 @@ namespace sp_grad {
 
      template <typename ValueType>
      const ValueType* SpMatrixData<ValueType>::end() const noexcept {
-	  return pGetData() + iGetNumElem();
+	  return pGetData() + this->iGetNumElem();
      }
 
      template <typename ValueType>
@@ -3577,7 +3579,7 @@ namespace sp_grad {
      template <typename ValueType, index_type NumRows, index_type NumCols>
      typename SpMatrixBase<ValueType, NumRows, NumCols>::SpMatrixDataType*
      SpMatrixBase<ValueType, NumRows, NumCols>::pGetNullData() {
-	  return static_cast<SpMatrixDataType*>(SpMatrixBaseData::pGetNullData());
+	  return static_cast<SpMatrixDataType*>(SpMatrixData<ValueType>::pGetNullData());
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>

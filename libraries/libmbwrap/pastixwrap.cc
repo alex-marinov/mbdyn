@@ -42,7 +42,6 @@
 
 #ifdef USE_PASTIX
 #include <algorithm>
-#include "cscmhtpl.h"
 #include "dgeequ.h"
 #include "linsol.h"
 #include "pastixwrap.h"
@@ -271,8 +270,8 @@ void PastixSolutionManager<MatrixHandlerType>::IsValid(void) const
 {
     ASSERT(b.size() == x.size());
     ASSERT(A.iGetNumRows() == A.iGetNumCols());
-    ASSERT(b.size() == A.iGetNumRows());
-    ASSERT(x.size() == A.iGetNumCols());
+    ASSERT(b.size() == static_cast<size_t>(A.iGetNumRows()));
+    ASSERT(x.size() == static_cast<size_t>(A.iGetNumCols()));
     
     pLS->IsValid();
 }
@@ -293,11 +292,9 @@ void PastixSolutionManager<MatrixHandlerType>::MatrInitialize(void)
 template <typename MatrixHandlerType>
 void PastixSolutionManager<MatrixHandlerType>::MakeCompressedColumnForm(void)
 {
-     PastixSolver::SpMatrix& spm = pGetSolver()->MakeCompactForm(A);
-
-     CSCMatrixHandlerTpl<doublereal, pastix_int_t, 1> Atmp(spm.pAx(), spm.pAi(), spm.pAp(), spm.n, spm.nnz);
-    
-     ScaleMatrixAndRightHandSide(Atmp);
+     ScaleMatrixAndRightHandSide(A);
+     
+     pGetSolver()->MakeCompactForm(A);
 }
 
 template <typename MatrixHandlerType>

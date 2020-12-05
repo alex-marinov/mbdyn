@@ -56,7 +56,7 @@ public:
      // It does not own the memory and will not free it!     
      // So, it can be used with in combination with any CSC matrix handler (e.g. Umfpack, KLU, Pastix)
      CSCMatrixHandlerTpl(value_type* pAx, idx_type* pAi, idx_type* pAp, idx_type NCols, idx_type NZ)
-	  :pAx(pAx), pAi(pAi), pAp(pAp), NCols(NCols), NZ(NZ) {
+	  :NCols(NCols), NZ(NZ), pAx(pAx), pAi(pAi), pAp(pAp) {
 	  
 	  ASSERT(NCols >= 0);
 	  ASSERT(NZ == 0 || pAp[0] == offset);
@@ -107,8 +107,8 @@ public:
      
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override {
 	  if (oRowScale.size() && oColScale.size()) {
-	       ASSERT(oRowScale.size() == NCols);
-	       ASSERT(oColScale.size() == NCols);
+	       ASSERT(oRowScale.size() == static_cast<size_t>(NCols));
+	       ASSERT(oColScale.size() == static_cast<size_t>(NCols));
 	       
 	       for (idx_type iCol = 0; iCol < NCols; ++iCol) {
 		    for (idx_type iIdx = pAp[iCol] - offset; iIdx < pAp[iCol + 1] - offset; ++iIdx) {
@@ -116,7 +116,7 @@ public:
 		    }
 	       }
 	  } else if (oRowScale.size()) {
-	       ASSERT(oRowScale.size() == NCols);
+	       ASSERT(oRowScale.size() == static_cast<size_t>(NCols));
 	       
 	       for (idx_type iCol = 0; iCol < NCols; ++iCol) {
 		    for (idx_type iIdx = pAp[iCol] - offset; iIdx < pAp[iCol + 1] - offset; ++iIdx) {
@@ -124,7 +124,7 @@ public:
 		    }
 	       }
 	  } else if (oColScale.size()) {
-	       ASSERT(oColScale.size() == NCols);
+	       ASSERT(oColScale.size() == static_cast<size_t>(NCols));
 	       
 	       for (idx_type iCol = 0; iCol < NCols; ++iCol) {
 		    for (idx_type iIdx = pAp[iCol] - offset; iIdx < pAp[iCol + 1] - offset; ++iIdx) {

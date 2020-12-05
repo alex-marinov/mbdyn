@@ -48,7 +48,7 @@
 
 SpGradientSparseMatrixHandler::SpGradientSparseMatrixHandler(const integer& iNumRows, const integer& iNumCols)
      :SparseMatrixHandler(iNumRows, iNumCols),
-      oRows(iNumRows), NZ(0) {
+      NZ(0), oRows(iNumRows) {
 }
 
 SpGradientSparseMatrixHandler::~SpGradientSparseMatrixHandler()

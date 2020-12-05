@@ -72,7 +72,6 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dirccmh.h"
-#include "cscmhtpl.h"
 #include "kluwrap.h"
 #include "dgeequ.h"
 
@@ -350,11 +349,9 @@ template <typename MatrixHandlerType>
 void
 KLUSparseSolutionManager<MatrixHandlerType>::MakeCompressedColumnForm(void)
 {
+        ScaleMatrixAndRightHandSide(A);
+     
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-	
-	CSCMatrixHandlerTpl<doublereal, integer, 0> Atmp(&Ax.front(), &Ai.front(), &Ap.front(), A.iGetNumCols(), A.Nz());
-	
-	ScaleMatrixAndRightHandSide(Atmp);
 }
 
 template <typename MatrixHandlerType>

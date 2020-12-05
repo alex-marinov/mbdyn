@@ -197,11 +197,11 @@ CompactSparseMatrixHandler_tpl<off, idx_type>::CompactSparseMatrixHandler_tpl(co
 									      const std::vector<idx_type>& i,
 									      const std::vector<idx_type>& p)
      : CompactSparseMatrixHandler(n, nn),
-       bMatDuplicate(false),
+       NZ(x.size()),
+       bMatDuplicate(false),       
        Ax(x),
        Ai(i),
-       Ap(p),
-       NZ(x.size()),       
+       Ap(p),       
        m_end(*this, true)
 {
 	NO_OP;

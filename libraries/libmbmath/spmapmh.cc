@@ -66,7 +66,7 @@
 #include "spmapmh.h"
 
 SpMapMatrixHandler::SpMapMatrixHandler(const integer &n, const integer &nn)
-: SparseMatrixHandler(n, nn), m_end(*this, true), NZ(0)
+: SparseMatrixHandler(n, nn), NZ(0), m_end(*this, true)
 {
 	col_indices.resize(NCols);
 }

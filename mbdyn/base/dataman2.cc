@@ -1230,11 +1230,22 @@ DataManager::InitialJointAssembly(void)
 			for (int iCnt = 1; iCnt <= iOffset; iCnt++) {
 				/* Posizione, rotazione */
 				integer iTmp = iFirstIndex + iCnt;
+#ifdef USE_SPARSE_AUTODIFF
+				sp_grad::SpGradient g;
+				g.Reset(0., iTmp, dPosStiff);
+				pMatHdl->AddItem(iTmp, g);
+#else
 				pMatHdl->PutCoef(iTmp, iTmp, dPosStiff);
+#endif
 
 				/* Velocita', velocita' angolare */
 				iTmp += iOffset;
+#ifdef USE_SPARSE_AUTODIFF
+				g.Reset(0., iTmp, dVelStiff);
+				pMatHdl->AddItem(iTmp, g);
+#else
 				pMatHdl->PutCoef(iTmp, iTmp, dVelStiff);
+#endif
 			}
 
 			if (pNode && pNode->bOmegaRotates()) {
@@ -1248,18 +1259,41 @@ DataManager::InitialJointAssembly(void)
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
 				doublereal d = TmpVec(1);
+#ifdef USE_SPARSE_AUTODIFF
+				sp_grad::SpGradient g;
+				g.Reset(0., iFirstIndex + 5, d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 6, g);
+				g.Reset(0., iFirstIndex + 6, -d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 5, g);
+#else
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 6, iFirstIndex + 5, d);
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 5, iFirstIndex + 6, -d);
+#endif
 
 				/* W2 in m(1, 3), -W2 in m(3, 1) */
 				d = TmpVec(2);
+#ifdef USE_SPARSE_AUTODIFF
+				g.Reset(0., iFirstIndex + 6, d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 4, g);
+				g.Reset(0., iFirstIndex + 4, -d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 6, g);
+#else
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 4, iFirstIndex + 6, d);
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 6, iFirstIndex + 4, -d);
+#endif
 
 				/* W3 in m(2, 1), -W3 in m(1, 2) */
 				d = TmpVec(3);
+
+#ifdef USE_SPARSE_AUTODIFF
+				g.Reset(0., iFirstIndex + 4, d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 5, g);
+				g.Reset(0.,  iFirstIndex + 5, -d);
+				pMatHdl->AddItem(iFirstIndex + iOffset + 4, g);
+#else
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 5, iFirstIndex + 4, d);
 				pMatHdl->PutCoef(iFirstIndex + iOffset + 4, iFirstIndex + 5, -d);
+#endif
 			} /* altrimenti la velocita' angolare e' solidale con il nodo */
 		}
 

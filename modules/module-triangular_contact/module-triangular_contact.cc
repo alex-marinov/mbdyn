@@ -434,7 +434,6 @@ void LugreState::GetFrictionForce(const doublereal dt,
      using namespace sp_grad;
 
      typedef SpMatrix<doublereal, 2, 2> CMat2x2;
-     typedef SpColVector<doublereal, 2> CVec2;
      typedef SpMatrix<T, 2, 2> VMat2x2;
      typedef SpColVector<T, 2> VVec2;
 
