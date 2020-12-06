@@ -155,6 +155,7 @@ struct mbdyn_proc_t {
 	InputSource CurrInputSource;
 	unsigned int nThreads;
 	bool using_mpi;
+        bool bNonlinCPUTime;
 #ifdef USE_MPI
 	int MyRank;
 	char *ProcessorName;
@@ -288,10 +289,11 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "d:eE::f:hHlN:o:pPrRsS:tTvwW:";
+static char sShortOpts[] = "C:d:eE::f:hHlN:o:pPrRsS:tTvwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
+	{ "solver-time",    no_argument,       NULL,           int('C') },     
 	{ "debug",          required_argument, NULL,           int('d') },
 	{ "exceptions",     no_argument,       NULL,           int('e') },
 	{ "fp-mask",        optional_argument, NULL,           int('E') },
@@ -312,7 +314,6 @@ static struct option LongOpts[] = {
 	{ "version",        no_argument,       NULL,           int('v') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
 	{ "working-dir",    required_argument, NULL,           int('W') },
-
 	{ NULL,             0,                 NULL,           0        }
 };
 #endif /* HAVE_GETOPT_LONG */
@@ -644,7 +645,11 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				<< std::endl);
 #endif /* !HAVE_CHDIR */
 			break;
-
+			
+		case int('C'):
+		        mbp.bNonlinCPUTime = true;
+		        break;
+			
 		case int('?'):
 			silent_cerr("Unknown option -" << char(optopt) << std::endl);
 			mbdyn_usage(sShortOpts);
@@ -928,11 +933,12 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		} // switch (CurrInputFormat)
 
-		clock_t ct = 0;
-
 		if (pSolv != NULL) {
-			ct += pSolv->GetCPUTime();
-			SAFEDELETE(pSolv);
+		     if (mbp.bNonlinCPUTime && silent_out) {
+			  pSolv->PrintSolverTime(std::cout);
+		     }
+		     SAFEDELETE(pSolv);
+		     pSolv = NULL;
 		}
 
 		if (!mbp.bTable || currarg == argc) {
@@ -954,8 +960,9 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		struct tms tmsbuf;
 		times(&tmsbuf);
 
-		ct += tmsbuf.tms_utime + tmsbuf.tms_cutime
-			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+		// Do not add pSolv->GetCPUTime() because it is already included in tms_cutime and tms_cstime
+		clock_t ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+		           + tmsbuf.tms_stime + tmsbuf.tms_cstime;
 
 		long clk_tck = sysconf(_SC_CLK_TCK);
 		tSecs = ct/clk_tck;
@@ -1029,7 +1036,7 @@ main(int argc, char* argv[])
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = MBFILE_UNKNOWN;
-
+	mbp.bNonlinCPUTime = false;
 	atexit(mbdyn_cleanup_destroy);
 
 #ifdef USE_SOCKET

@@ -57,6 +57,10 @@ begin: initial value;
 
 	time step: 2 * pi / abs(omega) / 10000;
 
+	min time step: 2 * pi / abs(omega) / 1000000;
+	max time step: 2 * pi / abs(omega) / 10000;
+	strategy: factor, 0.75, 1, 1.25, 3, 2, 4;
+
 	max iterations: 100;
 	tolerance: 1e-6;
 	method: bdf;

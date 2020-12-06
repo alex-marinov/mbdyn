@@ -39,7 +39,9 @@ y12wrap.h \
 wsmpwrap.cc \
 wsmpwrap.h \
 qrwrap.h \
-qrwrap.cc
+qrwrap.cc \
+strumpackwrap.h \
+strumpackwrap.cc
 
 if USE_CHACO
 libmbwrap_la_SOURCES += \
@@ -69,6 +71,7 @@ libmbwrap_la_LIBADD = \
 @PASTIX_LIBS@ \
 @QRUPDATE_LIBS@ \
 @SUITESPARSEQR_LIBS@ \
+@STRUMPACK_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
@@ -136,6 +139,7 @@ AM_CPPFLAGS = \
 -I$(srcdir)/../libmbmath \
 -I$(srcdir)/../liby12 \
 -I$(srcdir)/../libcolamd \
--I$(srcdir)/../libnaive
+-I$(srcdir)/../libnaive \
+@PASTIX_INC@
 
 include $(top_srcdir)/build/bot.mk

@@ -123,10 +123,6 @@ class Gradient;
     };
 
     static const index_type DYNAMIC_SIZE = IntegerTypeTraits<index_type>::iMaxValue - 1;
-    
-#ifndef GRADIENT_VECTOR_REGISTER_SIZE
-	#define GRADIENT_VECTOR_REGISTER_SIZE 0
-#endif
 
 template <typename T>
 class GradientAllocator: public std::allocator<T> {
@@ -157,7 +153,12 @@ public:
         }
 
     pointer allocate(size_type n, const void* p=0) {
-	 return allocate_aligned(GRADIENT_VECTOR_REGISTER_SIZE, n);
+#ifdef GRADIENT_VECTOR_REGISTER_SIZE
+	 constexpr size_type alignment = GRADIENT_VECTOR_REGISTER_SIZE;
+#else
+	 constexpr size_type alignment = sizeof(void*);
+#endif	 
+	 return allocate_aligned(alignment, n);
     }
 
     void
@@ -209,8 +210,7 @@ public:
     }
 
 
-    static void
-        deallocate_aligned(pointer p, size_type n) {
+    static void deallocate_aligned(pointer p, size_type n) {
 #if defined(HAVE_ALIGNED_MALLOC)
         _aligned_free(p);
 #else
@@ -265,8 +265,8 @@ public:
     struct AlignedAlloc {
 #if USE_AUTODIFF > 0 && GRADIENT_VECTOR_REGISTER_SIZE > 0
         void* operator new(size_t size) {
-		const size_t nBound = GRADIENT_VECTOR_REGISTER_SIZE > sizeof(void*) ? GRADIENT_VECTOR_REGISTER_SIZE : sizeof(void*);
-		return GradientAllocator<char>::allocate_aligned(nBound, 0, size);
+	     constexpr size_t nBound = std::max<size_t>(GRADIENT_VECTOR_REGISTER_SIZE, sizeof(void*));
+	     return GradientAllocator<char>::allocate_aligned(nBound, 0, size);
 	}
         void operator delete(void *p) {
 		GradientAllocator<char>::deallocate_aligned(reinterpret_cast<char*>(p), 0);

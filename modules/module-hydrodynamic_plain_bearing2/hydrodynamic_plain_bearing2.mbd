@@ -15,8 +15,11 @@ begin: initial value;
 	derivatives tolerance: 1e-3;
 	derivatives max iterations: 200;
 	derivatives coefficient: 1e-6;
-        linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
+        linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
         nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+	#linear solver: spqr, grad;
+	#nonlinear solver: bfgs, modified, 1000, keep jacobian matrix, default solver options, heavy nonlinear, divergence check, no;
+	#output: cpu time;
     output: iterations;
 end: initial value;
 

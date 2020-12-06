@@ -337,7 +337,7 @@ const char cDebugFree  = 'F';
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		ASSERT(sz); \
+		ASSERT((sz) != 0);	   \
 		try{(pnt) = new item[sz];} \
 		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \
@@ -596,7 +596,7 @@ extern std::ostream& operator << (std::ostream& rout, const clMemMan& rm);
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
-		ASSERT(sz); \
+		ASSERT((sz) != 0);		   \
 		try{(pnt) = new item[sz];} \
 		catch(std::bad_alloc& ba) { \
 			_Safenew(__FILE__, __LINE__, 1); \

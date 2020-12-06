@@ -49,14 +49,22 @@
 #include <fstream>
 #include <joint.h>
 
-#if !defined(MODAL_USE_AUTODIFF)
+#if USE_SPARSE_AUTODIFF
+#define MODAL_USE_SPARSE_AUTODIFF USE_SPARSE_AUTODIFF
+#else
 #define MODAL_USE_AUTODIFF USE_AUTODIFF
 #endif
 
-#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+#if USE_AUTODIFF
 #include <gradient.h>
 #include <matvec.h>
 #include <matvecass.h>
+#endif
+
+#if USE_SPARSE_AUTODIFF
+#include <sp_gradient.h>
+#include <sp_matrix_base.h>
+#include <sp_matvecass.h>
 #endif
 
 #if 0
@@ -76,7 +84,7 @@ public:
 	struct StrNodeData;
 
 private:
-#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+#if MODAL_USE_AUTODIFF
 	inline void
 	UpdateStrNodeData(StrNodeData& oNode,
                           const grad::Vector<doublereal, 3>& d1tot,
@@ -124,6 +132,53 @@ private:
 
     grad::LocalDofMap dofMap;
 #endif
+     
+#if MODAL_USE_SPARSE_AUTODIFF
+     inline void
+     UpdateStrNodeData(StrNodeData& oNode,
+		       const sp_grad::SpColVector<doublereal, 3>& d1tot,
+		       const sp_grad::SpMatrix<doublereal, 3, 3>& R1tot,
+		       const sp_grad::SpColVector<doublereal, 3>& F,
+		       const sp_grad::SpColVector<doublereal, 3>& M,
+		       const sp_grad::SpMatrix<doublereal, 3, 3>& R2);
+     inline void
+     UpdateStrNodeData(StrNodeData& oNode,
+		       const sp_grad::SpColVector<sp_grad::SpGradient, 3>& d1tot,
+		       const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R1tot,
+		       const sp_grad::SpColVector<sp_grad::SpGradient, 3>& F,
+		       const sp_grad::SpColVector<sp_grad::SpGradient, 3>& M,
+		       const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R2) {}
+
+     inline void
+     UpdateModalNode(const sp_grad::SpColVector<doublereal, 3>& x,
+		     const sp_grad::SpMatrix<doublereal, 3, 3>& R);
+
+     inline void
+     UpdateModalNode(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& x,
+		     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R) {}
+
+     inline void
+     UpdateState(const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& a,
+		 const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& aP,
+		 const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& b,
+		 const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& bP);
+
+     inline void
+     UpdateState(const sp_grad::SpColVector<sp_grad::SpGradient, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::SpGradient, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::SpGradient, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::SpGradient, sp_grad::SpMatrixSize::DYNAMIC>&) { }
+
+     inline void
+     UpdateInvariants(const sp_grad::SpColVector<doublereal, 3>& Inv3jaj,
+		      const sp_grad::SpMatrix<doublereal, 3, 3>& Inv8jaj,
+		      const sp_grad::SpMatrix<doublereal, 3, 3>& Inv9jkajak);
+
+     inline void
+     UpdateInvariants(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& Inv3jaj,
+		      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& Inv8jaj,
+		      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& Inv9jkajak) {}
+#endif
 
 protected:
 	const ModalNode* const pModalNode;
@@ -170,20 +225,20 @@ protected:
 
 	Vec3   Inv3jaj;
 
-#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Vec3   Inv3jaPj;
 #endif
 
 	Mat3x3 Inv8jaj;
 
-#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Mat3x3 Inv8jaPj;
 	Mat3xN Inv5jaj;
 	Mat3xN Inv5jaPj;
 #endif
 	Mat3x3 Inv9jkajak;
 
-#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
+#if !(MODAL_USE_AUTODIFF || MODAL_USE_SPARSE_AUTODIFF) || defined(MODAL_DEBUG_AUTODIFF)
 	Mat3x3 Inv9jkajaPk;
 #endif
 
@@ -301,7 +356,7 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
 
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF)
     template <grad::index_type N_SIZE>
     inline void GetACurr(grad::index_type iMode, grad::Gradient<N_SIZE>& ai, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
         using namespace grad;
@@ -322,8 +377,28 @@ public:
         ai = a(iMode);
     }
 #endif
-    
-#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+
+#if defined(USE_SPARSE_AUTODIFF)
+    inline void GetACurr(sp_grad::index_type iMode, sp_grad::SpGradient& ai, doublereal dCoef, sp_grad::SpFunctionCall func) const {
+        using namespace sp_grad;
+        
+        SP_GRAD_ASSERT(iMode >= 1);
+        SP_GRAD_ASSERT(iMode <= a.iGetNumRows());
+        SP_GRAD_ASSERT(func != SpFunctionCall::INITIAL_ASS_JAC || dCoef == 1.);
+        
+        const index_type iFirstIndex = iGetFirstIndex();
+
+	ai.Reset(a(iMode), iFirstIndex + iMode, -dCoef);
+    }
+
+    inline void GetACurr(sp_grad::index_type iMode, doublereal& ai, doublereal, sp_grad::SpFunctionCall) const {
+        SP_GRAD_ASSERT(iMode >= 1);
+        SP_GRAD_ASSERT(iMode <= a.iGetNumRows());
+        ai = a(iMode);
+    }
+#endif
+     
+#if MODAL_USE_AUTODIFF
        template <typename T>
        void
        AssRes(grad::GradientAssVec<T>& WorkVec,
@@ -331,7 +406,15 @@ public:
               const grad::GradientVectorHandler<T>& XCurr,
               const grad::GradientVectorHandler<T>& XPrimeCurr,
               enum grad::FunctionCall func);
-#endif        
+#elif MODAL_USE_SPARSE_AUTODIFF
+       template <typename T>
+       void
+       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const sp_grad::SpGradientVectorHandler<T>& XCurr,
+              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+              sp_grad::SpFunctionCall func);     
+#endif     
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */

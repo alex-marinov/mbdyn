@@ -83,7 +83,11 @@ extern "C" {
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dgeequ.h"
-	
+
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#endif
+
 /* UmfpackSolver - begin */
 
 class UmfpackSolver: public LinearSolver {
@@ -115,11 +119,12 @@ private:
 
 public:
 	UmfpackSolver(const integer &size,
-		const doublereal &dPivot,
-		const doublereal &dDropTolerance,
-		const unsigned blockSize,
-		Scale scale = SCALE_UNDEF,
-		integer iMaxIter=-1);
+		      const doublereal &dPivot,
+		      const doublereal &dDropTolerance,
+		      const unsigned blockSize,
+		      Scale scale = SCALE_UNDEF,
+		      integer iMaxIter = 0,
+		      integer iVerbose = 0);
 	~UmfpackSolver(void);
 
 	void Reset(void);
@@ -141,10 +146,10 @@ public:
 /* UmfpackSolver - end */
 
 /* UmfpackSparseSolutionManager - begin */
-
+template <typename SparseMatrixHandlerType>
 class UmfpackSparseSolutionManager: public SolutionManager {
 protected:
-	mutable SpMapMatrixHandler A;
+	mutable SparseMatrixHandlerType A;
 
 	std::vector<doublereal> x;
 	std::vector<doublereal> b;
@@ -180,11 +185,12 @@ protected:
         }
 public:
 	UmfpackSparseSolutionManager(integer Dim,
-		doublereal dPivot = -1.,
-		doublereal dDropTolerance = 0.,
-		const unsigned blockSize = 0,
-		const ScaleOpt& scale = ScaleOpt(),
-		integer iMaxIter=-1);
+				     doublereal dPivot = -1.,
+				     doublereal dDropTolerance = 0.,
+				     const unsigned blockSize = 0,
+				     const ScaleOpt& scale = ScaleOpt(),
+				     integer iMaxIter = 0,
+				     integer iVerbose = 0);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -215,7 +221,7 @@ public:
 /* UmfpackSparseCCSolutionManager - begin */
 
 template <class CC>
-class UmfpackSparseCCSolutionManager: public UmfpackSparseSolutionManager {
+class UmfpackSparseCCSolutionManager: public UmfpackSparseSolutionManager<SpMapMatrixHandler> {
 protected:
 	bool CCReady;
 	CC *Ac;
@@ -225,11 +231,12 @@ protected:
 	
 public:
 	UmfpackSparseCCSolutionManager(integer Dim,
-		doublereal dPivot = -1.,
-		doublereal dDropTolerance = 0.,
-		const unsigned& blockSize = 0,
-		const ScaleOpt& scale = ScaleOpt(),
-		integer iMaxIter=-1);
+				       doublereal dPivot = -1.,
+				       doublereal dDropTolerance = 0.,
+				       const unsigned& blockSize = 0,
+				       const ScaleOpt& scale = ScaleOpt(),
+				       integer iMaxIter = 0,
+				       integer iVerbose = 0);
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

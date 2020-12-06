@@ -45,6 +45,14 @@
 #include "gradient.h"
 #endif
 
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient.h"
+#endif
+
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
+#include "veciter.h"
+#endif
+
 /*
  * Array dei nomi dei nodi.
  * Usato per output
@@ -69,7 +77,11 @@ extern const char* psReadNodesNodes[];
 /* Node - begin */
 
 class Node : public WithLabel, public SimulationEntity,
-public DofOwnerOwner, public ToBeOutput {
+public DofOwnerOwner, public ToBeOutput
+#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
+	   , public InUse
+#endif
+{
 public:
 	/* Enumerazione dei tipi di nodi */
 	enum Type {
@@ -205,7 +217,10 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return dGetDofValue(i);
 	};
-	
+
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        virtual void UpdateJac(doublereal dCoef);
+#endif
 };
 
 Node::Type str2nodetype(const char *const s);
@@ -273,6 +288,10 @@ public:
     template <grad::index_type N_SIZE>
     inline void GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 #endif
+#ifdef USE_SPARSE_AUTODIFF
+    inline void GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;    
+    inline void GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+#endif
 };
 
 #ifdef USE_AUTODIFF
@@ -294,6 +313,19 @@ inline void ScalarNode::GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum 
     } else {
         dX.SetValue(dGetX());
     }
+}
+#endif
+
+#ifdef USE_SPARSE_AUTODIFF
+inline void ScalarNode::GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     dX = dGetX();
+}
+
+inline void ScalarNode::GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     const doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
+     dX.Reset(dGetX(), iGetFirstColIndex() + 1, dDeriv);
 }
 #endif
 
@@ -420,6 +452,11 @@ public:
     template <grad::index_type N_SIZE>
     inline void GetXPrime(grad::Gradient<N_SIZE>& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 #endif
+
+#ifdef USE_SPARSE_AUTODIFF
+     inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+     inline void GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+#endif
 };
 
 inline const doublereal&
@@ -453,6 +490,18 @@ inline void ScalarDifferentialNode::GetXPrime(grad::Gradient<N_SIZE>& dXPrime, d
     } else {
         dXPrime.SetValue(dGetXPrime());
     }
+}
+#endif
+
+#ifdef USE_SPARSE_AUTODIFF
+inline void ScalarDifferentialNode::GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     dXPrime = dGetXPrime();
+}
+
+inline void ScalarDifferentialNode::GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     dXPrime.Reset(dGetXPrime(), iGetFirstColIndex() + 1, -1.);
 }
 #endif
 

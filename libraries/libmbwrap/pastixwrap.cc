@@ -42,273 +42,264 @@
 
 #ifdef USE_PASTIX
 #include <algorithm>
+#include "dgeequ.h"
+#include "linsol.h"
 #include "pastixwrap.h"
 
-PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter, integer iNumThreads)
-    :LinearSolver(pSM),
-     iDim(iDim),
-     iNumIter(iNumIter),
-     iNumThreads(iNumThreads),
-     Axp(0),
-     Aip(0),
-     App(0),
-     pastix_data(0),
-     perm(iDim, 0),
-     iperm(iDim, 0),
-     bDoOrdering(true),
-     iNumNonZeros(-1)
+PastixSolver::SpMatrix::SpMatrix()
+     :iNumNonZeros(-1) {
+     spmInit(this);
+     mtxtype = SpmGeneral;
+     flttype = SpmDouble;
+     fmttype = SpmCSC;
+     dof = 1;	       
+}
+
+PastixSolver::SpMatrix::~SpMatrix() {
+     spmExit(this);
+}
+
+template <typename T>
+T* PastixSolver::SpMatrix::pAllocate(T* pMem, size_t nSize)
 {
-    std::fill(&iparm[0], &iparm[IPARM_SIZE], 0);
+     pMem = reinterpret_cast<T*>(realloc(pMem, sizeof(T) * nSize));
 
-    iparm[IPARM_START_TASK] = API_TASK_INIT;
-    iparm[IPARM_END_TASK] = API_TASK_INIT;
+     if (!pMem) {
+	  throw std::bad_alloc();
+     }
 
-    std::fill(&dparm[0], &dparm[DPARM_SIZE], 0.);
+     return pMem;     
+}
+
+void PastixSolver::SpMatrix::Allocate(size_t iNumNZ, size_t iMatSize)
+{
+     values = pAllocate(pAx(), iNumNZ);
+     rowptr = pAllocate(rowptr, iNumNZ);
+     colptr = pAllocate(colptr, iMatSize + 1);
+}
+
+bool PastixSolver::SpMatrix::MakeCompactForm(const SparseMatrixHandler& mh)
+{
+     bool bNewPattern = false;
+     
+     if (iNumNonZeros != mh.Nz()) {	  
+	  // Force a new ordering step (e.g. needed if we are using a SpMapMatrixHandler)
+	  Allocate(mh.Nz(), mh.iGetNumCols());
+	  iNumNonZeros = mh.Nz();
+	  bNewPattern = true;
+     }
+
+     nnz = mh.Nz();
+     n = mh.iGetNumCols();
+     mh.MakeCompressedColumnForm(pAx(), pAi(), pAp(), 1);
+
+     spmUpdateComputedFields(this);
+
+     spmSymmetrize(this);
+
+     return bNewPattern;
+}
+
+PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter, integer iNumThreads, unsigned uSolverFlags, doublereal dCompressTol, doublereal dMinRatio, integer iVerbose)
+    :LinearSolver(pSM),
+     pastix_data(nullptr),
+     bDoOrdering(true)
+{     
+    pastixInitParam(iparm, dparm);
+
+    iparm[IPARM_VERBOSE] = iVerbose;
+    
+    iparm[IPARM_FACTORIZATION] = PastixFactLU;
+    iparm[IPARM_THREAD_NBR] = iNumThreads;
+    iparm[IPARM_ITERMAX] = iNumIter;
+
+    if (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH) {
+	 iparm[IPARM_ORDERING] = PastixOrderScotch;
+    } else if (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_METIS) {
+	 iparm[IPARM_ORDERING] = PastixOrderMetis;
+    }
+
+    const unsigned uCompressionFlag = uSolverFlags & LinSol::SOLVER_FLAGS_COMPRESSION_MASK;
+
+    if (uCompressionFlag) {	 
+	 switch (uCompressionFlag) {
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_SVD:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodSVD;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_PQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodPQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodRQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_TQRCP:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodTQRCP;
+	      break;
+	 case LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT:
+	      iparm[IPARM_COMPRESS_METHOD] = PastixCompressMethodRQRRT;
+	      break;
+	 }
+	 
+	 iparm[IPARM_COMPRESS_WHEN] = PastixCompressWhenEnd;
+	 dparm[DPARM_COMPRESS_TOLERANCE] = dCompressTol;
+	 dparm[DPARM_COMPRESS_MIN_RATIO] = dMinRatio;
+    }
+    
+    pastixInit(&pastix_data, MPI_COMM_WORLD, iparm, dparm);
 }
 
 PastixSolver::~PastixSolver()
 {
-    if (pastix_data) {
-        try {
-            PastixCall(API_TASK_CLEAN, API_TASK_CLEAN);
-        } catch (const std::exception& oErr) {
-            silent_cerr("warning: Failed to clean up pastix memory: " << oErr.what() << std::endl);
-        }
-    }
+     if (pastix_data) {
+	  pastixFinalize(&pastix_data);
+     }	
 }
 
 #ifdef DEBUG
 void PastixSolver::IsValid(void) const
 {
-    ASSERT(NO_ERR == CheckMatrix());    
 }
 #endif /* DEBUG */
 
-
-pastix_int_t PastixSolver::PastixCall(const pastix_int_t iStartTask, const pastix_int_t iEndTask) const
-{
-    iparm[IPARM_START_TASK] = iStartTask;
-    iparm[IPARM_END_TASK] = iEndTask;
-
-    pastix(&pastix_data,
-           MPI_COMM_WORLD,
-           iDim,
-           App,
-           Aip,
-           Axp,
-           &perm[0],
-           &iperm[0],
-           pdSol,
-           1,
-           iparm,
-           dparm);
-
-    if (iparm[IPARM_ERROR_NUMBER] != NO_ERR) {
-        static const struct {
-            pastix_int_t iTask;
-            char szTask[18];
-        } rgTasks[8] = {
-            {API_TASK_INIT,     "API_TASK_INIT"},
-            {API_TASK_ORDERING, "API_TASK_ORDERING"},
-            {API_TASK_SYMBFACT, "API_TASK_SYMBFACT"},
-            {API_TASK_ANALYSE,  "API_TASK_ANALYSE"},
-            {API_TASK_NUMFACT,  "API_TASK_NUMFACT"},
-            {API_TASK_SOLVE,    "API_TASK_SOLVE"},
-            {API_TASK_REFINE,   "API_TASK_REFINE"},
-            {API_TASK_CLEAN,    "API_TASK_CLEAN"}
-        };
-
-        static const char szUnknownTask[] = "<unknown task>";
-        const char* pszStartTask = szUnknownTask;
-        const char* pszEndTask = szUnknownTask;
-
-        for (auto i = std::begin(rgTasks); i != std::end(rgTasks); ++i) {
-            if (i->iTask == iStartTask) {
-                pszStartTask = i->szTask;
-            }
-
-            if (i->iTask == iEndTask) {
-                pszEndTask = i->szTask;
-            }
-        }
-        
-        silent_cerr("PastixCall("
-                    << pszStartTask << ", "
-                    << pszEndTask
-                    << ") failed with status "
-                    << iparm[IPARM_ERROR_NUMBER] << std::endl);
-        
-        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
-
-    return iparm[IPARM_ERROR_NUMBER];
-}
-
-pastix_int_t PastixSolver::CheckMatrix() const
-{
-    pastix_int_t status = pastix_checkMatrix(MPI_COMM_WORLD,
-                                             API_VERBOSE_NOT,
-                                             API_SYM_NO,
-                                             API_NO,
-                                             iDim,
-                                             &App,
-                                             &Aip,
-                                             &Axp,
-                                             0,
-                                             1);
-
-    if (NO_ERR != status) {
-        silent_cerr("pastix_checkMatrix failed with status " << status << std::endl);
-        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
-
-    return status;
-}
-
 void PastixSolver::Solve(void) const
 {
+    int rc;
+    
+    if (bDoOrdering) {
+	 rc = pastix_task_analyze(pastix_data, &spm);
+
+	 if (PASTIX_SUCCESS != rc) {
+	      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	 }
+
+	 bDoOrdering = false;
+    }
+
+    if (bHasBeenReset) {	 
+	 rc = pastix_task_numfact(pastix_data, &spm);
+
+	 if (PASTIX_SUCCESS != rc) {
+	      throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+	 }
+
+	 bHasBeenReset = false;
+    }
+    
     // Right hand side will be overwritten by the solution by pastix
-    std::copy(&pdRhs[0], &pdRhs[iDim], pdSol);
+    std::copy(pdRhs, pdRhs + spm.n, pdSol);
     
-    if (pastix_data == 0) {
-        CheckMatrix();
-        
-        iparm[IPARM_MODIFY_PARAMETER] = API_NO;
+    rc = pastix_task_solve(pastix_data,
+			   1,
+			   pdSol,
+			   spm.n);
 
-        PastixCall(API_TASK_INIT, API_TASK_INIT);
-
-        iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
-        iparm[IPARM_SYM] = API_SYM_NO;
-        iparm[IPARM_THREAD_NBR] = iNumThreads;
-        iparm[IPARM_FACTORIZATION] = API_FACT_LU;
-        iparm[IPARM_VERBOSE] = API_VERBOSE_NOT;
-        iparm[IPARM_ORDERING] = API_ORDER_SCOTCH;
-        iparm[IPARM_BINDTHRD] = API_BIND_NO;
-        iparm[IPARM_ITERMAX] = iNumIter;
-        iparm[IPARM_RHS_MAKING] = API_RHS_B;        
-    } else {
-        ASSERT(NO_ERR == CheckMatrix());
+    if (PASTIX_SUCCESS != rc) {
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     }
 
-    pastix_int_t iStartTask;
+    if (iparm[IPARM_ITERMAX] > 0) {
+	 bool bZeroVector = true;
 
-    if (pastix_data == 0 || bDoOrdering) {
-        // First call or nonezero pattern has changed
-        iStartTask = API_TASK_ORDERING;
-    } else if (bHasBeenReset) {
-        // Assume same nonezero pattern (e.g. full Newton Raphson iteration)
-        iStartTask = API_TASK_NUMFACT;
-    } else {
-        // Same matrix (e.g. modified Newton Raphson iteration)
-        iStartTask = API_TASK_SOLVE;
+	 for (pastix_int_t i = 0; i < spm.n; ++i) {
+	      if (pdSol[i]) {
+		   bZeroVector = false;
+		   break;
+	      }
+	 }
+
+	 if (!bZeroVector) {
+	      // Avoid division zero by zero in PaStiX
+	      rc = pastix_task_refine(pastix_data,
+				      spm.n,
+				      1,
+				      pdRhs,
+				      spm.n,
+				      pdSol,
+				      spm.n);
+
+	      if (PASTIX_SUCCESS != rc) {
+		   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	      }
+	 }
     }
-
-    pastix_int_t iEndTask = (iNumIter > 0) ? API_TASK_REFINE : API_TASK_SOLVE;
-    
-    PastixCall(iStartTask, iEndTask);
-
-    if (iNumIter > 0 && iparm[IPARM_NBITER] >= iNumIter) {
-        silent_cerr("Pastix warning: iparm[IPARM_NBITER] = " << iparm[IPARM_NBITER]
-                    << " >= iparm[IPARM_ITERMAX] = " << iparm[IPARM_ITERMAX] <<  std::endl
-                    << "Pastix warning: dparm[DPARM_RELATIVE_ERROR] = " << dparm[DPARM_RELATIVE_ERROR] << std::endl
-                    << "Pastix warning: The flag \"max iterations\" of the linear solver is too small or the condition number of the Jacobian matrix is too high" << std::endl);
-    }
-    
-    bDoOrdering = false;
-    bHasBeenReset = false;
 }
 
-void PastixSolver::MakeCompactForm(SparseMatrixHandler& mh,
-                                   std::vector<doublereal>& Ax,
-                                   std::vector<integer>& Ai,
-                                   std::vector<integer>& Adummy,
-                                   std::vector<integer>& Ap) const
+PastixSolver::SpMatrix& PastixSolver::MakeCompactForm(SparseMatrixHandler& mh)
 {
+    ASSERT(mh.iGetNumRows() == mh.iGetNumCols());
+     
     if (!bHasBeenReset) {
-        return;
+	 return spm;
     }
 
-    mh.MakeCompressedColumnForm(Ax, Ai, Ap, 1);
-    
-    if (iNumNonZeros != mh.Nz()) {
-        // Force a new ordering step (e.g. needed if we are using a SpMapMatrixHandler)
-        bDoOrdering = true;
-    }
+    bDoOrdering = spm.MakeCompactForm(mh);
 
-    iNumNonZeros = mh.Nz();
-    
-    Axp = &Ax[0];
-    Aip = &Ai[0];
-    App = &Ap[0];
+    return spm;
 }
 
-PastixSolutionManager::PastixSolutionManager(integer iDim, integer iNumThreads, integer iNumIter, const ScaleOpt& scale)
+template <typename MatrixHandlerType>
+PastixSolutionManager<MatrixHandlerType>::PastixSolutionManager(integer iDim, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, unsigned uSolverFlags, doublereal dCompressTol, doublereal dMinRatio, integer iVerbose)
     :x(iDim),
      b(iDim),
      xVH(iDim, &x[0]),
      bVH(iDim, &b[0]),
      scale(scale),
-     pMatScale(0),
-     A(iDim)
+     pMatScale(nullptr),
+     A(iDim, iDim)
 {
     SAFENEWWITHCONSTRUCTOR(pLS,
                            PastixSolver,
-                           PastixSolver(this, iDim, iNumIter, iNumThreads));
+                           PastixSolver(this, iDim, iNumIter, iNumThreads, uSolverFlags, dCompressTol, dMinRatio, iVerbose));
 
     pLS->pdSetResVec(&b[0]);
     pLS->pdSetSolVec(&x[0]);
 }
 
-PastixSolutionManager::~PastixSolutionManager(void)
+template <typename MatrixHandlerType>
+PastixSolutionManager<MatrixHandlerType>::~PastixSolutionManager(void)
 {
     if (pMatScale) {
         SAFEDELETE(pMatScale);
-        pMatScale = 0;
+        pMatScale = nullptr;
     }
 }
 
 #ifdef DEBUG
-void PastixSolutionManager::IsValid(void) const
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::IsValid(void) const
 {
     ASSERT(b.size() == x.size());
     ASSERT(A.iGetNumRows() == A.iGetNumCols());
-    ASSERT(b.size() == A.iGetNumRows());
-    ASSERT(x.size() == A.iGetNumCols());
+    ASSERT(b.size() == static_cast<size_t>(A.iGetNumRows()));
+    ASSERT(x.size() == static_cast<size_t>(A.iGetNumCols()));
     
     pLS->IsValid();
 }
 #endif /* DEBUG */
 
-void PastixSolutionManager::MatrReset(void)
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::MatrReset(void)
 {
     pLS->Reset();
 }
 
-void PastixSolutionManager::MatrInitialize(void)
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::MatrInitialize(void)
 {
     MatrReset();
 }
 
-void PastixSolutionManager::ForceSymmetricGraph(SpMapMatrixHandler& A) const
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::MakeCompressedColumnForm(void)
 {
-    if (pLS->bReset()) {
-        for (auto i = A.begin(); i != A.end(); ++i) {
-            // Metis and Scotch ordering require a symmetric graph
-            // (e.g. for each matrix element A(i, j) another element A(j, i) must exist)
-            A(i->iCol + 1, i->iRow + 1);
-        }
-    }
+     ScaleMatrixAndRightHandSide(A);
+     
+     pGetSolver()->MakeCompactForm(A);
 }
 
-void PastixSolutionManager::MakeCompressedColumnForm(void)
-{
-    ForceSymmetricGraph(A);
-    ScaleMatrixAndRightHandSide<SpMapMatrixHandler>(A);   
-    pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-}
-
+template <typename MatrixHandlerType>
 template <typename MH>
-void PastixSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
+void PastixSolutionManager<MatrixHandlerType>::ScaleMatrixAndRightHandSide(MH& mh)
 {
     if (scale.when != SCALEW_NEVER) {
         MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
@@ -331,10 +322,11 @@ void PastixSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
     }
 }
 
+template <typename MatrixHandlerType>
 template <typename MH>
-MatrixScale<MH>& PastixSolutionManager::GetMatrixScale()
+MatrixScale<MH>& PastixSolutionManager<MatrixHandlerType>::GetMatrixScale()
 {
-    if (pMatScale == 0) {
+    if (pMatScale == nullptr) {
         pMatScale = MatrixScale<MH>::Allocate(scale);
     }
 
@@ -342,16 +334,18 @@ MatrixScale<MH>& PastixSolutionManager::GetMatrixScale()
     return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
 }
 
-void PastixSolutionManager::ScaleSolution(void)
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::ScaleSolution(void)
 {
     if (scale.when != SCALEW_NEVER) {
-        ASSERT(pMatScale != 0);
+        ASSERT(pMatScale != nullptr);
 
         pMatScale->ScaleSolution(xVH);
     }
 }
 
-void PastixSolutionManager::Solve(void)
+template <typename MatrixHandlerType>
+void PastixSolutionManager<MatrixHandlerType>::Solve(void)
 {
     MakeCompressedColumnForm();
     
@@ -360,98 +354,28 @@ void PastixSolutionManager::Solve(void)
     ScaleSolution();
 }
 
-MatrixHandler* PastixSolutionManager::pMatHdl(void) const
+template <typename MatrixHandlerType>
+MatrixHandler* PastixSolutionManager<MatrixHandlerType>::pMatHdl(void) const
 {
     return &A;
 }
 
-VectorHandler* PastixSolutionManager::pResHdl(void) const
+template <typename MatrixHandlerType>
+VectorHandler* PastixSolutionManager<MatrixHandlerType>::pResHdl(void) const
 {
     return &bVH;
 }
 
-VectorHandler* PastixSolutionManager::pSolHdl(void) const
+template <typename MatrixHandlerType>
+VectorHandler* PastixSolutionManager<MatrixHandlerType>::pSolHdl(void) const
 {
     return &xVH;
 }
 
-template <class CC>
-PastixCCSolutionManager<CC>::PastixCCSolutionManager(integer iDim,
-                                                     integer iNumThreads,
-                                                     integer iNumIter,
-                                                     const ScaleOpt& scale)
-    : PastixSolutionManager(iDim, iNumThreads, iNumIter, scale),
-      CCReady(false),
-      Ac(0)
-{
+template class PastixSolutionManager<SpMapMatrixHandler>;
 
-}
-
-template <class CC>
-PastixCCSolutionManager<CC>::~PastixCCSolutionManager(void) 
-{
-    if (Ac) {
-        SAFEDELETE(Ac);
-    }
-}
-
-template <class CC>
-void
-PastixCCSolutionManager<CC>::MatrReset(void)
-{
-    pLS->Reset();
-}
-
-template <class CC>
-void
-PastixCCSolutionManager<CC>::MakeCompressedColumnForm(void)
-{
-    if (!CCReady) {
-        ForceSymmetricGraph(A);
-        pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-
-        if (Ac == 0) {
-            SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
-        }
-
-        CCReady = true;
-    }
-
-    ScaleMatrixAndRightHandSide(*Ac);
-}
-
-template <class CC>
-void
-PastixCCSolutionManager<CC>::MatrInitialize()
-{
-    CCReady = false;
-
-    if (Ac) {
-        // If a DirCColMatrixHandler is in use and matrix scaling is enabled
-        // an uncaught exception (MatrixHandler::ErrRebuildMatrix) will be thrown
-        // if zero entries in the matrix become nonzero.
-        // For that reason we have to reinitialize Ac!
-        SAFEDELETE(Ac);
-        Ac = 0;
-    }
-
-    MatrReset();
-    pGetSolver()->Initialize();
-}
-	
-template <class CC>
-MatrixHandler*
-PastixCCSolutionManager<CC>::pMatHdl(void) const
-{
-    if (!CCReady) {
-        return &A;
-    }
-
-    ASSERT(Ac != 0);
-    return Ac;
-}
-
-template class PastixCCSolutionManager<CColMatrixHandler<1> >;
-template class PastixCCSolutionManager<DirCColMatrixHandler<1> >;
+#ifdef USE_SPARSE_AUTODIFF
+template class PastixSolutionManager<SpGradientSparseMatrixHandler>;
+#endif
 
 #endif

@@ -54,6 +54,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
+		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		NULL
 	};
 
@@ -72,7 +73,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 PASTIX,
                 QR,
                 SPQR,
-
+		STRUMPACK,
+		
 		LASTKEYWORD
 	};
 
@@ -213,6 +215,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 bGotIt = true;
 #endif
 		break;
+
+	case STRUMPACK:
+	     cs.SetSolver(LinSol::STRUMPACK_SOLVER);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Using STRUMPACK solver\n");
+#ifdef USE_STRUMPACK
+	     bGotIt = true;
+#endif
+	     break;
                 
 	default:
 		silent_cerr("unknown solver" << std::endl);
@@ -233,8 +243,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* map? */
 	if (HP.IsKeyWord("map")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
-			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MAP);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_MAP);
 			pedantic_cout("using map matrix handling for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -247,8 +256,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* CC? */
 	} else if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
-			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_CC);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_CC);
 			pedantic_cout("using column compressed matrix handling for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -258,12 +266,24 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+#ifdef USE_SPARSE_AUTODIFF
+	} else if (HP.IsKeyWord("sparse" "gradient") || HP.IsKeyWord("grad")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_GRAD) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_GRAD);
+			pedantic_cout("using sparse gradient handling for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
 
+		} else {
+			pedantic_cerr("sparse gradient is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+#endif
 	/* direct? */
 	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
-			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_DIR);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_DIR);
 			pedantic_cout("using direct access matrix handling for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -277,7 +297,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* colamd? */
 	if (HP.IsKeyWord("colamd")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_COLAMD);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_COLAMD);
 			pedantic_cout("using colamd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -296,7 +316,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MMDATA) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MMDATA);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_MMDATA);
 			pedantic_cout("using mmd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -308,7 +328,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* minimum degree ?*/
 	} else if (HP.IsKeyWord("minimum" "degree")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT);
 			pedantic_cout("using minimum degree symmetric preordering of A+A^T for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -320,7 +340,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* Reverse Kuthill McKee? */
 	} else if (HP.IsKeyWord("rcmk")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE);
 			pedantic_cout("using rcmk symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -333,7 +353,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* king ?*/
 	} else if (HP.IsKeyWord("king")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_KING);
 			pedantic_cout("using king symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -346,7 +366,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	/* sloan ? */
 	} else if (HP.IsKeyWord("sloan")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_KING);
 			pedantic_cout("using sloan symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -360,7 +380,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	} else if (HP.IsKeyWord("nested" "dissection")) {
 #ifdef USE_METIS
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION);
 			pedantic_cout("using nested dissection symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
@@ -378,7 +398,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 #endif //USE_METIS
         } else if (HP.IsKeyWord("amd")) {
                 if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_AMD) {
-                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_AMD);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_AMD);
                         pedantic_cout("using amd preordering for "
                                         << currSolver.s_name
                                         << " solver" << std::endl);
@@ -390,7 +410,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 }                
         } else if (HP.IsKeyWord("given")) {
                 if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_GIVEN) {
-                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_GIVEN);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_GIVEN);
                         pedantic_cout("using givens preordering for "
                                         << currSolver.s_name
                                         << " solver" << std::endl);
@@ -402,13 +422,25 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 }                
         } else if (HP.IsKeyWord("metis")) {
                 if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_METIS) {
-                        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_METIS);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_METIS);
                         pedantic_cout("using metis preordering for "
                                         << currSolver.s_name
                                         << " solver" << std::endl);
 
                 } else {
                         pedantic_cerr("metis preordering is meaningless for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+                }                
+	} else if (HP.IsKeyWord("scotch")) {
+                if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH) {
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PERM_MASK, LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH);
+                        pedantic_cout("using scotch preordering for "
+                                        << currSolver.s_name
+                                        << " solver" << std::endl);
+
+                } else {
+                        pedantic_cerr("scotch preordering is meaningless for "
                                         << currSolver.s_name
                                         << " solver" << std::endl);
                 }                
@@ -419,7 +451,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		int nThreads = HP.GetInt();
 
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
-			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
+		        cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT, LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 			if (nThreads < 1) {
 				silent_cerr("illegal thread number, using 1" << std::endl);
 				nThreads = 1;
@@ -517,6 +549,69 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		if (currSolver.s_drop_tolerance != -1.) {
 			cs.SetDropTolerance(currSolver.s_drop_tolerance);
 		}
+	}
+
+	if (HP.IsKeyWord("low" "rank" "compression")) {
+	     const char* sKeyWords[] = {
+		  "hss",
+		  "blr",
+		  "hodlr",
+		  "svd",
+		  "pqrcp",
+		  "rqrcp",
+		  "tqrcp",
+		  "rqrrt",
+		  NULL
+	     };
+
+	     enum KeyWords {
+		  HSS,
+		  BLR,
+		  HODLR,
+		  SVD,
+		  PQRCP,
+		  RQRCP,
+		  TQRCP,
+		  RQRRT,		
+		  LASTKEYWORD
+	     };
+
+	     KeyTable K(HP, sKeyWords);
+	     unsigned uKeyWord = HP.GetWord();
+
+	     if (!(uKeyWord >= HSS && uKeyWord < LASTKEYWORD)) {
+		  silent_cerr("keywords {hss|blr|hodlr|svd|pqrcp|rqrcp|tqrcp|rqrrt} expected at line " << HP.GetLineData() << std::endl);
+		  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	     }
+	     
+	     unsigned uCompression = LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_HSS << uKeyWord;	    
+	     	     
+	     if (currSolver.s_flags & uCompression) {
+		  cs.AddSolverFlags(LinSol::SOLVER_FLAGS_COMPRESSION_MASK, uCompression);
+		  pedantic_cout("using compression " << sKeyWords[uKeyWord] << " for "
+				<< currSolver.s_name
+				<< " solver" << std::endl);
+	     } else {
+		  pedantic_cerr("compression " << sKeyWords[uKeyWord] << " is meaningless for "
+				<< currSolver.s_name
+				<< " solver" << std::endl);
+	     }
+
+	     if (HP.IsKeyWord("low" "rank" "tolerance")) {
+		  if (!cs.SetLowRankCompressTol(HP.GetReal())) {
+		       pedantic_cerr("low rank tolerance is meaningless for "
+				     << currSolver.s_name
+				     << " solver" << std::endl);		       
+		  }
+	     }
+
+	     if (HP.IsKeyWord("low" "rank" "min" "ratio")) {
+		  if (!cs.SetLowRankCompressMinRatio(HP.GetReal())) {
+		       pedantic_cerr("low rank min ratio is meaningless for "
+				     << currSolver.s_name
+				     << " solver" << std::endl);
+		  }
+	     }
 	}
 
 	if (HP.IsKeyWord("block" "size")) {
@@ -645,6 +740,12 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		if (!cs.SetMaxIterations(HP.GetInt())) {
 			silent_cerr("Warning: iterative refinement is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
 		}
+	}
+
+	if (HP.IsKeyWord("verbose")) {
+	     if (!cs.SetVerbose(HP.GetInt())) {
+		  silent_cerr("Warning: verbose flag is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+	     }
 	}
 
 	switch (cs.GetSolver()) {

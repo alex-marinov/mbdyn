@@ -42,65 +42,65 @@
 #include "spmh.h"
 
 /* Sparse Matrix in columns form */
-template <int off>
-class DirCColMatrixHandler : public CompactSparseMatrixHandler_tpl<off> {
+template <int off, typename idx_type = integer>
+class DirCColMatrixHandler : public CompactSparseMatrixHandler_tpl<off, idx_type> {
 private:
 #ifdef DEBUG
 	void IsValid(void) const {
 		NO_OP;
 	};
 #endif /* DEBUG */
-	std::vector<integer *> pindices;
-	std::vector<integer> indices;
+	std::vector<idx_type *> pindices;
+	std::vector<idx_type> indices;
 
 	// don't allow copy constructor!
 	DirCColMatrixHandler(const DirCColMatrixHandler&);
 
 public:
 	DirCColMatrixHandler(std::vector<doublereal>& x,
-			const std::vector<integer>& i,
-			const std::vector<integer>& p);
+			const std::vector<idx_type>& i,
+			const std::vector<idx_type>& p);
 
 	virtual ~DirCColMatrixHandler();
 
 	/* used by MultiThreadDataManager to duplicate the storage array
 	 * while preserving the CC indices */
-	CompactSparseMatrixHandler *Copy(void) const;
+        virtual CompactSparseMatrixHandler *Copy(void) const override;
 
 public:
 	doublereal & operator()(integer i_row, integer i_col) {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
+		ASSERTMSGBREAK(i_row > 0 && i_row <= this->iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
+		ASSERTMSGBREAK(i_col > 0 && i_col <= this->iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 
-		integer idx = pindices[i_col][i_row];
+		auto idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
 			throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 		}
 
-		return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
+		return this->Ax[idx];
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
+		ASSERTMSGBREAK(i_row > 0 && i_row <= this->iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
+		ASSERTMSGBREAK(i_col > 0 && i_col <= this->iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 
-		integer idx = pindices[i_col][i_row];
+		auto idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
 			return ::Zero1;
 
 		}
 
-		return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
+		return this->Ax[idx];
 	};
 
 	void Resize(integer n, integer nn);

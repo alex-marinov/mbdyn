@@ -1471,12 +1471,17 @@ WCurr(W0),
 WPCurr(Zero3),
 WPPrev(Zero3),
 bOmegaRot(bOmRot)
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+,bNeedRotation(false)
 ,bUpdateRotation(true)
-,dCoefGrad(0.) // This should be safe because the time step should never be zero
+#endif
+#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
+,eCurrFunc(grad::UNKNOWN_FUNC)
+#elif defined(USE_SPARSE_AUTODIFF)
+,eCurrFunc(sp_grad::UNKNOWN_FUNC)
 #endif
 {
-	NO_OP;
+
 }
 
 /* Distruttore (per ora e' banale) */
@@ -1854,6 +1859,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 	}
 }
 
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+void StructNode::UpdateJac(doublereal dCoef)
+{
+	if (bNeedRotation) {
+		UpdateRotation(dCoef);
+	}
+}
+#endif
+
 /* Output del nodo strutturale (da mettere a punto) */
 void
 StructNode::Output(OutputHandler& OH) const
@@ -1951,7 +1965,7 @@ StructNode::Output(OutputHandler& OH) const
 void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -1998,8 +2012,8 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 #endif
 }
 
-#ifdef USE_AUTODIFF
-inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const {
+#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
+inline void StructNode::GetgCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const {
 	using namespace grad;
 
 	integer iFirstIndexLocal;
@@ -2020,46 +2034,77 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g,
 		Gradient<iNumADVars>& g_i = g(i);
 		g_i.SetValuePreserve(gCurr(i));
 		g_i.DerivativeResizeReset(0,
-								  iFirstIndexLocal + i,
-								  MapVectorBase::LOCAL,
-								  -dCoef);
+					  iFirstIndexLocal + i,
+					  MapVectorBase::LOCAL,
+					  -dCoef);
 	}
 }
 
-inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const {
+inline void StructNode::GetgPCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const {
 	using namespace grad;
 
-	integer iFirstIndexLocal;
+	integer iFirstIndexLocal = -1; // Always start from zero in order to save memory
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
+		// gPCurr is unused during initial assembly
 		GRADIENT_ASSERT(dCoef == 1.);
+		gP = gPCurr;
+		return;
 	case INITIAL_DER_JAC:
 	case REGULAR_JAC:
-		iFirstIndexLocal = -1; // Always start from zero in order to save memory
 		break;
 
 	default:
 		GRADIENT_ASSERT(false);
 	}
 
-	// gPCurr is unused during initial assembly
-	const Vec3& gPCurr = (func == INITIAL_ASS_JAC) ? WCurr : this->gPCurr;
-
 	for (index_type i = 1; i <= 3; ++i) {
 		Gradient<iNumADVars>& gP_i = gP(i);
 		gP_i.SetValuePreserve(gPCurr(i));
 		gP_i.DerivativeResizeReset(0,
-								   iFirstIndexLocal + i,
-								   MapVectorBase::LOCAL,
-								   -1.);
+					   iFirstIndexLocal + i,
+					   MapVectorBase::LOCAL,
+					   -1.);
 	}
 }
 
-template <typename T>
-void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& R, grad::Vector<T, 3>& W, enum grad::FunctionCall func) const
+inline void StructNode::GetWCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& W, doublereal dCoef, enum grad::FunctionCall func) const
 {
 	using namespace grad;
+
+	integer iFirstIndexLocal = -1; // Always start from zero in order to save memory
+
+	switch (func) {
+	case INITIAL_ASS_JAC:
+		GRADIENT_ASSERT(dCoef == 1.);
+		break;
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	for (index_type i = 1; i <= 3; ++i) {
+	     Gradient<iNumADVars>& W_i = W(i);
+	     W_i.SetValuePreserve(WCurr(i));
+	     W_i.DerivativeResizeReset(0,
+				       iFirstIndexLocal + i,
+				       MapVectorBase::LOCAL,
+				       -1.);
+	}
+}
+#endif
+
+#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
+template <typename T>
+void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& R, grad::Vector<T, 3>& W, doublereal dCoef, enum grad::FunctionCall func) const
+{
+    GRADIENT_ASSERT(bNeedRotation);
+    
+    using namespace grad;
 
     const T d = 4. / (4. + Dot(g, g));
 
@@ -2086,7 +2131,7 @@ void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad
 
     switch (func) {
     case INITIAL_ASS_JAC:
-    	W = gP;	// Note gP must be equal to WCurr during the initial assembly phase
+	GetWCurrInt(W, dCoef, func);
     	break;
 
     case INITIAL_DER_JAC:
@@ -2117,134 +2162,261 @@ void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad
     }
 
 }
+#endif
 
-void StructNode::UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) const
+#ifdef USE_SPARSE_AUTODIFF
+template <typename T>
+inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& R, sp_grad::SpColVector<T, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-	using namespace grad;
+     SP_GRAD_ASSERT(bNeedRotation);
+     
+     using namespace sp_grad;
 
-	if (bUpdateRotation || dCoef != dCoefGrad) {
-#ifdef USE_MULTITHREAD
-		if (!gradInUse.bIsInUse()) {
-			// Another thread has locked this node
-			// Wait until it is finished
+     const T d = 4. / (4. + Dot(g, g));
 
-			while (!gradInUse.bIsInUse()) {
-				DEBUGCOUT("StructNode::UpdateRotation: StructNode(" << GetLabel() << ") is in use!\n");
-			}
+     SpMatrix<T, 3, 3> RDelta(3, 3, 8);
 
-			if (!bUpdateRotation && dCoef == dCoefGrad) {
-				gradInUse.ReSetInUse();
-				return;
-			} else {
-				ASSERT(0);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
+     const T tmp1 = -g(3) * g(3);
+     const T tmp2 = -g(2) * g(2);
+     const T tmp3 = -g(1) * g(1);
+     const T tmp4 = g(1) * g(2) * 0.5;
+     const T tmp5 = g(2) * g(3) * 0.5;
+     const T tmp6 = g(1) * g(3) * 0.5;
 
-		try {
-#else
-		{
+     RDelta(1,1) = (tmp1 + tmp2) * d * 0.5 + 1;
+     RDelta(1,2) = (tmp4 - g(3)) * d;
+     RDelta(1,3) = (tmp6 + g(2)) * d;
+     RDelta(2,1) = (g(3) + tmp4) * d;
+     RDelta(2,2) = (tmp1 + tmp3) * d * 0.5 + 1.;
+     RDelta(2,3) = (tmp5 - g(1)) * d;
+     RDelta(3,1) = (tmp6 - g(2)) * d;
+     RDelta(3,2) = (tmp5 + g(1)) * d;
+     RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
+
+     R = EvalUnique(RDelta * RRef);
+
+     switch (func) {
+     case SpFunctionCall::INITIAL_ASS_JAC:
+	  GetWCurrInitAss(W, dCoef, func);
+	  break;
+
+     case SpFunctionCall::INITIAL_DER_JAC:
+     case SpFunctionCall::REGULAR_JAC:
+     {
+	  SpMatrix<T, 3, 3> G(3, 3, 8);
+
+	  const T tmp7 = 0.5 * g(1) * d;
+	  const T tmp8 = 0.5 * g(2) * d;
+	  const T tmp9 = 0.5 * g(3) * d;
+
+	  G(1,1) = d;
+	  G(1,2) = -tmp9;
+	  G(1,3) = tmp8;
+	  G(2,1) = tmp9;
+	  G(2,2) = d;
+	  G(2,3) = -tmp7;
+	  G(3,1) = -tmp8;
+	  G(3,2) = tmp7;
+	  G(3,3) = d;
+
+	  W = EvalUnique(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
+     }
+     break;
+
+     default:
+	  SP_GRAD_ASSERT(false);
+     }	  
+}
 #endif
-			dCoefGrad = dCoef;
-			Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
 
-			GetgCurr(gCurr_grad, dCoef, func);
-			GetgPCurr(gPCurr_grad, dCoef, func);
+#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
+void StructNode::UpdateRotation(doublereal dCoef) const
+{
+     GRADIENT_ASSERT(bNeedRotation);
+     
+     using namespace grad;
 
-			UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, func);
+     if (bUpdateRotation) {
+	  Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
 
+	  GetgCurrInt(gCurr_grad, dCoef, eCurrFunc);
+	  GetgPCurrInt(gPCurr_grad, dCoef, eCurrFunc);
+
+	  UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
 #if GRADIENT_DEBUG > 0
-			{
-                                const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+	  {
+	       const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
-				Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+	       Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 
-				Mat3x3 RCurr_tmp = RDelta * RRef;
+	       Mat3x3 RCurr_tmp = RDelta * RRef;
 
-				bool bErr = false;
+	       bool bErr = false;
 
-				for (index_type i = 1; i <= 3; ++i) {
-					for (index_type j = 1; j <= 3; ++j) {
-						if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
-							bErr = true;
-						}
-					}
-				}
+	       for (index_type i = 1; i <= 3; ++i) {
+		    for (index_type j = 1; j <= 3; ++j) {
+			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
+			      bErr = true;
+			 }
+		    }
+	       }
 
-				for (index_type i = 1; i <= 3; ++i) {
-					for (index_type j = 1; j <= 3; ++j) {
-						if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
-							bErr = true;
-						}
-					}
+	       for (index_type i = 1; i <= 3; ++i) {
+		    for (index_type j = 1; j <= 3; ++j) {
+			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
+			      bErr = true;
+			 }
+		    }
 
-					if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
-						bErr = true;
-					}
-				}
+		    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
+			 bErr = true;
+		    }
+	       }
 
-				if (bErr) {
-					std::cerr << "gCurr=" << gCurr << std::endl;
-					std::cerr << "RCurr=" << std::endl;
-					for (integer i = 1; i <= 3; ++i) {
-						for (integer j = 1; j <= 3; ++j) {
-							std::cerr << RCurr(i, j) << " ";
-						}
-						std::cerr << std::endl;
-					}
+	       if (bErr) {
+		    std::cerr << "gCurr=" << gCurr << std::endl;
+		    std::cerr << "RCurr=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RCurr(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
 
-					std::cerr << "RCurr_grad=" << std::endl;
+		    std::cerr << "RCurr_grad=" << std::endl;
 
-					std::cerr << "RRef=" << std::endl;
-					for (integer i = 1; i <= 3; ++i) {
-						for (integer j = 1; j <= 3; ++j) {
-							std::cerr << RRef(i, j) << " ";
-						}
-						std::cerr << std::endl;
-					}
+		    std::cerr << "RRef=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RRef(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
 
-					std::cerr << "RPrev=" << std::endl;
-					for (integer i = 1; i <= 3; ++i) {
-						for (integer j = 1; j <= 3; ++j) {
-							std::cerr << RPrev(i, j) << " ";
-						}
-						std::cerr << std::endl;
-					}
+		    std::cerr << "RPrev=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RPrev(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
 
-					std::cerr << "RCurr_grad=" << std::endl;
+		    std::cerr << "RCurr_grad=" << std::endl;
 
-					for (integer i = 1; i <= 3; ++i) {
-						for (integer j = 1; j <= 3; ++j) {
-							std::cerr << RCurr_grad(i, j).dGetValue() << " ";
-						}
-						std::cerr << std::endl;
-					}
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RCurr_grad(i, j).dGetValue() << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
 
-					std::cerr << "WCurr=" << WCurr << std::endl;
-					std::cerr << "WCurr_grad=";
-					for (integer i = 1; i <= 3; ++i) {
-						std::cerr << WCurr_grad(i).dGetValue() << " ";
-					}
-					std::cerr << std::endl;
-					GRADIENT_ASSERT(false);
-				}
-			}
+		    std::cerr << "WCurr=" << WCurr << std::endl;
+		    std::cerr << "WCurr_grad=";
+		    for (integer i = 1; i <= 3; ++i) {
+			 std::cerr << WCurr_grad(i).dGetValue() << " ";
+		    }
+		    std::cerr << std::endl;
+		    GRADIENT_ASSERT(false);
+	       }
+	  }
 #endif
 
-			bUpdateRotation = false;
-
-#if USE_MULTITHREAD
-		} catch (...) {
-			// Make sure that the spin lock will be reset in order to avoid infinite loops
-			gradInUse.ReSetInUse();
-			throw;
-		}
-
-		gradInUse.ReSetInUse();
-#else
-		}
+	  bUpdateRotation = false;
+     }
+}
 #endif
-	}
+
+#if defined(USE_SPARSE_AUTODIFF)
+void StructNode::UpdateRotation(doublereal dCoef) const
+{
+     SP_GRAD_ASSERT(bNeedRotation);
+     
+     if (bUpdateRotation) {
+	  sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 1> gCurr_grad, gPCurr_grad;
+
+	  GetgCurr(gCurr_grad, dCoef, eCurrFunc);
+	  GetgPCurr(gPCurr_grad, dCoef, eCurrFunc);
+
+	  UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
+#if defined(DEBUG)
+	  {
+	       using sp_grad::index_type;
+			 
+	       const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+	       Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+
+	       Mat3x3 RCurr_tmp = RDelta * RRef;
+
+	       bool bErr = false;
+
+	       for (index_type i = 1; i <= 3; ++i) {
+		    for (index_type j = 1; j <= 3; ++j) {
+			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
+			      bErr = true;
+			 }
+		    }
+	       }
+
+	       for (index_type i = 1; i <= 3; ++i) {
+		    for (index_type j = 1; j <= 3; ++j) {
+			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
+			      bErr = true;
+			 }
+		    }
+
+		    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
+			 bErr = true;
+		    }
+	       }
+
+	       if (bErr) {
+		    std::cerr << "gCurr=" << gCurr << std::endl;
+		    std::cerr << "RCurr=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RCurr(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
+
+		    std::cerr << "RRef=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RRef(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
+
+		    std::cerr << "RPrev=" << std::endl;
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RPrev(i, j) << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
+
+		    std::cerr << "RCurr_grad=" << std::endl;
+
+		    for (integer i = 1; i <= 3; ++i) {
+			 for (integer j = 1; j <= 3; ++j) {
+			      std::cerr << RCurr_grad(i, j).dGetValue() << " ";
+			 }
+			 std::cerr << std::endl;
+		    }
+
+		    std::cerr << "WCurr=" << WCurr << std::endl;
+		    std::cerr << "WCurr_grad=";
+		    for (integer i = 1; i <= 3; ++i) {
+			 std::cerr << WCurr_grad(i).dGetValue() << " ";
+		    }
+		    std::cerr << std::endl;
+		    SP_GRAD_ASSERT(false);
+	       }
+	  }
+#endif
+	  bUpdateRotation = false;
+     }
 }
 #endif
 
@@ -2252,7 +2424,7 @@ void StructNode::UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) 
 void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2270,10 +2442,9 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
-
 	integer iFirstIndex = iGetFirstIndex();
 
 	XCurr = Vec3(X, iFirstIndex + 1);
@@ -2292,7 +2463,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void 
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2338,6 +2509,12 @@ StructNode::SetInitialValue(VectorHandler& X)
 	X.Put(iIndex + 4, Zero3);
 	X.Put(iIndex + 7, VCurr);
 	X.Put(iIndex + 10, WCurr);
+
+#if defined(USE_SPARSE_AUTODIFF)
+	eCurrFunc = sp_grad::INITIAL_ASS_JAC;
+#elif defined(USE_AUTODIFF)
+	eCurrFunc = grad::INITIAL_ASS_JAC;
+#endif	
 }
 
 
@@ -2346,7 +2523,7 @@ StructNode::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2395,6 +2572,12 @@ StructNode::SetValue(DataManager *pDM,
 	gRef = gCurr = gPRef = gPCurr = Zero3;
 	XP.Put(iFirstIndex + 1, VPrev);
 	XP.Put(iFirstIndex + 4, WPrev);
+
+#if defined(USE_SPARSE_AUTODIFF)
+	eCurrFunc = sp_grad::REGULAR_JAC;
+#elif defined(USE_AUTODIFF)
+	eCurrFunc = grad::REGULAR_JAC;
+#endif	
 }
 
 
@@ -2504,7 +2687,7 @@ StructNode::BeforePredict(VectorHandler& X,
 void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 
@@ -2606,7 +2789,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP, 
 			const VectorHandler& XPP)
 {
-#ifdef USE_AUTODIFF
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	bUpdateRotation = true;
 #endif
 /* Right now, AfterConvergence is performed only on position 

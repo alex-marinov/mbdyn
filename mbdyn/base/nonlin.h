@@ -40,12 +40,13 @@
 #ifndef NONLIN_H
 #define NONLIN_H
 
-#include "clock_time.h"
 #include "solverdiagnostics.h"
 #include "external.h"
 #include "nonlinpb.h"
 #include "solman.h"
 
+#include <iomanip>
+#include <chrono>
 #include <cfloat>
 #include <vector>
 
@@ -284,10 +285,10 @@ protected:
 	doublereal dGetCondMax()const { return dMaxCond; }
 	doublereal dGetCondMin()const { return dMinCond; }
 	doublereal dGetCondAvg()const { return dSumCond / iNumCond; }
-	inline doublereal dGetTimeCPU(CPUTimeType eType) const;
+        inline std::chrono::nanoseconds dGetTimeCPU(CPUTimeType eType) const;
 	inline void AddCond(doublereal dCond);
         inline void ResetCond();
-	inline void AddTimeCPU(doublereal dTime, CPUTimeType eType);
+        inline void AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType);
 
     friend class CPUStopWatch;
                 
@@ -296,50 +297,53 @@ protected:
         explicit CPUStopWatch(NonlinearSolver& oSolver, CPUTimeType eType)
             :oSolver(oSolver),
              eType(eType),
-             dStartTimeCPU(-1),
-             dElapsedCPU(0) {
+	     eStatus(SWST_INACTIVE),	     
+             dStartTimeCPU(std::chrono::nanoseconds(0)),
+             dElapsedCPU(std::chrono::nanoseconds(0)) {
         }
 
         ~CPUStopWatch() {
             Toc();
         }
         
-        doublereal Tic() {
-            if (oSolver.outputCPUTime()) {
-                dStartTimeCPU = mbdyn_clock_time();
-            }
+	std::chrono::time_point<std::chrono::high_resolution_clock> Tic() {
+            using namespace std::chrono;
+	    
+	    dStartTimeCPU = high_resolution_clock::now();
+	    eStatus = SWST_ACTIVE;
 
             return dStartTimeCPU;
         }
 
-        doublereal Tic(CPUStopWatch& oOther) {
+	 std::chrono::time_point<std::chrono::high_resolution_clock> Tic(CPUStopWatch& oOther) {
             ASSERT(&oSolver == &oOther.oSolver);
+	    
             dStartTimeCPU = oOther.Toc();
+	    eStatus = SWST_ACTIVE;
             
             return dStartTimeCPU;
         }
         
-        doublereal Toc() {
-            doublereal dEndTimeCPU;
-            
-            if (oSolver.outputCPUTime()) {
-                dEndTimeCPU = mbdyn_clock_time();
-                
-                if (dStartTimeCPU >= 0) {
-                    dElapsedCPU = dEndTimeCPU - dStartTimeCPU;
-                    oSolver.AddTimeCPU(dElapsedCPU, eType);
-                    dStartTimeCPU = -1;
-                }
-            } else {
-                dEndTimeCPU = -1;
+        std::chrono::time_point<std::chrono::high_resolution_clock> Toc() {
+            using namespace std::chrono;
+	    
+            time_point<high_resolution_clock> dEndTimeCPU = high_resolution_clock::now();;
+	    
+	    if (eStatus == SWST_ACTIVE) {
+		 dElapsedCPU = dEndTimeCPU - dStartTimeCPU;
+		 oSolver.AddTimeCPU(dElapsedCPU, eType);
             }
+
+	    eStatus = SWST_INACTIVE;
 
             return dEndTimeCPU;
         }
 
-        doublereal dGetElapsedCPU() const {
-            if (dStartTimeCPU >= 0) {
-                return mbdyn_clock_time() - dStartTimeCPU;
+        std::chrono::nanoseconds dGetElapsedCPU() const {
+            using namespace std::chrono;
+	    
+            if (eStatus == SWST_ACTIVE) {
+		 return duration_cast<nanoseconds>(high_resolution_clock::now() - dStartTimeCPU);
             } else {
                 return dElapsedCPU;
             }
@@ -348,14 +352,32 @@ protected:
         friend inline std::ostream& operator<<(std::ostream& os, const CPUStopWatch& oWatch) {
             return oWatch.Print(os);
         }
+	 
     private:
         std::ostream& Print(std::ostream& os) const {
-            return os << dGetElapsedCPU() << '/' << oSolver.dGetTimeCPU(eType);
+	     using namespace std::chrono;
+	     typedef duration<float, std::ratio<1, 1> > FloatSec;
+	     
+	     auto flags = os.flags();
+	     auto prec = os.precision();
+	     os.setf(std::ios::scientific);
+	     os.precision(2);
+	     os << FloatSec(dGetElapsedCPU()).count() << "s/" << FloatSec(oSolver.dGetTimeCPU(eType)).count() << "s";	     
+	     os.flags(flags);
+	     os.precision(prec);
+	     
+	     return os;
         }
                    
         NonlinearSolver& oSolver;
         const CPUTimeType eType;
-        doublereal dStartTimeCPU, dElapsedCPU;
+	enum StatusType {
+	      SWST_ACTIVE,
+	      SWST_INACTIVE
+	} eStatus;
+	 
+        std::chrono::time_point<std::chrono::high_resolution_clock> dStartTimeCPU;
+        std::chrono::nanoseconds dElapsedCPU;
     };
     
 private:
@@ -363,7 +385,7 @@ private:
 	doublereal dMaxCond;
 	doublereal dMinCond;
 	doublereal dSumCond;
-	doublereal dTimeCPU[CPU_LAST_TYPE];
+        std::chrono::nanoseconds dTimeCPU[CPU_LAST_TYPE];
 
 public:
 	explicit NonlinearSolver(const NonlinearSolverOptions& options);
@@ -437,7 +459,9 @@ public:
         
         return oSolverHints.rgIntegerVal[eType];
     }
-                
+
+     std::ostream& PrintSolverTime(std::ostream& os) const;
+     
 #ifdef USE_EXTERNAL
 	void SetExternal(const External::ExtMessage Ty);
 	
@@ -476,7 +500,7 @@ NonlinearSolver::ResetCond()
     dMinCond = std::numeric_limits<doublereal>::max();
 }
         
-inline doublereal
+inline std::chrono::nanoseconds
 NonlinearSolver::dGetTimeCPU(CPUTimeType eType) const
 {
 	ASSERT(eType >= 0);
@@ -486,7 +510,7 @@ NonlinearSolver::dGetTimeCPU(CPUTimeType eType) const
 }
 
 inline void
-NonlinearSolver::AddTimeCPU(doublereal dTime, CPUTimeType eType)
+NonlinearSolver::AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType)
 {
 	ASSERT(eType >= 0);
 	ASSERT(eType < CPU_LAST_TYPE);

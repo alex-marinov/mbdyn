@@ -63,6 +63,7 @@ extern "C" {
 #include "wsmpwrap.h"
 #include "pastixwrap.h"
 #include "qrwrap.h"
+#include "strumpackwrap.h"
 
 const char *solvers[] = {
 #if defined(USE_Y12)
@@ -95,6 +96,9 @@ const char *solvers[] = {
                 "qr",
 #if defined(USE_SUITESPARSE_QR)
                 "spqr",
+#endif
+#if defined(USE_STRUMPACK)
+		"strumpack",
 #endif
 		"naive",
 		NULL
@@ -430,6 +434,9 @@ main(int argc, char *argv[])
 	char *random_args = 0;
 	bool cc(false);
 	bool dir(false);
+#ifdef USE_SPARSE_AUTODIFF
+	bool gradmh(false);
+#endif
 	unsigned nt = 1;
 	unsigned block_size = 0;
 	double dpivot = -1.;
@@ -444,7 +451,7 @@ main(int argc, char *argv[])
 	SolutionManager::ScaleWhen ms = SolutionManager::SCALEW_NEVER;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:Tw:");
+		int opt = getopt(argc, argv, "cdfg:m:oO:p:P:r::st:Tw:");
 
 		if (opt == EOF) {
 			break;
@@ -458,7 +465,11 @@ main(int argc, char *argv[])
 		case 'd':
 			dir = true;
 			break;
-
+#ifdef USE_SPARSE_AUTODIFF
+		case 'g':
+			gradmh = true;
+			break;
+#endif
 		case 'm':
 			solver = optarg;
 			break;
@@ -747,11 +758,16 @@ main(int argc, char *argv[])
 			std::cerr << " with cc matrix";
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, ddroptol, block_size));
-
+#ifdef USE_SPARSE_AUTODIFF
+		} else if (gradmh) {
+			SAFENEWWITHCONSTRUCTOR(pSM,
+					       UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>,
+					       UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>(size, dpivot, ddroptol, block_size));
+#endif
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
-					UmfpackSparseSolutionManager,
-					UmfpackSparseSolutionManager(size, dpivot, ddroptol, block_size));
+					       UmfpackSparseSolutionManager<SpMapMatrixHandler>,
+					       UmfpackSparseSolutionManager<SpMapMatrixHandler>(size, dpivot, ddroptol, block_size));
 		}
 		std::cerr << std::endl;
 #else /* !USE_UMFPACK */
@@ -788,20 +804,17 @@ main(int argc, char *argv[])
                 } else if (strcasecmp(solver, "pastix") == 0) {
 #ifdef USE_PASTIX
                         std::cerr << "Pastix solver";
-                        if (dir) {
-                                typedef PastixCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
+#ifdef USE_SPARSE_AUTODIFF
+			if (gradmh) {
                                 SAFENEWWITHCONSTRUCTOR(pSM,
-                                                       CCSM,
-                                                       CCSM(size, nt, 250));
-                        } else if (cc) {
-                                typedef PastixCCSolutionManager<CColMatrixHandler<1> > CCSM;
+                                                       PastixSolutionManager<SpGradientSparseMatrixHandler>,
+                                                       PastixSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 0));
+                        } else 
+#endif
+			{
                                 SAFENEWWITHCONSTRUCTOR(pSM,
-                                                       CCSM,
-                                                       CCSM(size, nt, 250));
-                        } else {
-                                SAFENEWWITHCONSTRUCTOR(pSM,
-                                                       PastixSolutionManager,
-                                                       PastixSolutionManager(size, nt, 250));
+                                                       PastixSolutionManager<SpMapMatrixHandler>,
+                                                       PastixSolutionManager<SpMapMatrixHandler>(size, nt, 0));
                         }
                         std::cerr << std::endl;
 #else /* !USE_PASTIX */
@@ -816,9 +829,32 @@ main(int argc, char *argv[])
 #if defined(USE_SUITESPARSE_QR)                
                 } else if (strcasecmp(solver, "spqr") == 0) {
                         std::cerr << "spqr solver" << std::endl;
-                        SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager,
-                                               QrSparseSolutionManager(size, 0u));
-#endif                        
+#ifdef USE_SPARSE_AUTODIFF
+			if (gradmh) {
+				SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager<SpGradientSparseMatrixHandler>,
+						       QrSparseSolutionManager<SpGradientSparseMatrixHandler>(size, 0u));
+			} else {
+#endif
+				SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager<SpMapMatrixHandler>,
+						       QrSparseSolutionManager<SpMapMatrixHandler>(size, 0u));
+#ifdef USE_SPARSE_AUTODIFF
+			}
+#endif
+#endif
+#if defined(USE_STRUMPACK)
+	} else if (strcasecmp(solver, "strumpack") == 0) {
+#ifdef USE_SPARSE_AUTODIFF
+	     if (gradmh) {
+		  SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpGradientSparseMatrixHandler>,
+					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 10));
+	     } else {
+#endif
+		  SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpMapMatrixHandler>,
+					 StrumpackSolutionManager<SpMapMatrixHandler>(size, nt, 10));
+#ifdef USE_SPARSE_AUTODIFF
+	     }
+#endif
+#endif
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (dpivot == -1.) {

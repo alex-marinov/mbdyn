@@ -1,10 +1,10 @@
 /* $Header$ */
 /*
- * MBDyn (C) is a multibody analysis code. 
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2003-2017
- * 
+ *
  * This code is a partial merge of HmFe and MBDyn.
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
@@ -19,7 +19,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,6 +34,7 @@
 #ifndef SPMH_H
 #define SPMH_H
 
+#include <stdint.h>
 #include <vector>
 
 #include "myassert.h"
@@ -44,7 +45,6 @@ class SparseMatrixHandler : public MatrixHandler {
 protected:
 	integer NRows;
 	integer NCols;
-	integer NZ;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -101,10 +101,8 @@ private:
 	};
 
 public:
-	const integer Nz() const {
-		return NZ;
-	};
-	
+        virtual integer Nz() const=0;
+
 	/* FIXME: always square? */
 	SparseMatrixHandler(const integer &n, const integer &nn = 0);
 
@@ -119,40 +117,85 @@ public:
 	};
 
 	virtual
-	integer MakeCompressedColumnForm(doublereal *const Ax,
-			integer *const Ai, integer *const Ap,
-			int offset = 0) const = 0;
+	int32_t MakeCompressedColumnForm(doublereal *const Ax,
+					 int32_t *const Ai,
+					 int32_t *const Ap,
+					 int offset = 0) const;
 
 	virtual
-        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<integer>& Ai, std::vector<integer>& Ap,
-			int offset = 0) const = 0;
+	int32_t MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+					 std::vector<int32_t>& Ai,
+					 std::vector<int32_t>& Ap,
+					 int offset = 0) const;
 
 	virtual
-	integer MakeIndexForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const AcolSt,
-			int offset = 0) const = 0;
+	int64_t MakeCompressedColumnForm(doublereal *const Ax,
+					 int64_t *const Ai,
+					 int64_t *const Ap,
+					 int offset = 0) const;
 
 	virtual
-        integer MakeIndexForm(std::vector<doublereal>& Ax,
-			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const = 0;
+	int64_t MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+					 std::vector<int64_t>& Ai,
+					 std::vector<int64_t>& Ap,
+					 int offset = 0) const;
 
+     virtual
+     int32_t MakeCompressedRowForm(doublereal *const Ax,
+				   int32_t *const Ai,
+				   int32_t *const Ap,
+				   int offset = 0) const;
+
+     virtual
+     int32_t MakeCompressedRowForm(std::vector<doublereal>& Ax,
+				   std::vector<int32_t>& Ai,
+				   std::vector<int32_t>& Ap,
+				   int offset = 0) const;
+
+     virtual
+     int64_t MakeCompressedRowForm(doublereal *const Ax,
+				   int64_t *const Ai,
+				   int64_t *const Ap,
+				   int offset = 0) const;
+
+     virtual
+     int64_t MakeCompressedRowForm(std::vector<doublereal>& Ax,
+				   std::vector<int64_t>& Ai,
+				   std::vector<int64_t>& Ap,
+				   int offset = 0) const;
+
+     
+	virtual
+	int32_t MakeIndexForm(doublereal *const Ax,
+			      int32_t *const Arow, int32_t *const Acol,
+			      int32_t *const AcolSt,
+			      int offset = 0) const;
+
+	virtual
+	int32_t MakeIndexForm(std::vector<doublereal>& Ax,
+			      std::vector<int32_t>& Arow, std::vector<int32_t>& Acol,
+			      std::vector<int32_t>& AcolSt,
+			      int offset = 0) const;
+
+	virtual
+	int64_t MakeIndexForm(doublereal *const Ax,
+			      int64_t *const Arow, int64_t *const Acol,
+			      int64_t *const AcolSt,
+			      int offset = 0) const;
+
+	virtual
+	int64_t MakeIndexForm(std::vector<doublereal>& Ax,
+			      std::vector<int64_t>& Arow, std::vector<int64_t>& Acol,
+			      std::vector<int64_t>& AcolSt,
+			      int offset = 0) const;
+     
 	/* Estrae una colonna da una matrice */
 	virtual VectorHandler& GetCol(integer icol,
-			VectorHandler& out) const = 0;
+				      VectorHandler& out) const = 0;
 };
 
 /* Sparse Matrix in compact form */
 class CompactSparseMatrixHandler : public SparseMatrixHandler {
-protected:
-	bool bMatDuplicate;
-	std::vector<doublereal>& Ax;
-	const std::vector<integer>& Ai;
-	const std::vector<integer>& Ap;
-
 #ifdef DEBUG
 	void IsValid(void) const {
 		NO_OP;
@@ -160,10 +203,7 @@ protected:
 #endif /* DEBUG */
 
 public:
-	CompactSparseMatrixHandler(const integer &n, const integer &nn,
-			std::vector<doublereal>& x,
-			const std::vector<integer>& i,
-			const std::vector<integer>& p);
+	CompactSparseMatrixHandler(const integer &n, const integer &nn);
 
 	virtual ~CompactSparseMatrixHandler();
 
@@ -172,66 +212,42 @@ public:
 	virtual CompactSparseMatrixHandler *Copy(void) const = 0;
 
 	/* used to sum CC matrices with identical indices */
-	void AddUnchecked(const CompactSparseMatrixHandler& m);
-
-	/* Restituisce un puntatore all'array di reali della matrice */
-	virtual inline const doublereal* pdGetMat(void) const {
-		return &Ax[0];
-	};
-
-public:
-	void Reset(void);
-	
-	virtual
-	integer MakeCompressedColumnForm(doublereal *const Ax,
-			integer *const Ai, integer *const Ap,
-			int offset = 0) const;
-
-	virtual
-        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<integer>& Ai, std::vector<integer>& Ap,
-			int offset = 0) const;
-
-	virtual
-	integer MakeIndexForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const AcolSt,
-			int offset = 0) const;
-
-	virtual
-        integer MakeIndexForm(std::vector<doublereal>& Ax,
-			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const;
+        virtual void AddUnchecked(const CompactSparseMatrixHandler& m) = 0;
 };
 
 /* Sparse Matrix in compact form */
-template <int off>
+template <int off, typename idx_type>
 class CompactSparseMatrixHandler_tpl : public CompactSparseMatrixHandler {
+        integer NZ;
+protected:
+	bool bMatDuplicate;
+	std::vector<doublereal>& Ax;
+	const std::vector<idx_type>& Ai;
+	const std::vector<idx_type>& Ap;     
 public:
 	CompactSparseMatrixHandler_tpl(const integer &n, const integer &nn,
-			std::vector<doublereal>& x,
-			const std::vector<integer>& i,
-			const std::vector<integer>& p);
+				       std::vector<doublereal>& x,
+				       const std::vector<idx_type>& i,
+				       const std::vector<idx_type>& p);
 	virtual ~CompactSparseMatrixHandler_tpl(void);
 
 	class const_iterator {
 	private:
-		const CompactSparseMatrixHandler_tpl<off>& m;
-		mutable integer i_idx;
+	        const CompactSparseMatrixHandler_tpl<off, idx_type>& m;
+		mutable idx_type i_idx;
 		mutable SparseMatrixHandler::SparseMatrixElement elem;
 
 	protected:
 		void reset(bool is_end = false);
 
 	public:
-		const_iterator(const CompactSparseMatrixHandler_tpl<off>& m, bool is_end = false);
+	     const_iterator(const CompactSparseMatrixHandler_tpl<off, idx_type>& m, bool is_end = false);
 		~const_iterator(void);
-		const CompactSparseMatrixHandler_tpl<off>::const_iterator& operator ++ (void) const;
+	        const CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator& operator ++ (void) const;
 		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
 		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
-		bool operator == (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const;
-		bool operator != (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const;
+	        bool operator == (const CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator& op) const;
+	        bool operator != (const CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator& op) const;
 	};
 
 protected:
@@ -256,16 +272,27 @@ protected:
 			VectorHandler& out, const VectorHandler& in) const;
 
 protected:
-	CompactSparseMatrixHandler_tpl<off>::const_iterator m_end;
+        CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator m_end;
 
 public:
-	CompactSparseMatrixHandler_tpl<off>::const_iterator begin(void) const {
-		return CompactSparseMatrixHandler_tpl<off>::const_iterator(*this);
+        CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator begin(void) const {
+	     return CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator(*this);
 	};
 
-	const CompactSparseMatrixHandler_tpl<off>::const_iterator& end(void) const {
+        const CompactSparseMatrixHandler_tpl<off, idx_type>::const_iterator& end(void) const {
 		return m_end;
 	};
+
+	/* Restituisce un puntatore all'array di reali della matrice */
+        virtual const doublereal* pdGetMat(void) const;
+
+     	virtual void Reset(void) override;
+
+        virtual void AddUnchecked(const CompactSparseMatrixHandler& m) override;
+     
+        virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
+
+        virtual integer Nz() const override;
 };
 
 #endif /* SPMH_H */

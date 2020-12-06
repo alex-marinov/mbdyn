@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,6 +31,10 @@
 
 #ifndef MBDYN_H
 #define MBDYN_H
+
+#if defined(USE_MULTITHREAD) && defined(__cplusplus)
+#include <mutex>
+#endif
 
 /* Global typedefs (unused yet) */
 typedef double mbReal;
@@ -90,6 +94,13 @@ enum {
 extern int fSilent;
 extern int fPedantic;
 
+#if defined(USE_MULTITHREAD) && defined(__cplusplus)
+extern std::mutex mbdyn_lock_cout;
+#define MBDYN_LOCK_COUT() std::lock_guard<std::mutex> mbdyn_lock_cout_guard(::mbdyn_lock_cout)
+#else
+#define MBDYN_LOCK_COUT() static_cast<void>(0)
+#endif
+
 #define silent_output \
 	(::fSilent > 0)
 #define silent_out \
@@ -98,15 +109,17 @@ extern int fPedantic;
 	(::fSilent < 2)
 
 #define silent_cout(arg) \
-    	do { \
-        	if (silent_out) { \
-            		std::cout << arg; \
-        	} \
-    	} while (0)
+	do { \
+		if (silent_out) { \
+			MBDYN_LOCK_COUT(); \
+			std::cout << arg; \
+		} \
+	} while (0)
 
 #define silent_cerr(arg) \
 	do { \
 		if (silent_err) { \
+			MBDYN_LOCK_COUT(); \
 			std::cerr << arg; \
 		} \
 	} while (0)
@@ -119,15 +132,17 @@ extern int fPedantic;
 	(::fPedantic > 0)
 
 #define pedantic_cout(arg) \
-    	do { \
-        	if (pedantic_out) { \
-            		std::cout << arg; \
-        	} \
-    	} while (0)
+	do { \
+		if (pedantic_out) { \
+			MBDYN_LOCK_COUT(); \
+			std::cout << arg; \
+		} \
+	} while (0)
 
 #define pedantic_cerr(arg) \
 	do { \
 		if (pedantic_err) { \
+			MBDYN_LOCK_COUT(); \
 			std::cerr << arg; \
 		} \
 	} while (0)
@@ -166,4 +181,3 @@ extern void *rtmbdyn_rtai_task;
 #define	STRLENOF(s)	(sizeof(s) - 1)
 
 #endif /* MBDYN_H */
-

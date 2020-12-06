@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2017
+ * Copyright (C) 1996-2020
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -30,15 +30,13 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2019) all rights reserved.
+        Copyright (C) 2013(-2020) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
         for use in the software MBDyn as described
         in the GNU Public License version 2.1
 */
-
-# module load: "libmodule-autodiff_test.la";
 
 set: real X0 = 20e-3;
 set: real Y0 = 30e-3;
@@ -82,7 +80,7 @@ begin: initial value;
         derivatives max iterations: 100;
         derivatives coefficient: 0.3e-2;
 
-        linear solver: umfpack, colamd, scale, iterative, always, max iterations, 10;
+        linear solver: naive, colamd;
         eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,
         output matrices,
         suffix width, 2,
@@ -139,6 +137,7 @@ parameter: prm_node_id_lambda2, element;
 end: nodes;
 
 begin: elements;
+        module load: "libmodule-autodiff_test.la";
 
 	body: body_id_slider,
 		# node

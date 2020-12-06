@@ -279,7 +279,7 @@ template <class CC>
 class Y12SparseCCSolutionManager: public Y12SparseSolutionManager {
 protected:
 	bool CCReady;
-	CompactSparseMatrixHandler *Ac;
+        CompactSparseMatrixHandler *Ac;
 
 	virtual void MatrReset(void);
 	virtual void MakeIndexForm(void);

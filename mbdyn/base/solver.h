@@ -422,6 +422,9 @@ public:
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
 	virtual void CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*throw(NonlinearSolver::TimeStepLimitExceeded, NonlinearSolver::MaxResidualExceeded)*/;
+        std::ostream& PrintSolverTime(std::ostream& os) const {
+	     return pNLS->PrintSolverTime(os);
+        }
 };
 
 inline void

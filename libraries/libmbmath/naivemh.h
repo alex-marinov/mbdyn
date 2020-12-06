@@ -146,6 +146,9 @@ public:
 	void MakeCCStructure(std::vector<integer>& Ai,
 		std::vector<integer>& Ap);
 
+        virtual
+        void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
+     
 protected:
         /* Matrix Matrix product */
 	virtual MatrixHandler&
@@ -300,6 +303,8 @@ public:
 		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};
 
+        virtual
+        void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 protected:
         /* Matrix Matrix product */
 	virtual MatrixHandler&

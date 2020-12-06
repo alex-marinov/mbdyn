@@ -46,8 +46,10 @@ begin: initial value;
 	initial time: 0;
 	final time: t1;
 
-	time step: t1 / 2000.;
-
+	time step: t1 / 2000;
+	min time step: t1 / 200000;
+	max time step: t1 / 2000;
+	strategy: factor, 0.75, 1, 1.25, 3, 2, 4;
 	max iterations: 100;
 	tolerance: 1e-6;
 	method: implicit euler;
@@ -57,7 +59,7 @@ begin: initial value;
 	linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 100;
 	nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, divergence check, no;
 	threads: assembly, 1;
-	output: iterations;
+	output: iterations, solver condition number, stat, yes;
 end: initial value;
 
 begin: control data;

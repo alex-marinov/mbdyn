@@ -298,8 +298,11 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 		break;
 	}
 
+	case VariableSubMatrixHandler::NULLMATRIX:
+	     break;
+	     
 	default:
-		break;
+	     SubMH.AddTo(*this);
 	}
 
 	return *this;
@@ -359,8 +362,11 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 		break;
 	}
 
+	case VariableSubMatrixHandler::NULLMATRIX:
+	     break;
+	     
 	default:
-		break;
+	     SubMH.SubFrom(*this);
 	}
 
 	return *this;
@@ -386,6 +392,11 @@ NaiveMatrixHandler::MakeCCStructure(std::vector<integer>& Ai,
 	}
 	Ap[iSize] = nnz;
 };
+
+void NaiveMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     IteratorScale(*this, oRowScale, oColScale);
+}
 
 /* Matrix Matrix product */
 MatrixHandler&
@@ -821,5 +832,11 @@ NaivePermMatrixHandler::const_iterator::operator != (const NaivePermMatrixHandle
 	return elem != op.elem;
 }
 
+
+void NaivePermMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     IteratorScale(*this, oRowScale, oColScale);
+}
+     
 /* NaivePermMatrixHandler end */
 

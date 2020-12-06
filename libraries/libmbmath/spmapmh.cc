@@ -66,7 +66,7 @@
 #include "spmapmh.h"
 
 SpMapMatrixHandler::SpMapMatrixHandler(const integer &n, const integer &nn)
-: SparseMatrixHandler(n, nn), m_end(*this, true)
+: SparseMatrixHandler(n, nn), NZ(0), m_end(*this, true)
 {
 	col_indices.resize(NCols);
 }
@@ -76,11 +76,14 @@ SpMapMatrixHandler::~SpMapMatrixHandler()
 	NO_OP;
 }
 
-integer
-SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-		integer *const Ai, integer *const Ap, int offset) const
+template <typename idx_type>
+
+idx_type SpMapMatrixHandler::MakeCompressedColumnFormTpl(doublereal *const Ax,
+							 idx_type *const Ai,
+							 idx_type *const Ap,
+							 int offset) const
 {
-	integer x_ptr = 0;
+	idx_type x_ptr = 0;
 
 	row_cont_type::iterator ri;
 	row_cont_type::const_iterator re;
@@ -99,28 +102,121 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 			"SpMapMatrixHandler::MakeCompressedColumnForm");
 
 	Ap[NCols] = x_ptr + offset;
-
-	return Nz();
+	
+	return x_ptr;     
 }
 
-integer
-SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                std::vector<integer>& Ai, std::vector<integer>& Ap,
-		int offset) const
+template <typename idx_type>
+idx_type SpMapMatrixHandler::MakeCompressedRowFormTpl(doublereal *const Ax,
+						      idx_type *const Ai,
+						      idx_type *const Ap,
+						      int offset) const
 {
-	Ax.resize(Nz());
-	Ai.resize(Nz());
-	Ap.resize(iGetNumCols() + 1);
+	row_cont_type::iterator ri;
+	row_cont_type::const_iterator re;
 
-	return MakeCompressedColumnForm(&Ax[0], &Ai[0], &Ap[0], offset);
+	std::vector<idx_type> oRowSize(NRows, 0);
+
+	for (integer iCol = 0; iCol < NCols; ++iCol) {
+	     re = col_indices[iCol].end();
+	     for (ri = col_indices[iCol].begin(); ri != re; ++ri) {
+		  ASSERT(ri->first >= 0);
+		  ASSERT(ri->first < NRows);
+		  
+		  ++oRowSize[ri->first];
+	     }
+	}
+
+	idx_type iPtr = offset;
+
+	for (integer iRow = 0; iRow < NRows; ++iRow) {
+	     Ap[iRow] = iPtr;
+
+	     ASSERT(oRowSize[iRow] >= 0);
+	     ASSERT(oRowSize[iRow] <= NRows);
+	  
+	     iPtr += oRowSize[iRow];
+	}
+     
+	Ap[NRows] = iPtr;
+
+	std::fill(oRowSize.begin(), oRowSize.end(), 0);
+
+#ifdef DEBUG
+	constexpr idx_type iInvalidIndex = -1;
+	constexpr doublereal dInvalidValue = std::numeric_limits<doublereal>::infinity();
+     
+	std::fill(Ai, Ai + Nz(), iInvalidIndex);
+	std::fill(Ax, Ax + Nz(), dInvalidValue);
+#endif	
+	
+	for (integer iCol = 0; iCol < NCols; iCol++) {
+		re = col_indices[iCol].end();
+		for (ri = col_indices[iCol].begin(); ri != re; ++ri) {
+		     ASSERT(ri->first >= 0);
+		     ASSERT(ri->first < NRows);
+		     
+		     const idx_type iSlot = Ap[ri->first] - offset + oRowSize[ri->first]++;
+		     
+		     ASSERT(iSlot >= 0);
+		     ASSERT(iSlot < Ap[ri->first + 1] - offset);
+		     
+		     ASSERT(Ax[iSlot] == dInvalidValue);
+		     ASSERT(Ai[iSlot] == iInvalidIndex);
+		     
+		     Ax[iSlot] = ri->second;
+		     Ai[iSlot] = iCol + offset;
+		}
+	}
+
+	ASSERT(iPtr - offset == Nz());
+	
+	return iPtr - offset;     
 }
 
-integer
-SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
-		integer *const Arow, integer *const Acol,
-		integer *const Ap, int offset) const
+int32_t
+SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
+					     int32_t *const Ai,
+					     int32_t *const Ap,
+					     int offset) const
 {
-	integer x_ptr = 0;
+     return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
+}
+
+int64_t
+SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
+					     int64_t *const Ai,
+					     int64_t *const Ap,
+					     int offset) const
+{
+     return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
+}
+
+int32_t
+SpMapMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+					     int32_t *const Ai,
+					     int32_t *const Ap,
+					     int offset) const
+{
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
+}
+
+int64_t
+SpMapMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
+					     int64_t *const Ai,
+					     int64_t *const Ap,
+					     int offset) const
+{
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
+}
+
+template <typename idx_type>
+idx_type
+SpMapMatrixHandler::MakeIndexFormTpl(doublereal *const Ax,
+				     idx_type *const Arow, idx_type *const Acol,
+				     idx_type *const Ap, int offset) const
+{
+	idx_type x_ptr = 0;
 
 	row_cont_type::iterator ri;
 	row_cont_type::const_iterator re;
@@ -141,20 +237,23 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 
 	Ap[NCols] = x_ptr + offset;
 
-	return Nz();
+	return x_ptr;
 }
 
-integer
-SpMapMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
-                std::vector<integer>& Arow, std::vector<integer>& Acol,
-		std::vector<integer>& Ap, int offset) const
+int32_t SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
+					  int32_t *const Arow, int32_t *const Acol,
+					  int32_t *const AcolSt,
+					  int offset) const
 {
-	Ax.resize(Nz());
-	Arow.resize(Nz());
-	Acol.resize(Nz());
-	Ap.resize(iGetNumCols() + 1);
+     return MakeIndexFormTpl(Ax, Arow, Acol, AcolSt, offset);
+}
 
-	return MakeIndexForm(&Ax[0], &Arow[0], &Acol[0], &Ap[0], offset);
+int64_t SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
+					  int64_t *const Arow, int64_t *const Acol,
+					  int64_t *const AcolSt,
+					  int offset) const
+{
+     return MakeIndexFormTpl(Ax, Arow, Acol, AcolSt, offset);
 }
 
 void
@@ -203,6 +302,16 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 		out(ri->first + 1) = ri->second;
 	}
 	return out;
+}
+
+void SpMapMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
+{
+     IteratorScale(*this, oRowScale, oColScale);
+}
+
+integer SpMapMatrixHandler::Nz() const
+{
+     return NZ;
 }
 
 /* Prodotto Matrice per Matrice */

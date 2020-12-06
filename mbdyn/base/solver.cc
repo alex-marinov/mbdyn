@@ -446,7 +446,7 @@ Solver::Prepare(void)
 		if (nThreads > 1) {
 			if (!(CurrLinearSolver.GetSolverFlags() & LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS)) {
 				/* conservative: dir may use too much memory */
-				if (!CurrLinearSolver.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS)) {
+			     if (!CurrLinearSolver.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS, LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS)) {
 					bool b;
 
 #if defined(USE_UMFPACK)
@@ -3964,7 +3964,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 #ifdef USE_MULTITHREAD
 	if (bSolverThreads) {
-		if (CurrLinearSolver.SetNumThreads(nSolverThreads)) {
+		if (!CurrLinearSolver.SetNumThreads(nSolverThreads)) {
 			silent_cerr("linear solver "
 					<< CurrLinearSolver.GetSolverName()
 					<< " does not support "

@@ -37,128 +37,129 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 
-template <int off>
-CColMatrixHandler<off>::CColMatrixHandler(std::vector<doublereal>& x,
-		const std::vector<integer>& i,
-		const std::vector<integer>& p)
-: CompactSparseMatrixHandler_tpl<off>(p.size() - 1, p.size() - 1, x, i, p)
+template <int off, typename idx_type>
+CColMatrixHandler<off, idx_type>::CColMatrixHandler(std::vector<doublereal>& x,
+					  const std::vector<idx_type>& i,
+					  const std::vector<idx_type>& p)
+     : CompactSparseMatrixHandler_tpl<off, idx_type>(p.size() - 1, p.size() - 1, x, i, p)
 {
 	NO_OP;
 }
 
-template <int off>
-CColMatrixHandler<off>::~CColMatrixHandler()
+template <int off, typename idx_type>
+CColMatrixHandler<off, idx_type>::~CColMatrixHandler()
 {
 	NO_OP;
 }
 
 /* used by MultiThreadDataManager to duplicate the storage array
  * while preserving the CC indices */
-template <int off>
-CompactSparseMatrixHandler *
-CColMatrixHandler<off>::Copy(void) const
+template <int off, typename idx_type>
+CompactSparseMatrixHandler*
+CColMatrixHandler<off, idx_type>::Copy(void) const
 {
 	std::vector<doublereal> *pax =
-		new std::vector<doublereal>(CompactSparseMatrixHandler_tpl<off>::Ax);
-	CColMatrixHandler<off> *p =
-		new CColMatrixHandler<off>(*pax, CompactSparseMatrixHandler_tpl<off>::Ai,
-			CompactSparseMatrixHandler_tpl<off>::Ap);
+	     new std::vector<doublereal>(this->Ax);
+	CColMatrixHandler<off, idx_type> *p =
+	     new CColMatrixHandler<off, idx_type>(*pax, this->Ai,
+						  this->Ap);
 	p->bMatDuplicate = true;
 
 	return p;
 }
 
-template <int off>
+template <int off, typename idx_type>
 void
-CColMatrixHandler<off>::Resize(integer n, integer nn)
+CColMatrixHandler<off, idx_type>::Resize(integer n, integer nn)
 {
 	silent_cerr("CColMatrixHandler<off>::Resize called" << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Estrae una colonna da una matrice */
-template <int off>
+template <int off, typename idx_type>
 VectorHandler&
-CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
+CColMatrixHandler<off, idx_type>::GetCol(integer icol, VectorHandler& out) const
 {
 	// NOTE: out must be zeroed by caller
 	
-        if (icol > SparseMatrixHandler::iGetNumCols()) {
+        if (icol > this->iGetNumCols()) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	integer idx = CompactSparseMatrixHandler_tpl<off>::Ap[icol - 1] - off;
-	integer idxe = CompactSparseMatrixHandler_tpl<off>::Ap[icol] - off;
+	idx_type idx = this->Ap[icol - 1] - off;
+	idx_type idxe = this->Ap[icol] - off;
 
 	for ( ; idx < idxe; idx++) {
-		out(CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off + 1) =
-			CompactSparseMatrixHandler_tpl<off>::Ax[idx];
+	     out(this->Ai[idx] - off + 1) =
+		  this->Ax[idx];
 	}
 
 	return out;
 }
 
 /* Moltiplica per uno scalare e somma a una matrice */
-template <int off>
+template <int off, typename idx_type>
 MatrixHandler&
-CColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
-		integer drow, integer dcol) const
+CColMatrixHandler<off, idx_type>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
+						     integer drow, integer dcol) const
 {
 	silent_cerr("CColMatrixHandler<off>::MulAndSumWithShift called"
 			<< std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-	if ((out.iGetNumCols() < SparseMatrixHandler::iGetNumCols() + dcol)
-		|| (out.iGetNumRows() < SparseMatrixHandler::iGetNumRows() + drow)) {
+	if ((out.iGetNumCols() < this->iGetNumCols() + dcol)
+		|| (out.iGetNumRows() < this->iGetNumRows() + drow)) {
 		silent_cerr("Assertion fault "
 				"in CColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
-	for (integer col = 0; col < SparseMatrixHandler::iGetNumCols(); col++) {
-		integer idx = CompactSparseMatrixHandler_tpl<off>::Ap[col] - off;
-		integer idxe = CompactSparseMatrixHandler_tpl<off>::Ap[col + 1] - off;
-		integer newcol = col + dcol + 1;
-		for (; idx < idxe; idx++) {
-			out.IncCoef(CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off + drow,
-				newcol, CompactSparseMatrixHandler_tpl<off>::Ax[idx]*s);
-		}
+	for (integer col = 0; col < this->iGetNumCols(); col++) {
+	     auto idx = this->Ap[col] - off;
+	     auto idxe = this->Ap[col + 1] - off;
+	     auto newcol = col + dcol + 1;
+	     for (; idx < idxe; idx++) {
+		  out.IncCoef(this->Ai[idx] - off + drow,
+			      newcol, this->Ax[idx]*s);
+	     }
 	}
 	return out;	
 }
 
-template <int off>
+template <int off, typename idx_type>
 MatrixHandler&
-CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
-		std::vector<bool> b,
-		doublereal s,
-		integer drow, 
-		integer dcol) const
+CColMatrixHandler<off, idx_type>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
+								   std::vector<bool> b,
+								   doublereal s,
+								   integer drow, 
+								   integer dcol) const
 {
 	silent_cerr("CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
 			"called" << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-	if ((out.iGetNumCols() < SparseMatrixHandler::iGetNumCols() + dcol)
-			|| (out.iGetNumRows() < SparseMatrixHandler::iGetNumRows() + drow)) {
+	if ((out.iGetNumCols() < this->iGetNumCols() + dcol)
+			|| (out.iGetNumRows() < this->iGetNumRows() + drow)) {
 		silent_cerr("Assertion fault "
 				"in CColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
-	for (integer col = 0; col < SparseMatrixHandler::iGetNumCols(); col++) {
-		integer idx = CompactSparseMatrixHandler_tpl<off>::Ap[col];
-		integer idxe = CompactSparseMatrixHandler_tpl<off>::Ap[col + 1] - off;
-		integer newcol = col + dcol + 1;
-		for (; idx < idxe; idx++) {
-			if (b[CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off]) {
-				out.IncCoef(CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off + drow,
-					newcol, CompactSparseMatrixHandler_tpl<off>::Ax[idx]*s);
-			}
-		}
+	for (integer col = 0; col < this->iGetNumCols(); col++) {
+	     auto idx = this->Ap[col];
+	     auto idxe = this->Ap[col + 1] - off;
+	     auto newcol = col + dcol + 1;
+	     for (; idx < idxe; idx++) {
+		  if (b[this->Ai[idx] - off]) {
+		       out.IncCoef(this->Ai[idx] - off + drow,
+				   newcol, this->Ax[idx]*s);
+		  }
+	     }
 	}
 	return out;	
 }
 
-template class CColMatrixHandler<0>;
-template class CColMatrixHandler<1>;
+template class CColMatrixHandler<0, int32_t>;
+template class CColMatrixHandler<1, int32_t>;
+template class CColMatrixHandler<1, int64_t>;

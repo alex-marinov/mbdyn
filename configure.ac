@@ -210,6 +210,7 @@ AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile]
 ],[ol_with_mkoctfile_exec=mkoctfile])
 OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
+OL_ARG_ENABLE(sparse_autodiff, [  --enable-sparse_autodiff                enable automatic differentiation based on sparse algorithms],no)dnl
 OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -254,6 +255,7 @@ OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[au
 with_suitesparseqr_default=auto
 OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],$with_suitesparseqr_default,[auto yes no])
 OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],$with_suitesparseqr_default,[auto yes no])
+OL_ARG_WITH(strumpack,[  --with-strumpack        with STRUMPACK library],auto,[auto yes no])  
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
@@ -398,8 +400,10 @@ HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
 PASTIX_LIBS=
+PASTIX_INC=
 QRUPDATE_LIBS=
 SUITESPARSEQR_LIBS=
+STRUMPACK_LIBS=
 ARPACK_LIBS=
 JDQZ_LIBS=
 SECURITY_LIBS=
@@ -889,6 +893,67 @@ if test "$ol_enable_octave" != no ; then
 	fi
 fi
 
+if test "$ol_enable_autodiff" != no || test "$ol_enable_sparse_autodiff" != no; then
+	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = _aligned_malloc(1024, 32);
+_aligned_free(p);
+				],[have_aligned_malloc="yes"])
+
+	if test "$have_aligned_malloc" == "yes"; then
+		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for posix_memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void *p;
+posix_memalign(&p, 32, 1024);
+			],[have_posix_memalign="yes"])
+
+	if test "$have_posix_memalign" == "yes"; then
+		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = memalign(32, 1024);
+				],[have_memalign="yes"])
+
+	if test "$have_memalign" == "yes"; then
+		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	AC_MSG_CHECKING([for aligned_alloc])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = aligned_alloc(32, 1024);
+free(p);
+				],[have_aligned_alloc="yes"])
+
+	if test "$have_aligned_alloc" == "yes"; then
+		AC_DEFINE(HAVE_ALIGNED_ALLOC, 1, [define if aligned_alloc can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+fi
+
 if test "$ol_enable_autodiff" != no ; then
 	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
 
@@ -924,50 +989,6 @@ if test "$ol_enable_autodiff" != no ; then
                 fi
         fi
         AC_LANG_RESTORE
-
-	AC_MSG_CHECKING([for posix_memalign])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void *p;
-posix_memalign(&p, 32, 1024);
-			],[have_posix_memalign="yes"])
-
-	if test "$have_posix_memalign" == "yes"; then
-		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-
-	AC_MSG_CHECKING([for memalign])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void* p = memalign(32, 1024);
-				],[have_memalign="yes"])
-
-	if test "$have_memalign" == "yes"; then
-		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-
-	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
-	AC_TRY_LINK([
-#include <stdlib.h>
-				],[
-void* p = _aligned_malloc(1024, 32);
-_aligned_free(p);
-				],[have_aligned_malloc="yes"])
-
-	if test "$have_aligned_malloc" == "yes"; then
-		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
 
 	if test "$ol_enable_autodiff_vect" == 0 ; then
 		save_CXXFLAGS="$CXXFLAGS"
@@ -1194,6 +1215,10 @@ int main(int argc, char* argv[])
 		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 0, [the number of bytes of an avx or sse register])
 		AC_MSG_WARN([vectorization of derivatives is not possible])
 	esac
+fi
+
+if test "$ol_enable_sparse_autodiff" != no ; then
+	AC_DEFINE(USE_SPARSE_AUTODIFF, 1, [define if automatic differentiation based on sparse algorithms can be used])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2780,55 +2805,56 @@ dnl Check for Pastix
 dnl
 ol_link_pastix=no
 if test $ol_with_pastix != no ; then
-	AC_CHECK_HEADERS(pastix.h)
+        have_pastix="no"
 
-	if test "$ac_cv_header_pastix_h" = "yes" ; then
-		AC_MSG_CHECKING([for Pastix library])
-		try_pastix_LIBS="-lpastix"
-		save_LIBS="$LIBS"
-		have_pastix="no"
-	        LIBS="$try_pastix_LIBS $save_LIBS -lm"
-			AC_TRY_LINK([
-#include <stdint.h>
-#include <pastix.h>
-],[
-                pastix_data_t* pastix_data;
-                pastix_int_t* colptr;
-                pastix_int_t* rows;
-                pastix_float_t* avals;
-                pastix_int_t* perm;
-                pastix_int_t* iperm;
-                pastix_int_t ncols;
-                pastix_float_t* x;
-                pastix_int_t iparm[IPARM_SIZE];
-                double dparm[DPARM_SIZE];
-                iparm[IPARM_START_TASK] = API_TASK_INIT;
-                iparm[IPARM_END_TASK] = API_TASK_REFINE;
-                pastix(&pastix_data,
-                       0,
-                       ncols,
-                       colptr,
-                       rows,
-                       avals,
-                       perm,
-                       iperm,
-                       x,
-                       1,
-                       iparm,
-                       dparm);
-			],[have_pastix="yes"])
+	if test -z "${PASTIX_INC}"; then
+     	        if ! test -z "${PKG_CONFIG}"; then
+     	                PASTIX_INC="`${PKG_CONFIG} --cflags pastix`"
+     	        fi
+	fi
 
-                LIBS="$save_LIBS"
-
-                if test "$have_pastix" = "yes"; then
-                   AC_MSG_RESULT([yes])
-                   ol_link_pastix=yes
-                   PASTIX_LIBS="$try_pastix_LIBS"
-                   AC_DEFINE(USE_PASTIX,1,[define if you want to use Pastix])
+   	if test -z "${PASTIX_LIBS}"; then
+     	        if ! test -z "${PKG_CONFIG}"; then
+                        PASTIX_LIBS="`${PKG_CONFIG} --libs pastix`"
                 else
-                   AC_MSG_RESULT([no])
-		fi
+                        PASTIX_LIBS="-lpastix -lpastix_kernels -lspm -lhwloc"
+                fi
         fi
+
+        save_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="${PASTIX_INC} ${CPPFLAGS}"
+
+	AC_CHECK_HEADER([pastix.h])
+
+	if test "${ac_cv_header_pastix_h}" = yes; then
+	        save_LIBS="$LIBS"
+	        LIBS="${PASTIX_LIBS} $save_LIBS -lm"
+
+	        AC_CHECK_FUNCS([pastixInit \
+	                        pastixInitParam \
+			        pastix_task_analyze \
+			        pastix_task_numfact \
+			        pastix_task_solve \
+				pastix_task_refine \
+				pastixFinalize \
+				spmNorm \
+				spmScalMatrix \
+				spmScalVector \
+				spmExit \
+				spmCheckAxb],[have_pastix=yes],[have_pastix=no])
+
+		LIBS="$save_LIBS"
+	fi
+
+	CPPFLAGS="${save_CPPFLAGS}"
+	
+	if test "${have_pastix}" = "yes"; then
+		ol_link_pastix=yes
+	        AC_DEFINE([USE_PASTIX],1,[Define if PaStiX can be used])
+	else
+		PASTIX_LIBS=""
+		PASTIX_INC=""
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -2928,17 +2954,65 @@ if test $ol_with_suitesparseqr != no ; then
                    AC_MSG_RESULT([no])
                 fi
         fi
+fi
 
-        AC_LANG_C
-        if test "$have_fc_f77" = "no" ; then
-                if test $ol_with_y12 = yes ; then
-                        AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for STRUMPACK
+dnl
+ol_link_strumpack=no
+if test $ol_with_strumpack != no ; then
+        AC_LANG_CPLUSPLUS
+        AC_CHECK_HEADERS(StrumpackSparseSolver.hpp)
+
+        if test "$ac_cv_header_StrumpackSparseSolver_hpp" = "yes" ; then
+                AC_MSG_CHECKING([for STRUMPACK library])
+                try_strumpack_LIBS="-lstrumpack"
+                save_LIBS="$LIBS"
+                have_strumpack="no"
+                LIBS="$try_strumpack_LIBS $save_LIBS"
+                AC_TRY_LINK([
+                        #include <StrumpackSparseSolver.hpp>
+			 ],[
+			   double Ax[] = {1., 2., 3., 4.};
+  			   int Ar[] = {0, 1, 2, 3, 4};
+			   int Ac[] = {0, 1, 2, 3};
+			   double x[4];
+			   double b[4];
+			   using namespace strumpack;
+			   StrumpackSparseSolver<double, int> sp;							 
+                           sp.options().set_compression(CompressionType::HSS);
+	                   sp.options().set_rel_tol(1e-8);
+	                   sp.options().set_abs_tol(1e-8);
+	                   sp.options().set_gmres_restart(10);     
+			   sp.set_csr_matrix(4, Ar, Ac, Ax);
+			   sp.reorder();
+			   sp.factor();
+			   sp.solve(b, x);
+                ],[have_strumpack="yes"])
+
+                LIBS="$save_LIBS"
+
+                if test "$have_strumpack" = "yes"; then
+                   AC_MSG_RESULT([yes])
+                   ol_link_strumpack=yes
+                   STRUMPACK_LIBS="$try_strumpack_LIBS"
+                   AC_DEFINE(USE_STRUMPACK,1,[define if you want to use STRUMPACK])
+                else
+                   AC_MSG_RESULT([no])
                 fi
-        else
-                ol_link_y12=yes
-                AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
-                Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
         fi
+fi
+
+AC_LANG_C
+if test "$have_fc_f77" = "no" ; then
+   	if test $ol_with_y12 = yes ; then
+           	AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+	fi
+else
+	ol_link_y12=yes
+	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
+	Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
 fi
 
 dnl ----------------------------------------------------------------
@@ -3573,9 +3647,11 @@ AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
+AC_SUBST(PASTIX_INC)
 AC_SUBST(PASTIX_LIBS)
 AC_SUBST(QRUPDATE_LIBS)
 AC_SUBST(SUITESPARSEQR_LIBS)
+AC_SUBST(STRUMPACK_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
@@ -3622,6 +3698,8 @@ AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
+AM_CONDITIONAL(USE_SPARSE_AUTODIFF,[test "$ol_enable_sparse_autodiff" = yes])
+AM_CONDITIONAL([USE_PASTIX],[test "$ol_link_pastix" = "yes"])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 
