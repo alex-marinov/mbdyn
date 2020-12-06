@@ -846,7 +846,7 @@ namespace sp_grad_test {
 
 		SpGradient a{1.0, {{1, 10.}}};
 		SpGradient b{2.0, {{1, 20.}}};
-		auto f = sqrt(a + b) / (a - b);
+		SpGradient f = sqrt(a + b) / (a - b);
 
 #ifdef SP_GRAD_DEBUG
 		cout << f << endl;
@@ -3245,15 +3245,6 @@ int main(int argc, char* argv[])
 		if (SP_GRAD_RUN_TEST(15.1)) test15<doublereal>(inumloops, inumnz, inumdof);
 		if (SP_GRAD_RUN_TEST(15.2)) test15<SpGradient>(inumloops, inumnz, inumdof);
 		if (SP_GRAD_RUN_TEST(16.1)) test16(inumloops, inumnz, inumdof, imatrows, imatcols);
-
-#ifdef SP_GRAD_DEBUG
-		cerr << "remaining references for SpGradient::oNullData: " << SpGradient::iGetRefCntNullData() << endl;
-		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData<SpGradient>::iGetRefCntNullData() << endl;
-		cerr << "remaining references for SpMatrixBase::oNullData: " << SpMatrixBaseData<doublereal>::iGetRefCntNullData() << endl;
-#endif
-		SP_GRAD_ASSERT(SpGradient::iGetRefCntNullData() == 1);
-		SP_GRAD_ASSERT(SpMatrixBaseData<SpGradient>::iGetRefCntNullData() == 1);
-		SP_GRAD_ASSERT(SpMatrixBaseData<doublereal>::iGetRefCntNullData() == 1);
 
 		cerr << "All tests passed\n"
 		     << "\n\tloops performed: " << inumloops

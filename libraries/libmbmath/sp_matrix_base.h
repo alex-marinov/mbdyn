@@ -2074,12 +2074,35 @@ namespace sp_grad {
 
      template <typename ValueType>
      SpMatrixBaseData<ValueType>* SpMatrixBaseData<ValueType>::pGetNullData() noexcept {
-	  SP_GRAD_ASSERT(oNullData.iRefCnt >= 0);
-	  SP_GRAD_ASSERT(oNullData.iNumRows == 0);
-	  SP_GRAD_ASSERT(oNullData.iNumCols == 0);
+	  SP_GRAD_ASSERT(oNullData.pNullData != nullptr);
+	  SP_GRAD_ASSERT(oNullData.pNullData->iRefCnt >= 0);
+	  SP_GRAD_ASSERT(oNullData.pNullData->iNumRows == 0);
+	  SP_GRAD_ASSERT(oNullData.pNullData->iNumCols == 0);
 
-	  return &oNullData;
+	  return oNullData.pNullData;
      }
+
+     template <typename ValueType>
+     SpMatrixBaseData<ValueType>::NullData::NullData()
+	  :pNullData{new SpMatrixBaseData<ValueType>{0, 0, 1, 0}} {
+     }
+     
+     template <typename ValueType>
+     SpMatrixBaseData<ValueType>::NullData::~NullData()
+     {
+	  SP_GRAD_ASSERT(pNullData != nullptr);
+	  SP_GRAD_ASSERT(pNullData->iRefCnt == 1);
+	  SP_GRAD_ASSERT(pNullData->iNumRows == 0);
+	  SP_GRAD_ASSERT(pNullData->iNumCols == 0);
+	  SP_GRAD_ASSERT(pNullData->iNumDeriv == 0);
+	  
+	  delete pNullData;
+	  
+	  pNullData = nullptr;
+     }
+
+     template <typename ValueType>
+     typename SpMatrixBaseData<ValueType>::NullData SpMatrixBaseData<ValueType>::oNullData;
      
      namespace util {
 	  template <typename ValueType>
@@ -2195,17 +2218,14 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(this->iRefCnt >= 1);
 
 	  if (--this->iRefCnt == 0) {
-	       SP_GRAD_ASSERT(this != &this->oNullData);
-
-	       if (this != &this->oNullData) {
-		    this->~SpMatrixData();
+	       SP_GRAD_ASSERT(this != this->pGetNullData());
+	       this->~SpMatrixData();
 
 #if defined(HAVE_ALIGNED_MALLOC)
-		    _aligned_free(this);
+	       _aligned_free(this);
 #else
-		    free(this);
+	       free(this);
 #endif
-	       }
 	  }
      }
 

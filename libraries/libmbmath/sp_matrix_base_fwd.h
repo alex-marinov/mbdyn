@@ -101,10 +101,8 @@ namespace sp_grad {
 		     index_type iNumColsReq,
 		     index_type iNumDerivReq) const noexcept;
 
-	  inline static SpMatrixBaseData* pGetNullData() noexcept;	  
-#ifdef SP_GRAD_DEBUG
-	  static inline index_type iGetRefCntNullData() { return oNullData.iRefCnt; }
-#endif
+	  inline static SpMatrixBaseData* pGetNullData() noexcept;
+
      protected:
 	  index_type iNumRows;
 	  index_type iNumCols;
@@ -117,11 +115,13 @@ namespace sp_grad {
 	  
 	  ValueType rgData[0];
 	  
-	  static SpMatrixBaseData oNullData;	  
-     };
-
-     template <typename ValueType>
-     SpMatrixBaseData<ValueType> SpMatrixBaseData<ValueType>::oNullData{0, 0, 1, 0};
+     private:
+	  static struct NullData {
+	       NullData();
+	       ~NullData();
+	       SpMatrixBaseData* pNullData;
+	  } oNullData;
+     } SP_GRAD_ALIGNMENT(alignof(SpDerivData*));
      
      template <typename ValueType>
      class SpMatrixData: public SpMatrixBaseData<ValueType> {
@@ -147,7 +147,7 @@ namespace sp_grad {
 	  constexpr inline bool bIsOwnerOf(const ValueType* pData) const noexcept;	 
 	  inline ValueType* end() noexcept;
 	  inline const ValueType* end() const noexcept;
-     } SP_GRAD_ALIGNMENT(alignof(SpDerivData*));
+     };
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
      class SpMatrixDataCTD: public SpMatrixData<ValueType> {
