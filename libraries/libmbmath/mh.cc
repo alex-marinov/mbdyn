@@ -63,7 +63,7 @@ MatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 	Reset();
 }
 
-/* Impacchetta la matrice; restituisce il numero di elementi 
+/* Impacchetta la matrice; restituisce il numero di elementi
  * diversi da zero */
 integer
 MatrixHandler::PacMat(void)
@@ -72,7 +72,7 @@ MatrixHandler::PacMat(void)
 }
 
 /* Overload di = */
-MatrixHandler& 
+MatrixHandler&
 MatrixHandler::operator = (const MatrixHandler& MH)
 {
 	integer nr = MH.iGetNumRows();
@@ -80,8 +80,8 @@ MatrixHandler::operator = (const MatrixHandler& MH)
 
 	Resize(nr, nc);
 
-	for (integer i = 1; i <= nr; i++) { 
-		for (integer ii = 1; ii <= nc; ii++) { 
+	for (integer i = 1; i <= nr; i++) {
+		for (integer ii = 1; ii <= nc; ii++) {
 			this->operator()(i, ii) = MH(i, ii);
 		}
 	}
@@ -136,7 +136,7 @@ MatrixHandler::ScalarMul(const doublereal& d)
 
 std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const
 {
-    	integer nr = iGetNumRows();
+	integer nr = iGetNumRows();
 	integer nc = iGetNumCols();
 
 	if (eFormat == MAT_PRINT_FULL) {
@@ -147,14 +147,14 @@ std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) con
 			os << std::endl;
 		}
 	} else if (eFormat == MAT_PRINT_TRIPLET) {
-                // Not very efficient but may be overwritten by any sparse matrix handler
+		// Not very efficient but may be overwritten by any sparse matrix handler
 		for (integer i = 1; i <= nr; i++) {
 			for (integer j = 1; j <= nc; j++) {
-                                doublereal Aij = (*this)(i, j);
-                                
-                                if (Aij) { // Output just nonzero entries of the full matrix
-                                        os << i << '\t' << j << '\t' << std::setw(16) << Aij << '\n';
-                                }
+				doublereal Aij = (*this)(i, j);
+
+				if (Aij) { // Output just nonzero entries of the full matrix
+					os << i << '\t' << j << '\t' << std::setw(16) << Aij << '\n';
+				}
 			}
 		}
 	}
@@ -164,7 +164,7 @@ std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) con
 
 /* Matrix Matrix product */
 MatrixHandler&
-MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, 
+MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 		MatrixHandler& out, const MatrixHandler& in) const
 {
@@ -212,7 +212,7 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 }
 
 MatrixHandler&
-MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, 
+MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 		MatrixHandler& out, const MatrixHandler& in) const
 {
@@ -402,22 +402,22 @@ MatrixHandler::MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const
 	return MatTVecMul_base(&VectorHandler::DecCoef, out, in);
 }
 
-void 
+void
 MatrixHandler::IncCoef(integer ix, integer iy, const doublereal& inc) {
 	operator()(ix, iy) += inc;
 }
 
-void 
+void
 MatrixHandler::DecCoef(integer ix, integer iy, const doublereal& inc) {
 	operator()(ix, iy) -= inc;
 }
 
-void 
+void
 MatrixHandler::PutCoef(integer ix, integer iy, const doublereal& val) {
 	operator()(ix, iy) = val;
 }
 
-const doublereal& 
+const doublereal&
 MatrixHandler::dGetCoef(integer ix, integer iy) const {
 	return operator()(ix, iy);
 }
@@ -508,7 +508,7 @@ doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 #ifdef DEBUG
 	DEBUGCERR("dgetrf: INFO=" << INFO << std::endl); // should not fail because the Jacobian has already been factorised before
 #endif
-	
+
 	std::vector<doublereal> WORK(4*N);
 	std::vector<integer> IWORK(N);
 	doublereal RCOND = 0.;
@@ -563,10 +563,10 @@ void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::v
 
      for (integer j = 1; j <= iNumCols; ++j) {
 	  const doublereal dColScale = bScaleCols ? oColScale[j - 1] : 1.;
-	  
+
 	  for (integer i = 1; i <= iNumRows; ++i) {
 	       const doublereal dRowScale = bScaleRows ? oRowScale[i - 1] : 1.;
-	       
+
 	       (*this)(i, j) *= dColScale * dRowScale;
 	  }
      }
@@ -577,11 +577,11 @@ bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      SP_GRAD_ASSERT(iRow >= 1);
      SP_GRAD_ASSERT(iRow <= iGetNumRows());
-     
+
      for (const auto& oRec: oItem) {
 	  SP_GRAD_ASSERT(oRec.iDof >= 1);
 	  SP_GRAD_ASSERT(oRec.iDof <= iGetNumCols());
-	  
+
 	  if (oRec.dDer) {
 	       (*this)(iRow, oRec.iDof) += oRec.dDer;
 	  }
@@ -598,4 +598,3 @@ operator << (std::ostream& out, const MatrixHandler& MH)
 }
 
 /* MatrixHandler - end */
-

@@ -1,12 +1,12 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -67,10 +67,10 @@ template<typename T>
 void ScaleMatrix(const char* title, MatrixScale<T>& matScale, T& mh, const VectorHandler& x, const VectorHandler& b, bool bTrans = false)
 {
      constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.5);
-     
+
      MyVectorHandler xo(mh.iGetNumCols()), xs(mh.iGetNumCols());
      MyVectorHandler bo(mh.iGetNumRows()), bs(mh.iGetNumRows());
-     
+
      for (integer i = 1; i <= x.iGetSize(); ++i) {
 	  xo.PutCoef(i, x.dGetCoef(i));
      }
@@ -84,16 +84,16 @@ void ScaleMatrix(const char* title, MatrixScale<T>& matScale, T& mh, const Vecto
      bo -= b;
 
      std::cout << "norm(bo) = " << bo.Norm() << std::endl;
-     
+
      assert(bo.Norm() < dTol);
-     
+
      doublereal cond[2];
 
      try {
 	  cond[0] = mh.ConditionNumber();
      } catch (const ErrNotImplementedYet&) {
 	  cond[0] = -1.;
-     }	
+     }
 
      const bool fOK = matScale.ComputeScaleFactors(mh);
 
@@ -103,46 +103,46 @@ void ScaleMatrix(const char* title, MatrixScale<T>& matScale, T& mh, const Vecto
 	  cond[1] = mh.ConditionNumber();
      } catch (const ErrNotImplementedYet&) {
 	  cond[1] = -1.;
-     }	
+     }
 
      ReportMatScale(title, fOK, matScale, mh, cond);
-	
+
      const auto& rs = matScale.GetRowScale();
      const auto& cs = matScale.GetColScale();
 
      for (integer i = 1; i <= mh.iGetNumCols(); ++i) {
 	  xs.PutCoef(i, x.dGetCoef(i));
      }
-       
+
      if (bTrans) {
 	  if (!rs.empty()) {
 	       for (integer i = 1; i <= mh.iGetNumCols(); ++i) {
 		    xs(i) /= rs[i - 1];
 	       }
 	  }
-	     
+
 	  mh.MatTVecMul(bs, xs);
 
 	  if (!cs.empty()) {
 	       for (integer i = 1; i <= mh.iGetNumRows(); ++i) {
 		    bs(i) /= cs[i - 1];
 	       }
-	  }	     	     
+	  }
      } else {
 	  if (!cs.empty()) {
 	       for (integer i = 1; i <= mh.iGetNumCols(); ++i) {
 		    xs(i) /= cs[i - 1];
 	       }
 	  }
-	     
+
 	  mh.MatVecMul(bs, xs);
-	     
+
 	  if (!rs.empty()) {
 	       for (integer i = 1; i <= mh.iGetNumRows(); ++i) {
 		    bs(i) /= rs[i - 1];
 	       }
-	  }	     
-     }       
+	  }
+     }
 
      bs -= b;
 
@@ -159,7 +159,7 @@ main(int argc, char* argv[])
      scale.dTol = argc >= 3 ? atof(argv[2]) : sqrt(std::numeric_limits<doublereal>::epsilon());
      bool bRand = false;
      int iCount = 1;
-	
+
      for (int i = 1; i < argc; ++i) {
 	  if (0 == strcmp(argv[i], "-r")) {
 	       bRand = true;
@@ -172,7 +172,7 @@ main(int argc, char* argv[])
 
      std::mt19937 e1;
      std::uniform_real_distribution<doublereal> uniform_dist(-1e3, 1e3);
-	
+
      for (int i = 0; i < iCount; ++i) {
 	  if (bRand) {
 	       for (integer iRow = 0; iRow < 5; ++iRow) {
@@ -193,7 +193,7 @@ main(int argc, char* argv[])
 		    res[iRow] = d;
 	       }
 	  }
-	  
+
 	  struct {
 	       MatrixScale<NaiveMatrixHandler>* pNaive;
 	       MatrixScale<NaivePermMatrixHandler>* pNaivePerm;
@@ -206,7 +206,7 @@ main(int argc, char* argv[])
 	       MatrixScale<SpGradientSparseMatrixHandler>* pGrad;
 	       MatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >* pCSC0;
 	       MatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >* pCSC1;
-#endif	     
+#endif
 	       MatrixScale<SpMapMatrixHandler>* pMap;
 	  } matScale[] = {
 	       { new RowMaxMatrixScale<NaiveMatrixHandler>(scale),
@@ -232,8 +232,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new RowSumMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new RowSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new RowSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new RowSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new RowSumMatrixScale<SpMapMatrixHandler>(scale)},
 	       { new ColMaxMatrixScale<NaiveMatrixHandler>(scale),
 		 new ColMaxMatrixScale<NaivePermMatrixHandler>(scale),
@@ -245,8 +245,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new ColMaxMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new ColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new ColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new ColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new ColMaxMatrixScale<SpMapMatrixHandler>(scale)},
 	       { new ColSumMatrixScale<NaiveMatrixHandler>(scale),
 		 new ColSumMatrixScale<NaivePermMatrixHandler>(scale),
@@ -258,8 +258,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new ColSumMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new ColSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new ColSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new ColSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new ColSumMatrixScale<SpMapMatrixHandler>(scale)},
 	       { new LapackMatrixScale<NaiveMatrixHandler>(scale),
 		 new LapackMatrixScale<NaivePermMatrixHandler>(scale),
@@ -271,8 +271,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new LapackMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new LapackMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new LapackMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new LapackMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new LapackMatrixScale<SpMapMatrixHandler>(scale)},
 	       { new IterativeMatrixScale<NaiveMatrixHandler>(scale),
 		 new IterativeMatrixScale<NaivePermMatrixHandler>(scale),
@@ -284,8 +284,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new IterativeMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new IterativeMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new IterativeMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new IterativeMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new IterativeMatrixScale<SpMapMatrixHandler>(scale)},
 	       { new RowMaxColMaxMatrixScale<NaiveMatrixHandler>(scale),
 		 new RowMaxColMaxMatrixScale<NaivePermMatrixHandler>(scale),
@@ -297,8 +297,8 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 		 new RowMaxColMaxMatrixScale<SpGradientSparseMatrixHandler>(scale),
 		 new RowMaxColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
-		 new RowMaxColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),			  
-#endif			  
+		 new RowMaxColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
+#endif
 		 new RowMaxColMaxMatrixScale<SpMapMatrixHandler>(scale)}
 	  };
 
@@ -324,12 +324,12 @@ main(int argc, char* argv[])
 #ifdef USE_SPARSE_AUTODIFF
 	       SpGradientSparseMatrixHandler spgmh(5, 5);
 #endif
-	       
+
 	       nm.Reset();
 	       npm.Reset();
 	       fm.Reset();
 	       spm.Reset();
-	       
+
 	       for (unsigned ir = 0; ir < 5; ir++) {
 		    for (unsigned ic = 0; ic < 5; ic++) {
 			 if (mat[ir][ic] != 0.) {
@@ -341,7 +341,7 @@ main(int argc, char* argv[])
 			      sp_grad::SpGradient g;
 			      g.Reset(0., ic + 1, mat[ir][ic]);
 			      spgmh.AddItem(ir + 1, g);
-#endif					
+#endif
 			 }
 		    }
 	       }
@@ -358,7 +358,7 @@ main(int argc, char* argv[])
 	       spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
 	       spm.MakeCompressedColumnForm(Axd0, Aid0, Apd0, 0);
 	       spm.MakeCompressedColumnForm(Axd1, Aid1, Apd1, 1);
-		
+
 	       CColMatrixHandler<0> ccm0(Ax0, Ai0, Ap0);
 	       CColMatrixHandler<1> ccm1(Ax1, Ai1, Ap1);
 	       DirCColMatrixHandler<0> dirccm0(Axd0, Aid0, Apd0);
@@ -376,7 +376,7 @@ main(int argc, char* argv[])
 	       CSCMatrixHandlerTpl<doublereal, integer, 0> csc0T(&Ax0gT.front(), &Ai0gT.front(), &Ap0gT.front(), spgmh.iGetNumRows(), Ai0gT.size());
 	       CSCMatrixHandlerTpl<doublereal, integer, 1> csc1T(&Ax1gT.front(), &Ai1gT.front(), &Ap1gT.front(), spgmh.iGetNumRows(), Ai1gT.size());
 #endif
-		
+
 	       ScaleMatrix("Naive", *matScale[iMatScale].pNaive, nm, x, b);
 	       ScaleMatrix("NaivePerm", *matScale[iMatScale].pNaivePerm, npm, x, b);
 	       ScaleMatrix("Full", *matScale[iMatScale].pFull, fm, x, b);
@@ -390,7 +390,7 @@ main(int argc, char* argv[])
 	       ScaleMatrix("csc0", *matScale[iMatScale].pCSC0, csc0, x, b);
 	       ScaleMatrix("csc1", *matScale[iMatScale].pCSC1, csc1, x, b);
 	       ScaleMatrix("csc0^T", *matScale[iMatScale].pCSC0, csc0T, x, b, true);
-	       ScaleMatrix("csc1^T", *matScale[iMatScale].pCSC1, csc1T, x, b, true);		
+	       ScaleMatrix("csc1^T", *matScale[iMatScale].pCSC1, csc1T, x, b, true);
 #endif
 	  }
 
@@ -410,7 +410,7 @@ main(int argc, char* argv[])
 #endif
 	  }
      }
-     
+
      return 0;
 }
 
@@ -437,7 +437,7 @@ void ReportMatScale(const char* title, bool fOK, const MatrixScaleBase& matScale
      std::cout << "matrix after scaling:\n";
 
      mh.Print(std::cout, MatrixHandler::MAT_PRINT_TRIPLET);
-       
+
      std::cout << "\n------------------------------------------------------------\n";
 }
 
