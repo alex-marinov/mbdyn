@@ -505,8 +505,10 @@ doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 
 	__FC_DECL__(dgetrf)(&M, &N, &A[0], &M, &IPIV[0], &INFO);
 
-	ASSERT(INFO == 0); // should not fail because the Jacobian has already been factorised before
-
+#ifdef DEBUG
+	DEBUGCERR("dgetrf: INFO=" << INFO << std::endl); // should not fail because the Jacobian has already been factorised before
+#endif
+	
 	std::vector<doublereal> WORK(4*N);
 	std::vector<integer> IWORK(N);
 	doublereal RCOND = 0.;

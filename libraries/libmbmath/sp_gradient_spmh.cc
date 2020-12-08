@@ -177,18 +177,12 @@ SpGradientSparseMatrixHandler::MatTVecMul_base(
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     std::vector<doublereal> tmpvec(nc, 0.);
-     
      for (integer r = 1; r <= nr; ++r) {
 	  for (const auto& oDer: oRows[r - 1]) {
-	       tmpvec[oDer.iDof - 1] += oDer.dDer * in(r);
+	       (out.*op)(oDer.iDof, oDer.dDer * in(r));
 	  }
      }
-
-     for (integer c = 1; c <= nc; ++c) {
-	  (out.*op)(c, tmpvec[c - 1]);
-     }
-
+     
      return out;
 }
 

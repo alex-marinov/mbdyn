@@ -881,19 +881,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                pSM->pMatHdl()->MatTVecDecMul(g, *pRes);
 
                TRACE("Solving system of linear equations ...\n");
-#ifdef DEBUG
-               std::cout << "\n\nJac=[\n";
-               for (integer i = 1; i <= pSM->pMatHdl()->iGetNumRows(); ++i) {
-                    for (integer j = 1; j <= pSM->pMatHdl()->iGetNumCols(); ++j) {
-                         doublereal d = pSM->pMatHdl()->dGetCoef(i, j);
-                         ASSERT(std::isfinite(d));
-                         if (d) {
-                              std::cout << i << ", " << j << ", " << d << ";" << std::endl;
-                         }
-                    }
-               }
-               std::cout << "];\n\n";
-#endif
+
                oCPU.LinearSolver.Tic(oCPU.Jacobian);
 
                pSM->Solve();

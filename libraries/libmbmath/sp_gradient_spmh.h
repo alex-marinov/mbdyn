@@ -98,6 +98,7 @@ public:
      operator()(integer iRow, integer iCol) override;
 
      using SparseMatrixHandler::MakeCompressedColumnForm;
+     using SparseMatrixHandler::MakeCompressedRowForm;
      
      virtual
      int32_t MakeCompressedColumnForm(doublereal *const Ax,

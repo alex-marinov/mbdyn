@@ -133,6 +133,16 @@ public:
 	       }	       
 	  }
      }
+
+     virtual std::ostream& Print(std::ostream& os, MatPrintFormat) const {
+	  for (const auto& i: *this) {
+	       if (i.dCoef) { // Output only nonzero entries
+		    os << i.iRow + 1 << '\t' << i.iCol + 1 << '\t' << i.dCoef << '\n';
+	       }
+	  }
+        
+	  return os;	  
+     }
      
      class const_iterator {
 	  friend class CSCMatrixHandlerTpl;	  
@@ -229,7 +239,49 @@ public:
      const_iterator end() const {
 	  return const_iterator(*this, NZ, NCols - 1);
      }
-     
+
+protected:
+     virtual VectorHandler&
+     MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+					      const doublereal& dCoef),
+		    VectorHandler& out, const VectorHandler& in) const {
+	  ASSERT(in.iGetSize() == iGetNumCols());
+	  ASSERT(out.iGetSize() == iGetNumRows());
+
+	  // NOTE: out must be zeroed by caller
+
+	  for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+	       idx_type re = pAp[col_idx] - offset;
+	       idx_type ri = pAp[col_idx - 1] - offset;
+	       for ( ; ri < re; ri++) {
+		    idx_type row_idx = pAi[ri] - offset + 1;
+		    (out.*op)(row_idx, pAx[ri] * in(col_idx));
+	       }
+	  }
+
+	  return out;
+     }
+	  
+     virtual VectorHandler&
+     MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+					       const doublereal& dCoef),
+		     VectorHandler& out, const VectorHandler& in) const {
+	  ASSERT(in.iGetSize() == iGetNumRows());
+	  ASSERT(out.iGetSize() == iGetNumCols());
+
+	  // NOTE: out must be zeroed by caller
+
+	  for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+	       idx_type re = pAp[col_idx] - offset;
+	       idx_type ri = pAp[col_idx - 1] - offset;
+	       for ( ; ri < re; ri++) {
+		    idx_type row_idx = pAi[ri] - offset + 1;
+		    (out.*op)(col_idx, pAx[ri] * in(row_idx));
+	       }
+	  }
+
+	  return out;	       
+     }
 private:
      const idx_type NCols;
      const idx_type NZ;

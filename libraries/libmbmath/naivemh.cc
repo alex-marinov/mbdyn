@@ -729,7 +729,7 @@ NaivePermMatrixHandler::MatTVecMul_base(
 {
 #ifdef DEBUG
 	ASSERT(perm.size() == (size_t)iSize);
-	ASSERT(invperm.size() == (size_t)iSize);
+	ASSERT(invperm.size() >= (size_t)iSize);
 
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
