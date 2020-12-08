@@ -1080,11 +1080,6 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
 exit_success:
      dTimePrev = dTimeCurr;
      TRACE_VAR(dTimePrev);
-
-     if (bSolConverged) {
-          TRACE("convergence on solution\n");
-          throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
-     }
 }
 
 LineSearchBFGS::LineSearchBFGS(DataManager* pDM,
