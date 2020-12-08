@@ -4,8 +4,8 @@
  *
  * Copyright (C) 1996-2020
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -61,26 +61,26 @@ public:
 
      class const_iterator {
      public:
-	  inline explicit const_iterator(const std::vector<SparseRow>& oRows,
-					 std::vector<SparseRow>::const_iterator pCurrRow,
-					 const sp_grad::SpDerivRec* pCurrCol);
-	  inline const const_iterator& operator++ (void);
-	  inline const SparseMatrixHandler::SparseMatrixElement* operator->() const;
-	  inline const SparseMatrixHandler::SparseMatrixElement& operator*() const;
-	  inline bool operator==(const const_iterator& op) const;
-	  inline bool operator!=(const const_iterator& op) const;
-	  
+          inline explicit const_iterator(const std::vector<SparseRow>& oRows,
+                                         std::vector<SparseRow>::const_iterator pCurrRow,
+                                         const sp_grad::SpDerivRec* pCurrCol);
+          inline const const_iterator& operator++ (void);
+          inline const SparseMatrixHandler::SparseMatrixElement* operator->() const;
+          inline const SparseMatrixHandler::SparseMatrixElement& operator*() const;
+          inline bool operator==(const const_iterator& op) const;
+          inline bool operator!=(const const_iterator& op) const;
+
      private:
-	  inline void Update();
-	  const std::vector<SparseRow>& oRows;
-	  std::vector<SparseRow>::const_iterator pCurrRow;
-	  const sp_grad::SpDerivRec* pCurrCol;
-	  mutable SparseMatrixHandler::SparseMatrixElement elem;
+          inline void Update();
+          const std::vector<SparseRow>& oRows;
+          std::vector<SparseRow>::const_iterator pCurrRow;
+          const sp_grad::SpDerivRec* pCurrCol;
+          mutable SparseMatrixHandler::SparseMatrixElement elem;
      };
 
      inline const_iterator begin() const;
      inline const_iterator end() const;
-     
+
 #ifdef DEBUG
      virtual void IsValid() const override;
 #endif
@@ -98,7 +98,8 @@ public:
      operator()(integer iRow, integer iCol) override;
 
      using SparseMatrixHandler::MakeCompressedColumnForm;
-     
+     using SparseMatrixHandler::MakeCompressedRowForm;
+
      virtual
      int32_t MakeCompressedColumnForm(doublereal *const Ax,
 				      int32_t *const Ai,
@@ -122,7 +123,7 @@ public:
 				   int64_t *const Ai,
 				   int64_t *const Ap,
 				   int offset = 0) const override;
-     
+
      virtual
      int32_t MakeIndexForm(doublereal *const Ax,
 			   int32_t *const Arow, int32_t *const Acol,
@@ -134,13 +135,13 @@ public:
 			   int64_t *const Arow, int64_t *const Acol,
 			   int64_t *const AcolSt,
 			   int offset = 0) const override;
-     
+
      virtual
      VectorHandler& GetCol(integer icol,
 			   VectorHandler& out) const override;
 
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
-     
+
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
      std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
@@ -148,7 +149,7 @@ public:
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
      virtual integer Nz() const override;
-     
+
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -181,20 +182,20 @@ private:
 				       idx_type *const Ai,
 				       idx_type *const Ap,
 				       int offset) const;
-     
+
      template <typename idx_type>
      idx_type MakeIndexFormTpl(doublereal *const Ax,
 			       idx_type *const Arow,
 			       idx_type* const Acol,
-			       idx_type *const Ap,			       
+			       idx_type *const Ap,
 			       int offset) const;
-     
+
      struct SparseRow: sp_grad::SpGradient {
-#ifdef USE_MULTITHREAD	  
+#ifdef USE_MULTITHREAD
 	  SparseRow() {
 	       bLocked = false;
 	  }
-	 
+
 	  mutable std::atomic<bool> bLocked;
 #endif
      };
@@ -250,15 +251,15 @@ const SpGradientSparseMatrixHandler::const_iterator& SpGradientSparseMatrixHandl
 {
      SP_GRAD_ASSERT(pCurrRow < oRows.end());
      SP_GRAD_ASSERT(pCurrCol < pCurrRow->end());
-     
+
      if (++pCurrCol >= pCurrRow->end()) {
-	  if (++pCurrRow < oRows.end()) {	  
+	  if (++pCurrRow < oRows.end()) {
 	       pCurrCol = pCurrRow->begin();
 	  }
      }
 
      Update();
-     
+
      return *this;
 }
 const SparseMatrixHandler::SparseMatrixElement* SpGradientSparseMatrixHandler::const_iterator::operator->() const
@@ -267,7 +268,7 @@ const SparseMatrixHandler::SparseMatrixElement* SpGradientSparseMatrixHandler::c
      SP_GRAD_ASSERT(pCurrRow < oRows.end());
      SP_GRAD_ASSERT(pCurrCol >= pCurrRow->begin());
      SP_GRAD_ASSERT(pCurrCol < pCurrRow->end());
-     
+
      return &elem;
 }
 
@@ -277,7 +278,7 @@ const SparseMatrixHandler::SparseMatrixElement& SpGradientSparseMatrixHandler::c
      SP_GRAD_ASSERT(pCurrRow < oRows.end());
      SP_GRAD_ASSERT(pCurrCol >= pCurrRow->begin());
      SP_GRAD_ASSERT(pCurrCol < pCurrRow->end());
-     
+
      return elem;
 }
 
@@ -300,7 +301,7 @@ bool SpGradientSparseMatrixHandler::const_iterator::operator!=(const const_itera
 class SpGradientSparseMatrixWrapper: public MatrixHandler
 {
 public:
-     explicit SpGradientSparseMatrixWrapper(SpGradientSparseMatrixHandler* pMH = nullptr);    
+     explicit SpGradientSparseMatrixWrapper(SpGradientSparseMatrixHandler* pMH = nullptr);
      ~SpGradientSparseMatrixWrapper();
 
 #ifdef DEBUG
@@ -310,7 +311,7 @@ public:
 
      virtual integer iGetNumRows(void) const override;
      virtual integer iGetNumCols(void) const override;
-     
+
      virtual void Resize(integer, integer) override;
 
      virtual void ResizeReset(integer, integer) override;
@@ -324,13 +325,13 @@ public:
      operator()(integer iRow, integer iCol) override;
 
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
-     
+
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
      std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
 
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
-     
+
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -350,7 +351,7 @@ protected:
      MatTVecMul_base(
 	  void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	  VectorHandler& out, const VectorHandler& in) const override;
-     
+
 private:
      SpGradientSparseMatrixHandler* pMH;
 };

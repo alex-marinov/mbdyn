@@ -1,12 +1,12 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,6 +39,11 @@
 #include "ccmh.h"
 #include "dirccmh.h"
 #include "naivemh.h"
+
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#include "cscmhtpl.h"
+#endif
 
 static doublereal mat[5][5] = {
 	{ 11.,  0., 13.,  0., 15. },
@@ -118,15 +123,23 @@ main(void)
 	SpMapMatrixHandler spm(5, 5);
 	NaiveMatrixHandler nm(5);
 	NaivePermMatrixHandler npm(5, perm, invperm);
-        FullMatrixHandler fm(5, 5);
+	FullMatrixHandler fm(5, 5);
 
+#ifdef USE_SPARSE_AUTODIFF
+	SpGradientSparseMatrixHandler spgmh(5, 5);
+#endif
 	for (int r = 0; r < 5; r++) {
 		for (int c = 0; c < 5; c++) {
 			if (mat[r][c] != 0.) {
 				spm(r + 1, c + 1) = mat[r][c];
 				nm(r + 1, c + 1) = mat[r][c];
 				npm(r + 1, c + 1) = mat[r][c];
-                                fm(r + 1, c + 1) = mat[r][c];
+				fm(r + 1, c + 1) = mat[r][c];
+#ifdef USE_SPARSE_AUTODIFF
+				sp_grad::SpGradient g;
+				g.Reset(0., c + 1, mat[r][c]);
+				spgmh.AddItem(r + 1, g);
+#endif
 			}
 		}
 	}
@@ -140,9 +153,15 @@ main(void)
 	std::cout << "matrix in naive permuted form: " << std::endl
 		<< npm << std::endl;
 
-        std::cout << "matrix in full form: " << std::endl
-                << fm << std::endl;
-        
+	std::cout << "matrix in full form: " << std::endl
+		<< fm << std::endl;
+
+#ifdef USE_SPARSE_AUTODIFF
+	std::cout << "matrix in sparse gradient form: " << std::endl
+		<< spgmh << std::endl;
+
+#endif
+
 	std::vector<doublereal> Ax0;
 	std::vector<integer> Ai0, Ap0;
 	spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
@@ -205,6 +224,19 @@ main(void)
 		std::cout << std::endl;
 	}
 
+#ifdef USE_SPARSE_AUTODIFF
+	std::vector<doublereal> Ax0g, Ax1g, Ax0gT, Ax1gT;
+	std::vector<integer> Ai0g, Ap0g, Ai1g, Ap1g, Ai0gT, Ap0gT, Ai1gT, Ap1gT;
+	spgmh.MakeCompressedColumnForm(Ax0g, Ai0g, Ap0g, 0);
+	spgmh.MakeCompressedColumnForm(Ax1g, Ai1g, Ap1g, 1);
+	spgmh.MakeCompressedRowForm(Ax0gT, Ai0gT, Ap0gT, 0);
+	spgmh.MakeCompressedRowForm(Ax1gT, Ai1gT, Ap1gT, 1);
+	CSCMatrixHandlerTpl<doublereal, integer, 0> csc0(&Ax0g.front(), &Ai0g.front(), &Ap0g.front(), spgmh.iGetNumCols(), Ai0g.size());
+	CSCMatrixHandlerTpl<doublereal, integer, 1> csc1(&Ax1g.front(), &Ai1g.front(), &Ap1g.front(), spgmh.iGetNumCols(), Ai1g.size());
+	CSCMatrixHandlerTpl<doublereal, integer, 0> csc0T(&Ax0gT.front(), &Ai0gT.front(), &Ap0gT.front(), spgmh.iGetNumRows(), Ai0gT.size());
+	CSCMatrixHandlerTpl<doublereal, integer, 1> csc1T(&Ax1gT.front(), &Ai1gT.front(), &Ap1gT.front(), spgmh.iGetNumRows(), Ai1gT.size());
+#endif
+
 	MyVectorHandler v(5), out(5);
 	v.Reset();
 	for (int i = 1; i <= 5; i++) {
@@ -259,6 +291,43 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
+#ifdef USE_SPARSE_AUTODIFF
+		spgmh.MatVecMul(out, v);
+		std::cout << "spgmh*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc0.MatVecMul(out, v);
+		std::cout << "csc0*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc1.MatVecMul(out, v);
+		std::cout << "csc1*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc0T.MatTVecMul(out, v);
+		std::cout << "csc0T^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc1T.MatTVecMul(out, v);
+		std::cout << "csc1T^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+#endif
+
 		ccm0.MatTVecMul(out, v);
 		std::cout << "cc<0>^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -308,20 +377,57 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-                fm.MatVecMul(out, v);
-                std::cout << "fm*v(" << i << ")=" << std::endl
-                        << out << std::endl;
-                if (check_vec(out, i)) {
-                        std::cerr << "*** failed!" << std::endl;
-                }
+		fm.MatVecMul(out, v);
+		std::cout << "fm*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
 
-                fm.MatTVecMul(out, v);
-                std::cout << "fm^T*v(" << i << ")=" << std::endl
-                        << out << std::endl;
-                if (check_vec_transpose(out, i)) {
-                        std::cerr << "*** failed!" << std::endl;
-                }
-                
+		fm.MatTVecMul(out, v);
+		std::cout << "fm^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+#ifdef USE_SPARSE_AUTODIFF
+		spgmh.MatTVecMul(out, v);
+		std::cout << "spgmh^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc0.MatTVecMul(out, v);
+		std::cout << "csc0^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc1.MatTVecMul(out, v);
+		std::cout << "csc1^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc0T.MatVecMul(out, v);
+		std::cout << "csc0T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		csc1T.MatVecMul(out, v);
+		std::cout << "csc1T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+#endif
+
 		v(i) = 0.;
 	}
 
@@ -340,63 +446,63 @@ main(void)
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	spm.MatTMatMul(fmout, fmin);
 	std::cout << "sp^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	nm.MatMatMul(fmout, fmin);
 	std::cout << "naive*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	nm.MatTMatMul(fmout, fmin);
 	std::cout << "naive^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	npm.MatMatMul(fmout, fmin);
 	std::cout << "naiveperm*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	npm.MatTMatMul(fmout, fmin);
 	std::cout << "naiveperm^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	ccm0.MatMatMul(fmout, fmin);
 	std::cout << "cc<0>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	ccm0.MatTMatMul(fmout, fmin);
 	std::cout << "cc<0>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	ccm1.MatMatMul(fmout, fmin);
 	std::cout << "cc<1>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	ccm1.MatTMatMul(fmout, fmin);
 	std::cout << "cc<1>^T*eye=" << std::endl
 		<< fmout << std::endl;
@@ -410,21 +516,21 @@ main(void)
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	dirm0.MatTMatMul(fmout, fmin);
 	std::cout << "dir<0>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	dirm1.MatMatMul(fmout, fmin);
 	std::cout << "dir<1>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
-	
+
 	dirm1.MatTMatMul(fmout, fmin);
 	std::cout << "dir<1>^T*eye=" << std::endl
 		<< fmout << std::endl;
@@ -432,20 +538,19 @@ main(void)
 		std::cerr << "*** failed!" << std::endl;
 	}
 
-        fm.MatMatMul(fmout, fmin);
-        std::cout << "fm*eye=" << std::endl
-                << fmout << std::endl;
-        if (check_mat(fmout)) {
-                std::cerr << "*** failed!" << std::endl;
-        }
-        
-        fm.MatTMatMul(fmout, fmin);
-        std::cout << "fm^T*eye=" << std::endl
-                << fmout << std::endl;
-        if (check_mat_transpose(fmout)) {
-                std::cerr << "*** failed!" << std::endl;
-        }
-        
+	fm.MatMatMul(fmout, fmin);
+	std::cout << "fm*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+
+	fm.MatTMatMul(fmout, fmin);
+	std::cout << "fm^T*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat_transpose(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+
 	return 0;
 }
-

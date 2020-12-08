@@ -4,8 +4,8 @@
  *
  * Copyright (C) 1996-2020
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -30,12 +30,12 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+	Copyright (C) 2020(-2020) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+	The copyright of this code is transferred
+	to Pierangelo Masarati and Paolo Mantegazza
+	for use in the software MBDyn as described
+	in the GNU Public License version 2.1
 */
 
 #include "mbconfig.h"
@@ -72,15 +72,15 @@ void SpGradientSparseMatrixHandler::IsValid() const
 	       if (bValidated[i]) {
 		    continue;
 	       }
-	       
+
 	       if (std::atomic_exchange(&oRows[i].bLocked, true)) {
 		    bNotValidated = true;
 		    continue;
 	       }
 #endif
-	  
+
 	       SP_GRAD_ASSERT(oRows[i].bValid());
-	  
+
 	       for (const auto& oDer: oRows[i]) {
 		    SP_GRAD_ASSERT(oDer.iDof >= 1);
 		    SP_GRAD_ASSERT(oDer.iDof <= NCols);
@@ -89,13 +89,13 @@ void SpGradientSparseMatrixHandler::IsValid() const
 #ifdef USE_MULTITHREAD
 	       bValidated[i] = true;
 	       std::atomic_exchange(&oRows[i].bLocked, false);
-#endif	  
+#endif
 	  }
 #ifdef USE_MULTITHREAD
      } while (bNotValidated);
 #endif
 }
-#endif 
+#endif
 
 void SpGradientSparseMatrixHandler::Resize(integer, integer)
 {
@@ -106,7 +106,7 @@ void SpGradientSparseMatrixHandler::ResizeReset(integer iNumRows, integer iNumCo
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
-     
+
 void SpGradientSparseMatrixHandler::Reset()
 {
      // Not thread safe
@@ -177,16 +177,10 @@ SpGradientSparseMatrixHandler::MatTVecMul_base(
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     std::vector<doublereal> tmpvec(nc, 0.);
-     
      for (integer r = 1; r <= nr; ++r) {
 	  for (const auto& oDer: oRows[r - 1]) {
-	       tmpvec[oDer.iDof - 1] += oDer.dDer * in(r);
+	       (out.*op)(oDer.iDof, oDer.dDer * in(r));
 	  }
-     }
-
-     for (integer c = 1; c <= nc; ++c) {
-	  (out.*op)(c, tmpvec[c - 1]);
      }
 
      return out;
@@ -216,15 +210,15 @@ idx_type SpGradientSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *
 	  SP_GRAD_ASSERT(oRow.bValid());
 	  SP_GRAD_ASSERT(oRow.iGetSize() > 0);
 	  SP_GRAD_ASSERT(oRow.bIsUnique());
-	  
+
 	  for (const auto& oDer: oRow) {
 	       SP_GRAD_ASSERT(oDer.iDof >= 1);
 	       SP_GRAD_ASSERT(oDer.iDof <= NCols);
-	       
+
 	       ++oColSize[oDer.iDof - 1];
 	  }
      }
-     
+
      idx_type iPtr = offset;
 
      for (integer iCol = 0; iCol < NCols; ++iCol) {
@@ -232,43 +226,43 @@ idx_type SpGradientSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *
 
 	  SP_GRAD_ASSERT(oColSize[iCol] >= 0);
 	  SP_GRAD_ASSERT(oColSize[iCol] <= NRows);
-	  
+
 	  iPtr += oColSize[iCol];
      }
-     
+
      Ap[NCols] = iPtr;
 
-     SP_GRAD_ASSERT(iPtr - offset == Nz());     
+     SP_GRAD_ASSERT(iPtr - offset == Nz());
 
      std::fill(oColSize.begin(), oColSize.end(), 0);
 
 #ifdef SP_GRAD_DEBUG
      constexpr idx_type iInvalidIndex = -1;
      constexpr doublereal dInvalidValue = std::numeric_limits<doublereal>::infinity();
-     
+
      std::fill(Ai, Ai + Nz(), iInvalidIndex);
      std::fill(Ax, Ax + Nz(), dInvalidValue);
 #endif
-     
+
      for (integer iRow = 0; iRow < NRows; ++iRow) {
 	  for (const auto& oDer: oRows[iRow]) {
 	       const integer iColIdx = oDer.iDof - 1;
 
 	       SP_GRAD_ASSERT(iColIdx >= 0);
 	       SP_GRAD_ASSERT(iColIdx < NCols);
-	       
+
 	       const idx_type iSlot = Ap[iColIdx] - offset + oColSize[iColIdx]++;
 
 	       SP_GRAD_ASSERT(iSlot >= 0);
 	       SP_GRAD_ASSERT(iSlot < Nz());
 	       SP_GRAD_ASSERT(Ai[iSlot] == iInvalidIndex);
 	       SP_GRAD_ASSERT(Ax[iSlot] == dInvalidValue);
-	       
+
 	       Ai[iSlot] = iRow + offset;
 	       Ax[iSlot] = oDer.dDer;
 	  }
      }
-     
+
 #ifdef SP_GRAD_DEBUG
      idx_type iSizeTot = 0;
 
@@ -294,7 +288,7 @@ idx_type SpGradientSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *
 		    }
 	       }
 
-	       iRowPrev = iRow;       	       
+	       iRowPrev = iRow;
 	  }
      }
 #endif
@@ -326,7 +320,7 @@ idx_type SpGradientSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *con
 {
      idx_type iPtr = 0;
      size_t iRow;
-     
+
      for (iRow = 0; iRow < oRows.size(); ++iRow) {
 	  Ap[iRow] = iPtr + offset;
 
@@ -363,7 +357,7 @@ bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradi
      SP_GRAD_ASSERT(iRow >= 1);
      SP_GRAD_ASSERT(iRow <= iGetNumRows());
      SP_GRAD_ASSERT(oRows.size() == static_cast<size_t>(iGetNumRows()));
-     
+
 #ifdef SP_GRAD_DEBUG
      for (const auto& r: oItem) {
 	  SP_GRAD_ASSERT(r.iDof >= 1);
@@ -383,20 +377,20 @@ bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradi
      oRow += sp_grad::EvalUnique(oItem);
 
      SP_GRAD_ASSERT(oRow.bIsUnique());
-     
+
      NZ += oRow.iGetSize() - iSizeRowPrev;
 
 #ifdef SP_GRAD_DEBUG
-     for (const auto& r: oRows[iRow - 1]) {	  
+     for (const auto& r: oRows[iRow - 1]) {
 	  SP_GRAD_ASSERT(r.iDof >= 1);
 	  SP_GRAD_ASSERT(r.iDof <= iGetNumCols());
      }
 #endif
-	  
+
 #ifdef USE_MULTITHREAD
      std::atomic_exchange(&oRow.bLocked, false);
 #endif
-     
+
      return true;
 }
 
@@ -430,15 +424,15 @@ idx_type SpGradientSparseMatrixHandler::MakeIndexFormTpl(doublereal *const Ax,
 	  SP_GRAD_ASSERT(oRow.bValid());
 	  SP_GRAD_ASSERT(oRow.iGetSize() > 0);
 	  SP_GRAD_ASSERT(oRow.bIsUnique());
-	  
+
 	  for (const auto& oDer: oRow) {
 	       SP_GRAD_ASSERT(oDer.iDof >= 1);
 	       SP_GRAD_ASSERT(oDer.iDof <= NCols);
-	       
+
 	       ++oColSize[oDer.iDof - 1];
 	  }
      }
-     
+
      idx_type iPtr = offset;
 
      for (integer iCol = 0; iCol < NCols; ++iCol) {
@@ -446,32 +440,32 @@ idx_type SpGradientSparseMatrixHandler::MakeIndexFormTpl(doublereal *const Ax,
 
 	  SP_GRAD_ASSERT(oColSize[iCol] >= 0);
 	  SP_GRAD_ASSERT(oColSize[iCol] <= NRows);
-	  
+
 	  iPtr += oColSize[iCol];
      }
-     
+
      Ap[NCols] = iPtr;
 
-     SP_GRAD_ASSERT(iPtr - offset == Nz());     
+     SP_GRAD_ASSERT(iPtr - offset == Nz());
 
      std::fill(oColSize.begin(), oColSize.end(), 0);
 
 #ifdef SP_GRAD_DEBUG
      constexpr idx_type iInvalidIndex = -1;
      constexpr doublereal dInvalidValue = std::numeric_limits<doublereal>::infinity();
-     
+
      std::fill(Arow, Arow + Nz(), iInvalidIndex);
      std::fill(Acol, Acol + Nz(), iInvalidIndex);
      std::fill(Ax, Ax + Nz(), dInvalidValue);
 #endif
-     
+
      for (integer iRow = 0; iRow < NRows; ++iRow) {
 	  for (const auto& oDer: oRows[iRow]) {
 	       const integer iColIdx = oDer.iDof - 1;
 
 	       SP_GRAD_ASSERT(iColIdx >= 0);
 	       SP_GRAD_ASSERT(iColIdx < NCols);
-	       
+
 	       const idx_type iSlot = Ap[iColIdx] - offset + oColSize[iColIdx]++;
 
 	       SP_GRAD_ASSERT(iSlot >= 0);
@@ -479,7 +473,7 @@ idx_type SpGradientSparseMatrixHandler::MakeIndexFormTpl(doublereal *const Ax,
 	       SP_GRAD_ASSERT(Arow[iSlot] == iInvalidIndex);
 	       SP_GRAD_ASSERT(Acol[iSlot] == iInvalidIndex);
 	       SP_GRAD_ASSERT(Ax[iSlot] == dInvalidValue);
-	       
+
 	       Arow[iSlot] = iRow + offset;
 	       Acol[iSlot] = iColIdx + offset;
 	       Ax[iSlot] = oDer.dDer;
@@ -504,7 +498,7 @@ void SpGradientSparseMatrixHandler::Scale(const std::vector<doublereal>& oRowSca
      ASSERT(!bScaleRows || oRowScale.size() == static_cast<size_t>(iGetNumRows()));
      ASSERT(!bScaleCols || oColScale.size() == static_cast<size_t>(iGetNumCols()));
      ASSERT(bScaleRows || bScaleCols);
-     
+
      if (bScaleRows && bScaleCols) {
 	  for (integer iRow = 0; iRow < NRows; ++iRow) {
 	       oRows[iRow].Scale(oRowScale[iRow], oColScale);
@@ -512,7 +506,7 @@ void SpGradientSparseMatrixHandler::Scale(const std::vector<doublereal>& oRowSca
      } else if (bScaleCols) {
 	  for (integer iRow = 0; iRow < NRows; ++iRow) {
 	       oRows[iRow].Scale(1., oColScale);
-	  }	  
+	  }
      } else if (bScaleRows) {
 	  for (integer iRow = 0; iRow < NRows; ++iRow) {
 	       oRows[iRow] *= oRowScale[iRow];
@@ -548,7 +542,7 @@ doublereal SpGradientSparseMatrixHandler::Norm(Norm_t eNorm) const
 
 	  for (doublereal d: rsum) {
 	       dNorm = std::max(d, dNorm);
-	  }	  
+	  }
      } break;
      default:
 	  throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
@@ -583,7 +577,7 @@ SpGradientSparseMatrixWrapper::~SpGradientSparseMatrixWrapper()
 }
 
 #ifdef DEBUG
-void SpGradientSparseMatrixWrapper::IsValid() const 
+void SpGradientSparseMatrixWrapper::IsValid() const
 {
      pMH->IsValid();
 }
@@ -604,49 +598,49 @@ integer SpGradientSparseMatrixWrapper::iGetNumCols() const
      return pMH->SpGradientSparseMatrixHandler::iGetNumCols();
 }
 
-void SpGradientSparseMatrixWrapper::Resize(integer, integer) 
+void SpGradientSparseMatrixWrapper::Resize(integer, integer)
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
-void SpGradientSparseMatrixWrapper::ResizeReset(integer, integer) 
+void SpGradientSparseMatrixWrapper::ResizeReset(integer, integer)
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
-void SpGradientSparseMatrixWrapper::Reset() 
+void SpGradientSparseMatrixWrapper::Reset()
 {
      // FIXME: pMH->Reset() must be called in advance by the main thread before starting multithreaded assembly.
 }
 
 const doublereal&
-SpGradientSparseMatrixWrapper::operator()(integer iRow, integer iCol) const 
+SpGradientSparseMatrixWrapper::operator()(integer iRow, integer iCol) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
 doublereal&
-SpGradientSparseMatrixWrapper::operator()(integer iRow, integer iCol) 
+SpGradientSparseMatrixWrapper::operator()(integer iRow, integer iCol)
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
-void SpGradientSparseMatrixWrapper::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) 
+void SpGradientSparseMatrixWrapper::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
-     
-bool SpGradientSparseMatrixWrapper::AddItem(integer iRow, const sp_grad::SpGradient& oItem) 
+
+bool SpGradientSparseMatrixWrapper::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      return pMH->SpGradientSparseMatrixHandler::AddItem(iRow, oItem);
 }
 
-std::ostream& SpGradientSparseMatrixWrapper::Print(std::ostream& os, MatPrintFormat eFormat) const 
+std::ostream& SpGradientSparseMatrixWrapper::Print(std::ostream& os, MatPrintFormat eFormat) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
-doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const 
+doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
@@ -654,7 +648,7 @@ doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const
 MatrixHandler&
 SpGradientSparseMatrixWrapper::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 									const doublereal& dCoef),
-					      MatrixHandler& out, const MatrixHandler& in) const 
+					      MatrixHandler& out, const MatrixHandler& in) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
@@ -662,7 +656,7 @@ SpGradientSparseMatrixWrapper::MatMatMul_base(void (MatrixHandler::*op)(integer 
 MatrixHandler&
 SpGradientSparseMatrixWrapper::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 									 const doublereal& dCoef),
-					       MatrixHandler& out, const MatrixHandler& in) const 
+					       MatrixHandler& out, const MatrixHandler& in) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
