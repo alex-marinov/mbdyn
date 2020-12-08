@@ -675,6 +675,8 @@ LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
      pS->CheckTimeStepLimit(dErr, dErrDiff);
 
      if (bResConverged && bSolConverged) {
+	  // Attention: Do not throw ConvergenceOnSolution here!
+	  // It would prevent that AfterConvergence is called in StepIntegrator::Advance.	  
           return;
      }
 
@@ -732,6 +734,8 @@ LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
                }
 
                if (bResConverged && bSolConverged) {
+		    // Attention: Do not throw ConvergenceOnSolution here!
+		    // It would prevent that AfterConvergence is called in StepIntegrator::Advance.		    
                     return;
                }
 
@@ -1080,6 +1084,8 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
 exit_success:
      dTimePrev = dTimeCurr;
      TRACE_VAR(dTimePrev);
+     // Attention: Do not throw ConvergenceOnSolution here!
+     // It would prevent that AfterConvergence is called in StepIntegrator::Advance.
 }
 
 LineSearchBFGS::LineSearchBFGS(DataManager* pDM,
@@ -1438,5 +1444,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
      }
 
 exit_success:
+     // Attention: Do not throw ConvergenceOnSolution here!
+     // It would prevent that AfterConvergence is called in StepIntegrator::Advance.     
      ;
 }
