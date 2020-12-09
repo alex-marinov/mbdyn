@@ -183,8 +183,11 @@ public:
     /* functions for element, set the Jac and Res: end*/
 
     /* functions for coupling variables: start*/
-    void MBDyn_CE_SendDataToBuf(); // write the kinematic variables to the vector.
-    void MBDyn_CE_RecvDataFromBuf(); // read the dynamic variables from the Buf.
+    void MBDyn_CE_UpdateCEModel(); //- update a regular step in C::E
+    void MBDyn_CE_SendDataToBuf_Curr(); //- write current kinematic variables to the vector.
+    void MBDyn_CE_SendDataToBuf_Prev(); //- write previous kinematic variables to the vector.
+    void MBDyn_CE_KinematicData_Interpolate(); //- intepolates the kinematic for peer (to do)
+    void MBDyn_CE_RecvDataFromBuf(); //- read the dynamic variables from the Buf.
     /* functions for coupling variables: start*/
 
     /*Miscellaneous refers to the module-template2.cc and force.h: start*/

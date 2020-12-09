@@ -410,14 +410,14 @@ ChronoInterfaceBaseElem::SetValue(DataManager *pDM,
 	std::cout << "\t\tgravity is: " << mbdynce_mbdyn_gravity[0] << "\t"<<mbdynce_mbdyn_gravity[1]<<"\t"<<mbdynce_mbdyn_gravity[2]<<"\n"; //- print in screen
 	
 	//---------- initial check
-	MBDyn_CE_SendDataToBuf(); //- send initial data to BUF, where C::E model can read infromation.
+	MBDyn_CE_SendDataToBuf_Curr(); //- send initial data to BUF, where C::E model can read infromation.
 	if (!MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, mbdynce_mbdyn_gravity))
 	{
 		silent_cerr("ChronoInterface(" << uLabel << ") data in C::E and in MBDyn are inconsistent " << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	switch (MBDyn_CE_CouplingType)
+	switch (MBDyn_CE_CouplingType) //- only tight scheme needs save data
 	{
 	case MBDyn_CE_COUPLING::COUPLING_NONE: //- do nothing
 		break; 
@@ -445,57 +445,69 @@ ChronoInterfaceBaseElem::Update(const VectorHandler &XCurr,
 	//---------- 2. C::E models reload data (only tight coupling scheme);
 	//---------- 3. C::E models read the coupling data from buffer;
 	//---------- 4. C::E models do integration (one step);
-	//---------- 5. C::E models sends data to the buffer;
+	//---------- 5. MBDyn receives data from buffer;
 	pedantic_cout("\tMBDyn::Update()\n");
 	if (bMBDyn_CE_CEModel_DoStepDynamics || bMBDyn_CE_FirstSend)
-	{
-		pedantic_cout("\tMBDyn-C::E::Update a regular step\n");
-		//---------- 1. mbdyn writes kinematic coupling variables to buffer;
-		MBDyn_CE_SendDataToBuf();
-		//---------- 2. C::E models reload data (tight coupling scheme);
-		if(MBDyn_CE_CouplingType == MBDyn_CE_COUPLING::COUPLING_TIGHT) //- tight coupling
+	{	
+		if (MBDyn_CE_CouplingType==MBDyn_CE_COUPLING::COUPLING_TIGHT)
 		{
-			if(MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
+			//---------- 1. mbdyn writes kinematic coupling variables to buffer;
+			MBDyn_CE_SendDataToBuf_Curr();
+			//---------- 2. C::E models reload data (tight coupling scheme);
+			if (MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Data))
 			{
 				silent_cerr("ChronoInterface(" << uLabel << ") data reloading process is wrong " << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-		}
-		//---------- 3. C::E models read the coupling data from buffer;
-		time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
-		if (MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, MBDyn_CE_CEMotorType, MBDyn_CE_CEMotorType_coeff, time_step, bMBDyn_CE_Verbose))
-		{
-			silent_cerr("ChronoInterface(" << uLabel << ") C::E receiving data process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		//---------- 4. C::E models do integration (one step);
-		if(MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel, time_step, bMBDyn_CE_Verbose))
-		{
-			silent_cerr("ChronoInterface(" << uLabel << ") C::E integration process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		//---------- 5. C::E models sends data to the buffer;
-		if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label, bMBDyn_CE_Verbose))
-		{
-			silent_cerr("ChronoInterface(" << uLabel << ") C::E writting force process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		//---------- 6. MBDyn receives data from Buf;
-		MBDyn_CE_RecvDataFromBuf();
-		switch (MBDyn_CE_CouplingType)
-		{
-		case MBDyn_CE_COUPLING::COUPLING_TIGHT:
+			//---------- steps 3 and steps 4;
+			//---------- 3. C::E models read the coupling data from buffer;
+			//---------- 4. C::E models do integration (one step);
+			MBDyn_CE_UpdateCEModel();
+			//---------- 5. MBDyn receives data from Buf;
+			MBDyn_CE_RecvDataFromBuf();
+			//---------- other settings
 			bMBDyn_CE_FirstSend = false;
 			bMBDyn_CE_CEModel_DoStepDynamics = true;
 			MBDyn_CE_CEModel_Converged.Set(Converged::State::NOT_CONVERGED);
-			break;
-		case MBDyn_CE_COUPLING::COUPLING_LOOSE:
-		case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED:
-		default:
+		}	
+		else if (MBDyn_CE_CouplingType==MBDyn_CE_COUPLING::COUPLING_LOOSE)
+		{
+			switch(MBDyn_CE_CouplingType_loose)
+			{
+				case MBDyn_CE_COUPLING_LOOSE::LOOSE_EMBEDDED:
+				{
+					//---------- 1. mbdyn writes kinematic coupling variables to buffer;
+					MBDyn_CE_SendDataToBuf_Curr();
+					//---------- steps 3 and steps 4;
+					//---------- 3. C::E models read the coupling data from buffer;
+					//---------- 4. C::E models do integration (one step);
+					MBDyn_CE_UpdateCEModel();
+					//---------- 5. MBDyn receives data from Buf;
+					MBDyn_CE_RecvDataFromBuf();
+					break;
+				}
+				case MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN: //- x^(P)_k+1=x_k..., f^{P}_{k+1}=f^{P}
+				{
+					//---------- 1. mbdyn writes kinematic coupling variables to buffer;
+					MBDyn_CE_SendDataToBuf_Prev();
+					//---------- 5. MBDyn receives data from Buf before integration in C::E. data of last step.
+					MBDyn_CE_RecvDataFromBuf();
+					//---------- steps 3 and steps 4;
+					//---------- 3. C::E models read the coupling data from buffer;
+					//---------- 4. C::E models do integration (one step);
+					MBDyn_CE_UpdateCEModel();
+					break;
+				}
+				case MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS: //- to do
+					break;
+				default:
+					silent_cerr("unkown loose coupling scheme" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					break;
+			}
 			bMBDyn_CE_CEModel_DoStepDynamics = false;
 			bMBDyn_CE_FirstSend = false;
 			MBDyn_CE_CEModel_Converged.Set(Converged::State::CONVERGED);
-			break;
 		}
 	}
 }
@@ -537,8 +549,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 	MBDyn_CE_CouplingIter_Count = 0;
 	bMBDyn_CE_FirstSend = true;
 	bMBDyn_CE_CEModel_DoStepDynamics = true;
-	if (bMBDyn_CE_Verbose)
-		MBDyn_CE_MBDynPrint();
+	
 	switch (MBDyn_CE_CouplingType)
 	{
 	case MBDyn_CE_COUPLING::COUPLING_NONE:
@@ -572,7 +583,10 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 			pedantic_cout("\tMBDyn::AfterPredict() -Loose_embedded\n");	
 			Update(X, XP); //- A regular step in C::E.
 			break;
-		case MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN: //- to do 
+		case MBDyn_CE_COUPLING_LOOSE::LOOSE_JACOBIAN: 
+			pedantic_cout("\tMBDyn::AfterPredict() -Loose_Jacobian\n");
+			Update(X, XP); //- A regular step in C::E.
+			break;
 		case MBDyn_CE_COUPLING_LOOSE::LOOSE_GAUSS: //- to do
 		default: //- to do
 			break;
@@ -722,7 +736,55 @@ ChronoInterfaceBaseElem::InitialAssRes(
 }
 
 void
-ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf()
+ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Prev()
+{
+	/* formulation for calculation
+				mbdynce_x = x + mbdynce_f
+				mbdynce_R = R
+				mbdynce_v = xp + mbdynce_w cross mbdynce_f
+				mbdynce_w = w
+				mbdynce_a = xpp + mbdynce_wp cross mbdynce_f + mbdynce_w cross mbdynce_w cross mbdynce_f
+				mbdynce_wp = wp
+	*/
+	for (unsigned mbdynce_i = 0; mbdynce_i < MBDyn_CE_NodesNum; mbdynce_i++)
+	{
+		const MBDYN_CE_POINTDATA& mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
+		//- rotation and position
+		const Mat3x3 & mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRPrev();
+		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
+		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXPrev() + mbdynce_f;
+		//- angular velocity and velocity
+		const Vec3 &mbdynce_w = mbdynce_point.pMBDyn_CE_Node->GetWPrev();
+		Vec3 mbdynce_wCrossf = mbdynce_w.Cross(mbdynce_f);
+		Vec3 mbdynce_v = mbdynce_point.pMBDyn_CE_Node->GetVPrev() + mbdynce_wCrossf;
+		//- angular acceleration and acceleration
+		const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPPrev();
+		Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPPrev()+mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
+
+		double mbdynce_tempvec3_x[3];
+		double mbdynce_tempvec3_v[3];
+		double mbdynce_tempvec3_a[3];
+		double mbdynce_tempvec3_w[3];
+		double mbdynce_tempvec3_wp[3];
+		MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
+		MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
+		MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
+		double mbdynce_tempmat3x3_R[9];
+		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+
+		memcpy(&pMBDyn_CE_CouplingKinematic_x[3 * mbdynce_i], mbdynce_tempvec3_x, 3 * sizeof(double));
+		memcpy(&pMBDyn_CE_CouplingKinematic_R[9* mbdynce_i], mbdynce_tempmat3x3_R, 9 * sizeof(double));
+		memcpy(&pMBDyn_CE_CouplingKinematic_xp[3 * mbdynce_i], mbdynce_tempvec3_v, 3 * sizeof(double));
+		memcpy(&pMBDyn_CE_CouplingKinematic_omega[3 * mbdynce_i], mbdynce_tempvec3_w, 3 * sizeof(double));
+		memcpy(&pMBDyn_CE_CouplingKinematic_xpp[3 * mbdynce_i], mbdynce_tempvec3_a, 3 * sizeof(double));
+		memcpy(&pMBDyn_CE_CouplingKinematic_omegap[3 * mbdynce_i], mbdynce_tempvec3_wp, 3 * sizeof(double));
+	}
+}
+
+void
+ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Curr()
 {
 	/* formulation for calculation
 				mbdynce_x = x + mbdynce_f
@@ -769,10 +831,47 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf()
 	}
 }
 
-// Read the data from buffer, and write them to the Vec3 MBDyn_CE_F and Vec3 MBDyn_CE_M;
+//- intepolation of pos, vel, and acc. (used in Jacobian/Gauss scheme) to do
+void 
+ChronoInterfaceBaseElem::MBDyn_CE_KinematicData_Interpolate()
+{
+	NO_OP;
+}
+
+//- a regular C::E integration step.
+void 
+ChronoInterfaceBaseElem::MBDyn_CE_UpdateCEModel()
+{
+	//---------- A regular step to update C::E model (this function executate steps 3 and 4)
+	//---------- 3. C::E models read the coupling data from buffer;
+	//---------- 4. C::E models do integration (one step);
+
+	//---------- 3. C::E models read the coupling data from buffer;
+	time_step = m_pDM->pGetDrvHdl()->dGetTimeStep(); //- get time step
+	if (MBDyn_CE_CEModel_RecvFromBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingKinematic, MBDyn_CE_NodesNum, MBDyn_CE_CEModel_Label, MBDyn_CE_CEMotorType, MBDyn_CE_CEMotorType_coeff, time_step, bMBDyn_CE_Verbose))
+	{
+		silent_cerr("ChronoInterface(" << uLabel << ") C::E receiving data process is wrong " << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	//---------- 4. C::E models do integration (one step);
+	if (MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel, time_step, bMBDyn_CE_Verbose))
+	{
+		silent_cerr("ChronoInterface(" << uLabel << ") C::E integration process is wrong " << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	pedantic_cout("\tMBDyn-C::E::Update a regular step\n");
+}
+
+//- Read the data from buffer, and write them to the Vec3 MBDyn_CE_F and Vec3 MBDyn_CE_M;
 void 
 ChronoInterfaceBaseElem::MBDyn_CE_RecvDataFromBuf()
 {
+	//---------- C::E models sends data to the buffer;
+	if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label, bMBDyn_CE_Verbose))
+	{
+		silent_cerr("ChronoInterface(" << uLabel << ") C::E writting force process is wrong " << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	for (unsigned mbdynce_i = 0; mbdynce_i < MBDyn_CE_NodesNum; mbdynce_i++)
 	{
 		//- read from the buffer
