@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * HmFe (C) is a FEM analysis code. 
+/*
+ * HmFe (C) is a FEM analysis code.
  *
  * Copyright (C) 1996-2017
  *
@@ -16,7 +16,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
-/* December 2001 
+/* December 2001
  * Modified to add a Sparse matrix in row form and to implement methods
  * to be used in the parallel MBDyn Solver.
  *
@@ -27,10 +27,10 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
  * http://www.aero.polimi.it
- *      
+ *
  */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -47,7 +47,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -74,7 +74,10 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 
-	
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient_spmh.h"
+#endif
+
 /* WsmpSolver: - begin */
 
 class WsmpSolver: public LinearSolver {
@@ -83,22 +86,24 @@ private:
 	mutable doublereal *Axp;
 	mutable integer *Aip;
 	mutable integer *App;
-	
+
 	mutable int ldb;
 	mutable int nrhs;
 	mutable double *rmisc;
 	mutable int iparm[64];
 	mutable double dparm[64];
-
-	bool Symbolic;
+	mutable integer iNumNzPrev;
+	mutable bool Symbolic;
 
 	bool bPrepareSymbolic(void);
-	
+
 	void Factor(void);
 
 public:
-	WsmpSolver(const integer &size, const doublereal &dPivot,
-			const unsigned blockSize, const unsigned nt = 1);
+	WsmpSolver(const integer size, const doublereal dPivot,
+		   const unsigned blockSize, const unsigned nt = 1,
+		   const SolutionManager::ScaleOpt& oScale = SolutionManager::ScaleOpt(),
+		   integer iMaxIterRefine = 3);
 	~WsmpSolver(void);
 
 	void Reset(void);
@@ -115,9 +120,10 @@ public:
 
 /* WsmpSparseSolutionManager - begin */
 
+template <typename MatrixHandlerType>
 class WsmpSparseSolutionManager: public SolutionManager {
 protected:
-	mutable SpMapMatrixHandler A;
+	mutable MatrixHandlerType A;
 
 	/* rhs / solution */
 	std::vector<doublereal> xb;
@@ -132,13 +138,16 @@ protected:
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
-	
+
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
-   
+
 public:
 	WsmpSparseSolutionManager(integer Dim, doublereal dPivot = -1.,
-			const unsigned blockSize = 0, const unsigned nt = 1);
+				  const unsigned blockSize = 0,
+				  const unsigned nt = 1,
+				  const SolutionManager::ScaleOpt& oScale = SolutionManager::ScaleOpt(),
+				  integer iMaxIterRefine = 3);
 	virtual ~WsmpSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -148,7 +157,7 @@ public:
 
 	/* Inizializzatore generico */
 	virtual void MatrReset(void);
-	
+
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
 
@@ -167,22 +176,24 @@ public:
 /* WsmpSparseCCSolutionManager - begin */
 
 template <class CC>
-class WsmpSparseCCSolutionManager: public WsmpSparseSolutionManager {
+class WsmpSparseCCSolutionManager: public WsmpSparseSolutionManager<SpMapMatrixHandler> {
 protected:
 	bool CCReady;
 	CompactSparseMatrixHandler *Ac;
 
 	virtual void MatrReset(void);
 	virtual void MakeCompressedColumnForm(void);
-	
+
 public:
 	WsmpSparseCCSolutionManager(integer Dim, doublereal dPivot = -1.,
-			const unsigned& blockSize = 0 , const unsigned nt = 1);
+				    const unsigned& blockSize = 0 , const unsigned nt = 1,
+				    const SolutionManager::ScaleOpt& oScale = SolutionManager::ScaleOpt(),
+				    integer iMaxIterRefine = 3);
 	virtual ~WsmpSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
 	virtual void MatrInitialize(void);
-	
+
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;
 };
@@ -192,4 +203,3 @@ public:
 #endif /* USE_WSMP */
 
 #endif /* WsmpSparseSolutionManager_hh */
-

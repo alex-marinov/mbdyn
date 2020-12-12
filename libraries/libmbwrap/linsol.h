@@ -54,6 +54,7 @@ public:
                 QR_SOLVER,
                 SPQR_SOLVER,
 		STRUMPACK_SOLVER,
+		WATSON_SOLVER,
 		LAST_SOLVER
 	};
 

@@ -55,6 +55,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
+		::solver[LinSol::WATSON_SOLVER].s_name,
 		NULL
 	};
 
@@ -74,6 +75,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 QR,
                 SPQR,
 		STRUMPACK,
+		WATSON,
 		
 		LASTKEYWORD
 	};
@@ -223,7 +225,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	     bGotIt = true;
 #endif
 	     break;
-                
+	case WATSON:
+	     cs.SetSolver(LinSol::WATSON_SOLVER);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Using Watson solver\n");
+#ifdef USE_WSMP
+	     bGotIt = true;
+#endif
+	     break;
+	     
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
