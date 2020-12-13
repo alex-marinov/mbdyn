@@ -53,7 +53,7 @@
 #include "pastixwrap.h"
 #include "qrwrap.h"
 #include "strumpackwrap.h"
-
+#include "wsmpwrap.h"
 #include "linsol.h"
 
 /* solver data */
@@ -191,6 +191,20 @@ const LinSol::solver_t solver[] = {
 	        LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_HODLR,
                 LinSol::SOLVER_FLAGS_ALLOWS_MAP,
                 -1., -1. },	
+	{ "Watson", NULL,
+	  LinSol::WATSON_SOLVER,
+	  LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+	  LinSol::SOLVER_FLAGS_ALLOWS_CC |
+	  LinSol::SOLVER_FLAGS_ALLOWS_DIR |
+#ifdef USE_SPARSE_AUTODIFF
+	  LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
+#endif	  
+#ifdef WSMP_SOLVER_ENABLE_MULTITHREAD_FACTOR // Disable by default because valgrind reports a race condition in WSMP Version 20.05.20
+	  LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT | 
+#endif
+	  LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+	  LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+	  -1., -1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -312,6 +326,11 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif
 #ifdef USE_STRUMPACK
 	case LinSol::STRUMPACK_SOLVER:
+	     currSolver = t;
+	     return true;
+#endif
+#ifdef USE_WSMP
+	case LinSol::WATSON_SOLVER:
 	     currSolver = t;
 	     return true;
 #endif
@@ -512,6 +531,7 @@ LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 	case LinSol::KLU_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
+	case LinSol::WATSON_SOLVER:
 		scale = s;
 		break;
 
@@ -535,6 +555,7 @@ LinSol::SetMaxIterations(integer iMaxIterations)
 	case LinSol::UMFPACK_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
+	case LinSol::WATSON_SOLVER:
 		iMaxIter = iMaxIterations;
 		break;
 
@@ -887,6 +908,33 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					 StrumpackSolutionManager<SpMapMatrixHandler>,
 					 StrumpackSolutionManager<SpMapMatrixHandler>(iNLD, nThreads, iMaxIter, scale, solverFlags, iVerbose));
 		  break;
+	     }
+	     break;
+#endif
+#ifdef USE_WSMP
+	case LinSol::WATSON_SOLVER:
+	     switch (type) {
+	     case LinSol::SOLVER_FLAGS_ALLOWS_CC:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseCCSolutionManager<CColMatrixHandler<0> >,
+					 WsmpSparseCCSolutionManager<CColMatrixHandler<0> >(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+	     case LinSol::SOLVER_FLAGS_ALLOWS_DIR:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >,
+					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+#ifdef USE_SPARSE_AUTODIFF
+	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>,
+					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+#endif
+	     default:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseSolutionManager<SpMapMatrixHandler>,
+					 WsmpSparseSolutionManager<SpMapMatrixHandler>(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
 	     }
 	     break;
 #endif

@@ -2770,10 +2770,10 @@ dnl Check for Watson wsmp
 dnl
 ol_link_wsmp=no
 if test $ol_with_wsmp != no ; then
-	try_wsmp_LIBS="-lwsmp"
-	AC_CHECK_LIB(wsmp,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
+	try_wsmp_LIBS="-lwsmp64"
+	AC_CHECK_LIB(wsmp64,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
 	if test "$have_wsmp" = "yes" ; then
-		AC_DEFINE(HAVE_WSMP,1,[define to use Watson wsmp library])
+		AC_DEFINE(USE_WSMP,1,[define to use Watson wsmp library])
 		WSMP_LIBS="$try_wsmp_LIBS"
 	else
 		if test "$ol_with_wsmp" = "yes" ; then
