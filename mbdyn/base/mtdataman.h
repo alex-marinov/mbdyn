@@ -75,6 +75,7 @@ protected:
 	struct ThreadData {
 		MultiThreadDataManager *pDM;
 		integer threadNumber;
+	        integer iCPUIndex;
 		pthread_t thread;
 		sem_t sem;
 #if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
@@ -162,6 +163,7 @@ protected:
 #ifdef USE_SPARSE_AUTODIFF
         void GradAssJac(MatrixHandler& JacHdl, doublereal dCoef);
 #endif
+        static void SetAffinity(const ThreadData& oThread);
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	MultiThreadDataManager(MBDynParser& HP,

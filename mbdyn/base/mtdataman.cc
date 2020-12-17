@@ -247,7 +247,7 @@ MultiThreadDataManager::thread(void *p)
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
 #endif
 
-	(void)mbdyn_task2cpu(arg->threadNumber - 1);
+	SetAffinity(*arg);
 
 	while (bKeepGoing) {
 		/* stop here until told to start */
@@ -431,12 +431,24 @@ MultiThreadDataManager::ThreadSpawn(void)
 	ASSERT(nThreads > 1);
 
 	SAFENEWARRNOFILL(thread_data, MultiThreadDataManager::ThreadData, nThreads);
+
+	const Task2CPU& oCPUSet = Task2CPU::GetGlobalState();
+	int iCPUIndex = oCPUSet.iGetFirstCPU();
+	const unsigned uNumCPUs = oCPUSet.iGetCount();
 	
 	for (unsigned i = 0; i < nThreads; i++) {
 		/* callback data */
 		thread_data[i].pDM = this;
 		sem_init(&thread_data[i].sem, 0, 0);
 		thread_data[i].threadNumber = i;
+
+		if (uNumCPUs >= nThreads) {
+		     thread_data[i].iCPUIndex = iCPUIndex;
+		     iCPUIndex = oCPUSet.iGetNextCPU(iCPUIndex);
+		} else {
+		     thread_data[i].iCPUIndex = -1;
+		}
+
 #if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
 		thread_data[i].NodeIter.Init(&Nodes[0], Nodes.size());
 #endif
@@ -498,8 +510,9 @@ MultiThreadDataManager::ThreadSpawn(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
-	(void)mbdyn_task2cpu(nThreads - 1);
+
+
+	SetAffinity(thread_data[0]);
 }
 
 void
@@ -855,6 +868,22 @@ MultiThreadDataManager::GradAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 }
 #endif
 
+void MultiThreadDataManager::SetAffinity(const ThreadData& oThread)
+{
+     if (oThread.iCPUIndex >= 0) {
+	  Task2CPU oCPUSet;
+
+	  pedantic_cerr("Setting affinity of thread " << oThread.threadNumber << " to CPU " << oThread.iCPUIndex << " ...\n");
+	  
+	  oCPUSet.SetCPU(oThread.iCPUIndex);
+	  
+	  if (!oCPUSet.bSetAffinity()) {
+	       silent_cerr("Failed to set affinity of thread " << oThread.threadNumber
+			   << " to CPU " << oThread.iCPUIndex << "\n");
+	  }
+     }
+}
+	
 #ifdef MBDYN_X_MT_ASSRES
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
