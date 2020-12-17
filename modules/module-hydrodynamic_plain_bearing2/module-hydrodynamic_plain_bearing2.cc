@@ -10239,12 +10239,14 @@ namespace {
 
 	const SpColVector<T> ptot_scaled = (p + pasp) * dPressScale;
 
-	SpColVector<T> f1 = C * ptot_scaled;
+	if (C.iGetNumCols()) {
+	     SpColVector<T> f1 = C * ptot_scaled;
 
-	f1 *= -dEquationScale;
+	     f1 *= -dEquationScale;
 	
-	for (index_type i = 0; i < iNumNodes; ++i) {            
-	     WorkVec.AddItem(iEqIndex + i, f1(i + 1));
+	     for (index_type i = 0; i < iNumNodes; ++i) {            
+		  WorkVec.AddItem(iEqIndex + i, f1(i + 1));
+	     }
 	}
 	
         if (pModalJoint) {
@@ -10265,7 +10267,7 @@ namespace {
 		 pModalJoint->GetACurr(j, a(j), dCoef, func);               
             }
 
-	    f1 = D * a;
+	    SpColVector<T> f1 = D * a;
 
 	    f1 *= -dEquationScale;
 
