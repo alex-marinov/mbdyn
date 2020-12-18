@@ -125,10 +125,13 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 					return NULL;
 				}
 				auto motor3d_body_i = std::make_shared<ChLinkMotionImposed>();
+				ChVector<> temp_mbdyn_CE_offset(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[0],
+												MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[1],
+												MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[2]);
 				motor3d_body_i->Initialize(body_i,
 										   mbdynce_temp_ground,
-										   true,																	 //- connecting frames are described in local ref.
-										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)), //- By default: using the mass center and the body orientation
+										   true,																//- connecting frames are described in local ref.
+										   ChFrame<>(temp_mbdyn_CE_offset, ChQuaternion<>(1.0, 0.0, 0.0, 0.0)), //- By default: using the mass center and the body orientation
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)));
 				pMBDyn_CE_CEModel->Add(motor3d_body_i);
 
@@ -166,11 +169,22 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 					motor3d_body_i->SetPositionFunction(motor3d_function_pos);
 					motor3d_body_i->SetRotationFunction(motor3d_function_rot);
 					std::cout<<"motor type is acceleration (using function setpoint)\n";
-				}			
+				}
+				bool *pmbdynce_temp_bConstraint = &MBDyn_CE_CEModel_Label[i].bMBDyn_CE_Constraint[0];
+				motor3d_body_i->SetConstrainedCoords(pmbdynce_temp_bConstraint[0],pmbdynce_temp_bConstraint[1],pmbdynce_temp_bConstraint[2],pmbdynce_temp_bConstraint[3],pmbdynce_temp_bConstraint[4],pmbdynce_temp_bConstraint[5]);
+				std::cout << "\tpostion constraints are:\t"
+						  << pmbdynce_temp_bConstraint[0] << "\t" << pmbdynce_temp_bConstraint[1] << "\t" << pmbdynce_temp_bConstraint[2] << "\n"
+						  << "\trotation constraints are:\t"
+						  << pmbdynce_temp_bConstraint[3] << "\t" << pmbdynce_temp_bConstraint[4] << "\t" << pmbdynce_temp_bConstraint[5] << "\n";
 				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label = motor3d_body_i->GetIdentifier();
 				//----- output motor information
-				std::cout << "C::E motor " << i + 1 << " ID: " << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label
-						  << ", body 1: " << body_i->GetIdentifier() << ", body 2: " << mbdynce_temp_ground->GetIdentifier() << "\n";
+				if (true)
+				{
+					std::cout << "\tC::E motor\t" << i + 1 << "\tID:\t" << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label
+							  << "\tbody 1:\t" << body_i->GetIdentifier() << "\tbody 2:\t" << mbdynce_temp_ground->GetIdentifier() << "\n"
+							  << "\tFrame1_pos:\t" << motor3d_body_i->GetFrame1().GetPos() << "\n"
+							  << "\tFrame1_rot:\t" << motor3d_body_i->GetFrame1().GetRot() << "\n";
+				}
 			}
 		}
 		else
@@ -222,8 +236,8 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 			for (unsigned i = 0; i < pMBDyn_CE_CEModel->Get_linklist().size(); i++)
 			{
 				std::cout << "Link " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetIdentifier() << "\n";
-				std::cout << "\tpos: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().pos << "\n";
-				std::cout << "\trot: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().rot << "\n";
+				std::cout << "\tFrame2G_pos: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().pos << "\n"; //- Frame2G
+				std::cout << "\tFrame2G_rot: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().rot << "\n";
 			}
 		}
 		return pMBDyn_CE_CEModel;
@@ -300,9 +314,15 @@ bool MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		//----- 2.2 C::E data
 		unsigned mbdynce_tempce_body_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label; //- body ID
 		auto mbdynce_tempce_body_i = tempsys->SearchBodyID(mbdynce_tempce_body_id);//- the corresponding body
-		ChVector<> mbdynce_tempce_pos = mbdynce_tempce_body_i->GetPos();
+		unsigned motor3d_motor_i_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label;
+		auto motor3d_motor_i = std::dynamic_pointer_cast<ChLinkMotionImposed>(tempsys->SearchLinkID(motor3d_motor_i_id)); //- the corresponding motor
+		ChFrame<> mbdynce_tempframe1b1_start = motor3d_motor_i->GetFrame1();
+		ChFrame<> mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());//- at initial, Frame_Node==Frame1G.
+		//- ChVector<> mbdynce_tempce_pos = mbdynce_tempce_body_i->GetPos();
+		ChVector<> mbdynce_tempce_pos = mbdynce_tempframe1G_start.GetPos();
 		//- ChVector<> mbdynce_tempce_pos_dt = mbdynce_tempce_body_i->GetPos_dt();
-		ChQuaternion<> mbdynce_tempce_rot = mbdynce_tempce_body_i->GetRot();
+		//- ChQuaternion<> mbdynce_tempce_rot = mbdynce_tempce_body_i->GetRot();
+		ChQuaternion<> mbdynce_tempce_rot = mbdynce_tempframe1G_start.GetRot();
 		//- ChVector<> mbdynce_tempce_Wvel_par = mbdynce_tempce_body_i->GetWvel_par(); //- angular velocity in global ref.
 
 		//---------- 3. check the consistency;

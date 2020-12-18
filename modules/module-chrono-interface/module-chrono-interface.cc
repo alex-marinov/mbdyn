@@ -237,33 +237,83 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		//----- reading information of coupling nodes
 		for (int i = 0; i < MBDyn_CE_NodesNum; i++)
 		{
-			MBDyn_CE_Nodes[i].pMBDyn_CE_Node = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP); //- pointer to nodes in MBDyn model;
-			const DynamicStructNode *temp_pMBDyn_CE_Node = dynamic_cast<const DynamicStructNode *>(MBDyn_CE_Nodes[i].pMBDyn_CE_Node);
-			if(temp_pMBDyn_CE_Node==NULL) //- not a dynamic structural node
+			if (HP.IsKeyWord("mbdyn" "node"))
 			{
-				silent_cerr("The node" << MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel()<< " at line " << HP.GetLineData() << "is not a dynamic structual node"<<std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				MBDyn_CE_Nodes[i].pMBDyn_CE_Node = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP); //- pointer to nodes in MBDyn model;
+				const DynamicStructNode *temp_pMBDyn_CE_Node = dynamic_cast<const DynamicStructNode *>(MBDyn_CE_Nodes[i].pMBDyn_CE_Node);
+				if (temp_pMBDyn_CE_Node == NULL) //- not a dynamic structural node
+				{
+					silent_cerr("The node" << MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel() << " at line " << HP.GetLineData() << "is not a dynamic structual node" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				const_cast<DynamicStructNode *>(temp_pMBDyn_CE_Node)->ComputeAccelerations(true); //- also output acceleration information;
 			}
-			const_cast<DynamicStructNode *> (temp_pMBDyn_CE_Node)->ComputeAccelerations(true); //- also output acceleration information
+
+			//----- coupling node offset 
 			ReferenceFrame pNode_RF(MBDyn_CE_Nodes[i].pMBDyn_CE_Node); //- get node reference
 			if (HP.IsKeyWord("offset"))
 			{
 				MBDyn_CE_Nodes[i].MBDyn_CE_Offset = HP.GetPosRel(pNode_RF); //- return offset in node reference
 			}
-			else 
+			else
 			{
-				MBDyn_CE_Nodes[i].MBDyn_CE_Offset= Zero3;
+				MBDyn_CE_Nodes[i].MBDyn_CE_Offset = Zero3;
 			}
 			MBDyn_CE_Nodes[i].MBDyn_CE_F = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_M = Zero3;
-			MBDyn_CE_Nodes[i].MBDyn_CE_uLabel = MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel(); //- node label (MBDyn). 
+			MBDyn_CE_Nodes[i].MBDyn_CE_uLabel = MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel(); //- node label (MBDyn).
 
 			//----- get coupling bodies in the C::E model, bodies' ID;
-			MBDyn_CE_Nodes[i].MBDyn_CE_CEBody_Label = HP.GetInt();									   //- bodies' ID, recorded in MBDyn;
-			MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label = MBDyn_CE_Nodes[i].MBDyn_CE_CEBody_Label; //- bodies' ID, used in C::E;
+			if (HP.IsKeyWord("chrono" "body"))
+			{
+				MBDyn_CE_Nodes[i].MBDyn_CE_CEBody_Label = HP.GetInt();									   //- bodies' ID, recorded in MBDyn;
+				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label = MBDyn_CE_Nodes[i].MBDyn_CE_CEBody_Label; //- bodies' ID, used in C::E;
+			}
+			
+			//----- offset relative to C::E body, expressed in body local ref.
+			if (HP.IsKeyWord("offset"))
+			{
+				for (unsigned j=0; j<3;j++)
+				{
+					MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[j] = HP.GetReal()*MBDyn_CE_CEScale[0]; //- return offset in C::E body reference
+				}
+			}
+			else
+			{
+				for (unsigned j=0; j<3;j++)
+				{
+					MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[j] = 0.0; //- return offset in C::E body reference
+				}
+			}
+
+			//----- position and rotation constraints;
+			//----- through it, although mbdyn still pass all postion and rotation to chrono::engine,
+			//----- chrono body will be constrained to the node frame according to the settings.
+			for (unsigned j = 0; j < 6; j++) //- default case: all position and rotation are imposed.
+			{
+				MBDyn_CE_CEModel_Label[i].bMBDyn_CE_Constraint[j] = true;
+			}
+			if (HP.IsKeyWord("position" "constraint"))
+			{
+				for (unsigned j = 0; j < 3; j++)
+				{
+					bool bActive = HP.GetInt();
+					MBDyn_CE_CEModel_Label[i].bMBDyn_CE_Constraint[j] = bActive;
+				}
+			}
+			if (HP.IsKeyWord("orientation" "constraint"))
+			{
+				for (unsigned j = 3; j < 6; j++)
+				{
+					bool bActive = HP.GetInt();
+					MBDyn_CE_CEModel_Label[i].bMBDyn_CE_Constraint[j] = bActive;
+				}
+			}
+
+			//----- write Chrono data to file, or not;
 			MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = false;								   //- by default: not output;
 			if (HP.IsKeyWord("output"))
-			{				
+			{
 				if (HP.IsKeyWord("yes"))
 					MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = true;
 				else if (HP.IsKeyWord("no"))
@@ -275,7 +325,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 					silent_cerr("ChronoInterface(" << uLabel << "): lacks key word at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-			}		
+			}
 			bMBDyn_CE_Output = (bMBDyn_CE_Output || MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output);
 		}
 		//----- read C::E ground information (the ground frame in C::E is fixed to the ground frame in MBDyn).
@@ -291,7 +341,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			}
 			if (HP.IsKeyWord("orientation"))
 			{
-				mbdyn_ce_ref_R_Mat3x3 = HP.GetMatAbs(mbdynce_ce_ref);//- get C::E ground orietation information
+				mbdyn_ce_ref_R_Mat3x3 = HP.GetMatAbs(mbdynce_ce_ref); //- get C::E ground orietation information
 			}
 			MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = false; // by default: not output
 			if (HP.IsKeyWord("output"))
@@ -324,7 +374,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				mbdyn_ce_ref_R[i] = (mbdyn_ce_ref_R_Mat3x3.pGetMat())[i];
 			}
 		}
-	}
+		}
 
 	//---------- other information
 	//----- printf information in screen ? 

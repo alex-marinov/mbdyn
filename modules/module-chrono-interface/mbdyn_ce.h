@@ -61,6 +61,8 @@ struct MBDYN_CE_CEMODELDATA
     unsigned MBDyn_CE_CEBody_Label;
     unsigned MBDyn_CE_CEMotor_Label; 
     bool bMBDyn_CE_CEBody_Output;
+    bool bMBDyn_CE_Constraint[6]; //- position and rotation constraints, expresed in node local ref.
+    double MBDyn_CE_CEBody_Offset[3]; //- relative position between constraints and C::E body, expressed in C::E body ref. 
 };
 
 //- 0: loose interface
