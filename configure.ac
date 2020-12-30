@@ -1790,19 +1790,6 @@ if test "$ol_link_multithread" = "yes" -o "$ol_link_multithread_naive" = "yes" ;
 fi
 
 
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for /dev/TASK2CPU
-dnl
-AC_MSG_CHECKING([for /dev/TASK2CPU])
-if test -e "/dev/TASK2CPU" ; then
-	AC_DEFINE(HAVE_TASK2CPU,1,[define if /dev/TASK2CPU is available])
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for BOOST

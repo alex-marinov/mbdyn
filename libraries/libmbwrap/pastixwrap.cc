@@ -41,6 +41,9 @@
 #include "mbconfig.h"
 
 #ifdef USE_PASTIX
+
+#include "task2cpu.h"
+
 #include <algorithm>
 #include "dgeequ.h"
 #include "linsol.h"
@@ -144,8 +147,23 @@ PastixSolver::PastixSolver(SolutionManager* pSM, integer iDim, integer iNumIter,
 	 dparm[DPARM_COMPRESS_TOLERANCE] = dCompressTol;
 	 dparm[DPARM_COMPRESS_MIN_RATIO] = dMinRatio;
     }
+
+    const Task2CPU& oCPUStateGlobal = Task2CPU::GetGlobalState();
+
+    if (oCPUStateGlobal.iGetCount() >= iNumThreads) {
+	 std::vector<int> rgCPUSet(iNumThreads, -1);
+
+	 int iCPU = oCPUStateGlobal.iGetFirstCPU();
     
-    pastixInit(&pastix_data, MPI_COMM_WORLD, iparm, dparm);
+	 for (integer i = 0; i < iNumThreads; ++i) {
+	      rgCPUSet[i] = iCPU;
+	      iCPU = oCPUStateGlobal.iGetNextCPU(iCPU);
+	 }
+    
+	 pastixInitWithAffinity(&pastix_data, MPI_COMM_WORLD, iparm, dparm, &rgCPUSet.front());
+    } else {
+	 pastixInit(&pastix_data, MPI_COMM_WORLD, iparm, dparm);
+    }
 }
 
 PastixSolver::~PastixSolver()

@@ -38,6 +38,7 @@
 #include <fstream>
 
 #include "ac/getopt.h"
+#include "task2cpu.h"
 
 extern "C" {
 #include <time.h>
@@ -256,6 +257,7 @@ mbdyn_usage(const char *sShortOpts)
 		<< "  -v, --version             show version and exit" << std::endl
 		<< "  -w, --warranty            prints the warranty conditions" << std::endl
 		<< "  -W, --working-dir {dir}   sets the working directory" << std::endl
+                << "  -a, --affinity {0,1, ...} sets the CPU affinity to a comma separated list of indices" << std::endl
 		<< std::endl
 		<< "Usually mbdyn reads the input from stdin and writes messages on stdout; a log" << std::endl
 		<< "is put in '{file}.out', and data output is sent to various '{file}.<ext>'" << std::endl
@@ -289,7 +291,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "C:d:eE::f:hHlN:o:pPrRsS:tTvwW:";
+static char sShortOpts[] = "C:d:eE::f:hHlN:o:pPrRsS:tTvwW:a:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -314,6 +316,7 @@ static struct option LongOpts[] = {
 	{ "version",        no_argument,       NULL,           int('v') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
 	{ "working-dir",    required_argument, NULL,           int('W') },
+	{ "affinity",       required_argument, NULL,           int('a') },
 	{ NULL,             0,                 NULL,           0        }
 };
 #endif /* HAVE_GETOPT_LONG */
@@ -649,7 +652,31 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		case int('C'):
 		        mbp.bNonlinCPUTime = true;
 		        break;
-			
+
+		case int('a'): {
+		     static const char delims[] = ",";
+		     
+		     Task2CPU oCPUSet;
+		     
+		     for (char* p = strtok(optarg, delims); p; p = strtok(nullptr, delims)) {
+			  char* end;
+			  long iCPU = strtol(p, &end, 10);
+			  
+			  if (!(*end == '\0' && iCPU >= 0 && iCPU < Task2CPU::iGetMaxSize())) {
+			       silent_cerr("Invalid argument for option -" << char(iCurrOpt) << std::endl);
+			       mbdyn_usage(sShortOpts);
+			       throw NoErr(MBDYN_EXCEPT_ARGS);
+			  }
+
+			  oCPUSet.SetCPU(iCPU);			  
+		     }
+
+		     if (oCPUSet.bSetAffinity()) {
+			  Task2CPU::SetGlobalState(oCPUSet);
+		     } else {
+			  silent_cerr("warning: failed to set CPU affinity\n");
+		     }
+		} break;
 		case int('?'):
 			silent_cerr("Unknown option -" << char(optopt) << std::endl);
 			mbdyn_usage(sShortOpts);
