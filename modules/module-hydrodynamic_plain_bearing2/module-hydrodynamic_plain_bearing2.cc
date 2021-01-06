@@ -9296,15 +9296,16 @@ namespace {
           const index_type iNumDofInit = iGetInitialNumDof();
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
-               doublereal dDeriv = 0;
+               if (eCurrFunc == SpFunctionCall::REGULAR_FLAG || i < iNumDofInit) {
+                    HYDRO_ASSERT(eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG || dCoef == 1.);
 
-               if (eCurrFunc == SpFunctionCall::REGULAR_FLAG) {
-                    dDeriv = -dCoef * s[i];
-               } else if (i < iNumDofInit) {
-                    dDeriv = -s[i];
+                    const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+                    Theta[i].Reset(oCurrState.Theta[i], iDofIndex, -dCoef * s[i]);
+               } else {
+                    // Attention: Do not reference iGetFirstDofIndex(eCurrFunc) + i because it is invalid here!
+                    Theta[i].ResizeReset(oCurrState.Theta[i], 0);
                }
-
-               Theta[i].Reset(oCurrState.Theta[i], iGetFirstDofIndex(eCurrFunc) + i, dDeriv);
           }
      }
 
