@@ -421,7 +421,12 @@ public:
 
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumCols = *piNumRows = 6 + nConstraints ;
+		*piNumRows = 6 + nConstraints ;
+#ifndef USE_SPARSE_AUTODIFF
+                *piNumCols = *piNumRows;
+#else
+                *piNumCols = 0;
+#endif
 	};
 
 	VariableSubMatrixHandler&
@@ -436,6 +441,28 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+       template <typename T>
+       void
+       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const sp_grad::SpGradientVectorHandler<T>& XCurr,
+              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+              sp_grad::SpFunctionCall func);
+       void
+       UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDelta);
+       void
+       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& ThetaDelta);
+       void
+       UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr);
+       void
+       UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
+       void
+       UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr);
+       void
+       UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
+#endif
+     
 	/* inverse dynamics capable element */
 	virtual bool bInverseDynamics(void) const;
 

@@ -3033,15 +3033,16 @@ TotalPinJoint::Restart(std::ostream& out) const
 VariableSubMatrixHandler&
 TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	/*
 	 * See tecman.pdf
 	 */
 
 	DEBUGCOUT("Entering TotalPinJoint::AssJac()" << std::endl);
-
+        
+#ifndef USE_SPARSE_AUTODIFF
 	if (iGetNumDof() == 0) {
 		WorkMat.SetNullMatrix();
 		return WorkMat;
@@ -3136,19 +3137,26 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		/* Constraint, node */
       		WM.AddT(6 + 1 + iAgvEqIndex[iCnt], 3 + 1, vRchr);
 	}
-
+#else
+        sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
+                                                               WorkMat.SetSparseGradient(),
+                                                               dCoef,
+                                                               XCurr,
+                                                               XPrimeCurr,
+                                                               sp_grad::SpFunctionCall::REGULAR_JAC);
+#endif
 	return WorkMat;
 }
 
 /* Assemblaggio residuo */
 SubVectorHandler&
 TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
-	doublereal dCoef,
-	const VectorHandler& XCurr,
-	const VectorHandler& /* XPrimeCurr */ )
+                      doublereal dCoef,
+                      const VectorHandler& XCurr,
+                      const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering TotalPinJoint::AssRes()" << std::endl);
-
+#ifndef USE_SPARSE_AUTODIFF
 	if (iGetNumDof() == 0) {
 		WorkVec.Resize(0);
 		return WorkVec;
@@ -3260,9 +3268,173 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutCoef(6 + 1 + iAgvEqIndex[iCnt],
 			-WDelta(iAgvIncid[iCnt]));
 	}
-
+#else
+        sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
+                                                      WorkVec,
+                                                      dCoef,
+                                                      XCurr,
+                                                      XPrimeCurr,
+                                                      sp_grad::SpFunctionCall::REGULAR_RES);
+#endif
 	return WorkVec;
 }
+
+#ifdef USE_SPARSE_AUTODIFF
+template <typename T>
+void
+TotalPinJoint::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+                      doublereal dCoef,
+                      const sp_grad::SpGradientVectorHandler<T>& XCurr,
+                      const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+                      sp_grad::SpFunctionCall func)
+{
+        using namespace sp_grad;
+
+        if (iGetNumDof() == 0) {
+             return;
+        }
+
+        const integer iNode1FirstMomIndex = pNode->iGetFirstMomentumIndex();
+        const integer iFirstReactionIndex = iGetFirstIndex();
+
+        SpColVectorA<T, 3> F, M;
+
+        for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+                XCurr.dGetCoef(iFirstReactionIndex + 1 + iPosEqIndex[iCnt], F(iPosIncid[iCnt]), 1.);
+        }
+
+        for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+                XCurr.dGetCoef(iFirstReactionIndex + 1 + iRotEqIndex[iCnt], M(iRotIncid[iCnt]), 1.);
+        }
+
+        for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+                XCurr.dGetCoef(iFirstReactionIndex + 1 + iVelEqIndex[iCnt], F(iVelIncid[iCnt]), 1.);
+        }
+
+        for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+                XCurr.dGetCoef(iFirstReactionIndex + 1 + iAgvEqIndex[iCnt], M(iAgvIncid[iCnt]), 1.);
+        }
+        
+        SpColVectorA<T, 3> X1, V1, W1;
+        SpMatrixA<T, 3, 3> R1;
+
+        pNode->GetXCurr(X1, dCoef, func);
+        pNode->GetRCurr(R1, dCoef, func);
+
+        if (nVelConstraints) {
+                pNode->GetVCurr(V1, dCoef, func);
+        }
+
+        if (nVelConstraints || nAgvConstraints) {
+                pNode->GetWCurr(W1, dCoef, func);
+        }
+
+        SpColVector<T, 3> fn = R1 * tilde_fn;
+        SpColVectorA<T, 3> XDelta;
+
+        if (nPosConstraints) {
+                XDelta = RchT * (X1 + fn) - tilde_Xc - XDrv.Get();
+        }
+
+        SpColVectorA<T, 3> VDelta;
+
+        if (nVelConstraints) {
+                VDelta = RchT * (V1 - Cross(fn, W1)) - XDrv.Get();
+        }
+
+        SpColVectorA<T, 3> ThetaDelta;
+
+        if (nRotConstraints) {
+                SpMatrix<T, 3, 3> Rnhr = R1 * tilde_Rnhr;
+
+                SpColVector<doublereal, 3> ThetaDrvTmp = ThetaDrv.Get();
+                
+                if (nRotConstraints < 3) {
+                        for (int i = nRotConstraints; i < 3; i++) {
+                                // zero out unconstrained components of drive
+                                ThetaDrvTmp(iRotIncid[i]) = 0.;
+                        }
+                        // add remnant to make ThetaDelta as close to zero
+                        // as possible
+                        ThetaDrvTmp += ThetaDeltaRemnant;
+                }
+                SpMatrix<doublereal, 3, 3> R0 = MatRotVec(ThetaDrvTmp);
+                SpMatrix<T, 3, 3> RDelta = RchrT * (Rnhr * Transpose(R0));
+                ThetaDelta = VecRotMat(RDelta);
+        }
+
+        SpColVectorA<T, 3> WDelta;
+
+        if (nAgvConstraints) {
+                WDelta = RchT * W1 - ThetaDrv.Get();
+        }
+
+        SpColVector<T, 3> FTmp = Rch * F;
+        SpColVector<T, 3> MTmp = Rchr * M;
+
+        WorkVec.AddItem(iNode1FirstMomIndex + 1, FTmp);
+        WorkVec.AddItem(iNode1FirstMomIndex + 4, SpColVector<T, 3>(MTmp + Cross(fn, FTmp)));
+        
+        for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+                WorkVec.AddItem(iFirstReactionIndex + iPosEqIndex[iCnt] + 1, XDelta(iPosIncid[iCnt]) / -dCoef);
+        }
+
+        for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+                WorkVec.AddItem(iFirstReactionIndex + iRotEqIndex[iCnt] + 1, ThetaDelta(iRotIncid[iCnt]) / -dCoef);
+        }
+
+        for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+                WorkVec.AddItem(iFirstReactionIndex + iVelEqIndex[iCnt] + 1, -VDelta(iVelIncid[iCnt]));
+        }
+
+        for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+                WorkVec.AddItem(iFirstReactionIndex + iAgvEqIndex[iCnt] + 1, -WDelta(iAgvIncid[iCnt]));
+        }
+
+        UpdateThetaDelta(ThetaDelta);
+        UpdateF(F);
+        UpdateM(M);
+}
+
+void
+TotalPinJoint::UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDeltaCurr)
+{
+        for (sp_grad::index_type i = 1; i <= ThetaDeltaCurr.iGetNumRows(); ++i) {
+                ThetaDelta(i) = ThetaDeltaCurr(i);
+        }
+}
+        
+void
+TotalPinJoint::UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
+{
+}
+
+void
+TotalPinJoint::UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr)
+{
+        for (sp_grad::index_type i = 1; i <= FCurr.iGetNumRows(); ++i) {
+                F(i) = FCurr(i);
+        }
+}
+        
+void
+TotalPinJoint::UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
+{
+}
+
+void
+TotalPinJoint::UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr)
+{
+        for (sp_grad::index_type i = 1; i <= MCurr.iGetNumRows(); ++i) {
+                M(i) = MCurr(i);
+        }
+}
+        
+void
+TotalPinJoint::UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
+{
+}
+#endif
 
 /* inverse dynamics capable element */
 bool
