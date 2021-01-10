@@ -1793,6 +1793,9 @@ public:
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
 
+	virtual void DerivativesUpdate(const VectorHandler& X,
+                                       const VectorHandler& XP);
+     
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
 
