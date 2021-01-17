@@ -1049,7 +1049,6 @@ Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-
 /* assemblaggio matrici per autovalori */
 void
 Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -1113,13 +1112,12 @@ Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
 	}
 }
 
-
 /* assemblaggio residuo */
 SubVectorHandler&
 Beam::AssRes(SubVectorHandler& WorkVec,
-	doublereal dCoef,
-	const VectorHandler& XCurr,
-	const VectorHandler& XPrimeCurr)
+             doublereal dCoef,
+             const VectorHandler& XCurr,
+             const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("Beam::AssRes => AssStiffnessVec");
 #ifndef USE_SPARSE_AUTODIFF
@@ -1940,6 +1938,246 @@ ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		- Az[SII].GetVec2());
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+inline void
+ViscoElasticBeam::UpdateState(const std::array<sp_grad::SpMatrixA<doublereal, 3, 3>, NUMSEZ>& RTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& pTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& gTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& gPrimeTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& OmegaTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& LTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& LPrimeTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefLocTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefPrimeLocTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzTmp,
+                              const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzLocTmp)
+{
+     using namespace sp_grad;
+     
+     for (index_type i = 0; i < NUMSEZ; ++i) {
+          R[i] = RTmp[i];
+          p[i] = pTmp[i];
+          g[i] = gTmp[i];
+          gPrime[i] = gPrimeTmp[i];
+          L[i] = LTmp[i];
+          LPrime[i] = LPrimeTmp[i];
+          DefLoc[i] = DefLocTmp[i];
+          DefPrimeLoc[i] = DefPrimeLocTmp[i];
+          Az[i] = AzTmp[i];
+          AzLoc[i] = AzLocTmp[i];
+     }
+}
+
+inline void
+ViscoElasticBeam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3>, NUMSEZ>& R,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& p,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& g,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& gPrime,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& Omega,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& L,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& LPrime,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefLoc,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefPrimeLoc,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc)
+{
+}
+
+template <typename T>
+inline void
+ViscoElasticBeam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+                         doublereal dCoef,
+                         const sp_grad::SpGradientVectorHandler<T>& XCurr,
+                         const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+                         enum sp_grad::SpFunctionCall func)
+{
+     DEBUGCOUTFNAME("ViscoElasticBeam::AssStiffnessVec");
+
+     /* Riceve il vettore gia' dimensionato e con gli indici a posto
+      * per scrivere il residuo delle equazioni di equilibrio dei tre nodi */
+
+     /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex
+      * (ora e' superato) */
+
+     using namespace sp_grad;
+     
+     std::array<SpColVectorA<T, 3>, NUMNODES> gNod, xTmp, gPrimeNod, xPrimeTmp;
+     SpMatrixA<T, 3, 3> RNod;
+     std::array<SpColVectorA<T, 3>, NUMNODES> XNod, XPrimeNod;
+     SpColVectorA<T, 3> WNod;
+     
+     for (unsigned int i = 0; i < NUMNODES; i++) {
+          pNode[i]->GetgCurr(gNod[i], dCoef, func);          
+          pNode[i]->GetRCurr(RNod, dCoef, func);
+          pNode[i]->GetgPCurr(gPrimeNod[i], dCoef, func);
+          pNode[i]->GetWCurr(WNod, dCoef, func);
+          pNode[i]->GetXCurr(XNod[i], dCoef, func);
+          pNode[i]->GetVCurr(XPrimeNod[i], dCoef, func);
+          
+          SpColVector<T, 3> fTmp = RNod * f[i];
+          
+          xTmp[i] = XNod[i] + fTmp;
+          xPrimeTmp[i] = XPrimeNod[i] + Cross(WNod, fTmp);
+     }
+
+     std::array<SpMatrixA<T, 3, 3>, NUMSEZ> R, RDelta;
+     std::array<SpColVectorA<T, 3>, NUMSEZ> p, g, gGrad, gPrime, gPrimeGrad, Omega, L, LPrime;
+     std::array<SpColVectorA<T, 6>, NUMSEZ> DefLoc, DefPrimeLoc, Az, AzLoc;
+
+     /* Aggiorna le grandezze della trave nei punti di valutazione */
+     for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+
+          /* Posizione */
+          p[iSez] = InterpState(xTmp[NODE1],
+				xTmp[NODE2],
+				xTmp[NODE3], Beam::Section(iSez));
+
+          /* Matrici di rotazione */
+          g[iSez] = InterpState(gNod[NODE1],
+				gNod[NODE2],
+				gNod[NODE3], Beam::Section(iSez));
+
+          const SpMatrix<T, 3, 3> G = MatGVec(g[iSez]);
+          
+          RDelta[iSez] = MatRVec(g[iSez]);
+          R[iSez] = RDelta[iSez] * RRef[iSez];
+
+          /* Velocita' angolare della sezione */
+          gPrime[iSez] = InterpState(gPrimeNod[NODE1],
+                                     gPrimeNod[NODE2],
+                                     gPrimeNod[NODE3], Beam::Section(iSez));
+          
+          Omega[iSez] = G * gPrime[iSez]
+               + RDelta[iSez] * OmegaRef[iSez];
+          
+          /* rate of MatG */
+          const T dtmp0 = Dot(g[iSez], g[iSez]);
+          const T dtmp1 = 4. + dtmp0;
+          const T dtmp2 = -4. / (dtmp1 * dtmp1);
+          const T dtmp3 = 2. / dtmp1;
+
+          const SpColVector<T, 3> GPrimeg =(gPrime[iSez] * dtmp0 + g[iSez] * Dot(gPrime[iSez], g[iSez])) * dtmp2 
+               + Cross(gPrime[iSez], g[iSez]) * dtmp3;
+          
+          /* Derivate della posizione */
+          L[iSez] = InterpDeriv(xTmp[NODE1],
+				xTmp[NODE2],
+				xTmp[NODE3], Beam::Section(iSez));
+
+          /* Derivate della velocita' */
+          LPrime[iSez] = InterpDeriv(xPrimeTmp[NODE1],
+                                     xPrimeTmp[NODE2],
+                                     xPrimeTmp[NODE3], Beam::Section(iSez));
+
+          /* Derivate dei parametri di rotazione */
+          gGrad[iSez] = InterpDeriv(gNod[NODE1],
+                                    gNod[NODE2],
+                                    gNod[NODE3], Beam::Section(iSez));
+
+          /* Derivate delle derivate spaziali dei parametri di rotazione */
+          gPrimeGrad[iSez] = InterpDeriv(gPrimeNod[NODE1],
+                                         gPrimeNod[NODE2],
+                                         gPrimeNod[NODE3], Beam::Section(iSez));
+
+          /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
+          const SpColVector<T, 3> GgGrad = G * gGrad[iSez];
+          
+          for (index_type i = 1; i <= 3; ++i) {
+               DefLoc[iSez](i) = Dot(R[iSez].GetCol(i), L[iSez]) - L0[iSez](i);
+               DefLoc[iSez](i + 3) = Dot(R[iSez].GetCol(i), GgGrad) + DefLocRef[iSez](i + 3);
+          }
+
+          /* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
+          const SpColVector<T, 3> DL1 = LPrime[iSez] + Cross(L[iSez], Omega[iSez]);
+          const SpColVector<T, 3> DL2 = G * gPrimeGrad[iSez] + GPrimeg + Cross(GgGrad, Omega[iSez]);
+          
+          for (index_type i = 1; i <= 3; ++i) {
+               DefPrimeLoc[iSez](i) = Dot(R[iSez].GetCol(i), DL1);
+               DefPrimeLoc[iSez](i + 3) = Dot(R[iSez].GetCol(i), DL2) + DefPrimeLocRef[iSez](i + 3);
+          }
+          
+          /* Calcola le azioni interne */          
+          AzLoc[iSez] = pD[iSez]->pGetConstLaw()->Update(DefLoc[iSez], DefPrimeLoc[iSez]);
+
+          /* corregge le azioni interne locali (piezo, ecc) */
+          AddInternalForces(AzLoc[iSez], iSez);
+
+          /* Porta le azioni interne nel sistema globale */
+          for (index_type i = 1; i <= 3; ++i) {
+               Az[iSez](i) = Dot(Transpose(R[iSez].GetRow(i)), SubColVector<1, 1, 3>(AzLoc[iSez]));
+               Az[iSez](i + 3) = Dot(Transpose(R[iSez].GetRow(i)), SubColVector<4, 1, 3>(AzLoc[iSez]));
+          }
+     }
+
+     const index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+     const index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+     const index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+
+     const SpColVector<T, 3> F_I = SubColVector<1, 1, 3>(Az[S_I]);
+     
+     WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
+
+     const SpColVector<T, 3> M_I = Cross(p[S_I] - XNod[NODE1], SubColVector<1, 1, 3>(Az[S_I])) + SubColVector<4, 1, 3>(Az[S_I]);
+
+     WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
+
+     const SpColVector<T, 3> F_II = SubColVector<1, 1, 3>(Az[SII]) - SubColVector<1, 1, 3>(Az[S_I]);
+     const SpColVector<T, 3> M_II = SubColVector<4, 1, 3>(Az[SII]) - SubColVector<4, 1, 3>(Az[S_I])
+          + Cross(p[SII] - XNod[NODE2], SubColVector<1, 1, 3>(Az[SII]))
+          - Cross(p[S_I] - XNod[NODE2], SubColVector<1, 1, 3>(Az[S_I]));
+
+     WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
+     WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
+     
+     const SpColVector<T, 3> F_III = -SubColVector<1, 1, 3>(Az[SII]);
+     const SpColVector<T, 3> M_III = Cross(SubColVector<1, 1, 3>(Az[SII]), p[SII] - XNod[NODE3]) - SubColVector<4, 1, 3>(Az[SII]);
+
+     WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
+     WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);
+
+     UpdateState(R, p, g, gPrime, Omega, L, LPrime, DefLoc, DefPrimeLoc, Az, AzLoc);
+     
+     bFirstRes = false;
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+ViscoElasticBeam::AssRes(SubVectorHandler& WorkVec,
+                         doublereal dCoef,
+                         const VectorHandler& XCurr,
+                         const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("ViscoElasticBeam::AssRes");
+
+        sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
+                                                      WorkVec,
+                                                      dCoef,
+                                                      XCurr,
+                                                      XPrimeCurr,
+                                                      sp_grad::SpFunctionCall::REGULAR_RES);
+
+	return WorkVec;
+}
+
+/* assemblaggio jacobiano */
+VariableSubMatrixHandler&
+ViscoElasticBeam::AssJac(VariableSubMatrixHandler& WorkMat,
+                         doublereal dCoef,
+                         const VectorHandler& XCurr,
+                         const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("ViscoElasticBeam::AssJac");
+    
+        sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
+                                                               WorkMat.SetSparseGradient(),
+                                                               dCoef,
+                                                               XCurr,
+                                                               XPrimeCurr,
+                                                               sp_grad::SpFunctionCall::REGULAR_JAC);
+
+	return WorkMat;
+}
+#endif
 
 /* Settings iniziali, prima della prima soluzione */
 void
