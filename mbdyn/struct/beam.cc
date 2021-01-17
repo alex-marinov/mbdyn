@@ -930,12 +930,11 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           gGrad[iSez] = InterpDeriv(gNod[NODE1], gNod[NODE2], gNod[NODE3], Beam::Section(iSez));
 
           /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
-          SpColVector<T, 3> DefLoc1 = Transpose(R[iSez]) * L[iSez] - L0[iSez];
-          SpColVector<T, 3> DefLoc2 = Transpose(R[iSez]) * (MatGVec(g[iSez]) * gGrad[iSez]) + DefLocRef[iSez].GetVec2();
-
+          const SpColVector<T, 3> GgGrad = MatGVec(g[iSez]) * gGrad[iSez];
+          
           for (index_type i = 1; i <= 3; ++i) {
-               DefLoc[iSez](i) = DefLoc1(i);
-               DefLoc[iSez](i + 3) = DefLoc2(i);
+               DefLoc[iSez](i) = Dot(R[iSez].GetCol(i), L[iSez]) - L0[iSez](i);
+               DefLoc[iSez](i + 3) = Dot(R[iSez].GetCol(i), GgGrad) + DefLocRef[iSez](i + 3);
           }
 
           /* Calcola le azioni interne */
@@ -945,12 +944,9 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           AddInternalForces(AzLoc[iSez], iSez);
 
           /* Porta le azioni interne nel sistema globale */
-          SpColVector<T, 3> Az1 = R[iSez] * SubMatrix<1, 1, 3, 1, 1, 1>(AzLoc[iSez]);
-          SpColVector<T, 3> Az2 = R[iSez] * SubMatrix<4, 1, 3, 1, 1, 1>(AzLoc[iSez]);
-
           for (integer i = 1; i <= 3; ++i) {
-               Az[iSez](i) = Az1(i);
-               Az[iSez](i + 3) = Az2(i);
+               Az[iSez](i) = Dot(Transpose(R[iSez].GetRow(i)), SubMatrix<1, 1, 3, 1, 1, 1>(AzLoc[iSez]));
+               Az[iSez](i + 3) = Dot(Transpose(R[iSez].GetRow(i)), SubMatrix<4, 1, 3, 1, 1, 1>(AzLoc[iSez]));
           }
 
           DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
