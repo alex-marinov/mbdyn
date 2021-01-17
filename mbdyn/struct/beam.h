@@ -257,7 +257,14 @@ protected:
     virtual void
     AddInternalForces(sp_grad::SpColVector<sp_grad::SpGradient, 6>& AzLoc, unsigned int iSez) {
         NO_OP;
-    }     
+    }
+
+     template <typename T>
+     inline void
+     AssReactionForce(sp_grad::SpGradientAssVec<T>& WorkVec,
+                      const std::array<sp_grad::SpColVectorA<T, 3>, NUMSEZ>& p,
+                      const std::array<sp_grad::SpColVectorA<T, 6>, NUMSEZ>& Az,
+                      const std::array<sp_grad::SpColVectorA<T, 3>, NUMNODES>& X) const;
 #endif
     /* Funzioni di calcolo delle matrici */
     virtual void
