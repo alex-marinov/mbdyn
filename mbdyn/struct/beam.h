@@ -248,29 +248,7 @@ protected:
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefLoc,
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc);
-#endif
-     
-    /* Funzioni di calcolo delle matrici */
-    virtual void
-    AssStiffnessMat(FullSubMatrixHandler& WMA,
-                    FullSubMatrixHandler& WMB,
-		    doublereal dCoef,
-		    const VectorHandler& XCurr,
-		    const VectorHandler& XPrimeCurr);
 
-    virtual void
-    AssStiffnessVec(SubVectorHandler& WorkVec,
-                    doublereal dCoef,
-		    const VectorHandler& XCurr,
-		    const VectorHandler& XPrimeCurr);
-
-    /* Per le beam che aggiungono qualcosa alle az. interne */
-    virtual void
-    AddInternalForces(Vec6& /* AzLoc */ , unsigned int /* iSez */ ) {
-        NO_OP;
-    };
-
-#ifdef USE_SPARSE_AUTODIFF
     virtual void
     AddInternalForces(sp_grad::SpColVector<doublereal, 6>& AzLoc, unsigned int iSez) {
         NO_OP;
@@ -279,8 +257,27 @@ protected:
     virtual void
     AddInternalForces(sp_grad::SpColVector<sp_grad::SpGradient, 6>& AzLoc, unsigned int iSez) {
         NO_OP;
-    }
+    }     
 #endif
+    /* Funzioni di calcolo delle matrici */
+    virtual void
+    AssStiffnessMat(FullSubMatrixHandler& WMA,
+                    FullSubMatrixHandler& WMB,
+		    doublereal dCoef,
+		    const VectorHandler& XCurr,
+		    const VectorHandler& XPrimeCurr);
+
+    /* Per le beam che aggiungono qualcosa alle az. interne */
+    virtual void
+    AddInternalForces(Vec6& /* AzLoc */ , unsigned int /* iSez */ ) {
+        NO_OP;
+    };
+     
+    virtual void
+    AssStiffnessVec(SubVectorHandler& WorkVec,
+                    doublereal dCoef,
+		    const VectorHandler& XCurr,
+		    const VectorHandler& XPrimeCurr);
      
     virtual void
     AssInertiaMat(FullSubMatrixHandler& /* WMA */ ,
@@ -429,7 +426,7 @@ protected:
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
 
-	virtual void OutputPrepare(OutputHandler &OH);
+    virtual void OutputPrepare(OutputHandler &OH);
 
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
@@ -543,6 +540,33 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
     /* Inizializza i dati */
     void Init(void);
 
+#ifdef USE_SPARSE_AUTODIFF
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<doublereal, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& gPrime,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& Omega,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& LPrime,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefPrimeLoc,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzLoc);
+
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& gPrime,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& Omega,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& LPrime,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefPrimeLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc);
+#endif
   public:
     /* Costruttore normale */
     ViscoElasticBeam(unsigned int uL,
@@ -598,8 +622,8 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 
     /* Settings iniziali, prima della prima soluzione */
     void SetValue(DataManager *pDM,
-		    VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		    SimulationEntity::Hints *ph = 0);
+                  VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+                  SimulationEntity::Hints *ph = 0);
 
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void
@@ -613,6 +637,30 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
     AfterConvergence(const VectorHandler& X, const VectorHandler& XP,
     		const VectorHandler& XPP);
 
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename T>
+     inline void
+     AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+	    doublereal dCoef,
+	    const sp_grad::SpGradientVectorHandler<T>& XCurr,
+	    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+	    enum sp_grad::SpFunctionCall func);
+
+     /* assemblaggio residuo */
+     virtual SubVectorHandler&
+     AssRes(SubVectorHandler& WorkVec,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr);
+     
+     /* assemblaggio jacobiano */
+     virtual VariableSubMatrixHandler&
+     AssJac(VariableSubMatrixHandler& WorkMat,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr);
+#endif
+     
     virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
