@@ -885,6 +885,42 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 
 #ifdef USE_SPARSE_AUTODIFF
 template <typename T>
+void
+Beam::AssReactionForce(sp_grad::SpGradientAssVec<T>& WorkVec,
+                       const std::array<sp_grad::SpColVectorA<T, 3>, NUMSEZ>& p,
+                       const std::array<sp_grad::SpColVectorA<T, 6>, NUMSEZ>& Az,
+                       const std::array<sp_grad::SpColVectorA<T, 3>, NUMNODES>& X) const
+{
+     using namespace sp_grad;
+
+     const index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+     const index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+     const index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+
+     const SpColVector<T, 3> F_I = SubColVector<1, 1, 3>(Az[S_I]);
+     
+     WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
+
+     const SpColVector<T, 3> M_I = Cross(p[S_I] - X[NODE1], SubColVector<1, 1, 3>(Az[S_I])) + SubColVector<4, 1, 3>(Az[S_I]);
+
+     WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
+
+     const SpColVector<T, 3> F_II = SubColVector<1, 1, 3>(Az[SII]) - SubColVector<1, 1, 3>(Az[S_I]);
+     const SpColVector<T, 3> M_II = SubColVector<4, 1, 3>(Az[SII]) - SubColVector<4, 1, 3>(Az[S_I])
+          + Cross(p[SII] - X[NODE2], SubColVector<1, 1, 3>(Az[SII]))
+          - Cross(p[S_I] - X[NODE2], SubColVector<1, 1, 3>(Az[S_I]));
+
+     WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
+     WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
+     
+     const SpColVector<T, 3> F_III = -SubColVector<1, 1, 3>(Az[SII]);
+     const SpColVector<T, 3> M_III = Cross(SubColVector<1, 1, 3>(Az[SII]), p[SII] - X[NODE3]) - SubColVector<4, 1, 3>(Az[SII]);
+
+     WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
+     WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);     
+}
+
+template <typename T>
 inline void
 Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
              doublereal dCoef,
@@ -910,7 +946,7 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      std::array<SpColVectorA<T, 6>, NUMSEZ> DefLoc, Az, AzLoc;
 
      DEBUGCOUT("beam3(" << GetLabel() << ")\n");
-     DEBUGCOUT("AssStiffnessVec bFirstRes = " << bFirstRes << std::endl);
+     DEBUGCOUT("Beam::AssRes bFirstRes = " << bFirstRes << std::endl);
      
      /* Aggiorna le grandezze della trave nei punti di valutazione */
      for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
@@ -960,32 +996,8 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);          
      }
 
-     const index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
-     const index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
-     const index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
-
-     const SpColVector<T, 3> F_I = SubColVector<1, 1, 3>(Az[S_I]);
+     AssReactionForce(WorkVec, p, Az, X);
      
-     WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
-
-     const SpColVector<T, 3> M_I = Cross(p[S_I] - X[NODE1], SubColVector<1, 1, 3>(Az[S_I])) + SubColVector<4, 1, 3>(Az[S_I]);
-
-     WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
-
-     const SpColVector<T, 3> F_II = SubColVector<1, 1, 3>(Az[SII]) - SubColVector<1, 1, 3>(Az[S_I]);
-     const SpColVector<T, 3> M_II = SubColVector<4, 1, 3>(Az[SII]) - SubColVector<4, 1, 3>(Az[S_I])
-          + Cross(p[SII] - X[NODE2], SubColVector<1, 1, 3>(Az[SII]))
-          - Cross(p[S_I] - X[NODE2], SubColVector<1, 1, 3>(Az[S_I]));
-
-     WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
-     WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
-     
-     const SpColVector<T, 3> F_III = -SubColVector<1, 1, 3>(Az[SII]);
-     const SpColVector<T, 3> M_III = Cross(SubColVector<1, 1, 3>(Az[SII]), p[SII] - X[NODE3]) - SubColVector<4, 1, 3>(Az[SII]);
-
-     WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
-     WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);
-
      UpdateState(R, p, g, L, DefLoc, Az, AzLoc);
      
      bFirstRes = false;
@@ -1991,7 +2003,7 @@ ViscoElasticBeam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
                          const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
                          enum sp_grad::SpFunctionCall func)
 {
-     DEBUGCOUTFNAME("ViscoElasticBeam::AssStiffnessVec");
+     DEBUGCOUTFNAME("ViscoElasticBeam::AssRes");
 
      /* Riceve il vettore gia' dimensionato e con gli indici a posto
       * per scrivere il residuo delle equazioni di equilibrio dei tre nodi */
@@ -2088,8 +2100,8 @@ ViscoElasticBeam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           }
 
           /* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
-          const SpColVector<T, 3> DL1 = LPrime[iSez] + Cross(L[iSez], Omega[iSez]);
-          const SpColVector<T, 3> DL2 = G * gPrimeGrad[iSez] + GPrimeg + Cross(GgGrad, Omega[iSez]);
+          const SpColVector<T, 3> DL1 = EvalUnique(LPrime[iSez] + Cross(L[iSez], Omega[iSez]));
+          const SpColVector<T, 3> DL2 = EvalUnique(G * gPrimeGrad[iSez] + GPrimeg + Cross(GgGrad, Omega[iSez]));
           
           for (index_type i = 1; i <= 3; ++i) {
                DefPrimeLoc[iSez](i) = Dot(R[iSez].GetCol(i), DL1);
@@ -2109,31 +2121,7 @@ ViscoElasticBeam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           }
      }
 
-     const index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
-     const index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
-     const index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
-
-     const SpColVector<T, 3> F_I = SubColVector<1, 1, 3>(Az[S_I]);
-     
-     WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
-
-     const SpColVector<T, 3> M_I = Cross(p[S_I] - XNod[NODE1], SubColVector<1, 1, 3>(Az[S_I])) + SubColVector<4, 1, 3>(Az[S_I]);
-
-     WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
-
-     const SpColVector<T, 3> F_II = SubColVector<1, 1, 3>(Az[SII]) - SubColVector<1, 1, 3>(Az[S_I]);
-     const SpColVector<T, 3> M_II = SubColVector<4, 1, 3>(Az[SII]) - SubColVector<4, 1, 3>(Az[S_I])
-          + Cross(p[SII] - XNod[NODE2], SubColVector<1, 1, 3>(Az[SII]))
-          - Cross(p[S_I] - XNod[NODE2], SubColVector<1, 1, 3>(Az[S_I]));
-
-     WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
-     WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
-     
-     const SpColVector<T, 3> F_III = -SubColVector<1, 1, 3>(Az[SII]);
-     const SpColVector<T, 3> M_III = Cross(SubColVector<1, 1, 3>(Az[SII]), p[SII] - XNod[NODE3]) - SubColVector<4, 1, 3>(Az[SII]);
-
-     WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
-     WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);
+     AssReactionForce(WorkVec, p, Az, XNod);
 
      UpdateState(R, p, g, gPrime, Omega, L, LPrime, DefLoc, DefPrimeLoc, Az, AzLoc);
      
