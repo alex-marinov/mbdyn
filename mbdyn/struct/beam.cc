@@ -472,6 +472,73 @@ Beam::InterpDeriv(const Vec3& v1,
 			+ pv3[2]*dN3P[Sec][2])*dsdxi[Sec]);
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+template <typename T>
+sp_grad::SpColVector<T, 3>
+Beam::InterpState(const sp_grad::SpColVector<T, 3>& v1,
+                  const sp_grad::SpColVector<T, 3>& v2,
+                  const sp_grad::SpColVector<T, 3>& v3,
+                  Section Sec)
+{
+     using namespace sp_grad;
+     
+     SpColVector<T, 3> p(3, 0);
+
+     for (index_type i = 1; i <= 3; ++i) {
+          p(i) = v1(i) * dN3[Sec][0] + v2(i) * dN3[Sec][1] + v3(i) * dN3[Sec][2];
+     }
+
+     return p;
+}
+
+template <typename T>
+sp_grad::SpColVector<T, 3>
+Beam::InterpDeriv(const sp_grad::SpColVector<T, 3>& v1,
+                  const sp_grad::SpColVector<T, 3>& v2,
+                  const sp_grad::SpColVector<T, 3>& v3,
+                  Section Sec)
+{
+     using namespace sp_grad;
+     SpColVector<T, 3> g(3, 0);
+
+     for (index_type i = 1; i <= 3; ++i) {
+          g(i) = (v1(i) * dN3P[Sec][0] + v2(i) * dN3P[Sec][1] + v3(i) * dN3P[Sec][2]) * dsdxi[Sec];
+     }
+
+     return g;
+}
+
+void Beam::UpdateState(const std::array<sp_grad::SpMatrixA<doublereal, 3, 3>, NUMSEZ>& RTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& pTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& gTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& LTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefLocTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzTmp,
+                       const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzLocTmp)
+{
+     using namespace sp_grad;
+     
+     for (index_type i = 0; i < NUMSEZ; ++i) {
+          R[i] = RTmp[i];
+          p[i] = pTmp[i];
+          g[i] = gTmp[i];
+          L[i] = LTmp[i];
+          DefLoc[i] = DefLocTmp[i];
+          Az[i] = AzTmp[i];
+          AzLoc[i] = AzLocTmp[i];
+     }
+}
+
+void Beam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3>, NUMSEZ>& R,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& p,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& g,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& L,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefLoc,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc)
+{
+}
+#endif
 
 void
 Beam::DsDxi(void)
@@ -732,8 +799,10 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
 
 #ifdef DEBUG
+                DEBUGCOUT("beam3(" << GetLabel() << ")\n");
+                DEBUGCOUT("AssStiffnessVec bFirstRes = true" << std::endl);
+                
                 for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-                    DEBUGCOUT("AssStiffnessVec bFirstRes = true" << std::endl);
                     DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
                     DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
                     DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
@@ -756,6 +825,9 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		Mat3x3 RDelta[NUMSEZ];
 		Vec3 gGrad[NUMSEZ];
 
+                DEBUGCOUT("beam3(" << GetLabel() << ")\n");
+                DEBUGCOUT("AssStiffnessVec bFirstRes = false" << std::endl);
+                
 		/* Aggiorna le grandezze della trave nei punti di valutazione */
 		for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
 
@@ -787,7 +859,6 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 			/* Porta le azioni interne nel sistema globale */
 			Az[iSez] = MultRV(AzLoc[iSez], R[iSez]);
 
-                        DEBUGCOUT("AssStiffnessVec bFirstRes = false" << std::endl);
                         DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
                         DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
                         DEBUGCOUT("RDelta[" << iSez << "]=" << RDelta[iSez] << std::endl);
@@ -812,6 +883,120 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		- Az[SII].GetVec2());
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+template <typename T>
+inline void
+Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+             doublereal dCoef,
+             const sp_grad::SpGradientVectorHandler<T>& XCurr,
+             const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+             enum sp_grad::SpFunctionCall func)
+{
+     using namespace sp_grad;
+
+     std::array<SpColVectorA<T, 3>, NUMNODES> X, xTmp, gNod;
+     SpMatrixA<T, 3, 3> RNod;
+     
+     for (unsigned int i = 0; i < NUMNODES; i++) {
+          pNode[i]->GetgCurr(gNod[i], dCoef, func);
+          pNode[i]->GetRCurr(RNod, dCoef, func);          
+          pNode[i]->GetXCurr(X[i], dCoef, func);
+
+          xTmp[i] = X[i] + RNod * f[i];
+     }
+
+     std::array<SpMatrixA<T, 3, 3>, NUMSEZ> RDelta, R;
+     std::array<SpColVectorA<T, 3>, NUMSEZ> gGrad, p, g, L;
+     std::array<SpColVectorA<T, 6>, NUMSEZ> DefLoc, Az, AzLoc;
+
+     DEBUGCOUT("beam3(" << GetLabel() << ")\n");
+     DEBUGCOUT("AssStiffnessVec bFirstRes = " << bFirstRes << std::endl);
+     
+     /* Aggiorna le grandezze della trave nei punti di valutazione */
+     for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+
+          /* Posizione */
+          p[iSez] = InterpState(xTmp[NODE1], xTmp[NODE2], xTmp[NODE3], Beam::Section(iSez));
+
+          /* Matrici di rotazione */
+          g[iSez] = InterpState(gNod[NODE1], gNod[NODE2], gNod[NODE3], Beam::Section(iSez));
+          RDelta[iSez] = EvalUnique(MatRVec(g[iSez]));
+          R[iSez] = RDelta[iSez] * RRef[iSez];
+
+          /* Derivate della posizione */
+          L[iSez] = InterpDeriv(xTmp[NODE1], xTmp[NODE2], xTmp[NODE3], Beam::Section(iSez));
+
+          /* Derivate dei parametri di rotazione */
+          gGrad[iSez] = InterpDeriv(gNod[NODE1], gNod[NODE2], gNod[NODE3], Beam::Section(iSez));
+
+          /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
+          SpColVector<T, 3> DefLoc1 = Transpose(R[iSez]) * L[iSez] - L0[iSez];
+          SpColVector<T, 3> DefLoc2 = Transpose(R[iSez]) * (MatGVec(g[iSez]) * gGrad[iSez]) + DefLocRef[iSez].GetVec2();
+
+          for (index_type i = 1; i <= 3; ++i) {
+               DefLoc[iSez](i) = DefLoc1(i);
+               DefLoc[iSez](i + 3) = DefLoc2(i);
+          }
+
+          /* Calcola le azioni interne */
+          AzLoc[iSez] = pD[iSez]->pGetConstLaw()->Update(DefLoc[iSez]);
+
+          /* corregge le azioni interne locali (piezo, ecc) */
+          AddInternalForces(AzLoc[iSez], iSez);
+
+          /* Porta le azioni interne nel sistema globale */
+          SpColVector<T, 3> Az1 = R[iSez] * SubMatrix<1, 1, 3, 1, 1, 1>(AzLoc[iSez]);
+          SpColVector<T, 3> Az2 = R[iSez] * SubMatrix<4, 1, 3, 1, 1, 1>(AzLoc[iSez]);
+
+          for (integer i = 1; i <= 3; ++i) {
+               Az[iSez](i) = Az1(i);
+               Az[iSez](i + 3) = Az2(i);
+          }
+
+          DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+          DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+          DEBUGCOUT("RDelta[" << iSez << "]=" << RDelta[iSez] << std::endl);
+          DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+          DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+          DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+          DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+          DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+          DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);          
+     }
+
+     index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+     index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+     index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+
+     SpColVector<T, 3> F_I = SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]);
+     
+     WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
+
+     SpColVector<T, 3> M_I = Cross(p[S_I] - X[NODE1], SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I])) + SubMatrix<4, 1, 3, 1, 1, 1>(Az[S_I]);
+
+     WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
+
+     SpColVector<T, 3> F_II = SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]) - SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]);
+     SpColVector<T, 3> M_II = SubMatrix<4, 1, 3, 1, 1, 1>(Az[SII]) - SubMatrix<4, 1, 3, 1, 1, 1>(Az[S_I])
+                                                               + Cross(p[SII] - X[NODE2], SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]))
+                                                               - Cross(p[S_I] - X[NODE2], SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]));
+
+     WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
+     WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
+     
+     SpColVector<T, 3> F_III = -SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]);
+     SpColVector<T, 3> M_III = Cross(SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]), p[SII] - X[NODE3]) - SubMatrix<4, 1, 3, 1, 1, 1>(Az[SII]);
+
+     WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
+     WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);
+
+     UpdateState(R, p, g, L, DefLoc, Az, AzLoc);
+     
+     if (bFirstRes) {
+          bFirstRes = false;
+     }
+}
+#endif
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
@@ -821,7 +1006,8 @@ Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("Beam::AssJac => AssStiffnessMat");
-
+        
+#ifndef USE_SPARSE_AUTODIFF
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
@@ -858,7 +1044,14 @@ Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		AssInertiaMat(WM, WM, dCoef, XCurr, XPrimeCurr);
 	}
-
+#else
+        sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
+                                                               WorkMat.SetSparseGradient(),
+                                                               dCoef,
+                                                               XCurr,
+                                                               XPrimeCurr,
+                                                               sp_grad::SpFunctionCall::REGULAR_JAC);
+#endif        
 	return WorkMat;
 }
 
@@ -935,7 +1128,7 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("Beam::AssRes => AssStiffnessVec");
-
+#ifndef USE_SPARSE_AUTODIFF
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
 	integer iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
@@ -968,6 +1161,14 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 
 		AssInertiaVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 	}
+#else
+        sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
+                                                      WorkVec,
+                                                      dCoef,
+                                                      XCurr,
+                                                      XPrimeCurr,
+                                                      sp_grad::SpFunctionCall::REGULAR_RES);
+#endif
 
 	return WorkVec;
 }

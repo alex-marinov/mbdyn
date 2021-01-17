@@ -45,6 +45,13 @@
 
 #include "constltp.h"
 
+#ifdef USE_SPARSE_AUTODIFF
+#include <array>
+#include "sp_gradient.h"
+#include "sp_matrix_base.h"
+#include "sp_matvecass.h"
+#endif
+
 extern const char* psBeamNames[];
 
 /* ... */
@@ -209,6 +216,40 @@ protected:
 		const Vec3& v3,
 		enum Section Sec);
 
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename T>
+     static sp_grad::SpColVector<T, 3>
+     InterpState(const sp_grad::SpColVector<T, 3>& v1,
+                 const sp_grad::SpColVector<T, 3>& v2,
+                 const sp_grad::SpColVector<T, 3>& v3,
+                 Section Sec);
+
+     template <typename T>
+     sp_grad::SpColVector<T, 3>
+     InterpDeriv(const sp_grad::SpColVector<T, 3>& v1,
+                 const sp_grad::SpColVector<T, 3>& v2,
+                 const sp_grad::SpColVector<T, 3>& v3,
+                 Section Sec);
+
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<doublereal, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<doublereal, 6>, NUMSEZ>& AzLoc);
+
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc);
+#endif
+     
     /* Funzioni di calcolo delle matrici */
     virtual void
     AssStiffnessMat(FullSubMatrixHandler& WMA,
@@ -229,6 +270,18 @@ protected:
         NO_OP;
     };
 
+#ifdef USE_SPARSE_AUTODIFF
+    virtual void
+    AddInternalForces(sp_grad::SpColVector<doublereal, 6>& AzLoc, unsigned int iSez) {
+        NO_OP;
+    }
+     
+    virtual void
+    AddInternalForces(sp_grad::SpColVector<sp_grad::SpGradient, 6>& AzLoc, unsigned int iSez) {
+        NO_OP;
+    }
+#endif
+     
     virtual void
     AssInertiaMat(FullSubMatrixHandler& /* WMA */ ,
                   FullSubMatrixHandler& /* WMB */ ,
@@ -341,6 +394,16 @@ protected:
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename T>
+     inline void
+     AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+	    doublereal dCoef,
+	    const sp_grad::SpGradientVectorHandler<T>& XCurr,
+	    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+	    enum sp_grad::SpFunctionCall func);
+#endif
+     
     /* Inverse Dynamics: */
     virtual SubVectorHandler&
     AssRes(SubVectorHandler& WorkVec,
