@@ -920,7 +920,7 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
           /* Matrici di rotazione */
           g[iSez] = InterpState(gNod[NODE1], gNod[NODE2], gNod[NODE3], Beam::Section(iSez));
-          RDelta[iSez] = EvalUnique(MatRVec(g[iSez]));
+          RDelta[iSez] = MatRVec(g[iSez]);
           R[iSez] = RDelta[iSez] * RRef[iSez];
 
           /* Derivate della posizione */
@@ -945,8 +945,8 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
           /* Porta le azioni interne nel sistema globale */
           for (integer i = 1; i <= 3; ++i) {
-               Az[iSez](i) = Dot(Transpose(R[iSez].GetRow(i)), SubMatrix<1, 1, 3, 1, 1, 1>(AzLoc[iSez]));
-               Az[iSez](i + 3) = Dot(Transpose(R[iSez].GetRow(i)), SubMatrix<4, 1, 3, 1, 1, 1>(AzLoc[iSez]));
+               Az[iSez](i) = Dot(Transpose(R[iSez].GetRow(i)), SubColVector<1, 1, 3>(AzLoc[iSez]));
+               Az[iSez](i + 3) = Dot(Transpose(R[iSez].GetRow(i)), SubColVector<4, 1, 3>(AzLoc[iSez]));
           }
 
           DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
@@ -960,37 +960,35 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);          
      }
 
-     index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
-     index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
-     index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+     const index_type iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+     const index_type iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+     const index_type iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
 
-     SpColVector<T, 3> F_I = SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]);
+     const SpColVector<T, 3> F_I = SubColVector<1, 1, 3>(Az[S_I]);
      
      WorkVec.AddItem(iNode1FirstMomIndex + 1, F_I);
 
-     SpColVector<T, 3> M_I = Cross(p[S_I] - X[NODE1], SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I])) + SubMatrix<4, 1, 3, 1, 1, 1>(Az[S_I]);
+     const SpColVector<T, 3> M_I = Cross(p[S_I] - X[NODE1], SubColVector<1, 1, 3>(Az[S_I])) + SubColVector<4, 1, 3>(Az[S_I]);
 
      WorkVec.AddItem(iNode1FirstMomIndex + 4, M_I);
 
-     SpColVector<T, 3> F_II = SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]) - SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]);
-     SpColVector<T, 3> M_II = SubMatrix<4, 1, 3, 1, 1, 1>(Az[SII]) - SubMatrix<4, 1, 3, 1, 1, 1>(Az[S_I])
-                                                               + Cross(p[SII] - X[NODE2], SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]))
-                                                               - Cross(p[S_I] - X[NODE2], SubMatrix<1, 1, 3, 1, 1, 1>(Az[S_I]));
+     const SpColVector<T, 3> F_II = SubColVector<1, 1, 3>(Az[SII]) - SubColVector<1, 1, 3>(Az[S_I]);
+     const SpColVector<T, 3> M_II = SubColVector<4, 1, 3>(Az[SII]) - SubColVector<4, 1, 3>(Az[S_I])
+          + Cross(p[SII] - X[NODE2], SubColVector<1, 1, 3>(Az[SII]))
+          - Cross(p[S_I] - X[NODE2], SubColVector<1, 1, 3>(Az[S_I]));
 
      WorkVec.AddItem(iNode2FirstMomIndex + 1, F_II);
      WorkVec.AddItem(iNode2FirstMomIndex + 4, M_II);
      
-     SpColVector<T, 3> F_III = -SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]);
-     SpColVector<T, 3> M_III = Cross(SubMatrix<1, 1, 3, 1, 1, 1>(Az[SII]), p[SII] - X[NODE3]) - SubMatrix<4, 1, 3, 1, 1, 1>(Az[SII]);
+     const SpColVector<T, 3> F_III = -SubColVector<1, 1, 3>(Az[SII]);
+     const SpColVector<T, 3> M_III = Cross(SubColVector<1, 1, 3>(Az[SII]), p[SII] - X[NODE3]) - SubColVector<4, 1, 3>(Az[SII]);
 
      WorkVec.AddItem(iNode3FirstMomIndex + 1, F_III);
      WorkVec.AddItem(iNode3FirstMomIndex + 4, M_III);
 
      UpdateState(R, p, g, L, DefLoc, Az, AzLoc);
      
-     if (bFirstRes) {
-          bFirstRes = false;
-     }
+     bFirstRes = false;
 }
 #endif
 
