@@ -3970,6 +3970,20 @@ namespace sp_grad {
      SubMatrix(const SpMatElemExprBase<ValueType, Expr>& A, index_type iColStart, index_type iColStep, index_type iNumCols) {
 	  return decltype(SubMatrix<iRowStart, iRowStep, iNumRows>(A, iColStart, iColStep, iNumCols))(A, iColStart, iColStep, iNumCols);
      }
+
+     template <index_type iRowStart, index_type iRowStep, index_type iNumRows, typename ValueType, typename Expr>
+     inline constexpr SpSubMatStatExpr<ValueType, const SpMatElemExprBase<ValueType, Expr>&, iRowStart, iRowStep, iNumRows, 1, 1, 1>
+     SubColVector(const SpMatElemExprBase<ValueType, Expr>& A) {
+          static_assert(A.iNumColsStatic == 1);
+	  return decltype(SubColVector<iRowStart, iRowStep, iNumRows>(A))(A);
+     }
+
+     template <index_type iColStart, index_type iColStep, index_type iNumCols, typename ValueType, typename Expr>
+     inline constexpr SpSubMatStatExpr<ValueType, const SpMatElemExprBase<ValueType, Expr>&, 1, 1, 1, iColStart, iColStep, iNumCols>
+     SubRowVector(const SpMatElemExprBase<ValueType, Expr>& A) {
+          static_assert(A.iNumRowsStatic == 1);
+	  return decltype(SubRowVector<iColStart, iColStep, iNumCols>(A))(A);
+     }
      
      template <typename ValueType>
      SpMatrix<ValueType, 3, 3> MatGVec(const SpColVector<ValueType, 3>& g) {
