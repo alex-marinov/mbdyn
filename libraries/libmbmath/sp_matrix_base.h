@@ -749,6 +749,8 @@ namespace sp_grad {
 	       return u.bHaveRefTo(A);
 	  }
 
+          const Expr& Transpose() const { return u; }
+          
 	  const ValueType* begin() const noexcept { return u.begin(); }
 	  const ValueType* end() const noexcept { return u.end(); }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetColOffset(); }
@@ -1073,7 +1075,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1207,7 +1209,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1347,7 +1349,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1490,7 +1492,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
