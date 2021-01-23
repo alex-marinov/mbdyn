@@ -248,6 +248,10 @@ class Vec6
      static constexpr sp_grad::index_type iNumColsStatic = 1;
      inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
      inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     static inline constexpr sp_grad::index_type iGetRowOffset() noexcept { return 1; }
+     static inline constexpr sp_grad::index_type iGetColOffset() noexcept { return iNumRowsStatic; }
+     inline const doublereal* begin() const noexcept { return v[0].pGetVec(); }
+     inline const doublereal* end() const noexcept { return begin() + iNumRowsStatic; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i); }     
 #endif     
 };
@@ -637,6 +641,10 @@ class Mat6x6
      static constexpr sp_grad::index_type iNumColsStatic = 6;
      inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
      inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     static inline constexpr sp_grad::index_type iGetRowOffset() = delete;
+     static inline constexpr sp_grad::index_type iGetColOffset() = delete;
+     inline constexpr const doublereal* begin() const = delete;
+     inline constexpr const doublereal* end() const = delete;
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
 #endif     
 };
