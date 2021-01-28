@@ -444,6 +444,8 @@ DerivativeSolver::UpdateDof(const int DCount,
 		pXPrimeCurr->IncCoef(DCount, dCoef*d);
 #endif
 	}
+	//std::cout<<"DerivateUpdate, DCount = "<< DCount <<"; Order = "<< Order <<"; d = "<< d <<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
+	//std::cout<<"DerivateUpdate, DCount = "<< DCount <<"; Order = "<< Order <<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
 }
 
 void
@@ -552,6 +554,10 @@ StepNIntegrator::UpdateDof(const int DCount,
 		pXCurr->IncCoef(DCount, d);
 		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
 	}
+	
+	//std::cout<<"Update, DCount = "<< DCount <<"; Order = "<< Order <<"; d = "<< d <<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
+	//std::cout<<"Update, DCount = "<< DCount <<"; Order = "<< Order <<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
+	
 }
 
 void
@@ -628,6 +634,10 @@ void Step1Integrator::PredictDof(const int DCount,
 			<< DCount << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+	
+	//std::cout<<"Predict, DCount = "<< DCount <<"; Order = "<< Order << "; pXPrev = "<<pXPrev->operator()(DCount)<<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
+	//std::cout<<"Predict, DCount = "<< DCount <<"; Order = "<< Order << "; pXPrimePrev = "<<pXPrimePrev->operator()(DCount)<<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
+	
 }
 
 
@@ -771,6 +781,10 @@ void Step2Integrator::PredictDof(const int DCount,
 			<< DCount << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+	
+	//std::cout<<"Predict, DCount = "<< DCount <<"; Order = "<< Order << "; pXPrev2 = "<<pXPrev2->operator()(DCount) << "; pXPrev = "<<pXPrev->operator()(DCount)<<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
+	//std::cout<<"Predict, DCount = "<< DCount <<"; Order = "<< Order << "; pXPrimePrev2 = "<<pXPrimePrev2->operator()(DCount) << "; pXPrimePrev = "<<pXPrimePrev->operator()(DCount)<<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
+	
 }
 
 void
@@ -1115,6 +1129,8 @@ MultistepSolver::SetCoef(doublereal dT,
 	/* valori di ritorno */
 	db0Differential = b[0][DIFFERENTIAL];
 	db0Algebraic = b[0][ALGEBRAIC];
+	//std::cout<<"PredictCoef= "<<mp[0]<<", "<<mp[1]<<", "<<np[0]<<", "<<np[1]<<std::endl;
+	//std::cout<<"Coef= "<<a[0][DIFFERENTIAL]<<", "<<a[1][DIFFERENTIAL]<<", "<<b[0][DIFFERENTIAL]<<", "<<b[1][DIFFERENTIAL]<<", "<<b[2][DIFFERENTIAL]<<std::endl;
 }
 
 

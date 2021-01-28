@@ -76,6 +76,10 @@ gmres.h \
 hint.h \
 hint_impl.cc \
 hint_impl.h \
+ms34stepsol.cc \
+ms34stepsol.h \
+multistagestepsol.cc \
+multistagestepsol.h \
 invdataman.cc \
 invdyn.h \
 invdyn.cc \

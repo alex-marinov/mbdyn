@@ -269,7 +269,10 @@ protected:
 			INT_CRANKNICOLSON,
 			INT_MODCRANKNICOLSON,
 			INT_MS2,
+			INT_MS3,
+			INT_MS4,
 			INT_HOPE,
+			INT_BATHE,
 			INT_THIRDORDER,
 			INT_IMPLICITEULER,
 			INT_UNKNOWN
@@ -280,11 +283,19 @@ protected:
    	StepIntegrator* pFirstDummyStep;
 	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
+	StepIntegrator* pSecondRegularStep;
+	StepIntegrator* pThirdRegularStep;
    	StepIntegrator* pRegularSteps;
 	StepIntegrator* pCurrStepIntegrator;
 
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
+	//DriveCaller* pFirstRhoRegular;
+	//DriveCaller* pFirstRhoAlgebraicRegular;
+	DriveCaller* pSecondRhoRegular;
+	DriveCaller* pSecondRhoAlgebraicRegular;
+	DriveCaller* pThirdRhoRegular;
+	DriveCaller* pThirdRhoAlgebraicRegular;
 	DriveCaller* pRhoDummy;
 	DriveCaller* pRhoAlgebraicDummy;
 
