@@ -82,7 +82,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	
 	/* read information from script - start*/
 
-
 	//--------------- read the coupling type
     MBDyn_CE_CouplingIter_Count=0;
 	MBDyn_CE_Coupling_Tol = 1.0e-3; // by default, tolerance == 1.0e-6;
@@ -144,6 +143,24 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	//--------------- read the force type: transformed contact forces or reaction forces acting on the C::E coupling bodies
+	MBDyn_CE_CEForceType = MBDyn_CE_CEFORCETYPE::REACTION_FORCE; //- by default, using the reaction force 
+	if (HP.IsKeyWord("force" "type"))
+	{
+		if (HP.IsKeyWord("reaction"))
+		{
+			MBDyn_CE_CEForceType = MBDyn_CE_CEFORCETYPE::REACTION_FORCE; //- reaction force is imposed to objects in MBDyn
+		}
+		else if (HP.IsKeyWord("contact"))
+		{
+			MBDyn_CE_CEForceType = MBDyn_CE_CEFORCETYPE::CONTACT_FORCE; //- contact force is imposed to objects in MBDyn
+		}
+		else
+		{
+			silent_cerr("Force type at line " << HP.GetLineData() << " is not implemeted yet \n");
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}	
+	}
 
 	//--------------- read the motor type	
 	MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; //- by default, using the position motor 
@@ -167,6 +184,10 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 					  << MBDyn_CE_CEMotorType_coeff[0] << "\t"
 					  << MBDyn_CE_CEMotorType_coeff[1] << "\t"
 					  << MBDyn_CE_CEMotorType_coeff[2] << "\n";
+		}
+		else if (HP.IsKeyWord("origin"))
+		{
+			MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::ORIGIN;	   //- \alpha*(x2_k-x1_k)+\beta*(xp2_{k+1}-xp1_{k+1})
 		}
 		else
 		{
@@ -262,6 +283,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			MBDyn_CE_Nodes[i].MBDyn_CE_F = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_M = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_uLabel = MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel(); //- node label (MBDyn).
+			//----- get orientation of the coupling point. by Default, R_relative == eye;
 
 			//----- get coupling bodies in the C::E model, bodies' ID;
 			if (HP.IsKeyWord("chrono" "body"))
@@ -644,7 +666,7 @@ ChronoInterfaceBaseElem::AfterPredict(VectorHandler &X,
 		break;
 	}
 	case MBDyn_CE_COUPLING::COUPLING_STSTAGGERED: //- to do
-	default: // multirate to do 
+	default: //- multirate to do 
 		break; 
 	}
 }
@@ -872,6 +894,16 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Curr()
 		double mbdynce_tempmat3x3_R[9];
 		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
 
+		if (MBDyn_CE_CEMotorType==MBDyn_CE_CEMOTORTYPE::ORIGIN) // send rotation and position of last step.
+		{
+			const Mat3x3 &mbdynce_R_prev = mbdynce_point.pMBDyn_CE_Node->GetRPrev();
+			Vec3 mbdynce_f_prev = mbdynce_R_prev * mbdynce_point.MBDyn_CE_Offset;
+			Vec3 mbdynce_x_prev = mbdynce_point.pMBDyn_CE_Node->GetXPrev() + mbdynce_f_prev;
+
+			MBDyn_CE_Vec3D(mbdynce_x_prev, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Mat3x3D(mbdynce_R_prev, mbdynce_tempmat3x3_R);
+		}
+
 		memcpy(&pMBDyn_CE_CouplingKinematic_x[3 * mbdynce_i], mbdynce_tempvec3_x, 3 * sizeof(double));
 		memcpy(&pMBDyn_CE_CouplingKinematic_R[9* mbdynce_i], mbdynce_tempmat3x3_R, 9 * sizeof(double));
 		memcpy(&pMBDyn_CE_CouplingKinematic_xp[3 * mbdynce_i], mbdynce_tempvec3_v, 3 * sizeof(double));
@@ -917,7 +949,7 @@ void
 ChronoInterfaceBaseElem::MBDyn_CE_RecvDataFromBuf()
 {
 	//---------- C::E models sends data to the buffer;
-	if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label, bMBDyn_CE_Verbose))
+	if(MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel, MBDyn_CE_CouplingDynamic,pMBDyn_CE_CEFrame, MBDyn_CE_NodesNum, MBDyn_CE_CEScale, MBDyn_CE_CEModel_Label, MBDyn_CE_CEForceType, bMBDyn_CE_Verbose))
 	{
 		silent_cerr("ChronoInterface(" << uLabel << ") C::E writting force process is wrong " << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1000,9 +1032,26 @@ ChronoInterfaceBaseElem::MBDyn_CE_MBDynPrint() const
 		double time;
 		time = m_pDM->dGetTime();
 		const MBDYN_CE_POINTDATA &mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
-		std::cout << "\t\ttime in MBDyn: " << time << "\t"
+		std::cout << "time in MBDyn: " << time << "\n\t"
 				  << "coupling node" << mbdynce_point.MBDyn_CE_uLabel << "\n"
-				  << "\t\tforces obtained: " << pMBDyn_CE_CouplingDynamic_f[mbdynce_i] << "\n";
+				  << "\t\tforces obtained: " << pMBDyn_CE_CouplingDynamic_f[mbdynce_i]<<"\t"<<pMBDyn_CE_CouplingDynamic_f[mbdynce_i+1]<<"\t"<<pMBDyn_CE_CouplingDynamic_f[mbdynce_i+2]
+				  << "\n"
+				  << "\t\ttorques obtained: " << pMBDyn_CE_CouplingDynamic_m[mbdynce_i]<<"\t"<<pMBDyn_CE_CouplingDynamic_m[mbdynce_i+1]<<"\t"<<pMBDyn_CE_CouplingDynamic_m[mbdynce_i+2]
+				  << "\n";
+		//- current states
+		double mbdynce_tempvec3_x[3];
+		double mbdynce_tempvec3_v[3];
+		double mbdynce_tempvec3_a[3];
+		double mbdynce_tempvec3_w[3];
+		double mbdynce_tempvec3_wp[3];
+		double mbdynce_tempmat3x3_R[9];
+		//- states of last step
+		double mbdynce_tempvec3_xPrev[3];
+		double mbdynce_tempvec3_vPrev[3];
+		double mbdynce_tempvec3_aPrev[3];
+		double mbdynce_tempvec3_wPrev[3];
+		double mbdynce_tempvec3_wpPrev[3];
+		double mbdynce_tempmat3x3_RPrev[9];
 		{
 			//- rotation and position
 			const Mat3x3 &mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
@@ -1016,17 +1065,12 @@ ChronoInterfaceBaseElem::MBDyn_CE_MBDynPrint() const
 			const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPCurr();
 			Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPCurr() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
 
-			double mbdynce_tempvec3_x[3];
-			double mbdynce_tempvec3_v[3];
-			double mbdynce_tempvec3_a[3];
-			double mbdynce_tempvec3_w[3];
-			double mbdynce_tempvec3_wp[3];
+			
 			MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
 			MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
 			MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
 			MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
-			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
-			double mbdynce_tempmat3x3_R[9];
+			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);		
 			MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
 			std::cout << "\t\tpos: " << mbdynce_tempvec3_x[0] << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
 					  << "\t\tvel: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
@@ -1047,23 +1091,23 @@ ChronoInterfaceBaseElem::MBDyn_CE_MBDynPrint() const
 			const Vec3 &mbdynce_wp = mbdynce_point.pMBDyn_CE_Node->GetWPPrev();
 			Vec3 mbdynce_a = mbdynce_point.pMBDyn_CE_Node->GetXPPPrev() + mbdynce_wp.Cross(mbdynce_f) + mbdynce_w.Cross(mbdynce_wCrossf);
 
-			double mbdynce_tempvec3_x[3];
-			double mbdynce_tempvec3_v[3];
-			double mbdynce_tempvec3_a[3];
-			double mbdynce_tempvec3_w[3];
-			double mbdynce_tempvec3_wp[3];
-			MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_x, MBDyn_CE_CEScale[0]);
-			MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_v, MBDyn_CE_CEScale[0]);
-			MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_a, MBDyn_CE_CEScale[0]);
-			MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
-			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
-			double mbdynce_tempmat3x3_R[9];
-			MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
-			std::cout << "\t\tpos_prev: " << mbdynce_tempvec3_x[0] << "\t" << mbdynce_tempvec3_x[1] << "\t" << mbdynce_tempvec3_x[2] << "\n"
-					  << "\t\tvel_prev: " << mbdynce_tempvec3_v[0] << "\t" << mbdynce_tempvec3_v[1] << "\t" << mbdynce_tempvec3_v[2] << "\n"
-					  << "\t\tacc_prev: " << mbdynce_tempvec3_a[0] << "\t" << mbdynce_tempvec3_a[1] << "\t" << mbdynce_tempvec3_a[2] << "\n";
+			MBDyn_CE_Vec3D(mbdynce_x, mbdynce_tempvec3_xPrev, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_v, mbdynce_tempvec3_vPrev, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_a, mbdynce_tempvec3_aPrev, MBDyn_CE_CEScale[0]);
+			MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_wPrev, 1.0);
+			MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wpPrev, 1.0);
+			MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_RPrev);
+			std::cout << "\t\tpos_prev: " << mbdynce_tempvec3_xPrev[0] << "\t" << mbdynce_tempvec3_xPrev[1] << "\t" << mbdynce_tempvec3_xPrev[2] << "\n"
+					  << "\t\tvel_prev: " << mbdynce_tempvec3_vPrev[0] << "\t" << mbdynce_tempvec3_vPrev[1] << "\t" << mbdynce_tempvec3_vPrev[2] << "\n"
+					  << "\t\tacc_prev: " << mbdynce_tempvec3_aPrev[0] << "\t" << mbdynce_tempvec3_aPrev[1] << "\t" << mbdynce_tempvec3_aPrev[2] << "\n";
 		}
-		}
+		//- predicted states
+		double mbdynce_temp_vPred;
+		double e1 = -12000.0, e2 = 12000.0, f1 = 8.0, f2 = 5.0;
+		mbdynce_temp_vPred = e1 * mbdynce_tempvec3_x[0] + e2 * mbdynce_tempvec3_xPrev[0] + f1 * mbdynce_tempvec3_v[0] + f2 * mbdynce_tempvec3_vPrev[0];
+		std::cout << "\t\tvel_pred: " << mbdynce_temp_vPred << "\t"
+				  << "x-xPrev: " << mbdynce_tempvec3_x[0] - mbdynce_tempvec3_xPrev[0] << "\n";
+	}
 }
 /* private functions: end*/
 

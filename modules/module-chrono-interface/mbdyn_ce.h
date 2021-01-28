@@ -90,6 +90,13 @@ enum MBDyn_CE_CEMOTORTYPE
     POSITION = 0,
     VELOCITY = 1,
     ACCELERATION = 2,
+    ORIGIN=3, // uses x_k and v_k+1
+};
+
+enum MBDyn_CE_CEFORCETYPE
+{
+    REACTION_FORCE = 0,
+    CONTACT_FORCE = 1,
 };
 
 //- opaque pointer to C::E system
@@ -135,6 +142,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
                                 const unsigned& MBDyn_CE_NodesNum,
                                 const double* MBDyn_CE_CEScale,
                                 const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
+                                const int MBDyn_CE_CEForceType, 
                                 bool bMBDyn_CE_Verbose);
 
 //- update CEModel, and do time integration.

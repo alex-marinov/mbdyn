@@ -132,6 +132,7 @@ public:
     int MBDyn_CE_CouplingType;
     int MBDyn_CE_CouplingType_loose;
     int MBDyn_CE_CEMotorType;
+    int MBDyn_CE_CEForceType;
     double MBDyn_CE_CEMotorType_coeff[3]={0.0,0.0,0.0};// [0]=\alpha, [1]=\beta, [2]=\gamma
 
     // constructor
