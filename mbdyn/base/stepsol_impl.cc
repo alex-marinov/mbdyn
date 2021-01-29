@@ -205,22 +205,22 @@ Multistep2Solver::SetCoef(doublereal dT,
 	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
 	m_np[1] = dAlpha*(2. + 3.*dAlpha);
 
-	m_a[0][DIFFERENTIAL] = 1. - dBeta;
-	m_a[1][DIFFERENTIAL] = dBeta;
-	m_b[0][DIFFERENTIAL] = dT*(dDelta/dAlpha + dAlpha/2);
-	m_b[1][DIFFERENTIAL] = dT*(dBeta/2. + dAlpha/2. - dDelta/dAlpha*(1. + dAlpha));
-	m_b[2][DIFFERENTIAL] = dT*(dBeta/2. + dDelta);
+	m_a[IDX_A1][DIFFERENTIAL] = 1. - dBeta;
+	m_a[IDX_A2][DIFFERENTIAL] = dBeta;
+	m_b[IDX_B0][DIFFERENTIAL] = dT*(dDelta/dAlpha + dAlpha/2);
+	m_b[IDX_B1][DIFFERENTIAL] = dT*(dBeta/2. + dAlpha/2. - dDelta/dAlpha*(1. + dAlpha));
+	m_b[IDX_B2][DIFFERENTIAL] = dT*(dBeta/2. + dDelta);
 
 	DEBUGCOUT("Predict()" << std::endl
 			<< "Alpha = " << dAlpha << std::endl
 			<< "Differential coefficients:" << std::endl
 			<< "beta  = " << dBeta << std::endl
 			<< "delta = " << dDelta << std::endl
-			<< "a1    = " << m_a[0][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[1][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[2][DIFFERENTIAL] << std::endl);
+			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl);
 
 	/* Coefficienti del metodo - variabili algebriche */
 	if (dAlgebraicRho != dRho) {
@@ -229,35 +229,37 @@ Multistep2Solver::SetCoef(doublereal dT,
 				+2.*(2.*dAlgebraicRho - 1.)*(1. + dAlpha))/dDen;
 		dDelta = .5*dAlpha*dAlpha*(1. - dAlgebraicRho)*(1. - dAlgebraicRho)/dDen;
 
-		m_a[1][ALGEBRAIC] = dBeta;
-		m_b[0][ALGEBRAIC] = dT*(dDelta/dAlpha + dAlpha/2.);
-		m_b[1][ALGEBRAIC] = dT*(dBeta/2. + dAlpha/2. - dDelta/dAlpha*(1. + dAlpha));
-		m_b[2][ALGEBRAIC] = dT*(dBeta/2. + dDelta);
+		// m_a[IDX_A1][ALGEBRAIC] not used, since we assume the corresponding IX == 0
+		m_a[IDX_A2][ALGEBRAIC] = dBeta;
+		m_b[IDX_B0][ALGEBRAIC] = dT*(dDelta/dAlpha + dAlpha/2.);
+		m_b[IDX_B1][ALGEBRAIC] = dT*(dBeta/2. + dAlpha/2. - dDelta/dAlpha*(1. + dAlpha));
+		m_b[IDX_B2][ALGEBRAIC] = dT*(dBeta/2. + dDelta);
 
 	} else {
-		m_a[1][ALGEBRAIC] = m_a[1][DIFFERENTIAL];
-		m_b[0][ALGEBRAIC] = m_b[0][DIFFERENTIAL];
-		m_b[1][ALGEBRAIC] = m_b[1][DIFFERENTIAL];
-		m_b[2][ALGEBRAIC] = m_b[2][DIFFERENTIAL];
+		// m_a[IDX_A1][ALGEBRAIC] not used, since we assume the corresponding IX == 0
+		m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
+		m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B0][DIFFERENTIAL];
+		m_b[IDX_B1][ALGEBRAIC] = m_b[IDX_B1][DIFFERENTIAL];
+		m_b[IDX_B2][ALGEBRAIC] = m_b[IDX_B2][DIFFERENTIAL];
 	}
 
 	DEBUGCOUT("Algebraic coefficients:" << std::endl
 			<< "beta  = " << dBeta << std::endl
 			<< "delta = " << dDelta << std::endl
-			<< "a2    = " << m_a[1][ALGEBRAIC] << std::endl
-			<< "b0    = " << m_b[0][ALGEBRAIC] << std::endl
-			<< "b1    = " << m_b[1][ALGEBRAIC] << std::endl
-			<< "b2    = " << m_b[2][ALGEBRAIC] << std::endl);
+			<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
+			<< "b0    = " << m_b[IDX_B0][ALGEBRAIC] << std::endl
+			<< "b1    = " << m_b[IDX_B1][ALGEBRAIC] << std::endl
+			<< "b2    = " << m_b[IDX_B2][ALGEBRAIC] << std::endl);
 
 	DEBUGCOUT("Asymptotic rho: "
-			<< -m_b[1][DIFFERENTIAL]/(2.*m_b[0][DIFFERENTIAL]) << std::endl
+			<< -m_b[IDX_B1][DIFFERENTIAL]/(2.*m_b[IDX_B0][DIFFERENTIAL]) << std::endl
 			<< "Discriminant: "
-			<< m_b[1][DIFFERENTIAL]*m_b[1][DIFFERENTIAL] - 4.*m_b[2][DIFFERENTIAL]*m_b[0][DIFFERENTIAL]
+			<< m_b[IDX_B1][DIFFERENTIAL]*m_b[IDX_B1][DIFFERENTIAL] - 4.*m_b[IDX_B2][DIFFERENTIAL]*m_b[IDX_B0][DIFFERENTIAL]
 			<< std::endl
 			<< "Asymptotic rho for algebraic variables: "
-			<< -m_b[1][ALGEBRAIC]/(2.*m_b[0][ALGEBRAIC]) << std::endl
+			<< -m_b[IDX_B1][ALGEBRAIC]/(2.*m_b[IDX_B0][ALGEBRAIC]) << std::endl
 			<< "Discriminant: "
-			<< m_b[1][ALGEBRAIC]*m_b[1][ALGEBRAIC] - 4.*m_b[2][ALGEBRAIC]*m_b[0][ALGEBRAIC]
+			<< m_b[IDX_B1][ALGEBRAIC]*m_b[IDX_B1][ALGEBRAIC] - 4.*m_b[IDX_B2][ALGEBRAIC]*m_b[IDX_B0][ALGEBRAIC]
 			<< std::endl);
 
 	/* Vengono modificati per la predizione, dopo che sono stati usati per
@@ -266,8 +268,8 @@ Multistep2Solver::SetCoef(doublereal dT,
 	m_mp[1] /= dT;
 
 	/* valori di ritorno */
-	db0Differential = m_b[0][DIFFERENTIAL];
-	db0Algebraic = m_b[0][ALGEBRAIC];
+	db0Differential = m_b[IDX_B0][DIFFERENTIAL];
+	db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
 	//std::cout<<"PredictCoef= "<<mp[0]<<", "<<mp[1]<<", "<<np[0]<<", "<<np[1]<<std::endl;
 	//std::cout<<"Coef= "<<a[0][DIFFERENTIAL]<<", "<<a[1][DIFFERENTIAL]<<", "<<b[0][DIFFERENTIAL]<<", "<<b[1][DIFFERENTIAL]<<", "<<b[2][DIFFERENTIAL]<<std::endl;
 }
@@ -285,10 +287,14 @@ doublereal
 Multistep2Solver::dPredState(const doublereal dXm1mN[2],
 		const doublereal dXP0mN[3]) const
 {
-	return m_a[0][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[1][DIFFERENTIAL]*dXm1mN[IDX_Xm2]
-		+ m_b[0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[1][DIFFERENTIAL]*dXP0mN[IDX_XPm1] + m_b[2][DIFFERENTIAL]*dXP0mN[IDX_XPm2];
+	return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm2]
+		+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1] + m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm2];
 }
 
+// we assume that X_{n-2} = 0 and we subtract X_{n-1} (the integral of the Lagrange multipliers is inessential)
+// we obtain that:
+//   - coefficient n-1 is X_{n-1} - X_{n-1} = 0; 
+//   - coefficient n-2 is X_{n-2} - X_{n-1} = - X_{n-1}
 doublereal
 Multistep2Solver::dPredDerAlg(const doublereal dXm1mN[2],
 		const doublereal dXP0mN[3]) const
@@ -301,8 +307,8 @@ doublereal
 Multistep2Solver::dPredStateAlg(const doublereal dXm1mN[2],
 		const doublereal dXP0mN[3]) const
 {
-	return m_b[0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[1][ALGEBRAIC]*dXP0mN[IDX_XPm1] + m_b[2][ALGEBRAIC]*dXP0mN[IDX_XPm2]
-		- m_a[1][ALGEBRAIC]*dXm1mN[IDX_Xm1];
+	return m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1] + m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2]
+		- m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm1];
 }
 
 /* 2-step multistep (nostro metodo) - end */
@@ -361,52 +367,54 @@ HopeSolver::SetCoef(doublereal dT,
 	m_np[1] = dAlpha*(2. + 3.*dAlpha);
 
 	if (m_bStep) {
-		m_b[0][DIFFERENTIAL] = m_b[1][DIFFERENTIAL]
-			= m_b[0][ALGEBRAIC] = m_b[1][ALGEBRAIC]
+		m_b[IDX_B0][DIFFERENTIAL] = m_b[IDX_B1][DIFFERENTIAL]
+			= m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B1][ALGEBRAIC]
 			= db0Algebraic = db0Differential = dTMod/2.;	// dT/4.;
 
 	} else {
 		doublereal dRho = m_Rho.dGet();
 		doublereal dALPHA = 4.*dRho/(3. + dRho);
 
-		m_a[0][DIFFERENTIAL] = (4. - dALPHA)/3.;
-		m_a[1][DIFFERENTIAL] = (dALPHA - 1.)/3.;
-		m_b[0][DIFFERENTIAL] = dTMod*(4. - dALPHA)/6.;	// dT*(4.-dALPHA)/12.;
-		m_b[1][DIFFERENTIAL] = dTMod*dALPHA/2.;		// dT*dALPHA/4.;
+		m_a[IDX_A1][DIFFERENTIAL] = (4. - dALPHA)/3.;
+		m_a[IDX_A2][DIFFERENTIAL] = (dALPHA - 1.)/3.;
+		m_b[IDX_B0][DIFFERENTIAL] = dTMod*(4. - dALPHA)/6.;	// dT*(4.-dALPHA)/12.;
+		m_b[IDX_B1][DIFFERENTIAL] = dTMod*dALPHA/2.;		// dT*dALPHA/4.;
 
 		DEBUGCOUT("Predict()" << std::endl
 			<< "Alpha = " << dAlpha << std::endl
 			<< "Differential coefficients:" << std::endl
 			<< "HOPE - Alpha = " << dALPHA << std::endl
-			<< "a1    = " << m_a[0][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[1][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[1][DIFFERENTIAL] << std::endl);
+			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl);
 
 		/* Coefficienti del metodo - variabili algebriche */
 		doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 		doublereal dAlgebraicALPHA = 4.*dAlgebraicRho/(3. + dAlgebraicRho);
 
 		if (dAlgebraicRho != dRho) {
-			m_a[1][ALGEBRAIC] = (dAlgebraicALPHA - 1.)/3.;
-			m_b[0][ALGEBRAIC] = dTMod*(4. - dAlgebraicALPHA)/6.; // dT*(4. - dAlgebraicALPHA)/12.;
-			m_b[1][ALGEBRAIC] = dTMod*dAlgebraicALPHA/2.; // dT*dAlgebraicALPHA/4.;
+			// m_a[IDX_A1][ALGEBRAIC] not used, since we assume the corresponding IX == 0
+			m_a[IDX_A2][ALGEBRAIC] = (dAlgebraicALPHA - 1.)/3.;
+			m_b[IDX_B0][ALGEBRAIC] = dTMod*(4. - dAlgebraicALPHA)/6.; // dT*(4. - dAlgebraicALPHA)/12.;
+			m_b[IDX_B1][ALGEBRAIC] = dTMod*dAlgebraicALPHA/2.; // dT*dAlgebraicALPHA/4.;
 
 		} else {
-			m_a[1][ALGEBRAIC] = m_a[1][DIFFERENTIAL];
-			m_b[0][ALGEBRAIC] = m_b[0][DIFFERENTIAL];
-			m_b[1][ALGEBRAIC] = m_b[1][DIFFERENTIAL];
+			// m_a[IDX_A1][ALGEBRAIC] not used, since we assume the corresponding IX == 0
+			m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
+			m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B0][DIFFERENTIAL];
+			m_b[IDX_B1][ALGEBRAIC] = m_b[IDX_B1][DIFFERENTIAL];
 		}
 
 		DEBUGCOUT("Algebraic coefficients:" << std::endl
 			<< "HOPE - Alpha = " << dAlgebraicALPHA << std::endl
-			<< "a2    = " << m_a[1][ALGEBRAIC] << std::endl
-			<< "b0    = " << m_b[0][ALGEBRAIC] << std::endl
-			<< "b1    = " << m_b[1][ALGEBRAIC] << std::endl);
+			<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
+			<< "b0    = " << m_b[IDX_B0][ALGEBRAIC] << std::endl
+			<< "b1    = " << m_b[IDX_B1][ALGEBRAIC] << std::endl);
 
 		/* valori di ritorno */
-		db0Differential = m_b[0][DIFFERENTIAL];
-		db0Algebraic = m_b[0][ALGEBRAIC];
+		db0Differential = m_b[IDX_B0][DIFFERENTIAL];
+		db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
 	}
 
 	/* Vengono modificati per la predizione, dopo che sono stati usati per
@@ -429,11 +437,11 @@ HopeSolver::dPredState(const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
 	if (m_bStep) {
-		return dXm1mN[IDX_Xm1] + m_b[0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
+		return dXm1mN[IDX_Xm1] + m_b[IDX_B0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 
 	} else {
-		return m_a[0][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[1][DIFFERENTIAL]*dXm1mN[IDX_Xm2]
-			+ m_b[0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm2]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
 	}
 }
 
@@ -449,10 +457,10 @@ HopeSolver::dPredStateAlg(const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
 	if (m_bStep) {
-		return m_b[0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
+		return m_b[IDX_B0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 	} else {
-		return m_b[0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
-			-m_a[1][ALGEBRAIC]*dXm1mN[IDX_Xm1];
+		return m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
+			-m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm1];
 	}
 }
 

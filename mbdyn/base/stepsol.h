@@ -236,6 +236,25 @@ public:
 	doublereal db0Differential;
 	doublereal db0Algebraic;
 
+	enum IDX_A {
+		IDX_A1 = 0,
+		IDX_A2 = 1,
+		IDX_A3 = 2,
+		IDX_A4 = 3,
+		IDX_A5 = 4
+		// add as needed
+	};
+
+	enum IDX_B {
+		IDX_B0 = 0,
+		IDX_B1 = 1,
+		IDX_B2 = 2,
+		IDX_B3 = 3,
+		IDX_B4 = 4,
+		IDX_B5 = 5
+		// add as needed
+	};
+
 protected:
 	void UpdateDof(const int DCount,
 		const DofOrder::Order Order,
