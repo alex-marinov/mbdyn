@@ -875,8 +875,8 @@ tplStepNIntegrator<N>::tplStepNIntegrator(const integer MaxIt,
 : StepNIntegrator(MaxIt, dT, dSolutionTol, N, bmod_res_test)
 {
 	for (unsigned i = 0; i < N; i++) {
-		pXPrev[i] = 0;
-		pXPrimePrev[i] = 0;
+		m_pXPrev[i] = 0;
+		m_pXPrimePrev[i] = 0;
 	}
 }
 
@@ -897,8 +897,8 @@ tplStepNIntegrator<N>::PredictDof(const int DCount,
 		doublereal dXP0mN[N + 1];
 
 		for (unsigned i = 0; i < N; i++) {
-			dXm1mN[i] = pXPrev[i]->operator()(DCount);
-			dXP0mN[i + 1] = pXPrimePrev[i]->operator()(DCount);
+			dXm1mN[i] = m_pXPrev[i]->operator()(DCount);
+			dXP0mN[i + 1] = m_pXPrimePrev[i]->operator()(DCount);
 		}
 
 		dXP0mN[0] = dPredDer(dXm1mN, dXP0mN);
@@ -912,8 +912,8 @@ tplStepNIntegrator<N>::PredictDof(const int DCount,
 		doublereal dX0mN[N + 1];
 
 		for (unsigned i = 0; i < N; i++) {
-			dXIm1mN[i] = pXPrimePrev[i]->operator()(DCount);
-			dX0mN[i + 1] = pXPrev[i]->operator()(DCount);
+			dXIm1mN[i] = m_pXPrimePrev[i]->operator()(DCount);
+			dX0mN[i + 1] = m_pXPrev[i]->operator()(DCount);
 		}
 
 		dX0mN[0] = dPredDerAlg(dXIm1mN, dX0mN);
@@ -957,8 +957,8 @@ tplStepNIntegrator<N>::Advance(Solver* pS,
 	pXPrimeCurr  = pXPrime;
 
 	for (unsigned i = 0; i < N; i++) {
-		pXPrev[i] = qX[i];
-		pXPrimePrev[i]  = qXPrime[i];
+		m_pXPrev[i] = qX[i];
+		m_pXPrimePrev[i]  = qXPrime[i];
 	}
 
 	/* predizione */
@@ -1016,7 +1016,7 @@ CrankNicolsonIntegrator::CrankNicolsonIntegrator(const doublereal dTl,
 		const doublereal dSolTl,
 		const integer iMaxIt,
 		const bool bmod_res_test)
-: Step1Integrator(iMaxIt, dTl, dSolTl, bmod_res_test)
+: tplStepNIntegrator<1>(iMaxIt, dTl, dSolTl, bmod_res_test)
 {
 	NO_OP;
 }
@@ -1034,60 +1034,37 @@ CrankNicolsonIntegrator::SetCoef(doublereal dT,
 	db0Differential = db0Algebraic = dT*dAlpha/2.;
 }
 
-#if 0
-doublereal
-CrankNicolsonIntegrator::dPredictDerivative(const doublereal& /* dXm1 */,
-		const doublereal& dXPm1,
-		DofOrder::Order o) const
-{
-	return dXPm1;
-}
-
-doublereal
-CrankNicolsonIntegrator::dPredictState(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		DofOrder::Order o) const
-{
-	if (o == DofOrder::ALGEBRAIC) {
-		return db0Differential*(dXP + dXPm1);
-	} /* else if (o == DofOrder::DIFFERENTIAL) */
-	return dXm1 + db0Differential*(dXP + dXPm1);
-}
-#endif
-
 /* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
 doublereal
-CrankNicolsonIntegrator::dPredDer(const doublereal& /* dXm1 */ ,
-	      const doublereal& dXPm1) const
+CrankNicolsonIntegrator::dPredDer(const doublereal dXm1mN[1],
+	const doublereal dXP0mN[2]) const
 {
-	return dXPm1;
+	return dXP0mN[IDX_XPm1];
 }
 
 doublereal
-CrankNicolsonIntegrator::dPredState(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1) const
+CrankNicolsonIntegrator::dPredState(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return dXm1 + db0Differential*(dXP + dXPm1);
+	return dXm1mN[IDX_Xm1] + db0Differential*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 }
 
 doublereal
-CrankNicolsonIntegrator::dPredDerAlg(const doublereal& /* dXm1 */ ,
-		const doublereal& dXPm1) const
+CrankNicolsonIntegrator::dPredDerAlg(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return dXPm1;
+	return dXP0mN[IDX_XPm1];
 }
 
 doublereal
-CrankNicolsonIntegrator::dPredStateAlg(const doublereal& /* dXm1 */ ,
-		const doublereal& dXP,
-		const doublereal& dXPm1) const
+CrankNicolsonIntegrator::dPredStateAlg(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return db0Differential*(dXP + dXPm1);
+	return db0Differential*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 }
 
 /* CrankNicolson - end */
+
 
 /* Implicit Euler - begin */
 
@@ -1095,7 +1072,7 @@ ImplicitEulerIntegrator::ImplicitEulerIntegrator(const doublereal dTl,
 		const doublereal dSolTl,
 		const integer iMaxIt,
 		const bool bmod_res_test)
-: Step1Integrator(iMaxIt, dTl, dSolTl, bmod_res_test)
+: tplStepNIntegrator<1>(iMaxIt, dTl, dSolTl, bmod_res_test)
 {
 	NO_OP;
 }
@@ -1113,249 +1090,41 @@ ImplicitEulerIntegrator::SetCoef(doublereal dT,
 	db0Differential = db0Algebraic = dT*dAlpha;
 }
 
-#if 0
-doublereal
-ImplicitEulerIntegrator::dPredictDerivative(const doublereal& /* dXm1 */,
-		const doublereal& dXPm1,
-		DofOrder::Order o) const
-{
-	return dXPm1;
-}
-
-doublereal
-ImplicitEulerIntegrator::dPredictState(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		DofOrder::Order o) const
-{
-	if (o == DofOrder::ALGEBRAIC) {
-		return db0Differential*dXP;
-	} /* else if (o == DofOrder::DIFFERENTIAL) */
-	return dXm1 + db0Differential*dXP;
-}
-#endif
-
 /* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
 doublereal
-ImplicitEulerIntegrator::dPredDer(const doublereal& /* dXm1 */ ,
-	      const doublereal& dXPm1) const
+ImplicitEulerIntegrator::dPredDer(const doublereal dXm1mN[1],
+	      const doublereal dXP0mN[2]) const
 {
-	return dXPm1;
+	return dXP0mN[IDX_XPm1];
 }
 
 doublereal
-ImplicitEulerIntegrator::dPredState(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1) const
+ImplicitEulerIntegrator::dPredState(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return dXm1 + db0Differential*dXP;
+	return dXm1mN[IDX_Xm1] + db0Differential*dXP0mN[IDX_XP0];
 }
 
 doublereal
-ImplicitEulerIntegrator::dPredDerAlg(const doublereal& /* dXm1 */ ,
-		const doublereal& dXPm1) const
+ImplicitEulerIntegrator::dPredDerAlg(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return dXPm1;
+	return dXP0mN[IDX_XPm1];
 }
 
 doublereal
-ImplicitEulerIntegrator::dPredStateAlg(const doublereal& /* dXm1 */ ,
-		const doublereal& dXP,
-		const doublereal& dXPm1) const
+ImplicitEulerIntegrator::dPredStateAlg(const doublereal dXm1mN[1],
+		const doublereal dXP0mN[2]) const
 {
-	return db0Differential*dXP;
+	return db0Differential*dXP0mN[IDX_XP0];
 }
 
 /* Implicit Euler - end */
 
-/* NostroMetodo - begin */
-
-MultistepSolver::MultistepSolver(const doublereal Tl,
-		const doublereal dSolTl,
-		const integer iMaxIt,
-		const DriveCaller* pRho,
-		const DriveCaller* pAlgRho,
-		const bool bmod_res_test)
-:Step2Integrator(iMaxIt, Tl, dSolTl, bmod_res_test),
-Rho(pRho), AlgebraicRho(pAlgRho)
-{
-	ASSERT(pRho != NULL);
-	ASSERT(pAlgRho != NULL);
-}
-
-MultistepSolver::~MultistepSolver(void)
-{
-	NO_OP;
-}
-
-void
-MultistepSolver::SetDriveHandler(const DriveHandler* pDH)
-{
-	Rho.pGetDriveCaller()->SetDrvHdl(pDH);
-	AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
-}
-
-void
-MultistepSolver::SetCoef(doublereal dT,
-		doublereal dAlpha,
-		enum StepChange /* NewStep */)
-{
-	doublereal dRho = Rho.dGet();
-	doublereal dAlgebraicRho = AlgebraicRho.dGet();
-
-	doublereal dDen = 2.*(1.+dAlpha)-(1.-dRho)*(1.-dRho);
-	doublereal dBeta = dAlpha*((1.-dRho)*(1.-dRho)*(2.+dAlpha)
-		+2.*(2.*dRho-1.)*(1.+dAlpha))/dDen;
-	doublereal dDelta = .5*dAlpha*dAlpha*(1.-dRho)*(1.-dRho)/dDen;
-
-	mp[0] = -6.*dAlpha*(1.+dAlpha);
-	mp[1] = -mp[0];
-	np[0] = 1.+4.*dAlpha+3.*dAlpha*dAlpha;
-	np[1] = dAlpha*(2.+3.*dAlpha);
-
-	a[0][DIFFERENTIAL] = 1.-dBeta;
-	a[1][DIFFERENTIAL] = dBeta;
-	b[0][DIFFERENTIAL] = dT*(dDelta/dAlpha+dAlpha/2);
-	b[1][DIFFERENTIAL] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
-	b[2][DIFFERENTIAL] = dT*(dBeta/2.+dDelta);
-
-	DEBUGCOUT("Predict()" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "beta  = " << dBeta << std::endl
-			<< "delta = " << dDelta << std::endl
-			<< "a1    = " << a[0][DIFFERENTIAL] << std::endl
-			<< "a2    = " << a[1][DIFFERENTIAL] << std::endl
-			<< "b0    = " << b[0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << b[1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << b[2][DIFFERENTIAL] << std::endl);
-
-	/* Coefficienti del metodo - variabili algebriche */
-	if (dAlgebraicRho != dRho) {
-		dDen = 2.*(1.+dAlpha)-(1.-dAlgebraicRho)*(1.-dAlgebraicRho);
-		dBeta = dAlpha*((1.-dAlgebraicRho)*(1.-dAlgebraicRho)*(2.+dAlpha)
-				+2.*(2.*dAlgebraicRho-1.)*(1.+dAlpha))/dDen;
-		dDelta = .5*dAlpha*dAlpha*(1.-dAlgebraicRho)*(1.-dAlgebraicRho)/dDen;
-
-		a[1][ALGEBRAIC] = dBeta;
-		b[0][ALGEBRAIC] = dT*(dDelta/dAlpha+dAlpha/2.);
-		b[1][ALGEBRAIC] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
-		b[2][ALGEBRAIC] = dT*(dBeta/2.+dDelta);
-
-	} else {
-		a[1][ALGEBRAIC] = a[1][DIFFERENTIAL];
-		b[0][ALGEBRAIC] = b[0][DIFFERENTIAL];
-		b[1][ALGEBRAIC] = b[1][DIFFERENTIAL];
-		b[2][ALGEBRAIC] = b[2][DIFFERENTIAL];
-	}
-
-	DEBUGCOUT("Algebraic coefficients:" << std::endl
-			<< "beta  = " << dBeta << std::endl
-			<< "delta = " << dDelta << std::endl
-			<< "a2    = " << a[1][ALGEBRAIC] << std::endl
-			<< "b0    = " << b[0][ALGEBRAIC] << std::endl
-			<< "b1    = " << b[1][ALGEBRAIC] << std::endl
-			<< "b2    = " << b[2][ALGEBRAIC] << std::endl);
-
-	DEBUGCOUT("Asymptotic rho: "
-			<< -b[1][DIFFERENTIAL]/(2.*b[0][DIFFERENTIAL]) << std::endl
-			<< "Discriminant: "
-			<< b[1][DIFFERENTIAL]*b[1][DIFFERENTIAL]-4.*b[2][DIFFERENTIAL]*b[0][DIFFERENTIAL]
-			<< std::endl
-			<< "Asymptotic rho for algebraic variables: "
-			<< -b[1][ALGEBRAIC]/(2.*b[0][ALGEBRAIC]) << std::endl
-			<< "Discriminant: "
-			<< b[1][ALGEBRAIC]*b[1][ALGEBRAIC]-4.*b[2][ALGEBRAIC]*b[0][ALGEBRAIC]
-			<< std::endl);
-
-	/* Vengono modificati per la predizione, dopo che sono stati usati per
-	 * costruire gli altri coefficienti */
-	mp[0] /= dT;
-	mp[1] /= dT;
-
-	/* valori di ritorno */
-	db0Differential = b[0][DIFFERENTIAL];
-	db0Algebraic = b[0][ALGEBRAIC];
-	//std::cout<<"PredictCoef= "<<mp[0]<<", "<<mp[1]<<", "<<np[0]<<", "<<np[1]<<std::endl;
-	//std::cout<<"Coef= "<<a[0][DIFFERENTIAL]<<", "<<a[1][DIFFERENTIAL]<<", "<<b[0][DIFFERENTIAL]<<", "<<b[1][DIFFERENTIAL]<<", "<<b[2][DIFFERENTIAL]<<std::endl;
-}
-
-#if 0
-doublereal
-MultistepSolver::dPredictDerivative(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2,
-		DofOrder::Order o) const
-{
-	if (o == DofOrder::ALGEBRAIC) {
-		return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
-	} /* else if (o == DofOrder::DIFFERENTIAL) */
-	return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
-}
-
-doublereal
-MultistepSolver::dPredictState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2,
-		DofOrder::Order o) const
-{
-	if (o == DofOrder::ALGEBRAIC) {
-		return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1+b[2][ALGEBRAIC]*dXPm2
-			-a[1][ALGEBRAIC]*dXm1;
-	} /* else if (o == DofOrder::DIFFERENTIAL) */
-	return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-		+b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1+b[2][DIFFERENTIAL]*dXPm2;
-}
-#endif
-
-/* Nota: usa predizione cubica per le derivate (massimo ordine possibile) */
-doublereal
-MultistepSolver::dPredDer(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const
-{
-	return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
-}
-
-doublereal
-MultistepSolver::dPredState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const
-{
-	return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-		+b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1+b[2][DIFFERENTIAL]*dXPm2;
-}
-
-doublereal
-MultistepSolver::dPredDerAlg(const doublereal& dXm1,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const
-{
-	return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
-}
-
-doublereal
-MultistepSolver::dPredStateAlg(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const
-{
-	return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1+b[2][ALGEBRAIC]*dXPm2
-		-a[1][ALGEBRAIC]*dXm1;
-}
-
-/* NostroMetodo - end */
 
 
 
-
-/* NostroMetodo2 - begin */
+/* 2-step multistep (nostro metodo) - begin */
 
 Multistep2Solver::Multistep2Solver(const doublereal Tl,
 		const doublereal dSolTl,
@@ -1500,12 +1269,7 @@ Multistep2Solver::dPredStateAlg(const doublereal dXm1mN[2],
 		- m_a[1][ALGEBRAIC]*dXm1mN[IDX_Xm1];
 }
 
-/* NostroMetodo - end */
-
-
-
-
-
+/* 2-step multistep (nostro metodo) - end */
 
 
 /* Hope - begin */
@@ -1516,11 +1280,11 @@ HopeSolver::HopeSolver(const doublereal Tl,
 		const DriveCaller* pRho,
 		const DriveCaller* pAlgRho,
 		const bool bmod_res_test)
-:Step2Integrator(iMaxIt, Tl, dSolTl, bmod_res_test),
-Rho(pRho), AlgebraicRho(pAlgRho), bStep(0)
+: tplStepNIntegrator<2>(iMaxIt, Tl, dSolTl, bmod_res_test),
+m_Rho(pRho), m_AlgebraicRho(pAlgRho), m_bStep(0)
 {
-	ASSERT(pRho != NULL);
-	ASSERT(pAlgRho != NULL);
+	ASSERT(pRho != 0);
+	ASSERT(pAlgRho != 0);
 }
 
 HopeSolver::~HopeSolver(void)
@@ -1531,14 +1295,14 @@ HopeSolver::~HopeSolver(void)
 void
 HopeSolver::SetDriveHandler(const DriveHandler* pDH)
 {
-	Rho.pGetDriveCaller()->SetDrvHdl(pDH);
-	AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
+	m_Rho.pGetDriveCaller()->SetDrvHdl(pDH);
+	m_AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
 }
 
 void
 HopeSolver::SetCoef(doublereal dT,
-		doublereal dAlpha,
-		enum StepChange NewStep)
+	doublereal dAlpha,
+	enum StepChange NewStep)
 {
 #if 0
 	if (dAlpha != 1.) {
@@ -1548,157 +1312,111 @@ HopeSolver::SetCoef(doublereal dT,
 #endif
 
 	if (NewStep == NEWSTEP) {
-		ASSERT(bStep == flag(0) || bStep == flag(1));
-		bStep = 1-bStep;	/* Commuta il valore di bStep */
+		ASSERT(m_bStep == flag(0) || m_bStep == flag(1));
+		m_bStep = 1 - m_bStep;	// Commuta il valore di bStep
 	}
 
 	doublereal dTMod = dT*dAlpha;
 
 	/* Differential coefficients */
-	mp[0] = -6.*dAlpha*(1.+dAlpha);
-	mp[1] = -mp[0];
-	np[0] = 1.+4.*dAlpha+3.*dAlpha*dAlpha;
-	np[1] = dAlpha*(2.+3.*dAlpha);
+	m_mp[0] = -6.*dAlpha*(1. + dAlpha);
+	m_mp[1] = -m_mp[0];
+	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
+	m_np[1] = dAlpha*(2. + 3.*dAlpha);
 
-	if (bStep) {
-		b[0][DIFFERENTIAL] = b[1][DIFFERENTIAL]
-			= b[0][ALGEBRAIC] = b[1][ALGEBRAIC]
-			= db0Algebraic = db0Differential = dTMod/2.;// dT/4.;
+	if (m_bStep) {
+		m_b[0][DIFFERENTIAL] = m_b[1][DIFFERENTIAL]
+			= m_b[0][ALGEBRAIC] = m_b[1][ALGEBRAIC]
+			= db0Algebraic = db0Differential = dTMod/2.;	// dT/4.;
 
 	} else {
-		doublereal dRho = Rho.dGet();
-		doublereal dALPHA = 4.*dRho/(3.+dRho);
+		doublereal dRho = m_Rho.dGet();
+		doublereal dALPHA = 4.*dRho/(3. + dRho);
 
-		a[0][DIFFERENTIAL] = (4.-dALPHA)/3.;
-		a[1][DIFFERENTIAL] = (dALPHA-1.)/3.;
-		b[0][DIFFERENTIAL] = dTMod*(4.-dALPHA)/6.;// dT*(4.-dALPHA)/12.;
-		b[1][DIFFERENTIAL] = dTMod*dALPHA/2.;// dT*dALPHA/4.;
+		m_a[0][DIFFERENTIAL] = (4. - dALPHA)/3.;
+		m_a[1][DIFFERENTIAL] = (dALPHA - 1.)/3.;
+		m_b[0][DIFFERENTIAL] = dTMod*(4. - dALPHA)/6.;	// dT*(4.-dALPHA)/12.;
+		m_b[1][DIFFERENTIAL] = dTMod*dALPHA/2.;		// dT*dALPHA/4.;
 
 		DEBUGCOUT("Predict()" << std::endl
-				<< "Alpha = " << dAlpha << std::endl
-				<< "Differential coefficients:" << std::endl
-				<< "HOPE-Alpha = " << dALPHA << std::endl
-				<< "a1    = " << a[0][DIFFERENTIAL] << std::endl
-				<< "a2    = " << a[1][DIFFERENTIAL] << std::endl
-				<< "b0    = " << b[0][DIFFERENTIAL] << std::endl
-				<< "b1    = " << b[1][DIFFERENTIAL] << std::endl);
+			<< "Alpha = " << dAlpha << std::endl
+			<< "Differential coefficients:" << std::endl
+			<< "HOPE - Alpha = " << dALPHA << std::endl
+			<< "a1    = " << m_a[0][DIFFERENTIAL] << std::endl
+			<< "a2    = " << m_a[1][DIFFERENTIAL] << std::endl
+			<< "b0    = " << m_b[0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[1][DIFFERENTIAL] << std::endl);
 
 		/* Coefficienti del metodo - variabili algebriche */
-		doublereal dAlgebraicRho = AlgebraicRho.dGet();
-		doublereal dAlgebraicALPHA = 4.*dAlgebraicRho/(3.+dAlgebraicRho);
+		doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
+		doublereal dAlgebraicALPHA = 4.*dAlgebraicRho/(3. + dAlgebraicRho);
 
 		if (dAlgebraicRho != dRho) {
-			a[1][ALGEBRAIC] = (dAlgebraicALPHA-1.)/3.;
-			b[0][ALGEBRAIC] = dTMod*(4.-dAlgebraicALPHA)/6.; // dT*(4.-dAlgebraicALPHA)/12.;
-			b[1][ALGEBRAIC] = dTMod*dAlgebraicALPHA/2.; // dT*dAlgebraicALPHA/4.;
+			m_a[1][ALGEBRAIC] = (dAlgebraicALPHA - 1.)/3.;
+			m_b[0][ALGEBRAIC] = dTMod*(4. - dAlgebraicALPHA)/6.; // dT*(4. - dAlgebraicALPHA)/12.;
+			m_b[1][ALGEBRAIC] = dTMod*dAlgebraicALPHA/2.; // dT*dAlgebraicALPHA/4.;
 
 		} else {
-			a[1][ALGEBRAIC] = a[1][DIFFERENTIAL];
-			b[0][ALGEBRAIC] = b[0][DIFFERENTIAL];
-			b[1][ALGEBRAIC] = b[1][DIFFERENTIAL];
+			m_a[1][ALGEBRAIC] = m_a[1][DIFFERENTIAL];
+			m_b[0][ALGEBRAIC] = m_b[0][DIFFERENTIAL];
+			m_b[1][ALGEBRAIC] = m_b[1][DIFFERENTIAL];
 		}
 
 		DEBUGCOUT("Algebraic coefficients:" << std::endl
-				<< "HOPE-Alpha = " << dAlgebraicALPHA << std::endl
-				<< "a2    = " << a[1][ALGEBRAIC] << std::endl
-				<< "b0    = " << b[0][ALGEBRAIC] << std::endl
-				<< "b1    = " << b[1][ALGEBRAIC] << std::endl);
+			<< "HOPE - Alpha = " << dAlgebraicALPHA << std::endl
+			<< "a2    = " << m_a[1][ALGEBRAIC] << std::endl
+			<< "b0    = " << m_b[0][ALGEBRAIC] << std::endl
+			<< "b1    = " << m_b[1][ALGEBRAIC] << std::endl);
 
 		/* valori di ritorno */
-		db0Differential = b[0][DIFFERENTIAL];
-		db0Algebraic = b[0][ALGEBRAIC];
+		db0Differential = m_b[0][DIFFERENTIAL];
+		db0Algebraic = m_b[0][ALGEBRAIC];
 	}
 
 	/* Vengono modificati per la predizione, dopo che sono stati usati per
 	 * costruire gli altri coefficienti */
-	mp[0] /= dT;
-	mp[1] /= dT;
+	m_mp[0] /= dT;
+	m_mp[1] /= dT;
 }
-
-#if 0
-doublereal
-HopeSolver::dPredictDerivative(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2,
-		DofOrder::Order o) const
-{
-	if (o == DofOrder::ALGEBRAIC) {
-		return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
-	} /* else if (o == DofOrder::DIFFERENTIAL) */
-	return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
-}
-
-doublereal
-HopeSolver::dPredictState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& /* dXPm2 */ ,
-		DofOrder::Order o) const
-{
-	if (bStep) {
-		if (o == DofOrder::ALGEBRAIC) {
-			return b[0][ALGEBRAIC]*(dXP+dXPm1);
-		} /* else if (o == DofOrder::DIFFERENTIAL) */
-		return dXm1+b[0][ALGEBRAIC]*(dXP+dXPm1);
-
-	} else {
-		if (o == DofOrder::ALGEBRAIC) {
-			return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1
-				-a[1][ALGEBRAIC]*dXm1;
-		} /* else if (o == DofOrder::DIFFERENTIAL) */
-		return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-			+b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1;
-	}
-}
-#endif
 
 /* Nota: usa predizione cubica per le derivate (massimo ordine possibile) */
 doublereal
-HopeSolver::dPredDer(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const
+HopeSolver::dPredDer(const doublereal dXm1mN[2],
+	const doublereal dXP0mN[3]) const
 {
-	return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
+	return m_mp[0]*dXm1mN[IDX_Xm1] + m_mp[1]*dXm1mN[IDX_Xm2]
+		+ m_np[0]*dXP0mN[IDX_XPm1] + m_np[1]*dXP0mN[IDX_XPm2];
 }
 
 doublereal
-HopeSolver::dPredState(const doublereal& dXm1,
-			const doublereal& dXm2,
-			const doublereal& dXP,
-			const doublereal& dXPm1,
-			const doublereal& /* dXPm2 */ ) const
+HopeSolver::dPredState(const doublereal dXm1mN[2],
+	const doublereal dXP0mN[3]) const
 {
-	if (bStep) {
-		return dXm1+b[0][ALGEBRAIC]*(dXP+dXPm1);
+	if (m_bStep) {
+		return dXm1mN[IDX_Xm1] + m_b[0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 
 	} else {
-		return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-			+b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1;
+		return m_a[0][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[1][DIFFERENTIAL]*dXm1mN[IDX_Xm2]
+			+ m_b[0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
 	}
 }
 
 doublereal
-HopeSolver::dPredDerAlg(const doublereal& dXm1,
-			const doublereal& dXPm1,
-			const doublereal& dXPm2) const
+HopeSolver::dPredDerAlg(const doublereal dXm1mN[2],
+	const doublereal dXP0mN[3]) const
 {
-	return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
+	return m_np[0]*dXP0mN[IDX_XPm1] + m_np[1]*dXP0mN[IDX_XPm2] - m_mp[1]*dXm1mN[IDX_Xm1];
 }
 
 doublereal
-HopeSolver::dPredStateAlg(const doublereal& dXm1,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& /* dXPm2 */ ) const
+HopeSolver::dPredStateAlg(const doublereal dXm1mN[2],
+	const doublereal dXP0mN[3]) const
 {
-	if (bStep) {
-		return b[0][ALGEBRAIC]*(dXP+dXPm1);
+	if (m_bStep) {
+		return m_b[0][ALGEBRAIC]*(dXP0mN[IDX_XP0] + dXP0mN[IDX_XPm1]);
 	} else {
-		return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1
-			-a[1][ALGEBRAIC]*dXm1;
+		return m_b[0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
+			-m_a[1][ALGEBRAIC]*dXm1mN[IDX_Xm1];
 	}
 }
 
