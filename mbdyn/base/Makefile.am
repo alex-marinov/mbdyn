@@ -168,6 +168,9 @@ solverdiagnostics.h \
 stepsol.cc \
 stepsol.h \
 stepsol.hc \
+stepsol_impl.cc \
+stepsol_impl.h \
+stepsol_tpl.h \
 symcltp.h \
 tpldrive.cc \
 tpldrive.h \
