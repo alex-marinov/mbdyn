@@ -2303,6 +2303,11 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
+	case INT_MS2T:
+		out << "ms2t, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
 	case INT_MS3:
 		out << "ms3, ";
 		pRhoRegular->Restart(out) << ", ";
@@ -2483,6 +2488,7 @@ Solver::ReadData(MBDynParser& HP)
 		/* DEPRECATED */ "Crank" "Nicholson" /* END OF DEPRECATED */ ,
 			/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
 			"ms",
+			"ms2t",
 			"hope",
 			"bdf",
 			"thirdorder",
@@ -2596,6 +2602,7 @@ Solver::ReadData(MBDynParser& HP)
 		CRANKNICHOLSON,
 		NOSTRO,
 		MS,
+		MS2T,
 		HOPE,
 		BDF,
 		THIRDORDER,
@@ -3031,6 +3038,7 @@ Solver::ReadData(MBDynParser& HP)
 					<< HP.GetLineData()
 					<< std::endl);
 			case MS:
+			case MS2T:
 			case MS3:
 			case MS4:
 			case BATHE:
@@ -3048,6 +3056,10 @@ Solver::ReadData(MBDynParser& HP)
 				case NOSTRO:
 				case MS:
 					RegularType = INT_MS2;
+					break;
+
+				case MS2T:
+					RegularType = INT_MS2T;
 					break;
 
 				case MS3:
@@ -3164,6 +3176,10 @@ Solver::ReadData(MBDynParser& HP)
 				case NOSTRO:
 				case MS:
 					DummyType = INT_MS2;
+					break;
+
+				case MS2T:
+					DummyType = INT_MS2T;
 					break;
 
 				case MS3:
@@ -4460,6 +4476,17 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						bModResTest));
 			break;
 
+		case INT_MS2T:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Multistep2Solver,
+					Multistep2Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
 		case INT_MS3:
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					TunableStep3Solver,
@@ -4624,6 +4651,17 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
 				MultistepSolver,
 				MultistepSolver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MS2T:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Multistep2Solver,
+				Multistep2Solver(dTol,
 					dSolutionTol,
 					iMaxIterations,
 					pRhoRegular,

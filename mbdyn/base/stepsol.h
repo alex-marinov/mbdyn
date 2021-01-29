@@ -297,6 +297,7 @@ protected:
 		const VectorHandler* const pSol = 0) const;
 	virtual void Predict(void);
 
+#if 0
 	/* Overridden by dedicated inline functions */
 	virtual doublereal 
      	dPredictDerivative(const doublereal& dXm1,
@@ -309,6 +310,7 @@ protected:
 		   const doublereal& dXP,
 		   const doublereal& dXPm1,
 		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
+#endif
  
    	virtual doublereal 
      	dPredDer(const doublereal& dXm1,
@@ -345,7 +347,8 @@ protected:
 	void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep);
-  
+
+#if 0 
    	doublereal 
      	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXPm1,
@@ -356,6 +359,7 @@ protected:
 		   const doublereal& dXP,
 		   const doublereal& dXPm1,
 		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+#endif
    
 	/* Note: uses linear prediction for derivatives 
 	 * (highest possible order) */
@@ -393,7 +397,8 @@ protected:
 	void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep);
-  
+
+#if 0 
    	doublereal 
      	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXPm1,
@@ -404,6 +409,7 @@ protected:
 		   const doublereal& dXP,
 		   const doublereal& dXPm1,
 		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+#endif
    
 	/* Note: uses linear prediction for derivatives 
 	 * (highest possible order) */
@@ -461,6 +467,7 @@ protected:
 		const VectorHandler* const pSol = 0) const;
 	virtual void Predict(void);
 
+#if 0
 	/* Overridden by dedicated inline functions */
 	virtual doublereal 
      	dPredictDerivative(const doublereal& dXm1,
@@ -477,6 +484,7 @@ protected:
 			const doublereal& dXPm1,
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
+#endif
  
    	virtual doublereal 
      	dPredDer(const doublereal& dXm1,
@@ -538,6 +546,7 @@ protected:
 
 	void SetDriveHandler(const DriveHandler* pDH);
 
+#if 0
 	doublereal 
 	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXm2,
@@ -552,6 +561,7 @@ protected:
 			const doublereal& dXPm1,
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+#endif
    
 	/* Note: uses cubic prediction for derivatives
 	 * (highest possible order) */
@@ -617,6 +627,7 @@ protected:
 
 	void SetDriveHandler(const DriveHandler* pDH);
 
+#if 0
 	doublereal 
 	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXm2,
@@ -631,6 +642,7 @@ protected:
 			const doublereal& dXPm1,
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;      
+#endif
 
 	/* Note: uses cubic prediction for derivatives
 	 * (highest possible order) */
@@ -660,6 +672,162 @@ protected:
 };
 
 /* Hope - end */
+
+/* Base class for multistep integrators using templates */ 
+template <unsigned N>
+class tplStepNIntegrator :   
+	public StepNIntegrator
+{
+public:
+	// helper indexes
+	enum IDX_X {
+		IDX_Xm1 = 0,
+		IDX_Xm2 = 1,
+		IDX_Xm3 = 2,
+		IDX_Xm4 = 3,
+		IDX_Xm5 = 4
+		// add as needed
+	};
+
+	enum IDX_XP {
+		IDX_XP0 = 0,
+		IDX_XPm1 = 1,
+		IDX_XPm2 = 2,
+		IDX_XPm3 = 3,
+		IDX_XPm4 = 4,
+		IDX_XPm5 = 5
+		// add as needed...
+	};
+
+protected:
+	VectorHandler *pXPrev[N];
+	VectorHandler *pXPrimePrev[N];
+
+public:
+	tplStepNIntegrator(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol,
+			const bool bmod_res_test);
+
+	virtual ~tplStepNIntegrator(void);
+
+	virtual doublereal
+	Advance(Solver* pS, 
+			const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			std::deque<MyVectorHandler*>& qX,
+	 		std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
+			integer& EffIter,
+			doublereal& Err,
+			doublereal& SolErr);
+
+protected:
+	void PredictDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
+	virtual void Predict(void);
+
+	// dXmN: n-1, n-2, ...
+	// dXPmN: n, n-1, n-2, ...
+   	virtual doublereal 
+     	dPredDer(const doublereal dXm1mN[N],
+			const doublereal dXP0mN[N + 1]) const = 0;
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+   	virtual doublereal 
+     	dPredState(const doublereal dXm1mN[N],
+			const doublereal dXP0mN[N + 1]) const = 0;   
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+   	virtual doublereal 
+     	dPredDerAlg(const doublereal dXm1mN[N],
+			const doublereal dXP0mN[N + 1])  const = 0;
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+   	virtual doublereal 
+     	dPredStateAlg(const doublereal dXm1mN[N],
+			const doublereal dXP0mN[N + 1]) const = 0;
+
+	virtual void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep) = 0;
+};
+
+/* NostroMetodo - begin */
+
+class Multistep2Solver: 
+	public tplStepNIntegrator<2>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_a[2][2];
+	doublereal m_b[2 + 1][2];
+
+	doublereal m_mp[2];
+	doublereal m_np[2];
+ 
+public:
+	Multistep2Solver(const doublereal Tl, 
+			const doublereal dSolTol, 
+			const integer iMaxIt,
+			const DriveCaller* pRho,
+			const DriveCaller* pAlgRho,
+			const bool bmod_res_test);
+
+	~Multistep2Solver(void);
+
+protected:
+	void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	/* Note: uses cubic prediction for derivatives
+	 * (highest possible order) */
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+	doublereal 
+	dPredDer(const doublereal dXm1mN[2],
+			const doublereal dXP0mN[3]) const;
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+	doublereal 
+	dPredState(const doublereal dXm1mN[2],
+			const doublereal dXP0mN[3]) const;
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+	doublereal 
+	dPredDerAlg(const doublereal dXm1mN[2],
+			const doublereal dXP1mN[2]) const;
+
+	// dXmN: n-1, n-2, ...
+	// dXP: n, n-1, n-2, ...
+	doublereal 
+	dPredStateAlg(const doublereal dXm1mN[2],
+			const doublereal dXP0mN[3]) const;
+};
+
+/* NostroMetodo - end */
+
+
+
+
+
+
+
+
 
 /* InverseDynamics - Begin*/
 
