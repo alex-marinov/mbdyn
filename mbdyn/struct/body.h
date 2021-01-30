@@ -40,6 +40,11 @@
 #include "strnode.h"
 #include "gravity.h"
 
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient.h"
+#include "sp_matrix_base.h"
+#include "sp_matvecass.h"
+#endif
 /* Mass - begin */
 
 class Mass : 
@@ -288,6 +293,16 @@ protected:
 	void
 	AssVecRBK_int(SubVectorHandler& WorkVec);
 
+#ifdef USE_SPARSE_AUTODIFF
+       template <typename T>
+       void
+       AssVecRBK_int(const sp_grad::SpColVector<T, 3>& STmp,
+                     const sp_grad::SpMatrix<T, 3, 3>& JTmp,
+                     sp_grad::SpGradientAssVec<T>& WorkVec,
+                     doublereal dCoef,
+                     sp_grad::SpFunctionCall func);
+#endif
+     
 	void
 	AssMatsRBK_int(
 		FullSubMatrixHandler& WMA,
@@ -415,6 +430,24 @@ public:
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
+
+#ifdef USE_SPARSE_AUTODIFF     
+       template <typename T>
+       void
+       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const sp_grad::SpGradientVectorHandler<T>& XCurr,
+              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+              sp_grad::SpFunctionCall func);
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
+                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;                
+#endif
 };
 
 /* DynamicBody - end */
