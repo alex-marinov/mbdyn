@@ -371,6 +371,7 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 	SAFEDELETE(arg->pWorkMatA);
 	SAFEDELETE(arg->pWorkMatB);
 	SAFEDELETE(arg->pWorkVec);
+        
 	if (arg->threadNumber > 0) {
 		if (arg->pJacHdl) {
 			SAFEDELETE(arg->pJacHdl);
@@ -378,11 +379,15 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 #ifdef MBDYN_X_MT_ASSRES
 		SAFEDELETE(arg->pResHdl);
 #endif
-
+                if (arg->ppNaiveJacHdl && arg->ppNaiveJacHdl[arg->threadNumber]) {
+                        SAFEDELETE(arg->ppNaiveJacHdl[arg->threadNumber]);
+                        arg->ppNaiveJacHdl[arg->threadNumber] = nullptr;
+                }                
 	} else {
 		if (arg->ppNaiveJacHdl) {
 			// can be nonzero only when in Naive form
 			SAFEDELETEARR(arg->ppNaiveJacHdl);
+                        arg->ppNaiveJacHdl = nullptr;
 		}
 	}
 
@@ -594,6 +599,10 @@ retry:;
 				thread_data[0].lock[i] = AO_TS_INITIALIZER;
 			}
 
+                        if (thread_data[0].ppNaiveJacHdl) {
+                                SAFEDELETEARR(thread_data[0].ppNaiveJacHdl);
+                        }
+                        
 			thread_data[0].ppNaiveJacHdl = 0;
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
 					NaiveMatrixHandler*, nThreads);
