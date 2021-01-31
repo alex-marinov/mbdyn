@@ -40,12 +40,11 @@
 #include "strnode.h"
 #include "gravity.h"
 
-#if USE_SPARSE_AUTODIFF
-#include <sp_gradient.h>
-#include <sp_matrix_base.h>
-#include <sp_matvecass.h>
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient.h"
+#include "sp_matrix_base.h"
+#include "sp_matvecass.h"
 #endif
-
 /* Mass - begin */
 
 class Mass :
@@ -276,30 +275,40 @@ public:
 class Body :
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 protected:
-        const StructNode *pNode;
-        doublereal dMass;
-        Vec3 Xgc;
-        Vec3 S0;
-        Mat3x3 J0;
+	const StructNode *pNode;
+	doublereal dMass;
+	Vec3 Xgc;
+	Vec3 S0;
+	Mat3x3 J0;
+ 
+	mutable Vec3 STmp;
+	mutable Mat3x3 JTmp;
 
-        mutable Vec3 STmp;
-        mutable Mat3x3 JTmp;
+	/* momento statico */
+	Vec3 GetS_int(void) const;
 
-        /* momento statico */
-        Vec3 GetS_int(void) const;
+	/* momento d'inerzia */
+	Mat3x3 GetJ_int(void) const;
 
-        /* momento d'inerzia */
-        Mat3x3 GetJ_int(void) const;
+	void
+	AssVecRBK_int(SubVectorHandler& WorkVec);
 
-        void
-        AssVecRBK_int(SubVectorHandler& WorkVec);
-
-        void
-        AssMatsRBK_int(
-                FullSubMatrixHandler& WMA,
-                FullSubMatrixHandler& WMB,
-                const doublereal& dCoef,
-                const Vec3& Sc);
+#ifdef USE_SPARSE_AUTODIFF
+       template <typename T>
+       void
+       AssVecRBK_int(const sp_grad::SpColVector<T, 3>& STmp,
+                     const sp_grad::SpMatrix<T, 3, 3>& JTmp,
+                     sp_grad::SpGradientAssVec<T>& WorkVec,
+                     doublereal dCoef,
+                     sp_grad::SpFunctionCall func);
+#endif
+     
+	void
+	AssMatsRBK_int(
+		FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		const doublereal& dCoef,
+		const Vec3& Sc);
 
 public:
         /* Costruttore definitivo (da mettere a punto) */
@@ -373,54 +382,72 @@ private:
                 const Vec3& GravityAcceleration);
 
 public:
-        /* Costruttore definitivo (da mettere a punto) */
-        DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp,
-                doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
-                flag fOut);
+	/* Costruttore definitivo (da mettere a punto) */
+	DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
+		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+		flag fOut);
 
-        virtual ~DynamicBody(void);
+	virtual ~DynamicBody(void);
+ 
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+ 
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
 
-        virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+ 
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+ 
+	/* Dimensione del workspace durante l'assemblaggio iniziale.
+	 * Occorre tener conto del numero di dof che l'elemento definisce
+	 * in questa fase e dei dof dei nodi che vengono utilizzati.
+	 * Sono considerati dof indipendenti la posizione e la velocita'
+	 * dei nodi */
+	virtual void 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
-        virtual VariableSubMatrixHandler&
-        AssJac(VariableSubMatrixHandler& WorkMat,
-                doublereal dCoef,
-                const VectorHandler& XCurr,
-                const VectorHandler& XPrimeCurr);
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
 
-        virtual void
-        AssMats(VariableSubMatrixHandler& WorkMatA,
-                VariableSubMatrixHandler& WorkMatB,
-                const VectorHandler& XCurr,
-                const VectorHandler& XPrimeCurr);
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
-        virtual SubVectorHandler&
-        AssRes(SubVectorHandler& WorkVec,
-                doublereal dCoef,
-                const VectorHandler& XCurr,
-                const VectorHandler& XPrimeCurr);
+	/* Usata per inizializzare la quantita' di moto */
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
 
-        /* Dimensione del workspace durante l'assemblaggio iniziale.
-         * Occorre tener conto del numero di dof che l'elemento definisce
-         * in questa fase e dei dof dei nodi che vengono utilizzati.
-         * Sono considerati dof indipendenti la posizione e la velocita'
-         * dei nodi */
-        virtual void
-        InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+#ifdef USE_SPARSE_AUTODIFF     
+       template <typename T>
+       void
+       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const sp_grad::SpGradientVectorHandler<T>& XCurr,
+              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+              sp_grad::SpFunctionCall func);
 
-        /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-        virtual VariableSubMatrixHandler&
-        InitialAssJac(VariableSubMatrixHandler& WorkMat,
-                const VectorHandler& XCurr);
+       void
+       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
+                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
 
-        /* Contributo al residuo durante l'assemblaggio iniziale */
-        virtual SubVectorHandler&
-        InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
-
-        /* Usata per inizializzare la quantita' di moto */
-        virtual void SetValue(DataManager *pDM,
-                VectorHandler& X, VectorHandler& XP,
-                SimulationEntity::Hints *ph = 0);
+       void
+       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;                
+#endif
 };
 
 /* DynamicBody - end */
