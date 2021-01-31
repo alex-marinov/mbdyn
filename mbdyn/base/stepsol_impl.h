@@ -140,12 +140,6 @@ protected:
 	DriveOwner m_Rho;
 	DriveOwner m_AlgebraicRho;
 
-	doublereal m_a[2][2];
-	doublereal m_b[2 + 1][2];
-
-	doublereal m_mp[2];
-	doublereal m_np[2];
- 
 public:
 	Multistep2Solver(const doublereal Tl, 
 			const doublereal dSolTol, 
@@ -204,12 +198,6 @@ protected:
 	DriveOwner m_AlgebraicRho;
    
 	bool m_bStep;
-   
-	doublereal m_a[2][2];
-	doublereal m_b[2][2];
-   
-	doublereal m_mp[2];
-	doublereal m_np[2];
    
 public:
 	HopeSolver(const doublereal Tl, 

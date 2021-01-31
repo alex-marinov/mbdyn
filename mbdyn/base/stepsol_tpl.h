@@ -95,6 +95,16 @@ protected:
 	const VectorHandler *m_pXPrev[N];
 	const VectorHandler *m_pXPrimePrev[N];
 
+	// access as 
+	// 	m_a[IDX_A1-N][DIFFERENTIAL|ALGEBRAIC]
+	// 	m_b[IDX_B0-N][DIFFERENTIAL|ALGEBRAIC]
+	doublereal m_a[N][2];
+	doublereal m_b[N + 1][2];
+
+	// at most N coefficients; often much less are used!
+	doublereal m_mp[N];
+	doublereal m_np[N];
+ 
 public:
 	tplStepNIntegrator(const integer MaxIt,
 			const doublereal dT,

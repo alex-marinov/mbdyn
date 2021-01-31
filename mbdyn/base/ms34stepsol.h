@@ -59,12 +59,6 @@ protected:
 	DriveOwner m_Rho;
 	DriveOwner m_AlgebraicRho;
    
-	doublereal m_a[3][2];
-	doublereal m_b[4][2];
-
-	doublereal m_mp[2];
-	doublereal m_np[2];
-   
 public:
 	TunableStep3Solver(const doublereal Tl, 
 			const doublereal dSolTol, 
@@ -110,12 +104,6 @@ class TunableStep4Solver:
 protected:
 	DriveOwner m_Rho;
 	DriveOwner m_AlgebraicRho;
-   
-	doublereal m_a[4][2];
-	doublereal m_b[5][2];
-
-	doublereal m_mp[2];
-	doublereal m_np[2];
    
 public:
 	TunableStep4Solver(const doublereal Tl, 
