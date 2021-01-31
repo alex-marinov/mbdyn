@@ -320,7 +320,7 @@ namespace sp_grad {
 	  inline static SpDerivData* pGetNullData();
 
 	  SpDerivData* pData;
-	  static SpDerivData oNullData;
+	  static SP_GRAD_THREAD_LOCAL SpDerivData oNullData;
      };
 }
 #endif

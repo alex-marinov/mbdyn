@@ -106,17 +106,12 @@ namespace sp_grad {
      protected:
 	  index_type iNumRows;
 	  index_type iNumCols;
-#ifdef USE_MULTITHREAD
-	  std::atomic<index_type> iRefCnt;
-#else
 	  index_type iRefCnt;
-#endif
 	  index_type iNumDeriv;
-	  
 	  ValueType rgData[0];
 	  
      private:
-	  static struct NullData {
+	  static SP_GRAD_THREAD_LOCAL struct NullData {
 	       NullData();
 	       ~NullData();
 	       SpMatrixBaseData* pNullData;

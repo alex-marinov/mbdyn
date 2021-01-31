@@ -99,6 +99,7 @@ private:
 		pthread_t		thread;
 		ParNaiveSolver		*pSLUS;
 		unsigned		threadNumber;
+                int                     iCPUIndex;
 		sem_t			sem;
 		int			retval;
 	} *thread_data;
@@ -116,6 +117,7 @@ private:
 
 	void EndOfOp(void);
 
+        static void SetAffinity(const thread_data_t& oThreadData);
 public:
 	/* Costruttore: si limita ad allocare la memoria */
 	ParNaiveSolver(unsigned nt, const integer &size, 
