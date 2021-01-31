@@ -176,7 +176,11 @@ namespace sp_grad {
 	  index_type iSizeRes;
 	  index_type iSizeCurr;
 	  unsigned uFlags;
+#ifdef USE_MULTITHREAD
+	  std::atomic<index_type> iRefCnt;
+#else
 	  index_type iRefCnt;
+#endif
 	  SpMatrixData<SpGradient>* pOwner;
 	  SpDerivRec rgDer[];
      } SP_GRAD_ALIGNMENT(alignof(SpDerivRec));

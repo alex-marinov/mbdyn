@@ -2102,7 +2102,7 @@ namespace sp_grad {
      }
 
      template <typename ValueType>
-     SP_GRAD_THREAD_LOCAL typename SpMatrixBaseData<ValueType>::NullData SpMatrixBaseData<ValueType>::oNullData;
+     typename SpMatrixBaseData<ValueType>::NullData SpMatrixBaseData<ValueType>::oNullData;
      
      namespace util {
 	  template <typename ValueType>

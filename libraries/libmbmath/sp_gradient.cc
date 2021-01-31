@@ -51,7 +51,7 @@
 #include "sp_gradient_op.h"
 
 namespace sp_grad {
-     SP_GRAD_THREAD_LOCAL SpDerivData SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};
+     SpDerivData SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};
 
      SpDerivData* SpGradient::pAllocMem(SpDerivData* ptr, index_type iSize) {
 	  ptr = reinterpret_cast<SpDerivData*>(std::realloc(ptr, uGetAllocSize(iSize)));
