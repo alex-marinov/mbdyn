@@ -177,7 +177,7 @@ tplStageNIntegrator<N>::tplStageNIntegrator(const integer MaxIt,
 	const doublereal dT,
 	const doublereal dSolutionTol,
 	const bool bmod_res_test)
-: StepNIntegrator(MaxIt, dT, dSolutionTol, 2, bmod_res_test)
+: StepNIntegrator(MaxIt, dT, dSolutionTol, 1, bmod_res_test)
 {
 	for (unsigned i = 0; i < N; i++) {
 		m_pX[i] = 0;
@@ -188,7 +188,21 @@ tplStageNIntegrator<N>::tplStageNIntegrator(const integer MaxIt,
 template <unsigned N>
 tplStageNIntegrator<N>::~tplStageNIntegrator(void)
 {
-	NO_OP;
+	m_pX[0] = 0;
+	m_pXP[0] = 0;
+
+	// NOTE: start from 1 because tplStageNIntegrator does not own the vector in 0
+	for (unsigned i = 1; i < N; i++) {
+		if (m_pX[i] != 0) {
+			SAFEDELETE(m_pX[i]);
+			m_pX[i] = 0;
+		}
+
+		if (m_pXP[i] != 0) {
+			SAFEDELETE(m_pXP[i]);
+			m_pXP[i] = 0;
+		}
+	}
 }
 
 template <unsigned N> template <unsigned S>
@@ -300,9 +314,21 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 	pXCurr = pX;
 	pXPrimeCurr = pXPrime;
 
-	for (unsigned S = 0; S < N; S++) {
-		m_pX[S] = qX[S];
-		m_pXP[S] = qXPrime[S];
+	// the solution at the previous step we take from qX, qXPrime
+	m_pX[0] = qX[0];
+	m_pXP[0] = qXPrime[0];
+
+	// first time?
+	if (m_pX[1] == 0) {
+		// we own memory for internal stage(s) (from 1 on; see destructor)
+		for (unsigned S = 1; S < N; S++) {
+			SAFENEWWITHCONSTRUCTOR(m_pX[S],
+				MyVectorHandler,
+				MyVectorHandler(pDM->iGetNumDofs()));
+			SAFENEWWITHCONSTRUCTOR(m_pXP[S],
+				MyVectorHandler,
+				MyVectorHandler(pDM->iGetNumDofs()));
+		}
 	}
 
 	// First-stage
