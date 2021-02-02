@@ -44,9 +44,9 @@
 #include "multistagestepsol_impl.h"
 #include "stepsol.hc"
 
-/* TunableBatheSolver2 - begin */
+/* TunableBatheSolver - begin */
 
-TunableBatheSolver2::TunableBatheSolver2(const doublereal Tl,
+TunableBatheSolver::TunableBatheSolver(const doublereal Tl,
 	const doublereal dSolTl,
 	const integer iMaxIt,
 	const DriveCaller* pRho,
@@ -59,20 +59,20 @@ m_Rho(pRho), m_AlgebraicRho(pAlgRho)
 	ASSERT(pAlgRho != 0);
 }
 
-TunableBatheSolver2::~TunableBatheSolver2(void)
+TunableBatheSolver::~TunableBatheSolver(void)
 {
 	NO_OP;
 }
 
 void
-TunableBatheSolver2::SetDriveHandler(const DriveHandler* pDH)
+TunableBatheSolver::SetDriveHandler(const DriveHandler* pDH)
 {
 	m_Rho.pGetDriveCaller()->SetDrvHdl(pDH);
 	m_AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
 }
 
 void
-TunableBatheSolver2::SetCoefForStageS(unsigned uStage,
+TunableBatheSolver::SetCoefForStageS(unsigned uStage,
 	doublereal dT,
 	doublereal dAlpha,
 	enum StepChange /* NewStep */)
@@ -157,7 +157,7 @@ TunableBatheSolver2::SetCoefForStageS(unsigned uStage,
 }
 
 doublereal
-TunableBatheSolver2::dPredDerForStageS(unsigned uStage,
+TunableBatheSolver::dPredDerForStageS(unsigned uStage,
 	const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
@@ -177,7 +177,7 @@ TunableBatheSolver2::dPredDerForStageS(unsigned uStage,
 }
 
 doublereal
-TunableBatheSolver2::dPredStateForStageS(unsigned uStage,
+TunableBatheSolver::dPredStateForStageS(unsigned uStage,
 	const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
@@ -203,7 +203,7 @@ TunableBatheSolver2::dPredStateForStageS(unsigned uStage,
 }
 
 doublereal
-TunableBatheSolver2::dPredDerAlgForStageS(unsigned uStage,
+TunableBatheSolver::dPredDerAlgForStageS(unsigned uStage,
 	const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
@@ -223,7 +223,7 @@ TunableBatheSolver2::dPredDerAlgForStageS(unsigned uStage,
 }
 
 doublereal
-TunableBatheSolver2::dPredStateAlgForStageS(unsigned uStage,
+TunableBatheSolver::dPredStateAlgForStageS(unsigned uStage,
 	const doublereal dXm1mN[2],
 	const doublereal dXP0mN[3]) const
 {
@@ -244,4 +244,4 @@ TunableBatheSolver2::dPredStateAlgForStageS(unsigned uStage,
 	}
 }
 
-/* TunableBatheSolver2 - end */
+/* TunableBatheSolver - end */

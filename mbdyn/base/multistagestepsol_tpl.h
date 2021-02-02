@@ -48,7 +48,6 @@
 #include "drive.h"
 #include "nonlinpb.h"
 #include "nonlin.h"
-#include "multistagestepsol.h"
 
 /* tplStageNIntegrator - begin */
 

@@ -101,8 +101,6 @@ ms34stepsol.cc \
 ms34stepsol.h \
 mtdataman.cc \
 mtdataman.h \
-multistagestepsol.cc \
-multistagestepsol.h \
 multistagestepsol_impl.cc \
 multistagestepsol_impl.h \
 multistagestepsol_tpl.h \

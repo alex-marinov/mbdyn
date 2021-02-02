@@ -69,7 +69,6 @@
 #include "stepsol_impl.h"
 #include "thirdorderstepsol.h"
 #include "ms34stepsol.h"
-#include "multistagestepsol.h" // TODO: no longer needed
 #include "multistagestepsol_impl.h"
 #include "nr.h"
 #include "linesearch.h"
@@ -2315,11 +2314,6 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
-	case INT_BATHE_OLD:
-		out << "Bathe old, ";
-		pRhoRegular->Restart(out) << ", ";
-		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
-		break;
 	case INT_BATHE:
 		out << "Bathe, ";
 		pRhoRegular->Restart(out) << ", ";
@@ -2497,7 +2491,6 @@ Solver::ReadData(MBDynParser& HP)
 			"bdf",
 			"thirdorder",
 			"implicit" "euler",
-			"Bathe" "old",
 			"Bathe",
 
 		"derivatives" "coefficient",
@@ -2612,7 +2605,6 @@ Solver::ReadData(MBDynParser& HP)
 		BDF,
 		THIRDORDER,
 		IMPLICITEULER,
-		BATHE_OLD,
 		BATHE,
 
 		DERIVATIVESCOEFFICIENT,
@@ -3045,7 +3037,6 @@ Solver::ReadData(MBDynParser& HP)
 			case MS2:
 			case MS3:
 			case MS4:
-			case BATHE_OLD:
 			case BATHE:
 			case HOPE:
 				pRhoRegular = HP.GetDriveCaller(true);
@@ -3076,12 +3067,6 @@ Solver::ReadData(MBDynParser& HP)
 					pSecondRhoAlgebraicRegular=pRhoRegular->pCopy();
 					pThirdRhoRegular=pRhoRegular->pCopy();
 					pThirdRhoAlgebraicRegular=pRhoRegular->pCopy();
-					break;
-
-				case BATHE_OLD:
-					RegularType = INT_BATHE_OLD;
-					//pFirstRhoRegular=pRhoRegular->pCopy();
-					//pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case BATHE:
@@ -3171,7 +3156,6 @@ Solver::ReadData(MBDynParser& HP)
 			case MS2:
 			case MS3:
 			case MS4:
-			case BATHE_OLD:
 			case BATHE:
 			case HOPE:
 				pRhoDummy = HP.GetDriveCaller(true);
@@ -3195,10 +3179,6 @@ Solver::ReadData(MBDynParser& HP)
 
 				case MS4:
 					DummyType = INT_MS4;
-					break;
-
-				case BATHE_OLD:
-					DummyType = INT_BATHE_OLD;
 					break;
 
 				case BATHE:
@@ -4509,21 +4489,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						bModResTest));
 			break;
 
-		case INT_BATHE_OLD:
+		case INT_BATHE:
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					TunableBatheSolver,
 					TunableBatheSolver(dDummyStepsTolerance,
-						dSolutionTol,
-						iDummyStepsMaxIterations,
-						pRhoDummy,
-						pRhoAlgebraicDummy,
-						bModResTest));
-			break;
-
-		case INT_BATHE:
-			SAFENEWWITHCONSTRUCTOR(pDummySteps,
-					TunableBatheSolver2,
-					TunableBatheSolver2(dDummyStepsTolerance,
 						dSolutionTol,
 						iDummyStepsMaxIterations,
 						pRhoDummy,
@@ -4691,21 +4660,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					bModResTest));
 		break;
 
-	case INT_BATHE_OLD:
+	case INT_BATHE:
 		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
 				TunableBatheSolver,
 				TunableBatheSolver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pRhoRegular,
-					pRhoAlgebraicRegular,
-					bModResTest));
-		break;
-
-	case INT_BATHE:
-		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-				TunableBatheSolver2,
-				TunableBatheSolver2(dTol,
 					dSolutionTol,
 					iMaxIterations,
 					pRhoRegular,

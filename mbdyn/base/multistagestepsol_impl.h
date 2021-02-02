@@ -50,9 +50,9 @@
 #include "nonlin.h"
 #include "multistagestepsol_tpl.h"
 
-/* TunableBatheSolver2 - begin */
+/* TunableBatheSolver - begin */
 
-class TunableBatheSolver2:
+class TunableBatheSolver:
 	public tplStageNIntegrator<2>
 {
 protected:
@@ -68,14 +68,14 @@ protected:
 	doublereal m_np[2];
 
 public:
-	TunableBatheSolver2(const doublereal Tl,
+	TunableBatheSolver(const doublereal Tl,
 		const doublereal dSolTol,
 		const integer iMaxIt,
 		const DriveCaller* pRho,
 		const DriveCaller* pAlgRho,
 		const bool bmod_res_test);
 
-	~TunableBatheSolver2(void);
+	~TunableBatheSolver(void);
 
 protected:
 	void SetCoefForStageS(unsigned uStage,
@@ -106,6 +106,6 @@ protected:
 		const doublereal dXP0mN[3]) const;
 };
 
-/* TunableBatheSolver2 - end */
+/* TunableBatheSolver - end */
 
 #endif // MULTISTAGESTEPSOL_IMPL_H
