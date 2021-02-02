@@ -76,10 +76,6 @@ gmres.h \
 hint.h \
 hint_impl.cc \
 hint_impl.h \
-ms34stepsol.cc \
-ms34stepsol.h \
-multistagestepsol.cc \
-multistagestepsol.h \
 invdataman.cc \
 invdyn.h \
 invdyn.cc \
@@ -101,8 +97,15 @@ modelns.cc \
 modelns.h \
 modules.cc \
 modules.h \
+ms34stepsol.cc \
+ms34stepsol.h \
 mtdataman.cc \
 mtdataman.h \
+multistagestepsol.cc \
+multistagestepsol.h \
+multistagestepsol_impl.cc \
+multistagestepsol_impl.h \
+multistagestepsol_tpl.h \
 nestedelem.cc \
 nestedelem.h \
 node.cc \

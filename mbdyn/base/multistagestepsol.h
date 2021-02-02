@@ -239,4 +239,5 @@ protected:
 };
 
 /* TunableBatheSolver - end */
+
 #endif

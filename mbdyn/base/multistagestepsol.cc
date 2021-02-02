@@ -224,7 +224,7 @@ Stage2Integrator::Advance(Solver* pS,
 	/* if it gets here, it surely converged */
 	pDM->AfterConvergence();
 
-    /*Second-stage*/
+	/*Second-stage*/
 	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *qX[0], *qXPrime[0]);
 	qX.push_front(qX.back());
 	qX.pop_back();
@@ -243,7 +243,7 @@ Stage2Integrator::Advance(Solver* pS,
 	pXPrimeInte = qXPrime[0];
 	pXPrimePrev = qXPrime[1]; 
 
-    SetCoef(TStep, dAph, StType);
+	SetCoef(TStep, dAph, StType);
 	PredictforStage2();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       	pDM->AfterPredict();

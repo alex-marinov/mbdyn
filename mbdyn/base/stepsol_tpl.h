@@ -107,24 +107,24 @@ protected:
  
 public:
 	tplStepNIntegrator(const integer MaxIt,
-			const doublereal dT,
-			const doublereal dSolutionTol,
-			const bool bmod_res_test);
+		const doublereal dT,
+		const doublereal dSolutionTol,
+		const bool bmod_res_test);
 
 	virtual ~tplStepNIntegrator(void);
 
 	virtual doublereal
 	Advance(Solver* pS, 
-			const doublereal TStep, 
-			const doublereal dAlph, 
-			const StepChange StType,
-			std::deque<MyVectorHandler*>& qX,
-	 		std::deque<MyVectorHandler*>& qXPrime,
-			MyVectorHandler*const pX,
- 			MyVectorHandler*const pXPrime,
-			integer& EffIter,
-			doublereal& Err,
-			doublereal& SolErr);
+		const doublereal TStep, 
+		const doublereal dAlph, 
+		const StepChange StType,
+		std::deque<MyVectorHandler*>& qX,
+ 		std::deque<MyVectorHandler*>& qXPrime,
+		MyVectorHandler*const pX,
+ 		MyVectorHandler*const pXPrime,
+		integer& EffIter,
+		doublereal& Err,
+		doublereal& SolErr);
 
 protected:
 	void PredictDof(const int DCount,
@@ -137,29 +137,29 @@ protected:
 	// dXPmN: n, n-1, n-2, ...
    	virtual doublereal 
      	dPredDer(const doublereal dXm1mN[N],
-			const doublereal dXP0mN[N + 1]) const = 0;
+		const doublereal dXP0mN[N + 1]) const = 0;
 
 	// dXmN: n-1, n-2, ...
 	// dXP: n, n-1, n-2, ...
    	virtual doublereal 
      	dPredState(const doublereal dXm1mN[N],
-			const doublereal dXP0mN[N + 1]) const = 0;   
+		const doublereal dXP0mN[N + 1]) const = 0;   
 
 	// dXmN: n-1, n-2, ...
 	// dXP: n, n-1, n-2, ...
    	virtual doublereal 
      	dPredDerAlg(const doublereal dXm1mN[N],
-			const doublereal dXP0mN[N + 1])  const = 0;
+		const doublereal dXP0mN[N + 1])  const = 0;
 
 	// dXmN: n-1, n-2, ...
 	// dXP: n, n-1, n-2, ...
    	virtual doublereal 
      	dPredStateAlg(const doublereal dXm1mN[N],
-			const doublereal dXP0mN[N + 1]) const = 0;
+		const doublereal dXP0mN[N + 1]) const = 0;
 
 	virtual void SetCoef(doublereal dT, 
-			doublereal dAlpha,
-			enum StepChange NewStep) = 0;
+		doublereal dAlpha,
+		enum StepChange NewStep) = 0;
 };
 
 template <unsigned N>
@@ -237,15 +237,15 @@ tplStepNIntegrator<N>::Predict(void)
 template <unsigned N>
 doublereal
 tplStepNIntegrator<N>::Advance(Solver* pS,
-		const doublereal TStep,
-		const doublereal dAph, const StepChange StType,
-		std::deque<MyVectorHandler*>& qX,
-	 	std::deque<MyVectorHandler*>& qXPrime,
-		MyVectorHandler*const pX,
-		MyVectorHandler*const pXPrime,
-		integer& EffIter,
-		doublereal& Err,
-		doublereal& SolErr)
+	const doublereal TStep,
+	const doublereal dAph, const StepChange StType,
+	std::deque<MyVectorHandler*>& qX,
+	std::deque<MyVectorHandler*>& qXPrime,
+	MyVectorHandler*const pX,
+	MyVectorHandler*const pXPrime,
+	integer& EffIter,
+	doublereal& Err,
+	doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
 	pXCurr  = pX;
