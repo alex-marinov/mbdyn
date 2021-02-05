@@ -273,6 +273,12 @@ protected:
 			INT_MS4,
 			INT_HOPE,
 			INT_BATHE,
+			INT_MSSTC3,
+			INT_MSSTH3,
+			INT_MSSTC4,
+			INT_MSSTH4,
+			INT_MSSTC5,
+			INT_MSSTH5,
 			INT_THIRDORDER,
 			INT_IMPLICITEULER,
 			INT_UNKNOWN
@@ -290,8 +296,8 @@ protected:
 
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
-	//DriveCaller* pFirstRhoRegular;
-	//DriveCaller* pFirstRhoAlgebraicRegular;
+	DriveCaller* pFirstRhoRegular;
+	DriveCaller* pFirstRhoAlgebraicRegular;
 	DriveCaller* pSecondRhoRegular;
 	DriveCaller* pSecondRhoAlgebraicRegular;
 	DriveCaller* pThirdRhoRegular;

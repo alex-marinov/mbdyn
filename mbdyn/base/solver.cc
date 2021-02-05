@@ -325,8 +325,8 @@ pRegularSteps(0),
 pCurrStepIntegrator(0),
 pRhoRegular(0),
 pRhoAlgebraicRegular(0),
-//pFirstRhoRegular(0),
-//pFirstRhoAlgebraicRegular(0),
+pFirstRhoRegular(0),
+pFirstRhoAlgebraicRegular(0),
 pSecondRhoRegular(0),
 pSecondRhoAlgebraicRegular(0),
 pThirdRhoRegular(0),
@@ -1230,11 +1230,11 @@ Solver::Start(void)
 
 	lStep = 1; /* Resetto di nuovo lStep */
 
-	/*DEBUGCOUT("Step " << lStep << " has been successfully completed "
-			"in " << iStIter << " iterations" << std::endl);
+	//DEBUGCOUT("Step " << lStep << " has been successfully completed "
+	//		"in " << iStIter << " iterations" << std::endl);
 
 
-	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);*/
+	//DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
@@ -1380,7 +1380,7 @@ IfFirstStepIsToBeRepeated:
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 	
 
-	/*Second start-up step for MS3 and MS4*/
+	//Second start-up step for MS3 and MS4
 	if (RegularType==StepIntegratorType::INT_MS3 || RegularType==StepIntegratorType::INT_MS4)
 	{	
 		ASSERT(pSecondRegularStep!= 0);
@@ -1628,8 +1628,8 @@ IfFirstStepIsToBeRepeated:
 		SAFEDELETE(pSecondRegularStep);
 		pSecondRegularStep = 0;
 	}
-	/* Second start-up step for MS3 and MS4;*/	
-	/* Third start-up step for MS4;*/
+	// Second start-up step for MS3 and MS4;	
+	// Third start-up step for MS4;
 	if (RegularType==StepIntegratorType::INT_MS4)
 	{	
 		ASSERT(pThirdRegularStep!= 0);
@@ -1882,7 +1882,7 @@ IfFirstStepIsToBeRepeated:
 		SAFEDELETE(pThirdRegularStep);
 		pThirdRegularStep = 0;
 	}
-	/* Third start-up step for MS4*/
+	//Third start-up step for MS4
 	/* Altri passi regolari */
 	ASSERT(pRegularSteps != 0);
 
@@ -2224,30 +2224,6 @@ Solver::~Solver(void)
 		SAFEDELETE(pThirdRegularStep);
 	}
 
-	/*if (pFirstRhoRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}
-
-	if (pFirstRhoAlgebraicRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}
-
-	if (pSecondRhoRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}
-
-	if (pSecondRhoAlgebraicRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}
-
-	if (pThirdRhoRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}
-
-	if (pThirdRhoAlgebraicRegular){
-		SAFEDELETE(pFirstRhoRegular);
-	}*/
-
 	if (pRegularSteps) {
 		SAFEDELETE(pRegularSteps);
 	}
@@ -2314,17 +2290,46 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
-	case INT_BATHE:
-		out << "Bathe, ";
-		pRhoRegular->Restart(out) << ", ";
-		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
-		break;
 	case INT_HOPE:
 		out << "hope, ";
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
-
+	case INT_BATHE:
+		out << "Bathe, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTC3:
+		out << "msstc3, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTH3:
+		out << "mssth3, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTC4:
+		out << "msstc4, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTH4:
+		out << "mssth4, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTC5:
+		out << "msstc5, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_MSSTH5:
+		out << "mssth5, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
 	case INT_THIRDORDER:
 		out << "thirdorder, ";
 		if (!pRhoRegular)
@@ -2488,10 +2493,16 @@ Solver::ReadData(MBDynParser& HP)
 			"ms3",
 			"ms4",
 			"hope",
+			"Bathe",
+			"msstc3",
+			"mssth3",
+			"msstc4",
+			"mssth4",
+			"msstc5",
+			"mssth5",
 			"bdf",
 			"thirdorder",
 			"implicit" "euler",
-			"Bathe",
 
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
@@ -2602,10 +2613,16 @@ Solver::ReadData(MBDynParser& HP)
 		MS3,
 		MS4,
 		HOPE,
+		BATHE,
+		MSSTC3,
+		MSSTH3,
+		MSSTC4,
+		MSSTH4,
+		MSSTC5,
+		MSSTH5,
 		BDF,
 		THIRDORDER,
 		IMPLICITEULER,
-		BATHE,
 
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
@@ -3038,6 +3055,12 @@ Solver::ReadData(MBDynParser& HP)
 			case MS3:
 			case MS4:
 			case BATHE:
+			case MSSTC3:
+			case MSSTH3:
+			case MSSTC4:
+			case MSSTH4:
+			case MSSTC5:
+			case MSSTH5:
 			case HOPE:
 				pRhoRegular = HP.GetDriveCaller(true);
 
@@ -3071,8 +3094,44 @@ Solver::ReadData(MBDynParser& HP)
 
 				case BATHE:
 					RegularType = INT_BATHE;
-					//pFirstRhoRegular=pRhoRegular->pCopy();
-					//pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTC3:
+					RegularType = INT_MSSTC3;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTH3:
+					RegularType = INT_MSSTH3;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTC4:
+					RegularType = INT_MSSTC4;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTH4:
+					RegularType = INT_MSSTH4;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTC5:
+					RegularType = INT_MSSTC5;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
+					break;
+
+				case MSSTH5:
+					RegularType = INT_MSSTH5;
+					pFirstRhoRegular=pRhoRegular->pCopy();
+					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case HOPE:
@@ -3157,6 +3216,12 @@ Solver::ReadData(MBDynParser& HP)
 			case MS3:
 			case MS4:
 			case BATHE:
+			case MSSTC3:
+			case MSSTH3:
+			case MSSTC4:
+			case MSSTH4:
+			case MSSTC5:
+			case MSSTH5:
 			case HOPE:
 				pRhoDummy = HP.GetDriveCaller(true);
 
@@ -3183,6 +3248,30 @@ Solver::ReadData(MBDynParser& HP)
 
 				case BATHE:
 					DummyType = INT_BATHE;
+					break;
+
+				case MSSTC3:
+					DummyType = INT_MSSTC3;
+					break;
+
+				case MSSTH3:
+					DummyType = INT_MSSTH3;
+					break;
+
+				case MSSTC4:
+					DummyType = INT_MSSTC4;
+					break;
+
+				case MSSTH4:
+					DummyType = INT_MSSTH4;
+					break;
+
+				case MSSTC5:
+					DummyType = INT_MSSTC5;
+					break;
+
+				case MSSTH5:
+					DummyType = INT_MSSTH5;
 					break;
 
 				case HOPE:
@@ -4500,6 +4589,72 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						bModResTest));
 			break;
 
+		case INT_MSSTC3:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Msstc3Solver,
+					Msstc3Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_MSSTH3:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Mssth3Solver,
+					Mssth3Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_MSSTC4:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Msstc4Solver,
+					Msstc4Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_MSSTH4:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Mssth4Solver,
+					Mssth4Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_MSSTC5:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Msstc5Solver,
+					Msstc5Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_MSSTH5:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					Mssth5Solver,
+					Mssth5Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
 		case INT_HOPE:
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					HopeSolver,
@@ -4545,8 +4700,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 		}
 	}
-	/* constructor step solver for stat step*/
-	/*switch (RegularType)
+	/* constructor step solver for start steps*/
+	switch (RegularType)
 	{
 	case INT_BATHE:
 		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
@@ -4558,6 +4713,113 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					pFirstRhoAlgebraicRegular,
 					bModResTest));
 		break;
+
+	case INT_MSSTC3:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Msstc3Solver,
+				Msstc3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH3:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Mssth3Solver,
+				Mssth3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTC4:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Msstc4Solver,
+				Msstc4Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH4:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Mssth4Solver,
+				Mssth4Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTC5:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Msstc5Solver,
+				Msstc5Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH5:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				Mssth5Solver,
+				Mssth5Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pFirstRhoRegular,
+					pFirstRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MS3:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				CrankNicolsonIntegrator,
+				CrankNicolsonIntegrator(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					bModResTest));
+		SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
+				Multistep2Solver,
+				Multistep2Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pSecondRhoRegular,
+					pSecondRhoAlgebraicRegular,
+					bModResTest));
+			break;
+	case INT_MS4:
+		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+				CrankNicolsonIntegrator,
+				CrankNicolsonIntegrator(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					bModResTest));
+		SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
+				Multistep2Solver,
+				Multistep2Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pSecondRhoRegular,
+					pSecondRhoAlgebraicRegular,
+					bModResTest));
+		SAFENEWWITHCONSTRUCTOR(pThirdRegularStep,
+				TunableStep3Solver,
+				TunableStep3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pThirdRhoRegular,
+					pThirdRhoAlgebraicRegular,
+					bModResTest));
+			break;
 	
 	default:
 		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
@@ -4567,54 +4829,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				iMaxIterations,
 				bModResTest));
 		break;
-	}*/
-
-	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicolsonIntegrator,
-			CrankNicolsonIntegrator(dTol,
-				dSolutionTol,
-				iMaxIterations,
-				bModResTest));
-
-	switch (RegularType)
-	{
-		case INT_MS3:
-			SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
-				Multistep2Solver,
-				Multistep2Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pSecondRhoRegular,
-					pSecondRhoAlgebraicRegular,
-					bModResTest));
-			break;
-		case INT_MS4:
-			SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
-				Multistep2Solver,
-				Multistep2Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pSecondRhoRegular,
-					pSecondRhoAlgebraicRegular,
-					bModResTest));
-			SAFENEWWITHCONSTRUCTOR(pThirdRegularStep,
-				TunableStep3Solver,
-				TunableStep3Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pThirdRhoRegular,
-					pThirdRhoAlgebraicRegular,
-					bModResTest));
-			break;
-		/*default:
-			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicolsonIntegrator,
-			CrankNicolsonIntegrator(dTol,
-				dSolutionTol,
-				iMaxIterations,
-				bModResTest));
-			break;*/
 	}
+
+	/*SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+			CrankNicolsonIntegrator,
+			CrankNicolsonIntegrator(dTol,
+				dSolutionTol,
+				iMaxIterations,
+				bModResTest));*/
+
 	
 	/* costruzione dello step solver per i passi normali */
 	switch (RegularType) {
@@ -4671,6 +4894,72 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					bModResTest));
 		break;
 
+	case INT_MSSTC3:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Msstc3Solver,
+				Msstc3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH3:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Mssth3Solver,
+				Mssth3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTC4:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Msstc4Solver,
+				Msstc4Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH4:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Mssth4Solver,
+				Mssth4Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTC5:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Msstc5Solver,
+				Msstc5Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_MSSTH5:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				Mssth5Solver,
+				Mssth5Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+	
 	case INT_HOPE:
 		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
 				HopeSolver,

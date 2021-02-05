@@ -218,7 +218,7 @@ tplStepNIntegrator<N>::PredictDof(const int DCount,
 		pXPrimeCurr->PutCoef(DCount, dXIn);
 
 	} else {
-		silent_cerr("tplStepNIntegrator<" << 2 << ">::PredictDof(): "
+		silent_cerr("tplStepNIntegrator<" << N << ">::PredictDof(): "
 			"unknown order for local dof "
 			<< DCount << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

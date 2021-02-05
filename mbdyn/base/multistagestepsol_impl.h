@@ -64,8 +64,8 @@ protected:
 	doublereal m_dAlgebraicRho;
 
 	// TODO: move to tplStageNIntegrator
-	doublereal m_mp[2];
-	doublereal m_np[2];
+	//doublereal m_mp[2];
+	//doublereal m_np[2];
 
 public:
 	TunableBatheSolver(const doublereal Tl,
@@ -107,5 +107,329 @@ protected:
 };
 
 /* TunableBatheSolver - end */
+
+/* Msstc3Solver - begin */
+
+class Msstc3Solver:
+	public tplStageNIntegrator<3>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Msstc3Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Msstc3Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+};
+
+/* Msstc3Solver - end */
+
+/* Mssth3Solver - begin */
+
+class Mssth3Solver:
+	public tplStageNIntegrator<3>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Mssth3Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Mssth3Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+};
+
+/* Mssth3Solver - end */
+
+/* Msstc4Solver - begin */
+
+class Msstc4Solver:
+	public tplStageNIntegrator<4>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Msstc4Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Msstc4Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+};
+
+/* Msstc4Solver - end */
+
+/* Mssth4Solver - begin */
+
+class Mssth4Solver:
+	public tplStageNIntegrator<4>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Mssth4Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Mssth4Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+};
+
+/* Mssth4Solver - end */
+
+/* Msstc5Solver - begin */
+
+class Msstc5Solver:
+	public tplStageNIntegrator<5>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Msstc5Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Msstc5Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+};
+
+/* Msstc5Solver - end */
+
+/* Mssth5Solver - begin */
+
+class Mssth5Solver:
+	public tplStageNIntegrator<5>
+{
+protected:
+	DriveOwner m_Rho;
+	DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_dRho;
+	doublereal m_dAlgebraicRho;
+
+public:
+	Mssth5Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		const DriveCaller* pRho,
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~Mssth5Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+};
+
+/* Mssth5Solver - end */
 
 #endif // MULTISTAGESTEPSOL_IMPL_H

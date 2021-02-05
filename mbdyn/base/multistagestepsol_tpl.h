@@ -68,7 +68,7 @@ public:
 		IDX_Xs2 = 2,	// three stages ends here
 		IDX_Xs3 = 3,	// ...
 		IDX_Xs4 = 4,
-		IDX_Xs5 = 5	// six stages ends here
+		IDX_Xs5 = 5	    // six stages ends here
 		// add as needed
 	};
 
@@ -368,11 +368,15 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 #endif /* DEBUG */
 
 	Err = 0.;
+	EffIter = 0;
 	integer tmpEffIter = EffIter;
 	doublereal tmpErr = Err;
 
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     		tmpEffIter, tmpErr, dSolTol, SolErr);
+
+	EffIter += tmpEffIter;
+	Err += tmpErr;
 
 	// if it gets here, it surely converged
 	pDM->AfterConvergence();

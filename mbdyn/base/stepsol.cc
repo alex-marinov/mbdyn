@@ -444,8 +444,6 @@ DerivativeSolver::UpdateDof(const int DCount,
 		pXPrimeCurr->IncCoef(DCount, dCoef*d);
 #endif
 	}
-	//std::cout<<"DerivateUpdate, DCount = "<< DCount <<"; Order = "<< Order <<"; d = "<< d <<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
-	//std::cout<<"DerivateUpdate, DCount = "<< DCount <<"; Order = "<< Order <<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
 }
 
 void
@@ -553,11 +551,7 @@ StepNIntegrator::UpdateDof(const int DCount,
 	} else {
 		pXCurr->IncCoef(DCount, d);
 		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
-	}
-	
-	//std::cout<<"Update, DCount = "<< DCount <<"; Order = "<< Order <<"; d = "<< d <<"; pXCurr = "<<pXCurr->operator()(DCount)<<std::endl;
-	//std::cout<<"Update, DCount = "<< DCount <<"; Order = "<< Order <<"; pXPrimeCurr = "<<pXPrimeCurr->operator()(DCount)<<std::endl;
-	
+	}	
 }
 
 void

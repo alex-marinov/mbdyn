@@ -77,27 +77,19 @@ TunableStep3Solver::SetCoef(doublereal dT,
 		doublereal dAlpha,
 		enum StepChange /* NewStep */)
 {
+	if (dAlpha != 1.)
+	{
+		silent_cerr("ms4 has not been implemented in variable-time-step form yet." << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
-	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
-	m_mp[1] = -m_mp[0];
-	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
-	m_np[1] = dAlpha*(2. + 3.*dAlpha);
-	
-	/*doublereal dDen = 2.*(1.+dAlpha)-(1.-dRho)*(1.-dRho);
-	doublereal dBeta = dAlpha*((1.-dRho)*(1.-dRho)*(2.+dAlpha)
-		+2.*(2.*dRho-1.)*(1.+dAlpha))/dDen;
-	doublereal dDelta = .5*dAlpha*dAlpha*(1.-dRho)*(1.-dRho)/dDen;
-
-
-	a[0][DIFFERENTIAL] = 1.-dBeta;
-	a[1][DIFFERENTIAL] = dBeta;
-	a[2][DIFFERENTIAL] = 0.;
-	b[0][DIFFERENTIAL] = dT*(dDelta/dAlpha+dAlpha/2);
-	b[1][DIFFERENTIAL] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
-	b[2][DIFFERENTIAL] = dT*(dBeta/2.+dDelta);
-	b[3][DIFFERENTIAL] = 0.;*/
+	//m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
+	//m_mp[1] = -m_mp[0];
+	//m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
+	//m_np[1] = dAlpha*(2. + 3.*dAlpha);
 
 	doublereal dDen = dRho*dRho - 5.*dRho + 10.;
 	doublereal dBeta = (1. + dRho)*dDen;
@@ -124,34 +116,19 @@ TunableStep3Solver::SetCoef(doublereal dT,
 
 	if (dAlgebraicRho != dRho) {
 
-		/*doublereal dDen = 2.*(1.+dAlpha)-(1.-dAlgebraicRho)*(1.-dAlgebraicRho);
-		doublereal dBeta = dAlpha*((1.-dAlgebraicRho)*(1.-dAlgebraicRho)*(2.+dAlpha)
-				+2.*(2.*dAlgebraicRho-1.)*(1.+dAlpha))/dDen;
-		doublereal dDelta = .5*dAlpha*dAlpha*(1.-dAlgebraicRho)*(1.-dAlgebraicRho)/dDen;
+		dDen = dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.;
+		dBeta = (1. + dAlgebraicRho)*dDen;
 
-		a[1][ALGEBRAIC] = dBeta;
-		b[0][ALGEBRAIC] = dT*(dDelta/dAlpha+dAlpha/2.);
-		b[1][ALGEBRAIC] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
-		b[2][ALGEBRAIC] = dT*(dBeta/2.+dDelta);*/
-		m_a[IDX_A1][ALGEBRAIC] = 3.*(2.*dAlgebraicRho*dAlgebraicRho - 9.*dAlgebraicRho + 5.)/(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.);
-		m_a[IDX_A2][ALGEBRAIC] = -3.*(5.*dAlgebraicRho*dAlgebraicRho - 9.*dAlgebraicRho + 2.)/(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.);
-		m_a[IDX_A3][ALGEBRAIC] = (10.*dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho+1.)/(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.);
-		m_b[IDX_B0][ALGEBRAIC] = dT*(6./((1. + dAlgebraicRho)*(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.)));
-		m_b[IDX_B1][ALGEBRAIC] = dT*(18.*dAlgebraicRho/((1. + dAlgebraicRho)*(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.)));
-		m_b[IDX_B2][ALGEBRAIC] = dT*(18.*dAlgebraicRho*dAlgebraicRho/((1. + dAlgebraicRho)*(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.)));
-		m_b[IDX_B3][ALGEBRAIC] = dT*(6.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/((1. + dAlgebraicRho)*(dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho + 10.)));
+		m_a[IDX_A1][ALGEBRAIC] = 3.*(2.*dAlgebraicRho*dAlgebraicRho - 9.*dAlgebraicRho + 5.)/dDen;
+		m_a[IDX_A2][ALGEBRAIC] = -3.*(5.*dAlgebraicRho*dAlgebraicRho - 9.*dAlgebraicRho + 2.)/dDen;
+		m_a[IDX_A3][ALGEBRAIC] = (10.*dAlgebraicRho*dAlgebraicRho - 5.*dAlgebraicRho+1.)/dDen;
+		m_b[IDX_B0][ALGEBRAIC] = dT*(6./dBeta);
+		m_b[IDX_B1][ALGEBRAIC] = dT*(18.*dAlgebraicRho/dBeta);
+		m_b[IDX_B2][ALGEBRAIC] = dT*(18.*dAlgebraicRho*dAlgebraicRho/dBeta);
+		m_b[IDX_B3][ALGEBRAIC] = dT*(6.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/dBeta);
 
 	} else {
 
-		/*doublereal dDen = 2.*(1.+dAlpha)-(1.-dAlgebraicRho)*(1.-dAlgebraicRho);
-		doublereal dBeta = dAlpha*((1.-dAlgebraicRho)*(1.-dAlgebraicRho)*(2.+dAlpha)
-				+2.*(2.*dAlgebraicRho-1.)*(1.+dAlpha))/dDen;
-		doublereal dDelta = .5*dAlpha*dAlpha*(1.-dAlgebraicRho)*(1.-dAlgebraicRho)/dDen;
-
-		a[1][ALGEBRAIC] = dBeta;
-		b[0][ALGEBRAIC] = dT*(dDelta/dAlpha+dAlpha/2.);
-		b[1][ALGEBRAIC] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
-		b[2][ALGEBRAIC] = dT*(dBeta/2.+dDelta);*/
 		m_a[IDX_A1][ALGEBRAIC] = m_a[IDX_A1][DIFFERENTIAL];
 		m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
 		m_a[IDX_A3][ALGEBRAIC] = m_a[IDX_A3][DIFFERENTIAL];
@@ -179,7 +156,6 @@ doublereal
 TunableStep3Solver::dPredDer(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	/*return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;*/
 	return dXP0mN[IDX_XPm1];
 }
 
@@ -187,15 +163,19 @@ doublereal
 TunableStep3Solver::dPredState(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1] + m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm2] + m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xm3]
-		+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0] + m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1] + m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm2] + m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPm3];
+	return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1] 
+		+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm2] 
+		+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xm3]
+		+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0] 
+		+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1] 
+		+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm2] 
+		+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPm3];
 }
 
 doublereal
 TunableStep3Solver::dPredDerAlg(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	/*return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;*/
 	return dXP0mN[IDX_XPm1];
 }
 
@@ -203,15 +183,19 @@ doublereal
 TunableStep3Solver::dPredStateAlg(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1] + m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm2] + m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm3]
-		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0] + m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1] + m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2] + m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm3];
-	/*return dXm1;*/
+	return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1] 
+		+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm2] 
+		+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm3]
+		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0] 
+		+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1] 
+		+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2] 
+		+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm3];
 }
 
 /* TunableStep3Solver - end */
 
 
-/* Step4Solver - begin */
+/* TunableStep4Solver - begin */
 
 TunableStep4Solver::TunableStep4Solver(const doublereal Tl,
 	const doublereal dSolTl,
@@ -243,24 +227,28 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	doublereal dAlpha,
 	enum StepChange /* NewStep */)
 {
+	if (dAlpha != 1.)
+	{
+		silent_cerr("ms4 has not been implemented in variable-time-step form yet." << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	
+
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
+	doublereal dDen = - dRho*dRho*dRho + 7.*dRho*dRho - 21.*dRho + 35.;
+	doublereal dBeta = (1. + dRho)*dDen;
 
-	/*mp[0] = -6.*dAlpha*dAlpha*(1.+dAlpha)/dT;
-	mp[1] = -mp[0];
-	np[0] = 1.+4.*dAlpha+3.*dAlpha*dAlpha;
-	np[1] = dAlpha*(2.+3.*dAlpha);*/
-
-	m_a[IDX_A1][DIFFERENTIAL] = 4.0*(-2.0*dRho*dRho*dRho + 13.0*dRho*dRho - 35.0*dRho + 14.0)/(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0);
-	m_a[IDX_A2][DIFFERENTIAL] = -4.0*(1.0 - dRho)*(7.0*dRho*dRho - 34.0*dRho + 7.0)/(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0);
-	m_a[IDX_A3][DIFFERENTIAL] = -4.0*(14.0*dRho*dRho*dRho - 35.0*dRho*dRho + 13.0*dRho - 2.0)/(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0);
-	m_a[IDX_A4][DIFFERENTIAL] = (35.0*dRho*dRho*dRho - 21.0*dRho*dRho + 7.0*dRho - 1.0)/(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0);
-	m_b[IDX_B0][DIFFERENTIAL] = dT*(20.0/((1.0 + dRho)*(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0)));
-	m_b[IDX_B1][DIFFERENTIAL] = dT*(80.0*dRho/((1.0 + dRho)*(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0)));
-	m_b[IDX_B2][DIFFERENTIAL] = dT*(120.0*dRho*dRho/((1.0 + dRho)*(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0)));
-	m_b[IDX_B3][DIFFERENTIAL] = dT*(80.0*dRho*dRho*dRho/((1.0 + dRho)*(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0)));
-	m_b[IDX_B4][DIFFERENTIAL] = dT*(20.0*dRho*dRho*dRho*dRho/((1.0 + dRho)*(-dRho*dRho*dRho + 7.0*dRho*dRho - 21.0*dRho + 35.0)));
+	m_a[IDX_A1][DIFFERENTIAL] = 4.*(- 2.*dRho*dRho*dRho + 13.*dRho*dRho - 35.*dRho + 14.)/dDen;
+	m_a[IDX_A2][DIFFERENTIAL] = - 4.*(1. - dRho)*(7.*dRho*dRho - 34.*dRho + 7.)/dDen;
+	m_a[IDX_A3][DIFFERENTIAL] = - 4.*(14.*dRho*dRho*dRho - 35.*dRho*dRho + 13.*dRho - 2.)/dDen;
+	m_a[IDX_A4][DIFFERENTIAL] = (35.*dRho*dRho*dRho - 21.*dRho*dRho + 7.*dRho - 1.)/dDen;
+	m_b[IDX_B0][DIFFERENTIAL] = dT*(20./dBeta);
+	m_b[IDX_B1][DIFFERENTIAL] = dT*(80.*dRho/dBeta);
+	m_b[IDX_B2][DIFFERENTIAL] = dT*(120.*dRho*dRho/dBeta);
+	m_b[IDX_B3][DIFFERENTIAL] = dT*(80.*dRho*dRho*dRho/dBeta);
+	m_b[IDX_B4][DIFFERENTIAL] = dT*(20.*dRho*dRho*dRho*dRho/dBeta);
 
 	DEBUGCOUT("Predict()" << std::endl
 		<< "Alpha = " << dAlpha << std::endl
@@ -277,15 +265,19 @@ TunableStep4Solver::SetCoef(doublereal dT,
 		<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
 
 	if (dAlgebraicRho != dRho) {
-		m_a[IDX_A1][ALGEBRAIC] = 4.0*(-2.0*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+13.0*dAlgebraicRho*dAlgebraicRho-35.0*dAlgebraicRho+14.0)/(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0);
-		m_a[IDX_A2][ALGEBRAIC] = -4.0*(1.0-dAlgebraicRho)*(7.0*dAlgebraicRho*dAlgebraicRho-34.0*dAlgebraicRho+7.0)/(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0);
-		m_a[IDX_A3][ALGEBRAIC] = -4.0*(14.0*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho-35.0*dAlgebraicRho*dAlgebraicRho+13.0*dAlgebraicRho-2.0)/(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0);
-		m_a[IDX_A4][ALGEBRAIC] = (35.0*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho-1.0)/(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0);
-		m_b[IDX_B0][ALGEBRAIC] = dT*(20.0/((1.0+dAlgebraicRho)*(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0)));
-		m_b[IDX_B1][ALGEBRAIC] = dT*(80.0*dAlgebraicRho/((1.0+dAlgebraicRho)*(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0)));
-		m_b[IDX_B2][ALGEBRAIC] = dT*(120.0*dAlgebraicRho*dAlgebraicRho/((1.0+dAlgebraicRho)*(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0)));
-		m_b[IDX_B3][ALGEBRAIC] = dT*(80.0*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/((1.0+dAlgebraicRho)*(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0)));
-		m_b[IDX_B4][ALGEBRAIC] = dT*(20.0*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/((1.0+dAlgebraicRho)*(-dAlgebraicRho*dAlgebraicRho*dAlgebraicRho+7.0*dAlgebraicRho*dAlgebraicRho-21.0*dAlgebraicRho+35.0)));
+
+		dDen = - dAlgebraicRho*dAlgebraicRho*dAlgebraicRho + 7.*dAlgebraicRho*dAlgebraicRho - 21.*dAlgebraicRho + 35.;
+		dBeta = (1. + dAlgebraicRho)*dDen;
+
+		m_a[IDX_A1][ALGEBRAIC] = 4.*(- 2.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho + 13.*dAlgebraicRho*dAlgebraicRho - 35.*dAlgebraicRho + 14.)/dDen;
+		m_a[IDX_A2][ALGEBRAIC] = - 4.*(1. - dAlgebraicRho)*(7.*dAlgebraicRho*dAlgebraicRho - 34.*dAlgebraicRho + 7.)/dDen;
+		m_a[IDX_A3][ALGEBRAIC] = - 4.*(14.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho - 35.*dAlgebraicRho*dAlgebraicRho + 13.*dAlgebraicRho - 2.)/dDen;
+		m_a[IDX_A4][ALGEBRAIC] = (35.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho - 21.*dAlgebraicRho*dAlgebraicRho + 7.*dAlgebraicRho - 1.)/dDen;
+		m_b[IDX_B0][ALGEBRAIC] = dT*(20./dBeta);
+		m_b[IDX_B1][ALGEBRAIC] = dT*(80.*dAlgebraicRho/dBeta);
+		m_b[IDX_B2][ALGEBRAIC] = dT*(120.*dAlgebraicRho*dAlgebraicRho/dBeta);
+		m_b[IDX_B3][ALGEBRAIC] = dT*(80.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/dBeta);
+		m_b[IDX_B4][ALGEBRAIC] = dT*(20.*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho*dAlgebraicRho/dBeta);
 
 	} else {
 		m_a[IDX_A1][ALGEBRAIC] = m_a[IDX_A1][DIFFERENTIAL];
@@ -321,7 +313,6 @@ doublereal
 TunableStep4Solver::dPredDer(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	/*return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;*/
 	return dXP0mN[IDX_XPm1];
 }
 
@@ -344,7 +335,6 @@ doublereal
 TunableStep4Solver::dPredDerAlg(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	/*return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;*/
 	return dXP0mN[IDX_XPm1];
 }
 
@@ -352,10 +342,15 @@ doublereal
 TunableStep4Solver::dPredStateAlg(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	/*return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1+b[2][ALGEBRAIC]*dXPm2
-		-a[1][ALGEBRAIC]*dXm1;*/
-	return dXm1mN[IDX_Xm1];
-	// FIXME?!?
+	return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+		+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm2]
+		+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm3]
+		+ m_a[IDX_A4][ALGEBRAIC]*dXm1mN[IDX_Xm4]
+		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
+		+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
+		+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2]
+		+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm3]
+		+ m_b[IDX_B4][ALGEBRAIC]*dXP0mN[IDX_XPm4];
 }
 
-/* Step4Solver - end */
+/* TunableStep4Solver - end */
