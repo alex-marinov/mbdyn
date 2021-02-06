@@ -10260,7 +10260,7 @@ namespace {
                }
 
                HYDRO_ASSERT(pModalJoint->uGetNModes() == D.iGetNumCols());
-               HYDRO_ASSERT(D.iGetNumRows() == f1.iGetNumRows());
+               HYDRO_ASSERT(D.iGetNumRows() == C.iGetNumRows());
 
                SpColVector<T> a(D.iGetNumCols(), 1);
 

@@ -30,6 +30,8 @@ superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
+pardisowrap.h \
+pardisowrap.cc \
 pastixwrap.cc \
 pastixwrap.h \
 taucswrap.cc \
