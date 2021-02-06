@@ -463,7 +463,7 @@ main(int argc, char *argv[])
 	SolutionManager::ScaleWhen ms = SolutionManager::SCALEW_NEVER;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdfg:m:oO:p:P:r::st:Tw:");
+		int opt = getopt(argc, argv, "cdfgm:oO:p:P:r::st:Tw:");
 
 		if (opt == EOF) {
 			break;
