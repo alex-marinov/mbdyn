@@ -68,7 +68,6 @@ private:
      mutable MKL_INT* pAp;
      mutable MKL_INT iNumNz;
      mutable MKL_INT phase, maxfct, mnum, mtype, n, nrhs, msglvl;
-     mutable bool bDoOrdering;
 
 public:
      explicit PardisoSolver(SolutionManager* pSM,

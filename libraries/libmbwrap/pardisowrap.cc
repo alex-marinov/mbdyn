@@ -61,13 +61,13 @@ PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThr
       mtype(11),
       n(-1),
       nrhs(1),
-      msglvl(iVerbose),
-      bDoOrdering(true)
+      msglvl(iVerbose)
 {
      std::fill(std::begin(iparm), std::end(iparm), 0);
      std::fill(std::begin(pt), std::end(pt), nullptr);
 
      iparm[0] = 1;
+     iparm[3] = 61;
      iparm[7] = iNumIter;
      iparm[9] = 13;
 
@@ -97,40 +97,47 @@ PardisoSolver::~PardisoSolver()
 
 void PardisoSolver::Solve(void) const
 {
+     const MKL_INT iNumNzA = pAp[n] - pAp[0];
+     bool bNumNzChanged = iNumNz == -1;
+     
      MKL_INT ierror;
 
-     static_assert(sizeof(MKL_INT) == 4);
-     
-     if (bHasBeenReset) {
-          if (bDoOrdering) {
-               phase = 11;
+     do {
+          if (bHasBeenReset) {
+               if (bNumNzChanged) {
+                    phase = 11;
           
+                    pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+
+                    if (ierror != 0) {
+                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                    }
+
+                    iNumNz = iNumNzA;
+               }
+
+               phase = 22;
                pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
                if (ierror != 0) {
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                    throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
                }
 
-               bDoOrdering = false;
+               bHasBeenReset = false;
           }
+     
+          phase = 33;
 
-          phase = 22;
           pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
-          if (ierror != 0) {
-               throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+          if (ierror) {
+               if (iNumNz != iNumNzA) {
+                    bNumNzChanged = bHasBeenReset = true;
+               } else {
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
           }
-
-          bHasBeenReset = false;
-     }
-     
-     phase = 33;
-
-     pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
-
-     if (ierror != 0) {
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-     }
+     } while (ierror);
 }
 
 MKL_INT PardisoSolver::MakeCompactForm(SparseMatrixHandler& mh,
@@ -138,20 +145,15 @@ MKL_INT PardisoSolver::MakeCompactForm(SparseMatrixHandler& mh,
                                        std::vector<MKL_INT>& Ai,
                                        std::vector<MKL_INT>& Ap) const
 {
-     MKL_INT iNumNzCurr = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
+     MKL_INT iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
 
-     if (iNumNz != iNumNzCurr) {
-          bDoOrdering = true;
-     }
-     
-     iNumNz = iNumNzCurr;
      n = mh.iGetNumCols();
      
      pAx = &Ax.front();
      pAi = &Ai.front();
      pAp = &Ap.front();
      
-     return iNumNz;
+     return iNumNzA;
 }
 
 template <typename MatrixHandlerType>
