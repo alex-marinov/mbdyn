@@ -4,7 +4,7 @@ dnl
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl
-dnl Copyright (C) 1996-2017
+dnl Copyright (C) 1996-2021
 dnl
 dnl Pierangelo Masarati     <masarati@aero.polimi.it>
 dnl Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -236,7 +236,7 @@ OL_ARG_WITH(blas,[
 AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
-AC_ARG_WITH(openblas,[  --with-openblas=lib(s)      with OpenBLAS implementation],[
+AC_ARG_WITH(openblas,[  --with-openblas=lib(s)  with OpenBLAS implementation],[
 	ol_with_openblas_lib="$withval"
 ],[ol_with_openblas_lib=])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
@@ -245,13 +245,14 @@ OL_ARG_WITH(y12,[
        optional linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
-OL_ARG_WITH(klu,[  --with-klu          with KLU math library],auto,[auto yes no])
+OL_ARG_WITH(klu,[  --with-klu              with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
-OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
-OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
+OL_ARG_WITH(wsmp,[  --with-wsmp             with IBM Watson library],no,[auto yes no])
+OL_ARG_WITH(pardiso,[  --with-pardiso          with Intel MKL Pardiso library],no,[auto yes no])
+OL_ARG_WITH(pastix,[  --with-pastix           with Pastix math library],no,[auto yes no])
 with_suitesparseqr_default=auto
 OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],$with_suitesparseqr_default,[auto yes no])
 OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],$with_suitesparseqr_default,[auto yes no])
@@ -395,6 +396,7 @@ THREAD_LIBS=
 ATOMIC_OPS_LIBS=
 MESCHACH_LIBS=
 SUPERLU_LIBS=
+PARDISO_LIBS=
 WSMP_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -2753,18 +2755,41 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for Watson wsmp
+dnl Check for Intel MKL Pardiso
+dnl
+ol_link_pardiso=no
+if test $ol_with_pardiso != no ; then
+        AC_CHECK_HEADER(mkl/mkl_pardiso.h, [have_mkl_pardiso_h=yes], [have_mkl_pardiso_h=no])
+        if test "$have_mkl_pardiso_h" = "yes" ; then
+	        try_pardiso_LIBS="-lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -lm -lgomp"
+	        AC_CHECK_LIB(mkl_gf_lp64,pardiso_,[have_mkl_pardiso_lib=yes],[have_mkl_pardiso_lib=no],[$try_pardiso_LIBS])
+	        if test "$have_mkl_pardiso_lib" = "yes"; then
+		        AC_DEFINE(USE_PARDISO,1,[define to use Intel MKL Pardiso library])
+                        ol_link_pardiso=yes
+		        PARDISO_LIBS="$try_PARDISO_LIBS"
+	        else
+                        if test "$ol_with_pardiso" = "yes" ; then
+			   AC_MSG_ERROR([Intel MKL pardiso library not available])
+		        fi
+	        fi
+        fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for IBM Watson wsmp
 dnl
 ol_link_wsmp=no
 if test $ol_with_wsmp != no ; then
 	try_wsmp_LIBS="-lwsmp64"
 	AC_CHECK_LIB(wsmp64,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
 	if test "$have_wsmp" = "yes" ; then
-		AC_DEFINE(USE_WSMP,1,[define to use Watson wsmp library])
+		AC_DEFINE(USE_WSMP,1,[define to use IBM Watson wsmp library])
+                ol_link_wsmp=yes
 		WSMP_LIBS="$try_wsmp_LIBS"
 	else
 		if test "$ol_with_wsmp" = "yes" ; then
-			AC_MSG_ERROR([wsmp library not available])
+			AC_MSG_ERROR([IBM Watson wsmp library not available])
 		fi
 	fi
 fi
@@ -3632,6 +3657,7 @@ AC_SUBST(UMFPACK_LIBS)
 AC_SUBST(KLU_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
+AC_SUBST(PARDISO_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(PASTIX_INC)
