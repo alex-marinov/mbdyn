@@ -81,8 +81,8 @@ SimulationEntity::ParseHint(DataManager *pDM, const char *s) const
 void 
 SimulationEntity::BeforePredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ ,
-		VectorHandler& /* XPrev */ ,
-		VectorHandler& /* XPPrev */ ) const
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const
 {
 	NO_OP;
 }

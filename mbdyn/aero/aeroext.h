@@ -113,10 +113,10 @@ public:
 	
 	virtual void BeforePredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ ,
-		VectorHandler& /* XPrev */ ,
-		VectorHandler& /* XPPrev */ ) const { NO_OP; };
-		
-		
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const
+	{ NO_OP; };
+
 	virtual void AfterPredict(VectorHandler& X  , 
 		VectorHandler&  XP  );
 		

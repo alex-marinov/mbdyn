@@ -44,7 +44,7 @@
 
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 5, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 6, 0)
 #define LOADABLE_VERSION_OUT(v) \
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
@@ -124,7 +124,8 @@ typedef SubVectorHandler&
 typedef void
 (* p_before_predict)(const LoadableElem* pEl,
 		VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev, VectorHandler& XPPrev);
+		std::deque<VectorHandler*>& qXPr,
+		std::deque<VectorHandler*>& qXPPr);
 typedef void
 (* p_after_predict)(const LoadableElem* pEl,
 		VectorHandler& X, VectorHandler& XP);
@@ -267,9 +268,9 @@ public:
 					 const VectorHandler& XPrimeCurr);
 
    	virtual void BeforePredict(VectorHandler& X,
-				   VectorHandler& XP,
-				   VectorHandler& XPrev,
-				   VectorHandler& XPPrev) const;
+		VectorHandler& XP,
+		std::deque<VectorHandler*>& qXPr,
+		std::deque<VectorHandler*>& qXPPr) const;
    	virtual void AfterPredict(VectorHandler& X,
 				  VectorHandler& XP);
 	virtual void Update(const VectorHandler& XCurr,

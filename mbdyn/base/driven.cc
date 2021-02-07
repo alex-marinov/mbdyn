@@ -116,12 +116,12 @@ DrivenElem::Restart(std::ostream& out) const
 void
 DrivenElem::BeforePredict(VectorHandler& X,
 		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const
+		std::deque<VectorHandler*>& qXPr,
+		std::deque<VectorHandler*>& qXPPr) const
 {
 	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
-     		pElem->BeforePredict(X, XP, XPrev, XPPrev);
+     		pElem->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 }
 

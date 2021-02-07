@@ -2444,18 +2444,18 @@ DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 
 void
 DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
-	VectorHandler& XPrev,
-	VectorHandler& XPPrev) const
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
-		(*i)->BeforePredict(X, XP, XPrev, XPPrev);
+		(*i)->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->BeforePredict(X, XP, XPrev, XPPrev);
+			pEl->BeforePredict(X, XP, qXPr, qXPPr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 }

@@ -657,16 +657,16 @@ StructDispNode::SetValue(DataManager *pDM,
 		const Vec3& W0 = pRefNode->GetWCurr();
 
 		XPrev = R0.MulTV(Xtmp);
-		RPrev = R0.MulTM(RCurr);
 		VPrev = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
-		WPrev = R0.MulTV(WCurr - W0);
+		// RPrev = R0.MulTM(RCurr);
+		// WPrev = R0.MulTV(WCurr - W0);
 
 #if 0
-		std::cout << "StructNode(" << GetLabel() << "): "
+		std::cout << "StructDispNode(" << GetLabel() << "): "
 			"SetValue: X=" << XPrev
-			<< ", R=" << RPrev
+			// << ", R=" << RPrev
 			<< ", V=" << VPrev
-			<< ", W=" << WPrev
+			// << ", W=" << WPrev
 			<< std::endl;
 #endif
 
@@ -687,8 +687,8 @@ StructDispNode::SetValue(DataManager *pDM,
 void
 StructDispNode::BeforePredict(VectorHandler& X,
 	VectorHandler& XP,
-	VectorHandler& XPr,
-	VectorHandler& XPPr) const
+	std::deque<VectorHandler*>& /* qXPr */ ,
+	std::deque<VectorHandler*>& /* qXPPr */ ) const
 {
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	// FIXME
@@ -1295,14 +1295,14 @@ DynamicStructDispNode::AfterConvergence(const VectorHandler& X,
 void
 DynamicStructDispNode::BeforePredict(VectorHandler& X,
 	VectorHandler& XP,
-	VectorHandler& XPr,
-	VectorHandler& XPPr) const
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	if (bComputeAccelerations()) {
 		XPPPrev = XPPCurr;
 	}
 
-	StructDispNode::BeforePredict(X, XP, XPr, XPPr);
+	StructDispNode::BeforePredict(X, XP, qXPr, qXPPr);
 }
 
 /* Restituisce il valore del dof iDof;
@@ -1458,14 +1458,14 @@ StructNode::StructNode(unsigned int uL,
 	OrientationDescription ood,
 	flag fOut)
 : StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
-RPrev(R0),
+// RPrev(R0),
 RRef(R0),
 RCurr(R0),
 gRef(Zero3),
 gCurr(Zero3),
 gPRef(Zero3),
 gPCurr(Zero3),
-WPrev(W0),
+// WPrev(W0),
 WRef(W0),
 WCurr(W0),
 WPCurr(Zero3),
@@ -1481,7 +1481,13 @@ bOmegaRot(bOmRot)
 ,eCurrFunc(sp_grad::UNKNOWN_FUNC)
 #endif
 {
+	for (unsigned i = 0; i < NPREV; i++) {
+		RPrev[i] = R0;
+		qRPrev.push_back(&RPrev[i]);
 
+		WPrev[i] = W0;
+		qWPrev.push_back(&WPrev[i]);
+	}
 }
 
 /* Distruttore (per ora e' banale) */
@@ -1735,7 +1741,9 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
 		}
 	} else if (iDof >= 4 && iDof <= 6) {
 		if (iOrder == 1) {
-			return WPrev(iDof - 3);
+			// return WPrev(iDof - 3);
+			return (*qWPrev[0])(iDof - 3);
+
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to return angles" << std::endl);
@@ -2008,7 +2016,7 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 
 #if 0
 	/* Nuovo manipolatore (forse e' meno efficiente) */
-	WCurr = (CGR_Rot::MatG << gCurr)*gPCurr+RDelta*WRef;
+	WCurr = (CGR_Rot::MatG << gCurr)*gPCurr + RDelta*WRef;
 #endif
 }
 
@@ -2296,7 +2304,8 @@ void StructNode::UpdateRotation(doublereal dCoef) const
 		    std::cerr << "RPrev=" << std::endl;
 		    for (integer i = 1; i <= 3; ++i) {
 			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RPrev(i, j) << " ";
+			      // std::cerr << RPrev(i, j) << " ";
+			      std::cerr << (*qRPrev[0])(i, j) << " ";
 			 }
 			 std::cerr << std::endl;
 		    }
@@ -2391,7 +2400,8 @@ void StructNode::UpdateRotation(doublereal dCoef) const
 		    std::cerr << "RPrev=" << std::endl;
 		    for (integer i = 1; i <= 3; ++i) {
 			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RPrev(i, j) << " ";
+			      // std::cerr << RPrev(i, j) << " ";
+			      std::cerr << (*qRPrev[0])(i, j) << " ";
 			 }
 			 std::cerr << std::endl;
 		    }
@@ -2535,16 +2545,20 @@ StructNode::SetValue(DataManager *pDM,
 		const Vec3& W0 = pRefNode->GetWCurr();
 
 		XPrev = R0.MulTV(Xtmp);
-		RPrev = R0.MulTM(RCurr);
 		VPrev = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
-		WPrev = R0.MulTV(WCurr - W0);
+		// RPrev = R0.MulTM(RCurr);
+		// WPrev = R0.MulTV(WCurr - W0);
+		*qRPrev[0] = R0.MulTM(RCurr);
+		*qWPrev[0] = R0.MulTV(WCurr - W0);
 
 #if 0
 		std::cout << "StructNode(" << GetLabel() << "): "
 			"SetValue: X=" << XPrev
-			<< ", R=" << RPrev
+			// << ", R=" << RPrev
+			<< ", R=" << *qRPrev[0]
 			<< ", V=" << VPrev
-			<< ", W=" << WPrev
+			// << ", W=" << WPrev
+			<< ", W=" << *qWPrev[0]
 			<< std::endl;
 #endif
 
@@ -2553,9 +2567,10 @@ StructNode::SetValue(DataManager *pDM,
 	{
 		/* FIXME: in any case, we start with Crank-Nicolson ... */
 		XPrev = XCurr;
-		RPrev = RCurr;
+		// RPrev = RCurr;
+		*qRPrev[0] = RCurr; // FIXME: should we propagate backward? See comment above...
 		VPrev = VCurr;
-		WPrev = WCurr;
+		*qWPrev[0] = WCurr; // FIXME: should we propagate backward? See comment above...
 		// Without the next line the Jacobian matrix of most elements
 		// will be incorrect during the initial derivatives calculation
 		// if RCurr has been changed during initial assembly!
@@ -2571,7 +2586,8 @@ StructNode::SetValue(DataManager *pDM,
 	X.Put(iFirstIndex + 4, Zero3);
 	gRef = gCurr = gPRef = gPCurr = Zero3;
 	XP.Put(iFirstIndex + 1, VPrev);
-	XP.Put(iFirstIndex + 4, WPrev);
+	// XP.Put(iFirstIndex + 4, WPrev);
+	XP.Put(iFirstIndex + 4, *qWPrev[0]);
 
 #if defined(USE_SPARSE_AUTODIFF)
 	eCurrFunc = sp_grad::REGULAR_JAC;
@@ -2584,8 +2600,8 @@ StructNode::SetValue(DataManager *pDM,
 void
 StructNode::BeforePredict(VectorHandler& X,
 	VectorHandler& XP,
-	VectorHandler& XPr,
-	VectorHandler& XPPr) const
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	integer iFirstPos = iGetFirstIndex();
 
@@ -2632,27 +2648,50 @@ StructNode::BeforePredict(VectorHandler& X,
 	 * la configurazione al nuovo passo, quindi ritorna in forma
 	 * incrementale */
 
+	// reset current value
+	/* Mi assicuro che g al passo corrente sia nullo */
+	X.Put(iFirstPos + 4, Zero3);
+
+	/* Metto Omega al passo corrente come gP (perche' G(0) = I) */
+	XP.Put(iFirstPos + 4, WCurr);
+
+#if 0
+	// set past value as decremented from current
 	/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
 	 * all'indietro */
 	Mat3x3 RDelta(RPrev.MulMT(RCurr));
-
-	/* Mi assicuro che g al passo corrente sia nullo */
-	X.Put(iFirstPos + 4, Zero3);
 
 	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
 	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
 	 * i parametri sono gia' con il segno corretto */
 	Vec3 gPrev(CGR_Rot::Param, RDelta);
-	XPr.Put(iFirstPos + 4, gPrev);
+	qXPr[0]->Put(iFirstPos + 4, gPrev);
 
 	/* Calcolo gP al passo precedente attraverso la definizione
 	 * mediante le Omega. Siccome i parametri sono con il segno meno
 	 * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
 	 * e' consistente */
-	XPPr.Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*WPrev);
+	qXPPr[0]->Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*WPrev);
+#endif
 
-	/* Metto Omega al passo corrente come gP (perche' G(0) = I) */
-	XP.Put(iFirstPos + 4, WCurr);
+	ASSERT(qRPrev.size() >= qXPr.size());
+	for (unsigned i = 0; i < qXPr.size(); i++) {
+		/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
+		 * all'indietro */
+		Mat3x3 RDelta(qRPrev[i]->MulMT(RCurr));
+
+		/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
+		 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
+		 * i parametri sono gia' con il segno corretto */
+		Vec3 gPrev(CGR_Rot::Param, RDelta);
+		qXPr[i]->Put(iFirstPos + 4, gPrev);
+
+		/* Calcolo gP al passo precedente attraverso la definizione
+		 * mediante le Omega. Siccome i parametri sono con il segno meno
+		 * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
+		 * e' consistente */
+		qXPPr[i]->Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*(*qWPrev[i]));
+	}
 
 #if 0
 	std::cout
@@ -2677,11 +2716,17 @@ StructNode::BeforePredict(VectorHandler& X,
 	/* Pongo la R al passo precedente uguale a quella corrente
 	 * mi servira' se devo ripetere il passo con un diverso Delta t
 	 * e per la rettifica dopo la predizione */
-	RPrev = RCurr;
+	// RPrev = RCurr;
+	qRPrev.push_front(qRPrev.back());
+	qRPrev.pop_back();
+	*qRPrev[0] = RCurr; // FIXME: push back?
 
 	/* Pongo le Omega al passo precedente uguali alle Omega al passo corrente
 	 * mi servira' per la correzione dopo la predizione */
-	WPrev = WCurr;
+	// WPrev = WCurr;
+	qWPrev.push_front(qWPrev.back());
+	qWPrev.pop_back();
+	*qWPrev[0] = WCurr; // FIXME: push back?
 }
 
 void
@@ -2704,7 +2749,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Mat3x3 RDelta(CGR_Rot::MatR, gRef);
 
 	/* Calcolo la R corrente in base alla predizione */
-	RCurr = RDelta*RPrev;
+	RCurr = RDelta*(*qRPrev[0]);
 
 	/* Calcolo la Omega corrente in base alla predizione (gP "totale") */
 	gPRef = Vec3(XP, iFirstIndex + 4);
@@ -2810,9 +2855,9 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	WRef = WCurr;
 
 	XPrev = XCurr;
-	RPrev = RCurr;
+	RPrev[0] = RCurr;
 	VPrev = VCurr;
-	WPrev = WCurr;
+	WPrev[0] = WCurr;
 	XPPPrev = XPPCurr;
 	WPPrev = WPCurr;
 }
@@ -3338,15 +3383,15 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 void
 DynamicStructNode::BeforePredict(VectorHandler& X,
 	VectorHandler& XP,
-	VectorHandler& XPr,
-	VectorHandler& XPPr) const
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	if (bComputeAccelerations()) {
 		XPPPrev = XPPCurr;
 		WPPrev = WPCurr;
 	}
 
-	StructNode::BeforePredict(X, XP, XPr, XPPr);
+	StructNode::BeforePredict(X, XP, qXPr, qXPPr);
 }
 
 /* Restituisce il valore del dof iDof;
@@ -3819,8 +3864,8 @@ DummyStructNode::SetValue(DataManager *pDM,
 void
 DummyStructNode::BeforePredict(VectorHandler& /* X */ ,
 	VectorHandler& /* XP */ ,
-	VectorHandler& /* XPrev */ ,
-	VectorHandler& /* XPPrev */ ) const
+	std::deque<VectorHandler*>& /* qXPr */ ,
+	std::deque<VectorHandler*>& /* qXPPr */ ) const
 {
 	NO_OP;
 }
