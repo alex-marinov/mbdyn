@@ -162,9 +162,9 @@ public:
 	 * Per MultiStepIntegrator
 	 */
 	virtual void BeforePredict(VectorHandler& /* X */ ,
-	   		      VectorHandler& /* XP */ ,
-			      VectorHandler& /* XPrev */ ,
-			      VectorHandler& /* XPPrev */ ) const;
+		VectorHandler& /* XP */ ,
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	
 	/*
 	 * Elaborazione vettori e dati dopo la predizione.

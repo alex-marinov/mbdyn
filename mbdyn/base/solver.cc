@@ -959,7 +959,7 @@ Solver::Prepare(void)
 		 * con sottopassi di correzione delle accelerazioni
 		 * e delle reazioni vincolari
 		 */
-		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
 		Flip();
 
 		dRefTimeStep = dInitialTimeStep*dDummyStepsRatio;
@@ -1061,7 +1061,7 @@ Solver::Prepare(void)
 			iSubStep++)
 		{
 			pDM->BeforePredict(*pX, *pXPrime,
-				*qX[0], *qXPrime[0]);
+				qX, qXPrime);
 			Flip();
 
 			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
@@ -1236,7 +1236,7 @@ Solver::Start(void)
 
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);*/
 
-	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+	pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
 
 	Flip();
 	dRefTimeStep = dInitialTimeStep;
@@ -1446,7 +1446,7 @@ IfFirstStepIsToBeRepeated:
 		}
 		
 		lStep++;
-		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
 		Flip();
 		if (pRTSolver) {
 			pRTSolver->Wait();
@@ -1696,7 +1696,7 @@ IfFirstStepIsToBeRepeated:
 
 	
 		lStep++;
-		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
 
 		Flip();
 
@@ -1966,7 +1966,7 @@ Solver::Advance(void)
 	}
 
 	lStep++;
-	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+	pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
 
 	Flip();
 

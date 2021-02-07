@@ -165,12 +165,12 @@ NestedElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
  */
 void
 NestedElem::BeforePredict(VectorHandler& X,
-		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const
+	VectorHandler& XP,
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	ASSERT(pElem != NULL);
-     	pElem->BeforePredict(X, XP, XPrev, XPPrev);
+     	pElem->BeforePredict(X, XP, qXPr, qXPPr);
 }
 
 void

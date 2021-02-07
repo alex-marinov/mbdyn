@@ -109,7 +109,8 @@ SchurDataManager::DerivativesUpdate(void) const
 
 void
 SchurDataManager::BeforePredict(VectorHandler&, VectorHandler&,
-		VectorHandler&, VectorHandler&) const
+		std::deque<VectorHandler*>&,
+		std::deque<VectorHandler*>&) const
 {
 	NO_OP;
 }
@@ -1729,26 +1730,27 @@ SchurDataManager::DerivativesUpdate(void) const
 
 void
 SchurDataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev, VectorHandler& XPPrev) const
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
 	DEBUGCOUT("Entering SchurDataManager::BeforePredict()" << std::endl);
 
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		ppMyNodes[i]->BeforePredict(X, XP, XPrev, XPPrev);
+		ppMyNodes[i]->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 
 	/* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		ppIntNodes[i]->BeforePredict(X, XP, XPrev, XPPrev);
+		ppIntNodes[i]->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		ppMyElems[i]->BeforePredict(X, XP, XPrev, XPPrev);
+		ppMyElems[i]->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 }
 /* End of BeforePredict */

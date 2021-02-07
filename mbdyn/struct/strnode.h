@@ -282,8 +282,8 @@ public:
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	
 	/* Inverse Dynamics: reset orientation parameters */
@@ -627,8 +627,8 @@ public:
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -799,7 +799,13 @@ public:
 	};
 
 protected:
-	mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */
+	enum {
+		NPREV = 3	// 1 for ms2, 2 for ms3, 3 for ms4; what about mss?
+	};
+
+	// mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */
+	mutable Mat3x3 RPrev[NPREV];   /* Matrice di rotazione da zero al passo prec. */
+	mutable std::deque<Mat3x3 *> qRPrev;
 	Mat3x3 RRef;            /* Matrice di rotazione predetta al passo corr. */
 	mutable Mat3x3 RCurr;   /* Matrice di rotazione all'iterazione corrente */
 
@@ -816,7 +822,9 @@ protected:
 	 * non conservarla e calcolarla in base alla relazione (2).
 	 */
 
-	mutable Vec3 WPrev;   /* Velocita' angolare al passo precedente */
+	// mutable Vec3 WPrev;   /* Velocita' angolare al passo precedente */
+	mutable Vec3 WPrev[NPREV];   /* Velocita' angolare al passo precedente */
+	mutable std::deque<Vec3 *> qWPrev;
 	Vec3 WRef;            /* Velocita' angolare predetta al passo corrente */
 	mutable Vec3 WCurr;   /* Velocita' angolare corrente */
 
@@ -1038,8 +1046,8 @@ public:
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	
 	/*Inverse Dynamics: reset orientation parameters*/
@@ -1108,7 +1116,8 @@ StructNode::GetgPCurr(void) const
 inline const Mat3x3&
 StructNode::GetRPrev(void) const
 {
-	return RPrev;
+	// return RPrev;
+	return *qRPrev[0];
 }
 
 inline const Mat3x3&
@@ -1126,7 +1135,7 @@ StructNode::GetRCurr(void) const
 inline const Vec3&
 StructNode::GetWPrev(void) const
 {
-	return WPrev;
+	return *qWPrev[0];
 }
 
 inline const Vec3&
@@ -1608,8 +1617,8 @@ public:
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -2068,8 +2077,8 @@ public:
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ ) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual inline bool bComputeAccelerations(void) const;

@@ -229,8 +229,8 @@ protected:
 	integer iNumPreviousVectors;
 	integer iUnkStates;
 	doublereal* pdWorkSpace;
-	std::deque<MyVectorHandler*> qX;      /* queque vett. stati */
-  	std::deque<MyVectorHandler*> qXPrime; /* queque vett. stati der. */
+	std::deque<VectorHandler*> qX;      /* queque vett. stati */
+  	std::deque<VectorHandler*> qXPrime; /* queque vett. stati der. */
 	MyVectorHandler* pX;                  /* queque vett. stati inc. */
   	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */
 
@@ -451,8 +451,8 @@ Solver::Flip(void)
 	qXPrime.pop_back();
 
 	/* copy from pX, pXPrime to qx[0], qxPrime[0] */
-	MyVectorHandler* x = qX[0];
-	MyVectorHandler* xp = qXPrime[0];
+	VectorHandler* x = qX[0];
+	VectorHandler* xp = qXPrime[0];
 	for (integer i = 1; i <= iNumDofs; i++) {
 		x->PutCoef(i, pX->operator()(i));
 		xp->PutCoef(i, pXPrime->operator()(i));

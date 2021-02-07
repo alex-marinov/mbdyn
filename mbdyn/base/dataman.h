@@ -467,7 +467,8 @@ public:
 	virtual void MakeRestart(void);
 	virtual void DerivativesUpdate(void) const;
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
-			VectorHandler& XPrev, VectorHandler& XPPrev) const;
+		std::deque<VectorHandler*>& qXPr,
+		std::deque<VectorHandler*>& qXPPr) const;
 	virtual void AfterPredict(void) const;
 	virtual void Update(void) const;
 	virtual void AfterConvergence(void) const;

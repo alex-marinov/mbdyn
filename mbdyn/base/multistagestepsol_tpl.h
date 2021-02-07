@@ -108,6 +108,8 @@ protected:
 	VectorHandler *m_pX[N];		// state vectors
 	VectorHandler *m_pXP[N];	// state derivative vectors
 
+	std::deque<VectorHandler*> m_qXPr, m_qXPPr;	// queues for prediction
+
 	doublereal m_a[N][2];
 	doublereal m_b[N + 1][2];
 
@@ -124,8 +126,8 @@ public:
 		const doublereal TStep,
 		const doublereal dAlph,
 		const StepChange StType,
-		std::deque<MyVectorHandler*>& qX,
-	 	std::deque<MyVectorHandler*>& qXPrime,
+		std::deque<VectorHandler*>& qX,
+	 	std::deque<VectorHandler*>& qXPrime,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
 		integer& EffIter,
@@ -301,8 +303,8 @@ doublereal
 tplStageNIntegrator<N>::Advance(Solver* pS,
 	const doublereal TStep,
 	const doublereal dAph, const StepChange StType,
-	std::deque<MyVectorHandler*>& qX,
-	std::deque<MyVectorHandler*>& qXPrime,
+	std::deque<VectorHandler*>& qX,
+	std::deque<VectorHandler*>& qXPrime,
 	MyVectorHandler*const pX,
 	MyVectorHandler*const pXPrime,
 	integer& EffIter,
@@ -317,6 +319,9 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 	// the solution at the previous step we take from qX, qXPrime
 	m_pX[0] = qX[0];
 	m_pXP[0] = qXPrime[0];
+
+	ASSERT(m_qXPr.empty());
+	ASSERT(m_qXPPr.empty());
 
 	// first time?
 	if (m_pX[1] == 0) {
@@ -379,7 +384,11 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 
 	// Second-stage (and subsequent)
 	for (unsigned S = 2; S <= N; S++) {
-		pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *m_pX[S - 2], *m_pXP[S - 2]);
+		// pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *m_pX[S - 2], *m_pXP[S - 2]);
+
+		m_qXPr.push_front(m_pX[S - 2]);
+		m_qXPPr.push_front(m_pXP[S - 2]);
+		pDM->BeforePredict(*pXCurr, *pXPrimeCurr, m_qXPr, m_qXPPr);
 
 		// copy from pX, pXPrime to m_pX, m_pXP
 		for (integer i = 1; i <= pDM->iGetNumDofs(); i++) {
@@ -432,6 +441,14 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 		// if it gets here, it surely converged
 		pDM->AfterConvergence();
 	}
+
+	while (!m_qXPr.empty()) {
+		m_qXPr.pop_back();
+		m_qXPPr.pop_back();
+	}
+
+	ASSERT(m_qXPr.empty());
+	ASSERT(m_qXPPr.empty());
 
 	return Err;
 }
