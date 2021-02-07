@@ -34,7 +34,11 @@
 
 #include "matvec3.h"
 
-class Vec6 {
+class Vec6
+#ifdef USE_SPARSE_AUTODIFF
+     :public sp_grad::SpConstMatElemAdapter<Vec6>
+#endif
+{
  protected:
    Vec3 v[2];
    
@@ -105,7 +109,23 @@ class Vec6 {
       v[1] = x.GetVec2();
       return *this;
    };
-   
+
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename DERIVED>
+     Vec6& operator = (const sp_grad::SpMatElemExprBase<doublereal, DERIVED>& v) {
+          using namespace sp_grad;
+
+          static_assert(v.iNumRowsStatic == iNumRowsStatic);
+          static_assert(v.iNumColsStatic == iNumColsStatic);
+          
+          for (index_type i = 1; i <= iNumRowsStatic; ++i) {
+               (*this)(i) = v.dGetValue(i, 1);
+          }
+          
+          return *this;
+     }
+#endif
+     
    inline Vec6& operator += (const Vec6& x) {
       v[0] += x.GetVec1();
       v[1] += x.GetVec2();
@@ -221,7 +241,19 @@ class Vec6 {
    
    void Reset(void);
 
-   std::ostream& Write(std::ostream& out, const char* sFill = " ") const;   
+   std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
+     
+#ifdef USE_SPARSE_AUTODIFF
+     static constexpr sp_grad::index_type iNumRowsStatic = 6;
+     static constexpr sp_grad::index_type iNumColsStatic = 1;
+     inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     static inline constexpr sp_grad::index_type iGetRowOffset() noexcept { return 1; }
+     static inline constexpr sp_grad::index_type iGetColOffset() noexcept { return iNumRowsStatic; }
+     inline const doublereal* begin() const noexcept { return v[0].pGetVec(); }
+     inline const doublereal* end() const noexcept { return begin() + iNumRowsStatic; }
+     doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i); }     
+#endif     
 };
 
 
@@ -231,7 +263,11 @@ extern std::ostream& operator << (std::ostream& out, const Vec6& m);
 extern std::ostream& Write(std::ostream& out, const Vec6& v, const char* sFill = " ");
 
 
-class Mat6x6 {
+class Mat6x6
+#ifdef USE_SPARSE_AUTODIFF
+     :public sp_grad::SpConstMatElemAdapter<Mat6x6>
+#endif
+{
  protected:
    Mat3x3 m[2][2];
    
@@ -442,7 +478,25 @@ class Mat6x6 {
       m[1][1] = x.GetMat22();
       return *this;
    };
-   
+
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename DERIVED>
+     Mat6x6& operator = (const sp_grad::SpMatElemExprBase<doublereal, DERIVED>& m) {
+          using namespace sp_grad;
+
+          static_assert(m.iNumRowsStatic == iNumRowsStatic);
+          static_assert(m.iNumColsStatic == iNumColsStatic);
+
+          for (index_type j = 1; j <= iNumColsStatic; ++j) {
+               for (index_type i = 1; i <= iNumRowsStatic; ++i) {
+                    (*this)(i, j) = m.dGetValue(i, j);
+               }
+          }
+          
+          return *this;
+     }
+#endif
+     
    inline Mat6x6& operator += (const Mat6x6& x) {
       m[0][0] += x.GetMat11();
       m[1][0] += x.GetMat21();
@@ -581,6 +635,18 @@ class Mat6x6 {
    std::ostream& Write(std::ostream& out, 
 		  const char* sFill = " ", 
 		  const char* sFill2 = NULL) const;
+
+#ifdef USE_SPARSE_AUTODIFF
+     static constexpr sp_grad::index_type iNumRowsStatic = 6;
+     static constexpr sp_grad::index_type iNumColsStatic = 6;
+     inline constexpr sp_grad::index_type iGetNumRows() const noexcept { return iNumRowsStatic; }
+     inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return iNumColsStatic; }
+     static inline constexpr sp_grad::index_type iGetRowOffset() = delete;
+     static inline constexpr sp_grad::index_type iGetColOffset() = delete;
+     inline constexpr const doublereal* begin() const = delete;
+     inline constexpr const doublereal* end() const = delete;
+     doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
+#endif     
 };
 
 extern std::ostream& operator << (std::ostream& out, const Mat6x6& m);

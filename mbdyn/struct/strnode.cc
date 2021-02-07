@@ -3696,6 +3696,19 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 }
 
 void
+ModalNode::DerivativesUpdate(const VectorHandler& X,
+                             const VectorHandler& XP)
+{
+     StructNode::DerivativesUpdate(X, XP);
+
+     integer iFirstIndex = iGetFirstIndex();
+
+     /* Update needed also during the derivatives phase */
+     XPPCurr = Vec3(XP, iFirstIndex + 7);
+     WPCurr = Vec3(XP, iFirstIndex + 10);     
+}
+
+void
 ModalNode::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
