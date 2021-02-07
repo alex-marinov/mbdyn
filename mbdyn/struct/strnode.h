@@ -799,8 +799,13 @@ public:
 	};
 
 protected:
+	// multistep solvers require one less than the steps number (e.g. "msN" requires N - 1)
+	// TODO: what about mss solvers?
+	// TODO:
+	//	- find a clever way to statically determine the largest N
+	//	- find a clever way to only store as many as needed
 	enum {
-		NPREV = 3	// 1 for ms2, 2 for ms3, 3 for ms4; what about mss?
+		NPREV = 3
 	};
 
 	// mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */
