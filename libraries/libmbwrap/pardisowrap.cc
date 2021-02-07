@@ -43,10 +43,11 @@
 #ifdef USE_PARDISO
 
 #include <algorithm>
-#include <omp.h>
 
-#include "task2cpu.h"
-#include "linsol.h"
+#ifdef USE_OMP_SET_NUM_THREADS
+#include <omp.h>
+#endif
+
 #include "pardisowrap.h"
 
 PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThreads, integer iNumIter, const SolutionManager::ScaleOpt& scale, integer iVerbose)
@@ -66,22 +67,23 @@ PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThr
      std::fill(std::begin(iparm), std::end(iparm), 0);
      std::fill(std::begin(pt), std::end(pt), nullptr);
 
-     iparm[0] = 1;
-     iparm[3] = 61;
-     iparm[7] = iNumIter;
-     iparm[9] = 13;
+     iparm[0] = 1; // Use default values.
+     iparm[1] = 3; // The parallel (OpenMP) version of the nested dissection algorithm
+     iparm[7] = iNumIter; // Iterative refinement step
+     iparm[9] = 13; // Pivoting perturbation
 
      switch (scale.algorithm) {
      case SolutionManager::SCALEA_NONE:
-     case SolutionManager::SCALEA_UNDEF:          
           break;
      default:
-          iparm[10] = 1;
+          iparm[10] = 1; // Enable scaling
      }
 
-     iparm[12] = 1;
-     
+     iparm[12] = 1; // Improved accuracy using (non-) symmetric weighted matching.
+
+#ifdef USE_OMP_SET_NUM_THREADS
      omp_set_num_threads(iNumThreads);
+#endif
 }
 
 PardisoSolver::~PardisoSolver()
@@ -89,55 +91,51 @@ PardisoSolver::~PardisoSolver()
      MKL_INT ierror;
 
      phase = -1;
-     
+
      pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, nullptr, nullptr, &ierror);
 
      ASSERT(ierror == 0);
 }
 
 void PardisoSolver::Solve(void) const
+
 {
      const MKL_INT iNumNzA = pAp[n] - pAp[0];
-     bool bNumNzChanged = iNumNz == -1;
-     
+     const bool bForceOrderingStep = iNumNz != iNumNzA;
+
      MKL_INT ierror;
 
-     do {
-          if (bHasBeenReset) {
-               if (bNumNzChanged) {
-                    phase = 11;
-          
-                    pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+     if (bHasBeenReset) {
+          if (bForceOrderingStep) {
+               phase = 11; // Analysis step
 
-                    if (ierror != 0) {
-                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                    }
-
-                    iNumNz = iNumNzA;
-               }
-
-               phase = 22;
                pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
                if (ierror != 0) {
-                    throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
 
-               bHasBeenReset = false;
+               iNumNz = iNumNzA;
           }
-     
-          phase = 33;
+
+          phase = 22; // Numerical factorization step
 
           pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
-          if (ierror) {
-               if (iNumNz != iNumNzA) {
-                    bNumNzChanged = bHasBeenReset = true;
-               } else {
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-               }
+          if (ierror != 0) {
+               throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
           }
-     } while (ierror);
+
+          bHasBeenReset = false;
+     }
+
+     phase = 33; // Solve, iterative refinement step
+
+     pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+
+     if (ierror) {
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
 }
 
 MKL_INT PardisoSolver::MakeCompactForm(SparseMatrixHandler& mh,
@@ -148,11 +146,11 @@ MKL_INT PardisoSolver::MakeCompactForm(SparseMatrixHandler& mh,
      MKL_INT iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
 
      n = mh.iGetNumCols();
-     
+
      pAx = &Ax.front();
      pAi = &Ai.front();
      pAp = &Ap.front();
-     
+
      return iNumNzA;
 }
 
@@ -205,7 +203,7 @@ template <typename MatrixHandlerType>
 void PardisoSolutionManager<MatrixHandlerType>::Solve(void)
 {
     MakeCompressedRowForm();
-    
+
     pLS->Solve();
 }
 

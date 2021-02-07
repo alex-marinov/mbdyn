@@ -45,7 +45,6 @@
 
 #include <iostream>
 #include <vector>
-#include <complex>
 
 #include "myassert.h"
 #include "mynewmem.h"
@@ -89,36 +88,35 @@ public:
 template <typename MatrixHandlerType>
 class PardisoSolutionManager: public SolutionManager {
 private:
-    mutable MyVectorHandler x, b;
-    std::vector<MKL_INT> Ai, Ap;
-    std::vector<doublereal> Ax;
+     mutable MyVectorHandler x, b;
+     std::vector<MKL_INT> Ai, Ap;
+     std::vector<doublereal> Ax;
      
 protected:
-    mutable MatrixHandlerType A;
+     mutable MatrixHandlerType A;
 
-    PardisoSolver* pGetSolver() { return static_cast<PardisoSolver*>(pLS); }
+     PardisoSolver* pGetSolver() { return static_cast<PardisoSolver*>(pLS); }
 
 public:
-    PardisoSolutionManager(integer iDim,
-                           integer iNumThreads,
-                           integer iNumIter,
-                           const ScaleOpt& scale = ScaleOpt(),
-                           integer iVerbose = 0);
-    virtual ~PardisoSolutionManager(void);
+     PardisoSolutionManager(integer iDim,
+                            integer iNumThreads,
+                            integer iNumIter,
+                            const ScaleOpt& scale = ScaleOpt(),
+                            integer iVerbose = 0);
+     virtual ~PardisoSolutionManager(void);
 
 #ifdef DEBUG
      virtual void IsValid() const override;
 #endif
      
-    virtual void MatrReset() override;
-    virtual void MatrInitialize() override;
-    virtual void Solve() override;
-    void MakeCompressedRowForm();
-    virtual MatrixHandler* pMatHdl() const;
-    virtual VectorHandler* pResHdl() const;
-    virtual VectorHandler* pSolHdl() const;
+     virtual void MatrReset() override;
+     virtual void MatrInitialize() override;
+     virtual void Solve() override;
+     void MakeCompressedRowForm();
+     virtual MatrixHandler* pMatHdl() const;
+     virtual VectorHandler* pResHdl() const;
+     virtual VectorHandler* pSolHdl() const;
 };
 
 #endif
-
 #endif

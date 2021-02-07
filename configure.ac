@@ -2760,9 +2760,11 @@ dnl
 ol_link_pardiso=no
 if test $ol_with_pardiso != no ; then
         AC_CHECK_HEADER(mkl/mkl_pardiso.h, [have_mkl_pardiso_h=yes], [have_mkl_pardiso_h=no])
+        AC_CHECK_HEADER(omp.h, [have_omp_h=yes], [have_omp_h=no])
         if test "$have_mkl_pardiso_h" = "yes" ; then
 	        try_PARDISO_LIBS="-lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -lm -lgomp"
 	        AC_CHECK_LIB(mkl_gf_lp64,pardiso_,[have_mkl_pardiso_lib=yes],[have_mkl_pardiso_lib=no],[$try_PARDISO_LIBS])
+                AC_CHECK_LIB(gomp,omp_set_num_threads,[have_omp_set_num_threads=yes],[have_omp_set_num_threads=no],[$try_PARDISO_LIBS])
 	        if test "$have_mkl_pardiso_lib" = "yes"; then
 		        AC_DEFINE(USE_PARDISO,1,[define to use Intel MKL Pardiso library])
                         ol_link_pardiso=yes
@@ -2772,6 +2774,10 @@ if test $ol_with_pardiso != no ; then
 			   AC_MSG_ERROR([Intel MKL pardiso library not available])
 		        fi
 	        fi
+
+                if test "$have_omp_h" = "yes" && test "$have_omp_set_num_threads" = "yes" ; then
+                   AC_DEFINE(USE_OMP_SET_NUM_THREADS,1,[define to use omp_set_num_threads])
+                fi
         fi
 fi
 
