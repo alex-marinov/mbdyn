@@ -312,46 +312,6 @@ int64_t SpGradientSparseMatrixHandler::MakeCompressedColumnForm(doublereal *cons
      return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
 }
 
-template <typename idx_type>
-idx_type SpGradientSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const Ax,
-								 idx_type *const Ai,
-								 idx_type *const Ap,
-								 int offset) const
-{
-     idx_type iPtr = 0;
-     size_t iRow;
-
-     for (iRow = 0; iRow < oRows.size(); ++iRow) {
-	  Ap[iRow] = iPtr + offset;
-
-	  for (const auto& oItem: oRows[iRow]) {
-	       Ai[iPtr] = oItem.iDof + offset - 1;
-	       Ax[iPtr] = oItem.dDer;
-	       ++iPtr;
-	  }
-     }
-
-     Ap[iRow] = iPtr + offset;
-
-     return iPtr;
-}
-
-int32_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
-							     int32_t *const Ai,
-							     int32_t *const Ap,
-							     int offset) const
-{
-     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
-}
-
-int64_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
-							     int64_t *const Ai,
-							     int64_t *const Ap,
-							     int offset) const
-{
-     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
-}
-
 bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      SP_GRAD_ASSERT(iRow >= 1);
