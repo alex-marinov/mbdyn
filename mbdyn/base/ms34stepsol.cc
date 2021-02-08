@@ -79,17 +79,33 @@ TunableStep3Solver::SetCoef(doublereal dT,
 {
 	if (dAlpha != 1.)
 	{
-		silent_cerr("ms4 has not been implemented in variable-time-step form yet." << std::endl);
+		silent_cerr("ms3 has not been implemented in variable-time-step form yet." << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
-	//m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
-	//m_mp[1] = -m_mp[0];
-	//m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
-	//m_np[1] = dAlpha*(2. + 3.*dAlpha);
+	//m_mp[0] = 0.;
+	//m_mp[1] = 0.;
+	//m_mp[2] = 0.;
+	//m_np[0] = 1.;
+	//m_np[1] = 0.;
+	//m_np[2] = 0.;
+
+	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
+	m_mp[1] = -m_mp[0];
+	m_mp[2] = 0.;
+	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
+	m_np[1] = dAlpha*(2. + 3.*dAlpha);
+	m_np[2] = 0.;
+
+	//m_mp[0] = -57./dT;
+	//m_mp[1] = 24./dT;
+	//m_mp[2] = 33./dT;
+	//m_np[0] = 24.;
+	//m_np[1] = 57.;
+	//m_np[2] = 10.;
 
 	doublereal dDen = dRho*dRho - 5.*dRho + 10.;
 	doublereal dBeta = (1. + dRho)*dDen;
@@ -156,7 +172,13 @@ doublereal
 TunableStep3Solver::dPredDer(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	return dXP0mN[IDX_XPm1];
+	//return dXP0mN[IDX_XPm1];
+	return m_mp[0]*dXm1mN[IDX_Xm1] 
+		+ m_mp[1]*dXm1mN[IDX_Xm2]
+		+ m_mp[2]*dXm1mN[IDX_Xm3]
+		+ m_np[0]*dXP0mN[IDX_XPm1] 
+		+ m_np[1]*dXP0mN[IDX_XPm2]
+		+ m_np[2]*dXP0mN[IDX_XPm3];
 }
 
 doublereal
@@ -237,6 +259,42 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
+	//m_mp[0] = 0.;
+	//m_mp[1] = 0.;
+	//m_mp[2] = 0.;
+	//m_mp[3] = 0.;
+	//m_np[0] = 1.;
+	//m_np[1] = 0.;
+	//m_np[2] = 0.;
+	//m_np[3] = 0.;
+
+	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
+	m_mp[1] = -m_mp[0];
+	m_mp[2] = 0.;
+	m_mp[3] = 0.;
+	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
+	m_np[1] = dAlpha*(2. + 3.*dAlpha);
+	m_np[2] = 0.;
+	m_np[3] = 0.;
+
+	//m_mp[0] = -57./dT;
+	//m_mp[1] = 24./dT;
+	//m_mp[2] = 33./dT;
+	//m_mp[3] = 0.;
+	//m_np[0] = 24.;
+	//m_np[1] = 57.;
+	//m_np[2] = 10.;
+	//m_np[3] = 0.;
+
+	//m_mp[0] = -1360./(9.*dT);
+	//m_mp[1] = -150./dT;
+	//m_mp[2] = 240./dT;
+	//m_mp[3] = 550./(9.*dT);
+	//m_np[0] = 152./3.;
+	//m_np[1] = 264.;
+	//m_np[2] = 184.;
+	//m_np[3] = 47./3.;
+
 	doublereal dDen = - dRho*dRho*dRho + 7.*dRho*dRho - 21.*dRho + 35.;
 	doublereal dBeta = (1. + dRho)*dDen;
 
@@ -313,7 +371,15 @@ doublereal
 TunableStep4Solver::dPredDer(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	return dXP0mN[IDX_XPm1];
+	//return dXP0mN[IDX_XPm1];
+	return m_mp[0]*dXm1mN[IDX_Xm1] 
+		+ m_mp[1]*dXm1mN[IDX_Xm2]
+		+ m_mp[2]*dXm1mN[IDX_Xm3]
+		+ m_mp[3]*dXm1mN[IDX_Xm4]
+		+ m_np[0]*dXP0mN[IDX_XPm1] 
+		+ m_np[1]*dXP0mN[IDX_XPm2]
+		+ m_np[2]*dXP0mN[IDX_XPm3]
+		+ m_np[3]*dXP0mN[IDX_XPm4];
 }
 
 doublereal

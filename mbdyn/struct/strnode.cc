@@ -2674,8 +2674,8 @@ StructNode::BeforePredict(VectorHandler& X,
 	qXPPr[0]->Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*WPrev);
 #endif
 
-	ASSERT(qRPrev.size() >= qXPr.size());
-	for (unsigned i = 0; i < qXPr.size(); i++) {
+	ASSERT(qRPrev.size() >= qXPr.size() - 1);
+	for (unsigned i = 0; i < qXPr.size() - 1; i++) {
 		/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
 		 * all'indietro */
 		Mat3x3 RDelta(qRPrev[i]->MulMT(RCurr));

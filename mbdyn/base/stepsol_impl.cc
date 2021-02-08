@@ -200,7 +200,7 @@ Multistep2Solver::SetCoef(doublereal dT,
 		+2.*(2.*dRho - 1.)*(1. + dAlpha))/dDen;
 	doublereal dDelta = .5*dAlpha*dAlpha*(1. - dRho)*(1. - dRho)/dDen;
 
-	m_mp[0] = -6.*dAlpha*(1. + dAlpha);
+	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha);
 	m_mp[1] = -m_mp[0];
 	m_np[0] = 1. + 4.*dAlpha + 3.*dAlpha*dAlpha;
 	m_np[1] = dAlpha*(2. + 3.*dAlpha);
