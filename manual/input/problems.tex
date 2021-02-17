@@ -910,8 +910,8 @@ usually output.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{linear solver} :
-            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} | \kw{pastix}
-                    | \kw{qr} | \kw{spqr}\}
+            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} 
+                    | \kw{pardiso} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr}\}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
         [ , \{ \kw{colamd} | \kw{mmdata} | \kw{amd} | \kw{given} | \kw{metis} \} ]
         [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
@@ -1179,6 +1179,7 @@ summarizes how each linear solver deals with pivoting policies.
 %	Meschach	&         &         &         &           &         & $\surd$ &         \\
 	SuperLU		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 	TAUCS		& ?       & ?       & ?       & ?         & ?       & ?       & $\surd$ \\
+	Pardiso		& $\surd$ &         &         & $\surd$   &         &         &	        \\
 	Watson		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 	Pastix		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         &         &	        \\
 	QR		&         &         &         &           &         &         &	        \\

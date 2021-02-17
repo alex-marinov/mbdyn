@@ -50,6 +50,7 @@ public:
                 UMFPACK_SOLVER,
                 KLU_SOLVER,
 		Y12_SOLVER,
+                PARDISO_SOLVER,                
                 PASTIX_SOLVER,
                 QR_SOLVER,
                 SPQR_SOLVER,

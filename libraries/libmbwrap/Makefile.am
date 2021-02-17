@@ -30,6 +30,8 @@ superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
+pardisowrap.h \
+pardisowrap.cc \
 pastixwrap.cc \
 pastixwrap.h \
 taucswrap.cc \
@@ -67,6 +69,7 @@ libmbwrap_la_LIBADD = \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
+@PARDISO_LIBS@ \
 @WSMP_LIBS@ \
 @PASTIX_LIBS@ \
 @QRUPDATE_LIBS@ \

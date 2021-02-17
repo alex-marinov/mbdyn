@@ -61,6 +61,7 @@ extern "C" {
 #include "naivewrap.h"
 #include "parnaivewrap.h"
 #include "wsmpwrap.h"
+#include "pardisowrap.h"
 #include "pastixwrap.h"
 #include "qrwrap.h"
 #include "strumpackwrap.h"
@@ -90,6 +91,9 @@ const char *solvers[] = {
 #if defined(USE_WSMP)
 		"wsmp",
 #endif
+#if defined(USE_PARDISO)
+                "pardiso",
+#endif                
 #if defined(USE_PASTIX)
                 "pastix",
 #endif                
@@ -463,7 +467,7 @@ main(int argc, char *argv[])
 	SolutionManager::ScaleWhen ms = SolutionManager::SCALEW_NEVER;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdfg:m:oO:p:P:r::st:Tw:");
+		int opt = getopt(argc, argv, "cdfgm:oO:p:P:r::st:Tw:");
 
 		if (opt == EOF) {
 			break;
@@ -818,6 +822,27 @@ main(int argc, char *argv[])
 			<< std::endl;
 		usage(EXIT_FAILURE);
 #endif /* !USE_WSMP */
+        } else if (strcasecmp(solver, "pardiso") == 0) {
+#ifdef USE_PARDISO
+                        std::cerr << "Pardiso solver";
+#ifdef USE_SPARSE_AUTODIFF
+			if (gradmh) {
+                                SAFENEWWITHCONSTRUCTOR(pSM,
+                                                       PardisoSolutionManager<SpGradientSparseMatrixHandler>,
+                                                       PardisoSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 0));
+                        } else 
+#endif
+			{
+                                SAFENEWWITHCONSTRUCTOR(pSM,
+                                                       PardisoSolutionManager<SpMapMatrixHandler>,
+                                                       PardisoSolutionManager<SpMapMatrixHandler>(size, nt, 0));
+                        }
+                        std::cerr << std::endl;
+#else /* !USE_PARDISO */
+                        std::cerr << "need --with-pardiso to use Pardiso library" 
+                                << std::endl;
+                        usage(EXIT_FAILURE);
+#endif /* !USE_PARDISO */                
                 } else if (strcasecmp(solver, "pastix") == 0) {
 #ifdef USE_PASTIX
                         std::cerr << "Pastix solver";

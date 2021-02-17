@@ -113,18 +113,6 @@ public:
 				      int offset = 0) const override;
 
      virtual
-     int32_t MakeCompressedRowForm(doublereal *const Ax,
-				   int32_t *const Ai,
-				   int32_t *const Ap,
-				   int offset = 0) const override;
-
-     virtual
-     int64_t MakeCompressedRowForm(doublereal *const Ax,
-				   int64_t *const Ai,
-				   int64_t *const Ap,
-				   int offset = 0) const override;
-
-     virtual
      int32_t MakeIndexForm(doublereal *const Ax,
 			   int32_t *const Arow, int32_t *const Acol,
 			   int32_t *const AcolSt,
@@ -176,12 +164,6 @@ private:
 					  idx_type *const Ai,
 					  idx_type *const Ap,
 					  int offset) const;
-
-     template <typename idx_type>
-     idx_type MakeCompressedRowFormTpl(doublereal *const Ax,
-				       idx_type *const Ai,
-				       idx_type *const Ap,
-				       int offset) const;
 
      template <typename idx_type>
      idx_type MakeIndexFormTpl(doublereal *const Ax,

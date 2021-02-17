@@ -749,6 +749,8 @@ namespace sp_grad {
 	       return u.bHaveRefTo(A);
 	  }
 
+          const Expr& Transpose() const { return u; }
+          
 	  const ValueType* begin() const noexcept { return u.begin(); }
 	  const ValueType* end() const noexcept { return u.end(); }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetColOffset(); }
@@ -1073,7 +1075,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1207,7 +1209,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1347,7 +1349,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -1490,7 +1492,7 @@ namespace sp_grad {
 	  }
 
 	  const ValueType* begin() const noexcept { return u.begin() + (iRowStart - 1) * u.iGetRowOffset() + (iColStart - 1) * u.iGetColOffset(); }
-	  const ValueType* end() const noexcept { return begin() + u.iGetRowOffset() * iNumRows * u.iGetColOffset() * iNumCols; }
+	  const ValueType* end() const noexcept { return begin() + iGetRowOffset() * iNumRows * iGetColOffset() * iNumCols; }
 	  inline constexpr index_type iGetRowOffset() const noexcept { return u.iGetRowOffset() * iRowStep; }
 	  inline constexpr index_type iGetColOffset() const noexcept { return u.iGetColOffset() * iColStep; }
 
@@ -3936,9 +3938,49 @@ namespace sp_grad {
      inline constexpr
      typename util::ResultType<LhsValue, RhsValue>::Type
      Dot(const SpMatElemExprBase<LhsValue, LhsExpr>& u, const SpMatElemExprBase<RhsValue, RhsExpr>& v) {
-	  typedef SpMatrixBase<typename util::ResultType<LhsValue, RhsValue>::Type, 1, 1> MatProdType;
-	  const MatProdType uTv{Transpose(u) * v};
-	  return *uTv.begin();
+          static_assert(u.iNumRowsStatic == v.iNumRowsStatic);
+          static_assert(u.iNumColsStatic == 1);
+          static_assert(v.iNumColsStatic == 1);
+          SP_GRAD_ASSERT(u.iGetNumRows() == v.iGetNumRows());
+
+          typedef const SpMatElemExprBase<LhsValue, LhsExpr>& LhsTmpExpr;
+          typedef const SpMatElemExprBase<RhsValue, RhsExpr>& RhsTmpExpr;
+	  typedef typename util::remove_all<LhsTmpExpr>::type LhsExprType;
+	  typedef typename util::remove_all<RhsTmpExpr>::type RhsExprType;
+
+	  constexpr bool bLhsUsesIterators = (LhsExprType::uMatAccess & util::MatAccessFlag::ITERATORS) != 0;
+	  constexpr bool bRhsUsesIterators = (RhsExprType::uMatAccess & util::MatAccessFlag::ITERATORS) != 0;
+
+	  constexpr bool bUseTmpExprLhs = !(LhsExprType::iNumElemOps == 0 && bLhsUsesIterators);
+	  constexpr bool bUseTmpExprRhs = !(RhsExprType::iNumElemOps == 0 && bRhsUsesIterators);
+
+	  typedef util::TempExprHelper<LhsTmpExpr, bUseTmpExprLhs> UTmpType;
+	  typedef util::TempExprHelper<RhsTmpExpr, bUseTmpExprRhs> VTmpType;
+
+	  typename UTmpType::Type utmp{UTmpType::EvalUnique(u)};
+	  typename VTmpType::Type vtmp{VTmpType::EvalUnique(v)};
+
+	  static_assert(utmp.iNumElemOps == 0);
+	  static_assert(vtmp.iNumElemOps == 0);
+	  static_assert((utmp.uMatAccess & util::MatAccessFlag::ITERATORS) != 0);
+	  static_assert((vtmp.uMatAccess & util::MatAccessFlag::ITERATORS) != 0);
+
+	  const index_type iRowOffsetU = utmp.iGetRowOffset();
+	  const index_type iColSizeU = utmp.iGetRowOffset() * utmp.iGetNumRows();
+	  const index_type iRowOffsetV = vtmp.iGetRowOffset();
+          const index_type iColSizeV = vtmp.iGetNumRows() * iRowOffsetV;
+
+          typename util::ResultType<LhsValue, RhsValue>::Type a;
+          
+          util::MapInnerProduct(a,
+                                utmp.begin(),
+                                utmp.begin() + iColSizeU,
+                                iRowOffsetU,
+                                vtmp.begin(),
+                                vtmp.begin() + iColSizeV,
+                                iRowOffsetV);
+
+          return a;
      }
 
      template <typename Value, typename Expr>
@@ -3969,6 +4011,20 @@ namespace sp_grad {
      inline constexpr SpSubMatStatRowExpr<ValueType, const SpMatElemExprBase<ValueType, Expr>&, iRowStart, iRowStep, iNumRows>
      SubMatrix(const SpMatElemExprBase<ValueType, Expr>& A, index_type iColStart, index_type iColStep, index_type iNumCols) {
 	  return decltype(SubMatrix<iRowStart, iRowStep, iNumRows>(A, iColStart, iColStep, iNumCols))(A, iColStart, iColStep, iNumCols);
+     }
+
+     template <index_type iRowStart, index_type iRowStep, index_type iNumRows, typename ValueType, typename Expr>
+     inline constexpr SpSubMatStatExpr<ValueType, const SpMatElemExprBase<ValueType, Expr>&, iRowStart, iRowStep, iNumRows, 1, 1, 1>
+     SubColVector(const SpMatElemExprBase<ValueType, Expr>& A) {
+          static_assert(A.iNumColsStatic == 1);
+	  return decltype(SubColVector<iRowStart, iRowStep, iNumRows>(A))(A);
+     }
+
+     template <index_type iColStart, index_type iColStep, index_type iNumCols, typename ValueType, typename Expr>
+     inline constexpr SpSubMatStatExpr<ValueType, const SpMatElemExprBase<ValueType, Expr>&, 1, 1, 1, iColStart, iColStep, iNumCols>
+     SubRowVector(const SpMatElemExprBase<ValueType, Expr>& A) {
+          static_assert(A.iNumRowsStatic == 1);
+	  return decltype(SubRowVector<iColStart, iColStep, iNumCols>(A))(A);
      }
      
      template <typename ValueType>

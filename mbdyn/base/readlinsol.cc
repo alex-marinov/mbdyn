@@ -51,6 +51,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
+                ::solver[LinSol::PARDISO_SOLVER].s_name,
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
@@ -71,6 +72,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		UMFPACK3,
 		KLU,
 		Y12,
+                PARDISO,
                 PASTIX,
                 QR,
                 SPQR,
@@ -193,7 +195,16 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		bGotIt = true;
 #endif /* USE_Y12 */
 		break;
+        case PARDISO:
+                cs.SetSolver(LinSol::PARDISO_SOLVER);
 
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using pardiso sparse LU solver" << std::endl);
+#ifdef USE_PARDISO
+                bGotIt = true;
+#endif /* USE_PARDISO */
+                break;
+                
 	case PASTIX:
 		cs.SetSolver(LinSol::PASTIX_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,

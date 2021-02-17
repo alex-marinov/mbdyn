@@ -77,8 +77,6 @@ A(a),
 nThreads(nt),
 thread_data(0)
 {
-	ASSERT(iN > 0);
-
 	piv.resize(iSize);
 	fwd.resize(iSize);
 	todo.resize(iSize);
@@ -105,8 +103,23 @@ thread_data(0)
 
 
 	SAFENEWARRNOFILL(thread_data, thread_data_t, nThreads);
-	
-	(void)mbdyn_task2cpu(nThreads - 1);
+
+        const Task2CPU& oCPUStateGlobal = Task2CPU::GetGlobalState();
+        
+        if (static_cast<unsigned>(oCPUStateGlobal.iGetCount()) >= nThreads) {
+             int iCPUIdx = oCPUStateGlobal.iGetFirstCPU();
+    
+             for (unsigned i = 0; i < nThreads; ++i) {
+                  thread_data[i].iCPUIndex = iCPUIdx;
+                  iCPUIdx = oCPUStateGlobal.iGetNextCPU(iCPUIdx);
+             }
+        } else {
+             for (unsigned i = 0; i < nThreads; ++i) {
+                  thread_data[i].iCPUIndex = -1;
+             }
+        }
+        
+	SetAffinity(thread_data[0]);
 
 	for (unsigned t = 0; t < nThreads; t++) {
 		thread_data[t].pSLUS = this;
@@ -160,6 +173,7 @@ ParNaiveSolver::~ParNaiveSolver(void)
 	}
 
 	/* other cleanup... */
+        SAFEDELETEARR(thread_data);
 }
 
 void *
@@ -180,7 +194,7 @@ ParNaiveSolver::thread_op(void *arg)
 	sigaddset(&newset, SIGHUP);
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
 
-	(void)mbdyn_task2cpu(td->threadNumber);
+	SetAffinity(*td);
 
 	bool bKeepGoing(true);
 
@@ -277,14 +291,31 @@ ParNaiveSolver::EndOfOp(void)
 	pthread_mutex_unlock(&thread_mutex);
 }
 
+void
+ParNaiveSolver::SetAffinity(const thread_data_t& oThreadData)
+{
+     if (oThreadData.iCPUIndex >= 0) {
+          Task2CPU oCPUSet;
+
+          pedantic_cerr("Setting affinity of thread " << oThreadData.threadNumber << " to CPU " << oThreadData.iCPUIndex << " ...\n");
+	  
+          oCPUSet.SetCPU(oThreadData.iCPUIndex);
+	  
+          if (!oCPUSet.bSetAffinity()) {
+               silent_cerr("Failed to set affinity of thread " << oThreadData.threadNumber
+                           << " to CPU " << oThreadData.iCPUIndex << "\n");
+          }
+     }
+}
+
 #ifdef DEBUG
 void 
 ParNaiveSolver::IsValid(void) const
 {
-	ASSERT(Aip != NULL);
-	ASSERT(App != NULL);
-	ASSERT(Axp != NULL);
-	ASSERT(iN > 0); 
+	// ASSERT(Aip != NULL);
+	// ASSERT(App != NULL);
+	// ASSERT(Axp != NULL);
+	// ASSERT(iN > 0);        
 }
 #endif /* DEBUG */
 
@@ -296,7 +327,7 @@ ParNaiveSolver::Factor(void)
 	IsValid();
 #endif /* DEBUG */
 
-	ASSERT(iNonZeroes > 0);
+	// ASSERT(iNonZeroes > 0);
 
 	thread_operation = ParNaiveSolver::FACTOR;
 	thread_count = nThreads;
@@ -419,7 +450,7 @@ ParNaiveSparseSolutionManager::~ParNaiveSparseSolutionManager(void)
 void 
 ParNaiveSparseSolutionManager::IsValid(void) const
 {   
-   	ASSERT(iMatSize > 0);
+   	// ASSERT(iMatSize > 0);
    
 #ifdef DEBUG_MEMMANAGER
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(VH.pdGetVec()));

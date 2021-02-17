@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,235 +40,240 @@
 #include "strnode.h"
 #include "gravity.h"
 
+#ifdef USE_SPARSE_AUTODIFF
+#include "sp_gradient.h"
+#include "sp_matrix_base.h"
+#include "sp_matvecass.h"
+#endif
 /* Mass - begin */
 
-class Mass : 
-virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {   
+class Mass :
+virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 protected:
-	const StructDispNode *pNode;
-	doublereal dMass;
- 
-	/* momento statico */
-	Vec3 GetS_int(void) const;
+        const StructDispNode *pNode;
+        doublereal dMass;
 
-	/* momento d'inerzia */
-	Mat3x3 GetJ_int(void) const;
+        /* momento statico */
+        Vec3 GetS_int(void) const;
 
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
- 
-	void
-	AssVecRBK_int(SubVectorHandler& WorkVec);
+        /* momento d'inerzia */
+        Mat3x3 GetJ_int(void) const;
 
-	void
-	AssMatsRBK_int(
-		FullSubMatrixHandler& WMA,
-		FullSubMatrixHandler& WMB,
-		const doublereal& dCoef);
+        /* Scrive il contributo dell'elemento al file di restart */
+        virtual std::ostream& Restart(std::ostream& out) const;
+
+        void
+        AssVecRBK_int(SubVectorHandler& WorkVec);
+
+        void
+        AssMatsRBK_int(
+                FullSubMatrixHandler& WMA,
+                FullSubMatrixHandler& WMB,
+                const doublereal& dCoef);
 
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	Mass(unsigned int uL, const StructDispNode *pNode,
-		doublereal dMassTmp, flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        Mass(unsigned int uL, const StructDispNode *pNode,
+                doublereal dMassTmp, flag fOut);
 
-	virtual ~Mass(void);
- 
-	/* massa totale */
-	doublereal dGetM(void) const;
- 
-	/* momento statico */
-	Vec3 GetS(void) const;
+        virtual ~Mass(void);
 
-	/* momento d'inerzia */
-	Mat3x3 GetJ(void) const;
+        /* massa totale */
+        doublereal dGetM(void) const;
 
-	/* nodo */
-	const StructDispNode *pGetNode(void) const;
+        /* momento statico */
+        Vec3 GetS(void) const;
 
-	/* Tipo dell'elemento (usato solo per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::BODY; 
-	};
- 
-	/* Numero gdl durante l'assemblaggio iniziale */
-	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 0; 
-	};
+        /* momento d'inerzia */
+        Mat3x3 GetJ(void) const;
 
-	/* Accesso ai dati privati */
-	virtual unsigned int iGetNumPrivData(void) const;
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-	virtual doublereal dGetPrivData(unsigned int i) const;
+        /* nodo */
+        const StructDispNode *pGetNode(void) const;
 
-	/******** PER IL SOLUTORE PARALLELO *********/        
-	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void 
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		connectedNodes.resize(1);
-		connectedNodes[0] = pNode;
-	};
-	/**************************************************/
+        /* Tipo dell'elemento (usato solo per debug ecc.) */
+        virtual Elem::Type GetElemType(void) const {
+                return Elem::BODY;
+        };
+
+        /* Numero gdl durante l'assemblaggio iniziale */
+        virtual unsigned int iGetInitialNumDof(void) const {
+                return 0;
+        };
+
+        /* Accesso ai dati privati */
+        virtual unsigned int iGetNumPrivData(void) const;
+        virtual unsigned int iGetPrivDataIdx(const char *s) const;
+        virtual doublereal dGetPrivData(unsigned int i) const;
+
+        /******** PER IL SOLUTORE PARALLELO *********/
+        /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+         * utile per l'assemblaggio della matrice di connessione fra i dofs */
+        virtual void
+        GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
+                connectedNodes.resize(1);
+                connectedNodes[0] = pNode;
+        };
+        /**************************************************/
 };
 
 /* Mass - end */
 
 /* DynamicMass - begin */
 
-class DynamicMass : 
+class DynamicMass :
 virtual public Elem, public Mass {
 private:
 
-	Vec3 GetB_int(void) const;
+        Vec3 GetB_int(void) const;
 
-	/* Assembla le due matrici necessarie per il calcolo degli
-	 * autovalori e per lo jacobiano */  
-	void AssMats(FullSubMatrixHandler& WorkMatA,
-		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef,
-		bool bGravity,
-		const Vec3& GravityAcceleration);
+        /* Assembla le due matrici necessarie per il calcolo degli
+         * autovalori e per lo jacobiano */
+        void AssMats(FullSubMatrixHandler& WorkMatA,
+                FullSubMatrixHandler& WorkMatB,
+                doublereal dCoef,
+                bool bGravity,
+                const Vec3& GravityAcceleration);
 
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	DynamicMass(unsigned int uL, const DynamicStructDispNode* pNode, 
-		doublereal dMassTmp, flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        DynamicMass(unsigned int uL, const DynamicStructDispNode* pNode,
+                doublereal dMassTmp, flag fOut);
 
-	virtual ~DynamicMass(void);
- 
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 3; 
-		*piNumCols = 3; 
-	};
- 
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        virtual ~DynamicMass(void);
 
-	void AssMats(VariableSubMatrixHandler& WorkMatA,
-		VariableSubMatrixHandler& WorkMatB,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
- 
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
- 
-	/* Dimensione del workspace durante l'assemblaggio iniziale.
-	 * Occorre tener conto del numero di dof che l'elemento definisce
-	 * in questa fase e dei dof dei nodi che vengono utilizzati.
-	 * Sono considerati dof indipendenti la posizione e la velocita'
-	 * dei nodi */
-	virtual void 
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 3; 
-		*piNumCols = 3; 
-	};
+        void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 3;
+                *piNumCols = 3;
+        };
 
-	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr);
+        virtual VariableSubMatrixHandler&
+        AssJac(VariableSubMatrixHandler& WorkMat,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+        void AssMats(VariableSubMatrixHandler& WorkMatA,
+                VariableSubMatrixHandler& WorkMatB,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Usata per inizializzare la quantita' di moto */
-	virtual void SetValue(DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph = 0);
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
+
+        /* Dimensione del workspace durante l'assemblaggio iniziale.
+         * Occorre tener conto del numero di dof che l'elemento definisce
+         * in questa fase e dei dof dei nodi che vengono utilizzati.
+         * Sono considerati dof indipendenti la posizione e la velocita'
+         * dei nodi */
+        virtual void
+        InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 3;
+                *piNumCols = 3;
+        };
+
+        /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+        virtual VariableSubMatrixHandler&
+        InitialAssJac(VariableSubMatrixHandler& WorkMat,
+                const VectorHandler& XCurr);
+
+        /* Contributo al residuo durante l'assemblaggio iniziale */
+        virtual SubVectorHandler&
+        InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+        /* Usata per inizializzare la quantita' di moto */
+        virtual void SetValue(DataManager *pDM,
+                VectorHandler& X, VectorHandler& XP,
+                SimulationEntity::Hints *ph = 0);
 };
 
 /* DynamicMass - end */
 
 /* StaticMass - begin */
 
-class StaticMass : 
-virtual public Elem, public Mass {   
+class StaticMass :
+virtual public Elem, public Mass {
 private:
-	/* Assembla le due matrici necessarie per il calcolo degli
-	 * autovalori e per lo jacobiano */  
-	bool AssMats(FullSubMatrixHandler& WorkMatA,
-		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef);
+        /* Assembla le due matrici necessarie per il calcolo degli
+         * autovalori e per lo jacobiano */
+        bool AssMats(FullSubMatrixHandler& WorkMatA,
+                FullSubMatrixHandler& WorkMatB,
+                doublereal dCoef);
 
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	StaticMass(unsigned int uL, const StaticStructDispNode* pNode,
-		doublereal dMass, flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        StaticMass(unsigned int uL, const StaticStructDispNode* pNode,
+                doublereal dMass, flag fOut);
 
-	virtual ~StaticMass(void);
- 
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 3; 
-		*piNumCols = 3; 
-	};
- 
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        virtual ~StaticMass(void);
 
-	void AssMats(VariableSubMatrixHandler& WorkMatA,
-		VariableSubMatrixHandler& WorkMatB,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
- 
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 3;
+                *piNumCols = 3;
+        };
 
-	/* inverse dynamics capable element */
-	virtual bool bInverseDynamics(void) const;
- 
-	/* Inverse Dynamics: */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ ,
-		const VectorHandler& /* XPrimePrimeCurr */ ,
-		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+        virtual VariableSubMatrixHandler&
+        AssJac(VariableSubMatrixHandler& WorkMat,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Dimensione del workspace durante l'assemblaggio iniziale.
-	 * Occorre tener conto del numero di dof che l'elemento definisce
-	 * in questa fase e dei dof dei nodi che vengono utilizzati.
-	 * Sono considerati dof indipendenti la posizione e la velocita'
-	 * dei nodi */
-	virtual void 
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 3; 
-		*piNumCols = 3; 
-	};
+        void AssMats(VariableSubMatrixHandler& WorkMatA,
+                VariableSubMatrixHandler& WorkMatB,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr);
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+        /* inverse dynamics capable element */
+        virtual bool bInverseDynamics(void) const;
 
-	/* Usata per inizializzare la quantita' di moto */
-	virtual void SetValue(DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph = 0);
+        /* Inverse Dynamics: */
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+                const VectorHandler& /* XCurr */ ,
+                const VectorHandler& /* XPrimeCurr */ ,
+                const VectorHandler& /* XPrimePrimeCurr */ ,
+                InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+        /* Dimensione del workspace durante l'assemblaggio iniziale.
+         * Occorre tener conto del numero di dof che l'elemento definisce
+         * in questa fase e dei dof dei nodi che vengono utilizzati.
+         * Sono considerati dof indipendenti la posizione e la velocita'
+         * dei nodi */
+        virtual void
+        InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 3;
+                *piNumCols = 3;
+        };
+
+        /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+        virtual VariableSubMatrixHandler&
+        InitialAssJac(VariableSubMatrixHandler& WorkMat,
+                const VectorHandler& XCurr);
+
+        /* Contributo al residuo durante l'assemblaggio iniziale */
+        virtual SubVectorHandler&
+        InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+        /* Usata per inizializzare la quantita' di moto */
+        virtual void SetValue(DataManager *pDM,
+                VectorHandler& X, VectorHandler& XP,
+                SimulationEntity::Hints *ph = 0);
 };
 
 /* StaticMass - end */
 
 /* Body - begin */
 
-class Body : 
-virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {   
+class Body :
+virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 protected:
 	const StructNode *pNode;
 	doublereal dMass;
@@ -288,6 +293,16 @@ protected:
 	void
 	AssVecRBK_int(SubVectorHandler& WorkVec);
 
+#ifdef USE_SPARSE_AUTODIFF
+       template <typename T>
+       void
+       AssVecRBK_int(const sp_grad::SpColVector<T, 3>& STmp,
+                     const sp_grad::SpMatrix<T, 3, 3>& JTmp,
+                     sp_grad::SpGradientAssVec<T>& WorkVec,
+                     doublereal dCoef,
+                     sp_grad::SpFunctionCall func);
+#endif
+     
 	void
 	AssMatsRBK_int(
 		FullSubMatrixHandler& WMA,
@@ -296,54 +311,54 @@ protected:
 		const Vec3& Sc);
 
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	Body(unsigned int uL, const StructNode *pNode,
-		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
-		flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        Body(unsigned int uL, const StructNode *pNode,
+                doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
+                flag fOut);
 
-	virtual ~Body(void);
- 
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
- 
-	/* massa totale */
-	doublereal dGetM(void) const;
- 
-	/* momento statico */
-	Vec3 GetS(void) const;
+        virtual ~Body(void);
 
-	/* momento d'inerzia */
-	Mat3x3 GetJ(void) const;
+        /* Scrive il contributo dell'elemento al file di restart */
+        virtual std::ostream& Restart(std::ostream& out) const;
 
-	/* nodo */
-	const StructNode *pGetNode(void) const;
+        /* massa totale */
+        doublereal dGetM(void) const;
 
-	/* Tipo dell'elemento (usato solo per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::BODY; 
-	};
- 
-	/* Numero gdl durante l'assemblaggio iniziale */
-	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 0; 
-	};
+        /* momento statico */
+        Vec3 GetS(void) const;
 
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+        /* momento d'inerzia */
+        Mat3x3 GetJ(void) const;
 
-	/* Accesso ai dati privati */
-	virtual unsigned int iGetNumPrivData(void) const;
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-	virtual doublereal dGetPrivData(unsigned int i) const;
+        /* nodo */
+        const StructNode *pGetNode(void) const;
 
-	/******** PER IL SOLUTORE PARALLELO *********/        
-	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void 
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		connectedNodes.resize(1);
-		connectedNodes[0] = pNode;
-	};
-	/**************************************************/
+        /* Tipo dell'elemento (usato solo per debug ecc.) */
+        virtual Elem::Type GetElemType(void) const {
+                return Elem::BODY;
+        };
+
+        /* Numero gdl durante l'assemblaggio iniziale */
+        virtual unsigned int iGetInitialNumDof(void) const {
+                return 0;
+        };
+
+        virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+        /* Accesso ai dati privati */
+        virtual unsigned int iGetNumPrivData(void) const;
+        virtual unsigned int iGetPrivDataIdx(const char *s) const;
+        virtual doublereal dGetPrivData(unsigned int i) const;
+
+        /******** PER IL SOLUTORE PARALLELO *********/
+        /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+         * utile per l'assemblaggio della matrice di connessione fra i dofs */
+        virtual void
+        GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
+                connectedNodes.resize(1);
+                connectedNodes[0] = pNode;
+        };
+        /**************************************************/
 };
 
 /* Body - end */
@@ -351,20 +366,20 @@ public:
 
 /* DynamicBody - begin */
 
-class DynamicBody : 
+class DynamicBody :
 virtual public Elem, public Body {
 private:
 
-	Vec3 GetB_int(void) const;
-	Vec3 GetG_int(void) const;
+        Vec3 GetB_int(void) const;
+        Vec3 GetG_int(void) const;
 
-	/* Assembla le due matrici necessarie per il calcolo degli
-	 * autovalori e per lo jacobiano */  
-	void AssMats(FullSubMatrixHandler& WorkMatA,
-		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef,
-		bool bGravity,
-		const Vec3& GravityAcceleration);
+        /* Assembla le due matrici necessarie per il calcolo degli
+         * autovalori e per lo jacobiano */
+        void AssMats(FullSubMatrixHandler& WorkMatA,
+                FullSubMatrixHandler& WorkMatB,
+                doublereal dCoef,
+                bool bGravity,
+                const Vec3& GravityAcceleration);
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
@@ -415,6 +430,24 @@ public:
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
+
+#ifdef USE_SPARSE_AUTODIFF     
+       template <typename T>
+       void
+       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const sp_grad::SpGradientVectorHandler<T>& XCurr,
+              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+              sp_grad::SpFunctionCall func);
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
+                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;                
+#endif
 };
 
 /* DynamicBody - end */
@@ -422,48 +455,69 @@ public:
 
 /* ModalBody - begin */
 
-class ModalBody : 
+class ModalBody :
 virtual public Elem, public DynamicBody {
 private:
-	Vec3 XPP, WP;
+#ifndef USE_SPARSE_AUTODIFF
+        Vec3 XPP, WP;
 
-	/* Assembla le due matrici necessarie per il calcolo degli
-	 * autovalori e per lo jacobiano */  
-	void AssMats(FullSubMatrixHandler& WorkMatA,
-		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		bool bGravity,
-		const Vec3& GravityAcceleration);
-
+        /* Assembla le due matrici necessarie per il calcolo degli
+         * autovalori e per lo jacobiano */
+        void AssMats(FullSubMatrixHandler& WorkMatA,
+                     FullSubMatrixHandler& WorkMatB,
+                     doublereal dCoef,
+                     const VectorHandler& XCurr,
+                     const VectorHandler& XPrimeCurr,
+                     bool bGravity,
+                     const Vec3& GravityAcceleration);
+#endif
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	ModalBody(unsigned int uL, const ModalNode* pNodeTmp, 
-		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
-		flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        ModalBody(unsigned int uL, const ModalNode* pNodeTmp,
+                doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp,
+                flag fOut);
 
-	virtual ~ModalBody(void);
- 
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
- 
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        virtual ~ModalBody(void);
 
-	void AssMats(VariableSubMatrixHandler& WorkMatA,
-		VariableSubMatrixHandler& WorkMatB,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
- 
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
-        
+        void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+        virtual VariableSubMatrixHandler&
+        AssJac(VariableSubMatrixHandler& WorkMat,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr);
+               
+#ifndef USE_SPARSE_AUTODIFF
+        void AssMats(VariableSubMatrixHandler& WorkMatA,
+                     VariableSubMatrixHandler& WorkMatB,
+                     const VectorHandler& XCurr,
+                     const VectorHandler& XPrimeCurr);
+#endif
+                
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr);
+
+#ifdef USE_SPARSE_AUTODIFF
+        template <typename T>
+        void
+        AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+               doublereal dCoef,
+               const sp_grad::SpGradientVectorHandler<T>& XCurr,
+               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+               sp_grad::SpFunctionCall func);
+
+        void
+        UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
+                      const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp);
+                
+        void
+        UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp);
+#endif
+
         virtual void
         SetValue(DataManager *pDM,
                  VectorHandler& X, VectorHandler& XP,
@@ -475,80 +529,80 @@ public:
 
 /* StaticBody - begin */
 
-class StaticBody : 
-virtual public Elem, public Body {   
+class StaticBody :
+virtual public Elem, public Body {
 private:
-	/* Assembla le due matrici necessarie per il calcolo degli
-	 * autovalori e per lo jacobiano */  
-	bool AssMats(FullSubMatrixHandler& WorkMatA,
-		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef);
+        /* Assembla le due matrici necessarie per il calcolo degli
+         * autovalori e per lo jacobiano */
+        bool AssMats(FullSubMatrixHandler& WorkMatA,
+                FullSubMatrixHandler& WorkMatB,
+                doublereal dCoef);
 
 public:
-	/* Costruttore definitivo (da mettere a punto) */
-	StaticBody(unsigned int uL, const StaticStructNode* pNode,
-		doublereal dMass, const Vec3& Xgc, const Mat3x3& J, 
-		flag fOut);
+        /* Costruttore definitivo (da mettere a punto) */
+        StaticBody(unsigned int uL, const StaticStructNode* pNode,
+                doublereal dMass, const Vec3& Xgc, const Mat3x3& J,
+                flag fOut);
 
-	virtual ~StaticBody(void);
- 
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6; 
-		*piNumCols = 6; 
-	};
- 
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        virtual ~StaticBody(void);
 
-	void AssMats(VariableSubMatrixHandler& WorkMatA,
-		VariableSubMatrixHandler& WorkMatB,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
- 
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);
+        void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 6;
+                *piNumCols = 6;
+        };
 
-	/* inverse dynamics capable element */
-	virtual bool bInverseDynamics(void) const;
- 
-	/* Inverse Dynamics: */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ ,
-		const VectorHandler& /* XPrimePrimeCurr */ ,
-		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+        virtual VariableSubMatrixHandler&
+        AssJac(VariableSubMatrixHandler& WorkMat,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Dimensione del workspace durante l'assemblaggio iniziale.
-	 * Occorre tener conto del numero di dof che l'elemento definisce
-	 * in questa fase e dei dof dei nodi che vengono utilizzati.
-	 * Sono considerati dof indipendenti la posizione e la velocita'
-	 * dei nodi */
-	virtual void 
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6; 
-		*piNumCols = 6; 
-	};
+        void AssMats(VariableSubMatrixHandler& WorkMatA,
+                VariableSubMatrixHandler& WorkMatB,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr);
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+                doublereal dCoef,
+                const VectorHandler& XCurr,
+                const VectorHandler& XPrimeCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+        /* inverse dynamics capable element */
+        virtual bool bInverseDynamics(void) const;
 
-	/* Usata per inizializzare la quantita' di moto */
-	virtual void SetValue(DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph = 0);
+        /* Inverse Dynamics: */
+        virtual SubVectorHandler&
+        AssRes(SubVectorHandler& WorkVec,
+                const VectorHandler& /* XCurr */ ,
+                const VectorHandler& /* XPrimeCurr */ ,
+                const VectorHandler& /* XPrimePrimeCurr */ ,
+                InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+        /* Dimensione del workspace durante l'assemblaggio iniziale.
+         * Occorre tener conto del numero di dof che l'elemento definisce
+         * in questa fase e dei dof dei nodi che vengono utilizzati.
+         * Sono considerati dof indipendenti la posizione e la velocita'
+         * dei nodi */
+        virtual void
+        InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+                *piNumRows = 6;
+                *piNumCols = 6;
+        };
+
+        /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+        virtual VariableSubMatrixHandler&
+        InitialAssJac(VariableSubMatrixHandler& WorkMat,
+                const VectorHandler& XCurr);
+
+        /* Contributo al residuo durante l'assemblaggio iniziale */
+        virtual SubVectorHandler&
+        InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+        /* Usata per inizializzare la quantita' di moto */
+        virtual void SetValue(DataManager *pDM,
+                VectorHandler& X, VectorHandler& XP,
+                SimulationEntity::Hints *ph = 0);
 };
 
 /* StaticBody - end */
@@ -559,4 +613,3 @@ class MBDynParser;
 extern Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
 #endif /* BODY_H */
-
