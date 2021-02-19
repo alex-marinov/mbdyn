@@ -805,7 +805,7 @@ protected:
 	//	- find a clever way to statically determine the largest N
 	//	- find a clever way to only store as many as needed
 	enum {
-		NPREV = 3
+		NPREV = 4
 	};
 
 	// mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */

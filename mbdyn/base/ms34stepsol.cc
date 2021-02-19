@@ -86,6 +86,7 @@ TunableStep3Solver::SetCoef(doublereal dT,
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
+	//constant prediction;
 	//m_mp[0] = 0.;
 	//m_mp[1] = 0.;
 	//m_mp[2] = 0.;
@@ -93,6 +94,7 @@ TunableStep3Solver::SetCoef(doublereal dT,
 	//m_np[1] = 0.;
 	//m_np[2] = 0.;
 
+	//second-order prediction
 	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
 	m_mp[1] = -m_mp[0];
 	m_mp[2] = 0.;
@@ -100,6 +102,7 @@ TunableStep3Solver::SetCoef(doublereal dT,
 	m_np[1] = dAlpha*(2. + 3.*dAlpha);
 	m_np[2] = 0.;
 
+	//fourth-order prediction
 	//m_mp[0] = -57./dT;
 	//m_mp[1] = 24./dT;
 	//m_mp[2] = 33./dT;
@@ -172,7 +175,6 @@ doublereal
 TunableStep3Solver::dPredDer(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	//return dXP0mN[IDX_XPm1];
 	return m_mp[0]*dXm1mN[IDX_Xm1] 
 		+ m_mp[1]*dXm1mN[IDX_Xm2]
 		+ m_mp[2]*dXm1mN[IDX_Xm3]
@@ -199,19 +201,25 @@ TunableStep3Solver::dPredDerAlg(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
 	return dXP0mN[IDX_XPm1];
+	//higher-order prediction
+	//return m_np[0]*dXP0mN[IDX_XPm1] 
+	//	+ m_np[1]*dXP0mN[IDX_XPm2]
+	//	+ m_np[2]*dXP0mN[IDX_XPm3]
+	//	+ m_mp[1]*(dXm1mN[IDX_Xm2] - dXm1mN[IDX_Xm1])
+	//	+ m_mp[2]*( - dXm1mN[IDX_Xm1]);
 }
 
 doublereal
 TunableStep3Solver::dPredStateAlg(const doublereal dXm1mN[3],
 		const doublereal dXP0mN[4]) const
 {
-	return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1] 
-		+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm2] 
-		+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm3]
-		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0] 
-		+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1] 
-		+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2] 
+	return m_a[IDX_A2][ALGEBRAIC]*(dXm1mN[IDX_Xm2] - dXm1mN[IDX_Xm1])
+		+ m_a[IDX_A3][ALGEBRAIC]*( - dXm1mN[IDX_Xm1])
+		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
+		+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
+		+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2]
 		+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm3];
+	
 }
 
 /* TunableStep3Solver - end */
@@ -259,6 +267,7 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	doublereal dRho = m_Rho.dGet();
 	doublereal dAlgebraicRho = m_AlgebraicRho.dGet();
 
+	//constant prediction
 	//m_mp[0] = 0.;
 	//m_mp[1] = 0.;
 	//m_mp[2] = 0.;
@@ -268,6 +277,7 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	//m_np[2] = 0.;
 	//m_np[3] = 0.;
 
+	//second-order prediction
 	m_mp[0] = -6.*dAlpha*dAlpha*(1. + dAlpha)/dT;
 	m_mp[1] = -m_mp[0];
 	m_mp[2] = 0.;
@@ -277,6 +287,7 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	m_np[2] = 0.;
 	m_np[3] = 0.;
 
+	//fourth-order prediction
 	//m_mp[0] = -57./dT;
 	//m_mp[1] = 24./dT;
 	//m_mp[2] = 33./dT;
@@ -286,6 +297,7 @@ TunableStep4Solver::SetCoef(doublereal dT,
 	//m_np[2] = 10.;
 	//m_np[3] = 0.;
 
+	//sixth-order prediction
 	//m_mp[0] = -1360./(9.*dT);
 	//m_mp[1] = -150./dT;
 	//m_mp[2] = 240./dT;
@@ -371,7 +383,6 @@ doublereal
 TunableStep4Solver::dPredDer(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	//return dXP0mN[IDX_XPm1];
 	return m_mp[0]*dXm1mN[IDX_Xm1] 
 		+ m_mp[1]*dXm1mN[IDX_Xm2]
 		+ m_mp[2]*dXm1mN[IDX_Xm3]
@@ -402,16 +413,23 @@ TunableStep4Solver::dPredDerAlg(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
 	return dXP0mN[IDX_XPm1];
+	//higher-order prediction
+	//return m_np[0]*dXP0mN[IDX_XPm1] 
+	//	+ m_np[1]*dXP0mN[IDX_XPm2]
+	//	+ m_np[2]*dXP0mN[IDX_XPm3]
+	//	+ m_np[3]*dXP0mN[IDX_XPm4]
+	//	+ m_mp[1]*(dXm1mN[IDX_Xm2] - dXm1mN[IDX_Xm1])
+	//	+ m_mp[2]*(dXm1mN[IDX_Xm3] - dXm1mN[IDX_Xm1])
+	//	+ m_np[3]*( - dXm1mN[IDX_Xm1]);
 }
 
 doublereal
 TunableStep4Solver::dPredStateAlg(const doublereal dXm1mN[4],
 		const doublereal dXP0mN[5]) const
 {
-	return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1]
-		+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm2]
-		+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm3]
-		+ m_a[IDX_A4][ALGEBRAIC]*dXm1mN[IDX_Xm4]
+	return m_a[IDX_A2][ALGEBRAIC]*(dXm1mN[IDX_Xm2] - dXm1mN[IDX_Xm1])
+		+ m_a[IDX_A3][ALGEBRAIC]*(dXm1mN[IDX_Xm3] - dXm1mN[IDX_Xm1])
+		+ m_a[IDX_A4][ALGEBRAIC]*( - dXm1mN[IDX_Xm1])
 		+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
 		+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1]
 		+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm2]

@@ -113,6 +113,9 @@ protected:
 	doublereal m_a[N][2];
 	doublereal m_b[N + 1][2];
 
+	doublereal m_mp[N];
+	doublereal m_np[N];
+
 public:
 	tplStageNIntegrator(const integer MaxIt,
 		const doublereal dT,
@@ -322,6 +325,9 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 
 	ASSERT(m_qXPr.empty());
 	ASSERT(m_qXPPr.empty());
+
+	m_qXPr.push_front(qX[0]);
+	m_qXPPr.push_front(qXPrime[0]);
 
 	// first time?
 	if (m_pX[1] == 0) {

@@ -270,8 +270,6 @@ Multistep2Solver::SetCoef(doublereal dT,
 	/* valori di ritorno */
 	db0Differential = m_b[IDX_B0][DIFFERENTIAL];
 	db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
-	//std::cout<<"PredictCoef= "<<mp[0]<<", "<<mp[1]<<", "<<np[0]<<", "<<np[1]<<std::endl;
-	//std::cout<<"Coef= "<<a[0][DIFFERENTIAL]<<", "<<a[1][DIFFERENTIAL]<<", "<<b[0][DIFFERENTIAL]<<", "<<b[1][DIFFERENTIAL]<<", "<<b[2][DIFFERENTIAL]<<std::endl;
 }
 
 /* Nota: usa predizione cubica per le derivate (massimo ordine possibile) */
