@@ -40,6 +40,7 @@
 #include <math.h>
 #include <cmath>
 #include <unistd.h>
+#include <sys/time.h> //for both Unix/Windowns <sys/time.h> only for Unix
 
 #include "mbdyn_ce.h"
 #include "chrono/ChConfig.h"
@@ -61,6 +62,9 @@
 using namespace chrono;
 using namespace chrono::collision;
 
+clock_t startTime,endTime;
+struct timeval start_time, end_time;
+
 extern "C" void
 MBDyn_CE_CEModel_Create(ChSystemParallelNSC *pMBDyn_CE_CEModel);
 
@@ -74,6 +78,8 @@ const double* pMBDyn_CE_CEFrame, const double* MBDyn_CE_CEScale,
 std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label, //- IDs of coupling bodies and motors in C::E model, and output cmd
 const int& MBDyn_CE_CouplingType) //- Coupling type
 {
+	gettimeofday(&start_time, NULL);//get the start time
+	startTime = clock();
 	std::cout << "Initial MBDyn_CE_CEModel pointer:\n";
 	ChSystemParallelNSC *pMBDyn_CE_CEModel = new ChSystemParallelNSC; //- By now, only support ChSystemParallel.
 	//--------------- create C::E model (defined by user)
@@ -129,13 +135,27 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 					return NULL;
 				}
 				auto motor3d_body_i = std::make_shared<ChLinkMotionImposed>();
+				//--------------- initialize offset
+				//---------- Marker in MBDyn >>>> Marker in C::E;
+				//- r = (off1, off2,  off3); (offset in C::E bodies' local ref)
+				//- Rh_MBDynG: (joint orientation in MBDyn frame)
+				//-    [CEF0,  CEF3,  CEF6]
+				//-    [CEF1,  CEF4,  CEF7]
+				//-    [CEF2,  CEF5,  CEF8];
 				ChVector<> temp_mbdyn_CE_offset(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[0],
 												MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[1],
 												MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Offset[2]);
+				ChVector<> temp_mbdyn_CE_Rh_x(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[0], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[1], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[2]);
+				ChVector<> temp_mbdyn_CE_Rh_y(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[3], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[4], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[5]);
+				ChVector<> temp_mbdyn_CE_Rh_z(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[6], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[7], MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[8]);
+				ChMatrix33<> temp_mbdyn_CE_Rh_MBDyn(temp_mbdyn_CE_Rh_x, temp_mbdyn_CE_Rh_y, temp_mbdyn_CE_Rh_z);
+				ChQuaternion<> temp_mbdyn_CE_Rh_G(temp_mbdyn_CE_Rh_MBDyn.Get_A_quaternion()>> mbdynce_temp_frameMBDyn);
+				ChQuaternion<> temp_mbdyn_CE_Rh_local(body_i->GetRot().GetConjugate()*temp_mbdyn_CE_Rh_G);
+				std::cout << "temp_mbdyn_CE_Rh_G " << temp_mbdyn_CE_Rh_G << "\n";
 				motor3d_body_i->Initialize(body_i,
 										   mbdynce_temp_ground,
-										   true,																//- connecting frames are described in local ref.
-										   ChFrame<>(temp_mbdyn_CE_offset, ChQuaternion<>(1.0, 0.0, 0.0, 0.0)), //- By default: using the mass center and the body orientation
+										   true,													//- connecting frames are described in local ref.
+										   ChFrame<>(temp_mbdyn_CE_offset, temp_mbdyn_CE_Rh_local), //- By default: using the mass center and the body orientation
 										   ChFrame<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1.0, 0.0, 0.0, 0.0)));
 				pMBDyn_CE_CEModel->Add(motor3d_body_i);
 
@@ -198,7 +218,10 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 					std::cout << "\tC::E motor\t" << i + 1 << "\tID:\t" << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEMotor_Label
 							  << "\tbody 1:\t" << body_i->GetIdentifier() << "\tbody 2:\t" << mbdynce_temp_ground->GetIdentifier() << "\n"
 							  << "\tFrame1_pos:\t" << motor3d_body_i->GetFrame1().GetPos() << "\n"
-							  << "\tFrame1_rot:\t" << motor3d_body_i->GetFrame1().GetRot() << "\n";
+							  << "\tFrame1_rot:\t" << motor3d_body_i->GetFrame1().GetRot() << "\n"
+							  << "\tRelative_matrix_mbdyn (Ground ref):\t" << temp_mbdyn_CE_Rh_MBDyn << "\n"
+							  << "\tAbsolute_rot:\t" << temp_mbdyn_CE_Rh_G<< "\n"
+							  << "\tRelative_rot:\t" << temp_mbdyn_CE_Rh_local << "\n";							  
 				}
 			}
 		}
@@ -255,13 +278,14 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 				std::cout << "\tFrame2G_rot: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().rot << "\n";
 			}
 		}
-		#ifdef CHRONO_OPENGL
+#ifdef CHRONO_OPENGL
+//#if 0
 		opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 		gl_window.Initialize(1280, 720, "Pendulum", pMBDyn_CE_CEModel);
 		gl_window.SetCamera(ChVector<>(-20.89465, 104.58118, 223.05379), 
 							ChVector<>(-20.94352, 104.29030, 222.09828), ChVector<>(0, 1.0, 0), 5.0f);
 		gl_window.SetRenderMode(opengl::WIREFRAME);
-		#endif
+#endif
 		return pMBDyn_CE_CEModel;
 	}
 }
@@ -269,6 +293,12 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 extern "C" void
 MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t &pMBDyn_CE_CEModel)
 {
+	gettimeofday(&end_time, NULL);//the end time
+	double time_diff_sec = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1.0e6;
+	endTime = clock();
+
+	std::cout << "time consuming:\t" << time_diff_sec << "s\t" << "CPU time:\t" << (double)(endTime - startTime) / CLOCKS_PER_SEC <<"s"
+			 << "\n";
 	if(pMBDyn_CE_CEModel!=NULL)
 	{
 		// must convert to the correct type
@@ -357,12 +387,18 @@ bool MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 			std::cout << "\t\tdifference between MBDyn and C::E\t" << (mbdynce_tempmbdyn_pos - mbdynce_tempce_pos).Length() << "\n";
 			break;
 		}
+		if (mbdynce_tempmbdyn_rot.Dot(mbdynce_tempce_rot)<0)
+		{
+			mbdynce_tempmbdyn_rot = -mbdynce_tempmbdyn_rot;
+		}
 		if (((mbdynce_tempmbdyn_rot - mbdynce_tempce_rot).Length()) > 1.0e-6)
 		{
 			bmbdynce_temp_check = false;
 			std::cout << "\t\trot of coupling body " << mbdynce_tempce_body_id << " doesn't agree with that in MBDyn\n";
 			std::cout << "\t\trot in MBDyn\t" << mbdynce_tempmbdyn_R1.Get_A_quaternion() << "\n";
 			std::cout << "\t\trot in C::E\t" << mbdynce_tempce_rot << "\n";
+			std::cout << "\t\tFrame1 in C::E\t" << motor3d_motor_i->GetFrame1() << "\n";
+			std::cout << "\t\tFrameBody1 in C::E\t" << *(motor3d_motor_i->GetBody1()) << "\n";
 			std::cout << "\t\tdifference between MBDyn and C::E\t" << (mbdynce_tempmbdyn_rot - mbdynce_tempce_rot).Length() << "\n";
 			break;
 		}
@@ -535,7 +571,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 	if (bMBDyn_CE_Verbose)
 	{
 		std::cout << "\tC::E model before integration:\n";
-		/*for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
+		for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
 		{
 			std::cout << "\t\tBody " << tempsys->Get_bodylist()[i]->GetIdentifier() << "\n";
 			std::cout << "\t\t\tpos: " << tempsys->Get_bodylist()[i]->GetPos() << "\n";
@@ -544,17 +580,47 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			std::cout << "\t\t\trot: " << tempsys->Get_bodylist()[i]->GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 			std::cout << "\t\t\tWvel_par: " << tempsys->Get_bodylist()[i]->GetWvel_par() << "\n";
 			std::cout << "\t\t\tWacc_par: " << tempsys->Get_bodylist()[i]->GetWacc_par() << "\n";
-		}*/
+		}
 		for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
 		{
 			std::cout << "\t\tLink " << tempsys->Get_linklist()[i]->GetIdentifier() << "\n";
 			auto motor_3d=std::dynamic_pointer_cast<ChLinkMotionImposed>(tempsys->Get_linklist()[i]);
 			if (motor_3d)
 			{
+				//- some information about the motion of marker on body 1
+				//- start velocity in C::E Ground
+				ChVector<> frame1_pos_loc, frame1_pos_par, frame1_pos_dt_par, frame1_pos_dtdt_par;				
+				ChVector<> frame1_Wvel_loc, frame1_Wvel_par, frame1_Wacc_loc, frame1_Wacc_par;
+				ChQuaternion<> frame1_q_loc, frame1_q_par;
+				frame1_pos_loc = motor_3d->GetFrame1().GetPos();
+				frame1_pos_par = motor_3d->GetBody1()->TransformDirectionLocalToParent(frame1_pos_loc);
+				frame1_q_loc = motor_3d->GetFrame1().GetRot();
+				frame1_q_par = motor_3d->GetBody1()->GetRot()*frame1_q_loc;
+				frame1_Wvel_loc = motor_3d->GetBody1()->GetWvel_loc();
+				frame1_Wvel_par = motor_3d->GetBody1()->GetWvel_par();
+				frame1_Wacc_loc = motor_3d->GetBody1()->GetWacc_loc();
+				frame1_Wacc_par = motor_3d->GetBody1()->GetWacc_par();
+				frame1_pos_dt_par.Cross(frame1_Wvel_par, frame1_pos_par);
+				frame1_pos_dtdt_par.Cross(frame1_Wvel_par, frame1_pos_dt_par);
+				frame1_pos_dt_par += motor_3d->GetBody1()->GetPos_dt();
+				frame1_pos_dtdt_par += motor_3d->GetBody1()->GetPos_dtdt() + frame1_Wacc_par.Cross(frame1_pos_par);
+				frame1_pos_par += motor_3d->GetBody1()->GetPos();
+
+				std::cout << "\t\t\tframe1_pos_par : " << frame1_pos_par  << "\n";
+				std::cout << "\t\t\tframe1_pos_dt_par : " << frame1_pos_dt_par  << "\n";
+				std::cout << "\t\t\tframe1_pos_dtdt_par : " << frame1_pos_dtdt_par << "\n";
+				std::cout << "\t\t\tframe1_q_par : " << frame1_q_par  << "\n";
+				std::cout << "\t\t\tframe1_Wvel_par : " << frame1_Wvel_par << "\n";
+				std::cout << "\t\t\tframe1_Wacc_par : " << frame1_Wacc_par << "\n";
+				
+				std::cout << "\t\t\tframe1pos: " << motor_3d->GetFrame1().GetPos() << "\n"; //- marker on body 1 (local ref body 1)
+				std::cout << "\t\t\tframe1rot: " << motor_3d->GetFrame1().GetRot()<< "\n";
+				std::cout << "\t\t\tframe2pos: " << motor_3d->GetFrame2().GetPos() << "\n"; //- marker on body 2 (local ref body 2)
+				std::cout << "\t\t\tframe2rot: " << motor_3d->GetFrame2().GetRot() << "\n";
+				std::cout << "\t\t\tframeM2pos: " << motor_3d->GetFrameM2().GetPos() << "\n"; //- marker from mbdyn (local ref body 2)
+				std::cout << "\t\t\tframeM2rot: " << motor_3d->GetFrameM2().GetRot()<< "\n";
 				std::cout << "\t\t\tlinkpos_abs: " << motor_3d->GetLinkAbsoluteCoords().pos << "\n";
 				std::cout << "\t\t\tlinkrot_abs: " << motor_3d->GetLinkAbsoluteCoords().rot.Q_to_Euler123()/CH_C_PI*180.0 << "\n";
-				std::cout << "\t\t\tlinkpos_M2: " << motor_3d->GetFrameM2().GetPos() << "\n";
-				std::cout << "\t\t\tlinkrot_M2: " << motor_3d->GetFrameM2().GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 				std::cout << "\t\t\tbody1pos: " << motor_3d->GetBody1()->GetPos() << "\n";
 				std::cout << "\t\t\tbody1rot: " << motor_3d->GetBody1()->GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 				std::cout << "\t\t\tbody1pos_dt: " << motor_3d->GetBody1()->GetPos_dt() << "\n";
@@ -571,6 +637,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 		}
 	}
 #ifdef CHRONO_OPENGL 
+//#if 0
 	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 	if (!gl_window.Active())
 	{
@@ -592,7 +659,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 	if (bMBDyn_CE_Verbose)
 	{
 		std::cout << "\tC::E model after integration:\n";
-		/*for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
+		for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
 		{
 			std::cout << "\t\tBody " << tempsys->Get_bodylist()[i]->GetIdentifier() << "\n";
 			std::cout << "\t\t\tpos: " << tempsys->Get_bodylist()[i]->GetPos() << "\n";
@@ -601,25 +668,68 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			std::cout << "\t\t\trot: " << tempsys->Get_bodylist()[i]->GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
 			std::cout << "\t\t\tWvel_par: " << tempsys->Get_bodylist()[i]->GetWvel_par() << "\n";
 			std::cout << "\t\t\tWacc_par: " << tempsys->Get_bodylist()[i]->GetWacc_par() << "\n";
-		}*/
+		}
 		for (unsigned i = 0; i < tempsys->Get_linklist().size(); i++)
 		{
 			std::cout << "\t\tLink " << tempsys->Get_linklist()[i]->GetIdentifier() << "\n";
 			auto motor_3d=std::dynamic_pointer_cast<ChLinkMotionImposed>(tempsys->Get_linklist()[i]);
 			if (motor_3d)
 			{
+				//- some information about the motion of marker on body 1
+				//- start velocity in C::E Ground
+				ChVector<> frame1_pos_loc, frame1_pos_par, frame1_pos_par2, frame1_pos_dt_par, frame1_pos_dt_par2, frame1_pos_dtdt_par, frame1_pos_dtdt_par2;				
+				ChVector<> frame1_Wvel_loc, frame1_Wvel_par, frame1_Wacc_loc, frame1_Wacc_par;
+				ChQuaternion<> frame1_q_loc, frame1_q_par;
+				frame1_pos_loc = motor_3d->GetFrame1().GetPos();
+				frame1_pos_par = motor_3d->GetBody1()->TransformDirectionLocalToParent(frame1_pos_loc);
+				
+				frame1_q_loc = motor_3d->GetFrame1().GetRot();
+				frame1_q_par = motor_3d->GetBody1()->GetRot()*frame1_q_loc;
+				frame1_Wvel_loc = motor_3d->GetBody1()->GetWvel_loc();
+				frame1_Wvel_par = motor_3d->GetBody1()->GetWvel_par();
+				frame1_Wacc_loc = motor_3d->GetBody1()->GetWacc_loc();
+				frame1_Wacc_par = motor_3d->GetBody1()->GetWacc_par();
+				frame1_pos_dt_par.Cross(frame1_Wvel_par, frame1_pos_par);
+				frame1_pos_dtdt_par.Cross(frame1_Wvel_par, frame1_pos_dt_par);
+				frame1_pos_dt_par += motor_3d->GetBody1()->GetPos_dt();
+				frame1_pos_dtdt_par += motor_3d->GetBody1()->GetPos_dtdt() + frame1_Wacc_par.Cross(frame1_pos_par);
+				frame1_pos_par += motor_3d->GetBody1()->GetPos();
+
+				frame1_pos_par2 = motor_3d->GetBody1()->TransformDirectionLocalToParent(frame1_pos_loc);
+				frame1_pos_dt_par2.Cross(frame1_Wvel_par, frame1_pos_par2);
+				frame1_pos_dtdt_par2.Cross(frame1_Wvel_par, frame1_pos_dt_par2);
+				frame1_pos_dt_par2 += motor_3d->GetBody1()->GetPos_dt();
+				frame1_pos_dtdt_par2 += motor_3d->GetBody1()->GetPos_dtdt() + frame1_Wacc_par.Cross(frame1_pos_par2);
+				frame1_pos_par2 += motor_3d->GetBody1()->GetPos();
+
+				std::cout << "\t\t\tframe1_pos_par : " << frame1_pos_par  << "\n";
+				std::cout << "\t\t\tframe1_pos_dt_par : " << frame1_pos_dt_par  << "\n";
+				std::cout << "\t\t\tframe1_pos_dtdt_par : " << frame1_pos_dtdt_par << "\n";
+				std::cout << "\t\t\tframe1_pos_par2 : " << frame1_pos_par2  << "\n";
+				std::cout << "\t\t\tframe1_pos_dt_par2 : " << frame1_pos_dt_par2  << "\n";
+				std::cout << "\t\t\tframe1_pos_dtdt_par2 : " << frame1_pos_dtdt_par2 << "\n";
+				std::cout << "\t\t\tframe1_q_par : " << frame1_q_par  << "\n";
+				std::cout << "\t\t\tframe1_Wvel_par : " << frame1_Wvel_par << "\n";
+				std::cout << "\t\t\tframe1_Wacc_par : " << frame1_Wacc_par << "\n";
+
+				std::cout << "\t\t\tframe1pos: " << motor_3d->GetFrame1().GetPos() << "\n"; //- marker on body 1 (local ref body 1)
+				std::cout << "\t\t\tframe1rot: " << motor_3d->GetFrame1().GetRot() << "\n";
+				std::cout << "\t\t\tframe2pos: " << motor_3d->GetFrame2().GetPos() << "\n"; //- marker on body 2 (local ref body 2)
+				std::cout << "\t\t\tframe2rot: " << motor_3d->GetFrame2().GetRot() << "\n";
+				std::cout << "\t\t\tframeM2pos: " << motor_3d->GetFrameM2().GetPos() << "\n"; //- marker from mbdyn (local ref body 2)
+				std::cout << "\t\t\tframeM2rot: " << motor_3d->GetFrameM2().GetRot() << "\n";
 				std::cout << "\t\t\tlinkpos_abs: " << motor_3d->GetLinkAbsoluteCoords().pos << "\n";
-				std::cout << "\t\t\tlinkrot_abs: " << motor_3d->GetLinkAbsoluteCoords().rot.Q_to_Euler123()/CH_C_PI*180.0 << "\n";
-				std::cout << "\t\t\tlinkpos_M2: " << motor_3d->GetFrameM2().GetPos() << "\n";
-				std::cout << "\t\t\tlinkrot_M2: " << motor_3d->GetFrameM2().GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
+				std::cout << "\t\t\tlinkrot_abs: " << motor_3d->GetLinkAbsoluteCoords().rot << "\n";
 				std::cout << "\t\t\tbody1pos: " << motor_3d->GetBody1()->GetPos() << "\n";
-				std::cout << "\t\t\tbody1rot: " << motor_3d->GetBody1()->GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
+				std::cout << "\t\t\tbody1rot: " << motor_3d->GetBody1()->GetRot() << "\n";
 				std::cout << "\t\t\tbody1pos_dt: " << motor_3d->GetBody1()->GetPos_dt() << "\n";
 				std::cout << "\t\t\tbody1Wvel_par: " << motor_3d->GetBody1()->GetWvel_par() << "\n";
+				std::cout << "\t\t\tbody1Wvel_loc: " << motor_3d->GetBody1()->GetWvel_loc() << "\n";
 				std::cout << "\t\t\tbody1pos_dtdt: " << motor_3d->GetBody1()->GetPos_dtdt() << "\n";
 				std::cout << "\t\t\tbody1Wacc_par: " << motor_3d->GetBody1()->GetWacc_par() << "\n";
+				std::cout << "\t\t\tbody1Wacc_loc: " << motor_3d->GetBody1()->GetWacc_loc() << "\n";
 				std::cout << "\t\t\tbody2pos: " << motor_3d->GetBody2()->GetPos() << "\n";
-				std::cout << "\t\t\tbody2rot: " << motor_3d->GetBody2()->GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
+				std::cout << "\t\t\tbody2rot: " << motor_3d->GetBody2()->GetRot()<< "\n";
 				std::cout << "\t\t\tbody2pos_dt: " << motor_3d->GetBody2()->GetPos_dt() << "\n";
 				std::cout << "\t\t\tbody2Wvel_par: " << motor_3d->GetBody2()->GetWvel_par() << "\n";
 				std::cout << "\t\t\tbody2pos_dtdt: " << motor_3d->GetBody2()->GetPos_dtdt() << "\n";
@@ -699,11 +809,33 @@ bool bMBDyn_CE_Verbose)
 				ChVector<> mbdynce_tempframeM2_end_pos_dt, mbdynce_tempframeM2_end_pos_dtdt;
 				ChVector<> mbdynce_tempframeM2_end_Wvel_loc, mbdynce_tempframeM2_end_Wacc_loc; // angular velocity and acceleration in frame M loc
 
-				//- start/end position in frame 2
+				//- start/end position in frame 2 x_{B,n} = x_{2,n} + G_{n}*r^{0}_{B}
 				mbdynce_tempframe1b1_start = motor3d_motor_i->GetFrame1();
-				mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());
+				mbdynce_tempframe1G_start = mbdynce_tempframe1b1_start >> *(motor3d_motor_i->GetBody1());			
+				// mbdynce_tempframe1G_start.SetPos(motor3d_motor_i->GetBody1()->GetPos()+mbdynce_temp_offset);
 				mbdynce_tempframeM2_start = mbdynce_tempframe1G_start >> (mbdynce_tempframe2G.GetInverse()); // expressed in Frame 2
 				mbdynce_tempframeM2_end = mbdynce_tempMBDynG_end >> (mbdynce_tempframe2G.GetInverse()); // pos and rot of the node expressed in Frame 2
+				
+				//- start velocity in C::E Ground
+				ChVector<> mbdynce_tempframeG_start_pos_dt, mbdynce_temp_start_vel_rel;
+				//ChVector<> mbdynce_temp_offset(motor3d_motor_i->GetBody1()->TransformDirectionLocalToParent(mbdynce_tempframe1b1_start.GetPos()));
+				//------ Chrono uses the orientation of last step, when calculating the velocity of the marker. v_{B,n}= G_{n}*W^{l}_{n}\times G_{n-1}*r^{0}_{B} + v_{n}
+				ChQuaternion<> FrameBody1_prev_rot; //- if tight scheme is used, how to save the motor function ?
+				if (time<time_step) //- in the fisrt step, using the G_{-1} = G_{0} for v_{B,0}
+				{
+					FrameBody1_prev_rot = motor3d_motor_i->GetBody1()->GetRot();
+				}
+				else //- from step n->n+1, using G_{n-1} for v_{B,n}.
+				{
+					FrameBody1_prev_rot.Cross(motor3d_function_rot_base->Get_q(time), mbdynce_tempframe1b1_start.GetRot().GetConjugate());
+				}				
+				ChVector<> mbdynce_temp_offset(FrameBody1_prev_rot.Rotate(mbdynce_tempframe1b1_start.GetPos()));
+				mbdynce_temp_start_vel_rel.Cross(motor3d_motor_i->GetBody1()->GetWvel_par(), mbdynce_temp_offset);
+				mbdynce_tempframeG_start_pos_dt = motor3d_motor_i->GetBody1()->GetPos_dt() + mbdynce_temp_start_vel_rel;
+				//- start acc in C::E Ground a_{B,n} = a_{2,n} + G_{n}*W^{l}_{n}\times G_{n}*W^{l}_{n}\times G_{n-1}*r^{0}_{B} +G_{n} Wacc^{l}_{n}\times G_{n-1}*r^{0}_{B}
+				ChVector<> mbdynce_temp_start_acc, mbdynce_temp_start_acc_rel;
+				mbdynce_temp_start_acc_rel.Cross(motor3d_motor_i->GetBody1()->GetWacc_par(), mbdynce_temp_offset);
+				mbdynce_temp_start_acc = motor3d_motor_i->GetBody1()->GetPos_dtdt() + mbdynce_temp_start_acc_rel+motor3d_motor_i->GetBody1()->GetWvel_par().Cross(mbdynce_temp_start_vel_rel);
 
 				if (bMBDyn_CE_Verbose)
 				{
@@ -713,12 +845,19 @@ bool bMBDyn_CE_Verbose)
 					std::cout << "\t\t\tpos_dt in frame C::E Ground: " << mbdynce_tempmbdyn_pos_dt << "\n";
 					//std::cout << "\t\t\tpos_dt in frame 2: " << mbdynce_tempframeM2_end_pos_dt << "\n";
 					std::cout << "\t\t\tpos_dtdt in frame C::E Ground: " << mbdynce_tempmbdyn_pos_dtdt << "\n";
-					std::cout << "\t\t\trot in frame C::E Ground: " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
+					std::cout << "\t\t\trot in frame C::E Ground: " << mbdynce_tempMBDynG_end.GetRot()<< "\n";
 					std::cout << "\t\t\trot_dt in frame C::E Ground: " << mbdynce_tempmbdyn_Wvel_par << "\n";
 					std::cout << "\t\t\trot_dtdt in frame C::E Ground: " << mbdynce_tempmbdyn_Wacc_par << "\n";
-					std::cout << "\t\t\tmbdynce_tempframeM2_end_Wvel_loc (in local ref.): " << mbdynce_tempframeM2_end_Wvel_loc << "\n";
-					//std::cout << "\t\t\tmbdynce_tempmbdyn_Wvel_par (in C::E ref.: " << mbdynce_tempmbdyn_Wvel_par << "\n";
-					std::cout << "\t\t\tmbdynce_tempframeM2_end(yaw-pitch-roll-Euler321): " << mbdynce_tempMBDynG_end.GetRot().Q_to_Euler123()/CH_C_PI*180.0 << "\n";
+					std::cout << "\t\t\tmbdynce_temp_offset: " << mbdynce_temp_offset << "\n";
+					std::cout << "\t\t\tframeMG_prev: " << motor3d_function_rot_base->Get_q(time) << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_pos: " << mbdynce_tempframe1G_start.GetPos() << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_rot: " << mbdynce_tempframeM2_start.GetRot()<< "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_posdt: " << mbdynce_tempframeG_start_pos_dt << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_posdt_loc: " << motor3d_function_rot_base->Get_q(time).RotateBack(mbdynce_tempframeG_start_pos_dt) << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_rotdt: " << motor3d_motor_i->GetBody1()->GetWvel_par() << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_rotdt_loc: " << motor3d_motor_i->GetBody1()->GetWvel_loc() << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_posdtdt: " << mbdynce_temp_start_acc << "\n";
+					std::cout << "\t\t\tmbdynce_tempframe1G_start_rotdtdt: " << motor3d_motor_i->GetBody1()->GetWacc_par() << "\n";
 				}
 
 				if (MBDyn_CE_CEMotorType==MBDyn_CE_CEMOTORTYPE::ACCELERATION) //- accelerations
@@ -748,7 +887,7 @@ bool bMBDyn_CE_Verbose)
 					mbdynce_temp_rot_func->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(-time / time_step, 1 / time_step));
 					mbdynce_accmotor_posdt1 = mbdynce_temp_pos_func->Get_p_ds(time); //- constant velocity, expressed in frame 2
 					mbdynce_accmotor_w_loc1 = mbdynce_temp_rot_func->Get_w_loc(time); //- constant angular velocity, expressed in local ref: {mbdynce_tempframeM2_start.GetRot()}
-					//- GetLog() << "\t\tvel1: " << mbdynce_accmotor_posdt1 << "\t"<< mbdynce_accmotor_w_loc1 << "\n";
+					
 					//- 2. {xp_k+1} velocity obtained from coupled velocity.
 					//- linear velocity and acceleration expressed in frame 2 (setpoint function);
 					mbdynce_tempframeM2_end_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempmbdyn_pos_dt);
@@ -760,18 +899,45 @@ bool bMBDyn_CE_Verbose)
 					mbdynce_tempframeM2_end_Wacc_loc = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_tempframeM2_end_Wacc_loc); //- should be expressed in the get_q(s) frame, namely, frame M.
 					mbdynce_accmotor_posdt2 = mbdynce_tempframeM2_end_pos_dt;
 					mbdynce_accmotor_w_loc2 = mbdynce_tempframeM2_end_Wvel_loc;
-					//- GetLog() << "\t\tvel2: " << mbdynce_accmotor_posdt2 << "\t"<< mbdynce_accmotor_w_loc2 << "\n";
 					//- 3. {xp_k+h*xpp_k+1} velocity obtained from accleration*h.
-					ChVector<> mbdynce_tempframeG_start_pos_dt, mbdynce_tempframeG_start_Wvel_par;
-					mbdynce_tempframeG_start_pos_dt = motor3d_motor_i->GetBody1()->GetPos_dt(); //- pos_dt expressed in C::E global ref.
+					//ChVector<> mbdynce_tempframeG_start_pos_dt, mbdynce_tempframeG_start_Wvel_par;
+					//mbdynce_tempframeG_start_pos_dt = motor3d_motor_i->GetBody1()->GetPos_dt(); //- pos_dt expressed in C::E global ref.
+					/*ChVector<> mbdynce_tempframeG_start_Wvel_par;
 					mbdynce_tempframeG_start_Wvel_par = motor3d_motor_i->GetBody1()->GetWvel_par(); //- Wvel expressed in C::E global ref. 
 					ChVector<> mbdynce_tempframeM2_start_pos_dt, mbdynce_tempframeM2_start_Wvel_loc;
 					mbdynce_tempframeM2_start_pos_dt = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempframeG_start_pos_dt); //- expressed in frame 2.
-					mbdynce_tempframeM2_start_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempframeG_start_Wvel_par); //- expressed in frame 2.
+					mbdynce_tempframeM2_start_Wvel_loc = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_tempframeG_start_Wvel_par);		//- expressed in frame 2.
 					mbdynce_tempframeM2_start_Wvel_loc = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_tempframeM2_start_Wvel_loc); //- expressed in frame loc
-					mbdynce_accmotor_posdt3 = mbdynce_tempframeM2_start_pos_dt + time_step * mbdynce_tempframeM2_end_pos_dtdt;
-					mbdynce_accmotor_w_loc3 = mbdynce_tempframeM2_start_Wvel_loc + time_step * mbdynce_tempframeM2_end_Wacc_loc;
-					//- GetLog() << "\t\tvel3: " << mbdynce_accmotor_posdt3 << "\t"<< mbdynce_accmotor_w_loc3 << "\n";
+					mbdynce_accmotor_posdt3 = mbdynce_tempframeM2_start_pos_dt + time_step * mbdynce_tempframeM2_end_pos_dtdt;		
+					mbdynce_accmotor_w_loc3 = mbdynce_tempframeM2_start_Wvel_loc + time_step * mbdynce_tempframeM2_end_Wacc_loc;*/
+					ChVector<> mbdynce_tempframeG_start_Wvel_par;
+					mbdynce_tempframeG_start_Wvel_par = motor3d_motor_i->GetBody1()->GetWvel_par(); //- Wvel expressed in C::E global ref.
+					ChVector<> mbdynce_accmotor_posdt3_G, mbdynce_accmotor_w_par3;
+					mbdynce_accmotor_posdt3_G = mbdynce_tempframeG_start_pos_dt + time_step * mbdynce_tempmbdyn_pos_dtdt;
+					mbdynce_accmotor_w_par3 = mbdynce_tempframeG_start_Wvel_par + time_step * mbdynce_tempmbdyn_Wacc_par;
+					mbdynce_accmotor_posdt3 = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_accmotor_posdt3_G); //- expressed in frame 2.
+					mbdynce_accmotor_w_loc3 = mbdynce_tempframe2G.TransformDirectionParentToLocal(mbdynce_accmotor_w_par3);		//- expressed in frame 2.
+					mbdynce_accmotor_w_loc3 = mbdynce_tempframeM2_start.TransformDirectionParentToLocal(mbdynce_accmotor_w_loc3); //- expressed in frame loc.
+					if (bMBDyn_CE_Verbose)
+					{
+						std::cout << "\t\tmbdynce_tempframeM2_start.GetPos():\t" << mbdynce_tempframeM2_start.GetPos() << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end.GetPos():\t" << mbdynce_tempframeM2_end.GetPos() << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_start.GetRot()\t" << mbdynce_tempframeM2_start.GetRot() << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end.GetRot()\t" << mbdynce_tempframeM2_end.GetRot() << "\n";
+						std::cout << "\t\tvel1: " << mbdynce_accmotor_posdt1 << "\t"<< mbdynce_accmotor_w_loc1 << "\n";
+						std::cout << "\t\tmbdynce_tempmbdyn_pos_dt:\t" << mbdynce_tempmbdyn_pos_dt << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end_pos_dt :\t" << mbdynce_tempframeM2_end_pos_dt << "\n";
+						std::cout << "\t\tmbdynce_tempmbdyn_Wvel_par:\t" << mbdynce_tempmbdyn_Wvel_par << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end_Wvel_loc:\t" << mbdynce_tempframeM2_end_Wvel_loc << "\n";
+						std::cout << "\t\tvel2: " << mbdynce_accmotor_posdt2 << "\t" << mbdynce_accmotor_w_loc2 << "\n";
+						std::cout << "\t\tmbdynce_tempframeG_start_pos_dt:\t" << mbdynce_tempframeG_start_pos_dt << "\n";
+						//std::cout << "\t\tmbdynce_tempframeM2_start_pos_dt:\t" << mbdynce_tempframeM2_start_pos_dt << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end_pos_dtdt:\t" << mbdynce_tempframeM2_end_pos_dtdt << "\n";
+						std::cout << "\t\tmbdynce_tempframeG_start_Wvel_par:\t" << mbdynce_tempframeG_start_Wvel_par << "\n";
+						//std::cout << "\t\tmbdynce_tempframeM2_start_Wvel_loc:\t" << mbdynce_tempframeM2_start_Wvel_loc << "\n";
+						std::cout << "\t\tmbdynce_tempframeM2_end_pos_dtdt:\t" << mbdynce_tempframeM2_end_Wacc_loc << "\n";
+						std::cout << "\t\tvel3: " << mbdynce_accmotor_posdt3 << "\t" << mbdynce_accmotor_w_loc3 << "\n";
+					}
 					//- average velocit of velocity 1, 2 and 3
 					mbdynce_tempframeM2_end_pos_dt = time_step * MBDyn_CE_CEMotorType_coeff[0] * mbdynce_accmotor_posdt1 + MBDyn_CE_CEMotorType_coeff[1] * mbdynce_accmotor_posdt2 + MBDyn_CE_CEMotorType_coeff[2] / time_step * mbdynce_accmotor_posdt3;
 					mbdynce_tempframeM2_end_Wvel_loc = time_step * MBDyn_CE_CEMotorType_coeff[0] * mbdynce_accmotor_w_loc1 + MBDyn_CE_CEMotorType_coeff[1] * mbdynce_accmotor_w_loc2 + MBDyn_CE_CEMotorType_coeff[2] / time_step * mbdynce_accmotor_w_loc3;
@@ -881,35 +1047,6 @@ bool bMBDyn_CE_Verbose)
 				std::cout << "Error: functions of motor3d_motor_i" << motor3d_motor_i_id << " are null. \n";
 				return 1;
 			}
-
-			/*//- check the motor when first used.
-			if (time<time_step)
-			{
-				//- motor data
-				motor3d_motor_i->Update(time,true);
-				ChCoordsys<> mbdynce_ce_motor_coordsys = motor3d_motor_i->GetLinkRelativeCoords() >> *(motor3d_motor_i->GetBody2()); //- get the coordsys in ground frame
-				ChVector<> mbdynce_ce_motor_pos = mbdynce_ce_motor_coordsys.pos;
-				ChQuaternion<> mbdynce_ce_motor_rot = mbdynce_ce_motor_coordsys.rot;
-				//- C::E data
-				unsigned mbdynce_ce_body_id = MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label; // body ID
-				auto mbdynce_ce_body_i = tempsys->SearchBodyID(mbdynce_ce_body_id); // the corresponding body
-				ChVector<> mbdynce_ce_body_pos = mbdynce_ce_body_i->GetPos();
-				ChQuaternion<> mbdynce_ce_body_rot = mbdynce_ce_body_i->GetRot();
-				if (mbdynce_ce_body_pos!=mbdynce_ce_motor_pos)
-				{
-					std::cout << "\t\tpos of coupling body " << mbdynce_ce_body_id << " doesn't agree with that in motor " << motor3d_motor_i_id << "\n";
-					std::cout << "\t\tpos of coupling body " << mbdynce_ce_body_pos << "\n";
-					std::cout << "\t\tpos of motor " << mbdynce_ce_motor_pos << "\n";
-					return 1;
-				}
-				if (mbdynce_ce_body_rot!=mbdynce_ce_motor_rot)
-				{
-					std::cout << "\t\trot of coupling body " << mbdynce_ce_body_id << " doesn't agree with that in motor " << motor3d_motor_i_id << "\n";
-					std::cout << "\t\trot of coupling body " << mbdynce_ce_body_rot << "\n";
-					std::cout << "\t\trot of motor " << mbdynce_ce_motor_rot << "\n";
-					return 1;
-				}
-			}*/
 		}
 		else
 		{
@@ -974,7 +1111,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 			{
 				//- get the contact force
 				ChCoordsys<> mbdynce_temp_frameMG_calcu(motor_i->GetLinkAbsoluteCoords());
-				auto temp_body = tempsys->Get_bodylist()[MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label];
+				auto temp_body = tempsys->SearchBodyID(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label);
 				ChVector<> contact_forc(tempsys->GetBodyContactForce(temp_body).x, tempsys->GetBodyContactForce(temp_body).y, tempsys->GetBodyContactForce(temp_body).z);
 				ChVector<> contact_torq(tempsys->GetBodyContactTorque(temp_body).x, tempsys->GetBodyContactTorque(temp_body).y, tempsys->GetBodyContactTorque(temp_body).z);
 				mbdynce_ce_force_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(contact_forc);

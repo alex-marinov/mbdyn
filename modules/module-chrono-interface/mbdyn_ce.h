@@ -50,19 +50,25 @@ functions/variables for C::E Model:MBDyn_CE_CEModel_XxxYyy
 #include <vector>
 
 extern "C" {
-    
-//- IDs of coupling bodies and motors in C::E
-//- a set of IDs
-//- Body_Label: body label in C::E;
-//- Motor_Label: motor label in C::E;
-//- bool output: output the body motion in C::E;
-struct MBDYN_CE_CEMODELDATA
-{
-    unsigned MBDyn_CE_CEBody_Label;
-    unsigned MBDyn_CE_CEMotor_Label; 
-    bool bMBDyn_CE_CEBody_Output;
-    bool bMBDyn_CE_Constraint[6]; //- position and rotation constraints, expresed in node local ref.
-    double MBDyn_CE_CEBody_Offset[3]; //- relative position between constraints and C::E body, expressed in C::E body ref. 
+
+    //- IDs of coupling bodies and motors in C::E
+    //- a set of IDs
+    //- Body_Label: body label in C::E(/Chrono);
+    //- Motor_Label: motor label in C::E;
+    //- bool output: output the body motion in C::E;
+    //- constraint (MotionImposed) in Chrono:
+    //- Node in MBDyn  >>>>> Body Ground (Marker Ground);
+    //- Body in Chrono >>>>> Body i (Marker i);
+    //- constraint connects Marker i and Marker Ground;
+    //- constraints are described in Marker i local ref. 
+    struct MBDYN_CE_CEMODELDATA
+    {
+        unsigned MBDyn_CE_CEBody_Label;
+        unsigned MBDyn_CE_CEMotor_Label;
+        bool bMBDyn_CE_CEBody_Output;
+        bool bMBDyn_CE_Constraint[6];              //- position and rotation constraints, expresed in node local ref.
+        double MBDyn_CE_CEBody_Offset[3];          //- relative position between constraints (Marker i) and C::E body, expressed in C::E body ref.
+        double MBDyn_CE_CEBody_Rh[9]; //- relative rotation between constraints and MBDyn Node, expressed in node ref.
 };
 
 //- 0: loose interface

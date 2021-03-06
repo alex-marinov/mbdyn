@@ -133,7 +133,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		}
 		else
 		{
-			silent_cerr("Unknown coupling type at line " << HP.GetLineData() << " \n");
+			silent_cerr("Unknown coupling type at line " << HP.GetLineData() << "\n");
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
@@ -280,10 +280,24 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			{
 				MBDyn_CE_Nodes[i].MBDyn_CE_Offset = Zero3;
 			}
+			//----- orientation of the marker in MBDyn. By default, MBDyn_CE_RhM == eye;
+			//----- orientation of the marker (MBDyn_CE_CEBody_Rh[9]) in C::E is calculated by this matrix MBDyn_CE_RhM;
+			MBDyn_CE_Nodes[i].MBDyn_CE_RhM = Eye3;
+			if (HP.IsKeyWord("rotation"))
+			{
+				MBDyn_CE_Nodes[i].MBDyn_CE_RhM = HP.GetRotRel(pNode_RF);
+			}
+			Mat3x3 mbdyn_CE_RhM_abs;
+			mbdyn_CE_RhM_abs = pNode_RF.GetR() * (MBDyn_CE_Nodes[i].MBDyn_CE_RhM);
+			for (unsigned j = 0; j < 9; j++)
+			{
+				MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[j] = mbdyn_CE_RhM_abs.pGetMat()[j];
+				std::cout << "\t\trotation matrix:\t" << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Rh[j] << "\n";
+			}
+			//------ force and torque.
 			MBDyn_CE_Nodes[i].MBDyn_CE_F = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_M = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_uLabel = MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel(); //- node label (MBDyn).
-			//----- get orientation of the coupling point. by Default, R_relative == eye;
 
 			//----- get coupling bodies in the C::E model, bodies' ID;
 			if (HP.IsKeyWord("chrono" "body"))
@@ -363,7 +377,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			}
 			if (HP.IsKeyWord("orientation"))
 			{
-				mbdyn_ce_ref_R_Mat3x3 = HP.GetMatAbs(mbdynce_ce_ref); //- get C::E ground orietation information
+				mbdyn_ce_ref_R_Mat3x3 = HP.GetRotAbs(mbdynce_ce_ref); //- get C::E ground orietation information
 			}
 			MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = false; // by default: not output
 			if (HP.IsKeyWord("output"))
@@ -823,6 +837,8 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Prev()
 		const MBDYN_CE_POINTDATA& mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
 		//- rotation and position
 		const Mat3x3 & mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRPrev();
+		const Mat3x3 & mbdynce_Rh = MBDyn_CE_Nodes[mbdynce_i].MBDyn_CE_RhM; //- relative orientation of the marker in local ref.
+		Mat3x3 mbdynce_R_marker = mbdynce_R * mbdynce_Rh;
 		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
 		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXPrev() + mbdynce_f;
 		//- angular velocity and velocity
@@ -844,7 +860,7 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Prev()
 		MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
 		MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
 		double mbdynce_tempmat3x3_R[9];
-		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+		MBDyn_CE_Mat3x3D(mbdynce_R_marker, mbdynce_tempmat3x3_R);
 
 		memcpy(&pMBDyn_CE_CouplingKinematic_x[3 * mbdynce_i], mbdynce_tempvec3_x, 3 * sizeof(double));
 		memcpy(&pMBDyn_CE_CouplingKinematic_R[9* mbdynce_i], mbdynce_tempmat3x3_R, 9 * sizeof(double));
@@ -871,6 +887,8 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Curr()
 		const MBDYN_CE_POINTDATA& mbdynce_point = MBDyn_CE_Nodes[mbdynce_i];
 		//- rotation and position
 		const Mat3x3 & mbdynce_R = mbdynce_point.pMBDyn_CE_Node->GetRCurr();
+		const Mat3x3 & mbdynce_Rh = MBDyn_CE_Nodes[mbdynce_i].MBDyn_CE_RhM; //- relative orientation of the marker in local ref.
+		Mat3x3 mbdynce_R_marker = mbdynce_R * mbdynce_Rh; //- absolute orientation of the marker in local ref.
 		Vec3 mbdynce_f = mbdynce_R * mbdynce_point.MBDyn_CE_Offset;
 		Vec3 mbdynce_x = mbdynce_point.pMBDyn_CE_Node->GetXCurr() + mbdynce_f;
 		//- angular velocity and velocity
@@ -892,7 +910,7 @@ ChronoInterfaceBaseElem::MBDyn_CE_SendDataToBuf_Curr()
 		MBDyn_CE_Vec3D(mbdynce_w, mbdynce_tempvec3_w, 1.0);
 		MBDyn_CE_Vec3D(mbdynce_wp, mbdynce_tempvec3_wp, 1.0);
 		double mbdynce_tempmat3x3_R[9];
-		MBDyn_CE_Mat3x3D(mbdynce_R, mbdynce_tempmat3x3_R);
+		MBDyn_CE_Mat3x3D(mbdynce_R_marker, mbdynce_tempmat3x3_R);
 
 		if (MBDyn_CE_CEMotorType==MBDyn_CE_CEMOTORTYPE::ORIGIN) // send rotation and position of last step.
 		{

@@ -119,10 +119,12 @@ public:
         unsigned MBDyn_CE_uLabel;
         unsigned MBDyn_CE_CEBody_Label; //- coupling bodies in C::E model
         const StructNode *pMBDyn_CE_Node;
-        Vec3 MBDyn_CE_Offset;
-		Vec3 MBDyn_CE_F;
+        Vec3 MBDyn_CE_Offset; //- offset of the marker in MBDyn. By default, MBDyn_CE_Offset == null;
+        Mat3x3 MBDyn_CE_RhM;  //- orientation of the marker in MBDyn. By default, Rh_M == eye; bool constraints are also defined in this orientation,
+        Vec3 MBDyn_CE_F;
 		Vec3 MBDyn_CE_M;
-    }; 
+    };
+
 protected:
     double time_step;
     std::vector<MBDYN_CE_POINTDATA> MBDyn_CE_Nodes; //- Nodes infor in MBDyn

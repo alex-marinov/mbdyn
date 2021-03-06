@@ -23,10 +23,11 @@
 # ### sudo ldconfig
 # 5. copy your shared libraries to /lib or /usr/lib (default path)
 
-LIBPATH=/home/runsen/Documents/GSoC/C::E_models  #/home/runsen/Documents/GSoC/C::E_models/paper_example#
+LIBPATH=/home/runsen/Documents/GSoC/C::E_models  
 #LIBPATH=/home/runsen/Downloads/GSoC2020/demo/technical_example/beam_displacement/particle_dameprs
+#/home/runsen/Documents/GSoC/C::E_models/paper_example#
 
 # the header for the funcs “mbdyn_ce.h”.
 MODULE_INCLUDE = -I .
 # link the shared library, such as “libCE_models.so”
-MODULE_LINK= -L$(LIBPATH)  -lCE_models  #  -lpd_model #   #-lMassSpring
+MODULE_LINK= -L$(LIBPATH)   -lCE_models  #  -lpd_model #  #-lMassSpring
