@@ -236,7 +236,17 @@ tplStageNIntegrator<N>::PredictDofForStageS(const int DCount,
 		pXPrimeCurr->PutCoef(DCount, dXP);
 		pXCurr->PutCoef(DCount, dX);
 
-	} else if (Order == DofOrder::ALGEBRAIC) {
+		//std::cout << "Stage =" << S << std::endl;
+		//std::cout << "Predict: DCount =" << DCount << "; Xm=" << dXm1mN[0] << "; XPm=" << dXP0mN[1] << std::endl;
+		//std::cout << "Xs1=" << dXm1mN[1] << "; XPs1=" << dXP0mN[2] << std::endl;
+		//std::cout << "Xs2=" << dXm1mN[2] << "; XPs2=" << dXP0mN[3] << std::endl;
+		//std::cout << "Xs3=" << dXm1mN[3] << "; XPs3=" << dXP0mN[4] << std::endl;
+		//std::cout << "Xs4=" << dXm1mN[4] << "; XPs4=" << dXP0mN[5] << std::endl;
+		//std::cout << "Xs5=" << dXm1mN[5] << "; XPs5=" << dXP0mN[0] << std::endl;
+		//std::cout << "dX = " << dX << "; dXP = " << dXP << std::endl;
+	}
+	else if (Order == DofOrder::ALGEBRAIC)
+	{
 		doublereal dXIm1mN[N];
 		doublereal dX0mN[N + 1];
 

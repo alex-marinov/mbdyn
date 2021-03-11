@@ -271,6 +271,9 @@ protected:
 			INT_MS2,
 			INT_MS3,
 			INT_MS4,
+			INT_SS2,
+			INT_SS3,
+			INT_SS4,
 			INT_HOPE,
 			INT_BATHE,
 			INT_MSSTC3,
@@ -287,6 +290,8 @@ protected:
 
    	StepIntegrator* pDerivativeSteps;
    	StepIntegrator* pFirstDummyStep;
+	StepIntegrator* pSecondDummyStep;
+	StepIntegrator* pThirdDummyStep;
 	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
 	StepIntegrator* pSecondRegularStep;
@@ -296,14 +301,18 @@ protected:
 
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
-	DriveCaller* pFirstRhoRegular;
-	DriveCaller* pFirstRhoAlgebraicRegular;
+	//DriveCaller* pFirstRhoRegular;
+	//DriveCaller* pFirstRhoAlgebraicRegular;
 	DriveCaller* pSecondRhoRegular;
 	DriveCaller* pSecondRhoAlgebraicRegular;
 	DriveCaller* pThirdRhoRegular;
 	DriveCaller* pThirdRhoAlgebraicRegular;
 	DriveCaller* pRhoDummy;
 	DriveCaller* pRhoAlgebraicDummy;
+	DriveCaller* pSecondRhoDummy;
+	DriveCaller* pSecondRhoAlgebraicDummy;
+	DriveCaller* pThirdRhoDummy;
+	DriveCaller* pThirdRhoAlgebraicDummy;
 
 	doublereal dDerivativesCoef;
 	/* Type of linear solver */

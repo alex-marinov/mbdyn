@@ -70,6 +70,7 @@
 #include "thirdorderstepsol.h"
 #include "ms34stepsol.h"
 #include "multistagestepsol_impl.h"
+#include "singlestepsol_impl.h"
 #include "nr.h"
 #include "linesearch.h"
 #include "bicg.h"
@@ -317,6 +318,8 @@ RegularType(INT_UNKNOWN),
 DummyType(INT_UNKNOWN),
 pDerivativeSteps(0),
 pFirstDummyStep(0),
+pSecondDummyStep(0),
+pThirdDummyStep(0),
 pDummySteps(0),
 pFirstRegularStep(0),
 pSecondRegularStep(0),
@@ -325,14 +328,18 @@ pRegularSteps(0),
 pCurrStepIntegrator(0),
 pRhoRegular(0),
 pRhoAlgebraicRegular(0),
-pFirstRhoRegular(0),
-pFirstRhoAlgebraicRegular(0),
+//pFirstRhoRegular(0),
+//pFirstRhoAlgebraicRegular(0),
 pSecondRhoRegular(0),
 pSecondRhoAlgebraicRegular(0),
 pThirdRhoRegular(0),
 pThirdRhoAlgebraicRegular(0),
 pRhoDummy(0),
 pRhoAlgebraicDummy(0),
+pSecondRhoDummy(0),
+pSecondRhoAlgebraicDummy(0),
+pThirdRhoDummy(0),
+pThirdRhoAlgebraicDummy(0),
 dDerivativesCoef(::dDefaultDerivativesCoefficient),
 CurrLinearSolver(),
 ResTest(NonlinearSolverTest::NORM),
@@ -818,19 +825,35 @@ Solver::Prepare(void)
 	pDerivativeSteps->SetDataManager(pDM);
 	pDerivativeSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 	if (iDummyStepsNumber) {
-		pFirstDummyStep->SetDataManager(pDM);
-		pFirstDummyStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		if (DummyType == StepIntegratorType::INT_MS2 || DummyType == StepIntegratorType::INT_HOPE || DummyType == StepIntegratorType::INT_MS3 || DummyType == StepIntegratorType::INT_MS4)
+		{
+			pFirstDummyStep->SetDataManager(pDM);
+			pFirstDummyStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		}
+		if (DummyType == StepIntegratorType::INT_MS3 || DummyType == StepIntegratorType::INT_MS4)
+		{
+			pSecondDummyStep->SetDataManager(pDM);
+			pSecondDummyStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		}
+		if (DummyType == StepIntegratorType::INT_MS4)
+		{
+			pThirdDummyStep->SetDataManager(pDM);
+			pThirdDummyStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		}
 		pDummySteps->SetDataManager(pDM);
 		pDummySteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 	}
-	pFirstRegularStep->SetDataManager(pDM);
-	pFirstRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-	if (RegularType==INT_MS3 || RegularType==INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS2 || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
+	{
+		pFirstRegularStep->SetDataManager(pDM);
+		pFirstRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+	}
+	if (RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
 	{
 		pSecondRegularStep->SetDataManager(pDM);
 		pSecondRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 	}
-	if (RegularType==INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS4)
 	{
 		pThirdRegularStep->SetDataManager(pDM);
 		pThirdRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
@@ -953,88 +976,96 @@ Solver::Prepare(void)
 
 	if (iDummyStepsNumber > 0) {
 		/* passi fittizi */
-
+		int iSubStep = 0;
+		dRefTimeStep = dInitialTimeStep * dDummyStepsRatio;
+		dCurrTimeStep = dRefTimeStep;
 		/*
 		 * inizio integrazione: primo passo a predizione lineare
 		 * con sottopassi di correzione delle accelerazioni
 		 * e delle reazioni vincolari
 		 */
-		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
-		Flip();
+		if (DummyType == StepIntegratorType::INT_MS2  || DummyType == StepIntegratorType::INT_HOPE || DummyType == StepIntegratorType::INT_MS3 || DummyType == StepIntegratorType::INT_MS4)
+		{
+			/* Setup SolutionManager(s) */
+			SetupSolmans(pFirstDummyStep->GetIntegratorNumUnknownStates());
+			iSubStep++;
 
-		dRefTimeStep = dInitialTimeStep*dDummyStepsRatio;
-		dCurrTimeStep = dRefTimeStep;
-		/* FIXME: do we need to serve pending drives in dummy steps? */
-		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+			pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
+			Flip();
 
-		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
-			<< dCurrTimeStep << std::endl);
+			/* FIXME: do we need to serve pending drives in dummy steps? */
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 
-                if (outputStep()) {
-                    silent_cout("Dummy Step(" << lStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
-                }
+			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
+				<< iSubStep
+				<< "; current time step: "
+				<< dCurrTimeStep << std::endl);
+
+			if (outputStep())
+			{
+				silent_cout("Dummy Step(" << iSubStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+            }
                 
-		ASSERT(pFirstDummyStep != 0);
+			ASSERT(pFirstDummyStep != 0);
 
-		/* Setup SolutionManager(s) */
-		SetupSolmans(pFirstDummyStep->GetIntegratorNumUnknownStates());
-		/* pFirstDummyStep */
-		pCurrStepIntegrator = pFirstDummyStep;
-		try {
-			dTest = pFirstDummyStep->Advance(this,
-				dRefTimeStep, 1.,
-				StepIntegrator::NEWSTEP,
-				qX, qXPrime, pX, pXPrime,
-				iStIter, dTest, dSolTest);
-		}
-		catch (NonlinearSolver::NoConvergence& e) {
-			silent_cerr("First dummy step does not converge; "
-				"TimeStep=" << dCurrTimeStep
-				<< " cannot be reduced further; "
-				"aborting..." << std::endl);
-			pDM->Output(0, dTime, dCurrTimeStep, true);
-			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-		}
-		catch (NonlinearSolver::ErrSimulationDiverged& e) {
-			/*
-			 * Mettere qui eventuali azioni speciali
-			 * da intraprendere in caso di errore ...
-			 */
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-		}
-		catch (LinearSolver::ErrFactor& err) {
-			/*
-			 * Mettere qui eventuali azioni speciali
-			 * da intraprendere in caso di errore ...
-			 */
-			silent_cerr("First dummy step failed because no pivot element "
+			/* pFirstDummyStep */
+			pCurrStepIntegrator = pFirstDummyStep;
+			try {
+				dTest = pFirstDummyStep->Advance(this,
+					dRefTimeStep, 1.,
+					StepIntegrator::NEWSTEP,
+					qX, qXPrime, pX, pXPrime,
+					iStIter, dTest, dSolTest);
+			}
+			catch (NonlinearSolver::NoConvergence& e) {
+				silent_cerr("Dummy step" << iSubStep << "does not converge; "
+					"TimeStep=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
+				pDM->Output(0, dTime, dCurrTimeStep, true);
+				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ErrSimulationDiverged& e) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (LinearSolver::ErrFactor& err) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				silent_cerr("Dummy step " << iSubStep
+				<< " failed because no pivot element "
 				"could be found for column " << err.iCol
 				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 				"aborting..." << std::endl);
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-		}
-		catch (NonlinearSolver::ConvergenceOnSolution& e) {
-			bSolConv = true;
-		}
-		catch (EndOfSimulation& eos) {
-			silent_cerr("Simulation ended during the first dummy step:\n"
-				<< eos.what() << "\n");
-			return false;
-		}
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ConvergenceOnSolution& e) {
+				bSolConv = true;
+			}
+			catch (EndOfSimulation& eos) {
+				silent_cerr("Simulation ended during the dummy step " << iSubStep << " :\n"
+					<< eos.what() << "\n");
+				return false;
+			}
 
-		SAFEDELETE(pFirstDummyStep);
-		pFirstDummyStep = 0;
+			SAFEDELETE(pFirstDummyStep);
+			pFirstDummyStep = 0;
 
-		dRefTimeStep = dCurrTimeStep;
-		dTime += dRefTimeStep;
+			dRefTimeStep = dCurrTimeStep;
+			dTime += dRefTimeStep;
 
 #if 0
 		/* don't sum up the derivatives error */
 		dTotErr += dTest;
 #endif
-		iTotIter += iStIter;
+			iTotIter += iStIter;
 
-		if (mbdyn_stop_at_end_of_time_step()) {
+			if (mbdyn_stop_at_end_of_time_step()) {
 			/*
 			 * Fa l'output della soluzione delle derivate iniziali
 			 * ed esce
@@ -1042,27 +1073,227 @@ Solver::Prepare(void)
 #ifdef DEBUG_FICTITIOUS
 			pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
-			Out << "Interrupted during first dummy step." << std::endl;
-			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-		}
+				Out << "Interrupted during dummy step" << iSubStep << " ." << std::endl;
+				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+			}
 
 #ifdef DEBUG_FICTITIOUS
 		pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
+		}
+
+		if (DummyType == StepIntegratorType::INT_MS3 || DummyType == StepIntegratorType::INT_MS4)
+		{
+			/* Setup SolutionManager(s) */
+			SetupSolmans(pSecondDummyStep->GetIntegratorNumUnknownStates());
+			iSubStep++;
+
+			pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
+			Flip();
+
+			/* FIXME: do we need to serve pending drives in dummy steps? */
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+
+			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
+				<< iSubStep
+				<< "; current time step: "
+				<< dCurrTimeStep << std::endl);
+
+			if (outputStep())
+			{
+				silent_cout("Dummy Step(" << iSubStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+            }
+                
+			ASSERT(pSecondDummyStep != 0);
+
+			/* pSecondDummyStep */
+			pCurrStepIntegrator = pSecondDummyStep;
+			try {
+				dTest = pSecondDummyStep->Advance(this,
+					dRefTimeStep, dCurrTimeStep/dRefTimeStep,
+					StepIntegrator::NEWSTEP,
+					qX, qXPrime, pX, pXPrime,
+					iStIter, dTest, dSolTest);
+			}
+			catch (NonlinearSolver::NoConvergence& e) {
+				silent_cerr("Dummy step" << iSubStep << "does not converge; "
+					"TimeStep=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
+				pDM->Output(0, dTime, dCurrTimeStep, true);
+				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ErrSimulationDiverged& e) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (LinearSolver::ErrFactor& err) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				silent_cerr("Dummy step " << iSubStep
+				<< " failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+				"aborting..." << std::endl);
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ConvergenceOnSolution& e) {
+				bSolConv = true;
+			}
+			catch (EndOfSimulation& eos) {
+				silent_cerr("Simulation ended during dummy step " << iSubStep << " :\n"
+					<< eos.what() << "\n");
+				return false;
+			}
+
+			SAFEDELETE(pSecondDummyStep);
+			pSecondDummyStep = 0;
+
+			dRefTimeStep = dCurrTimeStep;
+			dTime += dRefTimeStep;
+
+#if 0
+		/* don't sum up the derivatives error */
+		dTotErr += dTest;
+#endif
+			iTotIter += iStIter;
+
+			if (mbdyn_stop_at_end_of_time_step()) {
+			/*
+			 * Fa l'output della soluzione delle derivate iniziali
+			 * ed esce
+			 */
+#ifdef DEBUG_FICTITIOUS
+			pDM->Output(0, dTime, dCurrTimeStep, true);
+#endif /* DEBUG_FICTITIOUS */
+				Out << "Interrupted during dummy step" << iSubStep << " ." << std::endl;
+				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+			}
+
+#ifdef DEBUG_FICTITIOUS
+		pDM->Output(0, dTime, dCurrTimeStep, true);
+#endif /* DEBUG_FICTITIOUS */
+		}
+
+		if (DummyType == StepIntegratorType::INT_MS4)
+		{
+			/* Setup SolutionManager(s) */
+			SetupSolmans(pThirdDummyStep->GetIntegratorNumUnknownStates());
+			iSubStep++;
+
+			pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
+			Flip();
+
+			/* FIXME: do we need to serve pending drives in dummy steps? */
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+
+			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
+				<< iSubStep
+				<< "; current time step: "
+				<< dCurrTimeStep << std::endl);
+
+			if (outputStep())
+			{
+				silent_cout("Dummy Step(" << iSubStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+            }
+                
+			ASSERT(pThirdDummyStep != 0);
+
+			/* pThirdDummyStep */
+			pCurrStepIntegrator = pThirdDummyStep;
+			try {
+				dTest = pThirdDummyStep->Advance(this,
+					dRefTimeStep, dCurrTimeStep/dRefTimeStep,
+					StepIntegrator::NEWSTEP,
+					qX, qXPrime, pX, pXPrime,
+					iStIter, dTest, dSolTest);
+			}
+			catch (NonlinearSolver::NoConvergence& e) {
+				silent_cerr("Dummy step" << iSubStep << "does not converge; "
+					"TimeStep=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
+				pDM->Output(0, dTime, dCurrTimeStep, true);
+				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ErrSimulationDiverged& e) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (LinearSolver::ErrFactor& err) {
+				/*
+			 	* Mettere qui eventuali azioni speciali
+			 	* da intraprendere in caso di errore ...
+			 	*/
+				silent_cerr("Dummy step " << iSubStep
+				<< " failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+				"aborting..." << std::endl);
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
+			catch (NonlinearSolver::ConvergenceOnSolution& e) {
+				bSolConv = true;
+			}
+			catch (EndOfSimulation& eos) {
+				silent_cerr("Simulation ended during dummy step " << iSubStep << " :\n"
+					<< eos.what() << "\n");
+				return false;
+			}
+
+			SAFEDELETE(pThirdDummyStep);
+			pThirdDummyStep = 0;
+
+			dRefTimeStep = dCurrTimeStep;
+			dTime += dRefTimeStep;
+
+#if 0
+		/* don't sum up the derivatives error */
+		dTotErr += dTest;
+#endif
+			iTotIter += iStIter;
+
+			if (mbdyn_stop_at_end_of_time_step()) {
+			/*
+			 * Fa l'output della soluzione delle derivate iniziali
+			 * ed esce
+			 */
+#ifdef DEBUG_FICTITIOUS
+			pDM->Output(0, dTime, dCurrTimeStep, true);
+#endif /* DEBUG_FICTITIOUS */
+				Out << "Interrupted during dummy step" << iSubStep << " ." << std::endl;
+				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+			}
+
+#ifdef DEBUG_FICTITIOUS
+		pDM->Output(0, dTime, dCurrTimeStep, true);
+#endif /* DEBUG_FICTITIOUS */
+		}
 
 		/* Passi fittizi successivi */
-		if (iDummyStepsNumber > 1) {
+		if (iDummyStepsNumber > iSubStep) {
 			/* Setup SolutionManager(s) */
 			SetupSolmans(pDummySteps->GetIntegratorNumUnknownStates());
 		}
 
-		for (int iSubStep = 2;
-			iSubStep <= iDummyStepsNumber;
-			iSubStep++)
+		for (iSubStep += 1;
+			 iSubStep <= iDummyStepsNumber;
+			 iSubStep++)
 		{
 			pDM->BeforePredict(*pX, *pXPrime,
 				qX, qXPrime);
 			Flip();
+
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+
 
 			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
 				<< iSubStep
@@ -1076,7 +1307,6 @@ Solver::Prepare(void)
 			pCurrStepIntegrator = pDummySteps;
 			ASSERT(pDummySteps!= 0);
 			try {
-				pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 				dTest = pDummySteps->Advance(this,
 					dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
@@ -1117,7 +1347,7 @@ Solver::Prepare(void)
 				bSolConv = true;
 			}
 			catch (EndOfSimulation& eos) {
-				silent_cerr("Simulation ended during the dummy steps:\n"
+				silent_cerr("Simulation ended during the dummy step " << iSubStep << " :\n"
 					<< eos.what() << "\n");
 				return false;
 			}
@@ -1149,7 +1379,7 @@ Solver::Prepare(void)
 #ifdef DEBUG_FICTITIOUS
 				pDM->Output(0, dTime, dCurrTimeStep);
 #endif /* DEBUG_FICTITIOUS */
-				Out << "Interrupted during dummy steps."
+				Out << "Interrupted during dummy step"  << iSubStep << " ."
 					<< std::endl;
 				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 			}
@@ -1193,6 +1423,9 @@ Solver::Prepare(void)
 			<< std::endl;
 	}
 
+	SAFEDELETE(pDummySteps);
+	pDummySteps = 0;
+
 
 	if (eAbortAfter == AFTER_DUMMY_STEPS) {
 		Out << "End of dummy steps; no simulation is required."
@@ -1228,160 +1461,167 @@ Solver::Start(void)
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-	lStep = 1; /* Resetto di nuovo lStep */
+	lStep = 0; /* Resetto di nuovo lStep */
+	dRefTimeStep = dInitialTimeStep;
+	dCurrTimeStep = dRefTimeStep;
+	pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
 
 	//DEBUGCOUT("Step " << lStep << " has been successfully completed "
 	//		"in " << iStIter << " iterations" << std::endl);
 
 
 	//DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-
-	pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
-
-	Flip();
-	dRefTimeStep = dInitialTimeStep;
-	dCurrTimeStep = dRefTimeStep;
-
-	CurrStep = StepIntegrator::NEWSTEP;
-	pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
-
-	/* Setup SolutionManager(s) */
-	ASSERT(pFirstRegularStep!= 0);
-	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
-	pCurrStepIntegrator = pFirstRegularStep;
-
-IfFirstStepIsToBeRepeated:
-	try {
-		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
-		if (outputStep()) {
-			if (outputCounter()) {
-				silent_cout(std::endl);
-			}
- 			silent_cout("Step(" << 1 << ':' << 0 << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
-		}
-		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
-				dCurrTimeStep/dRefTimeStep, CurrStep,
-				qX, qXPrime, pX, pXPrime,
-				iStIter, dTest, dSolTest);
-	}
-	catch (NonlinearSolver::NoConvergence& e) {
-		if (dCurrTimeStep > dMinTimeStep) {
-			/* Riduce il passo */
-			CurrStep = StepIntegrator::REPEATSTEP;
-			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
-			if (dCurrTimeStep < dOldCurrTimeStep) {
-				DEBUGCOUT("Changing time step"
-					" from " << dOldCurrTimeStep
-					<< " to " << dCurrTimeStep
-					<< " during first step after "
-					<< iStIter << " iterations"
-					<< std::endl);
-				goto IfFirstStepIsToBeRepeated;
-			}
-		}
-
-		silent_cerr("Max iterations number "
-			<< std::abs(pFirstRegularStep->GetIntegratorMaxIters())
-			<< " has been reached during "
-			"first step, Time=" << dTime + dCurrTimeStep << "; "
-			<< "TimeStep=" << dCurrTimeStep
-			<< " cannot be reduced further; "
-			"aborting..." << std::endl);
-		pDM->Output(0, dTime, dCurrTimeStep, true);
-
-		throw Solver::ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-	}
-	catch (NonlinearSolver::ErrSimulationDiverged& e) {
-		/*
-		 * Mettere qui eventuali azioni speciali
-		 * da intraprendere in caso di errore ...
-		 */
-
-		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-	}
-	catch (LinearSolver::ErrFactor& err) {
-		/*
-		 * Mettere qui eventuali azioni speciali
-		 * da intraprendere in caso di errore ...
-		 */
-		silent_cerr("First step failed because no pivot element "
-			"could be found for column " << err.iCol
-			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
-			"aborting..." << std::endl);
-		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-	}
-	catch (NonlinearSolver::ConvergenceOnSolution& e) {
-		bSolConv = true;
-	}
-	catch (EndOfSimulation& eos) {
-		silent_cerr("Simulation ended during the first regular step:\n"
-			<< eos.what() << "\n");
-		return false;
-	}
-
-	DEBUGCOUT("Step " << lStep << " has been successfully completed "
-			"in " << iStIter << " iterations" << std::endl);
-
-
-	SAFEDELETE(pFirstRegularStep);
-	pFirstRegularStep = 0;
-
-	bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
-
-	/* Si fa dare l'std::ostream al file di output per il log */
-	std::ostream& Out = pDM->GetOutFile();
-
-	if (mbdyn_stop_at_end_of_time_step()) {
-		/* Fa l'output della soluzione al primo passo ed esce */
-		Out << "Interrupted during first step." << std::endl;
-		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (outputMsg()) {
-		Out
-			<< "Step " << lStep
-			<< " " << dTime + dCurrTimeStep
-			<< " " << dCurrTimeStep
-			<< " " << iStIter
-			<< " " << dTest
-			<< " " << dSolTest
-			<< " " << bSolConv
-			<< " " << bOut
-			<< std::endl;
-	}
-
-	bSolConv = false;
-
-	dRefTimeStep = dCurrTimeStep;
-	dTime += dRefTimeStep;
-
-	dTotErr += dTest;
-	iTotIter += iStIter;
-
-	if (EigAn.bAnalysis
-		&& EigAn.currAnalysis != EigAn.Analyses.end()
-		&& *EigAn.currAnalysis <= dTime)
+	//First start-up step for MS2, HOPE, MS3 and MS4
+	if (RegularType == StepIntegratorType::INT_MS2  || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
 	{
-		std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-			EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
-		if (i != EigAn.Analyses.end()) {
-			EigAn.currAnalysis = --i;
+		lStep++;
+		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
+
+		Flip();
+		//dRefTimeStep = dInitialTimeStep;
+		//dCurrTimeStep = dRefTimeStep;
+
+		CurrStep = StepIntegrator::NEWSTEP;
+		//pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
+
+		/* Setup SolutionManager(s) */
+		ASSERT(pFirstRegularStep!= 0);
+		SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
+		pCurrStepIntegrator = pFirstRegularStep;
+
+	IfFirstStepIsToBeRepeated:
+		try {
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
+			if (outputStep()) {
+				if (outputCounter()) {
+					silent_cout(std::endl);
+				}
+ 				silent_cout("Step(" << 1 << ':' << 0 << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+			}
+			dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
+					dCurrTimeStep/dRefTimeStep, CurrStep,
+					qX, qXPrime, pX, pXPrime,
+					iStIter, dTest, dSolTest);
 		}
-		Eig();
-		++EigAn.currAnalysis;
-	}
+		catch (NonlinearSolver::NoConvergence& e) {
+			if (dCurrTimeStep > dMinTimeStep) {
+				/* Riduce il passo */
+				CurrStep = StepIntegrator::REPEATSTEP;
+				doublereal dOldCurrTimeStep = dCurrTimeStep;
+				dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
+				if (dCurrTimeStep < dOldCurrTimeStep) {
+					DEBUGCOUT("Changing time step"
+						" from " << dOldCurrTimeStep
+						<< " to " << dCurrTimeStep
+						<< " during first step after "
+						<< iStIter << " iterations"
+						<< std::endl);
+					goto IfFirstStepIsToBeRepeated;
+				}
+			}
 
-	if (pRTSolver) {
-		pRTSolver->Init();
-	}
+			silent_cerr("Max iterations number "
+				<< std::abs(pFirstRegularStep->GetIntegratorMaxIters())
+				<< " has been reached during "
+				"first step, Time=" << dTime + dCurrTimeStep << "; "
+				<< "TimeStep=" << dCurrTimeStep
+				<< " cannot be reduced further; "
+				"aborting..." << std::endl);
+			pDM->Output(0, dTime, dCurrTimeStep, true);
 
-	dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
-	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-	
+			throw Solver::ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+		}
+		catch (NonlinearSolver::ErrSimulationDiverged& e) {
+			/*
+		 	* Mettere qui eventuali azioni speciali
+		 	* da intraprendere in caso di errore ...
+		 	*/
+
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+		}
+		catch (LinearSolver::ErrFactor& err) {
+			/*
+		 	* Mettere qui eventuali azioni speciali
+		 	* da intraprendere in caso di errore ...
+		 	*/
+			silent_cerr("First step failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+				"aborting..." << std::endl);
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+		}
+		catch (NonlinearSolver::ConvergenceOnSolution& e) {
+			bSolConv = true;
+		}
+		catch (EndOfSimulation& eos) {
+			silent_cerr("Simulation ended during the first regular step:\n"
+				<< eos.what() << "\n");
+			return false;
+		}
+
+		DEBUGCOUT("Step " << lStep << " has been successfully completed "
+				"in " << iStIter << " iterations" << std::endl);
+
+
+		SAFEDELETE(pFirstRegularStep);
+		pFirstRegularStep = 0;
+
+		bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+
+		/* Si fa dare l'std::ostream al file di output per il log */
+		std::ostream& Out = pDM->GetOutFile();
+
+		if (mbdyn_stop_at_end_of_time_step()) {
+			/* Fa l'output della soluzione al primo passo ed esce */
+			Out << "Interrupted during first step." << std::endl;
+			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (outputMsg()) {
+			Out
+				<< "Step " << lStep
+				<< " " << dTime + dCurrTimeStep
+				<< " " << dCurrTimeStep
+				<< " " << iStIter
+				<< " " << dTest
+				<< " " << dSolTest
+				<< " " << bSolConv
+				<< " " << bOut
+				<< std::endl;
+		}
+
+		bSolConv = false;
+
+		dRefTimeStep = dCurrTimeStep;
+		dTime += dRefTimeStep;
+
+		dTotErr += dTest;
+		iTotIter += iStIter;
+
+		if (EigAn.bAnalysis
+			&& EigAn.currAnalysis != EigAn.Analyses.end()
+			&& *EigAn.currAnalysis <= dTime)
+		{
+			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
+				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+			if (i != EigAn.Analyses.end()) {
+				EigAn.currAnalysis = --i;
+			}
+			Eig();
+			++EigAn.currAnalysis;
+		}
+
+		if (pRTSolver) {
+			pRTSolver->Init();
+		}
+
+		dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
+		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
+	}
+	//First start-up step for MS2, HOPE, MS3 and MS4
 
 	//Second start-up step for MS3 and MS4
-	if (RegularType==StepIntegratorType::INT_MS3 || RegularType==StepIntegratorType::INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
 	{	
 		ASSERT(pSecondRegularStep!= 0);
 		SetupSolmans(pSecondRegularStep->GetIntegratorNumUnknownStates(), true);
@@ -1630,7 +1870,7 @@ IfFirstStepIsToBeRepeated:
 	}
 	// Second start-up step for MS3 and MS4;	
 	// Third start-up step for MS4;
-	if (RegularType==StepIntegratorType::INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS4)
 	{	
 		ASSERT(pThirdRegularStep!= 0);
 		SetupSolmans(pThirdRegularStep->GetIntegratorNumUnknownStates(), true);
@@ -2208,6 +2448,14 @@ Solver::~Solver(void)
 		SAFEDELETE(pFirstDummyStep);
 	}
 
+	if (pSecondDummyStep) {
+		SAFEDELETE(pSecondDummyStep);
+	}
+
+	if (pThirdDummyStep) {
+		SAFEDELETE(pThirdDummyStep);
+	}
+
 	if (pDummySteps) {
 		SAFEDELETE(pDummySteps);
 	}
@@ -2287,6 +2535,21 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		break;
 	case INT_MS4:
 		out << "ms4, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_SS2:
+		out << "ss2, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_SS3:
+		out << "ss3, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_SS4:
+		out << "ss4, ";
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
@@ -2492,6 +2755,9 @@ Solver::ReadData(MBDynParser& HP)
 			"ms2",
 			"ms3",
 			"ms4",
+			"ss2",
+			"ss3",
+			"ss4",
 			"hope",
 			"Bathe",
 			"msstc3",
@@ -2612,6 +2878,9 @@ Solver::ReadData(MBDynParser& HP)
 		MS2,
 		MS3,
 		MS4,
+		SS2,
+		SS3,
+		SS4,
 		HOPE,
 		BATHE,
 		MSSTC3,
@@ -3054,6 +3323,9 @@ Solver::ReadData(MBDynParser& HP)
 			case MS2:
 			case MS3:
 			case MS4:
+			case SS2:
+			case SS3:
+			case SS4:
 			case BATHE:
 			case MSSTC3:
 			case MSSTH3:
@@ -3092,46 +3364,44 @@ Solver::ReadData(MBDynParser& HP)
 					pThirdRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
+				case SS2:
+					RegularType = INT_SS2;
+					break;
+
+				case SS3:
+					RegularType = INT_SS3;
+					break;
+
+				case SS4:
+					RegularType = INT_SS4;
+					break;
+
 				case BATHE:
 					RegularType = INT_BATHE;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTC3:
 					RegularType = INT_MSSTC3;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTH3:
 					RegularType = INT_MSSTH3;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTC4:
 					RegularType = INT_MSSTC4;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTH4:
 					RegularType = INT_MSSTH4;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTC5:
 					RegularType = INT_MSSTC5;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case MSSTH5:
 					RegularType = INT_MSSTH5;
-					pFirstRhoRegular=pRhoRegular->pCopy();
-					pFirstRhoAlgebraicRegular=pRhoRegular->pCopy();
 					break;
 
 				case HOPE:
@@ -3215,6 +3485,9 @@ Solver::ReadData(MBDynParser& HP)
 			case MS2:
 			case MS3:
 			case MS4:
+			case SS2:
+			case SS3:
+			case SS4:
 			case BATHE:
 			case MSSTC3:
 			case MSSTH3:
@@ -3240,10 +3513,28 @@ Solver::ReadData(MBDynParser& HP)
 
 				case MS3:
 					DummyType = INT_MS3;
+					pSecondRhoDummy = pRhoDummy->pCopy();
+					pSecondRhoAlgebraicDummy = pRhoAlgebraicDummy->pCopy();
 					break;
 
 				case MS4:
 					DummyType = INT_MS4;
+					pSecondRhoDummy = pRhoDummy->pCopy();
+					pSecondRhoAlgebraicDummy = pRhoAlgebraicDummy->pCopy();
+					pThirdRhoDummy = pRhoDummy->pCopy();
+					pThirdRhoAlgebraicDummy = pRhoAlgebraicDummy->pCopy();
+					break;
+
+				case SS2:
+					DummyType = INT_SS2;
+					break;
+
+				case SS3:
+					DummyType = INT_SS3;
+					break;
+
+				case SS4:
+					DummyType = INT_SS4;
 					break;
 
 				case BATHE:
@@ -4527,12 +4818,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	/* First step prediction must always be Crank-Nicolson for accuracy */
 	if (iDummyStepsNumber) {
-		SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
-				CrankNicolsonIntegrator,
-				CrankNicolsonIntegrator(dDummyStepsTolerance,
-					dSolutionTol,
-					iDummyStepsMaxIterations,
-					bModResTest));
 
 		/* costruzione dello step solver dummy */
 		switch (DummyType) {
@@ -4546,6 +4831,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 
 		case INT_MS2:
+			SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					Multistep2Solver,
 					Multistep2Solver(dDummyStepsTolerance,
@@ -4557,6 +4848,20 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 
 		case INT_MS3:
+			SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pSecondDummyStep,
+					Multistep2Solver,
+					Multistep2Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pSecondRhoDummy,
+						pSecondRhoAlgebraicDummy,
+						bModResTest));
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					TunableStep3Solver,
 					TunableStep3Solver(dDummyStepsTolerance,
@@ -4568,9 +4873,64 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 
 		case INT_MS4:
+			SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pSecondDummyStep,
+					Multistep2Solver,
+					Multistep2Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pSecondRhoDummy,
+						pSecondRhoAlgebraicDummy,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pThirdDummyStep,
+					TunableStep3Solver,
+					TunableStep3Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pThirdRhoDummy,
+						pThirdRhoAlgebraicDummy,
+						bModResTest));
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					TunableStep4Solver,
 					TunableStep4Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_SS2:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					SS2Solver,
+					SS2Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_SS3:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					SS3Solver,
+					SS3Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
+						bModResTest));
+			break;
+
+		case INT_SS4:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					SS4Solver,
+					SS4Solver(dDummyStepsTolerance,
 						dSolutionTol,
 						iDummyStepsMaxIterations,
 						pRhoDummy,
@@ -4656,6 +5016,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 
 		case INT_HOPE:
+			SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
 			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					HopeSolver,
 					HopeSolver(dDummyStepsTolerance,
@@ -4703,140 +5069,69 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	/* constructor step solver for start steps*/
 	switch (RegularType)
 	{
-	case INT_BATHE:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				TunableBatheSolver,
-				TunableBatheSolver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
+		case INT_MS2:
+			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						bModResTest));
+				break;		
 
-	case INT_MSSTC3:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Msstc3Solver,
-				Msstc3Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
+		case INT_HOPE:
+			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						bModResTest));
+				break;
 
-	case INT_MSSTH3:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Mssth3Solver,
-				Mssth3Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
+		case INT_MS3:
+			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
+					Multistep2Solver,
+					Multistep2Solver(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						pSecondRhoRegular,
+						pSecondRhoAlgebraicRegular,
+						bModResTest));
+				break;
 
-	case INT_MSSTC4:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Msstc4Solver,
-				Msstc4Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
-
-	case INT_MSSTH4:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Mssth4Solver,
-				Mssth4Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
-
-	case INT_MSSTC5:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Msstc5Solver,
-				Msstc5Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
-
-	case INT_MSSTH5:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				Mssth5Solver,
-				Mssth5Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pFirstRhoRegular,
-					pFirstRhoAlgebraicRegular,
-					bModResTest));
-		break;
-
-	case INT_MS3:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				CrankNicolsonIntegrator,
-				CrankNicolsonIntegrator(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					bModResTest));
-		SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
-				Multistep2Solver,
-				Multistep2Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pSecondRhoRegular,
-					pSecondRhoAlgebraicRegular,
-					bModResTest));
-			break;
-	case INT_MS4:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-				CrankNicolsonIntegrator,
-				CrankNicolsonIntegrator(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					bModResTest));
-		SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
-				Multistep2Solver,
-				Multistep2Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pSecondRhoRegular,
-					pSecondRhoAlgebraicRegular,
-					bModResTest));
-		SAFENEWWITHCONSTRUCTOR(pThirdRegularStep,
-				TunableStep3Solver,
-				TunableStep3Solver(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pThirdRhoRegular,
-					pThirdRhoAlgebraicRegular,
-					bModResTest));
-			break;
+		case INT_MS4:
+			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pSecondRegularStep,
+					Multistep2Solver,
+					Multistep2Solver(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						pSecondRhoRegular,
+						pSecondRhoAlgebraicRegular,
+						bModResTest));
+			SAFENEWWITHCONSTRUCTOR(pThirdRegularStep,
+					TunableStep3Solver,
+					TunableStep3Solver(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						pThirdRhoRegular,
+						pThirdRhoAlgebraicRegular,
+						bModResTest));
+				break;
 	
 	default:
-		SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicolsonIntegrator,
-			CrankNicolsonIntegrator(dTol,
-				dSolutionTol,
-				iMaxIterations,
-				bModResTest));
 		break;
 	}
-
-	/*SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicolsonIntegrator,
-			CrankNicolsonIntegrator(dTol,
-				dSolutionTol,
-				iMaxIterations,
-				bModResTest));*/
 
 	
 	/* costruzione dello step solver per i passi normali */
@@ -4876,6 +5171,39 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
 				TunableStep4Solver,
 				TunableStep4Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_SS2:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				SS2Solver,
+				SS2Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_SS3:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				SS3Solver,
+				SS3Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_SS4:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				SS4Solver,
+				SS4Solver(dTol,
 					dSolutionTol,
 					iMaxIterations,
 					pRhoRegular,

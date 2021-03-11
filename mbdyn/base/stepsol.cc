@@ -547,6 +547,8 @@ StepNIntegrator::UpdateDof(const int DCount,
 		 * dalle funzioni di predizione
 		 * e sono dati globali */
 		pXCurr->IncCoef(DCount, db0Differential*d);
+		//std::cout << "Updata: DCount = " << DCount << "; dX = " <<  pXCurr->operator()(DCount) << "; dXP = " << pXPrimeCurr->operator()(DCount) << std::endl;
+
 
 	} else {
 		pXCurr->IncCoef(DCount, d);

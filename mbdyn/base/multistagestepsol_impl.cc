@@ -1205,9 +1205,9 @@ Msstc4Solver::SetCoefForStageS(unsigned uStage,
 		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
 		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
 		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16 + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3*da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16. + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
 		m_b[IDX_B4][DIFFERENTIAL] = (7.*m_gamma/16. + da1/8. - da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) - da4/(m_gamma*m_gamma*m_gamma))*dT;
 
 		DEBUGCOUT("PredictForStageS(4)" << std::endl
@@ -1672,9 +1672,9 @@ Mssth4Solver::SetCoefForStageS(unsigned uStage,
 		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
 		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
 		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16 + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3*da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
+		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16. + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
 		m_b[IDX_B4][DIFFERENTIAL] = (7.*m_gamma/16. + da1/8. - da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) - da4/(m_gamma*m_gamma*m_gamma))*dT;
 
 		DEBUGCOUT("PredictForStageS(4)" << std::endl

@@ -207,7 +207,7 @@ Multistep2Solver::SetCoef(doublereal dT,
 
 	m_a[IDX_A1][DIFFERENTIAL] = 1. - dBeta;
 	m_a[IDX_A2][DIFFERENTIAL] = dBeta;
-	m_b[IDX_B0][DIFFERENTIAL] = dT*(dDelta/dAlpha + dAlpha/2);
+	m_b[IDX_B0][DIFFERENTIAL] = dT*(dDelta/dAlpha + dAlpha/2.);
 	m_b[IDX_B1][DIFFERENTIAL] = dT*(dBeta/2. + dAlpha/2. - dDelta/dAlpha*(1. + dAlpha));
 	m_b[IDX_B2][DIFFERENTIAL] = dT*(dBeta/2. + dDelta);
 
