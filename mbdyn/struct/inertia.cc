@@ -278,7 +278,7 @@ Inertia::Restart(std::ostream& out) const
 void
 Inertia::Output(OutputHandler& OH) const
 {
-	if ((fToBeOutput() & Inertia::OUTPUT_ALWAYS)  && (!silent_output)) {
+	if ((bToBeOutput() & Inertia::OUTPUT_ALWAYS)  && (!silent_output)) {
 		if (OH.UseText(OutputHandler::INERTIA)) {
 			Output_int(std::cout);
 		}
@@ -307,16 +307,18 @@ Inertia::Output(OutputHandler& OH) const
 void
 Inertia::OutputPrepare_int(OutputHandler &OH, std::string& name)
 {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-	std::ostringstream os;
-	os << "elem.inertia." << GetLabel();
-	(void)OH.CreateVar(os.str(), "inertia");
+		std::ostringstream os;
+		os << "elem.inertia." << GetLabel();
+		(void)OH.CreateVar(os.str(), "inertia");
 
-	os << ".";
-	name = os.str();
+		os << ".";
+		name = os.str();
 #endif // USE_NETCDF
+	}
 }
 
 void
