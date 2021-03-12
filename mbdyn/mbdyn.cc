@@ -866,7 +866,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	int last = 0;
 	while (last == 0) {
 		if (mbp.CurrInputSource == MBFILE_STDIN) {
-			silent_cout("reading from stdin" << std::endl);
+			silent_cout("no input file(s) in the command line; reading from standard input (stdin)" << std::endl);
 			last = 1;
 
 		} else if (mbp.CurrInputSource == MBFILE_OPT) {
