@@ -110,38 +110,38 @@ TunableBatheSolver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
 
-		//second-order prediction
-		doublereal dalpha = (1. - m_gamma)/m_gamma; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/((1. - m_gamma)*dT);
-		m_mp[1] = - m_mp[0];
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
+			//second-order prediction
+			doublereal dalpha = (1. - m_gamma) / m_gamma;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;
-		m_b[IDX_B0][DIFFERENTIAL] = (1. - m_gamma)*dT/(m_gamma*m_dRho - m_gamma + 2.);
-		m_b[IDX_B1][DIFFERENTIAL] = (1. + m_dRho)*dT/(2.*(m_gamma*m_dRho - m_gamma + 2.));
-		m_b[IDX_B2][DIFFERENTIAL] = (2.*m_gamma*m_dRho - m_dRho + 1.)*dT/(2.*(m_gamma*m_dRho - m_gamma + 2.));
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = (1. - m_gamma) * dT / (m_gamma * m_dRho - m_gamma + 2.);
+			m_b[IDX_B1][DIFFERENTIAL] = (1. + m_dRho) * dT / (2. * (m_gamma * m_dRho - m_gamma + 2.));
+			m_b[IDX_B2][DIFFERENTIAL] = (2. * m_gamma * m_dRho - m_dRho + 1.) * dT / (2. * (m_gamma * m_dRho - m_gamma + 2.));
 
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -354,103 +354,103 @@ Msstc3Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 2.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
 
-		//second-order prediction
-		doublereal dalpha = (1. - 2.*m_gamma)/m_gamma; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/((1. - 2.*m_gamma)*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
+			//second-order prediction
+			doublereal dalpha = (1. - 2. * m_gamma) / m_gamma;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - 2. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
 
-		//fourth-order prediction
-		//doublereal dalpha = (1. - 2.*m_gamma)/m_gamma; 
-		//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 2.*m_gamma)*dT);
-		//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 2.*m_gamma)*dT);
-		//m_mp[2] = - m_mp[0] - m_mp[1];
-		//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
+			//fourth-order prediction
+			//doublereal dalpha = (1. - 2.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 2.*m_gamma)*dT);
+			//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 2.*m_gamma)*dT);
+			//m_mp[2] = - m_mp[0] - m_mp[1];
+			//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
+			//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
+			//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
 
-		doublereal da1 = 1. - 3.*m_gamma/2.;
-		doublereal da2 = 1./2. - 3.*m_gamma/2. + 3.*m_gamma*m_gamma/4.;
-		doublereal da3 = m_dRho*m_gamma*m_gamma*m_gamma/8.;
+			doublereal da1 = 1. - 3. * m_gamma / 2.;
+			doublereal da2 = 1. / 2. - 3. * m_gamma / 2. + 3. * m_gamma * m_gamma / 4.;
+			doublereal da3 = m_dRho * m_gamma * m_gamma * m_gamma / 8.;
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/8. + da1/4. + da2/(2.*m_gamma) + da3/(m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (m_gamma/2. + da1/2. - 2.*da3/(m_gamma*m_gamma))*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = (3.*m_gamma/8. + da1/4. - da2/(2.*m_gamma) + da3/(m_gamma*m_gamma))*dT; 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 8. + da1 / 4. + da2 / (2. * m_gamma) + da3 / (m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (m_gamma / 2. + da1 / 2. - 2. * da3 / (m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (3. * m_gamma / 8. + da1 / 4. - da2 / (2. * m_gamma) + da3 / (m_gamma * m_gamma)) * dT;
 
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -696,103 +696,103 @@ Mssth3Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 2.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
 
-		//second-order prediction
-		doublereal dalpha = (1. - 2.*m_gamma)/m_gamma; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/((1. - 2.*m_gamma)*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
+			//second-order prediction
+			doublereal dalpha = (1. - 2. * m_gamma) / m_gamma;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - 2. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
 
-		//fourth-order prediction
-		//doublereal dalpha = (1. - 2.*m_gamma)/m_gamma; 
-		//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 2.*m_gamma)*dT);
-		//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 2.*m_gamma)*dT);
-		//m_mp[2] = - m_mp[0] - m_mp[1];
-		//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
+			//fourth-order prediction
+			//doublereal dalpha = (1. - 2.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 2.*m_gamma)*dT);
+			//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 2.*m_gamma)*dT);
+			//m_mp[2] = - m_mp[0] - m_mp[1];
+			//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
+			//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
+			//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
 
-		doublereal da1 = 1. - 3.*m_gamma/2.;
-		doublereal da2 = 1./2. - 3.*m_gamma/2. + 3.*m_gamma*m_gamma/4.;
-		doublereal da3 = 1./6. - 3.*m_gamma/4. + 3.*m_gamma*m_gamma/4. - m_gamma*m_gamma*m_gamma/8.;
+			doublereal da1 = 1. - 3. * m_gamma / 2.;
+			doublereal da2 = 1. / 2. - 3. * m_gamma / 2. + 3. * m_gamma * m_gamma / 4.;
+			doublereal da3 = 1. / 6. - 3. * m_gamma / 4. + 3. * m_gamma * m_gamma / 4. - m_gamma * m_gamma * m_gamma / 8.;
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/8. + da1/4. + da2/(2.*m_gamma) + da3/(m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (m_gamma/2. + da1/2. - 2.*da3/(m_gamma*m_gamma))*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = (3.*m_gamma/8. + da1/4. - da2/(2.*m_gamma) + da3/(m_gamma*m_gamma))*dT; 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 8. + da1 / 4. + da2 / (2. * m_gamma) + da3 / (m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (m_gamma / 2. + da1 / 2. - 2. * da3 / (m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (3. * m_gamma / 8. + da1 / 4. - da2 / (2. * m_gamma) + da3 / (m_gamma * m_gamma)) * dT;
 
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -1043,187 +1043,185 @@ Msstc4Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_mp[3] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
-		//m_np[3] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_mp[3] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
-		m_np[3] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl
-			<< "b4    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    =  not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    =  not needed" << std::endl);
+			break;
 		}
 
 	case 4:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 3.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 3. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
 
-		//second-order prediction
-		doublereal dalpha = (1. - 3.*m_gamma)/m_gamma; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/((1. - 3.*m_gamma)*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;
+			//second-order prediction
+			doublereal dalpha = (1. - 3. * m_gamma) / m_gamma;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - 3. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
 
-		//fourth-order prediction
-		//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 3.*m_gamma)*dT);
-		//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 3.*m_gamma)*dT);
-		//m_mp[2] = - m_mp[0] - m_mp[1];
-		//m_mp[3] = 0.;
-		//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
-		//m_np[3] = 0.;
+			//fourth-order prediction
+			//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 3.*m_gamma)*dT);
+			//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 3.*m_gamma)*dT);
+			//m_mp[2] = - m_mp[0] - m_mp[1];
+			//m_mp[3] = 0.;
+			//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
+			//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
+			//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
+			//m_np[3] = 0.;
 
-		//sixth-order prediction
-		//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 3.*m_gamma)*dT);
-		//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 3.*m_gamma)*dT);
-		//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 3.*m_gamma)*dT);
-		//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
-		//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
-		//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
-		//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
-		//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
+			//sixth-order prediction
+			//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 3.*m_gamma)*dT);
+			//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 3.*m_gamma)*dT);
+			//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 3.*m_gamma)*dT);
+			//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
+			//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
+			//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
+			//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
+			//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
 
-		doublereal da1 = 1. - 2.*m_gamma;
-		doublereal da2 = 1./2. - 2.*m_gamma + 3.*m_gamma*m_gamma/2.;
-		doublereal da4 = m_dRho*m_gamma*m_gamma*m_gamma*m_gamma/16.; 
-		doublereal da3 = - (3.*m_gamma*m_gamma*m_gamma*m_gamma/8. - da2*da2 - 2.*da4)/(2.*da1);
+			doublereal da1 = 1. - 2. * m_gamma;
+			doublereal da2 = 1. / 2. - 2. * m_gamma + 3. * m_gamma * m_gamma / 2.;
+			doublereal da4 = m_dRho * m_gamma * m_gamma * m_gamma * m_gamma / 16.;
+			doublereal da3 = -(3. * m_gamma * m_gamma * m_gamma * m_gamma / 8. - da2 * da2 - 2. * da4) / (2. * da1);
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16. + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B4][DIFFERENTIAL] = (7.*m_gamma/16. + da1/8. - da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) - da4/(m_gamma*m_gamma*m_gamma))*dT;
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 16. + da1 / 8. + da2 / (4. * m_gamma) + da3 / (2. * m_gamma * m_gamma) + da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (5. * m_gamma / 16. + 3. * da1 / 8. + da2 / (4. * m_gamma) - da3 / (2. * m_gamma * m_gamma) - 3. * da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (11. * m_gamma / 16. + 3. * da1 / 8. - da2 / (4. * m_gamma) - da3 / (2. * m_gamma * m_gamma) + 3. * da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = (7. * m_gamma / 16. + da1 / 8. - da2 / (4. * m_gamma) + da3 / (2. * m_gamma * m_gamma) - da4 / (m_gamma * m_gamma * m_gamma)) * dT;
 
-		DEBUGCOUT("PredictForStageS(4)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -1512,185 +1510,185 @@ Mssth4Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_mp[3] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
-		//m_np[3] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_mp[3] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
-		m_np[3] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl
-			<< "b4    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = not needed" << std::endl);
+			break;
 		}
 
 	case 4:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 3.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 3. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
 
-		//second-order prediction
-		//doublereal dalpha = (1. - 3.*m_gamma)/m_gamma; 
-		//m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/((1. - 3.*m_gamma)*dT);
-		//m_mp[1] = - m_mp[0];
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		//m_np[1] = dalpha*(2. + 3.*dalpha);
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
+			//second-order prediction
+			//doublereal dalpha = (1. - 3.*m_gamma)/m_gamma;
+			//m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/((1. - 3.*m_gamma)*dT);
+			//m_mp[1] = - m_mp[0];
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
+			//m_np[1] = dalpha*(2. + 3.*dalpha);
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
 
-		//fourth-order prediction
-		doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
-		m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 3.*m_gamma)*dT);
-		m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 3.*m_gamma)*dT);
-		m_mp[2] = - m_mp[0] - m_mp[1];
-		m_mp[3] = 0.;
-		m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
-		m_np[3] = 0.;
+			//fourth-order prediction
+			doublereal dalpha = (1. - 3. * m_gamma) / m_gamma;
+			m_mp[0] = -dalpha * dalpha * (15. * dalpha * dalpha * dalpha + 68. * dalpha * dalpha + 99. * dalpha + 46.) / (4. * (1. - 3. * m_gamma) * dT);
+			m_mp[1] = 4. * dalpha * dalpha * (dalpha * dalpha + 3. * dalpha + 2.) / ((1. - 3. * m_gamma) * dT);
+			m_mp[2] = -m_mp[0] - m_mp[1];
+			m_mp[3] = 0.;
+			m_np[0] = 5. * dalpha * dalpha * dalpha * dalpha / 4. + 6. * dalpha * dalpha * dalpha + 39. * dalpha * dalpha / 4. + 6. * dalpha + 1.;
+			m_np[1] = dalpha * (5. * dalpha * dalpha * dalpha + 20. * dalpha * dalpha + 24. * dalpha + 8.);
+			m_np[2] = dalpha * (5. * dalpha * dalpha * dalpha + 16. * dalpha * dalpha + 15. * dalpha + 4.) / 4.;
+			m_np[3] = 0.;
 
-		//sixth-order prediction
-		//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 3.*m_gamma)*dT);
-		//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 3.*m_gamma)*dT);
-		//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 3.*m_gamma)*dT);
-		//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
-		//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
-		//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
-		//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
-		//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
+			//sixth-order prediction
+			//doublereal dalpha = (1.-3.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 3.*m_gamma)*dT);
+			//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 3.*m_gamma)*dT);
+			//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 3.*m_gamma)*dT);
+			//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
+			//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
+			//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
+			//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
+			//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
 
-		doublereal da1 = 1. - 2.*m_gamma;
-		doublereal da2 = 1./2. - 2.*m_gamma + 3.*m_gamma*m_gamma/2.;
-		doublereal da3 = 1./6. - m_gamma + 3.*m_gamma*m_gamma/2. - m_gamma*m_gamma*m_gamma/2.;
-		doublereal da4 = 1./24. - m_gamma/3. + 3.*m_gamma*m_gamma/4. - m_gamma*m_gamma*m_gamma/2. + m_gamma*m_gamma*m_gamma*m_gamma/16.; 
+			doublereal da1 = 1. - 2. * m_gamma;
+			doublereal da2 = 1. / 2. - 2. * m_gamma + 3. * m_gamma * m_gamma / 2.;
+			doublereal da3 = 1. / 6. - m_gamma + 3. * m_gamma * m_gamma / 2. - m_gamma * m_gamma * m_gamma / 2.;
+			doublereal da4 = 1. / 24. - m_gamma / 3. + 3. * m_gamma * m_gamma / 4. - m_gamma * m_gamma * m_gamma / 2. + m_gamma * m_gamma * m_gamma * m_gamma / 16.;
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/16. + da1/8. + da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) + da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = (5.*m_gamma/16. + 3.*da1/8. + da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) - 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B3][DIFFERENTIAL] = (11.*m_gamma/16. + 3.*da1/8. - da2/(4.*m_gamma) - da3/(2.*m_gamma*m_gamma) + 3.*da4/(m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B4][DIFFERENTIAL] = (7.*m_gamma/16. + da1/8. - da2/(4.*m_gamma) + da3/(2.*m_gamma*m_gamma) - da4/(m_gamma*m_gamma*m_gamma))*dT;
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 16. + da1 / 8. + da2 / (4. * m_gamma) + da3 / (2. * m_gamma * m_gamma) + da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (5. * m_gamma / 16. + 3. * da1 / 8. + da2 / (4. * m_gamma) - da3 / (2. * m_gamma * m_gamma) - 3. * da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (11. * m_gamma / 16. + 3. * da1 / 8. - da2 / (4. * m_gamma) - da3 / (2. * m_gamma * m_gamma) + 3. * da4 / (m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = (7. * m_gamma / 16. + da1 / 8. - da2 / (4. * m_gamma) + da3 / (2. * m_gamma * m_gamma) - da4 / (m_gamma * m_gamma * m_gamma)) * dT;
 
-		DEBUGCOUT("PredictForStageS(4)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -1983,279 +1981,278 @@ Msstc5Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_mp[3] = 0.;//Unused
-		//m_mp[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
-		//m_np[3] = 0.;//Unused
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_mp[3] = 0.;//Unused
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
-		m_np[3] = 0.;//Unused
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl
-			<< "b4    = not needed" << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;//Unused
-		//m_mp[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;//Unused
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;//Unused
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;//Unused
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = not needed" << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 4:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
+			m_np[4] = 0.; //Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT; 
-		m_b[IDX_B4][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		DEBUGCOUT("PredictForStageS(4)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 5:
-		{	
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 4.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+		{
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 4. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[4] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
 
-		//second-order prediction
-		doublereal dalpha = (1. - 4.*m_gamma)/m_gamma; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/((1. - 4.*m_gamma)*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;
-		m_mp[4] = 0.;
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;
-		m_np[4] = 0.;
+			//second-order prediction
+			doublereal dalpha = (1. - 4. * m_gamma) / m_gamma;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - 4. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_mp[4] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
+			m_np[4] = 0.;
 
-		//fourth-order prediction
-		//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 4.*m_gamma)*dT);
-		//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 4.*m_gamma)*dT);
-		//m_mp[2] = - m_mp[0] - m_mp[1];
-		//m_mp[3] = 0.;
-		//m_mp[4] = 0.;
-		//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;
+			//fourth-order prediction
+			//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 4.*m_gamma)*dT);
+			//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 4.*m_gamma)*dT);
+			//m_mp[2] = - m_mp[0] - m_mp[1];
+			//m_mp[3] = 0.;
+			//m_mp[4] = 0.;
+			//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
+			//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
+			//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
 
-		//sixth-order prediction
-		//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 4.*m_gamma)*dT);
-		//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 4.*m_gamma)*dT);
-		//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 4.*m_gamma)*dT);
-		//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
-		//m_mp[4] = 0.;
-		//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
-		//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
-		//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
-		//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
-		//m_np[4] = 0.;
+			//sixth-order prediction
+			//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 4.*m_gamma)*dT);
+			//m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 4.*m_gamma)*dT);
+			//m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 4.*m_gamma)*dT);
+			//m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
+			//m_mp[4] = 0.;
+			//m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
+			//m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
+			//m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
+			//m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
+			//m_np[4] = 0.;
 
-		doublereal da1 = 1. - 5.*m_gamma/2.;
-		doublereal da2 = 5.*m_gamma*m_gamma/2. - 5.*m_gamma/2. + 1./2.;
-		doublereal da3 = - (50.*m_gamma*m_gamma*m_gamma - 70.*m_gamma*m_gamma + 30.*m_gamma - 4. + 
-						 sqrt(2.*((5.*m_dRho + 805.)*m_gamma*m_gamma*m_gamma*m_gamma*m_gamma*m_gamma +
-						 (-2.*m_dRho - 2050.)*m_gamma*m_gamma*m_gamma*m_gamma*m_gamma + 2160.*m_gamma*m_gamma*m_gamma*m_gamma - 
-						 1200.*m_gamma*m_gamma*m_gamma + 370.*m_gamma*m_gamma - 60.*m_gamma + 4.)))/8.;
-		doublereal da4 = - (45.*m_gamma*m_gamma*m_gamma*m_gamma - 100.*m_gamma*m_gamma*m_gamma + 70.*m_gamma*m_gamma 
-						+ (40.*da3 - 20.)*m_gamma - 16.*da3 + 2.)/16.;
-		doublereal da5 = (m_dRho*m_gamma*m_gamma*m_gamma*m_gamma*m_gamma)/32.;
-		
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A5][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/32. + da1/16. + da2/(8.*m_gamma) + da3/(4.*m_gamma*m_gamma) + da4/(2.*m_gamma*m_gamma*m_gamma) + da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;		
-		m_b[IDX_B2][DIFFERENTIAL] = (3.*m_gamma/16. + da1/4. + da2/(4.*m_gamma) - da4/(m_gamma*m_gamma*m_gamma) - 4.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = (m_gamma/2. + 3.*da1/8. - da3/(2.*m_gamma*m_gamma) + 6.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B4][DIFFERENTIAL] = (13.*m_gamma/16. + da1/4. - da2/(4.*m_gamma) + da4/(m_gamma*m_gamma*m_gamma) - 4.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B5][DIFFERENTIAL] = (15.*m_gamma/32. + da1/16. - da2/(8.*m_gamma) + da3/(4.*m_gamma*m_gamma) - da4/(2.*m_gamma*m_gamma*m_gamma) + da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
+			doublereal da1 = 1. - 5. * m_gamma / 2.;
+			doublereal da2 = 5. * m_gamma * m_gamma / 2. - 5. * m_gamma / 2. + 1. / 2.;
+			doublereal da3 = -(50. * m_gamma * m_gamma * m_gamma - 70. * m_gamma * m_gamma + 30. * m_gamma - 4. +
+							   sqrt(2. * ((5. * m_dRho + 805.) * m_gamma * m_gamma * m_gamma * m_gamma * m_gamma * m_gamma +
+										  (-2. * m_dRho - 2050.) * m_gamma * m_gamma * m_gamma * m_gamma * m_gamma + 2160. * m_gamma * m_gamma * m_gamma * m_gamma -
+										  1200. * m_gamma * m_gamma * m_gamma + 370. * m_gamma * m_gamma - 60. * m_gamma + 4.))) /
+							 8.;
+			doublereal da4 = -(45. * m_gamma * m_gamma * m_gamma * m_gamma - 100. * m_gamma * m_gamma * m_gamma + 70. * m_gamma * m_gamma + (40. * da3 - 20.) * m_gamma - 16. * da3 + 2.) / 16.;
+			doublereal da5 = (m_dRho * m_gamma * m_gamma * m_gamma * m_gamma * m_gamma) / 32.;
 
-		DEBUGCOUT("PredictForStageS(5)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "a5    = " << m_a[IDX_A5][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
-			<< "b5    = " << m_b[IDX_B5][DIFFERENTIAL] << std::endl);
-		break;
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.;
+			m_a[IDX_A5][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 32. + da1 / 16. + da2 / (8. * m_gamma) + da3 / (4. * m_gamma * m_gamma) + da4 / (2. * m_gamma * m_gamma * m_gamma) + da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (3. * m_gamma / 16. + da1 / 4. + da2 / (4. * m_gamma) - da4 / (m_gamma * m_gamma * m_gamma) - 4. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (m_gamma / 2. + 3. * da1 / 8. - da3 / (2. * m_gamma * m_gamma) + 6. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = (13. * m_gamma / 16. + da1 / 4. - da2 / (4. * m_gamma) + da4 / (m_gamma * m_gamma * m_gamma) - 4. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B5][DIFFERENTIAL] = (15. * m_gamma / 32. + da1 / 16. - da2 / (8. * m_gamma) + da3 / (4. * m_gamma * m_gamma) - da4 / (2. * m_gamma * m_gamma * m_gamma) + da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+
+			DEBUGCOUT("PredictForStageS(5)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = " << m_a[IDX_A5][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = " << m_b[IDX_B5][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -2594,278 +2591,274 @@ Mssth5Solver::SetCoefForStageS(unsigned uStage,
 
 	case 2:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;//Unused
-		//m_mp[3] = 0.;//Unused
-		//m_mp[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;//Unused
-		//m_np[3] = 0.;//Unused
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;//Unused
-		m_mp[3] = 0.;//Unused
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;//Unused
-		m_np[3] = 0.;//Unused
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 1.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT/2.;	
-		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(2)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = not needed" << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = not needed" << std::endl
-			<< "b4    = not needed" << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 3:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;//Unused
-		//m_mp[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;//Unused
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = -m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;//Unused
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;//Unused
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(3)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = not needed" << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = not needed" << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 4:
 		{
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + m_gamma*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + m_gamma * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[4] = 0.;//Unused
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;//Unused
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;//Unused
 
-		//second-order prediction
-		doublereal dalpha = 1.; 
-		m_mp[0] = - 6.*dalpha*dalpha*(1. + dalpha)/(m_gamma*dT);
-		m_mp[1] = - m_mp[0];
-		m_mp[2] = 0.;
-		m_mp[3] = 0.;
-		m_mp[4] = 0.;//Unused
-		m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		m_np[1] = dalpha*(2. + 3.*dalpha);
-		m_np[2] = 0.;
-		m_np[3] = 0.;
-		m_np[4] = 0.;//Unused
+			//second-order prediction
+			doublereal dalpha = 1.;
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / (m_gamma * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
+			m_np[4] = 0.; //Unused
 
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
 
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 1.; 
-		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = m_gamma*dT;
-		m_b[IDX_B2][DIFFERENTIAL] = m_gamma*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = m_gamma*dT; 
-		m_b[IDX_B4][DIFFERENTIAL] = m_gamma*dT/2.; 
-		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
-
-		DEBUGCOUT("PredictForStageS(4)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "a5    = not needed" << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
-			<< "b5    = not needed" << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
 		}
 
 	case 5:
-		{	
-		ASSERT(pDM != NULL);
-		pDM->SetTime(pDM->dGetTime() + (1. - 4.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+		{
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - 4. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
 
-		//constant prediction
-		//m_mp[0] = 0.;
-		//m_mp[1] = 0.;
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_np[4] = 0.;
-		//m_np[0] = 1.;
-		//m_np[1] = 0.;
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
 
-		//second-order prediction
-		//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma; 
-		//m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/((1. - 4.*m_gamma)*dT);
-		//m_mp[1] = -m_mp[0];
-		//m_mp[2] = 0.;
-		//m_mp[3] = 0.;
-		//m_mp[4] = 0.;
-		//m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
-		//m_np[1] = dalpha*(2. + 3.*dalpha);
-		//m_np[2] = 0.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;
+			//second-order prediction
+			//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
+			//m_mp[0] = -6.*dalpha*dalpha*(1. + dalpha)/((1. - 4.*m_gamma)*dT);
+			//m_mp[1] = -m_mp[0];
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_mp[4] = 0.;
+			//m_np[0] = 1. + 4.*dalpha + 3.*dalpha*dalpha;
+			//m_np[1] = dalpha*(2. + 3.*dalpha);
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
 
-		//fourth-order prediction
-		//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
-		//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 4.*m_gamma)*dT);
-		//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 4.*m_gamma)*dT);
-		//m_mp[2] = - m_mp[0] - m_mp[1];
-		//m_mp[3] = 0.;
-		//m_mp[4] = 0.;
-		//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
-		//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
-		//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
-		//m_np[3] = 0.;
-		//m_np[4] = 0.;
+			//fourth-order prediction
+			//doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
+			//m_mp[0] = - dalpha*dalpha*(15.*dalpha*dalpha*dalpha + 68.*dalpha*dalpha + 99.*dalpha + 46.)/(4.*(1. - 4.*m_gamma)*dT);
+			//m_mp[1] = 4.*dalpha*dalpha*(dalpha*dalpha + 3.*dalpha + 2.)/((1. - 4.*m_gamma)*dT);
+			//m_mp[2] = - m_mp[0] - m_mp[1];
+			//m_mp[3] = 0.;
+			//m_mp[4] = 0.;
+			//m_np[0] = 5.*dalpha*dalpha*dalpha*dalpha/4. + 6.*dalpha*dalpha*dalpha + 39.*dalpha*dalpha/4. + 6.*dalpha + 1.;
+			//m_np[1] = dalpha*(5.*dalpha*dalpha*dalpha + 20.*dalpha*dalpha + 24.*dalpha + 8.);
+			//m_np[2] = dalpha*(5.*dalpha*dalpha*dalpha + 16.*dalpha*dalpha + 15.*dalpha + 4.)/4.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
 
-		//sixth-order prediction
-		doublereal dalpha = (1. - 4.*m_gamma)/m_gamma;
-		m_mp[0] = - dalpha*dalpha*(77.*dalpha*dalpha*dalpha*dalpha*dalpha + 774.*dalpha*dalpha*dalpha*dalpha + 3010.*dalpha*dalpha*dalpha + 5640.*dalpha*dalpha + 5073.*dalpha + 1746.)/(108.*(1. - 4.*m_gamma)*dT);
-		m_mp[1] = - dalpha*dalpha*dalpha*(7.*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha + 185.*dalpha*dalpha + 240.*dalpha + 108.)/(4.*(1. - 4.*m_gamma)*dT);
-		m_mp[2] = dalpha*dalpha*(dalpha + 3.)*(dalpha + 3.)*(7.*dalpha*dalpha*dalpha + 24.*dalpha*dalpha + 23.*dalpha + 6.)/(4.*(1. - 4.*m_gamma)*dT);
-		m_mp[3] = - m_mp[0] - m_mp[1] - m_mp[2];
-		m_mp[4] = 0.;
-		m_np[0] = 7.*dalpha*dalpha*dalpha*dalpha*dalpha*dalpha/36. + 2.*dalpha*dalpha*dalpha*dalpha*dalpha + 145.*dalpha*dalpha*dalpha*dalpha/18. + 16.*dalpha*dalpha*dalpha + 193.*dalpha*dalpha/12. + 22.*dalpha/3. + 1.;
-		m_np[1] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 66.*dalpha*dalpha*dalpha*dalpha + 235.*dalpha*dalpha*dalpha + 388.*dalpha*dalpha + 288.*dalpha + 72.)/4.;
-		m_np[2] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 60.*dalpha*dalpha*dalpha*dalpha + 190.*dalpha*dalpha*dalpha + 272.*dalpha*dalpha + 171.*dalpha + 36.)/4.;
-		m_np[3] = dalpha*(7.*dalpha*dalpha*dalpha*dalpha*dalpha + 54.*dalpha*dalpha*dalpha*dalpha + 155.*dalpha*dalpha*dalpha + 204.*dalpha*dalpha + 120.*dalpha + 24.)/36.;
-		m_np[4] = 0.;
+			//sixth-order prediction
+			doublereal dalpha = (1. - 4. * m_gamma) / m_gamma;
+			m_mp[0] = -dalpha * dalpha * (77. * dalpha * dalpha * dalpha * dalpha * dalpha + 774. * dalpha * dalpha * dalpha * dalpha + 3010. * dalpha * dalpha * dalpha + 5640. * dalpha * dalpha + 5073. * dalpha + 1746.) / (108. * (1. - 4. * m_gamma) * dT);
+			m_mp[1] = -dalpha * dalpha * dalpha * (7. * dalpha * dalpha * dalpha * dalpha + 60. * dalpha * dalpha * dalpha + 185. * dalpha * dalpha + 240. * dalpha + 108.) / (4. * (1. - 4. * m_gamma) * dT);
+			m_mp[2] = dalpha * dalpha * (dalpha + 3.) * (dalpha + 3.) * (7. * dalpha * dalpha * dalpha + 24. * dalpha * dalpha + 23. * dalpha + 6.) / (4. * (1. - 4. * m_gamma) * dT);
+			m_mp[3] = -m_mp[0] - m_mp[1] - m_mp[2];
+			m_mp[4] = 0.;
+			m_np[0] = 7. * dalpha * dalpha * dalpha * dalpha * dalpha * dalpha / 36. + 2. * dalpha * dalpha * dalpha * dalpha * dalpha + 145. * dalpha * dalpha * dalpha * dalpha / 18. + 16. * dalpha * dalpha * dalpha + 193. * dalpha * dalpha / 12. + 22. * dalpha / 3. + 1.;
+			m_np[1] = dalpha * (7. * dalpha * dalpha * dalpha * dalpha * dalpha + 66. * dalpha * dalpha * dalpha * dalpha + 235. * dalpha * dalpha * dalpha + 388. * dalpha * dalpha + 288. * dalpha + 72.) / 4.;
+			m_np[2] = dalpha * (7. * dalpha * dalpha * dalpha * dalpha * dalpha + 60. * dalpha * dalpha * dalpha * dalpha + 190. * dalpha * dalpha * dalpha + 272. * dalpha * dalpha + 171. * dalpha + 36.) / 4.;
+			m_np[3] = dalpha * (7. * dalpha * dalpha * dalpha * dalpha * dalpha + 54. * dalpha * dalpha * dalpha * dalpha + 155. * dalpha * dalpha * dalpha + 204. * dalpha * dalpha + 120. * dalpha + 24.) / 36.;
+			m_np[4] = 0.;
 
+			doublereal da1 = 1. - 5. * m_gamma / 2.;
+			doublereal da2 = 1. / 2. - 5. * m_gamma / 2. + 5. * m_gamma * m_gamma / 2.;
+			doublereal da3 = 1. / 6. - 5. * m_gamma / 4. + 5. * m_gamma * m_gamma / 2. - 5. * m_gamma * m_gamma * m_gamma / 4.;
+			doublereal da4 = 1. / 24. - 5. * m_gamma / 12. + 5. * m_gamma * m_gamma / 4. - 5. * m_gamma * m_gamma * m_gamma / 4. + 5. * m_gamma * m_gamma * m_gamma * m_gamma / 16.;
+			doublereal da5 = 1. / 120. - 5. * m_gamma / 48. + 5. * m_gamma * m_gamma / 12. - 5. * m_gamma * m_gamma * m_gamma / 8. + 5. * m_gamma * m_gamma * m_gamma * m_gamma / 16. - m_gamma * m_gamma * m_gamma * m_gamma * m_gamma / 32.;
 
-		doublereal da1 = 1. - 5.*m_gamma/2.;
-		doublereal da2 = 1./2. - 5.*m_gamma/2. + 5.*m_gamma*m_gamma/2.;
-		doublereal da3 = 1./6. - 5.*m_gamma/4. + 5.*m_gamma*m_gamma/2. - 5.*m_gamma*m_gamma*m_gamma/4.;
-		doublereal da4 = 1./24. - 5.*m_gamma/12. + 5.*m_gamma*m_gamma/4. - 5.*m_gamma*m_gamma*m_gamma/4. + 5.*m_gamma*m_gamma*m_gamma*m_gamma/16.;
-		doublereal da5 = 1./120. - 5.*m_gamma/48. + 5.*m_gamma*m_gamma/12. - 5.*m_gamma*m_gamma*m_gamma/8. + 5.*m_gamma*m_gamma*m_gamma*m_gamma/16. - m_gamma*m_gamma*m_gamma*m_gamma*m_gamma/32.;
-		
-		m_a[IDX_A1][DIFFERENTIAL] = 0.;
-		m_a[IDX_A2][DIFFERENTIAL] = 0.;	
-		m_a[IDX_A3][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A4][DIFFERENTIAL] = 0.; 
-		m_a[IDX_A5][DIFFERENTIAL] = 1.; 
-		m_b[IDX_B0][DIFFERENTIAL] = m_gamma*dT/2.;
-		m_b[IDX_B1][DIFFERENTIAL] = (m_gamma/32. + da1/16. + da2/(8.*m_gamma) + da3/(4.*m_gamma*m_gamma) + da4/(2.*m_gamma*m_gamma*m_gamma) + da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;		
-		m_b[IDX_B2][DIFFERENTIAL] = (3.*m_gamma/16. + da1/4. + da2/(4.*m_gamma) - da4/(m_gamma*m_gamma*m_gamma) - 4.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;	
-		m_b[IDX_B3][DIFFERENTIAL] = (m_gamma/2. + 3.*da1/8. - da3/(2.*m_gamma*m_gamma) + 6.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B4][DIFFERENTIAL] = (13.*m_gamma/16. + da1/4. - da2/(4.*m_gamma) + da4/(m_gamma*m_gamma*m_gamma) - 4.*da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
-		m_b[IDX_B5][DIFFERENTIAL] = (15.*m_gamma/32. + da1/16. - da2/(8.*m_gamma) + da3/(4.*m_gamma*m_gamma) - da4/(2.*m_gamma*m_gamma*m_gamma) + da5/(m_gamma*m_gamma*m_gamma*m_gamma))*dT;
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.;
+			m_a[IDX_A5][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT / 2.;
+			m_b[IDX_B1][DIFFERENTIAL] = (m_gamma / 32. + da1 / 16. + da2 / (8. * m_gamma) + da3 / (4. * m_gamma * m_gamma) + da4 / (2. * m_gamma * m_gamma * m_gamma) + da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = (3. * m_gamma / 16. + da1 / 4. + da2 / (4. * m_gamma) - da4 / (m_gamma * m_gamma * m_gamma) - 4. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = (m_gamma / 2. + 3. * da1 / 8. - da3 / (2. * m_gamma * m_gamma) + 6. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = (13. * m_gamma / 16. + da1 / 4. - da2 / (4. * m_gamma) + da4 / (m_gamma * m_gamma * m_gamma) - 4. * da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
+			m_b[IDX_B5][DIFFERENTIAL] = (15. * m_gamma / 32. + da1 / 16. - da2 / (8. * m_gamma) + da3 / (4. * m_gamma * m_gamma) - da4 / (2. * m_gamma * m_gamma * m_gamma) + da5 / (m_gamma * m_gamma * m_gamma * m_gamma)) * dT;
 
-		DEBUGCOUT("PredictForStageS(5)" << std::endl
-			<< "Alpha = " << dAlpha << std::endl
-			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
-			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
-			<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
-			<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
-			<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
-			<< "a5    = " << m_a[IDX_A5][DIFFERENTIAL] << std::endl
-			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
-			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
-			<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
-			<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
-			<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
-			<< "b5    = " << m_b[IDX_B5][DIFFERENTIAL] << std::endl);
-		break;
+			DEBUGCOUT("PredictForStageS(5)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = " << m_a[IDX_A5][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = " << m_b[IDX_B5][DIFFERENTIAL] << std::endl);
+			break;
 		}
 
 	default:
@@ -3091,3 +3084,1322 @@ Mssth5Solver::dPredStateAlgForStageS(unsigned uStage,
 }
 
 /* Mssth5Solver - end */
+
+/* DIRK33Solver - begin */
+
+DIRK33Solver::DIRK33Solver(const doublereal Tl,
+	const doublereal dSolTl,
+	const integer iMaxIt,
+	//const DriveCaller* pRho,
+	//const DriveCaller* pAlgRho,
+	const bool bmod_res_test)
+: tplStageNIntegrator<3>(iMaxIt, Tl, dSolTl, bmod_res_test)
+{
+	NO_OP;
+}
+
+DIRK33Solver::~DIRK33Solver(void)
+{
+	NO_OP;
+}
+
+
+void
+DIRK33Solver::SetCoefForStageS(unsigned uStage,
+	doublereal dT,
+	doublereal dAlpha,
+	enum StepChange /* NewStep */)
+{
+	switch (uStage) {
+	case 1:
+		m_gamma = 0.43586652150845899941601945;
+
+		ASSERT(pDM != NULL);
+		pDM->SetTime(pDM->dGetTime() - (1. - 2.*m_gamma)*dT, dT, pDM->pGetDrvHdl()->iGetStep());
+	
+		m_a[IDX_A1][DIFFERENTIAL] = 1.;
+		m_a[IDX_A2][DIFFERENTIAL] = 0.;	// Unused
+		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B2][DIFFERENTIAL] = 0.;	// Unused
+		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+
+		DEBUGCOUT("PredictForStageS(1)" << std::endl
+			<< "Alpha = " << dAlpha << std::endl
+			<< "Differential coefficients:" << std::endl
+			<< "Asymptotic rho =" << m_dRho << std::endl 
+			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+			<< "a2    = not needed" << std::endl
+			<< "a3    = not needed" << std::endl
+			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+			<< "b2    = not needed" << std::endl
+			<< "b3    = not needed" << std::endl);
+		break;
+
+	case 2:
+		{
+			m_c2 = 3. / 5.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c2 - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c2 - 2. * m_gamma) / (2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c2 - 2. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+
+			doublereal a21 = m_c2 * (m_c2 - 2. * m_gamma) / (4. * m_gamma);
+			doublereal a20 = m_c2 - m_gamma - a21;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a21 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a20 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl);
+			break;
+		}
+
+	case 3:
+		{
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - m_c2) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+
+			//second-order prediction
+			doublereal dalpha = (1. - m_c2) / (m_c2 - 2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - m_c2) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+
+			//fourth-order prediction
+			//doublereal dalpha1 = (1. - m_c2) / (m_c2 - 2. * m_gamma);
+			//doublereal dalpha2 = (1. - m_c2) / (2. * m_gamma);
+			//m_mp[0] = -(2. * dalpha1 * dalpha1 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (10. * dalpha2 * dalpha2 * dalpha2 + 25. * dalpha2 * dalpha2 + 13. * dalpha2) 
+			//		+ dalpha1 * (20. * dalpha2 * dalpha2 * dalpha2 + 20. * dalpha2 * dalpha2) + 10. * dalpha2 * dalpha2 * dalpha2)) 
+			//		/ ((dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c2) * dT);
+			//m_mp[1] = (2. * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (-5. * dalpha2 * dalpha2 * dalpha2 + dalpha2 * dalpha2 + 4. * dalpha2) 
+			//		+ dalpha1 * (-7. * dalpha2 * dalpha2 * dalpha2 - dalpha2 * dalpha2) - 2. * dalpha2 * dalpha2 * dalpha2)) 
+			//		/ (dalpha1 * (1. - m_c2) * dT);
+			//m_mp[2] = (2. * dalpha2 * dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (10. * dalpha2 + 10.) 
+			//		+ dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 20. * dalpha2 + 5.) + dalpha1 * (7. * dalpha2 * dalpha2 + 7. * dalpha2) 
+			//		+ 2. * dalpha2 * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c2) * dT);
+			//m_np[0] = ((1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (11. * dalpha2 * dalpha2 + 10. * dalpha2 + 1.) + dalpha1 * (7. * dalpha2 * dalpha2 + 2. * dalpha2) 
+			//		+ dalpha2 * dalpha2)) / ((dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+			//m_np[1] = (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (12. * dalpha2 * dalpha2 + 12. * dalpha2 + 2.) + dalpha1 * (9. * dalpha2 * dalpha2 + 4. * dalpha2) 
+			//		+ 2. * dalpha2 * dalpha2) / dalpha1;
+			//m_np[2] = (dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * (5. * dalpha2 + 4.) 
+			//		+ dalpha1 * (7. * dalpha2 + 2.) + 2. * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+
+			doublereal q1 = (-2. + 3. * m_c2 + 6. * m_gamma * (1. - m_c2)) / (12. * m_gamma * (m_c2 - 2. * m_gamma));
+			doublereal q2 = (1. - 6. * m_gamma + 6. * m_gamma * m_gamma) / (3. * m_c2 * (m_c2 - 2. * m_gamma));
+			doublereal q0 = 1. - m_gamma - q1 - q2;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = q2 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = q1 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = q0 * dT;
+
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl);
+			break;
+		}
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	m_a[IDX_A1][ALGEBRAIC] = m_a[IDX_A1][DIFFERENTIAL];
+	m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
+	m_a[IDX_A3][ALGEBRAIC] = m_a[IDX_A3][DIFFERENTIAL];
+	m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B0][DIFFERENTIAL];
+	m_b[IDX_B1][ALGEBRAIC] = m_b[IDX_B1][DIFFERENTIAL];
+	m_b[IDX_B2][ALGEBRAIC] = m_b[IDX_B2][DIFFERENTIAL];
+	m_b[IDX_B3][ALGEBRAIC] = m_b[IDX_B3][DIFFERENTIAL];
+
+	DEBUGCOUT("Algebraic coefficients:" << std::endl
+		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
+		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
+		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl
+		<< "b0    = " << m_b[IDX_B0][ALGEBRAIC] << std::endl
+		<< "b1    = " << m_b[IDX_B1][ALGEBRAIC] << std::endl
+		<< "b2    = " << m_b[IDX_B2][ALGEBRAIC] << std::endl
+		<< "b3    = " << m_b[IDX_B3][ALGEBRAIC] << std::endl);
+
+	db0Differential = m_b[IDX_B0][DIFFERENTIAL];
+	db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
+}
+
+doublereal
+DIRK33Solver::dPredDerForStageS(unsigned uStage,
+	const doublereal dXm1mN[3],
+	const doublereal dXP0mN[4]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];//constant prediction
+
+	case 2:
+		return m_mp[0]*dXm1mN[IDX_Xs1]
+			+ m_mp[1]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs1]
+			+ m_np[1]*dXP0mN[IDX_XPm1]; 
+
+	case 3:
+		return m_mp[0]*dXm1mN[IDX_Xs2]
+			+ m_mp[1]*dXm1mN[IDX_Xs1]
+			+ m_mp[2]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs2]
+			+ m_np[1]*dXP0mN[IDX_XPs1]
+			+ m_np[2]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK33Solver::dPredStateForStageS(unsigned uStage,
+	const doublereal dXm1mN[3],
+	const doublereal dXP0mN[4]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK33Solver::dPredDerAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[3],
+	const doublereal dXP0mN[4]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];
+
+	case 2:
+		return dXP0mN[IDX_XPs1]; 
+
+	case 3:
+		return dXP0mN[IDX_XPs2];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK33Solver::dPredStateAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[3],
+	const doublereal dXP0mN[4]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+/* DIRK33Solver - end */
+
+/* DIRK43Solver - begin */
+
+DIRK43Solver::DIRK43Solver(const doublereal Tl,
+	const doublereal dSolTl,
+	const integer iMaxIt,
+	//const DriveCaller* pRho,
+	//const DriveCaller* pAlgRho,
+	const bool bmod_res_test)
+: tplStageNIntegrator<4>(iMaxIt, Tl, dSolTl, bmod_res_test)
+{
+	NO_OP;
+}
+
+DIRK43Solver::~DIRK43Solver(void)
+{
+	NO_OP;
+}
+
+void
+DIRK43Solver::SetCoefForStageS(unsigned uStage,
+	doublereal dT,
+	doublereal dAlpha,
+	enum StepChange /* NewStep */)
+{
+	switch (uStage) {
+	case 1:
+		m_gamma = 9. / 40.;
+
+		ASSERT(pDM != NULL);
+		pDM->SetTime(pDM->dGetTime() - (1. - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+		m_a[IDX_A1][DIFFERENTIAL] = 1.;
+		m_a[IDX_A2][DIFFERENTIAL] = 0.;	// Unused
+		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B2][DIFFERENTIAL] = 0.;	// Unused
+		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+
+		DEBUGCOUT("PredictForStageS(1)" << std::endl
+			<< "Alpha = " << dAlpha << std::endl
+			<< "Differential coefficients:" << std::endl
+			<< "Asymptotic rho =" << m_dRho << std::endl 
+			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+			<< "a2    = not needed" << std::endl
+			<< "a3    = not needed" << std::endl
+			<< "a4    = not needed" << std::endl
+			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+			<< "b2    = not needed" << std::endl
+			<< "b3    = not needed" << std::endl
+			<< "b4    = not needed" << std::endl);
+		break;
+
+	case 2:
+		{
+			m_c2 = 9. * (2. + sqrt(2.)) / 40.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c2 - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c2 - 2. * m_gamma) / (2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c2 - 2. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
+
+			doublereal a21 = (m_c2 * (m_c2 - 2. * m_gamma)) / (4. * m_gamma);
+			doublereal a20 = m_c2 - m_gamma - a21;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a21 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a20 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl);
+			break;
+		}
+
+	case 3:
+		{
+			m_c3 = 3. / 5.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c3 - m_c2) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c3 - m_c2) / (m_c2 - 2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c3 - m_c2) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
+
+			doublereal a31 = (-4. * m_gamma * m_gamma * m_gamma + 12. * m_c3 * m_gamma * m_gamma - 4. * m_c3 * m_c3 * m_gamma 
+							- 2. * m_c2 * m_c3 * m_gamma + m_c2 * m_c3 * m_c3) / (4. * m_gamma * (m_c2 - 2. * m_gamma));
+			doublereal a32 = m_gamma * (2. * m_gamma * m_gamma - 4. * m_c3 * m_gamma + m_c3 * m_c3) / (m_c2 * (m_c2 - 2. * m_gamma));
+			doublereal a30 = m_c3 - m_gamma - a31 - a32;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a32 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a31 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = a30 * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    =  not needed" << std::endl);
+			break;
+		}
+
+	case 4:
+		{
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - m_c3) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+
+			//second-order prediction
+			doublereal dalpha = (1. - m_c3) / (m_c3 - m_c2);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - m_c3) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
+
+			//fourth-order prediction
+			//doublereal dalpha1 = (1. - m_c3) / (m_c3 - m_c2);
+			//doublereal dalpha2 = (1. - m_c3) / (m_c2 - 2. * m_gamma);
+			//m_mp[0] = -(2. * dalpha1 * dalpha1 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (10. * dalpha2 * dalpha2 * dalpha2 + 25. * dalpha2 * dalpha2 + 13. * dalpha2) 
+			//		+ dalpha1 * (20. * dalpha2 * dalpha2 * dalpha2 + 20. * dalpha2 * dalpha2) + 10. * dalpha2 * dalpha2 * dalpha2)) 
+			//		/ ((dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c3) * dT);
+			//m_mp[1] = (2. * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (-5. * dalpha2 * dalpha2 * dalpha2 + dalpha2 * dalpha2 + 4. * dalpha2) 
+			//		+ dalpha1 * (-7. * dalpha2 * dalpha2 * dalpha2 - dalpha2 * dalpha2) - 2. * dalpha2 * dalpha2 * dalpha2)) 
+			//		/ (dalpha1 * (1. - m_c3) * dT);
+			//m_mp[2] = (2. * dalpha2 * dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (10. * dalpha2 + 10.) 
+			//		+ dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 20. * dalpha2 + 5.) + dalpha1 * (7. * dalpha2 * dalpha2 + 7. * dalpha2) 
+			//		+ 2. * dalpha2 * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c3) * dT);
+			//m_mp[3] = 0.;
+			//m_np[0] = ((1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (11. * dalpha2 * dalpha2 + 10. * dalpha2 + 1.) + dalpha1 * (7. * dalpha2 * dalpha2 + 2. * dalpha2) 
+			//		+ dalpha2 * dalpha2)) / ((dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+			//m_np[1] = (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+			//		+ dalpha1 * dalpha1 * (12. * dalpha2 * dalpha2 + 12. * dalpha2 + 2.) + dalpha1 * (9. * dalpha2 * dalpha2 + 4. * dalpha2) 
+			//		+ 2. * dalpha2 * dalpha2) / dalpha1;
+			//m_np[2] = (dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * (5. * dalpha2 + 4.) 
+			//		+ dalpha1 * (7. * dalpha2 + 2.) + 2. * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+			//m_np[3] = 0.;
+
+			doublereal q1 = -(12. * (m_c3 - 1.) * (m_c3 - m_c2 + 1.) * m_gamma * m_gamma * m_gamma + 2. * (12. * m_c3 - 3. * m_c2 + 6. * m_c2 * m_c3 - 18. * m_c3 * m_c3 + 2.) 
+							* m_gamma * m_gamma + 2. * m_c3 * (6. * m_c3 - 3. * m_c2 + 3. * m_c2 * m_c3 - 4.) * m_gamma - m_c2 * m_c3 * (3. * m_c3 - 2.)) 
+							/ (12. * m_gamma * (m_c2 - 2. * m_gamma) * (m_c3 * m_c3 - 4. * m_c3 * m_gamma + 2. * m_gamma * m_gamma));
+			doublereal q2 = (m_gamma * (12. * (1. - m_c3) * m_gamma * m_gamma * m_gamma + 6. * (m_c3 * m_c3 + 2. * m_c3 - 2.) * m_gamma * m_gamma - 
+							2. * (6. * m_c3 * m_c3 - 3. * m_c3 - 1.) * m_gamma + m_c3 * (3. * m_c3 - 2.))) 
+							/ (3. * m_c2 * (m_c2 - 2. * m_gamma) * (m_c3 * m_c3 - 4. * m_c3 * m_gamma + 2. * m_gamma * m_gamma));
+			doublereal q3 = -(6. * m_gamma * m_gamma * m_gamma - 18. * m_gamma * m_gamma + 9. * m_gamma - 1.) / (3. * (m_c3 * m_c3 - 4. * m_c3 * m_gamma + 2. * m_gamma * m_gamma));
+			doublereal q0 = 1. - m_gamma - q1 - q2 - q3;
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = q3 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = q2 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = q1 * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = q0 * dT;
+
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl);
+			break;
+		}
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	m_a[IDX_A1][ALGEBRAIC] = m_a[IDX_A1][DIFFERENTIAL];
+	m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
+	m_a[IDX_A3][ALGEBRAIC] = m_a[IDX_A3][DIFFERENTIAL];
+	m_a[IDX_A4][ALGEBRAIC] = m_a[IDX_A4][DIFFERENTIAL];
+	m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B0][DIFFERENTIAL];
+	m_b[IDX_B1][ALGEBRAIC] = m_b[IDX_B1][DIFFERENTIAL];
+	m_b[IDX_B2][ALGEBRAIC] = m_b[IDX_B2][DIFFERENTIAL];
+	m_b[IDX_B3][ALGEBRAIC] = m_b[IDX_B3][DIFFERENTIAL];
+	m_b[IDX_B4][ALGEBRAIC] = m_b[IDX_B4][DIFFERENTIAL];
+
+	DEBUGCOUT("Algebraic coefficients:" << std::endl
+		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
+		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
+		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl
+		<< "a4    = " << m_a[IDX_A4][ALGEBRAIC] << std::endl
+		<< "b0    = " << m_b[IDX_B0][ALGEBRAIC] << std::endl
+		<< "b1    = " << m_b[IDX_B1][ALGEBRAIC] << std::endl
+		<< "b2    = " << m_b[IDX_B2][ALGEBRAIC] << std::endl
+		<< "b3    = " << m_b[IDX_B3][ALGEBRAIC] << std::endl
+		<< "b4    = " << m_b[IDX_B4][ALGEBRAIC] << std::endl);
+
+	db0Differential = m_b[IDX_B0][DIFFERENTIAL];
+	db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
+}
+
+doublereal
+DIRK43Solver::dPredDerForStageS(unsigned uStage,
+	const doublereal dXm1mN[4],
+	const doublereal dXP0mN[5]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];//constant prediction
+
+	case 2:
+		return m_mp[0]*dXm1mN[IDX_Xs1]
+			+ m_mp[1]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs1]
+			+ m_np[1]*dXP0mN[IDX_XPm1];   
+
+	case 3:
+		return m_mp[0]*dXm1mN[IDX_Xs2]
+			+ m_mp[1]*dXm1mN[IDX_Xs1]
+			+ m_mp[2]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs2]
+			+ m_np[1]*dXP0mN[IDX_XPs1]
+			+ m_np[2]*dXP0mN[IDX_XPm1]; 
+
+	case 4:
+		return m_mp[0]*dXm1mN[IDX_Xs3]
+			+ m_mp[1]*dXm1mN[IDX_Xs2]
+			+ m_mp[2]*dXm1mN[IDX_Xs1]
+			+ m_mp[3]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs3]
+			+ m_np[1]*dXP0mN[IDX_XPs2]
+			+ m_np[2]*dXP0mN[IDX_XPs1]
+			+ m_np[3]*dXP0mN[IDX_XPm1]; 
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK43Solver::dPredStateForStageS(unsigned uStage,
+	const doublereal dXm1mN[4],
+	const doublereal dXP0mN[5]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 4:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A4][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B4][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK43Solver::dPredDerAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[4],
+	const doublereal dXP0mN[5]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];
+
+	case 2:
+		return dXP0mN[IDX_XPs1]; 
+
+	case 3:
+		return dXP0mN[IDX_XPs2];
+
+	case 4:
+		return dXP0mN[IDX_XPs3];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK43Solver::dPredStateAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[4],
+	const doublereal dXP0mN[5]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 4:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A4][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B4][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+/* DIRK43Solver - end */
+
+/* DIRK54Solver - begin */
+
+DIRK54Solver::DIRK54Solver(const doublereal Tl,
+	const doublereal dSolTl,
+	const integer iMaxIt,
+	//const DriveCaller* pRho,
+	//const DriveCaller* pAlgRho,
+	const bool bmod_res_test)
+: tplStageNIntegrator<5>(iMaxIt, Tl, dSolTl, bmod_res_test)
+{
+	NO_OP;
+}
+
+DIRK54Solver::~DIRK54Solver(void)
+{
+	NO_OP;
+}
+
+
+void
+DIRK54Solver::SetCoefForStageS(unsigned uStage,
+	doublereal dT,
+	doublereal dAlpha,
+	enum StepChange /* NewStep */)
+{
+	switch (uStage) {
+	case 1:
+		m_gamma = 31. / 125.;
+
+		ASSERT(pDM != NULL);
+		pDM->SetTime(pDM->dGetTime() - (1. - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+		m_a[IDX_A1][DIFFERENTIAL] = 1.;
+		m_a[IDX_A2][DIFFERENTIAL] = 0.;	// Unused
+		m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+		m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+		m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B1][DIFFERENTIAL] = m_gamma * dT;
+		m_b[IDX_B2][DIFFERENTIAL] = 0.;	// Unused
+		m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+		m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+
+		DEBUGCOUT("PredictForStageS(1)" << std::endl
+			<< "Alpha = " << dAlpha << std::endl
+			<< "Differential coefficients:" << std::endl
+			<< "Asymptotic rho =" << m_dRho << std::endl 
+			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+			<< "a2    = not needed" << std::endl
+			<< "a3    = not needed" << std::endl
+			<< "a4    = not needed" << std::endl
+			<< "a5    = not needed" << std::endl
+			<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+			<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+			<< "b2    = not needed" << std::endl
+			<< "b3    = not needed" << std::endl
+			<< "b4    = not needed" << std::endl
+			<< "b5    = not needed" << std::endl);
+		break;
+
+	case 2:
+		{
+			m_c2 = 486119545908. / 3346201505189.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c2 - 2. * m_gamma) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;//Unused
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;//Unused
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c2 - 2. * m_gamma) / (2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c2 - 2. * m_gamma) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.; //Unused
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.; //Unused
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
+
+			doublereal a21 = -360286518617. / 7014585480527.;
+			doublereal a20 = m_c2 - m_gamma - a21;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 1.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a21 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a20 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(2)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = not needed" << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = not needed" << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
+		}
+
+	case 3:
+		{
+			m_c3 = 1043. / 1706.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c3 - m_c2) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;//Unused
+			//m_mp[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;//Unused
+			//m_np[4] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c3 - m_c2) / (m_c2 - 2. * m_gamma);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c3 - m_c2) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.; //Unused
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.; //Unused
+			m_np[4] = 0.; //Unused
+
+			doublereal a31 = -506388693497. / 5937754990171.;
+			doublereal a32 = 7149918333491. / 13390931526268.;
+			doublereal a30 = m_c3 - m_gamma - a31 - a32;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 1.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.; // Unused
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a32 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a31 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = a30 * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(3)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = not needed" << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = not needed" << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
+		}
+
+	case 4:
+		{
+			m_c4 = 1361. / 1300.;
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (m_c4 - m_c3) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;//Unused
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;//Unused
+
+			//second-order prediction
+			doublereal dalpha = (m_c4 - m_c3) / (m_c3 - m_c2);
+			m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((m_c4 - m_c3) * dT);
+			m_mp[1] = -m_mp[0];
+			m_mp[2] = 0.;
+			m_mp[3] = 0.;
+			m_mp[4] = 0.; //Unused
+			m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			m_np[1] = dalpha * (2. + 3. * dalpha);
+			m_np[2] = 0.;
+			m_np[3] = 0.;
+			m_np[4] = 0.; //Unused
+
+			doublereal a41 = -7628305438933. / 11061539393788.;
+			doublereal a42 = 21592626537567. / 14352247503901.;
+			doublereal a43 = 11630056083252. / 17263101053231.;
+			doublereal a40 = m_c4 - m_gamma - a41 - a42 - a43;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 1.;
+			m_a[IDX_A5][DIFFERENTIAL] = 0.; // Unused
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = a43 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = a42 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = a41 * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = a40 * dT;
+			m_b[IDX_B5][DIFFERENTIAL] = 0.; // Unused
+
+			DEBUGCOUT("PredictForStageS(4)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = not needed" << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = not needed" << std::endl);
+			break;
+		}
+
+	case 5:
+		{
+			ASSERT(pDM != NULL);
+			pDM->SetTime(pDM->dGetTime() + (1. - m_c4) * dT, dT, pDM->pGetDrvHdl()->iGetStep());
+
+			//constant prediction
+			//m_mp[0] = 0.;
+			//m_mp[1] = 0.;
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_np[4] = 0.;
+			//m_np[0] = 1.;
+			//m_np[1] = 0.;
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
+
+			//second-order prediction
+			//doublereal dalpha = (1. - m_c4) / (m_c4 - m_c3);
+			//m_mp[0] = -6. * dalpha * dalpha * (1. + dalpha) / ((1. - m_c4) * dT);
+			//m_mp[1] = -m_mp[0];
+			//m_mp[2] = 0.;
+			//m_mp[3] = 0.;
+			//m_mp[4] = 0.;
+			//m_np[0] = 1. + 4. * dalpha + 3. * dalpha * dalpha;
+			//m_np[1] = dalpha * (2. + 3. * dalpha);
+			//m_np[2] = 0.;
+			//m_np[3] = 0.;
+			//m_np[4] = 0.;
+
+			//fourth-order prediction
+			doublereal dalpha1 = (1. - m_c4) / (m_c4 - m_c3);
+			doublereal dalpha2 = (1. - m_c4) / (m_c3 - m_c2);
+			m_mp[0] = -(2. * dalpha1 * dalpha1 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+					+ dalpha1 * dalpha1 * (10. * dalpha2 * dalpha2 * dalpha2 + 25. * dalpha2 * dalpha2 + 13. * dalpha2) 
+					+ dalpha1 * (20. * dalpha2 * dalpha2 * dalpha2 + 20. * dalpha2 * dalpha2) + 10. * dalpha2 * dalpha2 * dalpha2)) 
+					/ ((dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c4) * dT);
+			m_mp[1] = (2. * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+					+ dalpha1 * dalpha1 * (-5. * dalpha2 * dalpha2 * dalpha2 + dalpha2 * dalpha2 + 4. * dalpha2) 
+					+ dalpha1 * (-7. * dalpha2 * dalpha2 * dalpha2 - dalpha2 * dalpha2) - 2. * dalpha2 * dalpha2 * dalpha2)) 
+					/ (dalpha1 * (1. - m_c4) * dT);
+			m_mp[2] = (2. * dalpha2 * dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (10. * dalpha2 + 10.) 
+					+ dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 20. * dalpha2 + 5.) + dalpha1 * (7. * dalpha2 * dalpha2 + 7. * dalpha2) 
+					+ 2. * dalpha2 * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (dalpha1 + dalpha2) * (1. - m_c4) * dT);
+			m_mp[3] = 0.;
+			m_mp[4] = 0.;
+			m_np[0] = ((1. + dalpha1) * (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+					+ dalpha1 * dalpha1 * (11. * dalpha2 * dalpha2 + 10. * dalpha2 + 1.) + dalpha1 * (7. * dalpha2 * dalpha2 + 2. * dalpha2) 
+					+ dalpha2 * dalpha2)) / ((dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+			m_np[1] = (dalpha1 * dalpha1 * dalpha1 * (5. * dalpha2 * dalpha2 + 8. * dalpha2 + 3.) 
+					+ dalpha1 * dalpha1 * (12. * dalpha2 * dalpha2 + 12. * dalpha2 + 2.) + dalpha1 * (9. * dalpha2 * dalpha2 + 4. * dalpha2) 
+					+ 2. * dalpha2 * dalpha2) / dalpha1;
+			m_np[2] = (dalpha2 * dalpha2 * dalpha2 * (1. + dalpha1) * (dalpha1 * dalpha1 * (5. * dalpha2 + 4.) 
+					+ dalpha1 * (7. * dalpha2 + 2.) + 2. * dalpha2)) / (dalpha1 * (dalpha1 + dalpha2) * (dalpha1 + dalpha2));
+			m_np[3] = 0.;
+			m_np[4] = 0.;
+
+			doublereal q1 = -12917657251. / 5222094901039.;
+			doublereal q2 = 5602338284630. / 15643096342197.;
+			doublereal q3 = 9002339615474. / 18125249312447.;
+			doublereal q4 = -2420307481369. / 24731958684496.;
+			doublereal q0 = 1. - m_gamma - q1 - q2 - q3 - q4;
+
+			m_a[IDX_A1][DIFFERENTIAL] = 0.;
+			m_a[IDX_A2][DIFFERENTIAL] = 0.;
+			m_a[IDX_A3][DIFFERENTIAL] = 0.;
+			m_a[IDX_A4][DIFFERENTIAL] = 0.;
+			m_a[IDX_A5][DIFFERENTIAL] = 1.;
+			m_b[IDX_B0][DIFFERENTIAL] = m_gamma * dT;
+			m_b[IDX_B1][DIFFERENTIAL] = q4 * dT;
+			m_b[IDX_B2][DIFFERENTIAL] = q3 * dT;
+			m_b[IDX_B3][DIFFERENTIAL] = q2 * dT;
+			m_b[IDX_B4][DIFFERENTIAL] = q1 * dT;
+			m_b[IDX_B5][DIFFERENTIAL] = q0 * dT;
+
+			DEBUGCOUT("PredictForStageS(5)" << std::endl
+											<< "Alpha = " << dAlpha << std::endl
+											<< "Differential coefficients:" << std::endl
+											<< "Asymptotic rho =" << m_dRho << std::endl
+											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
+											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
+											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
+											<< "a4    = " << m_a[IDX_A4][DIFFERENTIAL] << std::endl
+											<< "a5    = " << m_a[IDX_A5][DIFFERENTIAL] << std::endl
+											<< "b0    = " << m_b[IDX_B0][DIFFERENTIAL] << std::endl
+											<< "b1    = " << m_b[IDX_B1][DIFFERENTIAL] << std::endl
+											<< "b2    = " << m_b[IDX_B2][DIFFERENTIAL] << std::endl
+											<< "b3    = " << m_b[IDX_B3][DIFFERENTIAL] << std::endl
+											<< "b4    = " << m_b[IDX_B4][DIFFERENTIAL] << std::endl
+											<< "b5    = " << m_b[IDX_B5][DIFFERENTIAL] << std::endl);
+			break;
+		}
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	m_a[IDX_A1][ALGEBRAIC] = m_a[IDX_A1][DIFFERENTIAL];
+	m_a[IDX_A2][ALGEBRAIC] = m_a[IDX_A2][DIFFERENTIAL];
+	m_a[IDX_A3][ALGEBRAIC] = m_a[IDX_A3][DIFFERENTIAL];
+	m_a[IDX_A4][ALGEBRAIC] = m_a[IDX_A4][DIFFERENTIAL];
+	m_a[IDX_A5][ALGEBRAIC] = m_a[IDX_A5][DIFFERENTIAL];
+	m_b[IDX_B0][ALGEBRAIC] = m_b[IDX_B0][DIFFERENTIAL];
+	m_b[IDX_B1][ALGEBRAIC] = m_b[IDX_B1][DIFFERENTIAL];
+	m_b[IDX_B2][ALGEBRAIC] = m_b[IDX_B2][DIFFERENTIAL];
+	m_b[IDX_B3][ALGEBRAIC] = m_b[IDX_B3][DIFFERENTIAL];
+	m_b[IDX_B4][ALGEBRAIC] = m_b[IDX_B4][DIFFERENTIAL];
+	m_b[IDX_B5][ALGEBRAIC] = m_b[IDX_B5][DIFFERENTIAL];
+
+	DEBUGCOUT("Algebraic coefficients:" << std::endl
+		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
+		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
+		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl
+		<< "a4    = " << m_a[IDX_A4][ALGEBRAIC] << std::endl
+		<< "a5    = " << m_a[IDX_A5][ALGEBRAIC] << std::endl
+		<< "b0    = " << m_b[IDX_B0][ALGEBRAIC] << std::endl
+		<< "b1    = " << m_b[IDX_B1][ALGEBRAIC] << std::endl
+		<< "b2    = " << m_b[IDX_B2][ALGEBRAIC] << std::endl
+		<< "b3    = " << m_b[IDX_B3][ALGEBRAIC] << std::endl
+		<< "b4    = " << m_b[IDX_B4][ALGEBRAIC] << std::endl
+		<< "b5    = " << m_b[IDX_B5][ALGEBRAIC] << std::endl);
+
+	db0Differential = m_b[IDX_B0][DIFFERENTIAL];
+	db0Algebraic = m_b[IDX_B0][ALGEBRAIC];
+}
+
+doublereal
+DIRK54Solver::dPredDerForStageS(unsigned uStage,
+	const doublereal dXm1mN[5],
+	const doublereal dXP0mN[6]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_mp[0]*dXm1mN[IDX_Xs1]
+			+ m_mp[1]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs1]
+			+ m_np[1]*dXP0mN[IDX_XPm1]; 
+
+	case 3:
+		return m_mp[0]*dXm1mN[IDX_Xs2]
+			+ m_mp[1]*dXm1mN[IDX_Xs1]
+			+ m_mp[2]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs2]
+			+ m_np[1]*dXP0mN[IDX_XPs1]
+			+ m_np[2]*dXP0mN[IDX_XPm1];
+
+	case 4:
+		return m_mp[0]*dXm1mN[IDX_Xs3]
+			+ m_mp[1]*dXm1mN[IDX_Xs2]
+			+ m_mp[2]*dXm1mN[IDX_Xs1]
+			+ m_mp[3]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs3]
+			+ m_np[1]*dXP0mN[IDX_XPs2]
+			+ m_np[2]*dXP0mN[IDX_XPs1]
+			+ m_np[3]*dXP0mN[IDX_XPm1];
+
+	case 5:
+		return m_mp[0]*dXm1mN[IDX_Xs4]
+			+ m_mp[1]*dXm1mN[IDX_Xs3]
+			+ m_mp[2]*dXm1mN[IDX_Xs2]
+			+ m_mp[3]*dXm1mN[IDX_Xs1]
+			+ m_mp[4]*dXm1mN[IDX_Xm1]
+			+ m_np[0]*dXP0mN[IDX_XPs4]
+			+ m_np[1]*dXP0mN[IDX_XPs3]
+			+ m_np[2]*dXP0mN[IDX_XPs2]
+			+ m_np[3]*dXP0mN[IDX_XPs1]
+			+ m_np[4]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK54Solver::dPredStateForStageS(unsigned uStage,
+	const doublereal dXm1mN[5],
+	const doublereal dXP0mN[6]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 4:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A4][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XPs4]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B4][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	case 5:
+		return m_a[IDX_A1][DIFFERENTIAL]*dXm1mN[IDX_Xs4]
+			+ m_a[IDX_A2][DIFFERENTIAL]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A3][DIFFERENTIAL]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A4][DIFFERENTIAL]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A5][DIFFERENTIAL]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][DIFFERENTIAL]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][DIFFERENTIAL]*dXP0mN[IDX_XPs4]
+			+ m_b[IDX_B2][DIFFERENTIAL]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B3][DIFFERENTIAL]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B4][DIFFERENTIAL]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B5][DIFFERENTIAL]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK54Solver::dPredDerAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[5],
+	const doublereal dXP0mN[6]) const
+{
+	switch (uStage) {
+	case 1:
+		return dXP0mN[IDX_XPm1];
+
+	case 2:
+		return dXP0mN[IDX_XPs1]; 
+
+	case 3:
+		return dXP0mN[IDX_XPs2];
+
+	case 4:
+		return dXP0mN[IDX_XPs3];
+
+	case 5:
+		return dXP0mN[IDX_XPs4];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+doublereal
+DIRK54Solver::dPredStateAlgForStageS(unsigned uStage,
+	const doublereal dXm1mN[5],
+	const doublereal dXP0mN[6]) const
+{
+	switch (uStage) {
+	case 1:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 2:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 3:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 4:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A4][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XPs4]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B4][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	case 5:
+		return m_a[IDX_A1][ALGEBRAIC]*dXm1mN[IDX_Xs4]
+			+ m_a[IDX_A2][ALGEBRAIC]*dXm1mN[IDX_Xs3]
+			+ m_a[IDX_A3][ALGEBRAIC]*dXm1mN[IDX_Xs2]
+			+ m_a[IDX_A4][ALGEBRAIC]*dXm1mN[IDX_Xs1]
+			+ m_a[IDX_A5][ALGEBRAIC]*dXm1mN[IDX_Xm1]
+			+ m_b[IDX_B0][ALGEBRAIC]*dXP0mN[IDX_XP0]
+			+ m_b[IDX_B1][ALGEBRAIC]*dXP0mN[IDX_XPs4]
+			+ m_b[IDX_B2][ALGEBRAIC]*dXP0mN[IDX_XPs3]
+			+ m_b[IDX_B3][ALGEBRAIC]*dXP0mN[IDX_XPs2]
+			+ m_b[IDX_B4][ALGEBRAIC]*dXP0mN[IDX_XPs1]
+			+ m_b[IDX_B5][ALGEBRAIC]*dXP0mN[IDX_XPm1];
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+/* DIRK54Solver - end */

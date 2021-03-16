@@ -2593,6 +2593,15 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
+	case INT_DIRK33:
+		out << "DIRK33; " << std::endl;
+		break;
+	case INT_DIRK43:
+		out << "DIRK43; " << std::endl;
+		break;
+	case INT_DIRK54:
+		out << "DIRK54; " << std::endl;
+		break;
 	case INT_THIRDORDER:
 		out << "thirdorder, ";
 		if (!pRhoRegular)
@@ -2766,6 +2775,9 @@ Solver::ReadData(MBDynParser& HP)
 			"mssth4",
 			"msstc5",
 			"mssth5",
+			"DIRK33",
+			"DIRK43",
+			"DIRK54",
 			"bdf",
 			"thirdorder",
 			"implicit" "euler",
@@ -2889,6 +2901,9 @@ Solver::ReadData(MBDynParser& HP)
 		MSSTH4,
 		MSSTC5,
 		MSSTH5,
+		DIRK33,
+		DIRK43,
+		DIRK54,
 		BDF,
 		THIRDORDER,
 		IMPLICITEULER,
@@ -3286,6 +3301,18 @@ Solver::ReadData(MBDynParser& HP)
 				RegularType = INT_CRANKNICOLSON;
 				break;
 
+			case DIRK33:
+				RegularType = INT_DIRK33;
+				break;
+
+			case DIRK43:
+				RegularType = INT_DIRK43;
+				break;
+
+			case DIRK54:
+				RegularType = INT_DIRK54;
+				break;
+
 			case BDF:
 				/* default (order 2) */
 				RegularType = INT_MS2;
@@ -3451,6 +3478,18 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
 			case CRANKNICOLSON:
 				DummyType = INT_CRANKNICOLSON;
+				break;
+
+			case DIRK33:
+				DummyType = INT_DIRK33;
+				break;
+
+			case DIRK43:
+				DummyType = INT_DIRK43;
+				break;
+
+			case DIRK54:
+				DummyType = INT_DIRK54;
 				break;
 
 			case BDF:
@@ -5015,6 +5054,33 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						bModResTest));
 			break;
 
+		case INT_DIRK33:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					DIRK33Solver,
+					DIRK33Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
+			break;
+
+		case INT_DIRK43:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					DIRK43Solver,
+					DIRK43Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
+			break;
+
+		case INT_DIRK54:
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
+					DIRK54Solver,
+					DIRK54Solver(dDummyStepsTolerance,
+						dSolutionTol,
+						iDummyStepsMaxIterations,
+						bModResTest));
+			break;
+
 		case INT_HOPE:
 			SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
 					CrankNicolsonIntegrator,
@@ -5285,6 +5351,33 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					iMaxIterations,
 					pRhoRegular,
 					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+
+	case INT_DIRK33:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				DIRK33Solver,
+				DIRK33Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					bModResTest));
+		break;
+
+	case INT_DIRK43:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				DIRK43Solver,
+				DIRK43Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					bModResTest));
+		break;
+
+	case INT_DIRK54:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				DIRK54Solver,
+				DIRK54Solver(dTol,
+					dSolutionTol,
+					iMaxIterations,
 					bModResTest));
 		break;
 	

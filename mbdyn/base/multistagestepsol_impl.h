@@ -432,4 +432,172 @@ protected:
 
 /* Mssth5Solver - end */
 
+/*DIRK33Solver - begin */
+
+class DIRK33Solver:
+	public tplStageNIntegrator<3>
+{
+protected:
+	//DriveOwner m_Rho;
+	//DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_c2;
+	//doublereal m_dRho;
+	//doublereal m_dAlgebraicRho;
+
+public:
+	DIRK33Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		//const DriveCaller* pRho,
+		//const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~DIRK33Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	//void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[3],
+		const doublereal dXP0mN[4]) const;
+};
+
+/* DIRK33Solver - end */
+
+/* DIRK43Solver - begin */
+
+class DIRK43Solver:
+	public tplStageNIntegrator<4>
+{
+protected:
+	//DriveOwner m_Rho;
+	//DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_c2;
+	doublereal m_c3;
+	//doublereal m_dRho;
+	//doublereal m_dAlgebraicRho;
+
+public:
+	DIRK43Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		//const DriveCaller* pRho,
+		//const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~DIRK43Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	//void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[4],
+		const doublereal dXP0mN[5]) const;
+};
+
+/* DIRK43Solver - end */
+
+/* DIRK54Solver - begin */
+
+class DIRK54Solver:
+	public tplStageNIntegrator<5>
+{
+protected:
+	//DriveOwner m_Rho;
+	//DriveOwner m_AlgebraicRho;
+
+	doublereal m_gamma;
+	doublereal m_c2;
+	doublereal m_c3;
+	doublereal m_c4;
+	//doublereal m_dRho;
+	//doublereal m_dAlgebraicRho;
+
+public:
+	DIRK54Solver(const doublereal Tl,
+		const doublereal dSolTol,
+		const integer iMaxIt,
+		//const DriveCaller* pRho,
+		//const DriveCaller* pAlgRho,
+		const bool bmod_res_test);
+
+	~DIRK54Solver(void);
+
+protected:
+	void SetCoefForStageS(unsigned uStage,
+		doublereal dT,
+		doublereal dAlpha,
+		enum StepChange NewStep);
+
+	//void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal
+	dPredDerForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredDerAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+
+	doublereal
+	dPredStateAlgForStageS(unsigned uStage,
+		const doublereal dXm1mN[5],
+		const doublereal dXP0mN[6]) const;
+};
+
+/* DIRK54Solver - end */
+
 #endif // MULTISTAGESTEPSOL_IMPL_H
