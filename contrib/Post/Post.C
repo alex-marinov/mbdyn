@@ -147,6 +147,7 @@ struct OutputElement {
 	std::map<int,int> output_cols;
 	std::vector<double> outputs;
 	OutputElement(const int i) : label(i), num_outputs(0) {};
+	bool operator == (const int i) {return i == label;};
 };
 
 struct OutputFile {
@@ -231,8 +232,21 @@ bool ParseCommands(std::istream& in, std::ostream& out) {
 			OutputFile &fl(*files.rbegin());
 			fl.num_elements++;
 			int i = atoi(flex.YYText());
-			fl.elements.push_back(OutputElement(i));
-			OutputElement &el(*fl.elements.rbegin());
+			auto el_it = std::find(fl.elements.begin(), fl.elements.end(), i);
+			if (el_it == fl.elements.end()){
+				fl.elements.push_back(OutputElement(i));
+				el_it = fl.elements.end();
+				el_it--;
+			} else {
+				std::cerr << "Error, request for the ouptu of element " << i << std::endl;
+				std::cerr << "Some output for same element has already been requested." << std::endl;
+				std::cerr << "you should ask for an element only once," << std::endl;
+				std::cerr << "separating the different requested columns with commas" << std::endl;
+				std::cerr << std::endl;
+				std::cerr << "See Post --help for details" << std::endl;
+				exit(1);
+			}
+			OutputElement &el(*el_it);
 			if ((type = flex.yylex()) != DUEPUNTI_TOK) {
 				std::cerr << "Unrecognized post_description token \""
 					<< flex.YYText() << "\"\n"
