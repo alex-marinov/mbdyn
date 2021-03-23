@@ -79,16 +79,16 @@ end: initial value;
 
 begin: control data;
 	structural nodes:
-		+1	# ground
 		+1	# body
 	;
 	joints:
-		+1	# clamp
 		+1	# total joint
-		+1	# spring-damper
 	;
 	rigid bodies: 1;
-	forces: 1;
+	forces:
+		+1
+		+2	# spring damper
+	;
 
 	#file drivers: 1;
 	#output elements: 1;
@@ -107,42 +107,18 @@ reference: 0,
 	reference, global, null;
 
 begin: nodes;
-	structural: 0, static,
-		reference, 0, null,
-		reference, 0, eye,
-		reference, 0, null,
-		reference, 0, null;
 	structural: 2, dynamic,
-		reference, 0, 1., 0., 0.,
+		reference, 0, null,
 		reference, 0, eye,
 		reference, 0, null,
 		reference, 0, null;
 end: nodes;
 
 begin: elements;
-	joint: 0, total pin joint,
-		0,
-			position, reference, 0, null,
-			position orientation, reference, 0, eye,
-			rotation orientation, reference, 0, eye,
-		# ground
-			position, reference, 0, null,
-			position orientation, reference, 0, eye,
-			rotation orientation, reference, 0, eye,
-		position constraint, 1, 1, 1, null,
-		orientation constraint, 1, 1, 1, null;
-
-	joint: 2, total joint,
+	joint: 1, total pin joint,
 		2,
-			position, reference, 0, null,
-			position orientation, reference, 0, eye,
-			rotation orientation, reference, 0, eye,
-		0,
-			position, reference, 0, null,
-			position orientation, reference, 0, eye,
-			rotation orientation, reference, 0, eye,
-		position constraint, 0, 1, 1, null,
-		orientation constraint, 1, 1, 1, null;
+			position constraint,    inactive, active, active, null,
+			orientation constraint,   active, active, active, null;
 
 	set: const real omega = 10.*2*pi;
 	set: const real xi = .1;
@@ -155,14 +131,21 @@ begin: elements;
 		null,
 		null;
 
-	joint: 12, rod,
+	force: 3, absolute,
 		2,
-			position, reference, node, null,
-		0, 
-			position, reference, node, null,
-		from nodes,
-		linear viscoelastic, K, C;
+			position, null,
+			-1, 0., 0.,
+			node, 2, structural,
+				string, "X[1]",
+				linear, 0., K;
 
+	force: 4, absolute,
+		2,
+			position, null,
+		-1., 0., 0.,
+			node, 2, structural,
+				string, "XP[1]",
+				linear, 0., C;
 	/*
 	stream output: 0,
 		stream name, "MBSKOU",
@@ -181,6 +164,7 @@ begin: elements;
 	user defined: 99, harmonic excitation,
 		inputs number, 1,
 			node, 2, structural, string, "X[1]", direct,
+				target, yes,
 		output format, magnitude phase,
 		steps number, 128,
 		initial angular frequency, 2.*2*pi,
@@ -191,6 +175,9 @@ begin: elements;
 				# custom, 4.*2*pi, 6.*2*pi, 8.*2*pi, 10.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, 50.*2*pi, last,
 		# initial time, 5., # defaults to "always"
 		RMS test,
+		RMS target, string, "1/sqrt(2)",
+			initial amplitude, 1.,
+			overshoot, 1.0,
 		RMS prev periods, 10,
 		tolerance, 1.e-6,
 		min periods, 10,

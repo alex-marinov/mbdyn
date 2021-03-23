@@ -94,6 +94,9 @@ begin: control data;
 	#output elements: 1;
 	loadable elements: 1;
 
+	set: const integer OUTPUTMETERDRIVE=12345;
+	output meter: postponed, OUTPUTMETERDRIVE;
+
 	output results: netcdf;
 
 	# tolerance: 1e-2;
@@ -179,8 +182,12 @@ begin: elements;
 	*/
 	module load: "libmodule-hfelem";
 	user defined: 99, harmonic excitation,
-		inputs number, 1,
+		inputs number, 2,
 			node, 2, structural, string, "X[1]", direct,
+				# output, no,
+				# test, no,
+			node, 2, structural, string, "XP[1]", direct,
+				# test, no,
 		output format, magnitude phase,
 		steps number, 128,
 		initial angular frequency, 2.*2*pi,
@@ -190,19 +197,20 @@ begin: elements;
 				multiplicative, 1.06,
 				# custom, 4.*2*pi, 6.*2*pi, 8.*2*pi, 10.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, 50.*2*pi, last,
 		# initial time, 5., # defaults to "always"
-		RMS test,
-		RMS prev periods, 10,
-		tolerance, 1.e-6,
-		min periods, 10,
-		max periods, 1000,
-			no convergence strategy, continue,
+		tolerance, 1.e-8,
+		min periods, 2,
+		max periods, 50,
+			# no convergence strategy, abort,
 		timestep drive label, TIMESTEP_DRIVE,
-		print all periods;
+		print all periods,
+		write after convergence periods, 2, frequency, 2;
 
 	output: loadable, 99;
 
 	# use the (optional) "timestep drive label" instead
 	# drive caller: TIMESTEP_DRIVE, element, 99, loadable, string, "timestep", direct;
+
+	drive caller: OUTPUTMETERDRIVE, element, 99, loadable, string, "output", direct;
 
 	# force from outside
 	force: 2, absolute,

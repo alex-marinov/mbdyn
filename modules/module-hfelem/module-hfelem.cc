@@ -50,6 +50,8 @@
 
 #include "module-hfelem.h"
 
+#define HFELEM_COMMENTS 0
+
 static bool bHFElem(false);
 
 class HarmonicForcingElem
@@ -63,7 +65,7 @@ private:
 		Priv_OMEGA,
 		Priv_AMPLITUDE,
 		Priv_COUNT,
-
+		Priv_OUTPUT,
 		Priv_LAST
 	};
 
@@ -72,16 +74,16 @@ private:
 	integer m_iN;
 
 	doublereal m_dTInit;
+    doublereal m_dTimestepsCompareTol; // hard coded variable to check if time steps from drive callers are different
 	doublereal m_dT0;
 	doublereal m_dDeltaT;
 	doublereal m_dMaxDeltaT;
+	DriveCaller *m_pDC_MaxDeltaT;
 	doublereal m_dOmega;
 	doublereal m_dOmega0;
 	doublereal m_dOmegaMax;
 	doublereal m_dPsi;
 	doublereal m_dF;
-	doublereal m_dAmplitude;
-	doublereal m_dAmplitudeRelDiff;
 
 	bool bRMSTest;
 	bool bRMSTestTarget;
@@ -113,7 +115,6 @@ private:
 
 	bool m_bPrintAllPeriods;
 
-	bool m_bOut;
 	integer m_iPeriodOut;
 	doublereal m_dOmegaOut;
 
@@ -132,17 +133,39 @@ private:
 	std::vector<doublereal> m_XcosPrev;
 	std::vector<doublereal> m_XsinPrev;
 	std::vector<doublereal> SUM;
-	std::vector<std::vector<doublereal>> RMS;
-	std::vector<doublereal> RMSOld;
-	std::vector<doublereal> dAmplitude;
+	std::vector<doublereal> RMSNow;
+	std::vector<doublereal> RMSUpp;
+	std::vector<doublereal> RMSLow;
+	std::vector<std::vector<doublereal>> RMSPrev;
+	std::vector<doublereal> RMSBest;
+	std::vector<DriveCaller*> m_pDC_RMSTarget;
 	std::vector<doublereal> RMSTarget;
-	integer RMS_pol_order;
-	integer RMS_cur_idx;
-	
+	doublereal m_dAmplitude;
+	doublereal m_dAmplitudeOut;
+	doublereal m_dAmplitudeUpp;
+	doublereal m_dAmplitudeLow;
+	doublereal m_dAmplitudeBest;
+	doublereal m_dRMSovershoot;
+	integer m_iAmpliConvergences;
+	integer m_iMinAmpliConvergences;
+	integer m_iRMSrestarts;
+	integer m_iMaxRMSrestarts;
+	integer m_iAfterMaxRMSrestartsPeriods;
+	integer m_iRMSprevs;
+	bool bRMSUpp;
+	bool bRMSLow;
+
+	integer m_bShouldBeOutput;
+	integer m_iWritePeriodsAfterConvergence;
+	integer m_iWriteAfterConvergenceEvery;
+	integer m_iWriteAfterConvergenceCount;
+	integer m_iConvergedPeriod;
+
 	struct HFInput {
 		enum {
 			HF_TEST = 0x1U,
-			HF_OUTPUT = 0x2U
+			HF_OUTPUT = 0x2U,
+			HF_TARGET = 0x4U
 		};
 
 		DriveCaller *m_pDC;
@@ -151,74 +174,28 @@ private:
 	std::vector<HFInput> m_Input;
 
 	doublereal compute_amplitude(
-		const std::vector<std::vector<doublereal>>& RMS, 
-		const std::vector<doublereal>& am,
+		const doublereal& R0,
+		const doublereal& R1,
+		const doublereal& a0,
+		const doublereal& a1,
 		const doublereal& RMSt,
-		const integer i_test,
-		const integer RMS_cur_idx,
-		const integer deg) {
+		const integer operational) {
 		doublereal an;
-		doublereal a0 = am[RMS_cur_idx];		// current
-		doublereal a1 = am[(RMS_cur_idx+2)%3];	// minus 1
-		doublereal a2 = am[(RMS_cur_idx+1)%3];	// minus 2
-		doublereal R0 = RMS[RMS_cur_idx][i_test];	// current
-		doublereal R1 = RMS[(RMS_cur_idx+2)%3][i_test];	// minus 1
-		doublereal R2 = RMS[(RMS_cur_idx+1)%3][i_test];	// minus 2
-		switch (deg) {
+		switch (operational) {
 			case 0 : {
 				an = RMSt / R0 * a0;
 				break;
 			}
 			case 1 : {
 				an = a0 + (RMSt - R0) * (a0 - a1) / (R0 - R1);
-				if (an <= 0. || std::abs(an - a0) / std::min(an, a0) > m_dAmplitudeRelDiff) {
-					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 0);
-				}
-				break;
-			}
-			case 2 : {
-				doublereal R0d0 = R0 / (a0 - a1) / (a0 - a2);
-				doublereal R1d1 = R1 / (a1 - a0) / (a1 - a2);
-				doublereal R2d2 = R2 / (a2 - a0) / (a2 - a1);
-				doublereal a = R0d0 + R1d1 + R2d2;
-				doublereal b = -(R0d0 * (a1 + a2) + R1d1 * (a0 + a2) + R2d2 * (a0 + a1));
-				doublereal c = (R0d0 * a1 * a2 + R1d1 * a0 * a2 + R2d2 * a0 * a1) - RMSt;
-				doublereal delta = b * b - 4 * a * c;
-				doublereal sqr_delta;
-				if (delta >= 0) {
-					sqr_delta = std::sqrt(b * b - 4 * a * c);
-				} else {
-					return compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);
-				}
-				doublereal an1 = (-b + sqr_delta) / 2. / a;
-				doublereal an2 = (-b - sqr_delta) / 2. / a;
-				if (an1 > 0.)
-					if (std::abs(a0 - an1) > std::abs(a0 - an2) && an2 > 0.) {
-						an = an2;
-					} else {
-						an = an1;
-				} else if (an2 > 0.) {
-					an = an2;
-				} else {
-					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);
-				}
-				if (std::abs(an - a0) / std::min(an, a0)  > m_dAmplitudeRelDiff) {
-					an = compute_amplitude(RMS, am, RMSt, i_test, RMS_cur_idx, 1);
-				}
-				
 				break;
 			}
 			default : {
-				silent_cerr("HarmonicExcitationElem::compute_amplitude unhandled deg = " << deg << std::endl);
+				silent_cerr("HarmonicExcitationElem::compute_amplitude unhandled operational = " << operational << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 		}
-// 		if (a0 / an > 10) {
-// 			an = a0 / 10;
-// 		} else if (an / a0 > 10) {
-// 			an = a0 * 10;
-// 		}
 		return an;
 	};
 
@@ -269,11 +246,10 @@ UserDefinedElem(uLabel, pDO),
 DriveOwner(0),
 m_pDM(pDM),
 m_dTInit(-std::numeric_limits<doublereal>::max()),
-m_dMaxDeltaT(std::numeric_limits<doublereal>::max()),
+m_dTimestepsCompareTol(1.0e-5),
+m_pDC_MaxDeltaT(0),
 m_dPsi(0.),
 m_dF(0.),
-m_dAmplitude(1.),
-m_dAmplitudeRelDiff(2.),
 bRMSTest(false),
 bRMSTestTarget(false),
 m_iMaxPeriods(0),
@@ -290,13 +266,25 @@ m_bStarted(false),
 m_bConverged(false),
 m_bDone(false),
 m_bPrintAllPeriods(false),
-m_bOut(false),
 m_iPeriodOut(0),
 m_dOmegaOut(0.),
 m_OutputFormat(Out_COMPLEX),
 b_OutputNormalized(false),
-RMS_pol_order(0),
-RMS_cur_idx(0)
+m_dAmplitude(1.),
+m_dAmplitudeOut(1.),
+m_dAmplitudeBest(1.),
+m_dRMSovershoot(0.),
+m_iAmpliConvergences(0),
+m_iMinAmpliConvergences(1),
+m_iRMSrestarts(0),
+m_iMaxRMSrestarts(5),
+bRMSUpp(false),
+bRMSLow(false),
+m_bShouldBeOutput(false),
+m_iWritePeriodsAfterConvergence(0),
+m_iWriteAfterConvergenceEvery(1),
+m_iWriteAfterConvergenceCount(0),
+m_iConvergedPeriod(0)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -344,13 +332,14 @@ RMS_cur_idx(0)
 
 	m_Input.resize(iNInput);
 	RMSTarget.resize(iNInput);
+	m_pDC_RMSTarget.resize(iNInput);
 	bool bTest(false);
 	for (integer i = 0; i < iNInput; ++i) {
 		m_Input[i].m_pDC = HP.GetDriveCaller();
 
 		m_Input[i].m_Flag = HFInput::HF_TEST | HFInput::HF_OUTPUT;
 		while (true) {
-			if (HP.IsKeyWord("test")) {
+            if (HP.IsKeyWord("test")) { // variable to be tested for convergence - default: true
 				bool b = HP.GetYesNoOrBool(false);
 				if (b) {
 					m_Input[i].m_Flag |= HFInput::HF_TEST;
@@ -358,12 +347,20 @@ RMS_cur_idx(0)
 					m_Input[i].m_Flag &= ~HFInput::HF_TEST;
 				}
 
-			} else if (HP.IsKeyWord("output")) {
+            } else if (HP.IsKeyWord("output")) { // variable to be written in output - default: true
 				bool b = HP.GetYesNoOrBool(false);
 				if (b) {
 					m_Input[i].m_Flag |= HFInput::HF_OUTPUT;
 				} else {
 					m_Input[i].m_Flag &= ~HFInput::HF_OUTPUT;
+				}
+
+            } else if (HP.IsKeyWord("target")) { // variable to be controlled - default: false
+				bool b = HP.GetYesNoOrBool(false);
+				if (b) {
+					m_Input[i].m_Flag |= HFInput::HF_TARGET;
+				} else {
+					m_Input[i].m_Flag &= ~HFInput::HF_TARGET;
 				}
 
 			} else {
@@ -415,14 +412,15 @@ RMS_cur_idx(0)
 		throw e;
 	}
 
-	// maximum delta t
+    // maximum delta t - drive caller function of omega
 	if (HP.IsKeyWord("max" "delta" "t")) {
-		try {
-			m_dMaxDeltaT = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
+		m_pDC_MaxDeltaT = HP.GetDriveCaller();
 
-		} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
-			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum Delta t must be positive, at line " << HP.GetLineData() << std::endl);
-			throw e;
+		if (m_pDC_MaxDeltaT->dGet(1.0)<=0) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): max delta t drive caller for test omega=1 "
+				<< m_pDC_MaxDeltaT->dGet(1.0) <<
+				"is not positive" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -461,13 +459,22 @@ RMS_cur_idx(0)
 	m_dOmega = m_dOmega0;
 
 	m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
+	if(m_pDC_MaxDeltaT)
+		m_dMaxDeltaT = m_pDC_MaxDeltaT->dGet(m_dOmega);
+	else
+		m_dMaxDeltaT = m_dDeltaT;
 	if (m_dDeltaT > m_dMaxDeltaT) {
 		m_iNumSubSteps = std::ceil(m_dDeltaT / m_dMaxDeltaT);
+        if(((m_dDeltaT/m_dMaxDeltaT)/std::floor(m_dDeltaT/m_dMaxDeltaT)-1.0)<m_dTimestepsCompareTol && ((m_dDeltaT/m_dMaxDeltaT)/std::floor(m_dDeltaT/m_dMaxDeltaT)-1.0)>0.0)
+			m_iNumSubSteps -= 1;
 		m_dDeltaT /= m_iNumSubSteps;
 	} else {
 		m_iNumSubSteps = 1;
 	}
-	//std::cerr << m_iNumSubSteps << " " << m_dDeltaT << std::endl;
+#if HFELEM_COMMENTS == 1
+	std::cerr << "omega: " << m_dOmega << " | DeltaT0: " << (2*M_PI/m_dOmega)/m_iN << " | MaxDeltaT: " << m_dMaxDeltaT << " | substeps: " << m_iNumSubSteps << " | DeltaT: " << m_dDeltaT << std::endl;
+	std::cerr << "m_dDeltaT / m_dMaxDeltaT: " << m_dDeltaT / m_dMaxDeltaT << " | err: " << (m_dDeltaT/m_dMaxDeltaT)/std::floor(m_dDeltaT/m_dMaxDeltaT)-1.0 << std::endl;
+#endif
 
 	// frequency increment
 	if (!HP.IsKeyWord("angular" "frequency" "increment")) {
@@ -530,7 +537,7 @@ RMS_cur_idx(0)
 			DriveOwner::Set(pDC);
 			//if (pDC->dGet(m_dTInit) != m_dDeltaT) {
 			//Biondani
-			if (std::abs(pDC->dGet(m_dTInit) - m_dDeltaT)/m_dDeltaT > 1.0e-5 ) {
+            if (std::abs(pDC->dGet(m_dTInit) - m_dDeltaT)/m_dDeltaT > m_dTimestepsCompareTol ) {
 				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): Prescribed initial time step "
 					<< pDC->dGet(m_dTInit) <<
 					"\nevaluated at the initial time t = " << m_dTInit <<
@@ -545,42 +552,68 @@ RMS_cur_idx(0)
 	// tolerance
 	if (HP.IsKeyWord("RMS" "test")) {
 		bRMSTest = true;
-		if (HP.IsKeyWord("RMS" "target"))  {
-			integer count_tests = 0;
-			for (integer i = 0; i < iNInput; ++i) {
-				if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-					count_tests++;
-				}
+		integer count_targets = 0;
+		for (integer i = 0; i < iNInput; ++i) {
+			if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+				count_targets++;
 			}
-			if (count_tests != 1)  {
-				silent_cerr("\nHarmonicExcitationElem(" << GetLabel() << "): \"RMS target\" required but"
-					"\nthere are " << count_tests <<
-					" test variables. There should be a single test variable" 
-					"\nfor this options to make sense.\n"<< std::endl);
+		}
+		if (HP.IsKeyWord("RMS" "target"))  {
+			if (count_targets > 1)  {
+				silent_cerr("\nHarmonicExcitationElem(" << GetLabel() << "): \nthere are " << count_targets << " target variables." 
+					"\nThere should be at most one target variable for this options to make sense.\n"<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			} else if (count_targets < 1){
+				silent_cerr("\nHarmonicExcitationElem(" << GetLabel() << "): \nthere are " << count_targets << " target variables." 
+					"\nThere should be at least one target variable for this options to make sense.\n"<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			bRMSTestTarget = true;
 			for (integer i = 0; i < iNInput; ++i) {
-				if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-					try {
-						RMSTarget[i] = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
-					} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
-						silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
-						"RMS target value must be positive, at line " << HP.GetLineData() << std::endl);
-						throw e;
+				if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+					m_pDC_RMSTarget[i] = HP.GetDriveCaller();
+					RMSTarget[i]=m_pDC_RMSTarget[i]->dGet(m_dOmega);
+					if (RMSTarget[i]<=0) {
+						silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): RMS target drive caller for test omega=omega0 "
+							<< RMSTarget[i] <<
+							"is not positive" << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 			}
-			if (HP.IsKeyWord("max" "amplitude" "relative" "difference"))  {
-					try {
-						m_dAmplitudeRelDiff = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
-					} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
-						silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
-						"max amplitude relative difference value must be positive, at line " << HP.GetLineData() << std::endl);
-						throw e;
-					}
+			if (HP.IsKeyWord("initial" "amplitude"))  {
+				try {
+					m_dAmplitude = HP.GetReal(0., HighParser::range_ge<doublereal>(0.0));
+					m_dAmplitudeOut = m_dAmplitude;
+				} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
+					silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): RMS target, initial amplitude must be greater than 0, at line " << HP.GetLineData() << std::endl);
+					throw e;
+				}
 			}
-
+			if (HP.IsKeyWord("overshoot"))  {
+				try {
+					m_dRMSovershoot = HP.GetReal(0., HighParser::range_ge<doublereal>(0.0));
+				} catch (const HighParser::ErrValueOutOfRange<doublereal>& e) {
+					silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): RMS target, tolerance overshoot must be greater than 0, at line " << HP.GetLineData() << std::endl);
+					throw e;
+				}
+			}
+		}else{
+			if(count_targets>0){
+				silent_cerr("\nHarmonicExcitationElem(" << GetLabel() << "): \nthere are " << count_targets << " target variables," 
+					"\nbut no target value specified.\n"<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+		if (HP.IsKeyWord("RMS" "prev" "periods"))  {
+			try {
+				m_iRMSprevs = HP.GetInt(1, HighParser::range_ge<integer>(1));
+			} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): RMS prev periods must be greater than 0, at line " << HP.GetLineData() << std::endl);
+				throw e;
+			}
+		}else{
+			m_iRMSprevs = 2;
 		}
 	}
 	if (!HP.IsKeyWord("tolerance")) {
@@ -680,6 +713,25 @@ RMS_cur_idx(0)
 	if (HP.IsKeyWord("print" "all" "periods"))
 		m_bPrintAllPeriods = true;
 
+	if (HP.IsKeyWord("write" "after" "convergence" "periods")){
+		try {
+			m_iWritePeriodsAfterConvergence = HP.GetInt(0, HighParser::range_ge<integer>(0));
+
+		} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): periods to be written after convergence must be non-negative, at line " << HP.GetLineData() << std::endl);
+			throw e;
+		}
+		if (HP.IsKeyWord("frequency")){
+			try {
+				m_iWriteAfterConvergenceEvery = HP.GetInt(0, HighParser::range_gt<integer>(0));
+
+			} catch (const HighParser::ErrValueOutOfRange<integer>& e) {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): writing frequency after convergence must be positive, at line " << HP.GetLineData() << std::endl);
+				throw e;
+			}
+		}
+	}
+
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
 	m_cos_psi.resize(m_iN);
@@ -691,15 +743,20 @@ RMS_cur_idx(0)
 	m_Xsin.resize(iNInput);
 	m_XcosPrev.resize(iNInput);
 	m_XsinPrev.resize(iNInput);
-	SUM.resize(iNInput);
-	RMS.resize(3);
-	dAmplitude.resize(3);
-	for (integer i = 0; i < 3; i++) {
-		RMS[i].resize(iNInput);
-		std::fill(RMS[i].begin(), RMS[i].end(), 0.);
-	}
-	RMSOld.resize(iNInput);
-	std::fill(RMSOld.begin(), RMSOld.end(), 0.);
+	if(bRMSTest){
+		SUM.resize(iNInput);
+		RMSNow.resize(iNInput);
+		std::fill(RMSNow.begin(), RMSNow.end(), 0.);
+		RMSPrev.resize(std::max(m_iRMSprevs,3));
+		for (unsigned i = 0; i < RMSPrev.size(); i++) {
+			RMSPrev[i].resize(iNInput);
+			std::fill(RMSPrev[i].begin(), RMSPrev[i].end(), -1.);
+		}
+		RMSBest.resize(iNInput);
+		std::fill(RMSBest.begin(), RMSBest.end(), 0.);
+		std::fill(SUM.begin(), SUM.end(), 0.);
+		m_iAfterMaxRMSrestartsPeriods=(m_iMaxPeriods-1)/10 + 1;
+    }
 
 	for (integer i = 0; i < m_iN; i++) {
 		doublereal dPsi = (2*M_PI*i)/m_iN;
@@ -710,11 +767,9 @@ RMS_cur_idx(0)
 	}
 
 	// reset
-	std::fill(dAmplitude.begin(), dAmplitude.end(), m_dAmplitude);
 	std::fill(m_XPrev.begin(), m_XPrev.end(), 0.);
 	std::fill(m_Xcos.begin(), m_Xcos.end(), 0.);
 	std::fill(m_Xsin.begin(), m_Xsin.end(), 0.);
-	std::fill(SUM.begin(), SUM.end(), 0.);
 }
 
 HarmonicForcingElem::~HarmonicForcingElem(void)
@@ -731,12 +786,13 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 	// NOTE: output occurs only at convergence,
 	// not with fixed periodicity
 	if (bToBeOutput()) {
-		if (((m_bOut && m_iPeriod == 0) || (m_bPrintAllPeriods && m_pDM->dGetTime()>m_dTInit))
+		if (((m_iPeriodOut!=0 && m_iPeriod == 0) || (m_bPrintAllPeriods && m_pDM->dGetTime()>m_dTInit))
 			&& m_iPeriodCnt == 0 && m_iCurrentStep == 0) {
 			std::ostream& out = OH.Loadable();
 
-			out << std::setw(8) << GetLabel()	// 1:	label
-				<< " " << m_pDM->dGetTime();	// 2:	when
+			out << std::setprecision(16) << GetLabel()	// 1:	label
+				<< " " << m_pDM->dGetTime()	// 2:	when
+                << std::setprecision(8);
 			if(m_iPeriod==0) // just converged
 				out << " " << m_dOmegaOut		// 3:	what frequency
 					<< " " << m_iPeriodOut;		// 4:	how many periods required (-1 if not converged?)
@@ -771,8 +827,12 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 				}
 				break;
 			}
-			out << " " << m_dAmplitude;
-
+			if(bRMSTestTarget){
+				out << " " << m_dAmplitudeOut;
+				for (unsigned i = 0; i < m_Input.size(); ++i)
+					if (m_Input[i].m_Flag & HFInput::HF_TARGET)
+						out << " " << RMSPrev[0][i];
+			}
 			out << std::endl;
 		}
 	}
@@ -817,6 +877,10 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	// initialize if needed
 	if (!m_bStarted) {
 		if (m_pDM->dGetTime() >= m_dTInit) {
+#if HFELEM_COMMENTS == 1
+			std::cerr << "STARTED" << std::endl;
+			std::cerr << "omega: " << m_dOmega << " | DeltaT0: " << (2*M_PI/m_dOmega)/m_iN << " | MaxDeltaT: " << m_dMaxDeltaT << " | substeps: " << m_iNumSubSteps << " | DeltaT: " << m_dDeltaT << std::endl;
+#endif
 			m_bStarted = true;
 			m_dT0 = m_pDM->dGetTime();
 		}
@@ -841,24 +905,44 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		m_dPsi = m_dOmega*(m_pDM->dGetTime() - m_dT0);
 		m_dF = m_dAmplitude * sin(m_dPsi);
 	}
+	else{
+        m_dPsi = 0;
+        m_dF = 0;
+    }
 }
 
 void
 HarmonicForcingElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	//std::cerr << "X" << std::endl;
 	if (!m_bStarted) {
+		if(m_pDM->dGetTime()==0)
+			m_bShouldBeOutput=true;
+		else
+			m_bShouldBeOutput=false;
 		if (DriveOwner::pGetDriveCaller())
 			m_dDeltaT = DriveOwner::dGet(m_pDM->dGetTime());
 		return;
 	}
 
+	if(m_bConverged && m_iConvergedPeriod>0){
+		m_bShouldBeOutput=true;
+	}else{
+		m_bShouldBeOutput=false;
+	}
+
+	if(m_bShouldBeOutput){
+		if (m_iWriteAfterConvergenceCount%m_iWriteAfterConvergenceEvery>0)
+			m_bShouldBeOutput=false;
+		m_iWriteAfterConvergenceCount++;
+	}else
+		m_iWriteAfterConvergenceCount=0;
+
 	++m_iCurrentStep;
 	if (m_iCurrentStep != m_iNumSubSteps) {
 		return;
 	}
-	
+
 	m_iCurrentStep = 0;
 
 	// collect input
@@ -883,160 +967,384 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 			dErr += d*d;
 			d = m_Xsin[i] - m_XsinPrev[i];
 			dErr += d*d;
-			RMS[RMS_cur_idx][i] += (m_X[m_iPeriodCnt][i] * m_X[m_iPeriodCnt][i] + m_XPrev[i] *  m_XPrev[i]) / 2.;
-			SUM[i] += (m_X[m_iPeriodCnt][i] + m_XPrev[i]) / 2.;
+			if (bRMSTest) {
+				RMSNow[i] += (m_X[m_iPeriodCnt][i] * m_X[m_iPeriodCnt][i] + m_XPrev[i] *  m_XPrev[i]) / 2.;
+				SUM[i] += (m_X[m_iPeriodCnt][i] + m_XPrev[i]) / 2.;
+			}
 		}
 		m_XPrev[i] = m_X[m_iPeriodCnt][i];
 	}
-
 	// check for convergence
 	++m_iPeriodCnt;
 	bool bRMSConverged = false;
+	bool bRMSConvergedDouble = true;
+	bool bRMSTooLow = false;
+	bool bRMSTooHigh = false;
 	if (m_iPeriod > 0) {
 		if (bRMSTest) {
-			if (m_iPeriodCnt == m_iN && bRMSTest) {
+			if (m_iPeriodCnt == m_iN) { // the period is over
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
-					RMS[RMS_cur_idx][i] = std::sqrt(RMS[RMS_cur_idx][i] / m_iN - SUM[i] * SUM[i] / m_iN / m_iN);
+					RMSNow[i] = std::sqrt(RMSNow[i] / m_iN - SUM[i] * SUM[i] / m_iN / m_iN);
 				}
-				m_bConverged = true;
+
+				// check if RMS converged
 				m_iPeriodRMS++;
-				if (m_iPeriodRMS >= m_iMinPeriods){
-					m_iPeriodRMS=0;
-					bRMSConverged = true;
-				}else
-					bRMSConverged = false;
+				bRMSConverged = m_iPeriodRMS >= m_iMinPeriods && m_iPeriod > m_iConvergedPeriod+m_iWritePeriodsAfterConvergence;
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
 					if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-						bRMSConverged = bRMSConverged && (std::abs(RMS[RMS_cur_idx][i]-RMSOld[i]) /
-							std::max(RMS[RMS_cur_idx][i], RMSOld[i]) <= m_dTol);
+						bool bRMSConvergedSingle = true; // true when there are no alternating amplitudes
+						for (int j = 0; j < m_iRMSprevs; ++j){
+							bRMSConvergedSingle = bRMSConvergedSingle && (std::abs(RMSNow[i]-RMSPrev[j][i]) /
+								std::max(RMSNow[i], RMSPrev[j][i]) <= m_dTol);
+						}
+						if(!bRMSConvergedSingle && (std::abs(RMSNow[i]-RMSPrev[0][i]) /
+								std::max(RMSNow[i], RMSPrev[0][i]))>= 4*m_dTol  ){ // check for double alternating amplitude
+							for (unsigned j = 0; j < (RMSPrev.size()-1)/2; ++j){
+								bRMSConvergedDouble = bRMSConvergedDouble && (std::abs(RMSNow[i]-RMSPrev[2*j+1][i]) /
+									std::max(RMSNow[i], RMSPrev[2*j+1][i]) <= m_dTol) &&
+								(std::abs(RMSPrev[0][i]-RMSPrev[2*j+2][i]) / std::max(RMSPrev[0][i],RMSPrev[2*j+2][i]) <= m_dTol);
+							}
+							bRMSConverged = bRMSConverged && bRMSConvergedDouble;
+						}else{
+							bRMSConvergedDouble = false;
+							bRMSConverged = bRMSConverged && bRMSConvergedSingle;
+						}
 					}
 				}
 
-				m_bConverged = bRMSConverged;
-				if (bRMSConverged && bRMSTestTarget) {
+				// check if response would be anyway too low or too high
+				if(!bRMSConverged && bRMSTestTarget && m_iPeriodRMS >= m_iMinPeriods && m_iRMSrestarts==0){
 					for (unsigned i = 0; i < m_Input.size(); ++i) {
-						if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-							m_bConverged = m_bConverged && (std::abs(RMS[RMS_cur_idx][i]-RMSTarget[i]) /
-								RMSTarget[i] <= m_dTol);
-						}
-					}
-					if (!m_bConverged) {
-						for (unsigned i = 0; i < m_Input.size(); ++i) {
-							if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-								m_dAmplitude = compute_amplitude(RMS, dAmplitude, RMSTarget[i], i, RMS_cur_idx, RMS_pol_order);
-
-// 								std::cerr << 
-// 									"Input " << i << " " << RMS_cur_idx << " " << RMS_pol_order << " "
-// 									" " << RMSTarget[i] << 
-// 									" " << RMS[RMS_cur_idx][i] <<  
-// 									" " << RMS[(RMS_cur_idx+2)%3][i] << 
-// 									" " << RMS[(RMS_cur_idx+1)%3][i] << 
-// 									" " << m_dAmplitude << 
-// 									" " << dAmplitude[(RMS_cur_idx)%3] << 
-// 									" " << dAmplitude[(RMS_cur_idx+2)%3] << 
-// 									" " << dAmplitude[(RMS_cur_idx+1)%3] << 
-// 									std::endl;
+						if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+							bRMSTooLow=true;
+							bRMSTooHigh=true;
+							doublereal RMSmin = RMSNow[i];
+							integer iRMSmin = -1;
+							doublereal RMSmax = RMSNow[i];
+							integer iRMSmax = -1;
+							for (unsigned j = 0; j < RMSPrev.size(); ++j){
+								bRMSTooLow  = bRMSTooLow  && ((1+m_dTol)*RMSPrev[j][i]<RMSTarget[i]);
+								bRMSTooHigh = bRMSTooHigh && ((1-m_dTol)*RMSPrev[j][i]>RMSTarget[i]);
+								if(RMSPrev[j][i]<RMSmin){
+									RMSmin=RMSPrev[j][i];
+									iRMSmin=j;
+								}
+								if(RMSPrev[j][i]>RMSmax){
+									RMSmax=RMSPrev[j][i];
+									iRMSmax=j;
+								}
+							}
+							if((iRMSmin==-1 && iRMSmax==int(RMSPrev.size())-1)||(iRMSmin==int(RMSPrev.size())-1 && iRMSmax==-1)){
+								bRMSTooLow  = false;
+								bRMSTooHigh = false;
+							}
+							bRMSTooLow  = bRMSTooLow  && ((1+m_dTol)*RMSNow[i]<RMSTarget[i]);
+							bRMSTooHigh = bRMSTooHigh && ((1-m_dTol)*RMSNow[i]>RMSTarget[i]);
+							if(bRMSTooLow){
+								RMSNow[i]=RMSmin;
+								bRMSConverged=true;
+							}
+							else if(bRMSTooHigh){
+								RMSNow[i]=RMSmax;
+								bRMSConverged=true;
 							}
 						}
-						dAmplitude[(RMS_cur_idx+1)%3] = m_dAmplitude;
-						RMS_pol_order = std::min(RMS_pol_order+1, 2);
-					} else {
-						for (unsigned i = 0; i < m_Input.size(); ++i) {
-							if (m_Input[i].m_Flag & HFInput::HF_TEST) {
-// 								std::cerr << 
-// 									"Ouput " << i << " " << RMS_cur_idx << " " << RMS_pol_order << " "
-// 									" " << RMSTarget[i] << 
-// 									" " << RMS[RMS_cur_idx][i] <<  
-// 									" " << RMS[(RMS_cur_idx+2)%3][i] << 
-// 									" " << RMS[(RMS_cur_idx+1)%3][i] << 
-// 									" " << m_dAmplitude << 
-// 									" " << dAmplitude[(RMS_cur_idx)%3] << 
-// 									" " << dAmplitude[(RMS_cur_idx+2)%3] << 
-// 									" " << dAmplitude[(RMS_cur_idx+1)%3] << 
-// 									std::endl;
-							}
-						}
-						std::fill(dAmplitude.begin(), dAmplitude.end(), m_dAmplitude);
-						RMS_pol_order = 0;
 					}
 				}
-				RMSOld = RMS[RMS_cur_idx];
+
+				if(m_iPeriod > m_iConvergedPeriod+m_iWritePeriodsAfterConvergence)
+					m_bConverged = bRMSConverged;
+				if (bRMSConverged) {
+					if (bRMSConvergedDouble){
+						for (unsigned i = 0; i < m_Input.size(); ++i) {
+							RMSNow[i] = (RMSNow[i]+RMSPrev[0][i])/2;
+						}
+					}
+					m_iPeriodRMS=0;
+					if (bRMSTestTarget) {
+						// check if RMS converged to target
+						if(m_iAmpliConvergences<m_iMinAmpliConvergences)
+							m_bConverged=false;
+						for (unsigned i = 0; i < m_Input.size(); ++i) {
+							if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+								m_bConverged = m_bConverged && (std::abs(RMSNow[i]-RMSTarget[i]) /
+									RMSTarget[i] <= m_dTol);
+								if(std::abs(RMSNow[i]-RMSTarget[i])<std::abs(RMSBest[i]-RMSTarget[i])){
+									RMSBest=RMSNow;
+									m_dAmplitudeBest=m_dAmplitude;
+								}
+							}
+						}
+						if (!m_bConverged) { // compute a new amplitude to get closer to target
+#if HFELEM_COMMENTS == 1
+							std::cerr << "\nAMPLITUDE CONVERGED - iteration " << m_iPeriod << std::endl;
+							if(bRMSConvergedDouble){
+								std::cerr << "   **** DOUBLE AMPLITUDE ****\n";
+								for (unsigned i = 0; i < m_Input.size(); ++i) {
+									if (m_Input[i].m_Flag & HFInput::HF_TEST) {
+										std::cerr << "     RMS1:" << RMSPrev[1][i] << "  RMS2:" << RMSPrev[0][i] << std::endl;
+									}
+								}
+							}
+							else if(bRMSTooHigh)
+								std::cerr << "   **** RMS PROBABLY TOO HIGH ****\n";
+							else if(bRMSTooLow)
+								std::cerr << "   **** RMS PROBABLY TOO LOW  ****\n";
+#endif
+							m_iAmpliConvergences++;
+							doublereal dAmplitudeNew = 0.;
+							for (unsigned i = 0; i < m_Input.size(); ++i) {
+								if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+									if(m_iRMSrestarts>m_iMaxRMSrestarts){
+										dAmplitudeNew = compute_amplitude(RMSNow[i], 0.0,
+										                  m_dAmplitude, 0.0, RMSTarget[i], 0);
+#if HFELEM_COMMENTS == 1
+										std::cerr << "  too many restarts" << std::endl <<
+										             "now - RMS:" << RMSNow[i]    << "  ampli:" << m_dAmplitude << std::endl <<
+										             "new - target:" << RMSTarget[i] << "  ampli:" << dAmplitudeNew <<std::endl;
+#endif
+										continue;
+									}
+#if HFELEM_COMMENTS == 1
+									if(bRMSLow)
+										std::cerr << "low - RMS:" << RMSLow[i] << "  ampli:" << m_dAmplitudeLow << std::endl;
+									if(bRMSUpp)
+										std::cerr << "upp - RMS:" << RMSUpp[i] << "  ampli:" << m_dAmplitudeUpp << std::endl;
+#endif
+									
+									if(RMSNow[i]<RMSTarget[i] && (!bRMSLow || (bRMSLow && RMSNow[i]>RMSLow[i]))){
+										bRMSLow = true;
+										m_dAmplitudeLow = m_dAmplitude;
+										RMSLow = RMSNow;
+										RMSLow[i] = (1.0-m_dRMSovershoot*m_dTol)*RMSNow[i];
+#if HFELEM_COMMENTS == 1
+										std::cerr << "new lower point - RMS:" << RMSLow[i] << "  ampli:" << m_dAmplitudeLow << std::endl;
+#endif
+									}else if(RMSNow[i]>RMSTarget[i] && (!bRMSUpp || (bRMSUpp && RMSNow[i]<RMSUpp[i]))){
+										bRMSUpp = true;
+										m_dAmplitudeUpp = m_dAmplitude;
+										RMSUpp = RMSNow;
+										RMSUpp[i] = (1.0+m_dRMSovershoot*m_dTol)*RMSNow[i];
+#if HFELEM_COMMENTS == 1
+										std::cerr << "new upper point - RMS: " << RMSUpp[i] << "  ampli:" << m_dAmplitudeUpp << std::endl;
+#endif
+									}else{
+										bRMSLow=false;
+										bRMSUpp=false;
+#if HFELEM_COMMENTS == 1
+										std::cerr << "reset lower and upper points" << std::endl;
+#endif
+									}
+									if(bRMSLow && bRMSUpp && ((RMSUpp[i]-RMSLow[i])/std::max(RMSUpp[i],RMSLow[i])<2*m_dRMSovershoot*m_dTol || m_dAmplitudeUpp-m_dAmplitudeLow<m_dTol*m_dTol)){
+										bRMSLow=false;
+										bRMSUpp=false;
+#if HFELEM_COMMENTS == 1
+										std::cerr << "lower and upper points too close: reset" << std::endl;
+#endif
+									}
+									if (bRMSLow && bRMSUpp){
+#if HFELEM_COMMENTS == 1
+										std::cerr << "  true true" << std::endl;
+#endif
+										dAmplitudeNew = compute_amplitude(RMSUpp[i], RMSLow[i],
+										                  m_dAmplitudeUpp, m_dAmplitudeLow, RMSTarget[i], 1);
+									}
+									else{
+										if (bRMSLow){
+#if HFELEM_COMMENTS == 1
+											std::cerr << "  only low" << std::endl;
+#endif
+										}else if(bRMSUpp){
+#if HFELEM_COMMENTS == 1
+											std::cerr << "  only upp" << std::endl;
+#endif
+										}else{
+											m_iRMSrestarts++;
+#if HFELEM_COMMENTS == 1
+											std::cerr << "  restarting" << std::endl;
+#endif
+											if(m_iRMSrestarts>m_iMaxRMSrestarts)
+												m_iPeriod = m_iMaxPeriods-m_iAfterMaxRMSrestartsPeriods;
+										}
+										dAmplitudeNew = compute_amplitude(RMSNow[i], 0.0,
+										                  m_dAmplitude, 0.0, RMSTarget[i], 0);
+									}
+#if HFELEM_COMMENTS == 1
+									std::cerr << "now - RMS:" << RMSNow[i] << "  ampli:" << m_dAmplitude << std::endl <<
+									             "new - target:" << RMSTarget[i] << "  ampli:" << dAmplitudeNew <<std::endl;
+#endif
+								}
+							}
+							m_dAmplitude    = dAmplitudeNew;
+							m_dAmplitudeOut = m_dAmplitude;
+						}
+					}
+				}
+
+				// update RMS for previous periods
+				for (unsigned j = RMSPrev.size()-1; j > 0; --j){
+					RMSPrev[j] = RMSPrev[j-1];
+				}
+				RMSPrev[0] = RMSNow;
 			}
 		} else {
-			dErr = sqrt(dErr);
-			if (dErr <= m_dTol) {
-				m_bConverged = true;
-			} else {
-				m_bConverged = false;
+			if(m_iPeriod > m_iConvergedPeriod+m_iWritePeriodsAfterConvergence){
+				dErr = sqrt(dErr);
+				if (dErr <= m_dTol) {
+					m_bConverged = true;
+				} else {
+					m_bConverged = false;
+				}
 			}
 		}
+	}else{
+		m_iPeriodRMS=0;
 	}
 
-	if (m_iPeriodCnt == m_iN) {
+	if (m_iPeriodCnt == m_iN) { // the period is over
 		m_iPeriodCnt = 0;
-		if (bRMSConverged) {
-			RMS_cur_idx = (RMS_cur_idx+1)%3;//RMSOld = RMS;
-		}
-		std::fill(RMS[RMS_cur_idx].begin(), RMS[RMS_cur_idx].end(), 0.);
+		std::fill(RMSNow.begin(), RMSNow.end(), 0.);
 		std::fill(SUM.begin(), SUM.end(), 0.);
 		++m_iPeriod;
-		if (m_iPeriod >= m_iMinPeriods) {
-			if (m_bConverged || ((m_iMaxPeriods > 0) && (m_iPeriod >= m_iMaxPeriods) && (m_NoConvStrategy == NoConv_CONTINUE))) {
-				m_bOut = true;
-				if (m_bConverged) {
-					m_iPeriodOut = m_iPeriod;
-				} else {
-					m_iPeriodOut = -m_iPeriod;
-				}
-				m_dOmegaOut = m_dOmega;
-				m_iOmegaCnt++;
-
-				m_bConverged = false;
-				m_iPeriod = 0;
-
-				switch (m_OmegaInc) {
-				case Inc_ADDITIVE:
-					m_dOmega += m_dOmegaAddInc;
-					break;
-
-				case Inc_MULTIPLICATIVE:
-					m_dOmega *= m_dOmegaMulInc;
-					break;
-
-				case Inc_CUSTOM:
-					if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
-						// schedule for termination!
-						m_bDone = true;
+		if ( m_iPeriod >= m_iMinPeriods && (m_bConverged || (m_iMaxPeriods > 0 && m_iPeriod >= m_iMaxPeriods && m_NoConvStrategy == NoConv_CONTINUE )) && (m_iPeriod > m_iConvergedPeriod+m_iWritePeriodsAfterConvergence) ) {
+			if (m_bConverged) {
+				m_iPeriodOut =  m_iPeriod+m_iWritePeriodsAfterConvergence;
+#if HFELEM_COMMENTS == 1
+				std::cerr << "\n--- FREQUENCY CONVERGED " << std::setprecision(4) << m_dOmega/(2*M_PI) << " ---  iteration " << m_iPeriod;
+				if(bRMSTest)
+					for (unsigned i = 0; i < m_Input.size(); ++i)
+						if (m_Input[i].m_Flag & HFInput::HF_OUTPUT)
+							std::cerr << " ,  RMSvar" << i << " : " << RMSPrev[0][i];
+				std::cerr << std::endl;
+#endif
+			} else {
+				m_iPeriodOut = -m_iPeriod-m_iWritePeriodsAfterConvergence;
+#if HFELEM_COMMENTS == 1
+				std::cerr << "\n--- FREQUENCY NOT CONVERGED " << std::setprecision(4) <<m_dOmega/(2*M_PI) << " ---  iteration " << m_iPeriod;
+				if(bRMSTest)
+					for (unsigned i = 0; i < m_Input.size(); ++i)
+						if (m_Input[i].m_Flag & HFInput::HF_OUTPUT)
+							std::cerr << " ,  RMSvar" << i << " : " << RMSPrev[0][i];
+				std::cerr << std::endl;
+#endif
+			}
+			if(bRMSTest){
+#if HFELEM_COMMENTS == 1
+				if(bRMSConvergedDouble){
+					std::cerr << "   **** DOUBLE AMPLITUDE ****\n";
+					for (unsigned i = 0; i < m_Input.size(); ++i) {
+						if (m_Input[i].m_Flag & HFInput::HF_TEST) {
+							std::cerr << "     RMS1:" << RMSPrev[1][i] << "  RMS2:" << RMSPrev[2][i] << std::endl;
+						}
 					}
-					m_dOmega = m_Omega[m_iOmegaCnt];
-					break;
-
-				default:
-					// impossible
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+#endif
+				if(bRMSTestTarget){
+					if (m_bConverged) {
+						m_dAmplitudeOut = m_dAmplitude;
+					} else {
+						m_dAmplitudeOut = m_dAmplitudeBest;
+						m_dAmplitude = m_dAmplitudeBest;
+					}
+#if HFELEM_COMMENTS == 1
+					std::cerr << "Converged amplitudes: " << m_iAmpliConvergences << "/" << m_iMinAmpliConvergences << std::endl;
+					std::cerr << "Upp Low Restarts: " << m_iRMSrestarts << "/" << m_iMaxRMSrestarts << std::endl;
+					for (unsigned i = 0; i < m_Input.size(); ++i) {
+						if (m_Input[i].m_Flag & HFInput::HF_TEST) {
+							if(bRMSLow)
+								std::cerr << "low - RMS:" << RMSLow[i] << "  ampli:" << m_dAmplitudeLow << std::endl;
+							if(bRMSUpp)
+								std::cerr << "upp - RMS:" << RMSUpp[i] << "  ampli:" << m_dAmplitudeUpp << std::endl;
+							std::cerr << "now - RMS:"  << RMSPrev[0][i] << "  ampli:" << m_dAmplitude << std::endl;
+							std::cerr << "best - RMS:" << RMSBest[i]   << "  ampli:" << m_dAmplitudeBest << std::endl;
+							std::cerr << "target RMS:" << RMSTarget[i] << "  out ampli:" << m_dAmplitudeOut << std::endl;
+						}
+					}
+#endif
+					m_iRMSrestarts=0;
+					m_iAmpliConvergences=0;
+					std::fill(RMSBest.begin(), RMSBest.end(), 0.);
+					bRMSUpp = false;
+					bRMSLow = false;
+				}
+			}
+#if HFELEM_COMMENTS == 1
+			std::cerr << "----------" << std::endl << std::endl;
+#endif
+			m_bConverged = true;
+			m_iConvergedPeriod = m_iPeriod;
+		} else if ((m_iPeriod >= m_iMinPeriods) && (m_iMaxPeriods > 0) && (m_iPeriod > m_iMaxPeriods) && (m_NoConvStrategy == NoConv_ABORT)) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): max periods " << m_iMaxPeriods << " exceeded for frequency " << m_dOmega << "; aborting..." << std::endl);
 
-				if (m_dOmega > m_dOmegaMax) {
+			// schedule for termination!
+			m_bDone = true;
+		}
+
+		if(m_bConverged && m_iPeriod == m_iConvergedPeriod+m_iWritePeriodsAfterConvergence && !m_bDone){ // update omega
+			m_dOmegaOut = m_dOmega;
+			m_iOmegaCnt++;
+
+			m_iPeriod = 0;
+			m_iConvergedPeriod = 0;
+
+			switch (m_OmegaInc) {
+			case Inc_ADDITIVE:
+				m_dOmega += m_dOmegaAddInc;
+				break;
+
+			case Inc_MULTIPLICATIVE:
+				m_dOmega *= m_dOmegaMulInc;
+				break;
+
+			case Inc_CUSTOM:
+				if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
 					// schedule for termination!
 					m_bDone = true;
 				}
+				m_dOmega = m_Omega[m_iOmegaCnt];
+				break;
 
-				m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
-				if (m_dDeltaT > m_dMaxDeltaT) {
-					m_iNumSubSteps = std::ceil(m_dDeltaT / m_dMaxDeltaT);
-					m_dDeltaT /= m_iNumSubSteps;
-				} else {
-					m_iNumSubSteps = 1;
-				}
-				std::cerr << m_iNumSubSteps << " " << m_dDeltaT << std::endl;
+			default:
+				// impossible
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-			} else if ((m_iMaxPeriods > 0) && (m_iPeriod > m_iMaxPeriods) && (m_NoConvStrategy == NoConv_ABORT)) {
-				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): max periods " << m_iMaxPeriods << " exceeded for frequency " << m_dOmega << "; aborting..." << std::endl);
-
+			if (m_dOmega > m_dOmegaMax) {
 				// schedule for termination!
 				m_bDone = true;
 			}
+			if (bRMSTestTarget) {
+				for (unsigned i = 0; i < m_Input.size(); ++i) {
+					if (m_Input[i].m_Flag & HFInput::HF_TARGET) {
+						RMSTarget[i]=m_pDC_RMSTarget[i]->dGet(m_dOmega);
+					}
+				}
+			}
+
+			m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
+			if(m_pDC_MaxDeltaT)
+				m_dMaxDeltaT = m_pDC_MaxDeltaT->dGet(m_dOmega);
+			else
+				m_dMaxDeltaT = m_dDeltaT;
+			if (m_dDeltaT > m_dMaxDeltaT) {
+				m_iNumSubSteps = std::ceil(m_dDeltaT / m_dMaxDeltaT);
+                if(((m_dDeltaT/m_dMaxDeltaT)-std::floor(m_dDeltaT/m_dMaxDeltaT))<m_dTimestepsCompareTol && ((m_dDeltaT/m_dMaxDeltaT)/std::floor(m_dDeltaT/m_dMaxDeltaT)-1.0)>0.0)
+					m_iNumSubSteps -= 1;
+				m_dDeltaT /= m_iNumSubSteps;
+			} else {
+				m_iNumSubSteps = 1;
+			}
+#if HFELEM_COMMENTS == 1
+			if(m_dOmega>0 && !m_bDone)
+				std::cerr << "omega: " << m_dOmega << " | DeltaT0: " << (2*M_PI/m_dOmega)/m_iN << " | MaxDeltaT: " << m_dMaxDeltaT << " | substeps: " << m_iNumSubSteps << " | DeltaT: " << m_dDeltaT << std::endl;
+#endif
+			m_bConverged = false;
 		}
+
+		if ((m_iPeriodOut!=0 && m_iPeriod == 0) || (m_bPrintAllPeriods && m_pDM->dGetTime()>m_dTInit)){
+			m_bShouldBeOutput=true;
+			m_iWriteAfterConvergenceCount=1;
+        	}
 	}
 }
 
@@ -1066,6 +1374,9 @@ HarmonicForcingElem::iGetPrivDataIdx(const char *s) const
 
 	} else if (strcmp(s, "count") == 0) {
 		return Priv_COUNT;
+
+	} else if (strcmp(s, "output") == 0) {
+		return Priv_OUTPUT;
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1092,6 +1403,9 @@ HarmonicForcingElem::dGetPrivData(unsigned int i) const
 
 	case Priv_COUNT:
 		return doublereal(m_iOmegaCnt);
+
+	case Priv_OUTPUT:
+		return integer(m_bShouldBeOutput);
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
