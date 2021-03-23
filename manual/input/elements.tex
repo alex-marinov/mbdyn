@@ -3773,10 +3773,10 @@ instead.
 
 \subsection{Deformable Axial Joint}
 \label{sec:EL:JOINT:DEFORMABLEAXIAL}
-This joint implements a configuration dependent moment that is exchanged
+This joint implements a configuration (i.e.\ relative motion) dependent moment that is exchanged
 between two nodes about an axis rigidly attached to the first node.
-It is intended to be used in conjunction with another joint that
-constrains the relative rotation between the two nodes about the other axes,
+It is intended to be used in conjunction with another joint (for example a \kw{revolute hinge} or a \kw{total joint})
+that constrains the relative rotation between the two nodes about the other axes,
 although no check is in place.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3792,6 +3792,8 @@ although no check is in place.
         (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
+The relative rotation is assumed to take place about axis 3 in the local reference frame of the joint,
+as defined by \nt{relative\_orientation\_matrix\_1}.
 
 \subsubsection{Private Data}
 The following data are available:
