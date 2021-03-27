@@ -205,6 +205,7 @@ OL_ARG_ENABLE(mbc,[  --enable-mbc            enable MBC - multibody communicatio
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto,[auto yes no legacy netcdf4])dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
+OL_ARG_ENABLE(octave_utils,[  --enable-octave-utils   enable Octave utility functions],no)dnl
 AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile],[
 	ol_with_mkoctfile_exec="$withval"
 ],[ol_with_mkoctfile_exec=mkoctfile])
@@ -798,7 +799,8 @@ dnl
 dnl Enable Octave support <http://www.octave.org/>
 dnl
 use_octave=no
-if test "$ol_enable_octave" != no ; then
+use_octave_utils=no
+if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 	have_mkoctfile=no
       	AC_MSG_CHECKING(for mkoctfile)
    	$ol_with_mkoctfile_exec --help > /dev/null 2>&1
@@ -892,6 +894,14 @@ if test "$ol_enable_octave" != no ; then
 		if test "$ol_enable_octave" = "yes" ; then
 			AC_MSG_ERROR([octave support not available])
 		fi
+	fi
+
+	if test "$ol_enable_octave_utils" = "yes" ; then
+	   if test "$have_octave_oct_h" = "yes" && test "$have_mkoctfile" = "yes"; then
+	     use_octave_utils=yes
+	   else
+	     AC_MSG_ERROR([octave utils support not available])
+	   fi
 	fi
 fi
 
@@ -3711,6 +3721,7 @@ AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
 AM_CONDITIONAL(NEW_METIS_INTERFACE,[test "$new_metis_interface" = yes])
 AM_CONDITIONAL(USE_NETCDF4,[test "$have_libnetcdf4" = yes])
 AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
+AM_CONDITIONAL(USE_OCTAVE_UTILS,[test "$use_octave_utils" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
