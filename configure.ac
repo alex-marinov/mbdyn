@@ -810,9 +810,9 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
 		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/\\\\/\//g'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/\\\\/\//g'`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`:${LD_LIBRARY_PATH}"
+	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
     else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
@@ -896,12 +896,10 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 		fi
 	fi
 
-	if test "$ol_enable_octave_utils" = "yes" ; then
-	   if test "$have_octave_oct_h" = "yes" && test "$have_mkoctfile" = "yes"; then
-	     use_octave_utils=yes
-	   else
-	     AC_MSG_ERROR([octave utils support not available])
-	   fi
+	if test "$have_octave_oct_h" = "yes" && test "$have_mkoctfile" = "yes"; then
+	        use_octave_utils=yes
+	else
+	        AC_MSG_ERROR([octave utils support not available])
 	fi
 fi
 
