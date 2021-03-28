@@ -829,6 +829,9 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 	AC_CHECK_HEADER(octave/toplev.h,[have_octave_toplev_h=yes],[have_octave_toplev_h=no],[
 #include <octave/oct.h>
 		])
+	AC_CHECK_HEADER(octave/interpreter.h,[have_octave_interpreter_h=yes],[have_octave_interpreter_h=no],[
+#include <octave/oct.h>
+		])
 	AC_CHECK_HEADER(octave/octave.h,[have_octave_octave_h=yes],[have_octave_octave_h=no],[
 #include <octave/oct.h>
 		])
@@ -836,6 +839,9 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 	AC_LANG_C
 
 	link_octave="no"
+        have_clean_up_and_exit="no"
+        have_do_octave_atexit="no"
+        
 	if test "$have_octave_oct_h" = "yes" \
 		-a "$have_octave_parse_h" = "yes" \
 		-a "$have_octave_toplev_h" = "yes" \
@@ -881,6 +887,35 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 		OCTAVE_LIBS="$try_LIBS"
 	fi
 
+	if test "$have_octave_oct_h" = "yes" \
+		-a "$have_octave_parse_h" = "yes" \
+		-a "$have_octave_interpreter_h" = "yes" \
+		-a "$have_octave_octave_h" = "yes" \
+		-a "$have_mkoctfile" = "yes" ; \
+	then
+		OCTAVE_INCLUDE="$try_OCTAVE_INCLUDE"
+		save_CPPFLAGS="$CPPFLAGS"
+		save_LIBS="$LIBS"
+		try_LIBS="$try_OCTAVE_LIBS"
+		LIBS="$try_LIBS $LIBS"
+		CPPFLAGS="$CPPFLAGS $OCTAVE_INCLUDE"
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
+#include <octave/oct.h>
+#include <octave/parse.h>
+#include <octave/interpreter.h>
+#include <octave/octave.h>
+			],[
+                        octave::interpreter interpreter;
+                        int status = interpreter.execute();
+                        octave_value_list out = octave::feval ("cos", octave_value(0.), 1);
+			],[link_octave="yes"])
+		AC_LANG_C
+		LIBS="$save_LIBS"
+		CPPFLAGS="$save_CPPFLAGS"
+		OCTAVE_LIBS="$try_LIBS"                        
+	fi
+
 	if test "$link_octave" = yes ; then
 		if test "$have_do_octave_atexit" = yes; then
 			AC_DEFINE(HAVE_DO_OCTAVE_ATEXIT, 1, [define if do_octave_atexit can be used])
@@ -896,8 +931,8 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 		fi
 	fi
 
-	if test "$have_octave_oct_h" = "yes" && test "$have_mkoctfile" = "yes"; then
-	        use_octave_utils=yes
+	if test "$have_octave_oct_h" = "yes" -a "$have_mkoctfile" = "yes"; then
+	        use_octave_utils="yes"
 	else
 	        AC_MSG_ERROR([octave utils support not available])
 	fi
