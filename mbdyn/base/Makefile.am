@@ -151,9 +151,6 @@ shdrive.h \
 shockabsorber.h \
 simentity.cc \
 simentity.h \
-singlestepsol_impl.cc \
-singlestepsol_impl.h \
-singlestepsol_tpl.h \
 sockdrv.cc \
 sockdrv.h \
 socketstreamdrive.cc \

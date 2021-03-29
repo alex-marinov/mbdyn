@@ -172,6 +172,7 @@ protected:
 	DriveOwner m_AlgebraicRho;
 
 	doublereal m_gamma;
+	doublereal m_c2;
 	doublereal m_dRho;
 	doublereal m_dAlgebraicRho;
 
@@ -281,6 +282,8 @@ protected:
 
 	doublereal m_gamma;
 	doublereal m_dRho;
+	doublereal m_c2;
+	doublereal m_c3;
 	doublereal m_dAlgebraicRho;
 
 public:
@@ -389,6 +392,9 @@ protected:
 
 	doublereal m_gamma;
 	doublereal m_dRho;
+	doublereal m_c2;
+	doublereal m_c3;
+	doublereal m_c4;
 	doublereal m_dAlgebraicRho;
 
 public:
