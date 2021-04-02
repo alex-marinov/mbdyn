@@ -44,9 +44,9 @@
 
 #include "mbdyn_ce.h"
 #include "chrono/ChConfig.h"
-#include "chrono_parallel/ChDataManager.h" // for simulation of parallel system, data_manager
-#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h" // for simulation of parallel system, data_manager
+#include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono/physics/ChLinkMotionImposed.h" //for 3-D dimension
 #include "chrono/motion_functions/ChFunctionPosition_line.h"
 #include "chrono/motion_functions/ChFunctionPosition_setpoint.h"
@@ -66,7 +66,7 @@ clock_t startTime,endTime;
 struct timeval start_time, end_time;
 
 extern "C" void
-MBDyn_CE_CEModel_Create(ChSystemParallelNSC *pMBDyn_CE_CEModel);
+MBDyn_CE_CEModel_Create(ChSystemMulticoreNSC *pMBDyn_CE_CEModel);
 
 // extern "C" void
 // MBDyn_CE_CEModel_Create(ChSystem *pMBDyn_CE_CEModel);
@@ -81,7 +81,7 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 	gettimeofday(&start_time, NULL);//get the start time
 	startTime = clock();
 	std::cout << "Initial MBDyn_CE_CEModel pointer:\n";
-	ChSystemParallelNSC *pMBDyn_CE_CEModel = new ChSystemParallelNSC; //- By now, only support ChSystemParallel.
+	ChSystemMulticoreNSC *pMBDyn_CE_CEModel = new ChSystemMulticoreNSC; //- By now, only support ChSystemMulticore.
 	//--------------- create C::E model (defined by user)
 	MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
 	if(pMBDyn_CE_CEModel==NULL)
@@ -278,8 +278,8 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 				std::cout << "\tFrame2G_rot: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().rot << "\n";
 			}
 		}
-#ifdef CHRONO_OPENGL
-//#if 0
+//#ifdef CHRONO_OPENGL
+#if 0
 		opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 		gl_window.Initialize(1280, 720, "Pendulum", pMBDyn_CE_CEModel);
 		gl_window.SetCamera(ChVector<>(-20.89465, 104.58118, 223.05379), 
@@ -302,9 +302,9 @@ MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel_t &pMBDyn_CE_CEModel)
 	if(pMBDyn_CE_CEModel!=NULL)
 	{
 		// must convert to the correct type
-		// void * pointer is transfored to type ChsystemParallelNSC *.(downcast)
-		// ChSystemParallelNSC *temp_pointer = dynamic_cast<ChSystemParallelNSC *> (pMBDyn_CE_CEModel);
-		ChSystemParallelNSC *temp_pointer = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+		// void * pointer is transfored to type ChsystemMulticoreNSC *.(downcast)
+		// ChSystemMulticoreNSC *temp_pointer = dynamic_cast<ChSystemMulticoreNSC *> (pMBDyn_CE_CEModel);
+		ChSystemMulticoreNSC *temp_pointer = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 		if (temp_pointer!=NULL)
 			delete temp_pointer;
 		temp_pointer = NULL;
@@ -326,7 +326,7 @@ bool MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		return false;
 	}
 	std::cout << "CE_models MBDyn_CE_CEModel_InitCheck():\n";
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	//---------- 1. obtain the data from MBDyn;
 	//---------- 2. transfer it to the coordinate in C::E;
 	//---------- 3. check the consistency;
@@ -437,7 +437,7 @@ MBDyn_CE_CEModel_DataSave(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		std::cout << "Error: the C::E model pointer is NULL.\n";
 		return 1;
 	}
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel; 
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel; 
 	//- std::cout << "\t\tCE_models DataSave():\n";
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; //- +1 Chtime: Sys_size=body_size + 1(for time);
@@ -508,7 +508,7 @@ MBDyn_CE_CEModel_DataReload(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		return 1;
 	}
 	//- std::cout << "\t\tCE_models DataReload():\n";
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	unsigned int tempsys_bodies_size = tempsys->Get_bodylist().size();
 	unsigned int tempsys_size = (3 * 3 + 3 * 4) * tempsys_bodies_size + 1; //- +1 Chtime: Sys_size=body_size + 1(for time);
 	unsigned int vector_size = MBDyn_CE_CEModel_Data.size();
@@ -567,7 +567,7 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 		return 1;
 	}
 	//- std::cout << "\t\tCE_models DoStepDynamics():\n";
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	if (bMBDyn_CE_Verbose)
 	{
 		std::cout << "\tC::E model before integration:\n";
@@ -636,8 +636,8 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			}
 		}
 	}
-#ifdef CHRONO_OPENGL 
-//#if 0
+//#ifdef CHRONO_OPENGL 
+#if 0
 	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 	if (!gl_window.Active())
 	{
@@ -757,7 +757,7 @@ bool bMBDyn_CE_Verbose)
 		return 1;
 	}
 	//- std::cout << "\t\tCE_models RecvFromMBDyn():\n";
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	//---------- 1. obtain the data;
 	//---------- 2. transfer it to the coordinate in C::E;
 	//---------- 3. update motor functions;
@@ -1071,7 +1071,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 		return 1;
 	}
 	//- std::cout << "\t\tCE_models SendToMBDyn():\n";
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel;
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	//- obtain the transform matrix
 	ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pMBDyn_CE_CEFrame[3], pMBDyn_CE_CEFrame[6], pMBDyn_CE_CEFrame[9]);
@@ -1117,7 +1117,7 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 				mbdynce_ce_force_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(contact_forc);
 				mbdynce_ce_torque_G=mbdynce_temp_frameMG_calcu.TransformDirectionLocalToParent(contact_torq);
 				mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_force_G);
-				mbdynce_mbdyn_force = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_torque_G);
+				mbdynce_mbdyn_torque = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(mbdynce_ce_torque_G);
 			}
 		}
 		//- write in the buffer
@@ -1152,7 +1152,7 @@ MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		std::cout << "Error: the C::E model pointer is NULL.\n";
 		return 1;
 	}
-	ChSystemParallelNSC *tempsys = (ChSystemParallelNSC *)pMBDyn_CE_CEModel; // static_cast?
+	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel; // static_cast?
 	//- std::cout << "\t\tCE_models DataSave():\n";
 	unsigned int tempsys_couplingbodies_size = MBDyn_CE_CEModel_Label.size();
 	double time = tempsys->GetChTime();

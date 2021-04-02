@@ -39,12 +39,10 @@
 #include <iostream>
 #include <cfloat>
 #include <vector>
-
 #include "elem.h"
 #include "strnode.h"
 #include "dataman.h"
 #include "userelem.h"
-
 #include "module-chrono-interface.h"
 #include "mbdyn_ce.h"
 
@@ -347,7 +345,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			}
 
 			//----- write Chrono data to file, or not;
-			MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = false;								   //- by default: not output;
+			MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = false; //- by default: no output;
 			if (HP.IsKeyWord("output"))
 			{
 				if (HP.IsKeyWord("yes"))

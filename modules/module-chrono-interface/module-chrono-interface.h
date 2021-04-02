@@ -56,9 +56,6 @@ temporary variables: mbdynce_xxx (eg. mbdynce_point)
 
 #include "mbdyn_ce.h" // interfaces functions to C::E;
 
-
-
-
 /* start class ChronoInterfaceBaseELem: a base class*/
 // functions: refer to "/base/extforce.h" class ExtForce;
 // functions that introduces methods to handle the simulation ("bsae/simentity.h")
