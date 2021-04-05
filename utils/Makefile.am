@@ -85,7 +85,7 @@ noinst_PROGRAMS += \
 ncprint
 endif
 
-if USE_OCTAVE
+if USE_OCTAVE_UTILS
 noinst_PROGRAMS += \
 mbdyn_util_oct.oct
 endif
@@ -209,7 +209,7 @@ Mbfem/node3.h
 ncprint_SOURCES = ncprint.cc
 
 mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
-if USE_OCTAVE
+if USE_OCTAVE_UTILS
 OCTAVE_XINCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
 OCTAVE_XLIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
 OCTAVE_XFUNCS = \
@@ -299,7 +299,7 @@ AM_CPPFLAGS = \
 %.so: %.o
 	$(CXXLINK) -shared -o $@ $<
 
-if USE_OCTAVE
+if USE_OCTAVE_UTILS
 PKG_NAME:=mbdyn_util_oct
 COPYRIGHT:=pierangelo.masarati@polimi.it
 PKG_AUTHOR:=mbdyn-user@a1.net

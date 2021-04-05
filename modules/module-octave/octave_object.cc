@@ -294,12 +294,18 @@ namespace oct {
 	default:
             panic_impossible();
 	}
-
+        
+#if OCTAVE_MAJOR_VERSION < 6
 	if ( !error_state && idx.size() > skip )
 	{
             retval = retval(0).next_subsref(type, idx, skip);
 	}
-
+#else
+        if ( idx.size() > skip )
+	{
+            retval = retval(0).next_subsref(type, idx, skip);
+	}
+#endif
 	return retval;
     }
 
