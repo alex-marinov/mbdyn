@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2019) all rights reserved.
+        Copyright (C) 2011(-2021) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -921,19 +921,19 @@ OctaveInterface::~OctaveInterface(void)
         TRACE("destructor");
 
         ASSERT(this == pOctaveInterface);
+
 #if !(OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION > 4)
-  octave_exit = &OctaveInterface::exit;
+        octave_exit = &OctaveInterface::exit;
+#elif OCTAVE_MAJOR_VERSION < 5
+#if defined(HAVE_DO_OCTAVE_ATEXIT)
+        do_octave_atexit();
+#elif defined(HAVE_CLEAN_UP_AND_EXIT)
+        clean_up_and_exit(0, true);
+#endif        
+#elif OCTAVE_MAJOR_VERSION >= 6
+        interpreter.shutdown();
 #endif
 
-#if OCTAVE_MAJOR_VERSION < 5
-#if defined(HAVE_DO_OCTAVE_ATEXIT)
-  do_octave_atexit();
-#elif defined(HAVE_CLEAN_UP_AND_EXIT)
-  clean_up_and_exit(0, true);
-#else
-#warning "do_octave_atexit() and clean_up_and_exit() are not defined"
-#endif
-#endif
         pOctaveInterface = 0;
 }
 
