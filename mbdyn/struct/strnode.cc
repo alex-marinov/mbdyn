@@ -2674,6 +2674,14 @@ StructNode::BeforePredict(VectorHandler& X,
 	qXPPr[0]->Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*WPrev);
 #endif
 
+if (qXPr.size() == 1 && qXPPr.size() > qXPr.size()){
+	// For ssn, omegaI, instead of gPI, is solved and strored in the intermeidta variables XPI.
+	// One reason is that we only have gPI, but not have the corresponding gI of the intermediate variables;
+	// The other reason is that gI should be very close to g==0 of last step, so gpI should be very close to OmegaI.
+	qXPPr[0]->Put(iFirstPos + 4, *qWPrev[0]);
+}
+else
+{
 	ASSERT(qRPrev.size() >= qXPr.size() - 1);
 	for (unsigned i = 0; i < qXPr.size() - 1; i++) {
 		/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
@@ -2692,6 +2700,7 @@ StructNode::BeforePredict(VectorHandler& X,
 		 * e' consistente */
 		qXPPr[i]->Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*(*qWPrev[i]));
 	}
+}
 
 #if 0
 	std::cout
