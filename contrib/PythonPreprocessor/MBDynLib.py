@@ -61,6 +61,7 @@ else:
 declared_ConstMBVars = {}
 declared_IfndefMBVars = {}
 declared_MBVars = {}
+dimension_multiplier = 1 # allows setting a global multiplier on the used dimensions
 
 MBDynLib_simplify = True
 
@@ -381,6 +382,54 @@ class ConstMBVar(MBVar):
         #self.do_declare = False
         declared_ConstMBVars[self.name] = self
 
+class DimMult():
+    def __init__(self, value):
+        global dimension_multiplier
+        dimension_multiplier = value
+
+class MBPlacement():
+    def __init__(self, postName, preName, values): # values is a tuple of format (x, y, z, a, b, c) with Euler123 being a,b,c (a,b,c are optional)
+		# preName and postName are intended to allow declaring names where pre is where the vector starts and post is the vectors endpoint to which this placement applies
+        # preName and postName are given in inverse order to match the reference frame definition where first comes the name of the new ref frame and then the name of the "origin" reference
+        posVals = tuple([dimension_multiplier*x for x in values[0:3]])
+        rotVals = values[3:6]
+        self.values = posVals + rotVals
+        self.nameList = []
+        midLetter = ('x', 'y', 'z', 'a', 'b', 'c')
+        for iP in range(len(values)):
+            self.nameList.append(preName + midLetter[iP] + postName)
+            if iP < 3:
+                MBVar(self.nameList[iP], 'const real', self.values[iP])
+            else:
+                MBVar(self.nameList[iP], 'const real', self.values[iP])
+    # ~ def __str__(self):
+        # ~ return self.nameList # to define
+                
+
+class MBIntList():
+    def __init__(self, VarList, postfix='!'):
+        for i in VarList:
+            for char in postfix:
+                if char == '!': # if given exclamation mark use the name as is
+                    MBVar(i, 'const integer', VarList[i])
+                else: # use other postfix letters, with the same value as the main variable
+                    MBVar(i + char, 'const integer', VarList[i])
+
+class MBIntAutoList():
+    def __init__(self, VarList, firstValue, postfix='!'):
+        for i, word in enumerate(VarList):
+            if firstValue < 0:
+                for char in postfix:
+                    if char == '!': # if given exclamation mark use the name as is
+                        MBVar(word, 'const integer', -firstValue)
+                    else:
+                        MBVar(word+char, 'const integer', -firstValue)
+            else:
+                for char in postfix:
+                    if char == '!': # if given exclamation mark use the name as is
+                        MBVar(word, 'const integer', firstValue+i)
+                    else:
+                        MBVar(word+char, 'const integer', firstValue+i)
 
 class IfndefMBVar(MBVar):
     def __init__(self, name, var_type, value):
@@ -416,34 +465,38 @@ class Position:
         return (self.reference == '') and isinstance(self.relative_position[0], null)
     def iseye(self):
         return (self.reference == '') and isinstance(self.relative_position[0], eye)
+        
+class Reference:
+    def __init__(self, idx, ref='global', pos='null', orient='eye', vel='null', angular_vel='null'):
+        self.idx = idx
+        if isinstance(pos, MBPlacement):
+            self.position = 'reference, ' + ref + ', ' + str(pos.nameList[0]) + ', ' + str(pos.nameList[1]) + ', ' + str(pos.nameList[2])
+        else:
+            self.position = 'reference, ' + ref + ', ' + pos
+        if isinstance(orient, MBPlacement):
+            self.orientation = 'reference, ' + ref + ', euler123, degrees, ' + str(orient.nameList[3]) + ', ' + str(orient.nameList[4]) + ', ' + str(orient.nameList[5]) # can be made into oneliner loop?
+        else:
+            self.orientation = 'reference, ' + ref + ', ' + orient
+        self.velocity = 'reference, ' + ref + ', ' + vel
+        self.angular_velocity = 'reference, ' + ref + ', ' + angular_vel
+    def __str__(self):
+        s = 'reference: ' + str(self.idx) + ',\n'
+        s = s + '\t' + str(self.position) + ',\n'
+        s = s + '\t' + str(self.orientation) + ',\n'
+        s = s + '\t' + str(self.velocity) + ',\n'
+        s = s + '\t' + str(self.angular_velocity) + ';\n'
+        return s
+        
+# ~class RefReference(Reference): # refer all to a single reference frame
+    # ~def __init__(self, idx, ref='global', pos='null', orient='eye', vel='null', angular_vel='null'):
+        # ~Reference.__init__(self, idx, 'reference, ' + ref + ', ' + pos, \
+            # ~'reference, ' + ref + ', ' + orient, \
+            # ~'reference, ' + ref + ', ' + vel, \
+            # ~'reference, ' + ref + ', ' + angular_vel)
 
 class Node:
     def __init__(self, idx, pos, orient, vel, angular_vel, node_type = 'dynamic',
             scale = 'default', output = 'yes'):
-        assert isinstance(pos, Position), (
-            '\n-------------------\nERROR:' + 
-            ' the initial position of a node must be ' +  
-            ' an instance of the Position class;' + 
-            '\n-------------------\n')
-        assert isinstance(orient, Position), (
-            '\n-------------------\nERROR:' + 
-            ' the initial orientation of a node must be ' +  
-            ' an instance of the Position class;' + 
-            '\n-------------------\n')
-        assert isinstance(vel, Position), (
-            '\n-------------------\nERROR:' + 
-            ' the initial velocity of a node must be ' +  
-            ' an instance of the Position class;' + 
-            '\n-------------------\n')
-        assert isinstance(angular_vel, Position), (
-            '\n-------------------\nERROR:' + 
-            ' the initial angular velocity of a node must be ' +  
-            ' an instance of the Position class;' + 
-            '\n-------------------\n')
-        assert node_type in ('dynamic', 'static',), (
-            '\n-------------------\nERROR:' + 
-            ' unrecognised or unsupported node type;' + 
-            '\n-------------------\n')
         self.idx = idx
         self.position = pos
         self.orientation = orient
@@ -464,6 +517,22 @@ class Node:
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
         return s
+
+class StaticRefNode(Node): # refer all to a single reference frame
+    def __init__(self, idx, ref, pos='null', orient='eye', vel='null', angular_vel='null'):
+        Node.__init__(self, idx, 'reference, ' + ref + ', ' + pos, \
+            'reference, ' + ref + ', ' + orient, \
+            'reference, ' + ref + ', ' + vel, \
+            'reference, ' + ref + ', ' + angular_vel, \
+            'static')
+
+class DynamicRefNode(Node): # refer all to a single reference frame
+    def __init__(self, idx, ref, pos='null', orient='eye', vel='null', angular_vel='null'):
+        Node.__init__(self, idx, 'reference, ' + ref + ', ' + pos, \
+            'reference, ' + ref + ', ' + orient, \
+            'reference, ' + ref + ', ' + vel, \
+            'reference, ' + ref + ', ' + angular_vel, \
+            'dynamic')
 
 class DynamicNode(Node):
     def __init__(self, idx, pos, orient, vel, angular_vel):
@@ -517,16 +586,6 @@ class PointMass:
 class Body:
     def __init__(self, idx, node, mass, position, inertial_matrix, inertial = null,
             output = 'yes'):
-        assert isinstance(position, Position), (
-            '\n-------------------\nERROR:' +
-            ' in defining a body, the center of mass relative position ' + 
-            ' mass must be an instance of the Position class;' + 
-            '\n-------------------\n')
-        assert isinstance(inertial_matrix, list), (
-            '\n-------------------\nERROR:' + 
-            ' in defining a body, the inertial matrix' + 
-            ' must be a list;' + 
-            '\n-------------------\n')
         self.idx = idx
         self.node = node
         self.mass = mass
@@ -600,6 +659,159 @@ class StructuralForce:
         s = s + ';\n'
         return s
 
+class AxialRot:
+    def __init__(self, idx, nodes, positions, \
+            orientations, angularVel_drive,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining an axial rot. joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.angularVel_drive = angularVel_drive
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', axial rotation'
+        for (node, pos, orient) in zip(self.nodes, self.positions,
+                self.orientations):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+            s = s + ',\n\t\torientation, ' + str(orient)
+        s = s + ',\n\t'+str(self.angularVel_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class DeformDisp:
+    def __init__(self, idx, nodes, positions, \
+            orientations, const_law,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a deformable disp. joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.const_law = const_law
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', deformable displacement joint'
+        for (node, pos, orient) in zip(self.nodes, self.positions,
+                self.orientations):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+            s = s + ',\n\t\torientation, ' + str(orient)
+        s = s + ',\n\t'+str(self.const_law)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class RodJoint:
+    def __init__(self, idx, nodes, positions, \
+            rod_length, const_law,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a rod joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.rod_length = rod_length
+        self.const_law = const_law
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', rod'
+        for (node, pos) in zip(self.nodes, self.positions):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+        s = s + ',\n\t'+str(self.rod_length)
+        s = s + ',\n\t'+str(self.const_law)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+        
+class DistJoint:
+    def __init__(self, idx, nodes, positions, \
+            dist_drive,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a distance joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.dist_drive = dist_drive
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', distance'
+        for (node, pos) in zip(self.nodes, self.positions):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+        s = s + ',\n\t'+str(self.dist_drive)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class RevHinge: ## must complete for other options...
+    def __init__(self, idx, nodes, positions, \
+            orientations,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining an rev. hinge joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', revolute hinge'
+        for (node, pos, orient) in zip(self.nodes, self.positions,
+                self.orientations):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+            s = s + ',\n\t\torientation, ' + str(orient)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+        
+class SphereHinge: ## must complete for other options...
+    def __init__(self, idx, nodes, positions, \
+            orientations,
+            output = 'yes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining an spherical hinge joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', spherical hinge'
+        for (node, pos, orient) in zip(self.nodes, self.positions,
+                self.orientations):
+            s = s + ',\n\t' + str(node)
+            s = s + ',\n\t\tposition, ' + str(pos)
+            s = s + ',\n\t\torientation, ' + str(orient)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
 
 class StructuralInternalForce:
     def __init__(self, idx, nodes, ftype, positions, force_drive, 
@@ -752,60 +964,30 @@ class TotalJoint:
             position_constraints, orientation_constraints, \
             position_drive, orientation_drive,
             output = 'yes'):
-        assert isinstance(nodes, list), (
-            '\n-------------------\nERROR:' + 
-            ' in defining a total joint, the' +
-            ' nodes must be given in a list' + 
-            '\n-------------------\n')
         assert len(nodes) == 2, (
             '\n-------------------\nERROR:' + 
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes' + '\n-------------------\n')
-        assert isinstance(positions, list), (
-            '\n-------------------\nERROR:' + 
-            ' in defining a total joint, the' +
-            ' relative positions must be given in a list' + 
-            '\n-------------------\n')    
         assert len(nodes) == len(positions), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
-            '\n-------------------\n')
-        assert isinstance(position_orientations, list), (
-            '\n-------------------\nERROR:' + 
-            ' in defining a total joint, the' +
-            ' relative position orientations must be given in a list' + 
             '\n-------------------\n')
         assert len(nodes) == len(position_orientations), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions_orientations)) + ' position orientations;\n' +
             '\n-------------------\n')
-        assert isinstance(rotation_orientations, list), (
-            '\n-------------------\nERROR:' + 
-            ' in defining a total joint, the' +
-            ' relative rotation orientations must be given in a list' + 
-            '\n-------------------\n')
         assert len(nodes) == len(rotation_orientations), (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' + str(len(nodes)) +
             ' nodes and ' + str(len(rotation_orientations)) + ' rotation orientations;\n' +
-            '\n-------------------\n')
-        assert isinstance(position_constraints, list), (
-            '\n-------------------\nERROR:' +
-            ' in defining a total joint, ' 
-            ' position constraints must be given as a list;' + 
             '\n-------------------\n')
         assert len(position_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' +
             str(len(position_constrains)) + ' position constraints;\n' +
             '\n-------------------\n')
-        assert isinstance(orientation_constraints, list), (
-            '\n-------------------\nERROR:' +
-            ' in defining a total joint, ' 
-            ' orientation constraints must be given as a list;' + 
-            '\n-------------------\n')    
         assert len(orientation_constraints) == 3, (
             '\n-------------------\nERROR:' +
             ' defining a total joint with ' +

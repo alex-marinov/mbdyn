@@ -75,6 +75,7 @@ bodies = []
 joints = []
 shells = []
 beams = []
+refs = []
 
 class PreProc:
     def __init__(self, echo):
