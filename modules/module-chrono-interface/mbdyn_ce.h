@@ -61,17 +61,17 @@ extern "C" {
     //- Body in Chrono >>>>> Body i (Marker i);
     //- constraint connects Marker i and Marker Ground;
     //- constraints are described in Marker i local ref. 
-    struct MBDYN_CE_CEMODELDATA
-    {
-        unsigned MBDyn_CE_CEBody_Label;
-        unsigned MBDyn_CE_CEMotor_Label;
-        bool bMBDyn_CE_CEBody_Output;
-        bool bMBDyn_CE_Constraint[6];              //- position and rotation constraints, expresed in node local ref.
-        double MBDyn_CE_CEBody_Offset[3];          //- relative position between constraints (Marker i) and C::E body, expressed in C::E body ref.
-        double MBDyn_CE_CEBody_Rh[9]; //- relative rotation between constraints and MBDyn Node, expressed in node ref.
+struct MBDYN_CE_CEMODELDATA
+{
+    unsigned MBDyn_CE_CEBody_Label;
+    unsigned MBDyn_CE_CEMotor_Label;
+    bool bMBDyn_CE_CEBody_Output;
+    bool bMBDyn_CE_Constraint[6];              //- position and rotation constraints, expresed in node local ref.
+    double MBDyn_CE_CEBody_Offset[3];          //- relative position between constraints (Marker i) and C::E body, expressed in C::E body ref.
+    double MBDyn_CE_CEBody_Rh[9]; //- relative rotation between constraints and MBDyn Node, expressed in node ref.
 };
 
-//- 0: loose interface
+    //- 0: loose interface
     //- 1: tight coupling
     //- >1: exchange every iCoupling iterations // TO DO
 enum MBDyn_CE_COUPLING
@@ -85,24 +85,30 @@ enum MBDyn_CE_COUPLING
 
 enum MBDyn_CE_COUPLING_LOOSE
 {
-    TIGHT = 0, //- meaningless
-    LOOSE_EMBEDDED = 1,
-    LOOSE_JACOBIAN = 2,
-    LOOSE_GAUSS = 3,
+    TIGHT = 0,           //- meaningless
+    LOOSE_EMBEDDED = 1,  //- Embedded function method
+    LOOSE_JACOBIAN = 2,  //- Jacobian/parallel type
+    LOOSE_GAUSS = 3,     //- Guass/serial type
 };
 
 enum MBDyn_CE_CEMOTORTYPE
 {
-    POSITION = 0,
-    VELOCITY = 1,
-    ACCELERATION = 2,
-    ORIGIN=3, // uses x_k and v_k+1
+    POSITION = 0,     //- uses x_{k+1,P}
+    VELOCITY = 1,     //- uses x_{k+1,P}/time_step + \beta*v_{k+1,P}
+    ACCELERATION = 2, //- uses \alpha*x_{k+1,P} + \beta*v_{k+1,P} + \gamma*a_{k}
+    ORIGIN=3,         //- uses x_k and v_k+1
 };
 
 enum MBDyn_CE_CEFORCETYPE
 {
-    REACTION_FORCE = 0,
-    CONTACT_FORCE = 1,
+    REACTION_FORCE = 0,  //- using reaction forces as coupling forces (coupled by constraints)
+    CONTACT_FORCE = 1,   //- using contact forces as coupling forces (coupled by anytype, but using coupling forces acting on the coupling bodies)
+};
+
+enum MBDYN_CE_OUTPUTTYPE
+{
+    MBDYN_CHRONO_OUTPUT_ALLBODIES = 0,              //- outputing kinematic data of all bodies in chrono
+    MBDYN_CHRONO_OUTPUT_SELECTEDCOUPLINGBODIES = 1, //- outputing kinematic data of selected coupling bodies in chrono
 };
 
 //- opaque pointer to C::E system
@@ -171,7 +177,7 @@ int
 MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, 
                     const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
                     double *pMBDyn_CE_CEFrame,  const double* MBDyn_CE_CEScale,
-                    std::ostream & out);
-
+                    std::ostream & out,
+                    int MBDyn_CE_OutputType);
 }
 #endif //- MBDYN_CE_H

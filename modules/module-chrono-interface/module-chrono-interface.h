@@ -44,9 +44,10 @@ temporary variables: mbdynce_xxx (eg. mbdynce_point)
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <iostream>
+#include <fstream>
 #include <cfloat>
 #include <vector>
+#include <string>
 
 #include "elem.h"
 #include "strnode.h"
@@ -102,8 +103,9 @@ protected:
     Converged MBDyn_CE_CEModel_Converged;  //- denote whether the coupling variables are converged
     bool bMBDyn_CE_CEModel_DoStepDynamics; //- detect whether CEModel is needed to be simulated and sends back data
     bool bMBDyn_CE_FirstSend;      //- whether the current residual is the first or not..
-    bool bMBDyn_CE_Verbose; //- whether C::E codes print the solution process at each iteration. 
-    bool bMBDyn_CE_Output; //- whether to output C::E bodies' data
+    bool bMBDyn_CE_Verbose; //- whether C::E codes print the solution process at each iteration.
+    int MBDyn_CE_OutputType; //- type of outputs
+    mutable std::ofstream MBDyn_CE_out_forces; //- ofstream for outputing coupling forces.
 
 public:
     pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel = NULL;

@@ -65,11 +65,31 @@ using namespace chrono::collision;
 clock_t startTime,endTime;
 struct timeval start_time, end_time;
 
+//---------------------------------------------------------------------------------------
+//---------------------functions used in Chrono subsystem--------------------------------
+//---------------------------------------------------------------------------------------
+
 extern "C" void
 MBDyn_CE_CEModel_Create(ChSystemMulticoreNSC *pMBDyn_CE_CEModel);
 
-// extern "C" void
-// MBDyn_CE_CEModel_Create(ChSystem *pMBDyn_CE_CEModel);
+
+
+//---------------------------------------------------------------------------------------
+//---------------------functions used in this script-------------------------------------
+//---------------------------------------------------------------------------------------
+
+//- write data of one body to files
+void
+mbdynce_writebody2files(const ChFrame<> & temp_frame,        //- expressed in this frame
+                        std::shared_ptr<ChBody> temp_body,   //- body
+                        std::ostream & out,                  
+                        const double* temp_scale);           //- scale
+
+
+
+//---------------------------------------------------------------------------------------
+//---------------------functions used in MBDyn module------------------------------------
+//---------------------------------------------------------------------------------------
 
 extern "C" pMBDyn_CE_CEModel_t MBDyn_CE_CEModel_Init
 (std::vector<double> & MBDyn_CE_CEModel_Data, //- all body infor in C::E Model for saving data and reloading data to restart C::E step (used in tight co-simulation)
@@ -1145,7 +1165,8 @@ MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 					const std::vector<MBDYN_CE_CEMODELDATA> & MBDyn_CE_CEModel_Label,
 					double *pMBDyn_CE_CEFrame,  
 					const double* MBDyn_CE_CEScale,
-					std::ostream & out)
+					std::ostream & out,
+					int MBDyn_CE_OutputType)
 {
 	if (pMBDyn_CE_CEModel==NULL)
 	{
@@ -1164,15 +1185,27 @@ MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 	//- write data to files
-//- #pragma omp parallel for
-	/*for (unsigned int i = 0; i < tempsys_couplingbodies_size; i++)
+	if (MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_SELECTEDCOUPLINGBODIES)
 	{
-		if (MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output)
+		for (unsigned int i = 0; i < tempsys_couplingbodies_size; i++)
 		{
-			auto temp_body = tempsys->SearchBodyID(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label);
-			const ChVector<>& body_pos = temp_body->GetPos(); // 3
-			const ChQuaternion<> &body_rot = temp_body->GetRot();   // 4
-			const ChVector<> &body_pos_dt = temp_body->GetPos_dt(); // 3
+			if (MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output)
+			{
+				auto temp_body = tempsys->SearchBodyID(MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label);
+				mbdynce_writebody2files(mbdynce_temp_frameMBDyn, temp_body, out, MBDyn_CE_CEScale);
+			}
+		}
+	}
+	// output all bodies in C::E
+	else if (MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_ALLBODIES)
+	{
+		for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
+		{
+			auto temp_body = tempsys->Get_bodylist()[i];
+			mbdynce_writebody2files(mbdynce_temp_frameMBDyn, temp_body, out, MBDyn_CE_CEScale);
+			/*const ChVector<> &body_pos = temp_body->GetPos();			// 3
+			const ChQuaternion<> &body_rot = temp_body->GetRot();		// 4
+			const ChVector<> &body_pos_dt = temp_body->GetPos_dt();		// 3
 			const ChVector<> &body_Wvel_par = temp_body->GetWvel_par(); // 3
 			const ChVector<> &body_pos_dtdt = temp_body->GetPos_dtdt(); // 3
 			const ChVector<> &body_Wacc_par = temp_body->GetWacc_par(); // 3
@@ -1186,42 +1219,46 @@ MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 			ChVector<> out_body_Wacc_par = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(body_Wacc_par);
 			double degtorad = 180.0 / CH_C_PI;
 
-			out << MBDyn_CE_CEModel_Label[i].MBDyn_CE_CEBody_Label << " "
+			out << temp_body->GetIdentifier() << " "
 				<< out_body_pos.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos.z() / MBDyn_CE_CEScale[0] << " "
 				<< out_body_rot.z() * degtorad << " " << out_body_rot.y() * degtorad << " " << out_body_rot.x() * degtorad << " "
 				<< out_body_pos_dt.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dt.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dt.z() / MBDyn_CE_CEScale[0] << " "
 				<< out_body_Wvel_par.x() << " " << out_body_Wvel_par.y() << " " << out_body_Wvel_par.z() << " "
 				<< out_body_pos_dtdt.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dtdt.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dtdt.z() / MBDyn_CE_CEScale[0] << " "
-				<< out_body_Wacc_par.x() << " " << out_body_Wacc_par.y() << " " << out_body_Wacc_par.z() << "\n";
+				<< out_body_Wacc_par.x() << " " << out_body_Wacc_par.y() << " " << out_body_Wacc_par.z() << "\n";*/
 		}
-	}*/
-	// output all bodies in C::E
-	for (unsigned i = 0; i < tempsys->Get_bodylist().size(); i++)
-	{
-		auto temp_body = tempsys->Get_bodylist()[i];
-		const ChVector<> &body_pos = temp_body->GetPos();			// 3
-		const ChQuaternion<> &body_rot = temp_body->GetRot();		// 4
-		const ChVector<> &body_pos_dt = temp_body->GetPos_dt();		// 3
-		const ChVector<> &body_Wvel_par = temp_body->GetWvel_par(); // 3
-		const ChVector<> &body_pos_dtdt = temp_body->GetPos_dtdt(); // 3
-		const ChVector<> &body_Wacc_par = temp_body->GetWacc_par(); // 3
-
-		ChVector<> out_body_pos = mbdynce_temp_frameMBDyn.TransformParentToLocal(body_pos);
-		ChQuaternion<> out_body_rot_temp = body_rot >> (mbdynce_temp_frameMBDyn.GetInverse());
-		ChVector<> out_body_rot = out_body_rot_temp.Q_to_Euler123();
-		ChVector<> out_body_pos_dt = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(body_pos_dt);
-		ChVector<> out_body_Wvel_par = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(body_Wvel_par);
-		ChVector<> out_body_pos_dtdt = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(body_pos_dtdt);
-		ChVector<> out_body_Wacc_par = mbdynce_temp_frameMBDyn.TransformDirectionParentToLocal(body_Wacc_par);
-		double degtorad = 180.0 / CH_C_PI;
-
-		out << temp_body->GetIdentifier() << " "
-			<< out_body_pos.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos.z() / MBDyn_CE_CEScale[0] << " "
-			<< out_body_rot.z() * degtorad << " " << out_body_rot.y() * degtorad << " " << out_body_rot.x() * degtorad << " "
-			<< out_body_pos_dt.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dt.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dt.z() / MBDyn_CE_CEScale[0] << " "
-			<< out_body_Wvel_par.x() << " " << out_body_Wvel_par.y() << " " << out_body_Wvel_par.z() << " "
-			<< out_body_pos_dtdt.x() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dtdt.y() / MBDyn_CE_CEScale[0] << " " << out_body_pos_dtdt.z() / MBDyn_CE_CEScale[0] << " "
-			<< out_body_Wacc_par.x() << " " << out_body_Wacc_par.y() << " " << out_body_Wacc_par.z() << "\n";
-	}
+	}	
 	return 0;
+}
+
+//- write data of one body to files
+void
+mbdynce_writebody2files(const ChFrame<> & temp_frame,
+                        std::shared_ptr<ChBody> temp_body, 
+                        std::ostream & out,
+                        const double* temp_scale)
+{
+	const ChVector<> &body_pos = temp_body->GetPos();			// 3
+	const ChQuaternion<> &body_rot = temp_body->GetRot();		// 4
+	const ChVector<> &body_pos_dt = temp_body->GetPos_dt();		// 3
+	const ChVector<> &body_Wvel_par = temp_body->GetWvel_par(); // 3
+	const ChVector<> &body_pos_dtdt = temp_body->GetPos_dtdt(); // 3
+	const ChVector<> &body_Wacc_par = temp_body->GetWacc_par(); // 3
+
+	ChVector<> out_body_pos = temp_frame.TransformParentToLocal(body_pos);
+	ChQuaternion<> out_body_rot_temp = body_rot >> (temp_frame.GetInverse());
+	ChVector<> out_body_rot = out_body_rot_temp.Q_to_Euler123();
+	ChVector<> out_body_pos_dt = temp_frame.TransformDirectionParentToLocal(body_pos_dt);
+	ChVector<> out_body_Wvel_par = temp_frame.TransformDirectionParentToLocal(body_Wvel_par);
+	ChVector<> out_body_pos_dtdt = temp_frame.TransformDirectionParentToLocal(body_pos_dtdt);
+	ChVector<> out_body_Wacc_par = temp_frame.TransformDirectionParentToLocal(body_Wacc_par);
+	double degtorad = 180.0 / CH_C_PI;
+
+	out << temp_body->GetIdentifier() << " "
+		<< out_body_pos.x() / temp_scale[0] << " " << out_body_pos.y() / temp_scale[0] << " " << out_body_pos.z() / temp_scale[0] << " "
+		<< out_body_rot.z() * degtorad << " " << out_body_rot.y() * degtorad << " " << out_body_rot.x() * degtorad << " "
+		<< out_body_pos_dt.x() / temp_scale[0] << " " << out_body_pos_dt.y() / temp_scale[0] << " " << out_body_pos_dt.z() / temp_scale[0] << " "
+		<< out_body_Wvel_par.x() << " " << out_body_Wvel_par.y() << " " << out_body_Wvel_par.z() << " "
+		<< out_body_pos_dtdt.x() / temp_scale[0] << " " << out_body_pos_dtdt.y() / temp_scale[0] << " " << out_body_pos_dtdt.z() / temp_scale[0] << " "
+		<< out_body_Wacc_par.x() << " " << out_body_Wacc_par.y() << " " << out_body_Wacc_par.z() << "\n";
 }

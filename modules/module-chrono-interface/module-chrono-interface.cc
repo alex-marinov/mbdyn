@@ -36,7 +36,8 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <cfloat>
 #include <vector>
 #include "elem.h"
@@ -60,14 +61,43 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
-"									\n"
-"Module: 	module-chrono-interface						\n"
-"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
-"		Politecnico di Milano					\n"
-"		http://www.aero.polimi.it/				\n"
-"									\n"
-"	All rights reserved						\n"
-"user defined, ID, ... \n"
+			"									\n"
+			"Module: 	module-chrono-interface						\n"
+			"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
+			"		Politecnico di Milano					\n"
+			"		http://www.aero.polimi.it/				\n"
+			"Author: Runsen Zhang, Andrea Zanoin, and Pierangelo Masarati	\n"
+			"Supported: Google Summer of Code 2020						\n"
+			"Description: this module is designed to dynamically link MBDyn with the multibody dynamics c++ libraries: Project Chrono (http://projectchrono.org/)\n"
+			"Usage: \n"
+			"<elem_type> ::= user defined \n"
+			"<user_defined_type> ::=ChronoInterface \n"
+			"<ChronoInterface_arglist> ::= <cosimulation_platform>, \n"
+			"                              <coupling_variables>, \n"
+			"                              <coupling_bodies>, \n"
+			"                              <other_settings>; \n"
+			"1. <cosimulation_platform> ::= coupling, {none | <loose_coupling> | <tight_coupling> }, \n"
+			"                               <loose_coupling> ::= loose, {embedded | jacobian | gauss}}, \n"
+			"                               <tight_coupling> ::= tight, (int) <num_iterations>, {tolerance, (real) <tolerance>}, \n"
+			"2. <coupling_variables>    ::= [force type, {reaction | contact}], \n"
+			"                               [motor type, {pos | vel | [acc, (real) <alpha>, (real) <beta>, (real) <gamma>] | origin}], \n"
+			"                               [length scale, (real) <length_scale>], [mass scale, (real) <math_scale>], \n"
+			"3. <coupling_bodies>       ::= nodes numeber, (int) <num_coupling_nodes>, \n" 
+			"                               <mbdyn_nodes_info>, <chrono_bodies_info>, [<coupling_constraint>], [<chbody_output>] \n" 
+			"                               ...\n"
+			"                               <chrono_ground>\n"
+			"                               <mbdyn_nodes_info>     ::= mbdyn node, (int) <node_label>,\n" 
+			"                                                          [offset, (Vec3) <offset_coupling_point>, rotation, (Mat3x3) <relative_orientation>], \n"
+			"                               <chorno_bodies_info>   ::= chrono body, (int) <chbody_label>, \n"
+			"                                                          [offset, (Vec3) <offset_coupling_point>], \n"
+			"                               <coupling_constraints> ::= [position constraint, (int) <bool_x>, (int) <bool_y>, (int) <bool_z>], \n"
+			"                                                          [rotation constraint, (int) <bool_x>, (int) <bool_y>, (int) <bool_z>], \n"
+			"                               <chbody_output>        ::= [output chbody, {yes | no}], \n"
+			"                               <chrono_ground>        ::= ground, (int) <chbody_label>, \n"
+			"                                                          [position, (Vec3) <absolute position>], \n"
+			"                                                          [orientation, (Mat3x3) <absolute_rotation>], [<chbody_output>],\n"
+			"4. <other_settings>        ::= [output all chbodies], [coupling forces filename, (filename) <filename>], [verbose]\n"
+			"-------------------------------------------------start simulation-------------------------------------------------\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -80,7 +110,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	
 	/* read information from script - start*/
 
-	//--------------- read the coupling type
+	//--------------- 1. <cosimulation_platform> ------------------------
     MBDyn_CE_CouplingIter_Count=0;
 	MBDyn_CE_Coupling_Tol = 1.0e-3; // by default, tolerance == 1.0e-6;
 	MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_NONE;
@@ -90,6 +120,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_NONE;
 			MBDyn_CE_CouplingIter_Max = 0;
 		}
+		//--------------- <loose_coupling> ---------------
 		else if (HP.IsKeyWord("loose"))
 		{
 			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_LOOSE;
@@ -115,6 +146,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
+		//--------------- <tight_coupling> ---------------
 		else if (HP.IsKeyWord("tight"))
 		{
 			MBDyn_CE_CouplingType = MBDyn_CE_COUPLING::COUPLING_TIGHT;
@@ -141,6 +173,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	//--------------- 2. <coupling_variables> ------------------------
 	//--------------- read the force type: transformed contact forces or reaction forces acting on the C::E coupling bodies
 	MBDyn_CE_CEForceType = MBDyn_CE_CEFORCETYPE::REACTION_FORCE; //- by default, using the reaction force 
 	if (HP.IsKeyWord("force" "type"))
@@ -159,7 +192,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}	
 	}
-
 	//--------------- read the motor type	
 	MBDyn_CE_CEMotorType = MBDyn_CE_CEMOTORTYPE::VELOCITY; //- by default, using the position motor 
 	if (HP.IsKeyWord("motor" "type"))
@@ -193,15 +225,25 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}	
 	}
-
-
-	//--------------- read the coupling data
-	//---------- default coupling data
-	//----- scale
+	//--------------- read the scale type	
 	MBDyn_CE_CEScale[0] = 1.0; //- default value for length scale
 	MBDyn_CE_CEScale[1] = 1.0; //- default value for mass scale
 	MBDyn_CE_CEScale[2] = 1.0; //- default value for force scaleforce scale
 	MBDyn_CE_CEScale[3] = 1.0; //- default value for torque scalemoment scale
+	if (HP.IsKeyWord("length" "scale"))
+	{
+		MBDyn_CE_CEScale[0] = HP.GetReal();		   //- legnth scale
+		MBDyn_CE_CEScale[1] = MBDyn_CE_CEScale[0]; //- if not mentioned, mass scale = length scale;
+	}
+	if (HP.IsKeyWord("mass" "scale"))
+	{
+		MBDyn_CE_CEScale[1] = HP.GetReal(); //- mass scale
+	}
+	MBDyn_CE_CEScale[2] = MBDyn_CE_CEScale[1] * MBDyn_CE_CEScale[0]; //- force scale
+	MBDyn_CE_CEScale[3] = MBDyn_CE_CEScale[2] * MBDyn_CE_CEScale[0]; //- moment scale
+
+	//--------------- 3. <coupling_bodies> ------------------------
+	//---------- default coupling data
 	//----- nodes number
 	MBDyn_CE_NodesNum = 0;
 	//----- C::E ground reference
@@ -222,19 +264,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	//---------- values obtained from scripts
 	if (MBDyn_CE_CouplingType >= -1) //- if coupled.
 	{
-		//----- read the scale: units relationship between MBDyn and C::E;
-		if (HP.IsKeyWord("length" "scale"))
-		{
-			MBDyn_CE_CEScale[0] = HP.GetReal();		   //- legnth scale
-			MBDyn_CE_CEScale[1] = MBDyn_CE_CEScale[0]; //- if not mentioned, mass scale = length scale;
-		}
-		if (HP.IsKeyWord("mass" "scale"))
-		{
-			MBDyn_CE_CEScale[1] = HP.GetReal(); //- mass scale
-		}
-		MBDyn_CE_CEScale[2] = MBDyn_CE_CEScale[1] * MBDyn_CE_CEScale[0]; //- force scale
-		MBDyn_CE_CEScale[3] = MBDyn_CE_CEScale[2] * MBDyn_CE_CEScale[0]; //- moment scale
-
 		//----- read the numerb of coupling nodes
 		if (HP.IsKeyWord("nodes" "number"))
 		{
@@ -252,10 +281,10 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 		MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].MBDyn_CE_CEBody_Label = 0;	   //- ID of C::E ground in C::E model =0;
 		MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].MBDyn_CE_CEMotor_Label = 0;	   //- No motion is imposed to Ground;
 		MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = false; //- Output: no.
-		bMBDyn_CE_Output = false;
 		//----- reading information of coupling nodes
 		for (int i = 0; i < MBDyn_CE_NodesNum; i++)
 		{
+			//---------------  <mbdyn_nodes_info> ---------------
 			if (HP.IsKeyWord("mbdyn" "node"))
 			{
 				MBDyn_CE_Nodes[i].pMBDyn_CE_Node = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP); //- pointer to nodes in MBDyn model;
@@ -297,7 +326,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			MBDyn_CE_Nodes[i].MBDyn_CE_M = Zero3;
 			MBDyn_CE_Nodes[i].MBDyn_CE_uLabel = MBDyn_CE_Nodes[i].pMBDyn_CE_Node->GetLabel(); //- node label (MBDyn).
 
-			//----- get coupling bodies in the C::E model, bodies' ID;
+			//---------------  <chrono_bodies_info> ---------------
 			if (HP.IsKeyWord("chrono" "body"))
 			{
 				MBDyn_CE_Nodes[i].MBDyn_CE_CEBody_Label = HP.GetInt();									   //- bodies' ID, recorded in MBDyn;
@@ -344,9 +373,9 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				}
 			}
 
-			//----- write Chrono data to file, or not;
+			//----- write Chrono coupling bodies' data to file, or not;
 			MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = false; //- by default: no output;
-			if (HP.IsKeyWord("output"))
+			if (HP.IsKeyWord("output" "chbody"))
 			{
 				if (HP.IsKeyWord("yes"))
 					MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output = true;
@@ -360,9 +389,8 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
-			bMBDyn_CE_Output = (bMBDyn_CE_Output || MBDyn_CE_CEModel_Label[i].bMBDyn_CE_CEBody_Output);
 		}
-		//----- read C::E ground information (the ground frame in C::E is fixed to the ground frame in MBDyn).
+		//---------------  <mbdyn_ground_info> ---------------
 		if (HP.IsKeyWord("ground"))
 		{
 			MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].MBDyn_CE_CEBody_Label = HP.GetInt(); //- the ID of the ground body in C::E
@@ -377,8 +405,9 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			{
 				mbdyn_ce_ref_R_Mat3x3 = HP.GetRotAbs(mbdynce_ce_ref); //- get C::E ground orietation information
 			}
+			//- write chrono ground's motion, or not.
 			MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = false; // by default: not output
-			if (HP.IsKeyWord("output"))
+			if (HP.IsKeyWord("output" "chbody"))
 			{
 				if (HP.IsKeyWord("yes"))
 					MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output = true;
@@ -392,7 +421,6 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
-			bMBDyn_CE_Output = (bMBDyn_CE_Output || MBDyn_CE_CEModel_Label[MBDyn_CE_NodesNum].bMBDyn_CE_CEBody_Output);
 			//- save the ref Vec3 in double [] (can also use functions: void MBDyn_CE_Vec3D() and  void MBDyn_CE_Mat3x3D());
 			for (unsigned i = 0; i < 3; i++)
 			{
@@ -408,21 +436,38 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 				mbdyn_ce_ref_R[i] = (mbdyn_ce_ref_R_Mat3x3.pGetMat())[i];
 			}
 		}
-		}
+	}
 
-	//---------- other information
+	//--------------- 4. <other_settings> ------------------------
+	//----- whether to output kinematics of all bodies
+	MBDyn_CE_OutputType = MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_SELECTEDCOUPLINGBODIES; //- by default: output seleected coupling bodies in chrono
+	if (HP.IsKeyWord("output" "all" "chbodies"))
+	{
+		MBDyn_CE_OutputType = MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_ALLBODIES; //- output all bodies in chrono
+	}
+	//----- output information about coupling forces;
+	if (HP.IsKeyWord("coupling" "forces" "filename"))
+	{
+		const char *MBDyn_CE_Output_Filename = HP.GetFileName();
+		if (MBDyn_CE_Output_Filename==NULL)
+		{
+			silent_cerr("ChronoInterface(" << uLabel << "): unable to get file name for coupling forces " <<
+			" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		MBDyn_CE_out_forces.open(MBDyn_CE_Output_Filename);
+		if (!MBDyn_CE_out_forces.is_open())
+		{
+			silent_cerr("ChronoInterface(" << uLabel << "): unable to open" << MBDyn_CE_Output_Filename <<
+			" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 	//----- printf information in screen ? 
 	bMBDyn_CE_Verbose = false;
 	if (HP.IsKeyWord("verbose"))
 	{
-		if(HP.IsKeyWord("yes"))
-		{
-			bMBDyn_CE_Verbose = true;
-		}
-		else if (HP.IsKeyWord("no"))
-		{
-			// do nothing
-		}
+		bMBDyn_CE_Verbose = true;
 	}
 	/* read information from script - end*/
 	
@@ -984,19 +1029,40 @@ void
 ChronoInterfaceBaseElem::Output(OutputHandler& OH) const
 {
 	pedantic_cout("\tMBDyn::Output()\n");
-	if (bMBDyn_CE_Output)
-	{
+	//- output the motion of chrono bodies in LOADABLE files
+	// if (bToBeOutput())
+	// {
 		if (!OH.IsOpen(OutputHandler::OutFiles::LOADABLE))
 		{
 			OH.Open(OutputHandler::OutFiles::LOADABLE);
 		}
 		std::ostream & mbdynce_cebody_output=OH.Loadable();
-		if(MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Label, pMBDyn_CE_CEFrame, MBDyn_CE_CEScale, mbdynce_cebody_output))
+		if(MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Label, pMBDyn_CE_CEFrame, MBDyn_CE_CEScale, mbdynce_cebody_output,MBDyn_CE_OutputType))
 		{
 			silent_cerr("ChronoInterface(" << uLabel << ") data writting process is wrong " << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-	}
+		if (MBDyn_CE_out_forces)
+		{
+			for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++) 
+			{
+				const MBDYN_CE_POINTDATA& point = MBDyn_CE_Nodes[i];
+				const MBDYN_CE_CEMODELDATA &ce_body = MBDyn_CE_CEModel_Label[i];
+				Vec3 temp_moment = point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr() * point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F);
+				if (ce_body.bMBDyn_CE_CEBody_Output || MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_ALLBODIES)
+				{
+					MBDyn_CE_out_forces << std::setw(8) << point.MBDyn_CE_uLabel
+										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i]
+										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 1]
+										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 2]
+										<< std::setw(16) << temp_moment.pGetVec()[0] //pMBDyn_CE_CouplingDynamic_m[3 * i]
+										<< std::setw(16) << temp_moment.pGetVec()[1] //pMBDyn_CE_CouplingDynamic_m[3 * i + 1]
+										<< std::setw(16) << temp_moment.pGetVec()[2] //pMBDyn_CE_CouplingDynamic_m[3 * i + 2]
+										<< std::endl;
+				}
+			}
+		}
+	//}
 }
 
 std::ostream&
