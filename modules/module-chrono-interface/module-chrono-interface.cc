@@ -62,11 +62,11 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
 			"									\n"
-			"Module: 	module-chrono-interface						\n"
-			"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
+			"Module: 	module-chrono-interface					\n"
+			"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
 			"		Politecnico di Milano					\n"
 			"		http://www.aero.polimi.it/				\n"
-			"Author: Runsen Zhang, Andrea Zanoin, and Pierangelo Masarati	\n"
+			"Author: Runsen Zhang, Andrea Zanoni, and Pierangelo Masarati	\n"
 			"Supported: Google Summer of Code 2020						\n"
 			"Description: this module is designed to dynamically link MBDyn with the multibody dynamics c++ libraries: Project Chrono (http://projectchrono.org/)\n"
 			"Usage: \n"
