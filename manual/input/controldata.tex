@@ -58,6 +58,17 @@ See the directives \kw{use} in Section~\ref{sec:CONTROLDATA:USE}
 and \kw{initial stiffness} in Section~\ref{sec:CONTROLDATA:INITIALSTIFFNESS}
 for more details on performing appropriate initial joint assembly.
 
+\subsection{Initial Assembly of Deformable and Force Elements}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{initial assembly of deformable and force elements} ;
+\end{Verbatim}
+%\end{verbatim}
+This directive enables the initial assembly of deformable and force elements.
+Previous MBDyn versions used to assemble them by default, while they should not 
+really cotribute to the intitial assembly.
+As a backward-incompatible change they do no more contribute to the initial assembly,
+but the previous behavior can be recovered back with this flag.
 
 
 \subsection{Use}\label{sec:CONTROLDATA:USE}

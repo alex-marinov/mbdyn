@@ -76,6 +76,7 @@ extern "C" {
 extern void SetDrvHdl(DriveHandler*);
 
 const bool bDefaultInitialJointAssemblyToBeMade(false);
+const bool bNotDeformableInitial(true);
 const bool bDefaultSkipInitialJointAssembly(false);
 const doublereal dDefaultInitialStiffness = 1.;
 const bool bDefaultOmegaRotates(false);

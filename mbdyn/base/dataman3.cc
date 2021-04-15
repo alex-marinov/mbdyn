@@ -115,6 +115,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		"loadable" "path",
 
 		"skip" "initial" "joint" "assembly",
+		"initial" "assembly" "of" "deformable" "and" "force" "elements",
 		"use",
 		"in" "assembly",
 		"initial" "stiffness",
@@ -207,6 +208,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		LOADABLEPATH,
 
 		SKIPINITIALJOINTASSEMBLY,
+		INITIALASSEMBLYOFDEFORMABLEANDFORCEELEMENTS,
 		USE,
 		INASSEMBLY,
 		INITIALSTIFFNESS,
@@ -585,6 +587,11 @@ DataManager::ReadControl(MBDynParser& HP,
 		case SKIPINITIALJOINTASSEMBLY: {
 			bSkipInitialJointAssembly = true;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Skipping initial joint assembly" << std::endl);
+		} break;
+
+		case INITIALASSEMBLYOFDEFORMABLEANDFORCEELEMENTS: {
+			bNotDeformableInitial = false;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Enabling initial joint assembly of deformable elements and of forces" << std::endl);
 		} break;
 
 		/* Uso di diversi tipi di elementi nell'assemblaggio iniziale */

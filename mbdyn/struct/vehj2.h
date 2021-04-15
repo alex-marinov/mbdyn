@@ -98,6 +98,11 @@ public:
 
 	/* Distruttore */
 	virtual ~DeformableDispJoint(void);
+    
+	/* Deformable element */
+	virtual bool bIsDeformable() {
+		return true;
+	};
 
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {

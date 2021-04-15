@@ -286,12 +286,14 @@ public:
 /* ElemWithDofs - end */
 
 
-/* SubjectToInitialAssembly - begin */
+/* InitialAssemblyElem - begin */
 
-class SubjectToInitialAssembly {
+class InitialAssemblyElem
+: virtual public Elem {
 public:
-	SubjectToInitialAssembly(void);
-	virtual ~SubjectToInitialAssembly(void);
+	InitialAssemblyElem(unsigned int uL, flag fOut);
+
+	virtual ~InitialAssemblyElem(void);
 
 	/* Numero di gradi di liberta' definiti durante l'assemblaggio iniziale
 	 * e' dato dai gradi di liberta' soliti piu' le loro derivate necessarie;
@@ -317,18 +319,13 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr) = 0;
-};
 
-/* SubjectToInitialAssembly - end */
-
-
-/* InitialAssemblyElem - begin */
-
-class InitialAssemblyElem
-: virtual public Elem, public SubjectToInitialAssembly {
-public:
-	InitialAssemblyElem(unsigned int uL, flag fOut);
-	virtual ~InitialAssemblyElem(void);
+	/* Hack:
+	   deformable elements may have InitialAssembly for historical reasons,
+	   but should really not contribute to InitialAssembly;
+	   this methods allows to identify them
+	*/
+	virtual bool bIsDeformable();
 };
 
 /* InitialAssemblyElem - end */

@@ -730,7 +730,7 @@ DataManager::InitialJointAssembly(void)
 					e != ElemData[iCnt1].ElemContainer.end(); ++e)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(e->second);
-					if (pEl == 0) {
+					if (pEl == 0 || (bNotDeformableInitial && pEl->bIsDeformable())) {
 						/* Ignore elements
 						 * not subjected
 						 * to initial assembly */
@@ -881,7 +881,7 @@ DataManager::InitialJointAssembly(void)
 					++p)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
-					if (pEl == 0) {
+					if (pEl == 0 || (bNotDeformableInitial && pEl->bIsDeformable())) {
 						/* Ignore elements
 						 * not subjected
 						 * to initial assembly */
@@ -1139,7 +1139,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Elementi (con iteratore): */
 		pEl = IAIter.GetFirst();
-		while (pEl != NULL) {
+		while (pEl != NULL && !(bNotDeformableInitial && pEl->bIsDeformable())) {
 			try {
 				*pResHdl += pEl->InitialAssRes(WorkVec, X);
 			}
@@ -1299,7 +1299,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo degli elementi */
 		pEl = IAIter.GetFirst();
-		while (pEl != NULL) {
+		while (pEl != NULL && !(bNotDeformableInitial && pEl->bIsDeformable())) {
 			*pMatHdl += pEl->InitialAssJac(WorkMat, X);
 			pEl = IAIter.GetNext();
 		}
