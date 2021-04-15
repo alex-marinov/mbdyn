@@ -355,6 +355,11 @@ protected:
     virtual Elem::Type GetElemType(void) const {
         return Elem::BEAM;
     };
+    
+    /* Deformable element */
+    virtual bool bIsDeformable() {
+        return true;
+    };
 
     /* Contributo al file di restart */
     virtual std::ostream& Restart(std::ostream& out) const;

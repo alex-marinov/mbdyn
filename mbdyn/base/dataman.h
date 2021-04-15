@@ -114,6 +114,7 @@ protected:
 
 	/* Parametri usati durante l'assemblaggio iniziale */
 	bool bInitialJointAssemblyToBeDone;
+	bool bNotDeformableInitial;
 	bool bSkipInitialJointAssembly;
 	bool bOutputFrames;
 	bool bOutputAccels;

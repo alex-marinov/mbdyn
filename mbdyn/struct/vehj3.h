@@ -120,6 +120,11 @@ public:
 	virtual Joint::Type GetJointType(void) const {
 		return Joint::DEFORMABLEJOINT;
 	};
+    
+	/* Deformable element */
+	virtual bool bIsDeformable() {
+		return true;
+	};
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
