@@ -2004,11 +2004,21 @@ SineCosineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, boo
 	doublereal dInitialTime = HP.GetReal();
 	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
 
-	doublereal dOmega = HP.GetReal(1.);
+	doublereal dOmega;
+	try {
+		dOmega = HP.GetReal(1., HighParser::range_gt<doublereal>(0));
+	} catch (HighParser::ErrValueOutOfRange<doublereal>& e) {
+		silent_cerr("error: invalid frequency " << e.Get() << " (must be positive " << e.what() << " at line " << HP.GetLineData() << std::endl);
+		throw e;
+	}
 	DEBUGCOUT("Omega: " << dOmega << std::endl);
 
 	doublereal dAmplitude = HP.GetReal();
 	DEBUGCOUT("Amplitude: " << dAmplitude << std::endl);
+	if (dAmplitude == 0.) {
+		const char *sc = bSine ? "sine" : "cosine";
+		silent_cerr("warning, amplitude == 0 in " << sc << " drive caller at line " << HP.GetLineData() << std::endl);
+	}
 
 	integer iNumCycles;
 	if (HP.IsKeyWord("forever")) {
