@@ -39,7 +39,6 @@
 */
 
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#include <iostream>
 
 #ifdef USE_OCTAVE
 
@@ -5845,8 +5844,7 @@ mbdyn_octave_set(void)
                 return false;
         }
 #else
-        pedantic_cerr("warning: MBDyn has been configured without octave support\n"
-                                  "warning: module-octave is not available in this version of MBDyn" << std::endl);
+        #error "Trying to build module_octave, but MBDyn was not configured with --enable-octave"
 #endif
 
         // Return true also if USE_OCTAVE is not enabled
