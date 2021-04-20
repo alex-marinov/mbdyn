@@ -39,6 +39,7 @@
 */
 
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include <iostream>
 
 #ifdef USE_OCTAVE
 
@@ -1398,7 +1399,8 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
                 silent_cerr("module-octave: Octave interpreter exited with status "
                             << err.exit_status() << std::endl);
                 throw NoErr(MBDYN_EXCEPT_ARGS);
-        } catch (const octave::execution_exception& err) {
+        } catch (const std::exception& err) {
+                silent_cerr("Exception in Octave function \"" << func << "\": " << err.what() << "\n");
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 #else

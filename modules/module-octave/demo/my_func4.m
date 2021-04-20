@@ -45,6 +45,7 @@ function y = my_func4(t, pDM)
     persistent pNode1 = pDM.GetStructNode(int32(1));
     persistent MBDYN_VERSION = pDM.GetVersion();
 
+    pkg load mbdyn_util_oct;
     %printf("mboct: MBDyn version %s\n", MBDYN_VERSION);
     %disp(typeinfo(pDM));
 

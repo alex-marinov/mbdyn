@@ -310,7 +310,7 @@ mbdyn_util_oct.o: mbdyn_util_oct.cc
 	$(OCTAVE_MKOCTFILE) $(OCTAVE_XINCLUDE) -c -o $@ $<
 
 mbdyn_util_oct.oct: mbdyn_util_oct.o
-	$(OCTAVE_MKOCTFILE) -o $@ $< $(OCTAVE_XLIBS)
+	$(OCTAVE_MKOCTFILE) -o $@ $< $(OCTAVE_XLIBS) $(OCTAVE_LIBS)
 
 # workaround for Cygwin and MinGW
 mbdyn_util_oct.oct.exe: mbdyn_util_oct.oct
