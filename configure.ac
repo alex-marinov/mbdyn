@@ -209,6 +209,9 @@ OL_ARG_ENABLE(octave_utils,[  --enable-octave-utils   enable Octave utility func
 AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile],[
 	ol_with_mkoctfile_exec="$withval"
 ],[ol_with_mkoctfile_exec=mkoctfile])
+AC_ARG_WITH(octave-cli,[ --with-octave-cli=exec-path Octave command line interpreter],[
+        ol_with_octave_cli_exec="$withval"
+],[ol_with_octave_cli_exec=""])
 OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
 OL_ARG_ENABLE(sparse_autodiff, [  --enable-sparse_autodiff                enable automatic differentiation based on sparse algorithms],no)dnl
@@ -420,6 +423,7 @@ PYTHON_NUMPY_HEADERS=
 OCTAVE_LIBS=
 OCTAVE_INCLUDE=
 OCTAVE_MKOCTFILE=
+OCTAVE_CLI=
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
@@ -801,6 +805,9 @@ dnl
 use_octave=no
 use_octave_utils=no
 if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
+        if ! test -z "${ol_with_octave_cli_exec}"; then
+           OCTAVE_CLI="${ol_with_octave_cli_exec}"
+        fi
 	have_mkoctfile=no
       	AC_MSG_CHECKING(for mkoctfile)
    	$ol_with_mkoctfile_exec --help > /dev/null 2>&1
@@ -810,10 +817,19 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
 		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
-    else
+                try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} -Wl,-rpath=`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+                OCTAVE_EXEC_HOME=`${OCTAVE_MKOCTFILE} -p OCTAVE_EXEC_HOME | sed 's/C\:/\/c/g;s/\\\\/\//g'`
+                if test -z "${OCTAVE_CLI}"; then
+                   if test -d "${OCTAVE_EXEC_HOME}" && test -f "${OCTAVE_EXEC_HOME}/bin/octave-cli"; then
+                      OCTAVE_CLI="${OCTAVE_EXEC_HOME}/bin/octave-cli"
+                   fi
+                fi
+        else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
     	try_OCTAVE_INCLUDE=
@@ -936,6 +952,10 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
 	else
 	        AC_MSG_ERROR([octave utils support not available])
 	fi
+
+        if test -z "${OCTAVE_CLI}"; then
+           OCTAVE_CLI=octave-cli
+        fi
 fi
 
 if test "$ol_enable_autodiff" != no || test "$ol_enable_sparse_autodiff" != no; then
@@ -3733,6 +3753,7 @@ AC_SUBST(PYTHON_NUMPY_HEADERS)
 AC_SUBST(OCTAVE_LIBS)
 AC_SUBST(OCTAVE_INCLUDE)
 AC_SUBST(OCTAVE_MKOCTFILE)
+AC_SUBST(OCTAVE_CLI)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 AC_SUBST(wl)

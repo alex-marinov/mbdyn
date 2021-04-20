@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2019) all rights reserved.
+        Copyright (C) 2011(-2021) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -39,6 +39,7 @@
 */
 
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include <iostream>
 
 #ifdef USE_OCTAVE
 
@@ -921,19 +922,19 @@ OctaveInterface::~OctaveInterface(void)
         TRACE("destructor");
 
         ASSERT(this == pOctaveInterface);
+
 #if !(OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION > 4)
-  octave_exit = &OctaveInterface::exit;
+        octave_exit = &OctaveInterface::exit;
+#elif OCTAVE_MAJOR_VERSION < 5
+#if defined(HAVE_DO_OCTAVE_ATEXIT)
+        do_octave_atexit();
+#elif defined(HAVE_CLEAN_UP_AND_EXIT)
+        clean_up_and_exit(0, true);
+#endif        
+#elif OCTAVE_MAJOR_VERSION >= 6
+        interpreter.shutdown();
 #endif
 
-#if OCTAVE_MAJOR_VERSION < 5
-#if defined(HAVE_DO_OCTAVE_ATEXIT)
-  do_octave_atexit();
-#elif defined(HAVE_CLEAN_UP_AND_EXIT)
-  clean_up_and_exit(0, true);
-#else
-#warning "do_octave_atexit() and clean_up_and_exit() are not defined"
-#endif
-#endif
         pOctaveInterface = 0;
 }
 
@@ -1398,7 +1399,8 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
                 silent_cerr("module-octave: Octave interpreter exited with status "
                             << err.exit_status() << std::endl);
                 throw NoErr(MBDYN_EXCEPT_ARGS);
-        } catch (const octave::execution_exception& err) {
+        } catch (const std::exception& err) {
+                silent_cerr("Exception in Octave function \"" << func << "\": " << err.what() << "\n");
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 #else
@@ -5843,8 +5845,7 @@ mbdyn_octave_set(void)
                 return false;
         }
 #else
-        pedantic_cerr("warning: MBDyn has been configured without octave support\n"
-                                  "warning: module-octave is not available in this version of MBDyn" << std::endl);
+        #error "Trying to build module_octave, but MBDyn was not configured with --enable-octave"
 #endif
 
         // Return true also if USE_OCTAVE is not enabled
