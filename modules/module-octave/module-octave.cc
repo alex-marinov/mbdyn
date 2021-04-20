@@ -39,6 +39,7 @@
 */
 
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include <iostream>
 
 #ifdef USE_OCTAVE
 
