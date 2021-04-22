@@ -153,6 +153,30 @@ The syntax of the 3 degrees of freedom point mass motion structural node is
 \end{Verbatim}
 %\end{verbatim}
 
+When a node's initial configuration is coincident with that of a single reference, instead of the \kw{position}, \kw{orientation}, \kw{velocity}, and \kw{angular velocity} one can respectively use
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
+        \kw{at reference} , \bnt{reference_label}
+            [ , \kw{orientation description} , \bnt{orientation_description} ]
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness}
+          , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
+\end{Verbatim}
+%\end{verbatim}
+or
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
+        \kw{at reference} , \bnt{reference_label}
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness} ]
+\end{Verbatim}
+%\end{verbatim}
+
+
 The stiffness parameters and the \nt{omega\_rotates?} flag
 override the default values optionally set by the \kw{initial stiffness}
 and \kw{omega rotates} keywords in the \kw{control data} block. 
