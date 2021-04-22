@@ -4347,49 +4347,69 @@ ReadStructNode(DataManager* pDM,
 			bDisp = true;
 		}
 
-		/* posizione (vettore di 3 elementi) */
-		if (!HP.IsKeyWord("position")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-		Vec3 X0(HP.GetPosAbs(::AbsRefFrame));
-		DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
-
-		/* sistema di riferimento (trucco dei due vettori) */
+		Vec3 X0;
 		Mat3x3 R0;
-		if (!bDisp) {
-			if (!HP.IsKeyWord("orientation")) {
-				pedantic_cerr("StructNode(" << uLabel << "): "
-					"missing keyword \"orientation\" at line "
-					<< HP.GetLineData() << std::endl);
-			}
-			R0 = HP.GetRotAbs(::AbsRefFrame);
-
-			od = ReadOptionalOrientationDescription(pDM, HP);
-
-			DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
-		}
-
-		/* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
-		 * di usare "null" per porli uguali a zero) */
-		if (!HP.IsKeyWord("velocity")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"velocity\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-		Vec3 XPrime0(HP.GetVelAbs(::AbsRefFrame, X0));
-		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
-
+		Vec3 XPrime0;
 		Vec3 Omega0;
-		if (!bDisp) {
-			if (!HP.IsKeyWord("angular" "velocity")) {
+
+		if (HP.IsKeyWord("at" "reference")) {
+			ReferenceFrame rf;
+			HP.GetRefByLabel(rf);
+
+			X0 = rf.GetX();
+			XPrime0 = rf.GetV();
+
+			if (!bDisp) {
+				od = ReadOptionalOrientationDescription(pDM, HP);
+
+				R0 = rf.GetR();
+				Omega0 = rf.GetW();
+			}
+
+		} else {
+
+			/* posizione (vettore di 3 elementi) */
+			if (!HP.IsKeyWord("position")) {
 				pedantic_cerr("StructNode(" << uLabel << "): "
-					"missing keyword \"angular velocity\" at line "
+					"missing keyword \"position\" at line "
 					<< HP.GetLineData() << std::endl);
 			}
-			Omega0 = HP.GetOmeAbs(::AbsRefFrame);
-			DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
+			X0 = HP.GetPosAbs(::AbsRefFrame);
+			DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
+
+			/* sistema di riferimento (trucco dei due vettori) */
+			if (!bDisp) {
+				if (!HP.IsKeyWord("orientation")) {
+					pedantic_cerr("StructNode(" << uLabel << "): "
+						"missing keyword \"orientation\" at line "
+						<< HP.GetLineData() << std::endl);
+				}
+				R0 = HP.GetRotAbs(::AbsRefFrame);
+
+				od = ReadOptionalOrientationDescription(pDM, HP);
+
+				DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
+			}
+
+			/* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
+			 * di usare "null" per porli uguali a zero) */
+			if (!HP.IsKeyWord("velocity")) {
+				pedantic_cerr("StructNode(" << uLabel << "): "
+					"missing keyword \"velocity\" at line "
+					<< HP.GetLineData() << std::endl);
+			}
+			XPrime0 = HP.GetVelAbs(::AbsRefFrame, X0);
+			DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
+
+			if (!bDisp) {
+				if (!HP.IsKeyWord("angular" "velocity")) {
+					pedantic_cerr("StructNode(" << uLabel << "): "
+						"missing keyword \"angular velocity\" at line "
+						<< HP.GetLineData() << std::endl);
+				}
+				Omega0 = HP.GetOmeAbs(::AbsRefFrame);
+				DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
+			}
 		}
 
 		const StructNode *pRefNode = 0;
