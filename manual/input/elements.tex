@@ -2810,6 +2810,77 @@ and \kw{derivative}.
 The initialization of the derivative only makes sense when the filter
 is in descriptor form.
 
+\paragraph{Example.} \
+To model a 2nd order Butterworth filter of equation
+\begin{equation}
+	H\plbr{s} = \frac{
+		1
+	}{
+		\plbr{\cfrac{s}{\omega_c}}^2
+		+ \sqrt{2}\plbr{\cfrac{s}{\omega_c}}
+		+ 1
+	}
+	\label{eq:scalar-filter}
+\end{equation}
+i.e.
+\begin{subequations}
+\begin{align}
+	\cubr{\cvvect{
+		\dot{x}_1
+		\\
+		\dot{x}_2
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		0 & 1
+		\\
+		-\omega_c^2 & -\sqrt{2} \omega_c
+	}}
+	\cubr{\cvvect{
+		x_1
+		\\
+		x_2
+	}}
+	+
+	\sqbr{\cvvect{
+		0
+		\\
+		1
+	}}
+	u
+	\\
+	y
+	&=
+	\sqbr{\matr{cc}{
+		\omega_c^2 & 0
+	}}
+	\cubr{\cvvect{
+		x_1
+		\\
+		x_2
+	}}
+\end{align}
+\end{subequations}
+use
+\begin{verbatim}
+    set: real OMEGA_C = 1.*2*pi;                    # filter at 1Hz
+    genel: 1, state space SISO,
+        100, abstract, algebraic,                   # output node
+        drive, sine, 0., 2.*pi, 1., forever, 0.,    # input drive
+        2,
+        matrix A,
+            0., 1.,
+            -(OMEGA_C^2), -sqrt(2.)*OMEGA_C,
+        matrix B,
+            0.,
+            1.,
+        matrix C,
+            0, 1., 
+        gain, OMEGA_C^2,
+        balance, yes;
+\end{verbatim}
+Note that in \verb1-(OMEGA_C^2)1 the brackets are necessary because the unary minus takes precedence over the power operator.
+
 
 
 \subsection{Special Rotorcraft \textsc{Genel} Elements}
