@@ -1,0 +1,155 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1e-3;
+
+   	tolerance: 1.e-6;
+	max iterations: 10;
+
+	threads: disable;
+end: initial value;
+
+begin: control data;
+	structural nodes: 2;
+	rigid bodies: 1;
+	joints: 3;
+	forces: 1;
+
+	output elements: 1;
+	file drivers: 2;
+end: control data;
+
+set: const integer GROUND = 0;
+set: const integer MASS = 10;
+
+set: const integer PRESCRIBED_DISPLACEMENT = 97;
+set: const integer PRESCRIBED_FORCE = 98;
+
+set: const real L = 0.5;
+set: const real M = 1.;
+set: const real K = M*(10*2*pi)^2;
+set: const real C = 2*0.1*sqrt(M*K);
+
+reference: GROUND,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+reference: MASS,
+	reference, GROUND, L, 0., 0.,
+	reference, GROUND, eye,
+	reference, GROUND, null,
+	reference, GROUND, null;
+
+begin: nodes;
+	structural: GROUND, static,
+		reference, GROUND, null,
+		reference, GROUND, eye,
+		reference, GROUND, null,
+		reference, GROUND, null;
+
+	structural: MASS, dynamic,
+		reference, MASS, null,
+		reference, MASS, eye,
+		reference, MASS, null,
+		reference, MASS, null;
+end: nodes;
+
+begin: drivers;
+	file: PRESCRIBED_DISPLACEMENT, buffer stream,
+		# type, stl,
+		# type, raw,
+		type, raw, owns memory, no,
+		1; # no. of channels
+
+	file: PRESCRIBED_FORCE, buffer stream,
+		# type, stl,
+		# type, raw,
+		type, raw, owns memory, no,
+		1; # no. of channels
+end: drivers;
+		
+begin: elements;
+	output element: 0, buffer stream,
+		# type, stl,
+		# type, raw,
+		type, raw, owns memory, no,
+		values, 2,
+			drive, node, MASS, structural, string, "X[1]", direct,
+			drive, node, MASS, structural, string, "XP[1]", direct;
+
+	body: MASS, MASS,
+		M,
+		null,
+		null; # zero inertia tensor, since rotations are constrained
+
+	joint: GROUND, total pin joint,
+		GROUND,
+			position, reference, node, null,
+			position orientation, reference, node, eye,
+			rotation orientation, reference, node, eye,
+		# ground
+			position, reference, node, null,
+			position orientation, reference, node, eye,
+			rotation orientation, reference, node, eye,
+		position constraint, 1, 1, 1,
+			1., 0., 0., file, PRESCRIBED_DISPLACEMENT, 1,
+		orientation constraint, 1, 1, 1, null;
+
+	joint: MASS, total joint,
+		GROUND,
+			position, reference, node, null,
+			position orientation, reference, node, eye,
+			rotation orientation, reference, node, eye,
+		MASS,
+			position, reference, node, null,
+			position orientation, reference, node, eye,
+			rotation orientation, reference, node, eye,
+		position constraint, 0, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+
+	joint: MASS + 1, rod,
+		GROUND,
+			position, reference, node, null,
+		MASS,
+			position, reference, node, null,
+		L,
+			linear viscoelastic, K, C;
+
+	force: MASS, absolute,
+		MASS,
+		position, reference, node, null,
+		1., 0., 0., file, PRESCRIBED_FORCE, 1;
+end: elements;
+
+# vim:ft=mbd
