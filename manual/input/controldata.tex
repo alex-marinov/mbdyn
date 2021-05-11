@@ -416,8 +416,8 @@ standard output in ASCII form is disabled.
 
 \subsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
 This statement is used to select the default format for orientation output.
-For historical reasons, MBDyn always used the 123 form of Euler angles
-(also known as Cardano angles).
+For historical reasons, MBDyn always used the `123' form of Euler angles
+(also known as Tait-Bryan or Cardano angles).
 This statement allows to enable different formats:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -434,20 +434,22 @@ This statement allows to enable different formats:
 where
 \begin{itemize}
 \item \kw{euler123} is the historical representation by means 
-	of three angles that represent three consecutive rotations
+	of three angles, in degrees, that represent three consecutive rotations
 	about axes 1, 2 and 3 respectively, always applied to the axis
 	as it results from the previous rotation (also known as Tait-Bryan or Cardano angles);
-\item \kw{euler313} is similar to \kw{euler123}, but the rotations
+\item \kw{euler313} is similar to \kw{euler123}, but the rotations, in degrees,
 are about axes 3, 1 and 3 in the given sequence.
 This is the usual form for Euler angles.
-\item \kw{euler321} is similar to \kw{euler123}, but the rotations
+\item \kw{euler321} is similar to \kw{euler123}, but the rotations, in degrees,
 are about axes 3, 2 and 1 in the given sequence.
 \item \kw{orientation vector} is the vector whose direction indicates
 	the axis of the rotation that produces the orientation,
-	and whose modulus indicates the magnitude of that rotation;
-\item \kw{orientation matrix} indicates the orientation matrix itself.
+	and whose modulus indicates the magnitude of that rotation, in radian;
+\item \kw{orientation matrix} yields the orientation matrix itself.
+	\emph{Note: this selection implies that the number of columns required for the output
+	in textual format changes from 3 to 9.}
 \end{itemize}
-The default remains \kw{euler123}.
+The default remains \kw{euler123}, in degrees.
 
 Note: this change implies that by default the selected way will be used
 to represent orientations in input and output.
