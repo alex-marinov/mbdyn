@@ -928,23 +928,33 @@ results from the cross product of the third and the first vector.
 Examples:
 \begin{verbatim}
     1, 1.,0.,0., 2, 0.,1.,0.
-    1, (real ALPHA = pi/6.; cos(ALPHA)), sin(ALPHA), 0.,
+\end{verbatim}
+Equivalent to the identity matrix, i.e.\ no rotation 
+occurs with respect to the initial reference frame: direction 1
+in the final reference frame is parallel to \texttt{1.,0.,0.}, which represents
+direction 1 in the initial reference frame, while direction 2 in the final reference frame
+is parallel to \texttt{0.,1.,0.}, which represents direction 2
+in the initial reference frame.
+\begin{verbatim}
+    1, cos(pi/6.), sin(pi/6.), 0.,
         3, 0.,0.,1.
 \end{verbatim}
-The first example represents the identity matrix, i.e.\ no rotation 
-occurs with respect to the global reference frame: direction 1
-in the local frame is parallel to \texttt{1.,0.,0.}, which represents
-direction 1 in the global frame, while direction 2 in the local frame
-is parallel to \texttt{0.,1.,0.}, which represents direction 2
-in the global frame.
-
-The second example describes a rotation of $ \pi/6 $ radian about
-global direction 3: direction 1 in the local frame results from 
-composing \kw{cos}\texttt{(pi/6.)} in global direction 1
+Rotation of $ \pi/6 $ radian about
+initial direction 3: direction 1 in the final reference frame results from 
+composing \kw{cos}\texttt{(pi/6.)} in initial direction 1
 and \kw{sin}\texttt{(pi/6.)}
-in global direction 2, while direction 3 in the local frame remains
-parallel to \texttt{0.,0.,1.}, which represents direction 3 in the global
-frame.
+in initial direction 2, while direction 3 in the final reference frame remains
+parallel to \texttt{0.,0.,1.}, which represents direction 3 in the initial reference frame.
+\begin{verbatim}
+    2, 0., cos(ALPHA), sin(ALPHA),
+        1, 1.,0.,0.
+\end{verbatim}
+Rotation of \texttt{ALPHA} (assuming the variable \texttt{ALPHA} was previously defined) about
+initial direction 1: direction 2 in the final reference frame results from 
+composing \kw{cos}\texttt{(ALPHA)} in initial direction 2
+and \kw{sin}\texttt{(ALPHA)}
+in initial direction 2, while direction 3 in the final reference frame remains
+parallel to \texttt{0.,0.,1.}, which represents direction 3 in the initial reference frame.
 
 \item a variant of the above, which may be useful when only one
 direction really matters, is illustrated in the example below:
