@@ -329,21 +329,28 @@ by definition, in the relative frame.
 
 There exist two variants of this output.
 The output of the orientation can be modified by requesting
-either the three components of the Euler vector,
+the three Euler angles, in 3 formats, the three components of the Euler vector,
 or the nine components of the orientation matrix.
 
+When the Euler angles are requested, columns 5 to 7 contain
+them, in degrees, according to the requested output format:
+by default, the `123' sequence is used (which results in the so-called Tait-Bryan or Cardano angles);
+the `313' and `321' sequences are supported as well.
+
 When the Euler vector is requested, columns 5 to 7 contain
-its components.
+its components.  Recall that the Euler vector's direction represents the rotation axis,
+whereas its norm represents the magnitude, in radian.
+
 Beware that it is not possible to discriminate between
-the original output and this format without knowing
+the flavours of Euler angles and the Euler vector without knowing
 what output type was requested.
 
 When the orientation matrix is requested, columns 5 to 13
 contains the elements of the matrix, written row-wise,
 that is: $r_{11}$, $r_{12}$, $r_{13}$, $r_{21}$, \ldots, $r_{33}$.
-Note that in this case the total column count, if accelerations
-are not requested, corresponds to that of a structural node
-with optional accelerations, so it might be hard to discriminate
+Note that in this case the total column count changes and, if accelerations
+are not requested, it corresponds to that of a structural node
+with optional accelerations, so it might be hard to discriminate in this case
 as well.
 
 This ambiguity is resolved when results are output in NetCDF format.
