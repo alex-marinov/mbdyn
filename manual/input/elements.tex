@@ -2811,7 +2811,7 @@ The initialization of the derivative only makes sense when the filter
 is in descriptor form.
 
 \paragraph{Example.} \
-To model a 2nd order Butterworth filter of equation
+To model the same 2nd order Butterworth filter of Eq.~(\ref{eq:scalar-filter}), namely
 \begin{equation}
 	H\plbr{s} = \frac{
 		1
@@ -2820,7 +2820,6 @@ To model a 2nd order Butterworth filter of equation
 		+ \sqrt{2}\plbr{\cfrac{s}{\omega_c}}
 		+ 1
 	}
-	\label{eq:scalar-filter}
 \end{equation}
 i.e.
 \begin{subequations}
@@ -2859,6 +2858,7 @@ i.e.
 		\\
 		x_2
 	}}
+	\label{eq:scalar-filter-ss}
 \end{align}
 \end{subequations}
 use
@@ -4060,12 +4060,13 @@ changes during the analysis.
             [ , \kw{position} , (\hty{Vec3}) \bnt{relative_position_2} ]
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         (\htybkw{ConstitutiveLaw}{3D}) \bnt{const_law}
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
 \noindent
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 Note: a variant of this element has been developed,
 which refers the material reference frame to an orientation 
 that is intermediate between those of the two nodes.
@@ -4186,11 +4187,11 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
             \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         (\htybkw{ConstitutiveLaw}{6D}) \bnt{const_law}
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 \subsubsection{Private Data}
 The following data are available:
@@ -4489,11 +4490,12 @@ between axis 3 of each side of the joint.
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 This joint allows nodes 1 and 2 to rotate about relative axes 1 and 2.
 
 \subsubsection{Output}

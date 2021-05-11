@@ -436,7 +436,7 @@ where
 \item \kw{euler123} is the historical representation by means 
 	of three angles that represent three consecutive rotations
 	about axes 1, 2 and 3 respectively, always applied to the axis
-	as it results from the previous rotation;
+	as it results from the previous rotation (also known as Tait-Bryan or Cardano angles);
 \item \kw{euler313} is similar to \kw{euler123}, but the rotations
 are about axes 3, 1 and 3 in the given sequence.
 This is the usual form for Euler angles.
@@ -469,7 +469,7 @@ This statement is used to select the default output of built-in aerodynamic elem
 
     \bnt{custom_output_flag} ::=
         \{ \kw{position}
-            | \kw{orientation} [ , \bnt{orientation_description} ]
+            | \kw{orientation} [ , \kw{orientation description} , \bnt{orientation_type} ]
             | \kw{velocity}
             | \kw{angular velocity}
             | \kw{configuration} # ::= \kw{position}, \kw{orientation}, \kw{velocity}, \kw{angular velocity}
@@ -477,8 +477,6 @@ This statement is used to select the default output of built-in aerodynamic elem
             | \kw{moment}
             | \kw{forces}        # ::= \kw{force}, \kw{moment}
             | \kw{all} \}         # equivalent to all the above
-
-    \bnt{orientation_description} ::= \kw{orientation description} , \bnt{orientation_type}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{orientation\_type} is defined
@@ -505,7 +503,7 @@ This statement is used to select the default output of beam elements.
 
     \bnt{custom_output_flag} ::=
         \{ \kw{position}
-            | \kw{orientation} [ , \bnt{orientation_description} ]
+            | \kw{orientation} [ , \kw{orientation description} , \bnt{orientation_type} ]
             | \kw{configuration}        # ::= \kw{position}, \kw{orientation}
             | \kw{force}
             | \kw{moment}
@@ -517,9 +515,6 @@ This statement is used to select the default output of beam elements.
             | \kw{angular strain rate}
             | \kw{strain rates}         # ::= \kw{linear strain rate}, \kw{angular strain rate}
             | \kw{all} \}                # equivalent to all the above
-
-    \bnt{orientation_description} ::= \kw{orientation description} ,
-        \bnt{orientation_type}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{orientation\_type} is defined

@@ -127,19 +127,17 @@ The syntax of the 6 degrees of freedom rigid-body motion structural node is
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
         [ \kw{position} , ]         (\hty{Vec3})              \bnt{absolute_position} ,
         [ \kw{orientation} , ]      (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
-            [ \kw{orientation description} , \bnt{orientation_description} , ]
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
         [ \kw{velocity} , ]         (\hty{Vec3})              \bnt{absolute_velocity} ,
         [ \kw{angular velocity} , ] (\hty{Vec3})              \bnt{absolute_angular_velocity}
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness}
           , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
-
-    \bnt{orientation_description} ::=
-        \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
-             | \kw{orientation vector} | \kw{orientation matrix} \}
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 The syntax of the 3 degrees of freedom point mass motion structural node is
 %\begin{verbatim}
@@ -158,7 +156,7 @@ When a node's initial configuration is coincident with that of a single referenc
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
         \kw{at reference} , \bnt{reference_label}
-            [ , \kw{orientation description} , \bnt{orientation_description} ]
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness}
@@ -175,6 +173,8 @@ or
           , (\ty{real}) \bnt{velocity_initial_stiffness} ]
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 
 The stiffness parameters and the \nt{omega\_rotates?} flag
@@ -247,7 +247,7 @@ The following types are available:
     \bnt{dummy_node_data} ::=
         (\hty{Vec3})              \bnt{relative_offset} ,
         (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix}
-            [ , \kw{orientation description} , \bnt{orientation_description} ]
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
     It outputs the configuration of a point offset from the base node.
@@ -260,7 +260,7 @@ The following types are available:
     \bnt{dummy_node_data} ::= \bnt{reference_node_label}
         [ , \kw{position} , (\hty{Vec3}) \bnt{reference_offset} ]
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{reference_orientation_matrix} ]
-            [ \kw{orientation description} , \bnt{orientation_description} , ]
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
         [ , \kw{pivot node} , \bnt{pivot_node_label}
             [ , \kw{position} , (\hty{Vec3}) \bnt{pivot_offset} ]
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{pivot_orientation_matrix} ] ]
@@ -276,6 +276,8 @@ The following types are available:
     of the pivot node, optionally offset by \nt{pivot\_offset}
     and with optional relative orientation \nt{pivot\_orientation\_matrix}.
 \end{itemize}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 \paragraph{Example.} \
 \begin{verbatim}
