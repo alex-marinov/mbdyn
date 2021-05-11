@@ -981,7 +981,14 @@ frame.
 \item a complete orientation matrix: keyword \kw{matr}
 followed by the nine, row-oriented, coefficients, namely
 $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
-\emph{Note: no orthogonality check is performed; be sure an orthogonal
+Example:
+\begin{verbatim}
+    matr,
+        r11, r12, r13,
+        r21, r22, r23,
+        r31, r32, r33
+\end{verbatim}
+\emph{Note: orthogonality is not enforced; in case, only a warning is issued; be sure an orthogonal
 matrix, within the desired tolerance, is input}.
 
 \item Euler angles: keyword \kw{euler}, followed by the three
