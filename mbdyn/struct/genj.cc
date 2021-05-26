@@ -918,25 +918,29 @@ DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
 
 void DistanceJointWithOffset::Output(OutputHandler& OH) const
 {
-   if (bToBeOutput()) {
-      doublereal d = dGet();
-      Vec3 vTmp;
-      if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
-	 vTmp = Vec3(dAlpha, 0., 0.);
-      } else {
-	 vTmp = v;
-      }
-      Joint::Output(OH.Joints(), "DistanceWithOffs", GetLabel(),
-		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v/d << " " << d << std::endl;
+	if (bToBeOutput()) {
+		doublereal d = dGet();
+		Vec3 vTmp;
+		if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
+			vTmp = Vec3(dAlpha, 0., 0.);
+		} else {
+			vTmp = v;
+		}
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DistanceWithOffs", GetLabel(),
+				vTmp, Zero3, v*dAlpha, Zero3)
+			<< " " << v/d << " " << d << std::endl;
+		}
+
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
-		OH.WriteNcVar(Var_V, v/d);
-		OH.WriteNcVar(Var_d, d);
-	}
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
+			OH.WriteNcVar(Var_V, v/d);
+			OH.WriteNcVar(Var_d, d);
+		}
 #endif // USE_NETCDF
-   }
+	}
 }
 
 
