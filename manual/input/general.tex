@@ -3985,7 +3985,7 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
         (\hty{DriveCaller}) \bnt{stiffness_scale} ,
         \{ (\ty{DerivativeOfEntity}) \bnt{viscosity}
             | \kw{proportional} , (\ty{real}) \bnt{factor} \} ,
-        (\hty{DriveCaller}) \bnt{viscosity_scale}
+        \{ \kw{same} | (\hty{DriveCaller}) \bnt{viscosity_scale} \}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
@@ -3997,6 +3997,7 @@ by the respective scale factors,
 \end{align}
 If \kw{proportional} is given, then
 $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
+The keyword \kw{same} uses for the drive caller \nt{viscosity\_scale} the same drive caller \nt{stiffness\_scale} defined for the elastic portion of the constitutive law.
 
 \paragraph{Example.}
 \begin{verbatim}
