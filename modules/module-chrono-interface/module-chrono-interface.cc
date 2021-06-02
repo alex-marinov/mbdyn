@@ -77,7 +77,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			"                              <coupling_bodies>, \n"
 			"                              <other_settings>; \n"
 			"1. <cosimulation_platform> ::= coupling, {none | <loose_coupling> | <tight_coupling> }, \n"
-			"                               <loose_coupling> ::= loose, {embedded | jacobian | gauss}}, \n"
+			"                               <loose_coupling> ::= loose, [{embedded | jacobian | gauss}], \n"
 			"                               <tight_coupling> ::= tight, (int) <num_iterations>, {tolerance, (real) <tolerance>}, \n"
 			"2. <coupling_variables>    ::= [force type, {reaction | contact}], \n"
 			"                               [motor type, {pos | vel | [acc, (real) <alpha>, (real) <beta>, (real) <gamma>] | origin}], \n"
@@ -96,7 +96,7 @@ bMBDyn_CE_CEModel_DoStepDynamics(true)
 			"                               <chrono_ground>        ::= ground, (int) <chbody_label>, \n"
 			"                                                          [position, (Vec3) <absolute position>], \n"
 			"                                                          [orientation, (Mat3x3) <absolute_rotation>], [<chbody_output>],\n"
-			"4. <other_settings>        ::= [output all chbodies], [coupling forces filename, (filename) <filename>], [verbose]\n"
+			"4. <other_settings>        ::= [output all chbodies], [coupling forces filename, (filename) <filename>], [verbose]. \n"
 			"-------------------------------------------------start simulation-------------------------------------------------\n"
 			<< std::endl);
 
@@ -1029,40 +1029,40 @@ void
 ChronoInterfaceBaseElem::Output(OutputHandler& OH) const
 {
 	pedantic_cout("\tMBDyn::Output()\n");
-	//- output the motion of chrono bodies in LOADABLE files
-	// if (bToBeOutput())
-	// {
-		if (!OH.IsOpen(OutputHandler::OutFiles::LOADABLE))
+	//- output the motion of chrono bodies in LOADABLE files;
+	if (!OH.IsOpen(OutputHandler::OutFiles::LOADABLE))
+	{
+		OH.Open(OutputHandler::OutFiles::LOADABLE);
+	}
+	std::ostream &mbdynce_cebody_output = OH.Loadable();
+	if (MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Label, pMBDyn_CE_CEFrame, MBDyn_CE_CEScale, mbdynce_cebody_output, MBDyn_CE_OutputType))
+	{
+		silent_cerr("ChronoInterface(" << uLabel << ") data writting process is wrong " << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	if (MBDyn_CE_out_forces)
+	{
+		for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++) 
 		{
-			OH.Open(OutputHandler::OutFiles::LOADABLE);
-		}
-		std::ostream & mbdynce_cebody_output=OH.Loadable();
-		if(MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel, MBDyn_CE_CEModel_Label, pMBDyn_CE_CEFrame, MBDyn_CE_CEScale, mbdynce_cebody_output,MBDyn_CE_OutputType))
-		{
-			silent_cerr("ChronoInterface(" << uLabel << ") data writting process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		if (MBDyn_CE_out_forces)
-		{
-			for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++) 
+			const MBDYN_CE_POINTDATA &point = MBDyn_CE_Nodes[i];
+			const MBDYN_CE_CEMODELDATA &ce_body = MBDyn_CE_CEModel_Label[i];
+			Vec3 temp_moment = point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr() * point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F);
+			if (ce_body.bMBDyn_CE_CEBody_Output || MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_ALLBODIES)
 			{
-				const MBDYN_CE_POINTDATA& point = MBDyn_CE_Nodes[i];
-				const MBDYN_CE_CEMODELDATA &ce_body = MBDyn_CE_CEModel_Label[i];
-				Vec3 temp_moment = point.MBDyn_CE_M + (point.pMBDyn_CE_Node->GetRCurr() * point.MBDyn_CE_Offset).Cross(point.MBDyn_CE_F);
-				if (ce_body.bMBDyn_CE_CEBody_Output || MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_ALLBODIES)
-				{
-					MBDyn_CE_out_forces << std::setw(8) << point.MBDyn_CE_uLabel
-										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i]
-										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 1]
-										<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 2]
-										<< std::setw(16) << temp_moment.pGetVec()[0] //pMBDyn_CE_CouplingDynamic_m[3 * i]
-										<< std::setw(16) << temp_moment.pGetVec()[1] //pMBDyn_CE_CouplingDynamic_m[3 * i + 1]
-										<< std::setw(16) << temp_moment.pGetVec()[2] //pMBDyn_CE_CouplingDynamic_m[3 * i + 2]
-										<< std::endl;
-				}
+				MBDyn_CE_out_forces << std::setw(8) << point.MBDyn_CE_uLabel
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i]
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 1]
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_f[3 * i + 2]
+									<< std::setw(16) << temp_moment.pGetVec()[0]			   // moment in the res.
+									<< std::setw(16) << temp_moment.pGetVec()[1]			   // moment in the res.
+									<< std::setw(16) << temp_moment.pGetVec()[2]			   // moment in the res.
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_m[3 * i]	   // received moment.
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_m[3 * i + 1] // received moment.
+									<< std::setw(16) << pMBDyn_CE_CouplingDynamic_m[3 * i + 2] // received moment.
+									<< std::endl;
 			}
 		}
-	//}
+	}
 }
 
 std::ostream&

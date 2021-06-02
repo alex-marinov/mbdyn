@@ -41,7 +41,7 @@ var/mbdyn2easyanim.sh
 *.app
 
 # Visual studio code
-.vscode
+*.vscode
 
 # http://www.gnu.org/software/automake
 

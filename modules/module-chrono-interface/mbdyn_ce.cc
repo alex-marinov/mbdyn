@@ -103,10 +103,21 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 	std::cout << "Initial MBDyn_CE_CEModel pointer:\n";
 	ChSystemMulticoreNSC *pMBDyn_CE_CEModel = new ChSystemMulticoreNSC; //- By now, only support ChSystemMulticore.
 	//--------------- create C::E model (defined by user)
-	MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
+	try
+	{
+		MBDyn_CE_CEModel_Create(pMBDyn_CE_CEModel);
+	}catch(std::exception)
+	{
+		if (pMBDyn_CE_CEModel!=NULL)
+		{
+			delete pMBDyn_CE_CEModel;
+			std::cout << "destroy the CE_model\n";
+		}
+		pMBDyn_CE_CEModel = NULL;
+	}
 	if(pMBDyn_CE_CEModel==NULL)
 	{
-		std::cout << "\t\tInitial MBDyn_CE_CEModel pointer fails\n";
+		std::cout << "Initial MBDyn_CE_CEModel pointer fails\n";
 		//- MBDyn_CE_CEModel_Destroy(pMBDyn_CE_CEModel);
 		pMBDyn_CE_CEModel = NULL;
 		return NULL;
@@ -119,11 +130,12 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 		//- R= [CEF3,  CEF6,  CEF9 ]^T           [CEF3,   CEF4,   CEF5]
 		//-    [CEF4,  CEF7,  CEF10]     ====    [CEF6,   CEF7,   CEF8]
 		//-    [CEF5,  CEF8,  CEF11];            [CEF9,   CEF10,  CEF11]
-		ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
+		ChVector<> mbdynce_temp_frameMBDyn_pos_mbdyn(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]); //- in MBDyn's rotation, at chrono's origin;
 		ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pMBDyn_CE_CEFrame[3], pMBDyn_CE_CEFrame[6], pMBDyn_CE_CEFrame[9]);
 		ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pMBDyn_CE_CEFrame[4], pMBDyn_CE_CEFrame[7], pMBDyn_CE_CEFrame[10]);
 		ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pMBDyn_CE_CEFrame[5], pMBDyn_CE_CEFrame[8], pMBDyn_CE_CEFrame[11]);
 		ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X, mbdynce_temp_frameMBDyn_rot_axis_Y, mbdynce_temp_frameMBDyn_rot_axis_Z);
+		ChVector<> mbdynce_temp_frameMBDyn_pos = mbdynce_temp_frameMBDyn_rot * mbdynce_temp_frameMBDyn_pos_mbdyn;
 		ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 		//---------- initial the gravity of C::E model
 		pMBDyn_CE_CEModel->Set_G_acc(mbdynce_temp_frameMBDyn.TransformDirectionLocalToParent(MBDyn_CE_CEScale[0]*pMBDyn_CE_CEModel->Get_G_acc()));
@@ -278,7 +290,7 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 		std::cout << "num of rigid bodies:\t" << pMBDyn_CE_CEModel->Get_bodylist().size() << "\n";
 		std::cout << "num of speed motor:\t" << pMBDyn_CE_CEModel->data_manager->num_linmotors << "\n";
 		//---------- print detailed information about the C::E model
-		if(true)
+		if(false)
 		{
 			std::cout << "Detailed information of the C::E model:\n";
 			for (unsigned i = 0; i < bodies_size; i++)
@@ -298,8 +310,8 @@ const int& MBDyn_CE_CouplingType) //- Coupling type
 				std::cout << "\tFrame2G_rot: " << pMBDyn_CE_CEModel->Get_linklist()[i]->GetLinkAbsoluteCoords().rot << "\n";
 			}
 		}
-//#ifdef CHRONO_OPENGL
-#if 0
+#ifdef CHRONO_OPENGL
+//#if 0
 		opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 		gl_window.Initialize(1280, 720, "Pendulum", pMBDyn_CE_CEModel);
 		gl_window.SetCamera(ChVector<>(-20.89465, 104.58118, 223.05379), 
@@ -360,16 +372,21 @@ bool MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 	const double *pmbdynce_tempvec3_xpp = &MBDyn_CE_CouplingKinematic[18 * MBDyn_CE_NodesNum];
 	const double *pmbdynce_tempvec3_omegap = &MBDyn_CE_CouplingKinematic[21 * MBDyn_CE_NodesNum];
 	const double *pmbdynce_temp_frame = &MBDyn_CE_CouplingKinematic[24 * MBDyn_CE_NodesNum];
-	ChVector<> mbdynce_temp_frameMBDyn_pos(-pmbdynce_temp_frame[0], -pmbdynce_temp_frame[1], -pmbdynce_temp_frame[2]);
+	ChVector<> mbdynce_temp_frameMBDyn_pos_mbdyn(-pmbdynce_temp_frame[0], -pmbdynce_temp_frame[1], -pmbdynce_temp_frame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pmbdynce_temp_frame[3], pmbdynce_temp_frame[6], pmbdynce_temp_frame[9]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pmbdynce_temp_frame[4], pmbdynce_temp_frame[7], pmbdynce_temp_frame[10]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pmbdynce_temp_frame[5], pmbdynce_temp_frame[8], pmbdynce_temp_frame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
+	ChVector<> mbdynce_temp_frameMBDyn_pos = mbdynce_temp_frameMBDyn_rot * mbdynce_temp_frameMBDyn_pos_mbdyn;
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 	//----- Set the gravity of C::E model
 	tempsys->Set_G_acc(mbdynce_temp_frameMBDyn.TransformDirectionLocalToParent(ChVector<>(pMBDyn_CE_Gravity[0],pMBDyn_CE_Gravity[1],pMBDyn_CE_Gravity[2])));
-	std::cout <<"\t\tC::E gravity is set as: "<< tempsys->Get_G_acc() << "\n";
-	
+	std::cout << "\t\tmbdyn ground is (in chrono ref.)"
+			  << "\n"
+			  << "\t\t\tpos:\t" << mbdynce_temp_frameMBDyn_pos << "\n"
+			  << "\t\t\trot:\t" << mbdynce_temp_frameMBDyn_rot << "\n";
+	std::cout << "\t\tC::E gravity is set as: " << tempsys->Get_G_acc() << "\n";
+
 	//---------- 2. transfer it to the coordinate in C::E; (only check the consistence of position)
 	bool bmbdynce_temp_check=true;
 	for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++)
@@ -402,7 +419,8 @@ bool MBDyn_CE_CEModel_InitCheck(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 		{
 			bmbdynce_temp_check = false;
 			std::cout << "\t\tpos of coupling body " << mbdynce_tempce_body_id << " doesn't agree with that in MBDyn\n";
-			std::cout << "\t\tpos in MBDyn\t" << mbdynce_tempmbdyn_pos << "\n";
+			std::cout << "\t\tpos in MBDyn (in chrono ref.)\t" << mbdynce_tempmbdyn_pos << "\n";
+			std::cout << "\t\tpos in MBDyn (in MBDyn ref.)\t" << pmbdynce_tempvec3_x[3 * i] << "\t" << pmbdynce_tempvec3_x[3 * i + 1] << "\t" << pmbdynce_tempvec3_x[3 * i + 2] << "\n";
 			std::cout << "\t\tpos in C::E\t" << mbdynce_tempce_pos << "\n";
 			std::cout << "\t\tdifference between MBDyn and C::E\t" << (mbdynce_tempmbdyn_pos - mbdynce_tempce_pos).Length() << "\n";
 			break;
@@ -656,8 +674,8 @@ MBDyn_CE_CEModel_DoStepDynamics(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, double ti
 			}
 		}
 	}
-//#ifdef CHRONO_OPENGL 
-#if 0
+#ifdef CHRONO_OPENGL 
+//#if 0
 	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 	if (!gl_window.Active())
 	{
@@ -790,11 +808,12 @@ bool bMBDyn_CE_Verbose)
 	const double *pmbdynce_tempvec3_xpp = &MBDyn_CE_CouplingKinematic[18 * MBDyn_CE_NodesNum];
 	const double *pmbdynce_tempvec3_omegap = &MBDyn_CE_CouplingKinematic[21 * MBDyn_CE_NodesNum];
 	const double *pmbdynce_temp_frame = &MBDyn_CE_CouplingKinematic[24 * MBDyn_CE_NodesNum];
-	ChVector<> mbdynce_temp_frameMBDyn_pos(-pmbdynce_temp_frame[0], -pmbdynce_temp_frame[1], -pmbdynce_temp_frame[2]);
+	ChVector<> mbdynce_temp_frameMBDyn_pos_mbdyn(-pmbdynce_temp_frame[0], -pmbdynce_temp_frame[1], -pmbdynce_temp_frame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pmbdynce_temp_frame[3], pmbdynce_temp_frame[6], pmbdynce_temp_frame[9]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pmbdynce_temp_frame[4], pmbdynce_temp_frame[7], pmbdynce_temp_frame[10]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pmbdynce_temp_frame[5], pmbdynce_temp_frame[8], pmbdynce_temp_frame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
+	ChVector<> mbdynce_temp_frameMBDyn_pos = mbdynce_temp_frameMBDyn_rot * mbdynce_temp_frameMBDyn_pos_mbdyn;
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 	double time = tempsys->GetChTime();
 	//---------- 2. transfer it to the coordinate in C::E, and 3. update motor functions
@@ -1093,11 +1112,12 @@ MBDyn_CE_CEModel_SendToBuf(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel, std::vector<do
 	//- std::cout << "\t\tCE_models SendToMBDyn():\n";
 	ChSystemMulticoreNSC *tempsys = (ChSystemMulticoreNSC *)pMBDyn_CE_CEModel;
 	//- obtain the transform matrix
-	ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
+	ChVector<> mbdynce_temp_frameMBDyn_pos_mbdyn(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pMBDyn_CE_CEFrame[3], pMBDyn_CE_CEFrame[6], pMBDyn_CE_CEFrame[9]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pMBDyn_CE_CEFrame[4], pMBDyn_CE_CEFrame[7], pMBDyn_CE_CEFrame[10]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pMBDyn_CE_CEFrame[5], pMBDyn_CE_CEFrame[8], pMBDyn_CE_CEFrame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
+	ChVector<> mbdynce_temp_frameMBDyn_pos = mbdynce_temp_frameMBDyn_rot * mbdynce_temp_frameMBDyn_pos_mbdyn;
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 	//- write exchange force/torque to the buffer
 	ChVector<> mbdynce_ce_force_G(0.0, 0.0, 0.0);
@@ -1178,11 +1198,12 @@ MBDyn_CE_CEModel_WriteToFiles(pMBDyn_CE_CEModel_t pMBDyn_CE_CEModel,
 	unsigned int tempsys_couplingbodies_size = MBDyn_CE_CEModel_Label.size();
 	double time = tempsys->GetChTime();
 	//- obtain the transform matrix
-	ChVector<> mbdynce_temp_frameMBDyn_pos(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
+	ChVector<> mbdynce_temp_frameMBDyn_pos_mbdyn(-pMBDyn_CE_CEFrame[0], -pMBDyn_CE_CEFrame[1], -pMBDyn_CE_CEFrame[2]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_X(pMBDyn_CE_CEFrame[3], pMBDyn_CE_CEFrame[6], pMBDyn_CE_CEFrame[9]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Y(pMBDyn_CE_CEFrame[4], pMBDyn_CE_CEFrame[7], pMBDyn_CE_CEFrame[10]);
 	ChVector<> mbdynce_temp_frameMBDyn_rot_axis_Z(pMBDyn_CE_CEFrame[5], pMBDyn_CE_CEFrame[8], pMBDyn_CE_CEFrame[11]);
 	ChMatrix33<> mbdynce_temp_frameMBDyn_rot(mbdynce_temp_frameMBDyn_rot_axis_X,mbdynce_temp_frameMBDyn_rot_axis_Y,mbdynce_temp_frameMBDyn_rot_axis_Z);
+	ChVector<> mbdynce_temp_frameMBDyn_pos = mbdynce_temp_frameMBDyn_rot * mbdynce_temp_frameMBDyn_pos_mbdyn;
 	ChFrame<> mbdynce_temp_frameMBDyn(mbdynce_temp_frameMBDyn_pos, mbdynce_temp_frameMBDyn_rot);
 	//- write data to files
 	if (MBDyn_CE_OutputType == MBDYN_CE_OUTPUTTYPE::MBDYN_CHRONO_OUTPUT_SELECTEDCOUPLINGBODIES)

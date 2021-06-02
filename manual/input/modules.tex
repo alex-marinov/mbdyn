@@ -895,6 +895,113 @@ Simple example of run-time loadable user-defined scalar function.
 
 \section{Miscellaneous Modules}
 
+\subsection{Module-chrono-interface}
+\emph{Author: Runsen Zhang (supported by Google Summer of Code 2020)}
+
+\noindent
+This module is to implement cosimulation between MBDyn and Project Chrono\footnote{last accessed, \url{http://projectchrono.org/}}. 
+
+\bigskip
+
+\subsubsection{Usage}
+\noindent
+To use this module, chrono libraries should be installed first. Basically, libraries {\texttt{libChronoEngine.so}} and {\texttt{ libChronoEngine\_multicore.so}} should be preinstalled. 
+
+\noindent
+This module is composed of three parts, 
+\begin{itemize}
+\item {\texttt{ChronoInterface}} element: this element is defined in MBDyn side, to send nodes' kinematic data to the other subsystems;
+\item MBDyn-Chrono interface functions: these functions are provided to achieve cosimulation between these two softwares;
+\item User-defined chrono subsystem: this subsystem should be defined by users in the function named {\texttt{MBDyn\_CE\_CEModel\_Create()}}.
+\end{itemize}
+
+Before using the {\texttt{ChronoInterface}} element, the second and third parts above should be complied together as a dynamic library, which is called {\texttt{libce\_model.so}} in the following. This library is linked to MBDyn throung module-chrono-interface, and its location should be clearly indicated in file "{\texttt{Makefile.inc}}",
+as {\texttt{MODULE\_LINK=-L\$LIBPATH,-libce\_model.so}}.
+To use the shared library in execution process, here {\texttt{\$LIBPATH}} is added to {\texttt{/etc/ld.so.conf}},
+\begin{verbatim}
+	$ vim /etc/ld.so.conf
+	$ ldconfig
+\end{verbatim}
+
+\subsubsection{ChronoInterface Element}
+\begin{Verbatim}[commandchars=\\\{\}]
+	\bnt{user defined} ::= \bnt{user defined type}, \bnt{normal_arglist};
+	\bnt{user defined type} ::= \kw{ChronoInterface},
+	\bnt{normal_arglist} ::= 
+		\bnt{cosimulation_platform}, 
+		\bnt{coupling_variables}, 
+		\bnt{coupling_bodies}, 
+		\bnt{other_settings};
+	\bnt{cosimulation_platform} ::= 
+		\kw{coupling}, \{\kw{none} | \bnt{loose_coupling} | \bnt{tight_coupling} \}, 
+		\bnt{loose_coupling} ::= 
+			\kw{loose}, [\{\kw{embedded} | \kw{jacobian} | \kw{gauss}\}],
+		\bnt{tight_coupling} ::= 
+			\kw{tight}, (\ty{int}) \bnt{num_iterations}, \{\kw{tolerance}, (\ty{real}) \bnt{tolerance}\},
+	\bnt{coupling_variables} ::= 
+		[, \kw{force type}, \{\kw{reaction} | \kw{contact}\}]
+		[, \kw{motor type}, \{\kw{pos} | \kw{vel} | \kw{acc}, \bnt{acc_parameters} | \kw{origin}\}]
+		[, \kw{length scale}, (\ty{real}) \bnt{length_scale}],
+		[, \kw{mass scale},(\ty{real}) \bnt{math_scale}],
+		\bnt{acc_parameters} ::=
+			(\ty{real}) \bnt{alpha}, (\ty{real}) \bnt{beta}, (\ty{real}) \bnt{gamma},
+	\bnt{coupling_bodies} ::= 
+		\kw{nodes number}, (\ty{int}) \bnt{num_coupling_nodes}, 
+		\bnt{mbdyn_nodes_info}, \bnt{chrono_bodies_infor}, 
+		[\bnt{coupling_constraint}], [\bnt{chbody_outputs}]... \bnt{chrono_ground},
+		\bnt{mbdyn_nodes_info} ::= 
+			\kw{mbdyn node}, (\ty{int}) \bnt{node_label}, 
+			[, \kw{offset}, (\ty{Vec3}) \bnt{offset_coupling_point}, 
+			\kw{rotation}, (\ty{Mat3x3}) \bnt{relative_orientation}],
+		\bnt{chrono_bodies_info} ::= 
+			\kw{chrono body}, (\ty{int}) \bnt{chbody_label},
+			[, \kw{offset}, (\ty{Vec3}) \bnt{offset_coupling_point}],
+		\bnt{coupling_constraints} ::= 
+			[, \kw{position constraint}, (\ty{int}) \bnt{bool_x}, (\ty{int}) \bnt{bool_y}, (\ty{int}) \bnt{bool_z}],
+			[, \kw{rotation constraint}, (\ty{int}) \bnt{bool_x}, (\ty{int}) \bnt{bool_y}, (\ty{int}) \bnt{bool_z}],
+		\bnt{chbody_output} ::= 
+			[, \kw{output chbody}, {\kw{yes} | \kw{no}}],
+		\bnt{chrono_ground} ::= 
+			\kw{ground}, (\ty{int}) \bnt{chbody_label}, 
+			[, \kw{position}, (\kw{Vec3} \bnt{absolute_position})],
+			[, \kw{orientation}, (\kw{Mat3x3} \bnt{absolute_rotation})],
+			[\bnt{chbody_output}],
+	\bnt{other_settings} ::= 
+		[\kw{output all chbodies}], 
+		[\kw{coupling forces filename, (\ty{filename}) \bnt{filename}}], 
+		[\kw{verbose}];
+\end{Verbatim}
+
+\paragraph{Example}
+\begin{Verbatim}
+	# ...
+	begin: elements
+	# ...
+		module load: "libmodule-chrono-interface";
+		user defined: 1, ChronoInterface,
+			# coupling, tight, 4, tolerance, 0.001,
+			coupling, loose, embedde, # jacobian, 
+			force type, reaction, # contact, 
+			motor type, acc, 2.0/(time_step^2), 2.0/time_step, 1.0, 
+			# pos, vel, origin,
+			length scale, 1000.0,
+			mass scale, 1,0,
+			nodes number, 1,
+				mbdyn node, BEAM_ROOT_NODE+2*BEAM_N, offset, 
+					reference, REF_POINT_E, 0.0, 0.0, 0.0,
+				chrono body, 1, offset, 0.0, 0.0, 0.0,
+				position constraint, 1, 1, 1,
+				orientation constraint, 1, 1, 1,
+				output chbody, yes,
+			ground, 0,
+				position, reference,  REF_POINT_E, 0.0, 0.0, 0.0,
+				orientation, reference, REF_POINT_E, eye,
+			coupling forces filename, "test/force.dat",
+			verbose
+			;
+	end:elements	
+\end{Verbatim}
+
 \subsection{Module-flightgear}
 \emph{Author: Luca Conti (supported by Google Summer of Code 2017)}
 

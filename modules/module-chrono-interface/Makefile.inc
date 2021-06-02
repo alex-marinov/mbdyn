@@ -23,11 +23,13 @@
 # ### sudo ldconfig
 # 5. copy your shared libraries to /lib or /usr/lib (default path)
 
-#LIBPATH=/home/runsen/Downloads/work/MUBOdemo/technical_example/beam_displacement/particle_dameprs
-LIBPATH=/home/runsen/Downloads/work/MUBOdemo/simple_examples/C::E_models
+LIBPATH=/home/runsen/Downloads/work/pd_exp/numerical/pd_model
+#/home/runsen/Downloads/work/MUBOdemo/technical_example/beam_displacement/particle_dameprs
+#LIBPATH=/home/runsen/Downloads/work/MUBOdemo/simple_examples/C::E_models
 #/home/runsen/Downloads/work/MUBOdemo/simple_examples/C::E_models
+
 
 # the header for the funcs “mbdyn_ce.h”.
 MODULE_INCLUDE = -I .
 # link the shared library, such as “libCE_models.so”
-MODULE_LINK= -L$(LIBPATH)   -lCE_models  #-lpd_model #
+MODULE_LINK= -L$(LIBPATH)  -lpd_model_exp# -lCE_models  #-lpd_model #
