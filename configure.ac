@@ -274,7 +274,8 @@ OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],no,[auto 
 
 dnl module with's
 AC_ARG_WITH(module,[
-  --with-module=<list>    build listed modules (see modules/)
+  --with-module=<list>    build listed modules (stripping 'module-' from the 
+                          module's folder name, see modules/)
 ],[
 	ol_arg=
 	for ol_val in $withval ; do
