@@ -37,6 +37,7 @@
 /* include generali */
 #include "parser.h"
 #include <sstream>
+#include <memory>
 #ifndef DO_NOT_USE_EE
 #include <thread>
 #endif // DO_NOT_USE_EE
