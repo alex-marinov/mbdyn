@@ -299,7 +299,7 @@ operator << (std::ostream& out, const VectorHandler& VH)
 
 MyVectorHandler::MyVectorHandler(integer iSize, doublereal* pdTmpVec)
 : bOwnsMemory(false),
-iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
+iMaxSize(iSize), iCurSize(iSize), pdVec(0), pdVecm1(0)
 {
 	if (iSize == 0) {
 		ASSERT(pdVecm1 == NULL);
@@ -310,6 +310,7 @@ iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
 			Resize(iSize);
 			Reset();
 		} else {
+			pdVec = pdTmpVec;
 			pdVecm1 = pdTmpVec - 1;
 		}
 #ifdef DEBUG
@@ -320,9 +321,10 @@ iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
 
 MyVectorHandler::MyVectorHandler(const MyVectorHandler& VH)
 : bOwnsMemory(false),
-iMaxSize(VH.iCurSize), iCurSize(VH.iCurSize), pdVecm1(0)
+iMaxSize(VH.iCurSize), iCurSize(VH.iCurSize), pdVec(0), pdVecm1(0)
 {
 	if (iCurSize == 0) {
+		ASSERT(VH.pdVec == 0);
 		ASSERT(VH.pdVecm1 == 0);
 
 	} else {
@@ -357,7 +359,7 @@ MyVectorHandler::Resize(integer iSize)
 				doublereal* pd = NULL;
 
 				SAFENEWARR(pd, doublereal, iSize);
-				pd--;
+				//pd--;
 #ifdef HAVE_MEMMOVE
 				memmove(pd + 1, pdVecm1 + 1, iCurSize*sizeof(doublereal));
 #else /* ! HAVE_MEMMOVE */
@@ -365,9 +367,10 @@ MyVectorHandler::Resize(integer iSize)
 					pd[i] = pdVecm1[i];
 				}
 #endif /* ! HAVE_MEMMOVE */
-				doublereal *pdv = pdVecm1 + 1;
-				SAFEDELETEARR(pdv);
-				pdVecm1 = pd;
+				//doublereal *pdv = pdVecm1 + 1;
+				SAFEDELETEARR(pdVec);
+				pdVec = pd;
+				pdVecm1 = pd - 1;
 				iMaxSize = iCurSize = iSize;
 
 			} else {
@@ -375,8 +378,8 @@ MyVectorHandler::Resize(integer iSize)
 			}
 
 		} else {
-			SAFENEWARR(pdVecm1, doublereal, iSize);
-			pdVecm1--;
+			SAFENEWARR(pdVec, doublereal, iSize);
+			pdVecm1 = pdVec - 1;
 			iMaxSize = iCurSize = iSize;
 			bOwnsMemory = true;
 		}
@@ -403,14 +406,15 @@ void
 MyVectorHandler::Detach(void)
 {
 	if (bOwnsMemory) {
-		if (pdVecm1 != NULL) {
-			doublereal *pd = pdVecm1 + 1;
-			SAFEDELETEARR(pd);
+		if (pdVec != NULL) {
+			//doublereal *pd = pdVecm1 + 1;
+			SAFEDELETEARR(pdVec);
 		}
 		bOwnsMemory = false;
 	}
 
 	iMaxSize = iCurSize = 0;
+	pdVec = NULL;
 	pdVecm1 = NULL;
 }
 
@@ -432,6 +436,7 @@ MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 		}
 	}
 
+	pdVec = pd;
 	pdVecm1 = pd - 1;
 }
 
