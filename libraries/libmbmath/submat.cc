@@ -1887,24 +1887,26 @@ MySubVectorHandler::Resize(integer iSize)
 			} else {
 				doublereal* pd = NULL;
 				SAFENEWARR(pd, doublereal, iSize);
-				pd--;
+				//pd--;
+				for (integer i = iCurSize-1; i >= 0; i--) {
+					pd[i] = pdVec[i];
+				}
 
 				integer* pi = NULL;
 				SAFENEWARR(pi, integer, iSize);
 				pi--;
-				
 				for (integer i = iCurSize; i > 0; i--) {
-					pd[i] = pdVecm1[i];
 	       				pi[i] = piRowm1[i];
 	    			}
 
-				pdVecm1++;
-	    			SAFEDELETEARR(pdVecm1);
+				//pdVecm1++;
+				SAFEDELETEARR(pdVec);
 
 				piRowm1++;
 	    			SAFEDELETEARR(piRowm1);
 	    			
-				pdVecm1 = pd;
+				pdVec = pd;
+				pdVecm1 = pd - 1;
 				piRowm1 = pi;
 				iMaxSize = iCurSize = iSize;
 			}
@@ -1913,8 +1915,8 @@ MySubVectorHandler::Resize(integer iSize)
 			if (iSize > 0) {
 				bOwnsMemory = true;
 
-				SAFENEWARR(pdVecm1, doublereal, iSize);
-				pdVecm1--;
+				SAFENEWARR(pdVec, doublereal, iSize);
+				pdVecm1 = pdVec - 1;
 				
 				SAFENEWARR(piRowm1, integer, iSize);
 				piRowm1--;
@@ -1930,8 +1932,8 @@ MySubVectorHandler::Detach(void)
 {
 	if (bOwnsMemory) {
 		if (pdVecm1 != NULL) {
-			pdVecm1++;
-			SAFEDELETEARR(pdVecm1);
+			//pdVecm1++;
+			SAFEDELETEARR(pdVec);
 
 			piRowm1++;
 			SAFEDELETEARR(piRowm1);
@@ -1941,6 +1943,7 @@ MySubVectorHandler::Detach(void)
 	}
 	
 	iMaxSize = iCurSize = 0;
+	pdVec = NULL;
 	pdVecm1 = NULL;
 	piRowm1 = NULL;
 }
@@ -1959,6 +1962,7 @@ MySubVectorHandler::Attach(integer iSize, doublereal* pd,
 		iMaxSize = iMSize;
 	}
 
+	pdVec = pd;
 	pdVecm1 = pd - 1;
 	piRowm1 = pi - 1;
 }

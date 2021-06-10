@@ -55,7 +55,9 @@ void
 VectorHandler::ResizeReset(integer iNewRow)
 {
 	Resize(iNewRow);
-	Reset();
+	if (iNewRow > 0) {
+		Reset();
+	}
 }
 
 /* Somma un Vec3 nella posizione desiderata */
@@ -361,10 +363,10 @@ MyVectorHandler::Resize(integer iSize)
 				SAFENEWARR(pd, doublereal, iSize);
 				//pd--;
 #ifdef HAVE_MEMMOVE
-				memmove(pd + 1, pdVecm1 + 1, iCurSize*sizeof(doublereal));
+				memmove(pd, pdVec, iCurSize*sizeof(doublereal));
 #else /* ! HAVE_MEMMOVE */
-				for (integer i = iCurSize; i > 0; i--) {
-					pd[i] = pdVecm1[i];
+				for (integer i = iCurSize-1; i >= 0; i--) {
+					pd[i] = pdVec[i];
 				}
 #endif /* ! HAVE_MEMMOVE */
 				//doublereal *pdv = pdVecm1 + 1;
@@ -470,7 +472,7 @@ MyVectorHandler::Reset(void)
 	ASSERT(iCurSize > 0);
 
 #if defined HAVE_MEMSET
-	memset(pdVecm1 + 1, 0, iGetSize()*sizeof(doublereal));
+	memset(pdVec, 0, iGetSize()*sizeof(doublereal));
 #else /* !HAVE_MEMSET */
 	for (integer i = iGetSize(); i > 0; i--) {
 		pdVecm1[i] = 0.;
