@@ -155,6 +155,7 @@ protected:
 	integer iMaxSize;
 	integer iCurSize;
 
+	doublereal* pdVec;
 	doublereal* pdVecm1;
 
 public:		// needed by Shell4 :(
