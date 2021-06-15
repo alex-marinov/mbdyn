@@ -2074,6 +2074,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{scalar function} & $\surd$ & depends on underlying scalar function \\
 \kw{sine} & $\surd$ & \\
 \kw{step} & $\surd$ & \\
+\kw{step5} & $\surd$ & \\
 \kw{string} & $\surd$ & \\ %
 \kw{tanh} & $\surd$ & \\
 \kw{time} & $\surd$ & \\
@@ -3025,6 +3026,37 @@ The function
 			& \nt{initial\_time} \le t
 	}}
 \end{align}
+
+\subsection{Step5 drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{step5} ,
+        \bnt{initial_time} , 
+        \bnt{initial_value} ,
+        \bnt{final_time} ,
+        \bnt{final_value}
+\end{Verbatim}    
+%\end{verbatim}    
+The function
+\begin{align}
+	f\plbr{t} &= 
+	\lcubr{\matr{ll}{
+		\nt{initial\_value} % \nonumber \\ &
+			& t \le \nt{initial\_time} \\
+		\\
+		\nt{initial\_value} + A \xi^3 \plbr{10 - 15 \xi + 6 \xi^2}
+			& \nt{initial\_time} < t < \nt{final\_time}
+		\\
+		\nt{final\_value}
+			& \nt{final\_time} \le t \\
+	}}
+	\\
+	A &= \nt{final\_value} - \nt{initial\_value}
+	\nonumber \\
+	\xi &= \cfrac{t - \nt{initial\_time}}{\nt{final\_time} - \nt{initial\_time}}
+	\nonumber 
+\end{align}
+i.e.\ a continuous 5th order polynomial approximation of a step, with continuous derivative.
 
 \subsection{String drive}
 %\begin{verbatim}
