@@ -734,7 +734,11 @@ public:
 			doublereal& Err,
 			doublereal& SolErr);
  	
+<<<<<<< HEAD
 	void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const ;
+=======
+	void Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const ;
+>>>>>>> 73f6d5717 (added AbsRes vector)
 
 	void Jacobian(MatrixHandler* pJac) const ;
 	

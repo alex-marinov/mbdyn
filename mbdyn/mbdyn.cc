@@ -1060,7 +1060,6 @@ main(int argc, char* argv[])
 	mbp.pIn = NULL;
        	mbp.sInputFileName = sDefaultInputFileName;
 	mbp.nThreads = 0;
-	std :: cout << "satyam testing after changes\n";
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = MBFILE_UNKNOWN;
