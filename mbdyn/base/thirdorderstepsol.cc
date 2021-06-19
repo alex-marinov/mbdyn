@@ -234,7 +234,7 @@ ThirdOrderIntegrator::Predict(void)
 	return;
 };
 
-void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
+void ThirdOrderIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
 {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Residual");
 	ASSERT(pDM != NULL);

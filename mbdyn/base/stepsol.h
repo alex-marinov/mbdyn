@@ -216,7 +216,7 @@ public:
 			doublereal& Err,
 			doublereal& SolErr);
 
- 	void Residual(VectorHandler* pRes) const;
+ 	void Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const;
 
 	void Jacobian(MatrixHandler* pJac) const;
 	
@@ -248,7 +248,7 @@ public:
 
 	virtual ~StepNIntegrator(void);
 
-	virtual void Residual(VectorHandler* pRes) const;
+	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const;
 
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
@@ -734,7 +734,7 @@ public:
 			doublereal& Err,
 			doublereal& SolErr);
  	
-	void Residual(VectorHandler* pRes) const ;
+	void Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const ;
 
 	void Jacobian(MatrixHandler* pJac) const ;
 	

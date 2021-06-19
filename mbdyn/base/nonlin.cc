@@ -246,6 +246,16 @@ NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 
 /* NonlinearSolverTestRelNorm - begin */
 
+VectorHandler*
+NonlinearSolverTestRelNorm::GetAbsRes() {
+	return &AbsRes;
+}
+
+NonlinearSolverTest::Type NonlinearSolverTestRelNorm::GetType() const
+{
+     return RELNORM;
+}
+
 void
 NonlinearSolverTestRelNorm::TestOne(doublereal& dRes,
 		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
