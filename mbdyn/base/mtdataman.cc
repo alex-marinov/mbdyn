@@ -511,7 +511,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 #ifdef MBDYN_X_MT_ASSRES
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 8b10fd3613d5d67a00c8230915e460a436080542
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pAbsResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
 
