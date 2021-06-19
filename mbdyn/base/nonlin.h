@@ -107,6 +107,9 @@ public:
 
 	/* scales a single value */
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+
+	/* returns pointer to global vector for absolute residual*/
+	virtual VectorHandler* GetAbsRes() { return 0;}
 };
 
 class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
@@ -133,6 +136,9 @@ public:
 
 class NonlinearSolverTestRelNorm : virtual public NonlinearSolverTest {
 public:
+	MyVectorHandler AbsRes;
+	virtual VectorHandler* GetAbsRes();
+		virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,

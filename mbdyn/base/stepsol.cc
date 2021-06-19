@@ -188,7 +188,7 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 #endif /* USE_EXTERNAL */
 	/* deal with throwing elements: do not honor their requests while perfoming matrix free update */
 	try {
-		Residual(&z);
+		Residual(&z, 0);
 	}
 	catch (DataManager::ChangedEquationStructure& e) {
 	}
@@ -412,10 +412,10 @@ DerivativeSolver::Advance(Solver* pS,
 }
 
 void
-DerivativeSolver::Residual(VectorHandler* pRes) const
+DerivativeSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
 {
 	ASSERT(pDM != NULL);
-	pDM->AssRes(*pRes, dCoef);
+	pDM->AssRes(*pRes, dCoef, pAbsRes);
 }
 
 void
@@ -483,10 +483,10 @@ StepNIntegrator::~StepNIntegrator(void)
 }
 
 void
-StepNIntegrator::Residual(VectorHandler* pRes) const
+StepNIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
 {
 	ASSERT(pDM != NULL);
-	pDM->AssRes(*pRes, db0Differential);
+	pDM->AssRes(*pRes, db0Differential, pAbsRes);
 }
 
 #include "naivemh.h"
@@ -505,7 +505,7 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
  		MyVectorHandler basesol(pJac->iGetNumRows());
  		MyVectorHandler incsol(pJac->iGetNumRows());
  		MyVectorHandler inc(pJac->iGetNumRows());
- 		Residual(&basesol);
+ 		Residual(&basesol, 0);
  		doublereal ddd = 0.001;
  		for (integer i = 1; i <= pJac->iGetNumRows(); i++) {
  			incsol.Reset();
@@ -1469,7 +1469,7 @@ InverseDynamicsStepSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 #endif /* USE_EXTERNAL */
 	/* deal with throwing elements: do not honor their requests while perfoming matrix free update */
 	try {
-		Residual(&z);
+		Residual(&z, 0);
 	}
 	catch (DataManager::ChangedEquationStructure& e) {
 	}
@@ -1591,7 +1591,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* there's no need to check changes in
 	 * equation structure... it is already
 	 * performed by NonlinearSolver->Solve() */
-	Residual(pRes);
+	Residual(pRes, 0);
 
 	if (pS->outputRes()) {
 		silent_cout("Residual(velocity):" << std::endl);
@@ -1628,7 +1628,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 
 	pRes->Reset();
 	pSol->Reset();
-	Residual(pRes);
+	Residual(pRes, 0);
 
 	if (pS->outputRes()) {
 		silent_cout("Residual(acceleration):" << std::endl);
@@ -1660,7 +1660,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 
 	pRes->Reset();
 	pSol->Reset();
-	Residual(pRes);
+	Residual(pRes, 0);
 
 	if (pS->outputRes()) {
 		silent_cout("Residual(inverseDynamics):" << std::endl);
@@ -1700,7 +1700,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 }
 
 void
-InverseDynamicsStepSolver::Residual(VectorHandler* pRes) const
+InverseDynamicsStepSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
 {
 	ASSERT(pDM != NULL);
 	switch (iOrder) {
