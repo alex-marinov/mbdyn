@@ -784,7 +784,22 @@ NonlinearSolver::MakeResTest(Solver *pS,
 		dScaleAlgEqu *= dScaleAlgebraic;
 	}
 
-	dTest = pResTest->MakeTest(pS, Size, Vec, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
+	if (pResTest->GetType() == NonlinearSolverTest::Type::RELNORM) {
+		/* get norm for residual vector */
+		doublereal res_test = pResTest->MakeTest(pS, Size, Vec, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
+
+		/* get pointer to AbsRes vector */
+		VectorHandler* abs_res = pResTest->GetAbsRes();
+
+		/* get norm for AbsRes vector */
+		doublereal abs_res_test = pResTest->MakeTest(pS, Size, *abs_res, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
+
+		/* set dTest accordingly */
+		dTest = res_test/abs_res_test;
+	} else {
+		/* for rest of cases return norm of residual vector */
+		dTest = pResTest->MakeTest(pS, Size, Vec, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
+	}
 	return ((dTest <= dTol) && pS->pGetDataManager()->IsConverged()); // operator <= will work also for NonlinearSolverTestNone
 }
 
