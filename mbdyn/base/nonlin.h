@@ -144,6 +144,11 @@ public:
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 	virtual doublereal TestPost(const doublereal& dRes) const;
+
+	/* loops over Res and AbsRes */
+	virtual doublereal MakeTest(Solver *pS, const integer& Size,
+			const VectorHandler& Vec, bool bResidual = false,
+			doublereal dScaleAlgEqu = 1., doublereal* pTestDiff=0);
 };
 
 
