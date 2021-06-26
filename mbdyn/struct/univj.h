@@ -339,8 +339,13 @@ public:
 	};
 	/* ************************************************ */
 
+<<<<<<< HEAD
 	/* returns the dimension of the component */
 	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+=======
+	/* test code for getting dimension of components */
+	virtual void GetEquationDimension(int index);
+>>>>>>> f4de6e740 (initial test of GetEquationDimension)
 };
 
 /* UniversalPinJoint - end */
