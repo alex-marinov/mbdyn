@@ -109,6 +109,11 @@ class DofOwnerOwner {
  public:   
    DofOwnerOwner(const DofOwner* pDO);
    virtual ~DofOwnerOwner() { NO_OP; };
+
+   /* method to return the dimension of components 
+    * can be made pure virtual in future
+   */
+   virtual void GetEquationDimension(int index);
    
    virtual inline const DofOwner* pGetDofOwner(void) const {
       ASSERT(pDofOwner != NULL);
@@ -135,6 +140,7 @@ class DofOwnerOwner {
 	 * assembly could be implicitly or explicitly skipped
 	 */
 	virtual void SetInitialValue(VectorHandler& X);
+
 };
 
 #endif /* DOFOWN_H */
