@@ -224,11 +224,17 @@ UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
 	for (int iCnt = 1; iCnt <= 4; iCnt++) {
 		WorkVec.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Aggiorna i dati propri */
@@ -626,6 +632,11 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+UniversalHingeJoint::GetEquationDimension(int index) {
+	std::cout << "from UniversalHingeJoint, index: " << index << "\n";
+}
+
 /* UniversalHingeJoint - end */
 
 
@@ -776,6 +787,9 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
@@ -1139,6 +1153,11 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+UniversalRotationJoint::GetEquationDimension(int index) {
+	std::cout << "from UniversalRotationJoint, index: " << index << "\n";
+}
+
 /* UniversalRotationJoint - end */
 
 
@@ -1283,11 +1302,17 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
 	for (int iCnt = 1; iCnt <= 4; iCnt++) {
 		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
@@ -1581,6 +1606,11 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutCoef(20, e2*Tmp);
 
 	return WorkVec;
+}
+
+void
+UniversalPinJoint::GetEquationDimension(int index) {
+	std::cout << "from UniversalPinJoint, index: " << index << "\n";
 }
 
 /* UniversalPinJoint - end */
