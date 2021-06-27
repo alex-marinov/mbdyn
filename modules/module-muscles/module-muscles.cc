@@ -269,10 +269,10 @@ public:
 		doublereal x = (1. + ConstitutiveLaw<doublereal, doublereal>::Epsilon)*dxdEps;
 		doublereal v = ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime*dvdEpsPrime;
 
-		doublereal dLRef = ReferenceLength.dGet()/L0;
+		doublereal dxRef = ReferenceLength.dGet()/L0;
 
 		doublereal aRef = Activation.dGet();
-		aReq = aRef + Kp.dGet()*(x - dLRef) + Kd.dGet()*v;
+		aReq = aRef + Kp.dGet()*(x - dxRef) + Kd.dGet()*v;
 		a = aReq;
 
 		if (aReq < 0.) {
@@ -316,6 +316,108 @@ protected:
 	};
 };
 
+class MusclePennestriReflexiveCLWithSRS
+: public MusclePennestriCL {
+protected:
+	DriveOwner Kp;
+	DriveOwner Kd;
+	DriveOwner ReferenceLength;
+	doublereal SRSGamma;
+	doublereal SRSDelta;
+
+public:
+	MusclePennestriReflexiveCLWithSRS(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn,
+		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength,
+		const doublereal SRSGamma, const doublereal SRSDelta)
+	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
+	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta)
+	{
+		NO_OP;
+	};
+
+	virtual ~MusclePennestriReflexiveCLWithSRS(void) {
+		NO_OP;
+	}
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCLWithSRS,
+			MusclePennestriReflexiveCLWithSRS(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow,
+				bActivationOverflowWarn,
+				Kp.pGetDriveCaller()->pCopy(), Kd.pGetDriveCaller()->pCopy(),
+				ReferenceLength.pGetDriveCaller()->pCopy(),
+				SRSGamma, SRSDelta));
+		return pCL;
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
+		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
+
+		doublereal dxdEps = Li/L0;
+		doublereal dvdEpsPrime = Li/V0;
+		doublereal x = (1. + ConstitutiveLaw<doublereal, doublereal>::Epsilon)*dxdEps;
+		doublereal v = ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime*dvdEpsPrime;
+
+		doublereal dxRef = ReferenceLength.dGet()/L0;
+
+		doublereal aRef = Activation.dGet();
+		aReq = aRef + Kp.dGet()*(x - dxRef) + Kd.dGet()*v;
+		a = aReq;
+		
+		if (aReq < 0.) {
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
+			}
+			if (bActivationOverflow) {
+				a = 0.;
+			}
+
+		} else if (aReq > 1.) {
+			if (bActivationOverflowWarn) {
+				silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
+			}
+			if (bActivationOverflow) {
+				a = 1.;
+			}
+		}
+
+		doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
+		doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
+		doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
+
+		doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
+		doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
+		doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
+
+		if ( (x - dxRef) > 0 ) {
+			if ( (x - dxRef) < SRSDelta ) {
+				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*(x - dxRef)) + f3 );
+				ConstitutiveLaw<doublereal, doublereal>::FDE = 
+					F0*(df1dx*aRef*(f2 + SRSGamma*(x - dxRef)) + f1*(SRSGamma*aRef + Kp.dGet()*f2) + df3dx)*dxdEps;
+			} else {
+				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*SRSDelta) + f3);
+				ConstitutiveLaw<doublereal, doublereal>::FDE = 
+					F0*(df1dx*aRef*(f2 + SRSGamma*SRSDelta) + f1*(SRSGamma*aRef + Kp.dGet()*f2) + df3dx)*dxdEps;
+			}
+		} else {
+			// No SRS contribution
+			ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
+			ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*Kp.dGet())*f2 + df3dx)*dxdEps;
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*Kd.dGet())*dvdEpsPrime;
+		}
+	};
+};
+		
+
 /* specific functional object(s) */
 struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 	virtual ConstitutiveLaw<doublereal, doublereal> *
@@ -339,6 +441,9 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                        proportional gain , (DriveCaller) <kp> ,\n"
 				"                        derivative gain , (DriveCaller) <kd> ,\n"
 				"                        reference length, (DriveCaller) <lref> ]\n"
+				"		  	[ , short range stiffness ]\n"
+				" 		  	[ 	, gamma, (real) <gamma> ,]\n"
+				"		   	[ 	, delta, (real) <delta> ,]\n"
 				"                [ , prestress, <prestress> ]\n"
 				"                [ , prestrain, (DriveCaller) <prestrain> ]\n"
 				<< std::endl);
@@ -429,6 +534,11 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		DriveCaller* pKp(NULL);
 		DriveCaller* pKd(NULL);
 		const DriveCaller *pRefLen(0);
+		// Short Range Stiffness
+		bool bSRS(false);
+		// Default values, from De Groote et Al, JBiomech 55 (2017)
+		doublereal dSRSGamma = 280.; 
+		doublereal dSRSDelta = 5.7e-3;
 		if (HP.IsKeyWord("reflexive")) {
 			if (bErgo) {
 				silent_cerr("MusclePennestriCL: "
@@ -458,7 +568,20 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			pRefLen = HP.GetDriveCaller();
+		
+			if (HP.IsKeyWord("short" "range" "stiffness")) {
+				bSRS = true;
+				
+				if (HP.IsKeyWord("gamma")) {
+					dSRSGamma = HP.GetReal();
+				}
+
+				if (HP.IsKeyWord("delta")) {
+					dSRSDelta = HP.GetReal();
+				}
+			}
 		}
+
 
 		/* Prestress and prestrain */
 		doublereal PreStress(0.);
@@ -476,13 +599,21 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					bActivationOverflow, bActivationOverflowWarn));
 
 		} else if (bReflexive) {
-			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCL,
-				MusclePennestriReflexiveCL(pTplDC, PreStress,
-					Li, L0, V0, F0, pAct,
-					bActivationOverflow,
-					bActivationOverflowWarn,
-					pKp, pKd, pRefLen));
-
+			if (bSRS) {
+				SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCLWithSRS,
+					MusclePennestriReflexiveCLWithSRS(pTplDC, PreStress,
+						Li, L0, V0, F0, pAct,
+						bActivationOverflow,
+						bActivationOverflowWarn,
+						pKp, pKd, pRefLen, dSRSGamma, dSRSDelta));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCL,
+					MusclePennestriReflexiveCL(pTplDC, PreStress,
+						Li, L0, V0, F0, pAct,
+						bActivationOverflow,
+						bActivationOverflowWarn,
+						pKp, pKd, pRefLen));
+			}
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
 				MusclePennestriCL(pTplDC, PreStress,
