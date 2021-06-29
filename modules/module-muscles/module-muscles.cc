@@ -400,7 +400,7 @@ public:
 
 		if ( (x - dxRef) > 0 ) {
 			if ( (x - dxRef) < SRSDelta ) {
-				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*(x - dxRef)) + f3 );
+				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*(x - dxRef)) + f3);
 				ConstitutiveLaw<doublereal, doublereal>::FDE = 
 					F0*(df1dx*aRef*(f2 + SRSGamma*(x - dxRef)) + f1*(SRSGamma*aRef + Kp.dGet()*f2) + df3dx)*dxdEps;
 			} else {
