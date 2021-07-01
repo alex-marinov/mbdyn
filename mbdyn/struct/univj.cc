@@ -1635,7 +1635,6 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-<<<<<<< HEAD
 const OutputHandler::Dimensions
 UniversalPinJoint::GetEquationDimension(integer index) const {
 	// DOF == 4
@@ -1659,11 +1658,4 @@ UniversalPinJoint::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
-=======
-void
-UniversalPinJoint::GetEquationDimension(int index) {
-	std::cout << "from UniversalPinJoint, index: " << index << "\n";
-}
-
->>>>>>> f4de6e740 (initial test of GetEquationDimension)
 /* UniversalPinJoint - end */

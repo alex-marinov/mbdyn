@@ -3149,6 +3149,7 @@ StructNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+<<<<<<< HEAD
 const OutputHandler::Dimensions
 StructNode::GetEquationDimension(integer index) const {
 	

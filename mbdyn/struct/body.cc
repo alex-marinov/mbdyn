@@ -1275,6 +1275,8 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+
+		pNode->GetEquationDimension(iCnt);
 	}
 
 	const Vec3& V(pNode->GetVCurr());

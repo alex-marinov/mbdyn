@@ -832,6 +832,9 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
       WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }   
    
    /* Indici del vincolo */
@@ -4542,6 +4545,9 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
       WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+
+      /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }
      
    
