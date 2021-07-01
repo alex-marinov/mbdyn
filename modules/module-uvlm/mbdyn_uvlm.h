@@ -109,6 +109,7 @@ private:
 };
 
 
+
 class Aerogrid {
 
 public:
@@ -119,20 +120,14 @@ public:
 
 	std::vector<int> surface_distribution;
 	std::vector<int> surface_m;
-	std::vector<std::pair<int, int>> aero_dimensions;
-	std::vector<std::pair<int, int>> aero_dimensions_star;
-
-
+	std::vector<std::pair<int, int>> dimensions;
+	std::vector<std::pair<int, int>> dimensions_star;
 
 
 	Aerogrid();
-	~Aerogrid();
-
 	void generate(Aero_inputs*, std::map<std::string, std::variant<bool, int, double, std::string>>&, double);
-	void output_info(Aero_inputs*, std::vector<std::pair<int, int>>&, 
-		std::vector<std::pair<int, int>>&);
-	void calculate_dimensions(Aero_inputs*, std::vector<std::pair<int, int>>&, 
-		std::vector<std::pair<int, int>>&);
+	void output_info(Aero_inputs*);
+	void calculate_dimensions(Aero_inputs*);
 	void add_timestep();
 	void generate_zeta_timestep_info();
 	void generate_zeta(Aero_inputs*, std::map<std::string, std::variant<bool, int, double, std::string>>&, double);
@@ -140,14 +135,15 @@ public:
 	void update_orientation();
 	void compute_gamma_dot();
 
+
+	~Aerogrid();
+
 private:
 	int n_node = 0;
 	int n_elem = 0;
 	int n_surf = 0;
 	int n_aero_node = 0;
 	int n_control_surfaces = 0;
-
-
 };
 
 
@@ -163,14 +159,14 @@ public:
 	double r;                                      // Growth rate after "ndx1" panels
 	double dxmax;                                  // Maximum panel size
 
-
-
 	StraightWake() {};
 	void StraightWake_initialize(std::map<std::string, std::variant<int, double>>&);
 	void StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo*);
-	double StraightWake_get_deltax();
 	~StraightWake() {};
 
+private:
+
+	double StraightWake_get_deltax(int, double, double, double, double);
 };
 
 
