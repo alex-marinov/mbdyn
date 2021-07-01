@@ -38,16 +38,10 @@
 #include <map>
 #include <vector>
 #include <variant>
+#include <algorithm>
 
 
 #include "mbdyn_uvlm.h"
-
-
-/***************************************************************/
-// Functions used in the UVLM subsystem
-extern "C" void
-MBDyn_UVLM_Model_Create();
-/***************************************************************/
 
 
 /***************************************************************/
@@ -257,6 +251,12 @@ void Aero_inputs::Aero_inputs_generate(int num_elem, int num_node_elem, int num_
 }
 
 
+
+Aerogrid::Aerogrid() {
+	;
+}
+
+
 void Aerogrid::generate(Aero_inputs* aero_inputs, 
 	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings,
 	double ts) {
@@ -268,6 +268,9 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	// number of elements
 	n_elem = aero_inputs->surface_distribution_input.size();
 
+	// Surface distribution
+	surface_distribution = aero_inputs->surface_distribution_input;
+
 	// number of surfaces
 	n_surf = ;
 
@@ -278,16 +281,15 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	n_aero_node = aero_inputs->aero_node_input.size();
 
 	// get N per surface
-	aero_dimensions.resize(n_surf);
-	aero_dimensions_star.resize(n_surf);
-	calculate_dimensions(aero_inputs, aero_dimensions, 
-		aero_dimensions_star);
+	dimensions.resize(n_surf);
+	dimensions_star.resize(n_surf); 
+	calculate_dimensions(aero_inputs);
 
 	// Write grid info on the screen
-	output_info(aero_inputs, aero_dimensions, aero_dimensions_star);
+	output_info(aero_inputs);
 
 	// allocating the initial storage
-	aero_ini_info = MBDyn_UVLM_AeroTimeStepInfo(aero_dimensions, aero_dimensions_star);
+	aero_ini_info = MBDyn_UVLM_AeroTimeStepInfo(dimensions, dimensions_star);
 
 	
 	// load airfoils db
@@ -324,13 +326,12 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 
 
 
-void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, std::vector<std::pair<int, int>>& aero_dimensions,
-	std::vector<std::pair<int, int>>& aero_dimensions_star) {
+void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs) {
 
 	int _n_surf = ; // derived from aero inputs
 	for (int i = 0; i < _n_surf; ++i) {
 		// adding M values
-		aero_dimensions[i].first = surface_m[i];
+		dimensions[i].first = surface_m[i];
 	}
 	// Count N values (actually the count result will be N+1)
 	std::vector<std::vector<int>> nodes_in_surface;
@@ -351,49 +352,47 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, std::vector<std::p
 				nodes_in_surface[i_surf].push_back(i_global_node);
 			}
 			if (aero_inputs->aero_node_input[i_global_node]) {
-				aero_dimensions[i_surf].second += 1;
+				dimensions[i_surf].second += 1;
 			}
 		}
 	}
 	// Accounting for N+1 nodes --> N panels
-	for (auto& itr : aero_dimensions) {
+	for (auto& itr : dimensions) {
 		itr.second = itr.second - 1;
 	}
 
-	aero_dimensions_star = aero_dimensions;
+	dimensions_star = dimensions;
 	for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-		aero_dimensions_star[i_surf].first = ; // aero_settings['mstar'].value
+		dimensions_star[i_surf].first = ; // aero_settings['mstar'].value
 	}
 
 }
 
-void Aerogrid::output_info(Aero_inputs* aero_inputs, std::vector<std::pair<int, int>>& aero_dimensions,
-	std::vector<std::pair<int, int>>& aero_dimensions_star) {
+void Aerogrid::output_info(Aero_inputs* aero_inputs) {
 
 	int _n_surf = ; // aeroinput settings variable
 	std::cout << "The aerodynamic grid contains " << _n_surf << " surfaces" << std::endl;
 
 	for (int i_surf = 0; i_surf < _n_surf; ++i_surf) {
 		std::cout << "Surface : " << i_surf << " ; " << "M : " << 
-			aero_dimensions[i_surf].first << " ; " << "N : " << 
-			aero_dimensions[i_surf].second << std::endl;
+			dimensions[i_surf].first << " ; " << "N : " << 
+			dimensions[i_surf].second << std::endl;
 		std::cout << "Wake : " << i_surf << " ; " << "M : " <<
-			aero_dimensions_star[i_surf].first << " ; " << "N : " <<
-			aero_dimensions_star[i_surf].second << std::endl;
+			dimensions_star[i_surf].first << " ; " << "N : " <<
+			dimensions_star[i_surf].second << std::endl;
 	}
 
 	int total_bound_panels = 0;
 	int total_wake_panels = 0;
-	for (auto itr : aero_dimensions) {
+	for (auto itr : dimensions) {
 		total_bound_panels = total_bound_panels + itr.first * itr.second;
 	}
-	for (auto itr : aero_dimensions_star) {
+	for (auto itr : dimensions_star) {
 		total_wake_panels = total_wake_panels + itr.first * itr.second;
 	}
 	std::cout << "In total : " << total_bound_panels << " bound panels" << std::endl;
 	std::cout << "In total : " << total_wake_panels << " wake panels" << std::endl;
 	std::cout << "Total number of panels : " << total_bound_panels + total_wake_panels << std::endl;
-
 }
 
 void Aerogrid::add_timestep() {
@@ -450,10 +449,65 @@ void StraightWake::StraightWake_initialize(std::map<std::string, std::variant<in
 void StraightWake::StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo* aero_tstep) {
 
 	int nsurf = aero_tstep->zeta.size();
-	for (int i_surf = 0; i_surf < nsurf; ++i_surf) {
-
+	for (int isurf = 0; isurf < nsurf; ++isurf) {
+		int M = aero_tstep->zeta_star[isurf][0].size();
+		int N = aero_tstep->zeta_star[isurf][0][0].size();
+		for (int j = 0; j < N; ++j) {
+			for (int k = 0; k < 3; ++k) {
+				aero_tstep->zeta_star[isurf][k][0][j] = aero_tstep->zeta[isurf][k][M][j];
+			}
+			for (int i = 1; i < M; ++i) {
+				double deltax = StraightWake_get_deltax(i, dx1, ndx1, r, dxmax);
+				for (int k = 0; k < 3; ++k) {
+					aero_tstep->zeta_star[isurf][k][i][j] = aero_tstep->zeta_star[isurf][k][i - 1][j] + deltax * u_inf_direction[k];
+				}
+			}
+		}
+		for (int j = 0; j < aero_tstep->gamma[isurf].size(); ++j) {
+			for (int i = 0; i < aero_tstep->gamma[isurf][0].size(); ++i) {
+				aero_tstep->gamma[isurf][j][i] *= 0;
+				aero_tstep->gamma_star[isurf][j][i] *= 0;
+			}
+		}
 	}
 
+	for (int isurf = 0; isurf < nsurf; ++isurf) {
+		int M = aero_tstep->zeta_star[isurf][0].size();
+		int N = aero_tstep->zeta_star[isurf][0][0].size();
+		for (int j = 0; j < aero_tstep->dist_to_orig[isurf].size(); ++j) {
+			for (int i = 0; i < aero_tstep->dist_to_orig[isurf][0].size(); ++i) {
+				aero_tstep->dist_to_orig[isurf][j][i] = 0;
+			}
+		}
+		for (int j = 0; j < N; ++j) {
+			for (int i = 1; i < M; ++i) {
+				double norm = 0;
+				for (int k = 0; k < 3; ++k) {
+					norm = norm + (aero_tstep->zeta_star[isurf][k][i][j] - aero_tstep->zeta_star[isurf][k][i - 1][j]) *
+						(aero_tstep->zeta_star[isurf][k][i][j] - aero_tstep->zeta_star[isurf][k][i - 1][j]);
+				}
+				norm = sqrt(norm);
+				aero_tstep->dist_to_orig[isurf][i][j] = aero_tstep->dist_to_orig[isurf][i - 1][j] + norm;
+			}
+			for (int i = 0; i < M; ++i) {
+				aero_tstep->dist_to_orig[isurf][i][j] /= aero_tstep->dist_to_orig[isurf][M][j];
+			}
+		}
+	}
+}
+
+double StraightWake::StraightWake_get_deltax(int i, double dx1, double ndx1, double r, double dxmax) {
+
+	double deltax;
+	if (i < ndx1 + 1) {
+		deltax = dx1;
+	}
+	else {
+		deltax = dx1 * pow(r, i - ndx1);
+	}
+	deltax = std::min(deltax, dxmax);
+
+	return deltax;
 }
 
 
