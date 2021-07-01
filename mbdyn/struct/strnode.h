@@ -36,6 +36,7 @@
 #include "matvec3.h"
 #include "rbk.h"
 #include "invdyn.h"
+#include "output.h"
 
 #ifdef USE_AUTODIFF
 #include "gradient.h"
@@ -304,6 +305,9 @@ public:
 	/* Returns the current value of a private data
 	 * with 0 < i <= iGetNumPrivData() */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* test code for getting dimension of components */
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -749,7 +753,6 @@ StaticStructDispNode::iGetFirstMomentumIndex(void) const
 {
 	return DofOwnerOwner::iGetFirstIndex();
 }
-
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 inline integer
 StaticStructDispNode::iGetInitialFirstIndexPrime() const
@@ -1066,6 +1069,9 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* test code for getting dimension of components */
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 }; /* End class StructNode */
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */

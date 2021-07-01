@@ -37,6 +37,7 @@
 
 #include "joint.h"
 #include "drive.h"
+#include "output.h"
 
 #ifndef MBDYN_X_DISTANCE_JOINT
 /* DistanceJoint - begin */
@@ -377,6 +378,9 @@ class ClampJoint : virtual public Elem, public Joint {
      connectedNodes[0] = pNode;
    };
    /* ************************************************ */
+
+   /* test code for getting dimension of components */
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index);
 };
 
 /* ClampJoint - end */
