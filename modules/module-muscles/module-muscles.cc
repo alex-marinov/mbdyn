@@ -318,6 +318,11 @@ protected:
 
 class MusclePennestriReflexiveCLWithSRS
 : public MusclePennestriCL {
+private:
+	enum SRSModel {
+		SRS_LINEAR,
+		SRS_EXPONENTIAL
+	} m_SRSModel;
 protected:
 	DriveOwner Kp;
 	DriveOwner Kd;
@@ -398,22 +403,27 @@ public:
 		doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
 		doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
+		doublereal SRS_f, SRS_fDE;
 		if ( (x - dxRef) > 0 ) {
-			if ( (x - dxRef) < SRSDelta ) {
-				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*(x - dxRef)) + f3 );
-				ConstitutiveLaw<doublereal, doublereal>::FDE = 
-					F0*(df1dx*aRef*(f2 + SRSGamma*(x - dxRef)) + f1*(SRSGamma*aRef + Kp.dGet()*f2) + df3dx)*dxdEps;
-			} else {
-				ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSGamma*aRef*SRSDelta) + f3);
-				ConstitutiveLaw<doublereal, doublereal>::FDE = 
-					F0*(df1dx*aRef*(f2 + SRSGamma*SRSDelta) + f1*(SRSGamma*aRef + Kp.dGet()*f2) + df3dx)*dxdEps;
+			if (m_SRSModel == SRS_LINEAR) {
+				if ( (x - dxRef) < SRSDelta ) {
+					SRS_f = SRSGamma*aRef*(x - dxRef);
+				} else { // (x - dxRef >= Delta)
+					SRS_f = SRSGamma*aRef*SRSDelta;
+				}
+				SRS_fDE = SRSGamme*aRef;
+			} else { // m_SRSModel == SRS_EXPONENTIAL
+				SRS_f = SRSGamma*aRef*SRSDelta*(1 - std::exp(1 - std::exp((x - dxRed)/SRSDelta)));
+				SRS_fDE = SRSGamma*aRef*std::exp((x - dxRef)/SRSDelta - std::exp((x - dxRef)/SRSDelta) + 1);
 			}
-		} else {
-			// No SRS contribution
-			ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
-			ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*Kp.dGet())*f2 + df3dx)*dxdEps;
-			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*Kd.dGet())*dvdEpsPrime;
+		} else { // (x - xRef) <= 0
+			SRS_f = 0.;
+			SRS_fDE = 0.;
 		}
+
+		ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRS_f) + f3 );
+		ConstitutiveLaw<doublereal, doublereal>::FDE = 
+			F0*(df1dx*(f2*aRef + SRS_f) + f1*(SRS_fDE + Kp.dGet()*f2) + df3dx)*dxdEps;
 	};
 };
 		
@@ -442,6 +452,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                        derivative gain , (DriveCaller) <kd> ,\n"
 				"                        reference length, (DriveCaller) <lref> ]\n"
 				"		  	[ , short range stiffness ]\n"
+				"			[ 	, model, {linear | exponential} ,]\n"
 				" 		  	[ 	, gamma, (real) <gamma> ,]\n"
 				"		   	[ 	, delta, (real) <delta> ,]\n"
 				"                [ , prestress, <prestress> ]\n"
@@ -485,7 +496,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		// default (mm/s? m/s?)
+		// default [m/s]
 		doublereal V0 = 2.5;
 		if (HP.IsKeyWord("reference" "velocity")) {
 			V0 = HP.GetReal();
@@ -534,11 +545,16 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		DriveCaller* pKp(NULL);
 		DriveCaller* pKd(NULL);
 		const DriveCaller *pRefLen(0);
+		
 		// Short Range Stiffness
 		bool bSRS(false);
+		
 		// Default values, from De Groote et Al, JBiomech 55 (2017)
 		doublereal dSRSGamma = 280.; 
 		doublereal dSRSDelta = 5.7e-3;
+		
+		// Default model: double linear.
+		m_SRSModel = SRS_LINEAR;
 		if (HP.IsKeyWord("reflexive")) {
 			if (bErgo) {
 				silent_cerr("MusclePennestriCL: "
@@ -571,7 +587,19 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		
 			if (HP.IsKeyWord("short" "range" "stiffness")) {
 				bSRS = true;
-				
+
+				if (HP.IsKeyWord("model")) {
+					if (HP.IsKeyWord("exponential")) {
+						m_SRSModel = SRS_EXPONENTIAL;
+					} else if (HP.IsKewWord("linear")) {
+						NO_OP; // model is unchanged
+					} else {
+						silent_cerr("MusclePennestriCL: unrecognised Short-Range Stiffness model "
+								"at line " << HP.GetLineData() << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
 				if (HP.IsKeyWord("gamma")) {
 					dSRSGamma = HP.GetReal();
 				}
