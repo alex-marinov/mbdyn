@@ -607,6 +607,15 @@ UseLocalSocket::UseLocalSocket_int(void)
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+   		} else if (sock < 0) {
+			const char	*err_msg = strerror(save_errno);
+
+      			silent_cerr("UseLocalSocket(" << path << "): "
+				"mbdyn_make_named_socket_type() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 
 		if (socket_type == SOCK_STREAM) {

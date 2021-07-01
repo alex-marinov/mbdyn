@@ -105,7 +105,7 @@ public:
 	void Connect(void);
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
-	std::string GetSockaddrStr (void) const;
+	std::string GetSockaddrStr(void) const;
 };
 
 #ifndef _WIN32
@@ -126,7 +126,7 @@ public:
 	void Connect(void);
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
-	std::string GetSockaddrStr (void) const;
+	std::string GetSockaddrStr(void) const;
 };
 #endif /* _WIN32 */
 

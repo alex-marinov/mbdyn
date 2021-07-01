@@ -228,7 +228,7 @@ main(int argc, char *argv[])
 	} else {
 		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 	}
-	if (sock == INVALID_SOCKET) {
+	if (sock < 0) {
 		fprintf(stderr, "socket initialization error\n");
 		exit(EXIT_FAILURE);
 	}

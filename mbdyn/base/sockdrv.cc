@@ -129,7 +129,7 @@ pFlags(NULL)
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): socket failed "
+			<< "): socket(\"" << data.Path << "\") failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -138,7 +138,16 @@ pFlags(NULL)
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): bind failed "
+			<< "): bind(\"" << data.Path << "\") failed "
+			"(" << save_errno << ": "<< err_msg << ")"
+			<< std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+   	} else if (sock < 0) {
+		const char	*err_msg = strerror(save_errno);
+
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): mbdyn_make_named_socket(\"" << data.Path << "\") failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

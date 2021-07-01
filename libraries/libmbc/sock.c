@@ -277,6 +277,16 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 
    	struct sockaddr_un tmpname = { 0 };
 	socklen_t size;
+	size_t path_len;
+
+	path_len = strlen(path);
+	if (path_len >= sizeof(name->sun_path)) {
+		/* temporary check; TODO: allow arbitrary length paths */
+		if (perrno) {
+			*perrno = ENAMETOOLONG;
+		}
+		return -3;
+	}
 
 	if (name == NULL) {
 		name = &tmpname;
@@ -297,10 +307,9 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 
    	/* Give the socket a name. */
    	name->sun_family = AF_LOCAL;
-   	strncpy(name->sun_path, path, sizeof(name->sun_path)-1);
+   	memcpy(name->sun_path, path, path_len + 1);
 #ifdef HAVE_OFFSETOF
-	size = (offsetof(struct sockaddr_un, sun_path)
-			+ strlen(name->sun_path) + 1);
+	size = (offsetof(struct sockaddr_un, sun_path) + path_len + 1);
 #else /* HAVE_OFFSETOF */
 	size = sizeof(struct sockaddr_un);
 #endif /* !HAVE_OFFSETOF */

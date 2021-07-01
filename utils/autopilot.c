@@ -161,7 +161,7 @@ send_message(const char *message)
 		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 			(void)serr; //silence set but not used warning
 	}
-	if (sock == INVALID_SOCKET) {
+	if (sock < 0) {
 		return -1;
 	}
 

@@ -364,6 +364,14 @@ s2s_t::prepare(void)
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 	      		throw;
+
+		} else if (this->sock < 0) {
+			const char	*err_msg = strerror(save_errno);
+
+	      		silent_cerr("mbdyn_make_named_socket_type(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+	      		throw;
 		}
 #endif /* _WIN32 */
 
