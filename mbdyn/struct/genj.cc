@@ -1530,6 +1530,8 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+
+		GetEquationDimension(iCnt);
 	}
 
 	/* Aggiorna le reazioni vincolari */
@@ -1816,6 +1818,13 @@ ClampJoint::dGetPrivData(unsigned int i) const
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+OutputHandler::Dimensions
+ClampJoint::GetEquationDimension(integer index){
+	silent_cout("entering ClampJoint GetEquationDimension\n");
+
+	return OutputHandler::Dimensions::Boolean;
 }
 
 /* ClampJoint - end */

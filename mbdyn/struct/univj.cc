@@ -631,12 +631,6 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
-
-void
-UniversalHingeJoint::GetEquationDimension(int index) {
-	std::cout << "from UniversalHingeJoint, index: " << index << "\n";
-}
-
 /* UniversalHingeJoint - end */
 
 
@@ -1152,12 +1146,6 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
-
-void
-UniversalRotationJoint::GetEquationDimension(int index) {
-	std::cout << "from UniversalRotationJoint, index: " << index << "\n";
-}
-
 /* UniversalRotationJoint - end */
 
 
@@ -1606,11 +1594,6 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutCoef(20, e2*Tmp);
 
 	return WorkVec;
-}
-
-void
-UniversalPinJoint::GetEquationDimension(int index) {
-	std::cout << "from UniversalPinJoint, index: " << index << "\n";
 }
 
 /* UniversalPinJoint - end */

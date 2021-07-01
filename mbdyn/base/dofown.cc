@@ -58,7 +58,11 @@ DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
 	NO_OP; 
 }
 
-void
-DofOwnerOwner::GetEquationDimension(int index) {
-	std::cout << "from DofOwnerOwner, index: " << index << "\n";
+OutputHandler::Dimensions
+DofOwnerOwner::GetEquationDimension(integer index) {
+
+	silent_cout("entered GetEquationDimension of DofOwnerOwner");
+	throw("runtime error");
+	
+	return OutputHandler::Dimensions::Boolean;
 }

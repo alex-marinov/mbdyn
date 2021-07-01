@@ -37,6 +37,7 @@
 #include "joint.h"
 #include "drive.h"
 #include "friction.h"
+#include "output.h"
 
 /* PlaneHingeJoint - begin */
 
@@ -196,6 +197,9 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* test code for getting dimension of components */
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index);
 };
 
 /* PlaneHingeJoint - end */
@@ -638,6 +642,9 @@ class PlanePinJoint : virtual public Elem, public Joint {
      connectedNodes[0] = pNode;
    };
    /* ************************************************ */
+
+   /* test code for getting dimension of components */
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index);
 };
 
 /* PlanePinJoint - end */

@@ -132,9 +132,6 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
-
-	/* test code for getting dimension of components */
-	virtual void GetEquationDimension(int index);
 };
 
 /* UniversalHingeJoint - end */
@@ -237,9 +234,6 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
-
-	/* test code for getting dimension of components */
-	virtual void GetEquationDimension(int index);
 };
 
 /* UniversalRotationJoint - end */
@@ -338,9 +332,6 @@ public:
 		connectedNodes[0] = pNode;
 	};
 	/* ************************************************ */
-
-	/* test code for getting dimension of components */
-	virtual void GetEquationDimension(int index);
 };
 
 /* UniversalPinJoint - end */
