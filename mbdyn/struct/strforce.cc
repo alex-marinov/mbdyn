@@ -564,6 +564,8 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+
+		pNode->GetEquationDimension(iCnt);
 	}
 
 	const Mat3x3& R(pNode->GetRCurr());

@@ -193,16 +193,6 @@ public:
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestScaleRelNorm : virtual public NonlinearSolverTestScale,
-	virtual public NonlinearSolverTestNorm {
-public:
-	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex, doublereal dCoef) const;
-	virtual void TestMerge(doublereal& dResCurr,
-			const doublereal& dResNew) const;
-	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
-};
-
 class NonlinearSolverTestScaleMinMax : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestMinMax {
 public:

@@ -832,11 +832,17 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
       WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }   
    
    /* Indici del vincolo */
    for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }
 
    /* Aggiorna i dati propri */
@@ -1517,6 +1523,12 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+OutputHandler::Dimensions
+PlaneHingeJoint::GetEquationDimension(integer index) {
+	silent_cout("entering PlaneHingeJoint GetEquationDimension\n");
+
+   return OutputHandler::Dimensions::Boolean;
+}
 /* PlaneHingeJoint - end */
 
 
@@ -4457,12 +4469,18 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
       WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+
+      /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }
      
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 5; iCnt++) {
-      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);   
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt); 
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);  
    }
    
    F = Vec3(XCurr, iFirstReactionIndex+1);
@@ -4874,6 +4892,13 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    silent_cerr("PlanePinJoint(" << GetLabel() << "): "
 	   "illegal private data " << i << std::endl);
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+OutputHandler::Dimensions
+PlanePinJoint::GetEquationDimension(integer index) {
+	silent_cout("entering PlanePinJoint GetEquationDimension\n");
+
+   return OutputHandler::Dimensions::Boolean;
 }
 
 /* PlanePinJoint - end */

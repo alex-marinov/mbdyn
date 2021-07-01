@@ -1073,6 +1073,13 @@ StructDispNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+OutputHandler::Dimensions
+StructDispNode::GetEquationDimension(integer index) const {
+	silent_cout("entering StructDispNode GetEquationDimension\n");
+
+	return OutputHandler::Dimensions::Boolean;
+}
+
 /* StructNode - end */
 
 
@@ -3101,6 +3108,13 @@ StructNode::dGetPrivData(unsigned int i) const
 	}
 
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+OutputHandler::Dimensions
+StructNode::GetEquationDimension(integer index) const {
+	silent_cout("entering StructNode GetEquationDimension\n");
+
+	return OutputHandler::Dimensions::Boolean;
 }
 
 /* StructNode - end */
