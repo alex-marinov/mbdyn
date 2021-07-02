@@ -280,7 +280,7 @@ public:
 class Body :
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 protected:
-	mutable const StructNode *pNode;
+        const StructNode *pNode;
 	doublereal dMass;
 	Vec3 Xgc;
 	Vec3 S0;

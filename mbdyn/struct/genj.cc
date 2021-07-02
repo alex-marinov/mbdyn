@@ -1821,7 +1821,7 @@ ClampJoint::dGetPrivData(unsigned int i) const
 }
 
 OutputHandler::Dimensions
-ClampJoint::GetEquationDimension(integer index){
+ClampJoint::GetEquationDimension(integer index) const {
 	silent_cout("entering ClampJoint GetEquationDimension\n");
 
 	return OutputHandler::Dimensions::Boolean;
