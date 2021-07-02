@@ -1531,6 +1531,7 @@ PlaneHingeJoint::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Length;
+<<<<<<< HEAD
          break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Length;
@@ -1544,6 +1545,16 @@ PlaneHingeJoint::GetEquationDimension(integer index) const {
 		case 5:
 			dimension = OutputHandler::Dimensions::rad;
          break;
+=======
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+>>>>>>> 99533e60c (GetEquationDimension added)
 	}
 
 	if (fc) {
