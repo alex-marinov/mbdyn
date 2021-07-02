@@ -1524,7 +1524,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 }
 
 OutputHandler::Dimensions
-PlaneHingeJoint::GetEquationDimension(integer index) {
+PlaneHingeJoint::GetEquationDimension(integer index) const {
 	silent_cout("entering PlaneHingeJoint GetEquationDimension\n");
 
    return OutputHandler::Dimensions::Boolean;
@@ -4895,7 +4895,7 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
 }
 
 OutputHandler::Dimensions
-PlanePinJoint::GetEquationDimension(integer index) {
+PlanePinJoint::GetEquationDimension(integer index) const {
 	silent_cout("entering PlanePinJoint GetEquationDimension\n");
 
    return OutputHandler::Dimensions::Boolean;

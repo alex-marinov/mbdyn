@@ -380,7 +380,7 @@ class ClampJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* test code for getting dimension of components */
-	virtual OutputHandler::Dimensions GetEquationDimension(integer index);
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* ClampJoint - end */
