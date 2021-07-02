@@ -1075,14 +1075,54 @@ StructDispNode::dGetPrivData(unsigned int i) const
 
 OutputHandler::Dimensions
 StructDispNode::GetEquationDimension(integer index) const {
-	silent_cout("entering StructDispNode GetEquationDimension\n");
 
-	return OutputHandler::Dimensions::Boolean;
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 4:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 5:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 6:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 7:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 8:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 9:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 10:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 11:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 12:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	default:
+		dimension = OutputHandler::Dimensions::Dimensionless;
+		break;
+	}
+
+	return dimension;
 }
-
-/* StructNode - end */
-
-
 
 /* StructDispNode - end */
 
@@ -3112,9 +3152,53 @@ StructNode::dGetPrivData(unsigned int i) const
 
 OutputHandler::Dimensions
 StructNode::GetEquationDimension(integer index) const {
-	silent_cout("entering StructNode GetEquationDimension\n");
+	
+	OutputHandler::Dimensions dimension;
 
-	return OutputHandler::Dimensions::Boolean;
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 4:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 5:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 6:
+		dimension = OutputHandler::Dimensions::deg;
+		break;
+	case 7:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 8:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 9:
+		dimension = OutputHandler::Dimensions::Velocity;
+		break;
+	case 10:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 11:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 12:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	default:
+		dimension = OutputHandler::Dimensions::Dimensionless;
+		break;
+	}
+
+	return dimension;
 }
 
 /* StructNode - end */
