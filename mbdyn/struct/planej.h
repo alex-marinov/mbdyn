@@ -649,13 +649,10 @@ class PlanePinJoint : virtual public Elem, public Joint {
    };
    /* ************************************************ */
 
-<<<<<<< HEAD
    /* return s the dimension of the component */
 	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
-=======
-   /* test code for getting dimension of components */
 	virtual OutputHandler::Dimensions GetEquationDimension(integer index);
->>>>>>> 26920e853 (initial GetEquationDimension at all required places)
+	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlanePinJoint - end */
