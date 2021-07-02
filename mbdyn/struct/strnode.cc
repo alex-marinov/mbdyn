@@ -1073,53 +1073,25 @@ StructDispNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 StructDispNode::GetEquationDimension(integer index) const {
 
 	OutputHandler::Dimensions dimension;
 
+	/* in case of dynamic node, indices are 3 places ahead */
+	if (dynamic_cast<const DynamicStructDispNode*>(this) != 0) {
+		index -= 3;
+	} 
+
 	switch (index)
-	{
-	case 1:
-		dimension = OutputHandler::Dimensions::Length;
-		break;
-	case 2:
-		dimension = OutputHandler::Dimensions::Length;
-		break;
-	case 3:
-		dimension = OutputHandler::Dimensions::Length;
-		break;
-	case 4:
-		dimension = OutputHandler::Dimensions::deg;
-		break;
-	case 5:
-		dimension = OutputHandler::Dimensions::deg;
-		break;
-	case 6:
-		dimension = OutputHandler::Dimensions::deg;
-		break;
-	case 7:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 8:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 9:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 10:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	case 11:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	case 12:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	default:
-		dimension = OutputHandler::Dimensions::Dimensionless;
-		break;
-	}
+		{
+			case 1:
+				dimension = OutputHandler::Dimensions::Force;
+			case 2:
+				dimension = OutputHandler::Dimensions::Force;
+			case 3:
+				dimension = OutputHandler::Dimensions::Force;
+		}
 
 	return dimension;
 }
@@ -3150,51 +3122,37 @@ StructNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 StructNode::GetEquationDimension(integer index) const {
 	
 	OutputHandler::Dimensions dimension;
 
+	if (dynamic_cast<const DynamicStructNode*>(this) != 0
+				|| dynamic_cast<const ModalNode*>(this) != 0)
+		{
+			index -= 6;
+		}
+
+
 	switch (index)
 	{
 	case 1:
-		dimension = OutputHandler::Dimensions::Length;
+		dimension = OutputHandler::Dimensions::Force;
 		break;
 	case 2:
-		dimension = OutputHandler::Dimensions::Length;
+		dimension = OutputHandler::Dimensions::Force;
 		break;
 	case 3:
-		dimension = OutputHandler::Dimensions::Length;
+		dimension = OutputHandler::Dimensions::Force;
 		break;
 	case 4:
-		dimension = OutputHandler::Dimensions::deg;
+		dimension = OutputHandler::Dimensions::Moment;
 		break;
 	case 5:
-		dimension = OutputHandler::Dimensions::deg;
+		dimension = OutputHandler::Dimensions::Moment;
 		break;
 	case 6:
-		dimension = OutputHandler::Dimensions::deg;
-		break;
-	case 7:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 8:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 9:
-		dimension = OutputHandler::Dimensions::Velocity;
-		break;
-	case 10:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	case 11:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	case 12:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
-		break;
-	default:
-		dimension = OutputHandler::Dimensions::Dimensionless;
+		dimension = OutputHandler::Dimensions::Moment;
 		break;
 	}
 

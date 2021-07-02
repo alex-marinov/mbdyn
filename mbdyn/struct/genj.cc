@@ -1820,11 +1820,28 @@ ClampJoint::dGetPrivData(unsigned int i) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 ClampJoint::GetEquationDimension(integer index) const {
-	silent_cout("entering ClampJoint GetEquationDimension\n");
+	
+	OutputHandler::Dimensions dimension;
 
-	return OutputHandler::Dimensions::Boolean;
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+		case 6:
+			dimension = OutputHandler::Dimensions::rad;
+	}
+
+	return dimension;
 }
 
 /* ClampJoint - end */
