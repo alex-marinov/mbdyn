@@ -140,7 +140,7 @@ class DofOwnerOwner {
    /* method to return the dimension of components 
     * can be made pure virtual in future
    */
-   virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+   const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 
 };
 

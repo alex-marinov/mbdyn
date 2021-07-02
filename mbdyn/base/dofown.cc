@@ -58,7 +58,7 @@ DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
 	NO_OP; 
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 DofOwnerOwner::GetEquationDimension(integer index) const {
 
 	silent_cout("entered GetEquationDimension of DofOwnerOwner");
