@@ -281,9 +281,12 @@ mbdyn_make_named_socket_type(SOCKET *sock, struct sockaddr_un *name, const char 
 
 	pathlen = strlen(path);
 	if (pathlen >= sizeof(tmpname.sun_path)) {
-		if (perror) {
-			*perror = 
+		if (perrno) {
+			*perrno = ENAMETOOLONG;
+		}
+		return -3;
 	}
+
 	if (name == NULL) {
 		name = &tmpname;
 	}
@@ -313,41 +316,19 @@ mbdyn_make_named_socket_type(SOCKET *sock, struct sockaddr_un *name, const char 
 	/* perhaps this is better: */
 	size = (void *)&tmpname.sun_path - (void *)&tmpname + pathlen + 1;
 #endif /* !HAVE_OFFSETOF */
-	if (pathlen >= sizeof(name->sun_path)) {
-		p_tmpname = (struct sockaddr_un *)malloc(size);
-
-		if (p_tmpname == NULL) {
-			if (perrno) {
-				*perrno = ENOMEM;
-			}
-			return -3;
-		}
-
-		memcpy(p_tmpname, name, sizeof(struct sockaddr_un));
-		memcpy(p_tmpname->sun_path, path, pathlen + 1);
-		name = p_tmpname;
-	}
 
    	if (dobind) {
-		rc = bind(*sock, (struct sockaddr *)name, size);
+		int rc = bind(*sock, (struct sockaddr *)name, size);
 		if (rc < 0) {
 			if (perrno) {
 				*perrno = errno;
 			}
 
-      			rc = -2;
-			goto done;
+      			return -2;
 		}
    	}
 
-	rc = 0;
-
-done:;
-	if (rc < 0 || p_tmpname != &tmpname) {
-		free(p_tmpname);
-	}
-
-   	return rc;
+   	return 0;
 }
 #endif /* _WIN32 */
 

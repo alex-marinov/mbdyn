@@ -112,8 +112,7 @@ public:
 class UseLocalSocket : public UseSocket {
 protected:
 	std::string path;
-	// struct sockaddr_un addr;
-	char *addr;
+	struct sockaddr_un addr;
 
 	void UseLocalSocket_int(void);
 
