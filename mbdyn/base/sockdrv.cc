@@ -115,7 +115,8 @@ type(AF_LOCAL),
 auth(NULL),
 pFlags(NULL)
 {
-	int			save_errno;
+	int save_errno;
+	int rc;
 
    	ASSERT(path != NULL);
    	ASSERT(nd > 0);
@@ -124,8 +125,8 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	SAFESTRDUP(data.Path, path);
-   	sock = mbdyn_make_named_socket(0, data.Path, 1, &save_errno);
-   	if (sock == -1) {
+   	rc = mbdyn_make_named_socket(&sock, 0, data.Path, 1, &save_errno);
+   	if (rc == -1) {
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
@@ -134,7 +135,7 @@ pFlags(NULL)
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   	} else if (sock == -2) {
+   	} else if (rc == -2) {
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
@@ -143,7 +144,7 @@ pFlags(NULL)
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   	} else if (sock < 0) {
+   	} else if (rc < 0) {
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()

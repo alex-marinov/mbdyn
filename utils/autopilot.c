@@ -152,16 +152,16 @@ send_message(const char *message)
 	/* Create the socket. */
 	if (path) {
 #ifndef _WIN32
-		sock = mbdyn_make_named_socket(0, path, 0, NULL);
+		(void)mbdyn_make_named_socket(&sock, 0, path, 0, NULL);
 #else
 		fprintf(stderr, "Unix named sockets not supported on windows.\n");
 		return -1;
 #endif /* !_WIN32 */
+
 	} else {
-		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
-			(void)serr; //silence set but not used warning
+		(void)mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 	}
-	if (sock < 0) {
+	if (sock == INVALID_SOCKET) {
 		return -1;
 	}
 

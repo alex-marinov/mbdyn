@@ -125,8 +125,9 @@ WSAGetLastError(void);
  *  param perror Output error returned when the socket was created
  *
  */
+
 extern int
-mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
+mbdyn_make_named_socket(SOCKET *sock, struct sockaddr_un *name, const char *path,
 	int dobind, int *perror);
 
 /** Creates a local (unix) socket
@@ -143,7 +144,7 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
  *
  */
 extern int
-mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
+mbdyn_make_named_socket_type(SOCKET *sock, struct sockaddr_un *name, const char *path,
 	int socket_type, int dobind, int *perror);
 #endif /* _WIN32 */
 
