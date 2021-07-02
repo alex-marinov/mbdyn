@@ -307,7 +307,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	/* test code for getting dimension of components */
-	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -1071,7 +1071,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	/* test code for getting dimension of components */
-	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 }; /* End class StructNode */
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */

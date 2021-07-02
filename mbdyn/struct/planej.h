@@ -199,7 +199,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* test code for getting dimension of components */
-	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlaneHingeJoint - end */
@@ -644,7 +644,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* test code for getting dimension of components */
-	virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlanePinJoint - end */

@@ -1523,11 +1523,34 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 PlaneHingeJoint::GetEquationDimension(integer index) const {
-	silent_cout("entering PlaneHingeJoint GetEquationDimension\n");
+	OutputHandler::Dimensions dimension;
 
-   return OutputHandler::Dimensions::Boolean;
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+	}
+
+	if (fc) {
+      index -= NumSelfDof;
+		integer iFCDofs = fc->iGetNumDof();
+		if (iFCDofs > 0) {
+			/* TODO */
+         /* not sure how to handle this part currently */
+		}
+	}
+
+	return dimension;
 }
 /* PlaneHingeJoint - end */
 
@@ -4894,11 +4917,25 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-OutputHandler::Dimensions
+const OutputHandler::Dimensions
 PlanePinJoint::GetEquationDimension(integer index) const {
-	silent_cout("entering PlanePinJoint GetEquationDimension\n");
+	OutputHandler::Dimensions dimension;
 
-   return OutputHandler::Dimensions::Boolean;
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+	}
+
+	return dimension;
 }
 
 /* PlanePinJoint - end */
