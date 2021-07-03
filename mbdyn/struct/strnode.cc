@@ -1078,11 +1078,6 @@ StructDispNode::GetEquationDimension(integer index) const {
 
 	OutputHandler::Dimensions dimension;
 
-	/* in case of dynamic node, indices are 3 places ahead */
-	if (dynamic_cast<const DynamicStructDispNode*>(this) != 0) {
-		index -= 3;
-	} 
-
 	switch (index)
 		{
 			case 1:
@@ -3158,13 +3153,6 @@ const OutputHandler::Dimensions
 StructNode::GetEquationDimension(integer index) const {
 	
 	OutputHandler::Dimensions dimension;
-
-	if (dynamic_cast<const DynamicStructNode*>(this) != 0
-				|| dynamic_cast<const ModalNode*>(this) != 0)
-		{
-			index -= 6;
-		}
-
 
 	switch (index)
 	{
