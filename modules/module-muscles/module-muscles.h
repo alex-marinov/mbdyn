@@ -48,6 +48,14 @@ protected:
 	doublereal L0;
 	doublereal V0;
 	doublereal F0;
+	
+	doublereal f1;
+	doublereal f2;
+	doublereal f3;
+	doublereal df1dx;
+	doublereal df2dv;
+	doublereal df3dx;
+	
 	DriveOwner Activation;
 	bool bActivationOverflow;
 	bool bActivationOverflowWarn;
@@ -59,16 +67,23 @@ protected:
 #ifdef USE_NETCDF
 	MBDynNcVar Var_dAct;
 	MBDynNcVar Var_dActReq;
+	MBDynNcVar Var_dAref;
+	MBDynNcVar Var_f1;
+	MBDynNcVar Var_f2;
+	MBDynNcVar Var_f3;
+	MBDynNcVar Var_df1dx;
+	MBDynNcVar Var_df2dv;
+	MBDynNcVar Var_df3dx;
 #endif // USE_NETCDF
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
 		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
-	Li(Li), L0(L0), V0(V0), F0(F0),
+	Li(Li), L0(L0), V0(V0), F0(F0), f1(0), f2(0), f3(0), df1dx(0), df2dv(0), df3dx(0),
 	Activation(pAct), bActivationOverflow(bActivationOverflow), bActivationOverflowWarn(bActivationOverflowWarn)
 #ifdef USE_NETCDFC
-	, Var_dAct(0), Var_dActReq(0)
+	, Var_dAct(0), Var_dActReq(0), Var_dAref(0), Var_f1(0), Var_f2(0), Var_f3(0), Var_df1dx(0), Var_df2dv(0), Var_df3dx(0)
 #endif // USE_NETCDFC
 	{
 		NO_OP;
@@ -154,7 +169,11 @@ protected:
 	DriveOwner Kp;
 	DriveOwner Kd;
 	DriveOwner ReferenceLength;
-	
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dKp;
+	MBDynNcVar Var_dKd;
+	MBDynNcVar Var_dReferenceLength;
+#endif // USE_NETCDF
 public:
 	MusclePennestriReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
@@ -162,6 +181,9 @@ public:
 		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
 	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength)
+#ifdef USE_NETCDFC
+	, Var_dKp(0), Var_dKd(0), Var_dReferenceLength(0)
+#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};
@@ -187,6 +209,8 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
 
 protected:
 	virtual std::ostream& Restart_int(std::ostream& out) const;
@@ -206,7 +230,15 @@ protected:
 	DriveOwner ReferenceLength;
 	doublereal SRSGamma;
 	doublereal SRSDelta;
-
+	doublereal SRSf;
+	doublereal SRSdfdx;
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dKp;
+	MBDynNcVar Var_dKd;
+	MBDynNcVar Var_dReferenceLength;
+	MBDynNcVar Var_dSRSf;
+	MBDynNcVar Var_dSRSdfdx;
+#endif // USE_NETCDF
 public:
 	MusclePennestriReflexiveCLWithSRS(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
@@ -215,7 +247,11 @@ public:
 		const doublereal SRSGamma, const doublereal SRSDelta, 
 		const SRSModel m_SRSModel)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
-	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), m_SRSModel(m_SRSModel)
+	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), m_SRSModel(m_SRSModel),
+	SRSf(0), SRSdfdx(0)
+#ifdef USE_NETCDFC
+	, Var_dKp(0), Var_dKd(0), Var_dReferenceLength(0), Var_dSRSf(0), Var_dSRSdfdx(0)
+#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};
@@ -242,4 +278,6 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
 };
