@@ -71,6 +71,9 @@ MusclePennestriCL::NetCDFOutputAppend(OutputHandler& OH) const
 #ifdef USE_NETCDF
 	OH.WriteNcVar(Var_dAct, a);
 	OH.WriteNcVar(Var_dActReq, aReq);
+	OH.WriteNcVar(Var_f1, f1);
+	OH.WriteNcVar(Var_f2, f2);
+	OH.WriteNcVar(Var_f3, f3);
 #endif // USE_NETCDF
 };
 
@@ -88,6 +91,15 @@ MusclePennestriCL::OutputAppendPrepare(OutputHandler& OH, const std::string& nam
 		Var_dActReq = OH.CreateVar<doublereal>(name + ".aReq",  
 				OutputHandler::Dimensions::Dimensionless,
 				"Requested muscular activation");
+		Var_f1 = OH.CreateVar<doublereal>(name + ".f1",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-length relationship f1(x)");
+		Var_f2 = OH.CreateVar<doublereal>(name + ".f2",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-velocity relationship f2(v)");
+		Var_f3 = OH.CreateVar<doublereal>(name + ".f3",
+				OutputHandler::Dimensions::Dimensionless,
+				"Passive force-length relationship f3(v)");
 	}
 #endif // USE_NETCDF
 };
@@ -123,13 +135,13 @@ MusclePennestriCL::Update(const doublereal& Eps, const doublereal& EpsPrime)
 	doublereal x = (1. + ConstitutiveLaw<doublereal, doublereal>::Epsilon)*dxdEps;
 	doublereal v = ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime*dvdEpsPrime;
 
-	doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
-	doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
-	doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
+	f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
+	f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
+	f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
 
-	doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
-	doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
-	doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
+	df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
+	df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
+	df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
 	ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = F0*(df1dx*f2*a + df3dx)*dxdEps;
@@ -172,18 +184,75 @@ MusclePennestriReflexiveCL::Update(const doublereal& Eps, const doublereal& EpsP
 		}
 	}
 
-	doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
-	doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
-	doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
+	f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
+	f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
+	f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
 
-	doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
-	doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
-	doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
+	df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
+	df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
+	df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
 	ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*Kp.dGet())*f2 + df3dx)*dxdEps;
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*Kd.dGet())*dvdEpsPrime;
 };
+
+void 
+MusclePennestriReflexiveCL::NetCDFOutputAppend(OutputHandler& OH) const 
+{
+#ifdef USE_NETCDF
+	OH.WriteNcVar(Var_dAct, a);
+	OH.WriteNcVar(Var_dActReq, aReq);
+	OH.WriteNcVar(Var_dAref, Activation.dGet()); 
+	OH.WriteNcVar(Var_f1, f1);
+	OH.WriteNcVar(Var_f2, f2);
+	OH.WriteNcVar(Var_f3, f3);
+	OH.WriteNcVar(Var_dKp, Kp.dGet());
+	OH.WriteNcVar(Var_dKd, Kd.dGet());
+	OH.WriteNcVar(Var_dReferenceLength, ReferenceLength.dGet());
+#endif // USE_NETCDF
+};
+
+
+void 
+MusclePennestriReflexiveCL::OutputAppendPrepare(OutputHandler& OH, const std::string& name)
+{
+#ifdef USE_NETCDF
+	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+	if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+	{
+		Var_dAct = OH.CreateVar<doublereal>(name + ".a", 
+				OutputHandler::Dimensions::Dimensionless, 
+				"Muscular activation (effective value)");
+		Var_dActReq = OH.CreateVar<doublereal>(name + ".aReq",  
+				OutputHandler::Dimensions::Dimensionless,
+				"Requested muscular activation");
+		Var_dAref = OH.CreateVar<doublereal>(name + ".aRef",
+				OutputHandler::Dimensions::Dimensionless,
+				"Reference muscular activation");
+		Var_f1 = OH.CreateVar<doublereal>(name + ".f1",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-length relationship f1(x)");
+		Var_f2 = OH.CreateVar<doublereal>(name + ".f3",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-velocity relationship f2(v)");
+		Var_f3 = OH.CreateVar<doublereal>(name + ".f4",
+				OutputHandler::Dimensions::Dimensionless,
+				"Passive force-length relationship f3(v)");
+		Var_dKp = OH.CreateVar<doublereal>(name + ".Kp",
+				OutputHandler::Dimensions::Dimensionless,
+				"Proportional gain of reflexive activation");
+		Var_dKd = OH.CreateVar<doublereal>(name + ".Kd",
+				OutputHandler::Dimensions::Dimensionless,
+				"Derivative gain of reflexive activation");
+		Var_dReferenceLength = OH.CreateVar<doublereal>(name + ".Lref",
+				OutputHandler::Dimensions::Length,
+				"Reference length of reflexive activation model");
+	}
+#endif // USE_NETCDF
+};
+
+
 
 
 std::ostream& 
@@ -232,37 +301,100 @@ MusclePennestriReflexiveCLWithSRS::Update(const doublereal& Eps, const doublerea
 		}
 	}
 
-	doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
-	doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
-	doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
+	f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
+	f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
+	f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
 
-	doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
-	doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
-	doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
+	df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
+	df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
+	df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
-	doublereal SRS_f, SRS_fDE;
 	if ( (x - dxRef) > 0 ) {
 		if (m_SRSModel == SRS_LINEAR) {
 			if ( (x - dxRef) < SRSDelta ) {
-				SRS_f = SRSGamma*aRef*(x - dxRef);
+				SRSf = SRSGamma*aRef*(x - dxRef);
+				SRSdfdx = SRSGamma*aRef;
 			} else { // (x - dxRef >= Delta)
-				SRS_f = SRSGamma*aRef*SRSDelta;
+				SRSf = SRSGamma*aRef*SRSDelta;
+				SRSdfdx = 0.;
 			}
-			SRS_fDE = SRSGamma*aRef;
 		} else { // m_SRSModel == SRS_EXPONENTIAL
-			SRS_f = SRSGamma*aRef*SRSDelta*(1 - std::exp(1 - std::exp((x - dxRef)/SRSDelta)));
-			SRS_fDE = SRSGamma*aRef*std::exp((x - dxRef)/SRSDelta - std::exp((x - dxRef)/SRSDelta) + 1);
+			SRSf = SRSGamma*aRef*SRSDelta*(1 - std::exp(1 - std::exp((x - dxRef)/SRSDelta)));
+			SRSdfdx = SRSGamma*aRef*std::exp((x - dxRef)/SRSDelta - std::exp((x - dxRef)/SRSDelta) + 1);
 		}
 	} else { // (x - xRef) <= 0
-		SRS_f = 0.;
-		SRS_fDE = 0.;
+		SRSf = 0.;
+		SRSdfdx = 0.;
 	}
 
-	ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRS_f) + f3 );
+	ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*(f2*a + SRSf) + f3 );
 	ConstitutiveLaw<doublereal, doublereal>::FDE = 
-		F0*(df1dx*(f2*aRef + SRS_f) + f1*(SRS_fDE + Kp.dGet()*f2) + df3dx)*dxdEps;
+		F0*(df1dx*(f2*aRef + SRSf) + f1*(SRSdfdx + Kp.dGet()*f2) + df3dx)*dxdEps;
 };
 		
+
+void 
+MusclePennestriReflexiveCLWithSRS::NetCDFOutputAppend(OutputHandler& OH) const 
+{
+#ifdef USE_NETCDF
+	OH.WriteNcVar(Var_dAct, a);
+	OH.WriteNcVar(Var_dActReq, aReq);
+	OH.WriteNcVar(Var_dAref, Activation.dGet()); 
+	OH.WriteNcVar(Var_f1, f1);
+	OH.WriteNcVar(Var_f2, f2);
+	OH.WriteNcVar(Var_f3, f3);
+	OH.WriteNcVar(Var_dKp, Kp.dGet());
+	OH.WriteNcVar(Var_dKd, Kd.dGet());
+	OH.WriteNcVar(Var_dReferenceLength, ReferenceLength.dGet());
+	OH.WriteNcVar(Var_dSRSf, SRSf);
+	OH.WriteNcVar(Var_dSRSdfdx, SRSdfdx);
+#endif // USE_NETCDF
+};
+
+
+void 
+MusclePennestriReflexiveCLWithSRS::OutputAppendPrepare(OutputHandler& OH, const std::string& name)
+{
+#ifdef USE_NETCDF
+	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+	if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+	{
+		Var_dAct = OH.CreateVar<doublereal>(name + ".a", 
+				OutputHandler::Dimensions::Dimensionless, 
+				"Muscular activation (effective value)");
+		Var_dActReq = OH.CreateVar<doublereal>(name + ".aReq",  
+				OutputHandler::Dimensions::Dimensionless,
+				"Requested muscular activation");
+		Var_dAref = OH.CreateVar<doublereal>(name + ".aRef",
+				OutputHandler::Dimensions::Dimensionless,
+				"Reference muscular activation");
+		Var_f1 = OH.CreateVar<doublereal>(name + ".f1",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-length relationship f1(x)");
+		Var_f2 = OH.CreateVar<doublereal>(name + ".f2",
+				OutputHandler::Dimensions::Dimensionless,
+				"Active force-velocity relationship f2(v)");
+		Var_f3 = OH.CreateVar<doublereal>(name + ".f3",
+				OutputHandler::Dimensions::Dimensionless,
+				"Passive force-length relationship f3(v)");
+		Var_dKp = OH.CreateVar<doublereal>(name + ".Kp",
+				OutputHandler::Dimensions::Dimensionless,
+				"Proportional gain of reflexive activation");
+		Var_dKd = OH.CreateVar<doublereal>(name + ".Kd",
+				OutputHandler::Dimensions::Dimensionless,
+				"Derivative gain of reflexive activation");
+		Var_dReferenceLength = OH.CreateVar<doublereal>(name + ".Lref",
+				OutputHandler::Dimensions::Length,
+				"Reference length of reflexive activation model");
+		Var_dSRSf = OH.CreateVar<doublereal>(name + ".SRSf",
+				OutputHandler::Dimensions::Dimensionless,
+				"Short-range stiffness force");
+		Var_dSRSdfdx = OH.CreateVar<doublereal>(name + ".SRSdfdx",
+				OutputHandler::Dimensions::Dimensionless,
+				"Short-range stiffness force gradient with respect to dimensionless muscle length");
+	}
+#endif // USE_NETCDF
+};
 
 /* specific functional object(s) */
 struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
