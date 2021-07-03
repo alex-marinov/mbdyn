@@ -654,6 +654,9 @@ public:
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual bool ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));
+
+	/* for getting dimension of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
 };
 
 inline void
@@ -1633,6 +1636,9 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
+
+	/* to get dimensions of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
@@ -1839,6 +1845,10 @@ public:
 	inline void
 	GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
+
+	/* to get dimension of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
+
 };
 
 
