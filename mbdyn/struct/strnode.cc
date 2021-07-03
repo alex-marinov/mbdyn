@@ -1078,11 +1078,6 @@ StructDispNode::GetEquationDimension(integer index) const {
 
 	OutputHandler::Dimensions dimension;
 
-	/* in case of dynamic node, indices are 3 places ahead */
-	if (dynamic_cast<const DynamicStructDispNode*>(this) != 0) {
-		index -= 3;
-	} 
-
 	switch (index)
 		{
 			case 1:
@@ -1425,6 +1420,29 @@ DynamicStructDispNode::SetOutputFlag(flag f)
 		ComputeAccelerations(true);
 	}
 	ToBeOutput::SetOutputFlag(f);
+}
+
+const OutputHandler::Dimensions
+DynamicStructDispNode::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 2:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 3:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 4:
+			dimension = OutputHandler::Dimensions::Force;
+		case 5:
+			dimension = OutputHandler::Dimensions::Force;
+		case 6:
+			dimension = OutputHandler::Dimensions::Force;
+	}
+
+	return dimension;
 }
 
 /* DynamicStructDispNode - end */
@@ -3127,13 +3145,6 @@ StructNode::GetEquationDimension(integer index) const {
 	
 	OutputHandler::Dimensions dimension;
 
-	if (dynamic_cast<const DynamicStructNode*>(this) != 0
-				|| dynamic_cast<const ModalNode*>(this) != 0)
-		{
-			index -= 6;
-		}
-
-
 	switch (index)
 	{
 	case 1:
@@ -3504,6 +3515,43 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	}
 }
 
+const OutputHandler::Dimensions
+DynamicStructNode::GetEquationDimension(integer index) const {
+
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 2:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 3:
+			dimension = OutputHandler::Dimensions::Momentum;
+		case 4:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+		case 5:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+		case 6:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+		case 8:
+			dimension = OutputHandler::Dimensions::Force;
+		case 9:
+			dimension = OutputHandler::Dimensions::Force;
+		case 10:
+			dimension = OutputHandler::Dimensions::Moment;
+		case 11:
+			dimension = OutputHandler::Dimensions::Moment;
+		case 12:
+			dimension = OutputHandler::Dimensions::Moment;
+
+	}
+
+	return dimension;
+}
+
 /* DynamicStructNode - end */
 
 
@@ -3770,6 +3818,42 @@ ModalNode::AfterConvergence(const VectorHandler& X,
 {
 	// override DynamicStructNode's function
 	NO_OP;
+}
+
+const OutputHandler::Dimensions
+ModalNode::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+		case 3:
+			dimension = OutputHandler::Dimensions::Velocity;
+		case 4:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+		case 5:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+		case 6:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+		case 8:
+			dimension = OutputHandler::Dimensions::Force;
+		case 9:
+			dimension = OutputHandler::Dimensions::Force;
+		case 10:
+			dimension = OutputHandler::Dimensions::Moment;
+		case 11:
+			dimension = OutputHandler::Dimensions::Moment;
+		case 12:
+			dimension = OutputHandler::Dimensions::Moment;
+
+	}
+
+	return dimension;
 }
 
 /* ModalNode - end */
