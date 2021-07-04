@@ -1148,8 +1148,6 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(12 + iCnt, iNode3FirstMomIndex + iCnt);
-
-		pNode[NODE1]->GetEquationDimension(iCnt);
 	}
 
 	AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);

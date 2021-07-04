@@ -580,8 +580,6 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
 	for (integer iCnt = 1; iCnt <= 12; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
-
-		pNode->GetEquationDimension(iCnt);
 	}
 
 	/* Collects data */
