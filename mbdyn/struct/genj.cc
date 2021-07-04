@@ -1530,8 +1530,6 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
-
-		GetEquationDimension(iCnt);
 	}
 
 	/* Aggiorna le reazioni vincolari */
@@ -1829,16 +1827,22 @@ ClampJoint::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Length;
+			break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Length;
+			break;
 		case 3:
 			dimension = OutputHandler::Dimensions::Length;
+			break;
 		case 4:
 			dimension = OutputHandler::Dimensions::rad;
+			break;
 		case 5:
 			dimension = OutputHandler::Dimensions::rad;
+			break;
 		case 6:
 			dimension = OutputHandler::Dimensions::rad;
+			break;
 	}
 
 	return dimension;

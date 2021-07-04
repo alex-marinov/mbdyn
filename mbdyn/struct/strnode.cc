@@ -1082,10 +1082,13 @@ StructDispNode::GetEquationDimension(integer index) const {
 		{
 			case 1:
 				dimension = OutputHandler::Dimensions::Force;
+				break;
 			case 2:
 				dimension = OutputHandler::Dimensions::Force;
+				break;
 			case 3:
 				dimension = OutputHandler::Dimensions::Force;
+				break;
 		}
 
 	return dimension;
@@ -1430,16 +1433,22 @@ DynamicStructDispNode::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 3:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 4:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 5:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 6:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 	}
 
 	return dimension;
@@ -3524,28 +3533,40 @@ DynamicStructNode::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 3:
 			dimension = OutputHandler::Dimensions::Momentum;
+			break;
 		case 4:
 			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
 		case 5:
 			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
 		case 6:
 			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
 		case 7:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 8:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 9:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 10:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 		case 11:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 		case 12:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 
 	}
 
@@ -3828,28 +3849,40 @@ ModalNode::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Velocity;
+			break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Velocity;
+			break;
 		case 3:
 			dimension = OutputHandler::Dimensions::Velocity;
+			break;
 		case 4:
 			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
 		case 5:
 			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
 		case 6:
 			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
 		case 7:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 8:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 9:
 			dimension = OutputHandler::Dimensions::Force;
+			break;
 		case 10:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 		case 11:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 		case 12:
 			dimension = OutputHandler::Dimensions::Moment;
+			break;
 
 	}
 
