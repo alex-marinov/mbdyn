@@ -198,12 +198,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    };
    /* ************************************************ */
 
-<<<<<<< HEAD
    /* return s the dimension of the component */
-=======
-   /* test code for getting dimension of components */
->>>>>>> 99533e60c (GetEquationDimension added)
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+   const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlaneHingeJoint - end */

@@ -832,9 +832,6 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
       WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-
-       /* initial testing for get equation dimension  */
-      GetEquationDimension(iCnt);
    }   
    
    /* Indici del vincolo */
@@ -1531,7 +1528,6 @@ PlaneHingeJoint::GetEquationDimension(integer index) const {
 	{
 		case 1:
 			dimension = OutputHandler::Dimensions::Length;
-<<<<<<< HEAD
          break;
 		case 2:
 			dimension = OutputHandler::Dimensions::Length;
@@ -1545,16 +1541,6 @@ PlaneHingeJoint::GetEquationDimension(integer index) const {
 		case 5:
 			dimension = OutputHandler::Dimensions::rad;
          break;
-=======
-		case 2:
-			dimension = OutputHandler::Dimensions::Length;
-		case 3:
-			dimension = OutputHandler::Dimensions::Length;
-		case 4:
-			dimension = OutputHandler::Dimensions::rad;
-		case 5:
-			dimension = OutputHandler::Dimensions::rad;
->>>>>>> 99533e60c (GetEquationDimension added)
 	}
 
 	if (fc) {
@@ -4556,9 +4542,6 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
       WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-
-      /* initial testing for get equation dimension  */
-      GetEquationDimension(iCnt);
    }
      
    

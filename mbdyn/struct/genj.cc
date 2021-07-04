@@ -1577,8 +1577,6 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
-
-		GetEquationDimension(iCnt);
 	}
 
 	/* Aggiorna le reazioni vincolari */
