@@ -129,11 +129,11 @@ public:
 	void output_info(Aero_inputs*);
 	void calculate_dimensions(Aero_inputs*);
 	void add_timestep();
-	void generate_zeta_timestep_info();
+	void generate_zeta_timestep_info(Aero_inputs*, MBDyn_UVLM_AeroTimeStepInfo*, std::map<std::string, std::variant<bool, int, double, std::string>>&);
 	void generate_zeta(Aero_inputs*, std::map<std::string, std::variant<bool, int, double, std::string>>&, double);
 	void generate_mapping();
-	void update_orientation();
-	void compute_gamma_dot();
+	void compute_gamma_dot(Aero_inputs*, double, MBDyn_UVLM_AeroTimeStepInfo*, std::vector<MBDyn_UVLM_AeroTimeStepInfo*>&);
+	void generate_strip();
 
 
 	~Aerogrid();

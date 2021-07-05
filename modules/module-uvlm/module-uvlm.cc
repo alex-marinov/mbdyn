@@ -30,18 +30,27 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <cfloat>
-
+#include <vector>
+#include "elem.h"
+#include "strnode.h"
 #include "dataman.h"
 #include "userelem.h"
+#include "module-uvlm.h"
+#include "mbdyn_uvlm.h"
 
 
-uvlmBaseElem::uvlmBaseElem(
+UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-UserDefinedElem(uLabel, pDO)
+UserDefinedElem(uLabel, pDO),
+m_PDM(pDM),
+MBDyn_UVLM_Model_Converged(pDM),
+bMBDyn_UVLM_FirstSend(true),
+bMBDyn_UVLM_Model_DoStepDynamics(true)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -64,94 +73,147 @@ UserDefinedElem(uLabel, pDO)
 		}
 	}
 
-	// do something useful
-}
+	// Read information from the script
 
-uvlmBaseElem::~uvlmBaseElem(void)
-{
-	// destroy private data
-	NO_OP;
+	//--------------- 1. <cosimulation_platform> ------------------------
+	MBDyn_UVLM_CouplingIter_Count = 0;
+	MBDyn_UVLM_Coupling_Tol = 1.0e-3; // by default, tolerance == 1.0e-6;
+	MBDyn_UVLM_CouplingType = MBDyn_UVLM_COUPLING::COUPLING_NONE;
+	if (HP.IsKeyWord("coupling")) {
+		if (HP.IsKeyWord("none"))
+		{
+			MBDyn_UVLM_CouplingType = MBDyn_UVLM_COUPLING::COUPLING_NONE;
+			MBDyn_UVLM_CouplingIter_Max = 0;
+		}
+		//--------------- <loose_coupling> ---------------
+		else if (HP.IsKeyWord("loose"))
+		{
+			MBDyn_UVLM_CouplingType = MBDyn_UVLM_COUPLING::COUPLING_LOOSE;
+			// By default, using embedded scheme.
+			MBDyn_UVLM_CouplingType_loose = MBDyn_UVLM_COUPLING_LOOSE::LOOSE_EMBEDDED;
+			MBDyn_UVLM_CouplingIter_Max = 1;
+			std::cout << "Embedded-loose method is chosen" << std::endl;
+			if (HP.IsKeyWord("embedded"))
+			{
+				MBDyn_UVLM_CouplingType_loose = MBDyn_UVLM_COUPLING_LOOSE::LOOSE_EMBEDDED;
+			}
+			else if (HP.IsKeyWord("jacobian"))
+			{
+				MBDyn_UVLM_CouplingType_loose = MBDyn_UVLM_COUPLING_LOOSE::LOOSE_JACOBIAN;
+			}
+			else if (HP.IsKeyWord("gauss"))
+			{
+				MBDyn_UVLM_CouplingType_loose = MBDyn_UVLM_COUPLING_LOOSE::LOOSE_GAUSS;
+			}
+			else
+			{
+				silent_cerr("The type of loose coupling scheme at line " << HP.GetLineData() << " is unknown \n");
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+		//--------------- <tight_coupling> ---------------
+		else if (HP.IsKeyWord("tight"))
+		{
+			MBDyn_UVLM_CouplingType = MBDyn_UVLM_COUPLING::COUPLING_TIGHT;
+			MBDyn_UVLM_CouplingType_loose = MBDyn_UVLM_COUPLING_LOOSE::TIGHT; // meaningless. 
+			MBDyn_UVLM_CouplingIter_Max = HP.GetInt();
+			if (HP.IsKeyWord("tolerance"))
+			{
+				MBDyn_UVLM_Coupling_Tol = HP.GetReal();
+			}
+			else
+			{
+				MBDyn_UVLM_Coupling_Tol = 1.0e-3; //pDM -> GetSolver()->pGetStepIntegrator()->GetIntegratorDTol();
+			}
+		}
+		else
+		{
+			silent_cerr("Unknown coupling type at line " << HP.GetLineData() << "\n");
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+	else
+	{
+		silent_cerr("Unknown keyword at line " << HP.GetLineData() << "\n"); //- the first keywork must be "coupling"
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	//--------------- 2. <coupling_variables> ------------------------
+	// read the force type: transformed contact forces or reaction forces acting on the UVLM coupling bodies
+	MBDyn_UVLM_ForceType = MBDyn_UVLM_FORCETYPE::REACTION_FORCE;           //- by default, using the reaction force 
+	if (HP.IsKeyWord("force" "type"))
+	{
+		if (HP.IsKeyWord("reaction"))
+		{
+			MBDyn_UVLM_ForceType = MBDyn_UVLM_FORCETYPE::REACTION_FORCE; //- reaction force is imposed to objects in MBDyn
+		}
+		else if (HP.IsKeyWord("contact"))
+		{
+			MBDyn_UVLM_ForceType = MBDyn_UVLM_FORCETYPE::CONTACT_FORCE; //- contact force is imposed to objects in MBDyn
+		}
+		else
+		{
+			silent_cerr("Force type at line " << HP.GetLineData() << " is not implemeted yet \n");
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+
 }
 
 void
-uvlmBaseElem::Output(OutputHandler& OH) const
-{
-	// should do something useful
-	NO_OP;
-}
-
-void
-uvlmBaseElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+UvlmInterfaceBaseElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 0;
 	*piNumCols = 0;
 }
 
 VariableSubMatrixHandler& 
-uvlmBaseElem::AssJac(VariableSubMatrixHandler& WorkMat,
+UvlmInterfaceBaseElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef, 
 	const VectorHandler& XCurr,
-	const VectorHandler& XPrimeCurr)
-{
-	// should do something useful
+	const VectorHandler& XPrimeCurr){
+
+	pedantic_cout("\tMBDyn::AssJac()" << std::endl);
 	WorkMat.SetNullMatrix();
 
 	return WorkMat;
 }
 
-SubVectorHandler& 
-uvlmBaseElem::AssRes(SubVectorHandler& WorkVec,
-	doublereal dCoef,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr)
-{
-	// should do something useful
-	WorkVec.ResizeReset(0);
-
-	return WorkVec;
-}
 
 unsigned int
-uvlmBaseElem::iGetNumPrivData(void) const
+UvlmInterfaceBaseElem::iGetNumPrivData(void) const
 {
 	return 0;
 }
 
 int
-uvlmBaseElem::iGetNumConnectedNodes(void) const
+UvlmInterfaceBaseElem::iGetNumConnectedNodes(void) const
 {
 	return 0;
 }
 
 void
-uvlmBaseElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+UvlmInterfaceBaseElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(0);
 }
 
-void
-uvlmBaseElem::SetValue(DataManager *pDM,
-	VectorHandler& X, VectorHandler& XP,
-	SimulationEntity::Hints *ph)
-{
-	// Do something useful here
-	NO_OP;
-}
 
 std::ostream&
-uvlmBaseElem::Restart(std::ostream& out) const
+UvlmInterfaceBaseElem::Restart(std::ostream& out) const
 {
-	return out << "# uvlmBaseElem: not implemented" << std::endl;
+	return out << "# UvlmInterface: is doing now" << std::endl;
 }
 
 unsigned int
-uvlmBaseElem::iGetInitialNumDof(void) const
+UvlmInterfaceBaseElem::iGetInitialNumDof(void) const
 {
 	return 0;
 }
 
 void 
-uvlmBaseElem::InitialWorkSpaceDim(
+UvlmInterfaceBaseElem::InitialWorkSpaceDim(
 	integer* piNumRows,
 	integer* piNumCols) const
 {
@@ -160,35 +222,124 @@ uvlmBaseElem::InitialWorkSpaceDim(
 }
 
 VariableSubMatrixHandler&
-uvlmBaseElem::InitialAssJac(
+UvlmInterfaceBaseElem::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat, 
-	const VectorHandler& XCurr)
-{
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
+	const VectorHandler& XCurr){
 
+	pedantic_cout("\tInitialAssJac()" << std::endl);
 	WorkMat.SetNullMatrix();
-
+	switch (MBDyn_UVLM_CouplingType)
+	{
+	case MBDyn_UVLM_COUPLING::COUPLING_NONE:
+		break; //- do nothing
+	case MBDyn_UVLM_COUPLING::COUPLING_TIGHT: //- do nothing
+		break;
+	case MBDyn_UVLM_COUPLING::COUPLING_LOOSE: //- do nothing
+	case MBDyn_UVLM_COUPLING::COUPLING_STSTAGGERED: //- do nothing
+	default:
+		break;
+	}
 	return WorkMat;
 }
 
 SubVectorHandler& 
-uvlmBaseElem::InitialAssRes(
+UvlmInterfaceBaseElem::InitialAssRes(
 	SubVectorHandler& WorkVec,
-	const VectorHandler& XCurr)
-{
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
+	const VectorHandler& XCurr){
 
+	pedantic_cout("\tInitialAssRes()" << std::endl);
 	WorkVec.ResizeReset(0);
-
+	switch (MBDyn_UVLM_CouplingType)
+	{
+	case MBDyn_UVLM_COUPLING::COUPLING_NONE:
+		break; //- do nothing
+	case MBDyn_UVLM_COUPLING::COUPLING_TIGHT: //- do nothing
+		break;
+	case MBDyn_UVLM_COUPLING::COUPLING_LOOSE:	   //- do nothing
+	case MBDyn_UVLM_COUPLING::COUPLING_STSTAGGERED: //- do nothing
+	default:
+		break;
+	}
 	return WorkVec;
 }
+
+void 
+UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Prev() {
+
+	/* formulation for calculation
+			mbdynce_x = x + mbdynce_f
+			mbdynce_R = R
+			mbdynce_v = xp + mbdynce_w cross mbdynce_f
+			mbdynce_w = w
+			mbdynce_a = xpp + mbdynce_wp cross mbdynce_f + mbdynce_w cross mbdynce_w cross mbdynce_f
+			mbdynce_wp = wp
+	*/
+
+	for (unsigned i = 0; i < MBDyn_UVLM_NodesNum; i++) {
+		const MBDYN_UVLM_POINTDATA& mbdynuvlm_point = MBDyn_UVLM_Nodes[i];
+		// Rotation and position
+		const Mat3x3& mbdynuvlm_R = mbdynuvlm_point.pMBDyn_UVLM_Node->GetRPrev();
+		const Mat3x3& mbdynuvlm_Rh = MBDyn_UVLM_Nodes[i].MBDyn_UVLM_RhM;   // Relative orientation of the marker in local ref.
+		Mat3x3 mbdynuvlm_R_marker = mbdynuvlm_R * mbdynuvlm_Rh;
+		Vec3 mbdynuvlm_f = mbdynuvlm_R * mbdynuvlm_point.MBDyn_UVLM_Offset;
+		Vec3 mbdynuvlm_x = mbdynuvlm_point.pMBDyn_UVLM_Node->GetXPrev() + mbdynuvlm_f;
+		// Angular velocity and velocity
+		const Vec3& mbdynuvlm_w = mbdynuvlm_point.pMBDyn_UVLM_Node->GetWPrev();
+		Vec3 mbdynuvlm_wCrossf = mbdynuvlm_w.Cross(mbdynuvlm_f);
+		Vec3 mbdynuvlm_v = mbdynuvlm_point.pMBDyn_UVLM_Node->GetVPrev() + mbdynuvlm_wCrossf;
+		// Angular accelaration and accelaration
+		const Vec3 &mbdynuvlm_wp = mbdynuvlm_point.pMBDyn_UVLM_Node->GetWPPrev();
+		Vec3 mbdynuvlm_a = mbdynuvlm_point.pMBDyn_UVLM_Node->GetXPPPrev() + mbdynuvlm_wp.Cross(mbdynuvlm_f) + 
+			mbdynuvlm_w.Cross(mbdynuvlm_wCrossf);
+
+		double mbdynuvlm_tempvec3_x[3];
+		double mbdynuvlm_tempvec3_v[3];
+		double mbdynuvlm_tempvec3_a[3];
+		double mbdynuvlm_tempvec3_w[3];
+		double mbdynuvlm_tempvec3_wp[3];
+		MBDyn_UVLM_Vec3D(mbdynuvlm_x, mbdynuvlm_tempvec3_x, MBDyn_CE_CEScale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_v, mbdynuvlm_tempvec3_v, MBDyn_CE_CEScale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_a, mbdynuvlm_tempvec3_a, MBDyn_CE_CEScale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_w, mbdynuvlm_tempvec3_w, 1.0);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_wp, mbdynuvlm_tempvec3_wp, 1.0);
+		double mbdynuvlm_tempmat3x3_R[9];
+		MBDyn_UVLM_Mat3x3D(mbdynuvlm_R_marker, mbdynuvlm_tempmat3x3_R);
+
+
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_x[3 * i], mbdynuvlm_tempvec3_x, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_R[9 * i], mbdynuvlm_tempmat3x3_R, 9 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_xp[3 * i], mbdynuvlm_tempvec3_v, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_omega[3 * i], mbdynuvlm_tempvec3_w, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_xpp[3 * i], mbdynuvlm_tempvec3_a, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_omegap[3 * i], mbdynuvlm_tempvec3_wp, 3 * sizeof(double));
+	}
+}
+
+
+/**************************Private function definations**************************/
+void 
+UvlmInterfaceBaseElem::MBDyn_UVLM_Vec3D(const Vec3& mbdynuvlm_Vec3, double* mbdynuvlm_temp, 
+	double MBDyn_UVLM_LengthScale) const {
+
+	mbdynuvlm_temp[0] = MBDyn_UVLM_LengthScale * static_cast<double>(*(mbdynuvlm_Vec3.pGetVec()));
+	mbdynuvlm_temp[1] = MBDyn_UVLM_LengthScale * static_cast<double>(*(mbdynuvlm_Vec3.pGetVec() + 1));
+	mbdynuvlm_temp[2] = MBDyn_UVLM_LengthScale * static_cast<double>(*(mbdynuvlm_Vec3.pGetVec() + 2));
+}
+
+void 
+UvlmInterfaceBaseElem::MBDyn_UVLM_Mat3x3D(const Mat3x3& mbdynuvlm_Mat3x3, double* mbdynuvlm_temp) const {
+
+	for (unsigned i = 0; i < 9; i++) {
+		mbdynuvlm_temp[i] = static_cast<double>(mbdynuvlm_Mat3x3.pGetMat()[i]);
+	}
+}
+/********************************************************************************/
+
 
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
-	UserDefinedElemRead *rf = new UDERead<uvlmBaseElem>;
+	UserDefinedElemRead *rf = new UDERead<UvlmInterfaceBaseElem>;
 
 	if (!SetUDE("UVLM", rf)) {
 		delete rf;
