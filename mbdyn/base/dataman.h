@@ -101,6 +101,9 @@ protected:
 	/* loadable elements */
 	std::map<std::string, const LoadableCalls *> MapOfLoadableElemHandlers;
 
+	/* Indices for corresponding dimensions */
+	std::map<OutputHandler::Dimensions, std::set<integer>> MapOfDimensionIndices;
+
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
@@ -381,6 +384,10 @@ protected:
 			VecIter<Elem *> &Iter,
 			SubVectorHandler& WorkVec,
 			VectorHandler*const pAbsResHdl = 0);
+
+	/* sets the dimesnions of the equation components */
+	virtual void SetElemDimensionIndices();
+	virtual void SetNodeDimensionIndices();
 
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
