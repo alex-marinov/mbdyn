@@ -272,7 +272,7 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	surface_distribution = aero_inputs->surface_distribution_input;
 
 	// number of surfaces
-	n_surf = ;
+	n_surf = aero_inputs->surface_m.size();
 
 	// number of chordwise panels
 	surface_m = aero_inputs->surface_m;
@@ -281,7 +281,7 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	n_aero_node = aero_inputs->aero_node_input.size();
 
 	// get N per surface
-	dimensions.resize(n_surf);
+	dimensions.resize(n_surf);  
 	dimensions_star.resize(n_surf); 
 	calculate_dimensions(aero_inputs);
 
@@ -316,7 +316,7 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 		std::cout << "Control surface undefined" << std::endl;
 	}
 	
-	// By default we would consider dynamic control surface for each of the control surfaces.
+	// By default we would consider dynamic control surface for each of the control surfaces. There is a specific calss defined for that (look at it)
 
 
 	add_timestep();
@@ -328,8 +328,7 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 
 void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs) {
 
-	int _n_surf = ; // derived from aero inputs
-	for (int i = 0; i < _n_surf; ++i) {
+	for (int i = 0; i < n_surf; ++i) {
 		// adding M values
 		dimensions[i].first = surface_m[i];
 	}
@@ -405,17 +404,84 @@ void Aerogrid::add_timestep() {
 	}
 }
 
-void Aerogrid::generate_mapping() {
+void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, MBDyn_UVLM_AeroTimeStepInfo* aero_tstep, 
+	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings) {
 
+	int it = ; // beam.timestep_info - 1
+	std::vector<int> global_node_in_surface;
+	global_node_in_surface.resize(n_surf);
+
+	// Check that we have control surface information
+	bool with_control_surface = false;
+	try {
+		if (aero_inputs->control_surface.size() > 0) {
+			with_control_surface = true;
+			throw(with_control_surface);
+		}
+	}
+	catch(...){
+		std::cout << "Control surfaces not present" << std::endl;
+	}
+
+	// optional check for the presence of the sweep
+
+
+	// One surface per element
+	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
+		int i_surf = aero_inputs->surface_distribution_input[i_elem];
+		// Check if we have to generate a surface here
+		if (i_surf == -1) {
+			continue;
+		}
+
+		for (int i_local_node = 0; i_local_node < /* beam.elements[i_elem].global_connectivities*/; ++i_local_node) {
+			int i_global_node = ; // beam.elements[i_elem].global_connectivities[i_local_node]
+
+		}
+	}
 }
 
 void Aerogrid::generate_zeta(Aero_inputs* aero_inputs,
 	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings,
 	double ts) {
 
-	generate_zeta_timestep_info();
+	generate_zeta_timestep_info(aero_inputs, aero_timestep_info[ts], aerogrid_settings);
 }
 
+void Aerogrid::generate_mapping() {
+
+	;
+
+}
+
+void Aerogrid::compute_gamma_dot(Aero_inputs* aero_inputs, double dt, MBDyn_UVLM_AeroTimeStepInfo* tstep, 
+	std::vector<MBDyn_UVLM_AeroTimeStepInfo*>& previous_tsteps) {
+
+	int n_surf = aero_inputs->surface_m.size();
+
+	if (previous_tsteps.size() == 0) {
+		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
+			for (int j = 0; j < tstep->gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < tstep->gamma_dot[i_surf][j].size(); ++k) {
+					tstep->gamma_dot[i_surf][j][k] = 0.0;
+				}
+			}
+		}
+	}
+	else {
+		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
+			for (int j = 0; j < tstep->gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < tstep->gamma_dot[i_surf][j].size(); ++k) {
+					tstep->gamma_dot[i_surf][j][k] = (tstep->gamma[i_surf][j][k] - previous_tsteps[/*-2 in python sense*/]->gamma[i_surf][j][k]) / dt;
+				}
+			}
+		}
+	}
+}
+
+void Aerogrid::generate_strip() {
+
+}
 
 
 void StraightWake::StraightWake_initialize(std::map<std::string, std::variant<int, double>>& wakeshape_settings) {
