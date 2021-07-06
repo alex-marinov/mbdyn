@@ -165,7 +165,7 @@ public:
 	MyVectorHandler AbsRes;
 	virtual VectorHandler* GetAbsRes();
 
-		virtual Type GetType() const;
+	virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
