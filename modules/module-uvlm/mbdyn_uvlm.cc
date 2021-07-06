@@ -252,13 +252,9 @@ void Aero_inputs::Aero_inputs_generate(int num_elem, int num_node_elem, int num_
 
 
 
-Aerogrid::Aerogrid() {
-	;
-}
 
 
-void Aerogrid::generate(Aero_inputs* aero_inputs, 
-	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings,
+void Aerogrid::generate(Aero_inputs* aero_inputs, Aerogrid_settings* aerogrid_settings,
 	double ts) {
 
 
@@ -281,9 +277,7 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	n_aero_node = aero_inputs->aero_node_input.size();
 
 	// get N per surface
-	dimensions.resize(n_surf);  
-	dimensions_star.resize(n_surf); 
-	calculate_dimensions(aero_inputs);
+	calculate_dimensions(aero_inputs, aerogrid_settings);
 
 	// Write grid info on the screen
 	output_info(aero_inputs);
@@ -299,34 +293,15 @@ void Aerogrid::generate(Aero_inputs* aero_inputs,
 	// pending
 
 	/****************************/
-	try {
-		std::vector<int> flatten_control_surface;
-		for (const auto &itr : aero_inputs->control_surface) {
-			flatten_control_surface.insert(flatten_control_surface.end(),
-				itr.begin(), itr.end());
-		}
-		std::sort(flatten_control_surface.begin(), flatten_control_surface.end());
-		n_control_surfaces = std::distance(flatten_control_surface.begin(),
-			std::unique(flatten_control_surface.begin(), flatten_control_surface.end()));
-		if (n_control_surfaces < 0) {
-			throw (n_control_surfaces);
-		}
-	}
-	catch (...){
-		std::cout << "Control surface undefined" << std::endl;
-	}
-	
-	// By default we would consider dynamic control surface for each of the control surfaces. There is a specific calss defined for that (look at it)
-
-
 	add_timestep();
-	generate_mapping();
+	generate_mapping(aero_inputs);
 	generate_zeta(aero_inputs, aerogrid_settings, ts);
 }
 
+void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, Aerogrid_settings* aerogrid_settings) {
 
-
-void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs) {
+	dimensions.resize(n_surf);
+	dimensions_star.resize(n_surf);
 
 	for (int i = 0; i < n_surf; ++i) {
 		// adding M values
@@ -335,7 +310,6 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs) {
 	// Count N values (actually the count result will be N+1)
 	std::vector<std::vector<int>> nodes_in_surface;
 	for (int i_elem = 0; i_elem < /*beam.num_elem*/; ++i_elem) {
-
 		int nodes = ; // beam.elements[i_elem].global_connectivities
 		int i_surf = aero_inputs->surface_distribution_input[i_elem];
 		if (i_surf < 0) {
@@ -362,14 +336,14 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs) {
 
 	dimensions_star = dimensions;
 	for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-		dimensions_star[i_surf].first = ; // aero_settings['mstar'].value
+		dimensions_star[i_surf].first = aerogrid_settings->mstar;
 	}
 
 }
 
 void Aerogrid::output_info(Aero_inputs* aero_inputs) {
 
-	int _n_surf = ; // aeroinput settings variable
+	int _n_surf = aero_inputs->surface_m.size(); // should i use this defination of _n_surf or should I use the updated value of the private variable of this class(DOUBT###############)
 	std::cout << "The aerodynamic grid contains " << _n_surf << " surfaces" << std::endl;
 
 	for (int i_surf = 0; i_surf < _n_surf; ++i_surf) {
@@ -404,27 +378,12 @@ void Aerogrid::add_timestep() {
 	}
 }
 
-void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, MBDyn_UVLM_AeroTimeStepInfo* aero_tstep, 
-	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings) {
+void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, MBDyn_UVLM_AeroTimeStepInfo& aero_tstep, 
+	Aerogrid_settings* aerogrid_settings) {
 
 	int it = ; // beam.timestep_info - 1
-	std::vector<int> global_node_in_surface;
+	std::vector<std::vector<int>> global_node_in_surface;
 	global_node_in_surface.resize(n_surf);
-
-	// Check that we have control surface information
-	bool with_control_surface = false;
-	try {
-		if (aero_inputs->control_surface.size() > 0) {
-			with_control_surface = true;
-			throw(with_control_surface);
-		}
-	}
-	catch(...){
-		std::cout << "Control surfaces not present" << std::endl;
-	}
-
-	// optional check for the presence of the sweep
-
 
 	// One surface per element
 	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
@@ -436,22 +395,96 @@ void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, MBDyn_UVLM_
 
 		for (int i_local_node = 0; i_local_node < /* beam.elements[i_elem].global_connectivities*/; ++i_local_node) {
 			int i_global_node = ; // beam.elements[i_elem].global_connectivities[i_local_node]
+			if (aero_inputs->aero_node_input[i_global_node] <= 0) {
+				continue;
+			}
+			if (std::find(global_node_in_surface[i_surf].begin(),
+				global_node_in_surface[i_surf].end(), i_global_node)
+				!= global_node_in_surface[i_surf].end()) {
+				continue;
+			}
+			else {
+				global_node_in_surface[i_surf].push_back(i_global_node);
+			}
+			// find the i_surf and i_n data from the mapping
+			int i_n = -1;
+			int ii_surf = -1;
+			for (int i = 0; i < struct2aero_mapping[i_global_node].size(); ++i) {
+				i_n = struct2aero_mapping[i_global_node][i].second;
+				ii_surf = struct2aero_mapping[i_global_node][i].first;
+				if (ii_surf == i_surf) {
+					break;
+				}
+			}
+			if (i_n == -1 || ii_surf == -1) {
+				std::cout << "Something failed with the mapping in aerogrid" << std::endl;
+			}
 
+
+			/// ////// Here define the node_info and fill it. Alternatively it is better to define the node info as a private data member
 		}
 	}
 }
 
-void Aerogrid::generate_zeta(Aero_inputs* aero_inputs,
-	std::map<std::string, std::variant<bool, int, double, std::string>>& aerogrid_settings,
+void Aerogrid::generate_zeta(Aero_inputs* aero_inputs, Aerogrid_settings* aerogrid_settings,
 	double ts) {
-
 	generate_zeta_timestep_info(aero_inputs, aero_timestep_info[ts], aerogrid_settings);
 }
 
-void Aerogrid::generate_mapping() {
+void Aerogrid::generate_mapping(Aero_inputs* aero_inputs) {
 
-	;
+	struct2aero_mapping.resize(n_node);
+	std::vector<int> surf_n_counter(n_surf, 0);
+	std::vector<std::vector<int>> nodes_in_surface;
+	nodes_in_surface.resize(n_surf);
 
+	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
+		int i_surf = aero_inputs->surface_distribution_input[i_elem];
+		if (i_surf == -1) {
+			continue;
+		}
+		for (int i_global_node = 0; i_global_node </*beam.elements[i_elem].reordered_global_connectivities*/; ++i_global_node) {
+			if (aero_inputs->aero_node_input[i_global_node] <= 0) {
+				continue;
+			}
+			if (std::find(nodes_in_surface[i_surf].begin(),
+				nodes_in_surface[i_surf].end(), i_global_node)
+				!= nodes_in_surface[i_surf].end()) {
+				continue;
+			}
+			else {
+				nodes_in_surface[i_surf].push_back(i_global_node);
+				surf_n_counter[i_surf] += 1;
+			}
+			int i_n = surf_n_counter[i_surf] - 1;
+			struct2aero_mapping[i_global_node].push_back(std::make_pair(i_surf, i_n));
+		}
+	}
+
+	nodes_in_surface.clear();
+
+	nodes_in_surface.resize(n_surf);
+	aero2struct_mapping.resize(n_surf);
+	for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
+		aero2struct_mapping[i_surf].resize(surf_n_counter[i_surf]);
+	}
+	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
+		for (int i_global_node = 0; i_global_node </*beam.elements[i_elem].global_connectivities*/; ++i_global_node) {
+			for (int i = 0; i < struct2aero_mapping[i_global_node].size(); ++i) {
+				int i_surf = struct2aero_mapping[i_global_node][i].first;
+				int i_n = struct2aero_mapping[i_global_node][i].second;
+				if (std::find(nodes_in_surface[i_surf].begin(),
+					nodes_in_surface[i_surf].end(), i_global_node)
+					!= nodes_in_surface[i_surf].end()) {
+					continue;
+				}
+				else {
+					nodes_in_surface[i_surf].push_back(i_global_node);
+				}
+				aero2struct_mapping[i_surf][i_n] = i_global_node;
+			}
+		}
+	}
 }
 
 void Aerogrid::compute_gamma_dot(Aero_inputs* aero_inputs, double dt, MBDyn_UVLM_AeroTimeStepInfo* tstep, 
@@ -484,31 +517,33 @@ void Aerogrid::generate_strip() {
 }
 
 
-void StraightWake::StraightWake_initialize(std::map<std::string, std::variant<int, double>>& wakeshape_settings) {
 
-	u_inf = wakeshape_settings.find("u_inf")->second;
+StraightWake::StraightWake() {
+	NO_OP;
+}
 
-	u_inf_direction.push_back(wakeshape_settings.find("u_inf_direction")->second);
-	u_inf_direction.push_back(0.0);
-	u_inf_direction.push_back(0.0);
+void StraightWake::StraightWake_initialize(StraighWake_settings* straightwakesettings) {
 
-	dt = wakeshape_settings.find("dt")->second;
+	
+	_u_inf = straightwakesettings->u_inf;
+	_u_inf_direction = straightwakesettings->u_inf_direction;
+	_dt = straightwakesettings->dt;
 
-	if (wakeshape_settings.find("dx1")->second == -1) {
-		dx1 = u_inf * dt;
+	if (straightwakesettings->dx1 == -1) {
+		_dx1 = _u_inf * _dt;
 	}
 	else {
-		dx1 = wakeshape_settings.find("dx1")->second;
+		_dx1 = straightwakesettings->dx1;
 	}
 
-	ndx1 = wakeshape_settings.find("ndx1")->second;
-	r = wakeshape_settings.find("r")->second;
+	_ndx1 = straightwakesettings->ndx1;
+	_r = straightwakesettings->r;
 
-	if (wakeshape_settings.find("dxmax")->second == -1) {
-		dxmax = dx1;
+	if (straightwakesettings->dxmax == -1) {
+		_dxmax = _dx1;
 	}
 	else {
-		dxmax = wakeshape_settings.find("dxmax")->second;
+		_dxmax = straightwakesettings->dxmax;
 	}
 }
 
@@ -523,9 +558,9 @@ void StraightWake::StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo* aero_tstep
 				aero_tstep->zeta_star[isurf][k][0][j] = aero_tstep->zeta[isurf][k][M][j];
 			}
 			for (int i = 1; i < M; ++i) {
-				double deltax = StraightWake_get_deltax(i, dx1, ndx1, r, dxmax);
+				double deltax = StraightWake_get_deltax(i, _dx1, _ndx1, _r, _dxmax);
 				for (int k = 0; k < 3; ++k) {
-					aero_tstep->zeta_star[isurf][k][i][j] = aero_tstep->zeta_star[isurf][k][i - 1][j] + deltax * u_inf_direction[k];
+					aero_tstep->zeta_star[isurf][k][i][j] = aero_tstep->zeta_star[isurf][k][i - 1][j] + deltax * _u_inf_direction[k];
 				}
 			}
 		}
@@ -560,6 +595,10 @@ void StraightWake::StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo* aero_tstep
 			}
 		}
 	}
+}
+
+StraightWake::~StraightWake() {
+	NO_OP;
 }
 
 double StraightWake::StraightWake_get_deltax(int i, double dx1, double ndx1, double r, double dxmax) {

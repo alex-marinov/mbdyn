@@ -119,55 +119,7 @@ public:
 	int MBDyn_UVLM_ForceType;
 	
 public:
-	std::map<std::string, std::variant<std::string, int, double>> UVLM_STEPUVLM_settings;
-	std::map<std::string, std::variant<std::string, int, double>> UVLM_STATICUVLM_settings;
-	struct MBDyn_UVLM_VMopts{
-		bool ImageMethod;
-		bool Steady;
-		bool horseshoe;
-		bool KJMeth;
-		bool NewAIC;
-		double DelTime;
-		bool Rollup;
-		unsigned int NumCores;
-		unsigned int NumSurfaces;
-		double dt;
-		unsigned int n_rollup;
-		double rollup_tolerance;
-		unsigned int rollup_aic_refresh;
-		bool iterative_solver;
-		double iterative_tol;
-		bool iterative_precond;
-		bool cfl1;
-		double vortex_radius;
-		double vortex_radius_wake_ind;
-		std::vector<double> rbm_vel_g;
-	};
-	struct MBDyn_UVLM_UVMopts{
-		double dt;
-		unsigned int NumCores;
-		unsigned int NumSurfaces;
-		unsigned int convection_scheme;
-		bool ImageMethod;
-		bool iterative_solver;
-		double iterative_tol;
-		bool iterative_precond;
-		bool convect_wake;
-		bool cfl1;
-		double vortex_radius;
-		double vortex_radius_wake_ind;
-		unsigned int interp_coords;
-		unsigned int filter_method;
-		unsigned int interp_method;
-		double yaw_slerp;
-		bool quasi_steady;
-	};
-	struct MBDyn_UVLM_FlightConditions{
-		double uinf;
-		std::vector<double> uinf_direction;
-		double rho;
-		double c_ref;
-	};
+
 	
 	// decalra the variables for raw inputs
 	
