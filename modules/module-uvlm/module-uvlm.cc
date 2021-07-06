@@ -55,14 +55,42 @@ bMBDyn_UVLM_Model_DoStepDynamics(true)
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
-"									\n"
-"Module: 	template2						\n"
-"Author: 	Pierangelo Masarati <masarati@aero.polimi.it>		\n"
-"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
-"		Politecnico di Milano					\n"
-"		http://www.aero.polimi.it/				\n"
-"									\n"
-"	All rights reserved						\n"
+			"									\n"
+			"Module: 	module-chrono-interface					\n"
+			"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+			"		Politecnico di Milano					\n"
+			"		http://www.aero.polimi.it/				\n"
+			"Author: Shubhaditya Burela, Andrea Zanoni, and Pierangelo Masarati	\n"
+			"Supported: Google Summer of Code 2021						\n"
+			"Description: This module dynamically links the MBDyn solver to the UVLM C++ library(https://github.com/ImperialCollegeLondon/UVLM)\n"
+			"Usage: \n"
+			"<elem_type> ::= user defined \n"
+			"<user_defined_type> ::=UvlmInterface \n"
+			"<ChronoInterface_arglist> ::= <cosimulation_platform>, \n"
+			"                              <coupling_variables>, \n"
+			"                              <coupling_bodies>, \n"
+			"                              <other_settings>; \n"
+			"1. <cosimulation_platform> ::= coupling, {none | <loose_coupling> | <tight_coupling> }, \n"
+			"                               <loose_coupling> ::= loose, [{embedded | jacobian | gauss}], \n"
+			"                               <tight_coupling> ::= tight, (int) <num_iterations>, {tolerance, (real) <tolerance>}, \n"
+			"2. <coupling_variables>    ::= [force type, {reaction | contact}], \n"
+			"                               [length scale, (real) <length_scale>], [mass scale, (real) <math_scale>], \n"
+			"3. <coupling_bodies>       ::= nodes numeber, (int) <num_coupling_nodes>, \n"
+			"                               <mbdyn_nodes_info>, <chrono_bodies_info>, [<coupling_constraint>], [<chbody_output>] \n"
+			"                               ...\n"
+			"                               <chrono_ground>\n"
+			"                               <mbdyn_nodes_info>     ::= mbdyn node, (int) <node_label>,\n"
+			"                                                          [offset, (Vec3) <offset_coupling_point>, rotation, (Mat3x3) <relative_orientation>], \n"
+			"                               <chorno_bodies_info>   ::= chrono body, (int) <chbody_label>, \n"
+			"                                                          [offset, (Vec3) <offset_coupling_point>], \n"
+			"                               <coupling_constraints> ::= [position constraint, (int) <bool_x>, (int) <bool_y>, (int) <bool_z>], \n"
+			"                                                          [rotation constraint, (int) <bool_x>, (int) <bool_y>, (int) <bool_z>], \n"
+			"                               <chbody_output>        ::= [output chbody, {yes | no}], \n"
+			"                               <chrono_ground>        ::= ground, (int) <chbody_label>, \n"
+			"                                                          [position, (Vec3) <absolute position>], \n"
+			"                                                          [orientation, (Mat3x3) <absolute_rotation>], [<chbody_output>],\n"
+			"4. <other_settings>        ::= [output all chbodies], [coupling forces filename, (filename) <filename>], [verbose]. \n"
+			"-------------------------------------------------start simulation-------------------------------------------------\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -74,6 +102,7 @@ bMBDyn_UVLM_Model_DoStepDynamics(true)
 	}
 
 	// Read information from the script
+	
 
 	//--------------- 1. <cosimulation_platform> ------------------------
 	MBDyn_UVLM_CouplingIter_Count = 0;
@@ -157,6 +186,22 @@ bMBDyn_UVLM_Model_DoStepDynamics(true)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+	//--------------- read the scale type-----------------------------	
+	MBDyn_UVLM_Scale[0] = 1.0; //- default value for length scale
+	MBDyn_UVLM_Scale[1] = 1.0; //- default value for mass scale
+	MBDyn_UVLM_Scale[2] = 1.0; //- default value for force scaleforce scale
+	MBDyn_UVLM_Scale[3] = 1.0; //- default value for torque scalemoment scale
+	if (HP.IsKeyWord("length" "scale"))
+	{
+		MBDyn_UVLM_Scale[0] = HP.GetReal();		   //- length scale
+		MBDyn_UVLM_Scale[1] = MBDyn_UVLM_Scale[0]; //- if not mentioned, mass scale = length scale;
+	}
+	if (HP.IsKeyWord("mass" "scale"))
+	{
+		MBDyn_UVLM_Scale[1] = HP.GetReal();          //- mass scale
+	}
+	MBDyn_UVLM_Scale[2] = MBDyn_UVLM_Scale[1] * MBDyn_UVLM_Scale[0]; //- force scale
+	MBDyn_UVLM_Scale[3] = MBDyn_UVLM_Scale[2] * MBDyn_UVLM_Scale[0]; //- moment scale
 
 
 }
@@ -267,12 +312,12 @@ void
 UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Prev() {
 
 	/* formulation for calculation
-			mbdynce_x = x + mbdynce_f
-			mbdynce_R = R
-			mbdynce_v = xp + mbdynce_w cross mbdynce_f
-			mbdynce_w = w
-			mbdynce_a = xpp + mbdynce_wp cross mbdynce_f + mbdynce_w cross mbdynce_w cross mbdynce_f
-			mbdynce_wp = wp
+			mbdynuvlm_x = x + mbdynuvlm_f
+			mbdynuvlm_R = R
+			mbdynuvlm_v = xp + mbdynuvlm_w cross mbdynuvlm_f
+			mbdynuvlm_w = w
+			mbdynuvlm_a = xpp + mbdynuvlm_wp cross mbdynuvlm_f + mbdynuvlm_w cross mbdynuvlm_w cross mbdynuvlm_f
+			mbdynuvlm_wp = wp
 	*/
 
 	for (unsigned i = 0; i < MBDyn_UVLM_NodesNum; i++) {
@@ -300,6 +345,57 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Prev() {
 		MBDyn_UVLM_Vec3D(mbdynuvlm_x, mbdynuvlm_tempvec3_x, MBDyn_CE_CEScale[0]);
 		MBDyn_UVLM_Vec3D(mbdynuvlm_v, mbdynuvlm_tempvec3_v, MBDyn_CE_CEScale[0]);
 		MBDyn_UVLM_Vec3D(mbdynuvlm_a, mbdynuvlm_tempvec3_a, MBDyn_CE_CEScale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_w, mbdynuvlm_tempvec3_w, 1.0);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_wp, mbdynuvlm_tempvec3_wp, 1.0);
+		double mbdynuvlm_tempmat3x3_R[9];
+		MBDyn_UVLM_Mat3x3D(mbdynuvlm_R_marker, mbdynuvlm_tempmat3x3_R);
+
+
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_x[3 * i], mbdynuvlm_tempvec3_x, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_R[9 * i], mbdynuvlm_tempmat3x3_R, 9 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_xp[3 * i], mbdynuvlm_tempvec3_v, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_omega[3 * i], mbdynuvlm_tempvec3_w, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_xpp[3 * i], mbdynuvlm_tempvec3_a, 3 * sizeof(double));
+		memcpy(&pMBDyn_UVLM_CouplingKinematic_omegap[3 * i], mbdynuvlm_tempvec3_wp, 3 * sizeof(double));
+	}
+}
+
+void 
+UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Curr() {
+
+	/* formulation for calculation
+			mbdynuvlm_x = x + mbdynuvlm_f
+			mbdynuvlm_R = R
+			mbdynuvlm_v = xp + mbdynuvlm_w cross mbdynuvlm_f
+			mbdynuvlm_w = w
+			mbdynuvlm_a = xpp + mbdynuvlm_wp cross mbdynuvlm_f + mbdynuvlm_w cross mbdynuvlm_w cross mbdynuvlm_f
+			mbdynuvlm_wp = wp
+	*/
+	for (unsigned i = 0; i < MBDyn_CE_NodesNum; i++)
+	{
+		const MBDYN_UVLM_POINTDATA& mbdynuvlm_point = MBDyn_UVLM_Nodes[i];
+		//- Rotation and position
+		const Mat3x3 & mbdynuvlm_R = mbdynuvlm_point.pMBDyn_UVLM_Node->GetRCurr();
+		const Mat3x3 & mbdynce_Rh = MBDyn_UVLM_Nodes[i].MBDyn_UVLM_RhM;             //- relative orientation of the marker in local ref.
+		Mat3x3 mbdynuvlm_R_marker = mbdynuvlm_R * mbdynuvlm_Rh; //- absolute orientation of the marker in local ref.
+		Vec3 mbdynuvlm_f = mbdynuvlm_R * mbdynuvlm_point.MBDyn_UVLM_Offset;
+		Vec3 mbdynuvlm_x = mbdynuvlm_point.pMBDyn_UVLM_Node->GetXCurr() + mbdynuvlm_f;
+		//- Angular velocity and velocity
+		const Vec3 &mbdynuvlm_w = mbdynuvlm_point.pMBDyn_UVLM_Node->GetWCurr();
+		Vec3 mbdynuvlm_wCrossf = mbdynuvlm_w.Cross(mbdynuvlm_f);
+		Vec3 mbdynuvlm_v = mbdynuvlm_point.pMBDyn_UVLM_Node->GetVCurr() + mbdynuvlm_wCrossf;
+		//- Angular acceleration and acceleration
+		const Vec3 &mbdynuvlm_wp = mbdynuvlm_point.pMBDyn_UVLM_Node->GetWPCurr();
+		Vec3 mbdynuvlm_a = mbdynuvlm_point.pMBDyn_UVLM_Node->GetXPPCurr() + mbdynuvlm_wp.Cross(mbdynuvlm_f) + mbdynuvlm_w.Cross(mbdynuvlm_wCrossf);
+
+		double mbdynuvlm_tempvec3_x[3];
+		double mbdynuvlm_tempvec3_v[3];
+		double mbdynuvlm_tempvec3_a[3];
+		double mbdynuvlm_tempvec3_w[3];
+		double mbdynuvlm_tempvec3_wp[3];
+		MBDyn_UVLM_Vec3D(mbdynuvlm_x, mbdynuvlm_tempvec3_x, MBDyn_UVLM_Scale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_v, mbdynuvlm_tempvec3_v, MBDyn_UVLM_Scale[0]);
+		MBDyn_UVLM_Vec3D(mbdynuvlm_a, mbdynuvlm_tempvec3_a, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdynuvlm_w, mbdynuvlm_tempvec3_w, 1.0);
 		MBDyn_UVLM_Vec3D(mbdynuvlm_wp, mbdynuvlm_tempvec3_wp, 1.0);
 		double mbdynuvlm_tempmat3x3_R[9];

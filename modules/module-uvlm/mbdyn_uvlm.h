@@ -44,6 +44,65 @@
 
 
 extern "C" {
+
+struct StepUVLM_settings {
+	int gamma_dot_filtering;
+	std::string velocity_field_generator;
+	std::string gust_shape;
+	double gust_length;
+	double gust_intensity;
+	double gust_offset;
+	double span;
+	bool relative_motion;
+	unsigned int n_time_steps;
+};
+
+struct Aerogrid_settings {
+	bool unsteady;
+	bool aligned_grid;
+	std::vector<double> freestream_dir;
+	int mstar;
+	std::string control_surface_generator;
+	// input array or matrix for the control surface generator needs to be defined
+	std::string wake_shape_generator;  // this should contain a string which will decide which struct to use out of starightwake and helicoidal wake
+};
+
+struct StraighWake_settings {
+	double u_inf;
+	std::vector<double> u_inf_direction;
+	double dt;
+	double dx1;
+	int ndx1;
+	double r;
+	double dxmax;
+};
+
+struct MBDyn_UVLM_UVMopts {
+	double dt;
+	unsigned int NumCores;
+	unsigned int NumSurfaces;
+	unsigned int convection_scheme;
+	bool ImageMethod;
+	bool iterative_solver;
+	double iterative_tol;
+	bool iterative_precond;
+	bool convect_wake;
+	bool cfl1;
+	double vortex_radius;
+	double vortex_radius_wake_ind;
+	unsigned int interp_coords;
+	unsigned int filter_method;
+	unsigned int interp_method;
+	double yaw_slerp;
+	bool quasi_steady;
+};
+
+struct MBDyn_UVLM_FlightConditions {
+	double uinf;
+	std::vector<double> uinf_direction;
+	double rho;
+	double c_ref;
+};
 	
 
 class MBDyn_UVLM_AeroTimeStepInfo
@@ -114,24 +173,23 @@ class Aerogrid {
 
 public:
 
-	std::vector<MBDyn_UVLM_AeroTimeStepInfo> aero_timestep_info;
 	MBDyn_UVLM_AeroTimeStepInfo aero_ini_info;
-
-
+	std::vector<MBDyn_UVLM_AeroTimeStepInfo> aero_timestep_info;
 	std::vector<int> surface_distribution;
 	std::vector<int> surface_m;
 	std::vector<std::pair<int, int>> dimensions;
 	std::vector<std::pair<int, int>> dimensions_star;
-
+	std::vector<std::vector<std::pair<int, int>>> struct2aero_mapping;
+	std::vector<std::vector<int>> aero2struct_mapping;
 
 	Aerogrid();
-	void generate(Aero_inputs*, std::map<std::string, std::variant<bool, int, double, std::string>>&, double);
+	void generate(Aero_inputs*, Aerogrid_settings*, double);
 	void output_info(Aero_inputs*);
-	void calculate_dimensions(Aero_inputs*);
+	void calculate_dimensions(Aero_inputs*, Aerogrid_settings*);
 	void add_timestep();
-	void generate_zeta_timestep_info(Aero_inputs*, MBDyn_UVLM_AeroTimeStepInfo*, std::map<std::string, std::variant<bool, int, double, std::string>>&);
-	void generate_zeta(Aero_inputs*, std::map<std::string, std::variant<bool, int, double, std::string>>&, double);
-	void generate_mapping();
+	void generate_zeta_timestep_info(Aero_inputs*, MBDyn_UVLM_AeroTimeStepInfo&, Aerogrid_settings*);
+	void generate_zeta(Aero_inputs*, Aerogrid_settings*, double);
+	void generate_mapping(Aero_inputs*);
 	void compute_gamma_dot(Aero_inputs*, double, MBDyn_UVLM_AeroTimeStepInfo*, std::vector<MBDyn_UVLM_AeroTimeStepInfo*>&);
 	void generate_strip();
 
@@ -150,21 +208,19 @@ private:
 class StraightWake {
 
 public:
-
-	double u_inf;                                  // Freestream velocity magnitude
-	std::vector<double> u_inf_direction;           // x, y, z relative components of the freestream velocity
-	double dt;                                     // Time step
-	double dx1;                                    // Size of the first wake panel
-	int ndx1;                                      // Number of panels with size "dx1"
-	double r;                                      // Growth rate after "ndx1" panels
-	double dxmax;                                  // Maximum panel size
-
-	StraightWake() {};
-	void StraightWake_initialize(std::map<std::string, std::variant<int, double>>&);
+	StraightWake();
+	void StraightWake_initialize(StraighWake_settings*);
 	void StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo*);
-	~StraightWake() {};
+	~StraightWake();
 
 private:
+	double _u_inf;                                  // Freestream velocity magnitude
+	std::vector<double> _u_inf_direction;           // x, y, z relative components of the freestream velocity
+	double _dt;                                     // Time step
+	double _dx1;                                    // Size of the first wake panel
+	int _ndx1;                                      // Number of panels with size "dx1"
+	double _r;                                      // Growth rate after "ndx1" panels
+	double _dxmax;                                  // Maximum panel size
 
 	double StraightWake_get_deltax(int, double, double, double, double);
 };
