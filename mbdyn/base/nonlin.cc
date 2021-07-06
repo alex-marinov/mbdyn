@@ -302,6 +302,53 @@ NonlinearSolverTestRelNorm::TestPost(const doublereal& dRes) const
 
 /* NonlinearSolverTestNorm - end */
 
+/* NonlinearSolverTestSepNorm */
+
+NonlinearSolverTest::Type NonlinearSolverTestSepNorm::GetType() const
+{
+     return SEPNORM;
+}
+
+doublereal
+NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size, 
+		const VectorHandler& Vec, bool bResidual, doublereal dScaleAlgEqu,
+		doublereal* pTestDiff)
+{
+   	DEBUGCOUTFNAME("NonlinearSolverTestSepNorm::MakeTest");
+
+	return 0.;
+}
+
+
+void
+NonlinearSolverTestSepNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestSepNorm::TestMerge(doublereal& dResCurr,
+		const doublereal& dResNew) const
+{
+	dResCurr += dResNew;
+}
+
+doublereal
+NonlinearSolverTestSepNorm::TestPost(const doublereal& dRes) const
+{
+	/* va qui perche' non posso fare sqrt() su !isfinite() */
+	if (!std::isfinite(dRes)) {
+		throw NonlinearSolver::ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+
+	return sqrt(dRes);
+}
+
+/* NonlinearSolverTestSepNorm - end */
+
 /* NonlinearSolverTestMinMax */
 
 NonlinearSolverTest::Type NonlinearSolverTestMinMax::GetType() const
@@ -417,6 +464,32 @@ NonlinearSolverTestScaleRelNorm::dScaleCoef(const integer& iIndex) const
 }
 
 /* NonlinearSolverTestScaleNorm - end */
+
+/* NonlinearSolverTestScaleSepNorm - begin */
+
+void
+NonlinearSolverTestScaleSepNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestScaleSepNorm::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
+{
+	NonlinearSolverTestSepNorm::TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestScaleSepNorm::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleSepNorm - end */
 
 /* NonlinearSolverTestScaleMinMax - begin */
 
