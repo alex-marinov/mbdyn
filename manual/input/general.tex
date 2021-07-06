@@ -4753,7 +4753,7 @@ with the related \nt{fluid\_properties}, are:
 
     \bnt{property} ::=
         \{ \kw{density} , \bnt{density}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{pressure} , \bnt{pressure}
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
@@ -4770,7 +4770,7 @@ with the related \nt{fluid\_properties}, are:
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -4794,7 +4794,7 @@ is computed as
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
                 \bnt{alpha} , \bnt{ref_temperature}
-            | \kw{viscosity} , \bnt{viscosity} \}
+            | \kw{viscosity} , \bnt{viscosity} \} # dynamic viscosity
 \end{Verbatim}
 %\end{verbatim}
 
@@ -4809,7 +4809,7 @@ is computed as
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -4846,7 +4846,7 @@ are hardcoded in SI units; the syntax will change}
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
