@@ -202,6 +202,10 @@ Aerodynamic2DElem<iNN>::~Aerodynamic2DElem(void)
  * overload della funzione di ToBeOutput();
  * serve per allocare il vettore dei dati di output se il flag
  * viene settato dopo la costruzione
+ *
+ * overload of the ToBeOutput(); method
+ * to allocate the output data vector in case the flag is set
+ * after construction
  */
 template <unsigned iNN>
 void
@@ -213,6 +217,7 @@ Aerodynamic2DElem<iNN>::SetOutputFlag(flag f)
 }
 
 /* Dimensioni del workspace */
+/* Workspace dimensions */
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
@@ -401,6 +406,7 @@ Aerodynamic2DElem<iNN>::AfterConvergence(
 	const VectorHandler& XP)
 {
 	/* Memoria in caso di forze instazionarie */
+	/* Memory, in case of unsteady forces */
 	switch (aerodata->Unsteady()) {
 	case AeroData::STEADY:
 		break;
@@ -424,6 +430,7 @@ Aerodynamic2DElem<iNN>::AfterConvergence(
 }
 
 /* Dimensioni del workspace */
+/* Workspace dimensions */
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
@@ -433,6 +440,7 @@ Aerodynamic2DElem<iNN>::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCo
 }
 
 /* assemblaggio jacobiano */
+/* Jacobian matrix for initial assembly */
 template <unsigned iNN>
 VariableSubMatrixHandler&
 Aerodynamic2DElem<iNN>::InitialAssJac(VariableSubMatrixHandler& WorkMat,
@@ -608,6 +616,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 /* output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output */
+/* it is assumed that each elemen type knows, through the 
+ * OutputHandler, where to write its output */
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
@@ -802,6 +812,7 @@ AerodynamicBody::~AerodynamicBody(void)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
+/* Writes the element contributiion to the restart file */
 std::ostream&
 AerodynamicBody::Restart(std::ostream& out) const
 {
@@ -843,16 +854,19 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Ridimensiona la sottomatrice in base alle esigenze */
+	/* Resize matrix as needed */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici delle varie incognite */
+	/* Retrieve the indices of the unknowns */
 	integer iNodeFirstMomIndex = pNode->iGetFirstMomentumIndex();
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
 
 	/* Setta gli indici delle equazioni */
+	/* Sets the equation indices */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNodeFirstMomIndex + iCnt);
 		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);
@@ -862,6 +876,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dW[6];
 
 	/* Dati del nodo */
+	/* Node data */
 	const Vec3& Xn(pNode->GetXCurr());
 	const Mat3x3& Rn(pNode->GetRCurr());
 	const Vec3& Vn(pNode->GetVCurr());
@@ -869,12 +884,20 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix, from global reference system to aerodynamics reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR(Rn*Ra);
 
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
 	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
+	 *
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -887,6 +910,10 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Dati "permanenti" (uso la posizione del nodo perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we only use node 2position since they
+	 * should not change "a lot")
+	 *
 	 */
 	doublereal rho, c, p, T;
 	GetAirProps(Xn, rho, c, p, T);	/* p, T no used yet */
@@ -908,6 +935,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Ciclo sui punti di Gauss */
+	/* Loop over Gauss points */
 	PntWght PW = GDI.GetFirst();
 	int iPnt = 0;
 	do {
@@ -917,6 +945,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 Vr(Vn + Wn.Cross(Xr));
 
 		/* Contributo di velocita' del vento */
+		/* Airstream speed contribution */
 		Vec3 VTmp(Zero3);
 		if (fGetAirVelocity(VTmp, Xnr)) {
 			Vr -= VTmp;
@@ -925,6 +954,10 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		/*
 		 * Se l'elemento e' collegato ad un rotore,
 		 * aggiunge alla velocita' la velocita' indotta
+		 *
+		 * If the element is connected to a rotor,
+		 * we add the induced velocity contribution
+		 *
 		 */
 		if (pIndVel != 0) {
 			Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -932,6 +965,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
+		/* Copy data into the work vector dVAM */
 		doublereal dTw = Twist.dGet(dCsi) + dGet();
 		aerodata->SetSectionData(dCsi,
 			Chord.dGet(dCsi),
@@ -944,12 +978,18 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
 		 * lo uso per correggere la matrice di rotazione
 		 * dal sistema aerodinamico a quello globale
+		 *
+		 * Twist is not dealt with anymore in aerod2_; so 
+		 * we'll use it to modify the rotation matrix from the aerodynamic
+		 * reference system to the global one
+		 *
 		 */
 		Mat3x3 RRloc;
 		if (dTw != 0.) {
 			doublereal dCosT = cos(dTw);
 			doublereal dSinT = sin(dTw);
 			/* Assumo lo svergolamento positivo a cabrare */
+			/* Nose-up positive twist is assumed */
 			Mat3x3 RTw( dCosT, dSinT, 0.,
 				-dSinT, dCosT, 0.,
 				0.,    0.,    1.);
@@ -962,6 +1002,11 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		/*
 		 * Ruota velocita' e velocita' angolare nel sistema
 		 * aerodinamico e li copia nel vettore di lavoro dW
+		 *
+		 * Rotates the velocity and the angular velocity of the
+		 * aerodynamic reference system and copies them into 
+		 * the work vector dW
+		 *
 		 */
 		VTmp = RRloc.MulTV(Vr);
 		VTmp.PutTo(dW);
@@ -970,6 +1015,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		WTmp.PutTo(&dW[3]);
 
 		/* Funzione di calcolo delle forze aerodinamiche */
+		/* Functions that calculates aerodynamic forces */
 		doublereal Fa0[6];
 		Mat6x6 JFa;
 
@@ -1092,6 +1138,7 @@ AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 
 /* assemblaggio residuo */
+/* residual vector assembly */
 void
 AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -1104,6 +1151,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	doublereal dW[6];
 
 	/* Dati del nodo */
+	/* Node's data */
 	const Vec3& Xn(pNode->GetXCurr());
 	const Mat3x3& Rn(pNode->GetRCurr());
 	const Vec3& Vn(pNode->GetVCurr());
@@ -1111,12 +1159,19 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix from global reference system to aerodynamic reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR(Rn*Ra);
 
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
  	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -1127,12 +1182,17 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	}
 
 	/* Resetta i dati */
+	/* Resets data */
 	F.Reset();
 	M.Reset();
 
 	/*
 	 * Dati "permanenti" (uso la posizione del nodo perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we use the node's position since they
+	 * should not change "a lot")
+	 *
 	 */
 	doublereal rho, c, p, T;
 	GetAirProps(Xn, rho, c, p, T);	/* p, T no used yet */
@@ -1155,6 +1215,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	}
 
 	/* Ciclo sui punti di Gauss */
+	/* Loop over Gauss points */
 	PntWght PW = GDI.GetFirst();
 	int iPnt = 0;
 	do {
@@ -1164,6 +1225,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		Vec3 Vr(Vn + Wn.Cross(Xr));
 
 		/* Contributo di velocita' del vento */
+		/* Airstream speed contribution */
 		Vec3 VTmp(Zero3);
 		if (fGetAirVelocity(VTmp, Xnr)) {
 	 		Vr -= VTmp;
@@ -1172,6 +1234,10 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		/*
 		 * Se l'elemento e' collegato ad un rotore,
 		 * aggiunge alla velocita' la velocita' indotta
+		 *
+		 * If the element is connected to a rotor,
+		 * we add the induced velocity contribution
+		 *
 		 */
 		if (pIndVel != 0) {
 	 		Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -1179,6 +1245,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
+		/* Copy data into the work vector dVAM */
 		doublereal dTw = Twist.dGet(dCsi) + dGet();
 		aerodata->SetSectionData(dCsi,
 			Chord.dGet(dCsi),
@@ -1191,12 +1258,18 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
 		 * lo uso per correggere la matrice di rotazione
 		 * dal sistema aerodinamico a quello globale
+		 *
+		 * Twist is not dealt with anymore in aerod2_; so 
+		 * we'll use it to modify the rotation matrix from the aerodynamic
+		 * reference system to the global one
+		 *
 		 */
 		Mat3x3 RRloc;
 		if (dTw != 0.) {
 			doublereal dCosT = cos(dTw);
 			doublereal dSinT = sin(dTw);
 			/* Assumo lo svergolamento positivo a cabrare */
+			/* Nose-up positive twist is assumed */
 			Mat3x3 RTw( dCosT, dSinT, 0.,
 				   -dSinT, dCosT, 0.,
 				    0.,    0.,    1.);
@@ -1209,6 +1282,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		/*
 		 * Ruota velocita' e velocita' angolare nel sistema
 		 * aerodinamico e li copia nel vettore di lavoro dW
+		 *
+		 * Rotates the velocity and the angular velocity of the
+		 * aerodynamic reference system and copies them into 
+		 * the work vector dW
+		 *
 		 */
 		VTmp = RRloc.MulTV(Vr);
 		VTmp.PutTo(dW);
@@ -1217,6 +1295,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		WTmp.PutTo(&dW[3]);
 
 		/* Funzione di calcolo delle forze aerodinamiche */
+		/* Functions that calculates aerodynamic forces */
 		if (iNumDof) {
 			aerodata->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr,
                 		iFirstEq, iFirstSubEq, iPnt, dW, dTng, OUTA[iPnt]);
@@ -1230,12 +1309,14 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		}
 
 		/* Dimensionalizza le forze */
+		/* Dimensionalize forces */
 		doublereal dWght = dHalfSpan*PW.dGetWght();
 		dTng[1] *= TipLoss.dGet(dCsi);
 		Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
 		Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		// If a rotor is defined, adds the thrust contribution
 		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xnr, RRloc, Vr, Wn);
 
 		// specific for Gauss points force output
@@ -1255,9 +1336,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	} while (GDI.fGetNext(PW));
 
 	// Se e' definito il rotore, aggiungere il contributo alla trazione
+	// If a rotor is defined, adds the thrust contribution
 	AddForce_int(pNode, F, M, Xn);
 
 	/* Sommare il termine al residuo */
+	/* Adds the term to the residual */
 	WorkVec.Add(1, F);
 	WorkVec.Add(4, M);
 }
@@ -1265,11 +1348,15 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 /*
  * output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output
+ *
+ * it is assumed that each elemen type knows, through the 
+ * OutputHandler, where to write its output 
  */
 void
 AerodynamicBody::Output(OutputHandler& OH) const
 {
 	/* Output delle forze aerodinamiche F, M su apposito file */
+	/* Aerodynamic forces F, M output on specific file */
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		Aerodynamic2DElem<1>::Output_NetCDF(OH);
@@ -1359,6 +1446,11 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		 * verifica di esistenza del rotore
 		 * NOTA: ovviamente il rotore deve essere definito
 		 * prima dell'elemento aerodinamico
+		 *
+		 * checks if the rotor exists
+		 * NOTE: obviously, the rotor must be defined before the aerodynamic
+		 * element
+		 *
 		 */
 		Elem* p;
 
@@ -1474,7 +1566,7 @@ ReadAerodynamicBody(DataManager* pDM,
 {
 	DEBUGCOUTFNAME("ReadAerodynamicBody");
 
-	/* Nodo */
+	/* Node */
 	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	InducedVelocity* pIndVel = 0;
@@ -1633,6 +1725,7 @@ AerodynamicBeam::~AerodynamicBeam(void)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
+/* Writes the element contributiion to the restart file */
 std::ostream&
 AerodynamicBeam::Restart(std::ostream& out) const
 {
@@ -1683,6 +1776,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Ridimensiona la sottomatrice in base alle esigenze */
+	/* Resize matrix as needed */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
@@ -1707,6 +1801,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dW[6];
 
 	/* array di vettori per via del ciclo sui nodi ... */
+	/* vector array since we're dealing with multiple nodes  */
 	Vec3 Xn[3];
 
 	/* Dati dei nodi */
@@ -1743,6 +1838,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix, from global reference system to aerodynamics reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
 	Mat3x3 RR2(Rn2*Ra2);
@@ -1751,6 +1850,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Parametri di rotazione dai nodi 1 e 3 al nodo 2 (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
+	 *
+	 * Rotation parameters from node 1 and 3 to node 3 (NOTE: it is assumed
+	 * that the transformation is singularity-free)
+	 *
 	 */
 
 	Vec3 g1(ER_Rot::Param, RR2.MulTM(RR1));
@@ -1762,6 +1865,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
 	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
+	 *
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -1774,6 +1881,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we only use node 2 position since they
+	 * should not change "a lot")
+	 *
 	 */
 	doublereal rho, c, p, T;
 	GetAirProps(Xn[NODE2], rho, c, p, T);	/* p, T no used yet */
@@ -1821,6 +1932,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 		//iDelta_x1 = 0;, iDelta_g1, iDelta_x2, iDelta_g2, iDelta_x3, iDelta_g3;
 
 		/* Ciclo sui punti di Gauss */
+		/* Loop over Gauss points */
 		PntWght PW = GDI.GetFirst();
 		do {
 			doublereal dCsi = PW.dGetPnt();
@@ -1847,6 +1959,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			/*
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
+			 *
+			 * If the element is connected to a rotor,
+			 * we add the induced velocity contribution
+			 *
 			 */
 			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -1854,8 +1970,10 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
+			/* Copy data into the work vector dVAM */
 			doublereal dTw = Twist.dGet(ds);
 			/* Contributo dell'eventuale sup. mobile */
+			/* Contribution of the movable surface, if any */
 			dTw += dGet();
 
 			aerodata->SetSectionData(dCsi,
@@ -1869,18 +1987,28 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * Lo svergolamento non viene piu' trattato in aerod2_;
 			 * quindi lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
+			 *
+			 * Twist is not dealt with anymore in aerod2_; so 
+			 * we'll use it to modify the rotation matrix from the aerodynamic
+			 * reference system to the global one
+			 *
 			 */
 			Mat3x3 RRloc(RR2*Mat3x3(ER_Rot::MatR, gr));
 			if (dTw != 0.) {
 				doublereal dCosT = cos(dTw);
 				doublereal dSinT = sin(dTw);
 				/* Assumo lo svergolamento positivo a cabrare */
+				/* Nose-up positive twist is assumed */
 				Mat3x3 RTw(dCosT, dSinT, 0.,
 					-dSinT, dCosT, 0.,
 					0.,    0.,    1.);
 				/*
 				 * Allo stesso tempo interpola le g
 				 * e aggiunge lo svergolamento
+				 *
+				 * At the same time, interpolates g 
+				 * and adds twist
+				 *
 				 */
 				RRloc = RRloc*RTw;
 			}
@@ -1888,6 +2016,11 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
+			 *
+			 * Rotates the velocity and the angular velocity of the
+			 * aerodynamic reference system and copies them into 
+			 * the work vector dW
+			 *
 			 */
 			VTmp = RRloc.MulTV(Vr);
 			VTmp.PutTo(&dW[0]);
@@ -1895,6 +2028,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 WTmp = RRloc.MulTV(Wr);
 			WTmp.PutTo(&dW[3]);
 			/* Funzione di calcolo delle forze aerodinamiche */
+			/* Functions that calculates aerodynamic forces */
 			doublereal Fa0[6];
 			Mat6x6 JFa;
 
@@ -2032,6 +2166,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 /* assemblaggio residuo */
+/* residual vector assembly */
 SubVectorHandler&
 AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -2060,6 +2195,7 @@ AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 }
 
 /* assemblaggio iniziale residuo */
+/* residual vector assembly for initial assembly  */
 SubVectorHandler&
 AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
@@ -2083,6 +2219,7 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 
 
 /* assemblaggio residuo */
+/* residual vector assembly */
 void
 AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -2092,9 +2229,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("AerodynamicBeam::AssVec");
 
 	/* array di vettori per via del ciclo sui nodi ... */
+	/* vector array, since we're looping over nodes */
 	Vec3 Xn[3];
 
 	/* Dati dei nodi */
+	/* Nodes' data */
 	Xn[NODE1] = pNode[NODE1]->GetXCurr();
 	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
 	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
@@ -2124,6 +2263,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix from global reference system to aerodynamic reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
 	Mat3x3 RR2(Rn2*Ra2);
@@ -2132,6 +2275,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	/*
 	 * Parametri di rotazione dai nodi 1 e 3 al nodo 2 (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
+	 *
+	 * Rotation parameters from node 1 and 3 to node 3 (NOTE: it is assumed
+	 * that the transformation is singularity-free)
+	 *
 	 */
 	Vec3 g1(ER_Rot::Param, RR2.MulTM(RR1));
 	Vec3 g3(ER_Rot::Param, RR2.MulTM(RR3));
@@ -2139,6 +2286,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
 	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
+	 *
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -2151,6 +2302,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	/*
 	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we use only node 2 position since they
+	 * should not change "a lot")
+	 *
 	 */
 	doublereal rho, c, p, T;
 	GetAirProps(Xn[NODE2], rho, c, p, T);	/* p, T no used yet */
@@ -2177,6 +2332,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 
 		/* Resetta le forze */
+		/* Resets forces */
 		F[iNode].Reset();
 		M[iNode].Reset();
 
@@ -2186,7 +2342,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 		doublereal dsm = (dsf + dsi)/2.;
 		doublereal dsdCsi = (dsf - dsi)/2.;
 
-		/* Ciclo sui punti di Gauss */
+		/* Ciclo sui punti di Gauss *
+		 *
+		 * Loop over Gauss points
+		 *
+		 */
 		PntWght PW = GDI.GetFirst();
 		do {
 			doublereal dCsi = PW.dGetPnt();
@@ -2203,6 +2363,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			Vec3 Wr(Wn1*dN1 + Wn2*dN2 + Wn3*dN3);
 
 			/* Contributo di velocita' del vento */
+			/* Airstream speed contribution */
 			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
@@ -2211,6 +2372,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			/*
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
+			 *
+			 * If the element is connected to a rotor,
+			 * we add the induced velocity contribution
+			 *
 			 */
 			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -2218,8 +2383,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
+			/* Copy data into the work vector dVAM */
 			doublereal dTw = Twist.dGet(ds);
 			/* Contributo dell'eventuale sup. mobile */
+			/* Contribution of the movable surface, if any */
 			dTw += dGet();
 
 			aerodata->SetSectionData(dCsi,
@@ -2233,18 +2400,28 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			 * Lo svergolamento non viene piu' trattato in aerod2_;
 			 * quindi lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
+			 *
+			 * Twist is not dealt with anymore in aerod2_; so 
+			 * we'll use it to modify the rotation matrix from the aerodynamic
+			 * reference system to the global one
+			 *
 			 */
 			Mat3x3 RRloc(RR2*Mat3x3(ER_Rot::MatR, g1*dN1 + g3*dN3));
 			if (dTw != 0.) {
 				doublereal dCosT = cos(dTw);
 				doublereal dSinT = sin(dTw);
 				/* Assumo lo svergolamento positivo a cabrare */
+				/* Nose-up positive twist is assumed */
 				Mat3x3 RTw(dCosT, dSinT, 0.,
 					-dSinT, dCosT, 0.,
 					0.,    0.,    1.);
 				/*
 				 * Allo stesso tempo interpola le g
 				 * e aggiunge lo svergolamento
+				 *
+				 * At the same time, interpolates g 
+				 * and adds twist
+				 *
 				 */
 				RRloc = RRloc*RTw;
 			}
@@ -2252,6 +2429,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
+			 *
+			 * Rotates the velocity and the angular velocity of the
+			 * aerodynamic reference system and copies them into 
+			 * the work vector dW
+			 *
 			 */
 			doublereal dW[6];
 			doublereal dTng[6];
@@ -2263,6 +2445,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			WTmp.PutTo(&dW[3]);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
+			/* Functions that calculates aerodynamic forces */
 			if (iNumDof) {
 				aerodata->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr,
                 			iFirstEq, iFirstSubEq, iPnt, dW, dTng, OUTA[iPnt]);
@@ -2276,12 +2459,14 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			}
 
 			/* Dimensionalizza le forze */
+			/* Dimensionalizes forces */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
 			Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
+			// If a rotor is defined, adds the thrust contribution
 			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
 			// specific for Gauss points force output
@@ -2300,9 +2485,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 		} while (GDI.fGetNext(PW));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		// If a rotor is defined, adds the thrust contribution
 		AddForce_int(pNode[iNode], F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
+		/* Adds the term to the residual */
 		WorkVec.Add(6*iNode + 1, F[iNode]);
 		WorkVec.Add(6*iNode + 4, M[iNode]);
 	}
@@ -2311,6 +2498,9 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 /*
  * output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output
+ *
+ * it is assumed that each elemen type knows, through the 
+ * OutputHandler, where to write its output 
  */
 void
 AerodynamicBeam::Output(OutputHandler& OH) const
@@ -2372,6 +2562,7 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 
 
 /* Legge un elemento aerodinamico di trave */
+/* Reads an aerodynamic beam element */
 
 Elem *
 ReadAerodynamicBeam(DataManager* pDM,
@@ -2404,14 +2595,16 @@ ReadAerodynamicBeam(DataManager* pDM,
 	ASSERT(pBeam != 0);
 
 	/* Eventuale rotore */
+	/* Rotor, if any */
 	InducedVelocity* pIndVel = 0;
 	bool bPassive(false);
 	(void)ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam3",
 		pIndVel, bPassive);
 
-	/* Nodo 1: */
+	/* Node 1: */
 
 	/* Offset del corpo aerodinamico rispetto al nodo */
+	/* Offset of the aerodynamic body w.r.t. the node */
 	const StructNode* pNode1 = pBeam->pGetNode(1);
 
 	ReferenceFrame RF(pNode1);
@@ -2422,9 +2615,10 @@ ReadAerodynamicBeam(DataManager* pDM,
 	DEBUGLCOUT(MYDEBUG_INPUT,
 		   "Node 1 rotation matrix: " << std::endl << Ra1 << std::endl);
 
-	/* Nodo 2: */
+	/* Node 2: */
 
 	/* Offset del corpo aerodinamico rispetto al nodo */
+	/* Offset of the aerodynamic body w.r.t. the node */
 	const StructNode* pNode2 = pBeam->pGetNode(2);
 
 	RF = ReferenceFrame(pNode2);
@@ -2435,9 +2629,10 @@ ReadAerodynamicBeam(DataManager* pDM,
 	DEBUGLCOUT(MYDEBUG_INPUT,
 		   "Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
 
-	/* Nodo 3: */
+	/* Node 3: */
 
 	/* Offset del corpo aerodinamico rispetto al nodo */
+	/* Offset of the aerodynamic body w.r.t. the node */
 	const StructNode* pNode3 = pBeam->pGetNode(3);
 
 	RF = ReferenceFrame(pNode3);
@@ -2508,6 +2703,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 			iNumber, aerodata, pDC, bUseJacobian, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
+	/* If the final semicolon is missing */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
@@ -2603,6 +2799,7 @@ AerodynamicBeam2::~AerodynamicBeam2(void)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
+/* Writes the element contributiion to the restart file */
 std::ostream&
 AerodynamicBeam2::Restart(std::ostream& out) const
 {
@@ -2649,6 +2846,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Ridimensiona la sottomatrice in base alle esigenze */
+	/* Resize matrix as needed */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
@@ -2669,9 +2867,11 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dW[6];
 
 	/* array di vettori per via del ciclo sui nodi ... */
+	/* vector array since we're dealing with multiple nodes  */
 	Vec3 Xn[2];
 
 	/* Dati dei nodi */
+	/* Nodes' data */
 	Xn[NODE1] = pNode[NODE1]->GetXCurr();
 	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
 	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
@@ -2696,6 +2896,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix, from global reference system to aerodynamics reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
 	Mat3x3 RR2(Rn2*Ra2);
@@ -2708,6 +2912,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
 	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
+	 *
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -2720,6 +2928,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	/*
 	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we only use node 2 position since they
+	 * should not change "a lot")
+	 *
 	 */
 	Vec3 Xmid = (Xn[NODE2] + Xn[NODE1])/2.;
 	doublereal rho, c, p, T;
@@ -2761,6 +2973,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM_M[DELTAg2].Reset();
 
 		/* Ciclo sui punti di Gauss */
+		/* Loop over Gauss points */
 		PntWght PW = GDI.GetFirst();
 		do {
 			doublereal dCsi = PW.dGetPnt();
@@ -2783,6 +2996,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 thetar(overline_theta*dN2);
 
 			/* Contributo di velocita' del vento */
+			/* Airstream speed contribution */
 			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
@@ -2791,6 +3005,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			/*
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
+			 *
+			 * If the element is connected to a rotor,
+			 * we add the induced velocity contribution
+			 *
 			 */
 			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -2798,8 +3016,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
+			/* Copy data into the work vector dVAM */
 			doublereal dTw = Twist.dGet(ds);
 			/* Contributo dell'eventuale sup. mobile */
+			/* Contribution of the movable surface, if any */
 			dTw += dGet();
 
 			aerodata->SetSectionData(dCsi,
@@ -2813,18 +3033,28 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * Lo svergolamento non viene piu' trattato in aerod2_;
 			 * quindi lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
+			 *
+			 * Twist is not dealt with anymore in aerod2_; so 
+			 * we'll use it to modify the rotation matrix from the aerodynamic
+			 * reference system to the global one
+			 *
 			 */
 			Mat3x3 RRloc(RR1*Mat3x3(ER_Rot::MatR, thetar));
 			if (dTw != 0.) {
 				doublereal dCosT = cos(dTw);
 				doublereal dSinT = sin(dTw);
 				/* Assumo lo svergolamento positivo a cabrare */
+				/* Nose-up positive twist is assumed */
 				Mat3x3 RTw(dCosT, dSinT, 0.,
 					-dSinT, dCosT, 0.,
 					0.,    0.,    1.);
 				/*
 				 * Allo stesso tempo interpola le g
 				 * e aggiunge lo svergolamento
+				 *
+				 * At the same time, interpolates g 
+				 * and adds twist
+				 *
 				 */
 				RRloc = RRloc*RTw;
 			}
@@ -2832,6 +3062,11 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
+			 *
+			 * Rotates the velocity and the angular velocity of the
+			 * aerodynamic reference system and copies them into 
+			 * the work vector dW
+			 *
 			 */
 			VTmp = RRloc.MulTV(Vr);
 			VTmp.PutTo(&dW[0]);
@@ -2839,6 +3074,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 WTmp = RRloc.MulTV(Wr);
 			WTmp.PutTo(&dW[3]);
 			/* Funzione di calcolo delle forze aerodinamiche */
+			/* Functions that calculates aerodynamic forces */
 			doublereal Fa0[6];
 			Mat6x6 JFa;
 
@@ -2950,6 +3186,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 /* assemblaggio residuo */
+/* residual vector assembly */
 SubVectorHandler&
 AerodynamicBeam2::AssRes(
 	SubVectorHandler& WorkVec,
@@ -2977,6 +3214,7 @@ AerodynamicBeam2::AssRes(
 }
 
 /* assemblaggio iniziale residuo */
+/* residual vector assembly for initial assembly  */
 SubVectorHandler&
 AerodynamicBeam2::InitialAssRes( SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
@@ -2997,6 +3235,7 @@ AerodynamicBeam2::InitialAssRes( SubVectorHandler& WorkVec,
 }
 
 /* assemblaggio residuo */
+/* residual vector assembly */
 void
 AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -3011,6 +3250,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	Vec3 Xn[LASTNODE];
 
 	/* Dati dei nodi */
+	/* Nodes' data */
 	Xn[NODE1] = pNode[NODE1]->GetXCurr();
 	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
 	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
@@ -3032,6 +3272,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 
 	/*
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 *
+	 * Transformation matrix from global reference system to aerodynamic reference
+	 * system
+	 *
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
 	Mat3x3 RR2(Rn2*Ra2);
@@ -3044,6 +3288,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
 	 * si fa dare la velocita' di rotazione
+	 *
+	 * If the element is connected to a rotor,
+	 * retrieves the angular velocity
+	 *
 	 */
 	doublereal dOmega = 0.;
 	if (pIndVel != 0) {
@@ -3056,6 +3304,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	/*
 	 * Dati "permanenti" (uso solo la posizione di mezzo perche'
 	 * non dovrebbero cambiare "molto")
+	 *
+	 * "Steady" data (we use only node 2 position since they
+	 * should not change "a lot")
+	 *
 	 */
 	Vec3 Xmid = (Xn[NODE2] + Xn[NODE1])/2.;
 	doublereal rho, c, p, T;
@@ -3083,6 +3335,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 
 		/* Resetta i dati */
+		/* Resets forces */
 		F[iNode].Reset();
 		M[iNode].Reset();
 
@@ -3093,6 +3346,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 		doublereal dsdCsi = (dsf - dsi)/2.;
 
 		/* Ciclo sui punti di Gauss */
+		/* Loop over Gauss points  */
 		PntWght PW = GDI.GetFirst();
 		do {
 			doublereal dCsi = PW.dGetPnt();
@@ -3108,6 +3362,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			Vec3 thetar(overline_theta*((1. + dN2 - dN1)/2.));
 
 			/* Contributo di velocita' del vento */
+			/* Airstream speed contribution */
 			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
@@ -3116,6 +3371,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			/*
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
+			 *
+			 * If the element is connected to a rotor,
+			 * we add the induced velocity contribution
+			 *
 			 */
 			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(GetElemType(),
@@ -3123,8 +3382,11 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
-			doublereal dTw = Twist.dGet(ds);
-			dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
+			/* Copy data into the work vector dVAM */
+			doublereal dTw = Twist.dGet(ds);	
+			/* Contributo dell'eventuale sup. mobile */
+			/* Contribution of the movable surface, if any */
+			dTw += dGet(); 
 			aerodata->SetSectionData(dCsi,
 				Chord.dGet(ds),
 				ForcePoint.dGet(ds),
@@ -3136,17 +3398,27 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
 			 * lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
+			 *
+			 * Twist is not dealt with anymore in aerod2_; so 
+			 * we'll use it to modify the rotation matrix from the aerodynamic
+			 * reference system to the global one
+			 *
 			 */
 			Mat3x3 RRloc(RR1*Mat3x3(ER_Rot::MatR, thetar));
 			if (dTw != 0.) {
 				doublereal dCosT = cos(dTw);
 				doublereal dSinT = sin(dTw);
 				/* Assumo lo svergolamento positivo a cabrare */
+				/* Nose-up positive twist is assumed */
 				Mat3x3 RTw( dCosT, dSinT, 0.,
 					-dSinT, dCosT, 0.,
 					0.,    0.,    1.);
 				/*
 				 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
+				 *
+				 * At the same time, interpolates g 
+				 * and adds twist
+				 *
 				 */
 				RRloc = RRloc*RTw;
 			}
@@ -3154,6 +3426,11 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
+			 *
+			 * Rotates the velocity and the angular velocity of the
+			 * aerodynamic reference system and copies them into 
+			 * the work vector dW
+			 *
 			 */
 			VTmp = RRloc.MulTV(Vr);
 			VTmp.PutTo(dW);
@@ -3162,6 +3439,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			WTmp.PutTo(&dW[3]);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
+			/* Functions that calculates aerodynamic forces */
 			if (iNumDof) {
 				aerodata->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr,
                 			iFirstEq, iFirstSubEq, iPnt, dW, dTng, OUTA[iPnt]);
@@ -3175,12 +3453,14 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			}
 
 			/* Dimensionalizza le forze */
+			/* Dimensionalizes forces */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
 			Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
+			// If a rotor is defined, adds the thrust contribution
 			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
 			// specific for Gauss points force output
@@ -3199,9 +3479,11 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 		} while (GDI.fGetNext(PW));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		// If a rotor is defined, adds the thrust contribution
 		AddForce_int(pNode[iNode], F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
+		/* Adds the term to the residual */
 		WorkVec.Add(6*iNode + 1, F[iNode]);
 		WorkVec.Add(6*iNode + 4, M[iNode]);
 	}
@@ -3210,6 +3492,9 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 /*
  * output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output
+ *
+ * it is assumed that each elemen type knows, through the 
+ * OutputHandler, where to write its output 
  */
 void
 AerodynamicBeam2::Output(OutputHandler& OH ) const
@@ -3271,6 +3556,7 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 
 
 /* Legge un elemento aerodinamico di trave a due nodi */
+/* Reads an aerodynamic two-node beam element */
 
 Elem *
 ReadAerodynamicBeam2(DataManager* pDM,
@@ -3281,11 +3567,13 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	DEBUGCOUTFNAME("ReadAerodynamicBeam2");
 
 	/* Trave */
+	/* The beam */
 	unsigned int uBeam = (unsigned int)HP.GetInt();
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
 
 	/* verifica di esistenza della trave */
+	/* check if beam exists */
 	Elem *p = pDM->pFindElem(Elem::BEAM, uBeam);
 	if (p == 0) {
 		silent_cerr("Beam2(" << uBeam << ") not defined "
@@ -3302,14 +3590,16 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	}
 
 	/* Eventuale rotore */
+	/* Rotor, if any */
 	InducedVelocity* pIndVel = 0;
 	bool bPassive(false);
 	(void)ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam2",
 		pIndVel, bPassive);
 
-	/* Nodo 1: */
+	/* Node 1: */
 
 	/* Offset del corpo aerodinamico rispetto al nodo */
+	/* Offset of the aerodynamic body w.r.t. the node */
 	const StructNode* pNode1 = pBeam->pGetNode(1);
 
 	ReferenceFrame RF(pNode1);
@@ -3323,6 +3613,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	/* Nodo 2: */
 
 	/* Offset del corpo aerodinamico rispetto al nodo */
+	/* Offset of the aerodynamic body w.r.t. the node */
 	const StructNode* pNode2 = pBeam->pGetNode(2);
 
 	RF = ReferenceFrame(pNode2);
@@ -3393,6 +3684,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 			iNumber, aerodata, pDC, bUseJacobian, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
+	/* If the final semicolon is missing */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
