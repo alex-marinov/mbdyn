@@ -309,7 +309,7 @@ MusclePennestriReflexiveCLWithSRS::Update(const doublereal& Eps, const doublerea
 	df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
 	df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
-	if ( (x - dxRef) > 0 ) {
+	if ( (x - dxRef) >= 0 ) {
 		if (m_SRSModel == SRS_LINEAR) {
 			if ( (x - dxRef) < SRSDelta ) {
 				SRSf = SRSGamma*aRef*(x - dxRef);
@@ -322,7 +322,7 @@ MusclePennestriReflexiveCLWithSRS::Update(const doublereal& Eps, const doublerea
 			SRSf = SRSGamma*aRef*SRSDelta*(1 - std::exp(1 - std::exp((x - dxRef)/SRSDelta)));
 			SRSdfdx = SRSGamma*aRef*std::exp((x - dxRef)/SRSDelta - std::exp((x - dxRef)/SRSDelta) + 1);
 		}
-	} else { // (x - xRef) <= 0
+	} else { // (x - xRef) < 0
 		SRSf = 0.;
 		SRSdfdx = 0.;
 	}
@@ -346,8 +346,8 @@ MusclePennestriReflexiveCLWithSRS::NetCDFOutputAppend(OutputHandler& OH) const
 	OH.WriteNcVar(Var_dKp, Kp.dGet());
 	OH.WriteNcVar(Var_dKd, Kd.dGet());
 	OH.WriteNcVar(Var_dReferenceLength, ReferenceLength.dGet());
-	OH.WriteNcVar(Var_dSRSf, SRSf);
-	OH.WriteNcVar(Var_dSRSdfdx, SRSdfdx);
+	OH.WriteNcVar(Var_dSRSf, F0*f1*SRSf);
+	OH.WriteNcVar(Var_dSRSdfdx, F0*(df1dx*SRSf + f1*SRSdfdx));
 #endif // USE_NETCDF
 };
 
