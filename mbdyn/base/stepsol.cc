@@ -412,10 +412,16 @@ DerivativeSolver::Advance(Solver* pS,
 }
 
 void
-DerivativeSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
+DerivativeSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes,
+std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) const
 {
 	ASSERT(pDM != NULL);
 	pDM->AssRes(*pRes, dCoef, pAbsRes);
+
+	if (pDimMap != 0) {
+		pDM->SetElemDimensionIndices(pDimMap);
+		pDM->SetNodeDimensionIndices(pDimMap);
+	}
 }
 
 void
@@ -483,10 +489,16 @@ StepNIntegrator::~StepNIntegrator(void)
 }
 
 void
-StepNIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
+StepNIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes,
+	std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) const
 {
 	ASSERT(pDM != NULL);
 	pDM->AssRes(*pRes, db0Differential, pAbsRes);
+
+	if (pDimMap != 0) {
+		pDM->SetElemDimensionIndices(pDimMap);
+		pDM->SetNodeDimensionIndices(pDimMap);
+	}
 }
 
 #include "naivemh.h"
@@ -1700,12 +1712,17 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 }
 
 void
-InverseDynamicsStepSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
+InverseDynamicsStepSolver::Residual(VectorHandler* pRes, VectorHandler* pAbsRes,
+	std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) const
 {
 	ASSERT(pDM != NULL);
 	switch (iOrder) {
 	case InverseDynamics::INVERSE_DYNAMICS:
 		pDM->AssRes(*pRes);
+		if (pDimMap != 0) {
+			pDM->SetElemDimensionIndices(pDimMap);
+			pDM->SetNodeDimensionIndices(pDimMap);
+		}
 		break;
 
 	default:

@@ -234,7 +234,8 @@ ThirdOrderIntegrator::Predict(void)
 	return;
 };
 
-void ThirdOrderIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
+void ThirdOrderIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes,
+	std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) const
 {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Residual");
 	ASSERT(pDM != NULL);
@@ -251,12 +252,21 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes)
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssRes(res, 1.);
+
+	if (pDimMap != 0) {
+		pDM->SetElemDimensionIndices(pDimMap);
+		pDM->SetNodeDimensionIndices(pDimMap);
+	}
 	
 	/* dT */
 	pDM->SetTime(pDM->dGetTime() - theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssRes(*pRes, 1.);
+	if (pDimMap != 0) {
+		pDM->SetElemDimensionIndices(pDimMap);
+		pDM->SetNodeDimensionIndices(pDimMap);
+	}
 
 	return;
 };
