@@ -308,6 +308,10 @@ NonlinearSolverTestRelNorm::TestPost(const doublereal& dRes) const
 /* NonlinearSolverTestNorm - end */
 
 /* NonlinearSolverTestSepNorm */
+std::map<OutputHandler::Dimensions, std::set<integer>>* 
+NonlinearSolverTestSepNorm::GetDimMap() { 
+	return &MapOfDimensionIndices; 
+};
 
 VectorHandler*
 NonlinearSolverTestSepNorm::GetAbsRes() {

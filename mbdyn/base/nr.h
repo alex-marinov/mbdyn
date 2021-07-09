@@ -48,6 +48,7 @@ class NewtonRaphsonSolver : public NonlinearSolver
 {
 	VectorHandler* 	pRes;
 	VectorHandler* pAbsRes;
+	std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap;
 	VectorHandler* 	pSol;
 	bool bTrueNewtonRaphson;
 	integer IterationBeforeAssembly;
