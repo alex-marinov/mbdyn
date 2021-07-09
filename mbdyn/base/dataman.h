@@ -101,9 +101,6 @@ protected:
 	/* loadable elements */
 	std::map<std::string, const LoadableCalls *> MapOfLoadableElemHandlers;
 
-	/* Indices for corresponding dimensions */
-	std::map<OutputHandler::Dimensions, std::set<integer>> MapOfDimensionIndices;
-
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
@@ -356,6 +353,10 @@ public:
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0);
 
+	/* sets the dimesnions of the equation components */
+	virtual void SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
+	virtual void SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
+
 	// inverse dynamics
 	/* Constraints residual, switch iOrder*/
 	virtual void AssConstrRes(VectorHandler& ResHdl,
@@ -384,10 +385,6 @@ protected:
 			VecIter<Elem *> &Iter,
 			SubVectorHandler& WorkVec,
 			VectorHandler*const pAbsResHdl = 0);
-
-	/* sets the dimesnions of the equation components */
-	virtual void SetElemDimensionIndices();
-	virtual void SetNodeDimensionIndices();
 
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
