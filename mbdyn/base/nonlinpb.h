@@ -50,8 +50,7 @@ public:
 	/* Distruttore */
    	virtual ~NonlinearProblem(void) { };
 
-	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0, 
-	std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap=0) const = 0;
+	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const = 0;
 
 	virtual void Jacobian(MatrixHandler* pJac) const = 0;
 	
