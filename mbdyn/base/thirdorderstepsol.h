@@ -74,8 +74,7 @@ public:
 
 	virtual ~ThirdOrderIntegrator(void);
 
-	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0,
-		std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap=0) const;
+	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const;
 
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
