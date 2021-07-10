@@ -745,6 +745,12 @@ Solver::Prepare(void)
 	/* registers tests in nonlinear solver */
 	pNLS->SetTest(pResTest, pSolTest);
 
+	/* set the dimension and indices map */
+	if (pNLS->pGetResTest()->GetDimMap() != 0) {
+		pDM->SetElemDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+		pDM->SetNodeDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+	}
+
 	/*
 	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager
 	 * in quanto e' lui il responsabile dei dati della simulazione,
