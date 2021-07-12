@@ -49,6 +49,7 @@
 #include "output.h"
 
 #include <cmath>
+#include <algorithm>
 #include <limits>
 #include <unistd.h>
 
@@ -303,6 +304,12 @@ NonlinearSolverTestRelNorm::TestPost(const doublereal& dRes) const
 /* NonlinearSolverTestNorm - end */
 
 /* NonlinearSolverTestSepNorm */
+
+VectorHandler*
+NonlinearSolverTestSepNorm::GetAbsRes() {
+	return &AbsRes;
+}
+
 std::map<OutputHandler::Dimensions, std::set<integer>>* 
 NonlinearSolverTestSepNorm::GetDimMap() { 
 	return &MapOfDimensionIndices; 
@@ -318,11 +325,52 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 		const VectorHandler& Vec, bool bResidual, doublereal dScaleAlgEqu,
 		doublereal* pTestDiff)
 {
-   	DEBUGCOUTFNAME("NonlinearSolverTestSepNorm::MakeTest");
 
-	return 0.;
+	std::vector<doublereal> testsVector;
+	std::vector<doublereal> testDiffsVector;
+
+   	for (auto it = MapOfDimensionIndices.begin(); it != MapOfDimensionIndices.end(); ++it) {
+
+		doublereal dTest = 0.;
+		doublereal abs_dTest = 0.;
+
+		doublereal pTestDiff_temp = 0.;
+		doublereal abs_pTestDiff_temp = 0.;
+
+
+		const DataManager* const pDM = pS->pGetDataManager();
+		for (auto i = (*it).second.begin(); i != (*it).second.end(); ++i) {
+
+			const DofOrder::Order order = pDM->GetEqType(*i);
+ 	  		const doublereal dCoef = order == DofOrder::DIFFERENTIAL ? 1. : dScaleAlgEqu;
+
+			TestOne(dTest, Vec, *i, dCoef);
+			TestOne(abs_dTest, AbsRes, *i, dCoef);
+
+			if (pTestDiff && order == DofOrder::DIFFERENTIAL) {
+				TestOne(pTestDiff_temp, Vec, *i, dCoef);
+				TestOne(abs_pTestDiff_temp, AbsRes, *i, dCoef);
+			}
+
+		}
+
+		if (pTestDiff) {
+			pTestDiff_temp = TestPost(pTestDiff_temp);
+			abs_pTestDiff_temp = TestPost(abs_pTestDiff_temp);
+
+			testDiffsVector.push_back(pTestDiff_temp/abs_pTestDiff_temp);
+		}
+
+		dTest = TestPost(dTest);
+		abs_dTest = TestPost(abs_dTest);
+		testsVector.push_back(dTest/abs_dTest);
+	}
+
+	*pTestDiff = *max_element(testDiffsVector.begin(), testDiffsVector.end());
+
+	/* returning the maximum error */
+	return *max_element(testsVector.begin(), testsVector.end());;
 }
-
 
 void
 NonlinearSolverTestSepNorm::TestOne(doublereal& dRes,

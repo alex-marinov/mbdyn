@@ -160,6 +160,11 @@ public:
 	/* Indices for corresponding dimensions */
 	std::map<OutputHandler::Dimensions, std::set<integer>> MapOfDimensionIndices;
 	virtual std::map<OutputHandler::Dimensions, std::set<integer>>* GetDimMap();
+
+	/* Vector of the absolute values */
+	MyVectorHandler AbsRes;
+	virtual VectorHandler* GetAbsRes();
+
 		virtual Type GetType() const;
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
