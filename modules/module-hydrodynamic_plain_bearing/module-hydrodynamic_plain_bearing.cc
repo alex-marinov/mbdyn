@@ -651,9 +651,6 @@ HydrodynamicPlainBearing::UnivAssRes(grad::GradientAssVec<T>& WorkVec,
 {
     using namespace grad;
 
-    typedef Matrix<T, 3, 3> Mat3x3;
-    typedef Vector<T, 3> Vec3;
-
     const integer intShaftMomentumIndex = m_pShaft->iGetFirstMomentumIndex();
     const integer intBearingMomentumIndex = m_pBearing->iGetFirstMomentumIndex();
 
