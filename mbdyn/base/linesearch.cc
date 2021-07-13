@@ -163,6 +163,7 @@ void LineSearchSolver::Attach(const NonlinearProblem* pNLP, Solver* pS)
      this->pS = pS;
      this->pNLP = pNLP;
      pRes = pSM->pResHdl();
+	 pAbsRes = pGetResTest()->GetAbsRes();
      pSol = pSM->pSolHdl();
      Size = pRes->iGetSize();
 
@@ -460,9 +461,13 @@ LineSearchSolver::Residual(doublereal& f, integer iIterCnt)
 
      pRes->Reset();
 
+	 if (pAbsRes != 0) {
+		 pAbsRes->Reset();
+	 }
+	 
      try {
 	  TRACE("Assemble residual\n");
-	  pNLP->Residual(pRes);
+	  pNLP->Residual(pRes, pAbsRes);
      }
      catch (const SolutionDataManager::ChangedEquationStructure&) {
 	  if (bHonorJacRequest) {

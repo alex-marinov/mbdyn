@@ -839,6 +839,10 @@ Solver::Prepare(void)
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
 
+	if (pNLS->pGetResTest()->GetAbsRes() != 0) {
+		pNLS->pGetResTest()->GetAbsRes()->Resize(pSM->pResHdl()->iGetSize());
+	}
+
 	/* set the dimension and indices map */
 	if (pNLS->pGetResTest()->GetDimMap() != 0) {
 		pDM->SetElemDimensionIndices(pNLS->pGetResTest()->GetDimMap());
