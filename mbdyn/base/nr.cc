@@ -120,6 +120,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #endif /* USE_EXTERNAL */
 
 		pRes->Reset();
+		if (pAbsRes) {
+			pAbsRes->Reset();
+		}
+
 		bool forceJacobian(false);
 		try {
 	      		pNLP->Residual(pRes, pAbsRes);

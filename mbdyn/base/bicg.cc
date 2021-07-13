@@ -102,6 +102,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	
 	pPrevNLP = pNLP;
         pRes = pSM->pResHdl();
+		pAbsRes = pGetResTest()->GetAbsRes();
 	Size = pRes->iGetSize();
 
 	doublereal eta = etaMax;
@@ -148,8 +149,11 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #endif /* USE_EXTERNAL */
 		
 		pRes->Reset();
+		if (pAbsRes != 0) {
+			pAbsRes->Reset();
+		}
 		try {
-	      		pNLP->Residual(pRes);
+	      		pNLP->Residual(pRes, pAbsRes);
 		}
 		catch (SolutionDataManager::ChangedEquationStructure& e) {
 			if (bHonorJacRequest) {
