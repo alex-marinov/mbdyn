@@ -1,0 +1,86 @@
+#
+# MBDyn (C) is a multibody analysis code.
+# http://www.mbdyn.org
+#
+# Copyright (C) 1996-2017
+#
+# Pierangelo Masarati     <masarati@aero.polimi.it>
+# Paolo Mantegazza        <mantegazza@aero.polimi.it>
+#
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+#
+# Changing this copyright notice is forbidden.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+TARGET=mbdyn.ps
+MAIN=input
+SRCS=$(MAIN).tex \
+	data.tex  elements.tex  general.tex \
+	stdmacro.tex
+EPDF=airfoil.epdf
+LATEX=latex
+PDFLATEX=pdflatex
+PS2PDF=epstopdf
+LATEX2HTML=latex2html
+LATEXRERUN="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
+DVIPS=dvips
+GREP=grep
+RM=rm -f
+SED=sed
+TEE=tee
+TAR=tar
+
+.PHONY: all latex clean veryclean start html
+
+all: $(TARGET)
+
+$(TARGET): $(MAIN).dvi
+	$(DVIPS) -o $@ $<
+	@if test -f $(MAIN).latex.log ; then \
+	    echo "LaTeX Warnings:" ; \
+	    cat $(MAIN).latex.log | grep 'Warning' ; \
+	    $(RM) $(MAIN).latex.log ; \
+	fi
+	$(PDFLATEX) $(MAIN)
+	$(PDFLATEX) $(MAIN)
+	$(PDFLATEX) $(MAIN)
+
+$(MAIN).dvi: $(SRCS)
+	$(MAKE) latex
+
+$(MAIN).aux: $(SRCS)
+	$(MAKE) latex
+
+latex:
+	@echo $(LATEXRERUN) > $(MAIN).latex.log
+	@while test "x`$(GREP) $(LATEXRERUN) $(MAIN).latex.log`" != "x" ; do \
+		$(LATEX) $(MAIN) 2>&1 | $(TEE) $(MAIN).latex.log ; \
+	done
+
+$(PDF): %.pdf : %.eps
+	$(PS2PDF) $@ $%
+
+html: $(SRCS)
+	-$(LATEX2HTML) $(MAIN)
+
+clean:
+	$(RM) $(MAIN).aux $(MAIN).blg $(MAIN).log
+
+distclean: clean
+	$(RM) $(MAIN).toc $(MAIN).lof $(MAIN).lot $(MAIN).dvi core
+

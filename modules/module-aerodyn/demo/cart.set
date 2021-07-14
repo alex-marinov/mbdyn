@@ -1,0 +1,76 @@
+# Copyright (C) 2007 Pierangelo Masarati <masarati@aero.polimi.it>
+#
+# This file can be freely used and modified to be run with MBDyn
+# provided this copyright notice is not altered nor removed.
+#
+# THIS MODEL IS PROVIDED AS IS, WITHOUT ANY WARRANTY OF ACCURACY
+# OR FITNESS FOR ANY PURPOSE
+
+# MBDyn model of the CART -  Controls Advanced Research Turbine
+
+# Labels
+set: integer GROUND = 1000;
+
+set: integer TOWER = 2000;
+set: integer TOWER_BOTTOM = TOWER + 100;
+set: integer TOWER_TOP = TOWER + 200;
+
+set: integer NACELLE = 3000;
+set: integer NACELLE_YAW = NACELLE + 100;
+set: integer NACELLE_ORIGIN = NACELLE + 200;
+set: integer NACELLE_CG = NACELLE + 300;
+set: integer NACELLE_LSS_COUPLING = NACELLE + 400;
+set: integer NACELLE_TEETER = NACELLE + 500;
+
+set: integer LSS = 4000;
+set: integer LSS_BEARINGS = LSS + 100;
+set: integer LSS_END = LSS + 200;
+set: integer LSS_END_BEARINGS = LSS + 300;
+set: integer GENERATOR_TORQUE = LSS + 400;
+
+set: integer TEETER = 5000;
+set: integer TEETER_PIN = TEETER + 100;
+
+set: integer ROTOR = 6000;
+set: integer AIRFOIL = 7000;
+
+# the file "naca0012.c81" is available in subfolder "var/" of MBDyn's sources;
+# it is installed in subfolder "share/c81/" of the install tree.
+c81 data: AIRFOIL, "S809_cln.c81";
+
+set: integer CURR_BLADE;
+set: real CURR_PHI;
+
+set: integer BLADE_ROOT = 100;
+set: integer BLADE_PITCH = 200;
+set: integer BLADE_ORIGIN = 1000;
+
+set: integer BLADE_1 = 10000;
+set: integer BLADE_1_ROOT = BLADE_1 + BLADE_ROOT;
+set: integer BLADE_1_PITCH = BLADE_1 + BLADE_PITCH;
+set: integer BLADE_1_ORIGIN = BLADE_1 + BLADE_ORIGIN;
+
+set: integer BLADE_2 = 20000;
+set: integer BLADE_2_ROOT = BLADE_2 + BLADE_ROOT;
+set: integer BLADE_2_PITCH = BLADE_2 + BLADE_PITCH;
+set: integer BLADE_2_ORIGIN = BLADE_2 + BLADE_ORIGIN;
+
+# Data
+set: real TOWER_LENGTH = 34.862;				# m
+set: real NACELLE_TILT_ANGLE = 3.77*deg2rad;			# radian
+set: real BLADE_CUTOUT = 1.381;					# m
+set: real BLADE_LENGTH = 19.995;				# m
+set: real BLADE_R = BLADE_CUTOUT + BLADE_LENGTH;		# m
+set: integer AERO_INTEGRATION_POINTS = 3;			# adim.
+set: real Omega = 2*pi;						# radian/s
+# set to the initial azimuth;
+# 0. means blade 1 up, rotating clockwise from upwind
+set: real Psi0 = 0.;						# radian
+# set to the initial rotation speed
+set: real Omega0 = 0.;						# radian/s
+# set to the initial blade root pitch
+set: real Theta0 = 90.;						# radian
+# set to the desired wind speed
+set: real Vinf = 0.;						# m/s
+
+# vim:ft=mbd

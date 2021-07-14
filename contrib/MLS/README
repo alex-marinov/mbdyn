@@ -1,0 +1,47 @@
+# $Header$
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+This folder contains a set of octave/matlab scripts that are used
+to create the mapping between a set of MBDyn nodes/points.
+
+The mapping is created using create_mls_interface(), implemented
+by Giuseppe Quaranta <quaranta@aero.polimi.it>.
+
+It uses a set of functions f_* implemented by Giuseppe Quaranta from
+"A Conservative Mesh-Free Approach for Fluid-Structure Interface Problems",
+Coupled Problems 2005, Santorini, Greece, May 24-27 2005,
+by G. Quaranta, P. Masarati and P. Mantegazza.
+
+These, in turn, make use of a set of functions kd_* by Pramod Vemulapalli,
+2010, inspired by the work done by Jan Nunnink, 2003.  They are distributed
+under the BSD license, a copy of which is in COPYING.kd.
+
+With the exception of the kd_* functions, the rest of the package
+is distributed under the GNU Public License GPL 2.1.
+

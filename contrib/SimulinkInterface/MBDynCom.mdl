@@ -1,0 +1,263 @@
+Library {
+  Name			  "MBDynCom"
+  Version		  5.1
+  SaveDefaultBlockParams  on
+  LibraryLinkDisplay	  "all"
+  ShowLoopsOnError	  on
+  IgnoreBidirectionalLines off
+  CovSaveName		  "covdata"
+  CovMetricSettings	  "dw"
+  CovNameIncrementing	  off
+  CovHtmlReporting	  on
+  covSaveCumulativeToWorkspaceVar on
+  CovSaveSingleToWorkspaceVar on
+  CovCumulativeReport	  off
+  BlockNameDataTip	  off
+  BlockParametersDataTip  off
+  BlockDescriptionStringDataTip	off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  Created		  "Tue Jul 20 12:38:55 2004"
+  Creator		  "attolico"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "attolico"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Tue Jul 20 12:45:21 2004"
+  ModelVersionFormat	  "1.%<AutoIncrement:3>"
+  ConfigurationManager	  "None"
+  SimParamPage		  "Solver"
+  LinearizationMsg	  "none"
+  Profile		  off
+  ParamWorkspaceSource	  "MATLABWorkspace"
+  ExtModeMexFile	  "ext_comm"
+  ExtModeBatchMode	  off
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "normal"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  on
+  ExtModeSkipDownloadWhenConnect off
+  ExtModeLogAll		  on
+  ExtModeAutoUpdateStatusClock off
+  SimulationMode	  "normal"
+  ConsistencyChecking	  "none"
+  ArrayBoundsChecking	  "none"
+  AlgebraicLoopMsg	  "warning"
+  BlockPriorityViolationMsg "warning"
+  MinStepSizeMsg	  "warning"
+  InheritedTsInSrcMsg	  "warning"
+  DiscreteInheritContinuousMsg "warning"
+  MultiTaskRateTransMsg	  "error"
+  SingleTaskRateTransMsg  "none"
+  CheckForMatrixSingularity "none"
+  IntegerOverflowMsg	  "warning"
+  Int32ToFloatConvMsg	  "warning"
+  ParameterDowncastMsg	  "error"
+  ParameterOverflowMsg	  "error"
+  ParameterPrecisionLossMsg "warning"
+  UnderSpecifiedDataTypeMsg "none"
+  UnnecessaryDatatypeConvMsg "none"
+  VectorMatrixConversionMsg "none"
+  InvalidFcnCallConnMsg	  "error"
+  SignalLabelMismatchMsg  "none"
+  UnconnectedInputMsg	  "warning"
+  UnconnectedOutputMsg	  "warning"
+  UnconnectedLineMsg	  "warning"
+  SfunCompatibilityCheckMsg "none"
+  ProdHWDeviceType	  "Microprocessor"
+  ProdHWWordLengths	  "8,16,32,32"
+  RTWMakeCommand	  "make_rtw"
+  RTWGenerateCodeOnly	  off
+  RTWRetainRTWFile	  off
+  TLCProfiler		  off
+  TLCDebug		  off
+  TLCCoverage		  off
+  TLCAssertion		  off
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  BlockParameterDefaults {
+    Block {
+      BlockType		      "S-Function"
+      FunctionName	      "system"
+      PortCounts	      "[]"
+      SFunctionModules	      "''"
+    }
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "MBDynCom"
+    Location		    [376, 254, 737, 573]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "usletter"
+    PaperUnits		    "inches"
+    ZoomFactor		    "100"
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      "S-Function"
+      Name		      "from MBDyn"
+      Ports		      [0, 4]
+      Position		      [205, 45, 330, 165]
+      ForegroundColor	      "blue"
+      Priority		      "0"
+      FunctionName	      "sfun_mbdyn_com_read"
+      Parameters	      "node,mbdtask,mbx,N_chan,Tc,net,port,path"
+      MaskPromptString	      "RTAI|Socket|MbDyn task|Mailbox|Net/Local|Node|P"
+"ort|Path|Number of channel|Sample time"
+      MaskStyleString	      "checkbox,checkbox,edit,edit,checkbox,edit,edit,"
+"edit,edit,edit"
+      MaskTunableValueString  "off,off,off,off,off,off,off,off,off,off"
+      MaskCallbackString      "if(strcmp(get_param(gcb,'RTAI_flag'),'on'))\n"
+"	set_param(gcb,'MaskVisibilities',{'on','on','on','on','off','on','off"
+"','off','on','on'});\n	set_param(gcb,'Socket_flag','off');\nelse\n"
+"	set_param(gcb,'Socket_flag','on');\nend|if(strcmp(get_param(gcb,'Sock"
+"et_flag'),'on'))\n	if(strcmp(get_param(gcb,'net'),'on'))\n	"
+"	set_param(gcb,'MaskVisibilities',{'on','on','off','off','on','on','on"
+"','off','on','on'});\n	else\n		set_param(gcb,'MaskVisibi"
+"lities',{'on','on','off','off','on','off','off','on','on','on'});\n	en"
+"d\n	set_param(gcb,'RTAI_flag','off');\nelse\n	set_param(gcb,'RT"
+"AI_flag','on');\nend\n|||if(strcmp(get_param(gcb,'Socket_flag'),'on'))\n"
+"	if(strcmp(get_param(gcb,'net'),'on') )\n		set_param(gcb"
+",'MaskVisibilities',{'on','on','off','off','on','on','on','off','on','on'});"
+"\n	else\n		set_param(gcb,'MaskVisibilities',{'on','on','"
+"off','off','on','off','off','on','on','on'});\n	end\nend|||||"
+      MaskEnableString	      "on,on,on,on,on,on,on,on,on,on"
+      MaskVisibilityString    "on,on,off,off,on,on,on,off,on,on"
+      MaskToolTipString	      "on,on,on,on,on,on,on,on,on,on"
+      MaskVarAliasString      ",,,,,,,,,"
+      MaskVariables	      "RTAI_flag=@1;Socket_flag=@2;mbdtask=@3;mbx=@4;n"
+"et=@5;node=@6;port=@7;path=@8;N_chan=@9;Tc=@10;"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "off|on|'MBDTSK'|'MBXINN'|on|'127.0.0.1'|10011|'"
+"'|4|Tc"
+    }
+    Block {
+      BlockType		      "S-Function"
+      Name		      "start MBDyn"
+      Ports		      []
+      Position		      [40, 195, 183, 291]
+      FunctionName	      "sfun_mbdyn_start"
+      Parameters	      "mbdyn_path,enable_path,input_file,output_file,e"
+"nable_out,verbose,pedantic"
+      MaskPromptString	      "User defined MBDyn path|MBDyn path|Input file|U"
+"ser defined output file|Output file|verbose|pedantic output"
+      MaskStyleString	      "checkbox,edit,edit,checkbox,edit,checkbox,check"
+"box"
+      MaskTunableValueString  "off,off,off,off,off,off,off"
+      MaskCallbackString      "if(strcmp(get_param(gcb,'enable_path'),'off'))"
+"\n	if(strcmp(get_param(gcb,'enable_out'),'off'))\n		set_"
+"param(gcb,'MaskVisibilities',{'on','off','on','on','off','on','on'});\n"
+"	else\n		set_param(gcb,'MaskVisibilities',{'on','off','o"
+"n','on','on','on','on'});\n	end\nelse\n	if(strcmp(get_param(gcb"
+",'enable_out'),'off'))\n		set_param(gcb,'MaskVisibilities',{'on"
+"','on','on','on','off','on','on'});\n	else\n		set_param("
+"gcb,'MaskVisibilities',{'on','on','on','on','on','on','on'});\n	end\ne"
+"nd|||if(strcmp(get_param(gcb,'enable_out'),'off'))\n	if(strcmp(get_par"
+"am(gcb,'enable_path'),'off'))\n		set_param(gcb,'MaskVisibilitie"
+"s',{'on','off','on','on','off','on','on'});\n	else\n		se"
+"t_param(gcb,'MaskVisibilities',{'on','on','on','on','off','on','on'});\n"
+"	end\nelse\n	if(strcmp(get_param(gcb,'enable_path'),'off'))\n"
+"		set_param(gcb,'MaskVisibilities',{'on','off','on','on','on','"
+"on','on'});\n	else\n		set_param(gcb,'MaskVisibilities',{"
+"'on','on','on','on','on','on','on'});\n	end\nend|||"
+      MaskEnableString	      "on,on,on,on,on,on,on"
+      MaskVisibilityString    "on,off,on,on,off,on,on"
+      MaskToolTipString	      "on,on,on,on,on,on,on"
+      MaskVarAliasString      ",,,,,,"
+      MaskVariables	      "enable_path=@1;mbdyn_path=@2;input_file=@3;enab"
+"le_out=@4;output_file=@5;verbose=@6;pedantic=@7;"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "off|'./mbdyn.sh'|''|off|''|off|off"
+    }
+    Block {
+      BlockType		      "S-Function"
+      Name		      "to MBDyn"
+      Ports		      [2, 2]
+      Position		      [40, 45, 165, 165]
+      ForegroundColor	      "red"
+      Priority		      "0"
+      FunctionName	      "sfun_mbdyn_com_write"
+      Parameters	      "node,mbdtask,mbx,N_chan,Tc,net,port,path"
+      MaskPromptString	      "RTAI|Socket|MbDyn task|Mailbox|Net/Local|Node|P"
+"ort|Path|Number of channel|Sample time"
+      MaskStyleString	      "checkbox,checkbox,edit,edit,checkbox,edit,edit,"
+"edit,edit,edit"
+      MaskTunableValueString  "off,off,off,off,off,off,off,off,off,off"
+      MaskCallbackString      "if(strcmp(get_param(gcb,'RTAI_flag'),'on'))\n"
+"	set_param(gcb,'MaskVisibilities',{'on','on','on','on','off','on','off"
+"','off','on','on'});\n	set_param(gcb,'Socket_flag','off');\nelse\n"
+"	set_param(gcb,'Socket_flag','on');\nend|if(strcmp(get_param(gcb,'Sock"
+"et_flag'),'on'))\n	if(strcmp(get_param(gcb,'net'),'on'))\n	"
+"	set_param(gcb,'MaskVisibilities',{'on','on','off','off','on','on','on"
+"','off','on','on'});\n	else\n		set_param(gcb,'MaskVisibi"
+"lities',{'on','on','off','off','on','off','off','on','on','on'});\n	en"
+"d\n	set_param(gcb,'RTAI_flag','off');\nelse\n	set_param(gcb,'RT"
+"AI_flag','on');\nend\n|||if(strcmp(get_param(gcb,'Socket_flag'),'on'))\n"
+"	if(strcmp(get_param(gcb,'net'),'on') )\n		set_param(gcb"
+",'MaskVisibilities',{'on','on','off','off','on','on','on','off','on','on'});"
+"\n	else\n		set_param(gcb,'MaskVisibilities',{'on','on','"
+"off','off','on','off','off','on','on','on'});\n	end\nend|||||"
+      MaskEnableString	      "on,on,on,on,on,on,on,on,on,on"
+      MaskVisibilityString    "on,on,off,off,on,on,on,off,on,on"
+      MaskToolTipString	      "on,on,on,on,on,on,on,on,on,on"
+      MaskVarAliasString      ",,,,,,,,,"
+      MaskVariables	      "RTAI_flag=@1;Socket_flag=@2;mbdtask=@3;mbx=@4;n"
+"et=@5;node=@6;port=@7;path=@8;N_chan=@9;Tc=@10;"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "off|on|'MBDTSK'|'MBXOUT'|on|'127.0.0.1'|8005|''"
+"|2|Tc"
+    }
+  }
+}

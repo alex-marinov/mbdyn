@@ -1,0 +1,118 @@
+#
+#	RLC circuit test
+#
+#   Library of electric components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-10;
+	max iterations: 10;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 10;
+
+	output: iterations;
+	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 3;
+	electric nodes: 4;
+	genels: 2;
+	default output: all;
+end: control data;
+
+set: real R1 = 20.;       # resistance [ohms]   
+set: real C1 = 0.5;       # capacitance [F]   
+set: real L1 = 3;         # inductance [H]   
+
+begin: nodes;
+
+   # node ground:
+   electric: 0,
+     value, 0., output, yes;    
+      
+   # node source:
+   electric: 1,
+     value, 0., output, yes;    
+
+   # node 2:
+   electric: 2,
+     value, 0., output, yes;    
+
+   # node 3:
+   electric: 3,
+     value, 0., output, yes;    
+
+end: nodes;
+
+begin: elements;
+   genel: 0, clamp, 
+      0, electric, algebraic, 
+      0.;      
+      
+   genel: 1, clamp, 
+      1, electric, algebraic, 
+      sine, 0., 10*2.*pi, 1., forever, 0.;      
+           
+	module load: "libmodule-fab-electric.so";
+
+
+	user defined: 1, resistor, 
+	   1,             # node of source 
+	   2,             # node 2 
+	   R1,            # resistance 
+	   output, yes;   # enable output of current and voltages
+ 
+	# resistor output (RLCcircuit.usr):
+	#
+	# column 1:	label element (1)
+	# column 2: current
+	# column 3: voltage node 1 (source)
+	# column 4: voltage node 2 (node 2)
+
+            
+	user defined: 2, inductor, 
+	   2,             # node 2 
+	   3,             # node 3 
+	   L1,            # capacitance 
+	   output, yes;   # enable output of current and voltages
+
+	# inductor output (RLCcircuit.usr):
+	#
+	# column 1:	label element (2)
+	# column 2: current
+	# column 3: voltage node 1 (node 2)
+	# column 4: voltage node 2 (node 3)
+
+
+	user defined: 3, capacitor, 
+	   3,             # node 3 
+	   0,             # ground node 
+	   C1,            # capacitance 
+	   output, yes;   # enable output of current and voltages
+
+	# capacitor output (RCcircuit.usr):
+	#
+	# column 1:	label element (3)
+	# column 2: current
+	# column 3: voltage node 1 (node 3)
+	# column 4: voltage node 2 (ground)
+
+
+end: elements;
+

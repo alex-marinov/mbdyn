@@ -1,0 +1,464 @@
+/* Label Indexes
+Axle model example for the wheel4 module of MBDyn
+Louis Gagnon 2012, Louis.Gagnon.10@ulaval.ca
+Axle is moved according to a set function but in a vehicle model it would be attached the vehicle
+
+
+
+*************** CURRENT COORDS SYSTEM BELOW****************
+
+       ^ x, points to front of car
+       |
+       |   7 (-z), points to center of the Earth
+       |  /
+       | /
+       |/      points to right (UK driver side)
+       +-------------------> (-y)
+     origin located at GROUND
+
+*/
+
+begin: data;
+	integrator: initial value;
+end: data;
+
+# FOR 60kph
+#set: real endtime = 8.00;
+#set: real Vxi = 16.667;		#initial x velocity of center of gravity and all connected nodes
+# FOR 40kph
+#set: real endtime = 10.00;
+#set: real Vxi = 11.111;		#initial x velocity of center of gravity and all connected nodes
+# FOR 20kph
+#set: real Vxi = 5.5556;		#initial x velocity of center of gravity and all connected nodes
+#set: real endtime = 20.00;
+# FOR 2mph
+#set: real Vxi = 3.5;#0.88889;		#initial x velocity of center of gravity and all connected nodes
+#set: real endtime = 125.00;
+# FOR iterator
+set: real Vxi = 16.6666666666; #iterZ		#initial x velocity of center of gravity and all connected nodes
+set: real endtime = 45./Vxi; #iterZ
+
+set: real delaytime = 0.0000201;
+
+set: real timestep = delaytime;
+set: real maxstep = 0.01;
+set: real minstep = 0.00002;
+
+begin: initial value;
+	initial time: 0.0;
+	final time: endtime;
+	time step: timestep;#0.001/50.; 
+	strategy: change, postponed, 99; ## defined later
+	max time step : maxstep;## this allows to cap overall timestep even if the wheel asks for a higher one
+	min time step : minstep; ## this caps the lowest timestep value ##ATTENTION: initial timestep must be between those two bounds
+	max iterations: 100;
+	derivatives max iterations: 1000; # // useful to help discontinuities convergence
+	tolerance: 1e-04;
+	derivatives tolerance	: 1.;#2.0;#18
+	derivatives coefficient: 0.00001;#0.001;
+	method: ms, 0.6;
+#	linear solver: naive, colamd, mt, 1;
+#	linear solver: klu;
+#	linear solver: umfpack;
+#	output: all;
+#	output: iterations;
+#	output: residual;
+	threads: disable; # disable or num. of threads;
+
+end: initial value;
+
+set: integer EXTRA = 1; # number of extra driving wheels (how many more than 1)
+
+begin: control data;
+	default orientation: orientation matrix;
+	default output: accelerations;
+	output results : netcdf, notext;
+	output meter: meter, 0., forever, steps, 1;
+	structural nodes:
+3
+	;
+	joints: 
+5
+	;
+	rigid bodies: 
+2
+	;
+	forces:
+
+	;
+	loadable elements:
+2
+	;
+#	file drivers:
+#1
+#;
+	gravity;
+	print: dof stats;
+	print: dof description;
+end: control data;
+
+module load: "libmodule-wheel4.la";
+#module load: "libmodule-wheel4.la", wheel4;
+
+set: integer GROUND = 0; 	#ground
+#set: integer MOVING_G = 4;	#moving ground
+set: integer CG = 1; 		#center of gravity
+set: integer RW = 3; 		#rear wheel
+set: integer RWNR = 51; 	#rear wheel non rotating hub
+set: integer RWR = 50; 		#rear wheel ring
+set: integer RWA = 55;		#real wheels axle (first)
+set: integer ROAD_LEFT = 7;	#road profile driver (based on position)
+set: integer ROAD_RIGHT = 8;	#road profile
+set: integer CE;
+
+
+### tire model data,
+
+
+
+set: real TRH = 1.E-9;	# prevents division by zero at null x-velocity at the price of losing validity for velocities above -TRH*1.1 and below TRH*1.1
+set: real TRHA = 1.E-9;	# buffer used to prevent division by zero
+set: real TRHT = 1.E-9; # prevents divison by zero for computation of the angle of the car (and wheels)
+set: real TRHTA = 1.E-9; # buffer used on angle zero division prevention
+set: real TRHC = 1.;	# cap on kappa
+set: real TdLs = 0.001; # minimum value that the half-contact length will take
+set: real TdReDiv = 0.001; # minimum value that the wheel angular velocity will take in the calculation of the effective rolling radius
+set: real TdRe = 5.; # maximum (cap) ratio of abs((effective rolling radius)/(ring radius))
+set: bool dtOn = 1; # bool to enable or disable adjustable timestep calculation (use only if you have few bumps on a very smooth road, otherwise it will only slow down the simulation)
+set: real TmaxH = 0.0001; # maximum height change wanted on the road profile for one step, this will govern the time step driver
+set: real dtRes = 0.001; # resolution of bump search, keep sufficiently smaller than ring radius (ie: look at every dt_Res meters for a bump in front of the tire) NOTE: will not look behind because it is assumed that the model is not made to move rearwards and that a small move rearward would not influence the timestep because it should already have been adjusted for the bump when driving towards it) Attention, try to avoid making it to low because the search loop will clog the resolution.
+##set: integer TnumA = 30; # number of steps to look ahead for a bump in the road, for timestep controller (the higher, the smoother and also the least chances of waiting until it's too late to reduce the timestep)
+set: real TmaxF = 1.43; # maximum divison of dt per timestep
+set: real TminF = 0.99; # minimum division of dt per timestep
+set: integer TminS = 12; # minimum number of steps wanted in a force cycle (approx., influences dt, see TdivF/3/4 below)
+set: real TdivF	= 0.99; # factor by which to divide the timestep if the force oscillates more than wanted (as determined by TminS) (a number greater than one implies a reduction of the timestep and a number smaller than one implies an increase of the timestep only if the road profile also allows it, thus forcing a slower return to the max timestep if the forces oscillate alot)
+set: real TdivF3 = 1.2; # factor if force changes sign 3 times in last TminS steps
+set: real TdivF4 = 1.43; #  factor if force changes sign 4 or more times in last TminS steps
+
+set: real R1 = 0.51; 	#front wheel radius
+set: real R1i = 0.49; 		#front wheel inner radius (tread+belt thickness taken out)
+set: real R1r = 0.29; # Contact Radius of the wheel (ie: inner tire radius) 
+set: real dR_a1 = 0.4;	# r_a1 contact length parameter from Besselink eq. 4.85
+set: real dR_a2 = 2.25;#  dR_a2
+set: real rRatio = atan(0.09/R1)/pi; #rRatio, # length of the contact patch as ratio of full circle (to calculate how much mass contributes to the ring's centripetal forces)
+
+set: real pctMR = 0.95; #optimpctMR pct of mass to attribute to ring
+#set: real pct
+set: real MT = 50.; # mass of tire
+set: real MP = 2.; #optimMP mass of patch
+set: real MR = pctMR*MT; #	#mass of ring
+set: real Jrx = MR*(R1^3.-R1i^3.)/(R1^2.-R1i^2.)*4./(3.*pi);	#moment of inertia of ring about x axis
+set: real Jry = MR*(R1^3.-R1i^3.)/(R1^2.-R1i^2.)*2./3.;	#moment of inertia of ring about y axis
+set: real Jrz = Jrx;		#moment of inertia of ring about z axis
+set: real MTs = (1-pctMR)*MT; # mass of the tire sidewall portion considered to be attached to the rim
+set: real Jtsx = MTs*(R1i^3.-R1r^3.)/(R1i^2.-R1r^2.)*4./(3.*pi);	#moment of inertia of tire sidewall about x axis
+set: real Jtsy = MTs*(R1i^3.-R1r^3.)/(R1i^2.-R1r^2.)*2./3.;	#moment of inertia of tire sidewall about y axis
+#set: real Jtsz = Jrx;		#moment of inertia of tire sidewall about z axis
+set: MR = MR - MP;		# removing mass of patch from ring mass
+
+##temp mod:
+#set: MR=MR/3;
+
+set: real S_hf = -0.003; # residual aligning moment angle modifier
+set: real S_ht = -0.02; #  pneumatic trail, for aligning moment, angle modifier
+set: real q_sy1 = 0.008; # tire rolling resistance linear vel coef
+set: real q_sy3 = 0.; # rolling resist other coef
+set: real dvao = 10.; # reference velocity probably as in ISO 28580 (only if q_sy3 is not null)
+
+set: real Pls = 1.1; #optimPls
+
+
+
+### tire data 
+# vertical
+set: real KPAdz = 0.035; # vertical deflection used for stiffness calculation (m)
+set: real KPAlz = 30000.; # optimKPAlz
+set: real KPAfwrz = 0.15; # optimKPAfwrz
+set: real KPAfrpz = 1.-KPAfwrz; # fraction of z-deflection due to ring-patch
+# longitudinal
+set: real KPAdx = 0.03; # vertical deflection used for stiffness calculation (m)
+set: real KPAlx = 10000.;#
+set: real KPAfwrx = 0.9; #
+set: real KPAfwrxay = 0.9; #
+set: real KPAfrpx = 0.7; #
+
+
+set: real KPAfwrDen = KPAfwrx + KPAfwrxay + KPAfrpx;
+set: KPAfwrx = KPAfwrx/KPAfwrDen; #
+set: KPAfwrxay = KPAfwrxay/KPAfwrDen; #
+set: KPAfrpx = KPAfrpx/KPAfwrDen; #
+
+
+
+# lateral
+set: real KPAdy = 0.015; # vertical deflection used for stiffness calculation (m)
+set: real KPAly = 4500.; # load at specified vertical deflection (N)
+set: real KPAfwry = 0.15; # 
+set: real KPAfwryax = 0.60; # 
+set: real KPAfrpy = 0.50; # 
+
+set: real PCTD = 0.06; # percent of critical damping for swift model
+
+#SWIFT coefficients for ring-patch connection
+set: real KPArpx = 1*KPAlx/(KPAfrpx*KPAdx); #;
+set: real KPArpy = 1*KPAly/(KPAfrpy*KPAdy); #; 
+set: real KPArpz = 1*KPAlz/(KPAfrpz*KPAdz); #;
+set: real CPArpx = 0.2*1*PCTD*2*sqrt(MP*KPArpx);#
+set: real CPArpy = 0.9*1*PCTD*2*sqrt(MP*KPArpy);#
+set: real CPArpz = 1.5*1*PCTD*2*sqrt(MP*KPArpz);#
+#SWIFT coefficients for wheel-ring connection
+set: real KPAwrx = 1*KPAlx/(KPAfwrx*KPAdx); #;
+set: real KPAwry = 1*KPAly/(KPAfwry*KPAdy); #;
+set: real KPAwrz = 1*KPAlz/(KPAfwrz*KPAdz); #;
+set: real CPAwrx = 5.*1*PCTD*2*sqrt(MR*KPAwrx);#
+set: real CPAwry = 1.*1*PCTD*2*sqrt(MR*KPAwry);#
+set: real CPAwrz = 2.*1*PCTD*2*sqrt(MR*KPAwrz);#
+#SWIFT angular coefficients for wheel-ring connection
+set: real KPAwrax = 1*R1^2*KPAly/(KPAfwryax*KPAdy); # # angular stiffness about x-axis
+set: real KPAwraz = 1*KPAwrax; # forced to be equal by definition of the joints
+set: real KPAwray = 1*R1^2*KPAlx/(KPAfwrxay*KPAdx); # # angular elasticity about wheel spin axis
+set: real CPAwrax = 0.2*1*PCTD*2*sqrt(Jrx*KPAwrax);#
+set: real CPAwraz = CPAwrax; # forced to be equal by definition of the joints
+set: real CPAwray = 4.*1*PCTD*2*sqrt(Jry*KPAwray);#
+
+
+
+
+
+set: real MW = 40. + MTs;		#mass of wheel (rim + mass of tire assumed on rim [mass tire sidewall])
+set: real Jwx = 1.7 + Jtsx;		#  rim  + tire sidewall contribution
+set: real Jwy = 2.4 + Jtsy;		#  rim  + tire sidewall contribution
+set: real Jwz = Jwx;
+
+
+### ,tire model data
+
+
+
+
+set: real TF = 27440.; # target force at axle when tire is at rest
+set: real G = 9.81 ; # accel. of gravity
+set: real HG = R1 - ( ( TF + ( MR + MW ) * G ) / KPArpz * ( 1. + KPArpz / KPAwrz ) - MR * G / KPAwrz ) ; #axle height for lab test simulations
+
+
+set: real MI = 5.;		#mass of intermediate node (non rotating)
+set: real RWx = -2.5;		#x pos of R wheel (rear)
+set: real XPAz = 0.;		#initial z pos of wheels...
+set: real CEx;			#pos of wheel CE (Current Element) relative to reference
+set: real CEy;			#pos of wheel CE (Current Element) relative to reference
+set: real CEz;			#pos of wheel CE (Current Element) relative to reference
+set: real Vyi = 0.;		#initial x velocity of center of gravity and all connected nodes
+set: real Vzi = 0.;		#initial x velocity of center of gravity and all connected nodes
+set: real TORQUE = 100.;	#torque value applied to wheels on demand
+
+
+
+
+####Note: could be usefull to put a cap on kappa when angular velocity is low in order to reduce oscillations of the wheel...
+
+### road conditions,
+set: real RDA = 5.;		# road offset (null before that value)
+set: real RDBl = 1.;		# road length for transition between initial contact patch height and road initial height
+set: real RDB = RDA+RDBl;	# road offset (interpolated between RDA and that value)
+set: real RDL = 20.;		# road loop condition (will loop after RDB+RDL over RDL) loop transfer zone must be done over a smooth zone (at least the size of half the contact patch length!) (ie: want, ideally, matching slopes on two first and two last points of the profile and matchin heights on first and alst points)
+### ,road conditions
+
+#######NOTE: (smoothens the results even with kappa being capped) this buffer needs to be tuned for best performance and has a significant impact on the stability of the tire, depending on the values chosen the tire will start to oscillate between positive and negative values or not.#######
+
+
+
+reference: GROUND,
+	null,
+	eye, 
+	null, 
+	null;
+reference: CG,
+	reference, GROUND, 0., 0., HG, 
+	reference, GROUND, eye,
+	reference, GROUND,  Vxi , Vyi , Vzi,
+	reference, GROUND, null;
+
+reference: RW,
+	reference, CG, RWx, 0., 0.,
+	reference, CG, eye,
+	reference, CG, null,
+	reference, CG, 0., 0., 0.; # 50.943 for v =27.
+
+begin: nodes;
+	structural: RWA, static, # rear wheel axle (first)
+		reference, CG, RWx, 0., 0.,
+		reference, CG, eye,
+		reference, CG, null,
+		reference, CG, null;
+
+set: CE = 200;
+set: CEx = 0.;			#pos of wheel CE (Current Element) relative to reference
+set: CEy = 1.5;			#pos of wheel CE (Current Element) relative to reference
+set: CEz = 0.;			#pos of wheel CE (Current Element) relative to reference
+	structural: CE, dynamic, # Rear wheel
+		reference, RW, CEx, CEy, CEz,
+		reference, RW, eye,
+		reference, RW, null,
+		reference, RW, null;
+	structural: CE+1, dynamic, # Rear wheel ring
+		reference, RW, CEx, CEy, CEz,
+		reference, RW, eye,
+		reference, RW, null,
+		reference, RW, null;
+
+end: nodes;
+
+#begin: drivers;
+
+#end: drivers;
+
+
+### road definition,
+
+###############################################################################
+## the following command can be useful when feeding a large profile,###########
+#include: "road_cleat10x20.dat"; #iterZ
+###############################################################################
+
+### or for a flat road,
+#drive caller: ROAD_LEFT, scalar function, "road_left", const, 0;
+
+### example road,
+drive caller: ROAD_LEFT, scalar function, "road_left",
+multilinear,
+0.000000, 0,
+0.005000, 1e-03,
+0.010000, 3.5e-03,
+0.015000, 4.5e-3,
+0.020000, 7.5e-03,
+0.025000, 9e-03,
+0.030000, 0.01,
+0.035000, 0.01001;
+
+### ,road definition
+
+
+
+
+
+
+begin: elements;
+
+	joint: 998, total pin joint,	# fixes the AXLE
+			RWA,
+				position constraint,
+				0,1,1,
+				0, 0, HG,
+				const, 1,
+				orientation constraint,
+				1,1,1,
+				null;
+
+
+	driven: 999, string, "Time>=delaytime", # this causes a delay in the ouput file for this joint
+		hint, "position-drive3{1., 0., 0., ramp, Vxi, delaytime, forever, model::xposition(RWA) }",
+	joint: 999, total pin joint,	# fixes the AXLE velocity
+			RWA,
+				position constraint,
+				active, inactive, inactive,
+				null; # not used, will be replaced by hint
+
+
+
+
+set: integer ROAD_CE = ROAD_LEFT;
+
+	body: CE, #wheel
+		CE,
+			MW,
+			reference, node, 0.0, 0.0, 0.0, 
+			diag, Jwx, Jwy, Jwz;
+	body: CE+1,#ring
+		CE+1,
+			MR,
+			reference, node, 0.0, 0.0, 0.0, 
+			diag, Jrx, Jry, Jrz;
+	joint: CE+2, deformable hinge,
+		CE,
+		CE+1,
+		linear time variant viscoelastic generic,
+			diag, KPAwrax, KPAwray, KPAwraz,
+			string, "1",
+			diag, CPAwrax, CPAwray, CPAwraz,
+			string, "1";
+	joint: CE+3, deformable displacement joint,
+		RWA, reference, node, CEx, CEy, XPAz+CEz,
+		CE+1, reference, node, null,
+		linear time variant viscoelastic generic,
+			diag, KPAwrx, KPAwry, KPAwrz,
+			string, "1",
+			diag, CPAwrx, CPAwry, CPAwrz,
+			string, "1";
+	joint: CE+4, revolute hinge,
+		RWA,
+		position, reference, node, 0, CEy, XPAz+CEz,
+		orientation,
+			1, 0., 0., 1.,
+			3, 0., 1., 0.,
+		CE,
+		position, reference, node, null,
+		orientation,
+			1, 0., 0., 1.,
+			3, 0., 1., 0.;
+
+
+
+set: integer EID = CE;		# module element ID
+set: integer WNL = CE;		# wheel structural node label
+set: integer WBL = CE; 	# wheel body label
+set: integer GSNL = RWA;	# ground structural node label
+set: integer RNL = CE+1;	# ring structural node label
+set: integer RBL = CE+1;	# ring body label
+set: integer RPD = ROAD_CE;	# driver for the profile of the road
+
+##include: "WUE.elm"; ## Wheel user elem
+
+user defined: EID, rigid ring tire,
+		WNL,	# wheel structural node label
+		WBL, 	# wheel body label
+		0.,1.,0., 	# wheel axle direction (does sign matter??)
+##		GSNL,	# ground structural node label
+		R1,	# wheel radius
+		swift,
+		RNL,	# ring structural node label
+		RBL,	# ring body label
+		KPArpx, KPArpy, KPArpz, #	Kpa (stiffness) of contact patch (in the ring reference frame)
+		string, "1", # driver for time variant multiplier on the coefficient above
+		CPArpx, CPArpy, CPArpz, # Cpa # should be aboout 6 to 10% of crit damping? also need to distribute this damping over ring and patch and etc...		
+		string, "1", # driver for time variant multiplier on the coefficient above
+		0., 0., 0., #	 // initial velocity of patch in absolute reference frame
+		MP,	    #	// mass of patch
+		reference, RPD,	#driver for the profile of the road
+		Pls,	# patch contact-length to elleptical cam tandem base parameter (Schmeitz eq. 4.15) dPls = l_s/(2a)
+		dR_a1,	# r_a1 contact length parameter from Besselink eq. 4.85
+		dR_a2,	# r_a2 contact length parameter from Besselink eq. 4.85
+		rRatio, #length of the contact patch as ratio of full circle (to calculate how much mass contributes to the ring's centripetal forces)
+		KPAwrz, # vertical wheel-ring stiffness (to calculate applied centripetal forces)
+		loadedRadius, # this keyword enables the use of the (home-made) loaded radius as the brake lever arm (instead of the home-made effective rolling radius) comment out to use the effective effective rolling radius
+		slip,
+		ginac, "125*sin(0.01*atan(10.*Var-1.*(10.*Var-atan(10.*Var))))", #  Fx/Fz
+		ginac, "0.7*sin(1.5*atan(7.*Var+0.8*(7.*Var-atan(7.*Var))))-0.02", # Fy/Fz without non-linear dependency on Fz (could be added later in module)
+		ginac, "(-0.05*cos(1.3*atan(8.*Var+1.5*(8.*Var-atan(8.*Var)))))/27440.", #  Mz
+		ginac, "(-18.*cos(atan(43.*Var)))/27440.", #  Mzr
+		S_ht, S_hf, q_sy1, q_sy3, dvao,
+		threshold,  TRH, TRHA, TRHT, TRHTA, TRHC, TdLs, TdReDiv, TdRe, dtOn, TmaxH, dtRes, maxstep, minstep, TmaxF, TminF, TminS, TdivF, TdivF3, TdivF4, RDA, RDB, RDL
+		;
+
+
+
+
+
+user defined: 204, timestep; 
+drive caller: 99, element, 204, loadable, string, "1", direct;
+
+
+gravity: 
+			0.0, 0.0, -1.0, G;
+end: elements;
+
+

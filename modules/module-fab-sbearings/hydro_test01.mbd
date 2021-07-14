@@ -1,0 +1,111 @@
+#
+#	Hydrodynamic bearing element - model 2 - short bearing Capone model [1991]
+#
+#	Model based on this article:
+#   Capone, G., Descrizione analitica del campo di forze fluidodinamica
+#   nei cuscinetti cilindrici lubrificati
+#   L'Energia Elettrica No. 3 - 1991
+#
+#   Library of bearing components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-4;
+
+	tolerance: 1.e-8;
+	max iterations: 100;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 10;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 1;
+   structural nodes: 2;
+   rigid bodies: 1;
+   joints: 2;
+ 	gravity;
+end: control data;
+
+set: integer Fluid = 5000;
+set: integer mancal = 1000;
+
+reference: mancal,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+begin: nodes;
+   # support structure node (no da estrutura de suporte):
+   structural: 0, dynamic, 
+      reference, mancal, null,
+      reference, mancal, eye,
+      reference, mancal, null,
+      reference, mancal, null;
+   
+   # shaft node (no do eixo):
+   structural: 1, dynamic, 
+      reference, mancal, null,
+      reference, mancal, eye,
+      reference, mancal, null,
+      reference, mancal, 100.*2.*pi, 0., 0.; 
+end: nodes;
+
+
+begin: elements;
+   joint: 1, clamp, 0, node, node;
+ 
+   joint: 2,
+      total joint,
+         0,
+            position, null,
+         1,
+            position, null,
+         position constraint,
+            active, inactive, inactive,
+            null, 
+         orientation constraint,
+            inactive, active, active,
+            null;
+ 
+ 	# fluid
+	hydraulic fluid: Fluid, incompressible, 
+		density, 876., viscosity, 0.01985;	# absolute viscosity of ISO VG22 [Pa.s]
+     
+   body: 0, 1,
+      5.5,   # mass
+      1e-5, 0., 0., # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+     
+	# Load bearing module:
+	module load: "libmodule-fab-sbearings";
+
+	user defined: 1, hydrodynamic bearing, 
+	   capone1991,    # model type
+	   0,             # support node 
+	   1,             # shaft node 
+	   90e-6,         # radial clearance 
+	   30e-3,         # bearing diameter 
+	   20e-3,         # bearing length
+	   fluid, reference, Fluid,         # hydraulic fluid
+	   output, yes;   # enable output of constraint moments and actual angles
+
+	gravity: 0., 0., -1., const, 9.81;
+
+end: elements;
+

@@ -1,0 +1,118 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.e-2;
+
+	real time: posix,
+		mode, period, time step, 10e6,
+		allow nonroot; # nanoseconds
+
+	# output: iterations;
+end: initial value;
+
+begin: control data;
+	abstract nodes: 13;
+	file drivers: 1;
+	genels: 13;
+	forces: 13;
+end: control data;
+
+module load: "libmodule-leapmotion";
+
+set: const integer HAND_TYPE = 1;
+set: const integer HAND_POSITION_X = 2;
+set: const integer HAND_POSITION_Y = 3;
+set: const integer HAND_POSITION_Z = 4;
+set: const integer HAND_DIRECTION_X = 5;
+set: const integer HAND_DIRECTION_Y = 6;
+set: const integer HAND_DIRECTION_Z = 7;
+set: const integer HAND_NORMAL_X = 8;
+set: const integer HAND_NORMAL_Y = 9;
+set: const integer HAND_NORMAL_Z = 10;
+set: const integer HAND_ROLL = 11;
+set: const integer HAND_PITCH = 12;
+set: const integer HAND_YAW = 13;
+
+begin: nodes;
+	abstract: HAND_TYPE;
+	abstract: HAND_POSITION_X;
+	abstract: HAND_POSITION_Y;
+	abstract: HAND_POSITION_Z;
+	abstract: HAND_DIRECTION_X;
+	abstract: HAND_DIRECTION_Y;
+	abstract: HAND_DIRECTION_Z;
+	abstract: HAND_NORMAL_X;
+	abstract: HAND_NORMAL_Y;
+	abstract: HAND_NORMAL_Z;
+	abstract: HAND_ROLL;
+	abstract: HAND_PITCH;
+	abstract: HAND_YAW;
+end: nodes;
+
+begin: drivers;
+	file: 0, leapmotion hand;
+end: drivers;
+
+begin: elements;
+	genel: HAND_TYPE, spring support, HAND_TYPE, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_POSITION_X, spring support, HAND_POSITION_X, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_POSITION_Y, spring support, HAND_POSITION_Y, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_POSITION_Z, spring support, HAND_POSITION_Z, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_DIRECTION_X, spring support, HAND_DIRECTION_X, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_DIRECTION_Y, spring support, HAND_DIRECTION_Y, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_DIRECTION_Z, spring support, HAND_DIRECTION_Z, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_NORMAL_X, spring support, HAND_NORMAL_X, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_NORMAL_Y, spring support, HAND_NORMAL_Y, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_NORMAL_Z, spring support, HAND_NORMAL_Z, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_ROLL, spring support, HAND_ROLL, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_PITCH, spring support, HAND_PITCH, abstract, algebraic, linear elastic, 1.;
+	genel: HAND_YAW, spring support, HAND_YAW, abstract, algebraic, linear elastic, 1.;
+
+	force: HAND_TYPE, abstract, HAND_TYPE, abstract, file, 0, HAND_TYPE;
+	force: HAND_POSITION_X, abstract, HAND_POSITION_X, abstract, file, 0, HAND_POSITION_X;
+	force: HAND_POSITION_Y, abstract, HAND_POSITION_Y, abstract, file, 0, HAND_POSITION_Y;
+	force: HAND_POSITION_Z, abstract, HAND_POSITION_Z, abstract, file, 0, HAND_POSITION_Z;
+	force: HAND_DIRECTION_X, abstract, HAND_DIRECTION_X, abstract, file, 0, HAND_DIRECTION_X;
+	force: HAND_DIRECTION_Y, abstract, HAND_DIRECTION_Y, abstract, file, 0, HAND_DIRECTION_Y;
+	force: HAND_DIRECTION_Z, abstract, HAND_DIRECTION_Z, abstract, file, 0, HAND_DIRECTION_Z;
+	force: HAND_NORMAL_X, abstract, HAND_NORMAL_X, abstract, file, 0, HAND_NORMAL_X;
+	force: HAND_NORMAL_Y, abstract, HAND_NORMAL_Y, abstract, file, 0, HAND_NORMAL_Y;
+	force: HAND_NORMAL_Z, abstract, HAND_NORMAL_Z, abstract, file, 0, HAND_NORMAL_Z;
+	force: HAND_ROLL, abstract, HAND_ROLL, abstract, file, 0, HAND_ROLL;
+	force: HAND_PITCH, abstract, HAND_PITCH, abstract, file, 0, HAND_PITCH;
+	force: HAND_YAW, abstract, HAND_YAW, abstract, file, 0, HAND_YAW;
+end: elements;
+

@@ -1,0 +1,658 @@
+% $Header$
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Nodes}\label{sec:NODES}
+The \kw{nodes} section is enclosed in the cards:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{nodes} ;
+        # ...
+    \kw{end} : \kw{nodes} ;
+\end{Verbatim}
+%\end{verbatim}
+Every node card has the format:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{node_type} : \bnt{node_label}
+        \bnt{additional_args}
+        [ , \kw{scale} , \{ \kw{default} | \bnt{scale} \} ]
+        [ , \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag} \} ]
+        [ , \bnt{extra_arglist} ] ;
+\end{Verbatim}
+%\end{verbatim}
+where \nt{node\_type} is one of the following:
+\begin{itemize}
+    \item \kw{abstract}
+    \item \kw{electric}
+    \item \kw{hydraulic}
+    \item \kw{parameter}
+    \item \kw{structural}
+    \item \kw{thermal}
+\end{itemize}
+The data manager reads the node type and the label and checks for
+duplication.
+If the node is not defined yet, the appropriate read function is
+called, which parses the rest of the card and constructs the node.
+
+The optional \kw{scale} keyword is only supported by
+\begin{itemize}
+    \item \kw{abstract}
+    \item \kw{electric}
+    \item \kw{hydraulic}
+    \item \kw{structural}
+    \item \kw{thermal}
+\end{itemize}
+nodes.
+See Section~\ref{sec:CONTROLDATA:DEFAULTSCALE} for further details.
+
+
+
+
+\section{Structural Node}
+\label{sec:NODE:STRUCTURAL}
+Structural nodes can have 6 degrees of freedom (position and orientation),
+and thus describe the kinematics of rigid-body motion in space,
+or 3 degrees of freedom (position) and thus describe the kinematics
+of point mass motion in space.
+
+The former has been originally implemented in MBDyn;
+the latter has been added in MBDyn 1.5.0,
+mainly to support the implementation of membrane elements.
+
+The 6 dof structural node can be \kw{static},
+\kw{dynamic}, \kw{modal} or \kw{dummy}.
+
+The 3 dof structural node can be \kw{static} or \kw{dynamic}.
+
+Elements that only require displacement can be connected to either type
+of nodes; when connected to a 6 degree of freedom node, they only make use
+of position/velocity and only contribute to force equilibrium equations.
+
+Elements that require both displacement and orientation can only be connected
+to 6 degree of freedom nodes.
+
+
+
+\subsection{Static Node}
+\label{sec:NODE:STRUCTURAL:STATIC}
+The \kw{static} keyword means no inertia is related to that node, 
+so it must be appropriately constrained or attached to elastic elements.
+Static nodes are useful when there is no need to apply inertia
+to them, thus saving 6 degrees of freedom.
+
+\subsection{Dynamic Node}
+\label{sec:NODE:STRUCTURAL:DYNAMIC}
+The \kw{dynamic} keyword means inertia can be attached to the node, 
+so it provides linear and angular momenta degrees of freedom, 
+and automatically generates the so-called \kw{automatic structural}
+elements.
+
+\subsection{Modal Node}
+\label{sec:NODE:STRUCTURAL:MODAL}
+The \kw{modal} node is basically a regular \kw{dynamic} node
+that must be used to describe the rigid reference motion
+of a \kw{modal} joint.
+See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
+
+\subsection{Syntax}
+\label{sec:NODE:STRUCTURAL:SYNTAX}
+The syntax of the 6 degrees of freedom rigid-body motion structural node is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
+        [ \kw{position} , ]         (\hty{Vec3})              \bnt{absolute_position} ,
+        [ \kw{orientation} , ]      (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
+        [ \kw{velocity} , ]         (\hty{Vec3})              \bnt{absolute_velocity} ,
+        [ \kw{angular velocity} , ] (\hty{Vec3})              \bnt{absolute_angular_velocity}
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness}
+          , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
+\end{Verbatim}
+%\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
+The syntax of the 3 degrees of freedom point mass motion structural node is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
+        [ \kw{position} , ] (\hty{Vec3}) \bnt{absolute_position} ,
+        [ \kw{velocity} , ] (\hty{Vec3}) \bnt{absolute_velocity} ,
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness} ]
+\end{Verbatim}
+%\end{verbatim}
+
+When a node's initial configuration is coincident with that of a single reference, instead of the \kw{position}, \kw{orientation}, \kw{velocity}, and \kw{angular velocity} one can respectively use
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
+        \kw{at reference} , \bnt{reference_label}
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness}
+          , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
+\end{Verbatim}
+%\end{verbatim}
+or
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
+        \kw{at reference} , \bnt{reference_label}
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness} ]
+\end{Verbatim}
+%\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
+
+The stiffness parameters and the \nt{omega\_rotates?} flag
+override the default values optionally set by the \kw{initial stiffness}
+and \kw{omega rotates} keywords in the \kw{control data} block. 
+They are optional, but they must be supplied all together if at least
+one is to be input.
+
+The \nt{omega\_rotates?} parameter determines whether 
+the initial angular velocity should follow or not the node 
+as it is rotated by the initial assembly procedure.
+It can take values \kw{yes} or \kw{no};
+a numerical value of 0 (no) or 1 (yes) is supported for backward
+compatibility, but its use is deprecated.
+
+The \kw{dynamic} and the \kw{modal} node types allow
+the optional output keyword
+\kw{accelerations} after the standard node output parameters:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{extra_arglist} ::= \kw{accelerations} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{value} \}
+\end{Verbatim}
+%\end{verbatim}
+to enable/disable the output of the linear and angular accelerations
+of the node.  Since they are computed as a postprocessing, they are not required
+by the regular analysis, so they should be enabled only when strictly required.
+
+Also note that accelerations may be inaccurate, since they are reconstructed
+from the momentum and the momenta moment derivatives through the inertia
+properties associated to dynamic nodes.
+
+The keyword \kw{accelerations} can be used for \kw{dummy} nodes;
+however, the dummy node will compute and output the linear and angular accelerations
+only if the node it is connected to can provide them.
+
+Accelerations output can be controlled by means of the
+\hyperref{\kw{default output} statement}{\kw{default output} statement (see Section~}{)}{sec:CONTROLDATA:DEFAULTOUTPUT}.
+
+If the \kw{static} model type is used in the control data block,
+all dynamic structural nodes are actually treated as static.
+This is a shortcut to ease running static analyses without the need
+to modify each node of a dynamic model.
+
+\subsection{Dummy Node}
+\label{sec:NODE:STRUCTURAL:DUMMY}
+The \kw{dummy} structural node has been added to ease the visualization
+of the kinematics of arbitrary points of the system
+during the simulation. 
+It does not provide any degrees of freedom, and it must be attached
+to another node.
+
+Two dummy structural node types are available.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \kw{dummy} , \bnt{base_node_label} , \bnt{type} , \bnt{dummy_node_data}
+\end{Verbatim}
+%\end{verbatim}
+
+Dummy nodes take the label \nt{base\_node\_label} of the node they are attached to, 
+followed by \nt{type}, the type of dummy node, possibly followed by specific data,
+\nt{dummy\_node\_data}.
+The following types are available:
+
+\begin{itemize}
+    \item \kw{offset}:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{type} ::= \kw{offset}
+
+    \bnt{dummy_node_data} ::=
+        (\hty{Vec3})              \bnt{relative_offset} ,
+        (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix}
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
+\end{Verbatim}
+%\end{verbatim}
+    It outputs the configuration of a point offset from the base node.
+            
+    \item \kw{relative frame}:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{type} ::= \kw{relative frame}
+
+    \bnt{dummy_node_data} ::= \bnt{reference_node_label}
+        [ , \kw{position} , (\hty{Vec3}) \bnt{reference_offset} ]
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{reference_orientation_matrix} ]
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
+        [ , \kw{pivot node} , \bnt{pivot_node_label}
+            [ , \kw{position} , (\hty{Vec3}) \bnt{pivot_offset} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{pivot_orientation_matrix} ] ]
+\end{Verbatim}
+%\end{verbatim}
+    It outputs the configuration of the base node in the frame defined
+    by the node of label \nt{reference\_node\_label}, optionally offset 
+    by \nt{reference\_offset} and with optional relative orientation 
+    \nt{reference\_orientation\_matrix}.
+
+    If a \nt{pivot\_node\_label} is given, the relative frame motion
+    is transformed as if it were expressed in the reference frame
+    of the pivot node, optionally offset by \nt{pivot\_offset}
+    and with optional relative orientation \nt{pivot\_orientation\_matrix}.
+\end{itemize}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    set: real Omega = 1.;
+    structural: 1, static, null, eye, null, 0.,0.,Omega;
+    structural: 1000, dummy, 1, offset, 1.,0.,0., eye;
+    structural: 1001, dummy, 1, relative frame, 1000;
+    structural: 2000, dynamic,
+        0.,0.,1.,
+        1, 1.,0.,0., 2, 0.,0.,1.,
+        null,
+        null,
+        accelerations, yes;
+\end{verbatim}
+
+\paragraph{Output.}
+\label{sec:NODE:STRUCTURAL:OUTPUT}
+Structural nodes generate two kinds of output files:
+\begin{itemize}
+\item the \texttt{.mov} file;
+\item the \texttt{.ine} file.
+\end{itemize}
+The output of displacement-only 3 degree of freedom nodes is identical
+to that of 6 degree of freedom nodes, with the meaningless fields
+filled with zeros.
+
+\textbf{The \texttt{.mov} Output File.} \\
+The first refers to the kinematics of the node; its extension is \texttt{.mov},
+and for each time step it contains one row for each node whose output is
+required.
+The rows contain: \vspace{2mm} \\
+\begin{tabular}{lp{140mm}}
+	\hline
+	1      & the label of the node \\
+	2--4   & the three components of the position of the node \\
+	5--7   & the three Euler angles that define the orientation of the node \\
+	8--10  & the three components of the velocity of the node \\
+	11--13 & the three components of the angular velocity of the node \\
+	\hline
+	14--16 & the three components of the linear acceleration
+		of the \kw{dynamic} and \kw{modal} nodes (optional) \\
+	17--19 & the three components of the angular acceleration
+		of the \kw{dynamic} and \kw{modal} nodes (optional) \\
+	\hline
+\end{tabular}\vspace{2mm}\\
+All the quantities are expressed in the global frame, except for
+the \kw{relative frame} type of \kw{dummy} node, whose quantities are,
+by definition, in the relative frame.
+
+There exist two variants of this output.
+The output of the orientation can be modified by requesting
+the three Euler angles, in 3 formats, the three components of the Euler vector,
+or the nine components of the orientation matrix.
+
+When the Euler angles are requested, columns 5 to 7 contain
+them, in degrees, according to the requested output format:
+by default, the `123' sequence is used (which results in the so-called Tait-Bryan or Cardano angles);
+the `313' and `321' sequences are supported as well.
+
+When the Euler vector is requested, columns 5 to 7 contain
+its components.  Recall that the Euler vector's direction represents the rotation axis,
+whereas its norm represents the magnitude, in radian.
+
+Beware that it is not possible to discriminate between
+the flavours of Euler angles and the Euler vector without knowing
+what output type was requested.
+
+When the orientation matrix is requested, columns 5 to 13
+contains the elements of the matrix, written row-wise,
+that is: $r_{11}$, $r_{12}$, $r_{13}$, $r_{21}$, \ldots, $r_{33}$.
+Note that in this case the total column count changes and, if accelerations
+are not requested, it corresponds to that of a structural node
+with optional accelerations, so it might be hard to discriminate in this case
+as well.
+
+This ambiguity is resolved when results are output in NetCDF format.
+See Section~\ref{sec:NetCDF:Node:Structural Node} for details.
+
+\emph{Note: actually, the angles denoted as ``Euler angles'' 
+are the three angles that describe a rotation made of a sequence
+of three steps: first, a rotation about global axis 1,
+followed by a rotation about axis 2 of the frame resulting from
+the previous rotation, concluded by a rotation about axis 3
+of the frame resulting from the two previous rotations.
+To consistently transform this set of parameters into some other
+representation, see the tools
+\texttt{eu2rot(1)}, \texttt{rot2eu(1)}, \texttt{rot2eup(1)}, \texttt{rot2phi(1)}.
+The functions that compute the relationship between an orientation
+matrix and the set of three angles and vice versa are
+\texttt{MatR2EulerAngles()} and \texttt{EulerAngles2MatR()}, in \texttt{matvec3.h}.
+}
+
+\textbf{The \texttt{.ine} Output File.} \\
+The second output file refers only to dynamic nodes, and contains their
+inertia; its extension is \texttt{.ine}.
+For each time step, it contains information about the inertia of all the
+nodes whose output is required.
+Notice that more than one inertia body can be attached to one node; the
+information in this file refers to the sum of all the inertia related to
+the node.
+
+The rows contain: \vspace{2mm} \\
+\begin{tabular}{lp{140mm}}
+        \hline
+	1	& the label of the node \\
+	2--4	& item the three components of the momentum
+		in the absolute reference frame \\
+	5--7	& item the three components of the momenta moment
+		in the absolute reference frame,
+		with respect to the coordinates of the node, 
+		thus to a moving frame \\
+    	8--10	& the three components of the derivative of the momentum \\
+    	11--13	& the three components of the derivative of the momentum moment \\
+	\hline
+\end{tabular}\vspace{2mm}\\
+
+\paragraph{Private Data.}
+\label{sec:NODE:STRUCTURAL:PRIV}
+The following data are available:
+\begin{enumerate}
+\item[] all structural nodes:
+\item \kw{"X[1]"} position in global direction 1
+\item \kw{"X[2]"} position in global direction 2
+\item \kw{"X[3]"} position in global direction 3
+\item \kw{"x[1]"} position in direction 1, in the reference frame of the node
+\item \kw{"x[2]"} position in direction 2, in the reference frame of the node
+\item \kw{"x[3]"} position in direction 3, in the reference frame of the node
+\item \kw{"Phi[1]"} orientation vector in global direction 1
+\item \kw{"Phi[2]"} orientation vector in global direction 2
+\item \kw{"Phi[3]"} orientation vector in global direction 3
+\item \kw{"XP[1]"} velocity in global direction 1
+\item \kw{"XP[2]"} velocity in global direction 2
+\item \kw{"XP[3]"} velocity in global direction 3
+\item \kw{"xP[1]"} velocity in direction 1, in the reference frame of the node
+\item \kw{"xP[2]"} velocity in direction 2, in the reference frame of the node
+\item \kw{"xP[3]"} velocity in direction 3, in the reference frame of the node
+\item \kw{"Omega[1]"} angular velocity in global direction 1
+\item \kw{"Omega[2]"} angular velocity in global direction 2
+\item \kw{"Omega[3]"} angular velocity in global direction 3
+\item \kw{"omega[1]"} angular velocity in direction 1, in the reference frame of the node
+\item \kw{"omega[2]"} angular velocity in direction 2, in the reference frame of the node
+\item \kw{"omega[3]"} angular velocity in direction 3, in the reference frame of the node
+\item \kw{"E[1]"} Cardan angle 1 (about global direction 1)
+\item \kw{"E[2]"} Cardan angle 2 (about local direction 2)
+\item \kw{"E[3]"} Cardan angle 3 (about local direction 3)
+\item \kw{"E313[1]"} Cardan angle 1 (about global direction 3)
+\item \kw{"E313[2]"} Cardan angle 2 (about local direction 1)
+\item \kw{"E313[3]"} Cardan angle 3 (about local direction 3)
+\item \kw{"E321[1]"} Cardan angle 1 (about global direction 3)
+\item \kw{"E321[2]"} Cardan angle 2 (about local direction 2)
+\item \kw{"E321[3]"} Cardan angle 3 (about local direction 1)
+\item \kw{"PE[0]"} Euler parameter 0
+\item \kw{"PE[1]"} Euler parameter 1
+\item \kw{"PE[2]"} Euler parameter 2
+\item \kw{"PE[3]"} Euler parameter 3
+\item[] dynamic nodes only:
+\item \kw{"XPP[1]"} acceleration in global direction 1
+\item \kw{"XPP[2]"} acceleration in global direction 2
+\item \kw{"XPP[3]"} acceleration in global direction 3
+\item \kw{"xPP[1]"} acceleration in direction 1, in the reference frame of the node
+\item \kw{"xPP[2]"} acceleration in direction 2, in the reference frame of the node
+\item \kw{"xPP[3]"} acceleration in direction 3, in the reference frame of the node
+\item \kw{"OmegaP[1]"} angular acceleration in global direction 1
+\item \kw{"OmegaP[2]"} angular acceleration in global direction 2
+\item \kw{"OmegaP[3]"} angular acceleration in global direction 3
+\item \kw{"omegaP[1]"} angular acceleration in direction 1, in the reference frame of the node
+\item \kw{"omegaP[2]"} angular acceleration in direction 2, in the reference frame of the node
+\item \kw{"omegaP[3]"} angular acceleration in direction 3, in the reference frame of the node
+\end{enumerate}
+
+Note: Euler parameters actually do not take into account 
+the whole orientation of a node, since they are post-processed
+from the orientation matrix.
+As a consequence, they only parametrize the minimum norm orientation
+that yields the current orientation matrix of the node.
+The same applies to the orientation vector $\varphi$.
+
+Note: if accelerations are requested using the \kw{string} form,
+their computation is enabled even if it was not explicitly enabled
+when the node was instantiated.
+However, if the \kw{index} form is used, their computation must have
+already been explicitly enabled.
+
+Note: dummy nodes based on dynamic nodes inherit the capability to provide
+access to linear and angular accelerations.
+
+
+\section{Electric Node}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= [ , \kw{value} , \bnt{initial_value}
+        [ , \kw{derivative} , \bnt{derivative_initial_value} ] ]
+\end{Verbatim}
+%\end{verbatim}
+\emph{Note: the keywords \kw{value} and \kw{derivative}
+have been introduced recently; \kw{value} is not mandatory,
+resulting in a warning, while \kw{derivative} is required.
+The same applies to the \kw{abstract node} 
+and to the \kw{hydraulic node}; the latter is an algebraic
+node, so only \kw{value} is allowed.
+}
+
+\paragraph{Private Data.}
+\label{sec:NODE:ELECTRIC:PRIV}
+The following data are available:
+\begin{enumerate}
+\item \kw{"x"} value
+\item \kw{"xP"} derivative value
+\end{enumerate}
+
+
+
+
+
+\section{Abstract Node}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{algebraic} | \kw{differential} \}
+        [ , \kw{value} , \bnt{initial_value}
+        [ , \kw{derivative} , \bnt{derivative_initial_value} ] ]
+\end{Verbatim}
+%\end{verbatim}
+\emph{
+	Note: abstract nodes are ancestors of all scalar node types.
+	Many \kw{genel} and \kw{electric} elements can be connected
+	to \kw{abstract} nodes as well, since they directly use
+	the ancestor class. 
+}
+
+\paragraph{Output.}
+The value of abstract nodes is output with file extension \texttt{.abs}; for
+each time step the output of the required nodes is written.
+The format of each row is
+\begin{itemize}
+    \item the label of the node
+    \item the value of the node
+    \item the value of the node derivative, when \kw{differential} (the default)
+\end{itemize}
+
+\paragraph{Private Data.}
+\label{sec:NODE:ABSTRACT:PRIV}
+The following data are available:
+\begin{enumerate}
+\item \kw{"x"} value
+\item \kw{"xP"} derivative value
+\end{enumerate}
+
+
+
+\section{Hydraulic Node}
+\label{sec:NODE:HYDRAULIC}
+The hydraulic node represents the pressure
+at a given location of a hydraulic circuit.
+It is derived from the generic scalar algebraic node; as a consequence,
+it can be connected to all elements that operate on generic scalar nodes. 
+
+The syntax is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= [ , \kw{value} , \bnt{initial_value} ]
+\end{Verbatim}
+%\end{verbatim}
+
+\paragraph{Private Data.}
+\label{sec:NODE:HYDRAULIC:PRIV}
+The following data are available:
+\begin{enumerate}
+\item \kw{"x"} value
+\end{enumerate}
+
+
+
+\section{Parameter Node}
+\label{sec:NODE:PARAMETER}
+
+\emph{NOTE: \kw{parameter} nodes are essentially obsolete;
+in most cases their purpose can be better fulfilled
+by \kw{element} and \kw{node} drive callers.}
+
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= \{ [ , \kw{value} , \bnt{initial_value} ]
+        | , \kw{element}
+        | , \kw{sample and hold} , (\hty{NodeDof}) \bnt{signal} , \bnt{sample_time}
+        | , \kw{beam strain gage} , \bnt{y} , \bnt{z} \}
+\end{Verbatim}
+%\end{verbatim}
+The parameter node is derived from the class scalar algebraic node, but it
+is used in a rather peculiar way: it doesn't own any degree of freedom,
+so it does not participate in the solution; it is rather used as a sort of
+placeholder for those elements that require to be connected to a scalar node
+that is not otherwise significant to the analysis.
+Thanks to the availability of the \kw{parameter} node, these elements
+do not need be reformulated with a grounded node, while the parameter
+node value can be changed during the solution by several means,
+listed in the following.
+
+\paragraph{Element.}
+\label{sec:NODE:PARAMETER:ELEMENT}
+When the argument list starts with the keyword \kw{element}, the parameter
+node expects to be bound to an element, and to access bulk element data 
+(see the \hyperref{\kwnd{bind} statement}{\kw{bind} statement, Section~}{}{sec:EL:MISC:BIND}).
+
+\paragraph{Sample and Hold.}
+\label{sec:NODE:PARAMETER:SAH}
+When the argument list starts with the keyword \kw{sample and hold},
+followed by a \hty{NodeDof} specification and a sample time,
+the parameter node contains the value of the input signal, namely
+the value of the node, for the duration of the \nt{sample\_time}.
+This may be useful to preserve the value of some signal across
+time steps.
+
+\paragraph{Beam Strain Gage.}
+\label{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
+When the argument list starts with the keyword \kw{beam strain gage},
+followed by the coordinates of a point on the section of a beam,
+the \kw{parameter} node expects to be bound to a \kw{beam} element,
+and to access the measure of the axial strain at point \nt{x}, \nt{y}
+in the section plane as a combination of section strains and curvatures:
+\begin{equation}
+	\varepsilon = \nu_x
+		+ \nt{z} \cdot \kappa_y 
+		- \nt{y} \cdot \kappa_z ,
+\end{equation}
+where
+\begin{itemize}
+\item $\nu_x$ is the axial strain of the beam;
+\item $\kappa_y$ is the bending curvature of the beam about the $y$ axis;
+\item $\kappa_z$ is the bending curvature of the beam about the $z$ axis.
+\end{itemize}
+The span-wise location of the point where the strain is evaluated
+is set in the 
+\hyperref{\kwnd{bind} statement}{\kw{bind} statement (see Section~}{)}{sec:EL:MISC:BIND}.
+
+\emph{Note: measuring strains by means of derivatives of interpolated
+positions and orientations may lead to inaccurate results; force summation
+should be used instead.}
+
+
+
+
+
+\section{Miscellaneous}
+
+\subsection{Output}
+\label{sec:NODE:MISC:OUTPUT}
+There is an extra card, that is used to modify the output behavior of nodes:  
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output} : \bnt{node_type} , \bnt{node_list} ;
+
+    \bnt{node_list} ::= \{ \bnt{node_label}  [ , ... ] 
+        | \kw{range} , \bnt{node_start_label} , \bnt{node_end_label} \}
+\end{Verbatim}
+%\end{verbatim}
+\nt{node\_type} is a valid node type that can be read in the \kw{nodes}
+block.
+In case the keyword \kw{range} is used, all nodes of that type
+with label between \nt{node\_start\_label} and \nt{node\_end\_label}
+are set.
+
+\noindent
+{\em
+   Note: if a node should never (\kw{no}) or always (\kw{yes}) be output,
+   its output flag should be set directly on the node card. 
+   The global behavior of all the nodes of a type can be set from the 
+   \kw{control data} block by adding the node type to the item list in the 
+   \kw{default output} card. 
+   Then, the specific output flag of sets of nodes can be altered by means 
+   of the \kw{output} card in the \kw{nodes} block. 
+   This allows high flexibility in the selection of the desired output. 
+   The same remarks apply to the output of the elements.
+}
+
+If \nt{node\_type} is \kw{structural}, the optional keyword \kw{accelerations}
+can be used right after the \nt{node\_type} to enable the output
+of the accelerations.
+

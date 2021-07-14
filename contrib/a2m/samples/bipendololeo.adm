@@ -1,0 +1,118 @@
+ADAMS/View model name: bipendolo
+!
+!-------------------------------- SYSTEM UNITS ---------------------------------
+!
+UNITS/FORCE = NEWTON, MASS = KILOGRAM, LENGTH = MILLIMETER, TIME = SECOND
+!
+!--------------------------------- MATERIALS -----------------------------------
+!
+!                            adams_view_name='steel'
+MATERIAL/1, NAME = steel, YOUNGS_MODULUS = 2.07E+005, POISSONS_RATIO = 0.29
+, DENSITY = 7.801E-006
+!
+!----------------------------------- PARTS -------------------------------------
+!
+!----------------------------------- Ground ------------------------------------
+!
+!                            adams_view_name='ground'
+PART/1, GROUND, MATERIAL = steel
+!
+!                            adams_view_name='MAR_1'
+MARKER/1, PART = 1, QP = -400, 350, 0
+!
+!                            adams_view_name='MAR_2'
+MARKER/2, PART = 1, QP = -150, -150, 0, REULER = 270D, 90D, 90D
+!
+!------------------------------------ Part -------------------------------------
+!
+!                            adams_view_name='PART_1'
+PART/2, MASS = 6.309082058, CM = 5, IP = 1828.646986, 1.729690633E+005
+, 1.740550788E+005, MATERIAL = steel
+!
+!                            adams_view_name='MAR_1'
+MARKER/3, PART = 2, QP = -400, 350, 0, REULER = 318.8140748D, 0D, 0D
+!
+!                            adams_view_name='MAR_2'
+MARKER/4, PART = 2, REULER = 318.8140748D, 0D, 0D
+!
+!                              adams_view_name='cm'
+MARKER/5, PART = 2, QP = -200, 175, 0, REULER = 318.8140748D, 0D, 0D
+!
+!                            adams_view_name='MAR_3'
+MARKER/6, PART = 2
+!
+!                            adams_view_name='MAR_4'
+MARKER/7, PART = 2, QP = -400, 350, 0
+!
+!                            adams_view_name='MAR_5'
+MARKER/8, PART = 2, QP = -200, 175, 0, REULER = 270D, 90D, 90D
+!
+!                            adams_view_name='MAR_6'
+MARKER/9, PART = 2, QP = -200, 175, 0, REULER = 270D, 90D, 90D
+!
+!------------------------------------ Part -------------------------------------
+!
+!                            adams_view_name='PART_2'
+PART/3, MASS = 0.4011042544, CM = 12, IP = 18.51889328, 1751.675225, 1762.673414
+, MATERIAL = steel
+!
+!                            adams_view_name='MAR_1'
+MARKER/10, PART = 3, REULER = 225D, 0D, 0D
+!
+!                            adams_view_name='MAR_2'
+MARKER/11, PART = 3, QP = -150, -150, 0, REULER = 225D, 0D, 0D
+!
+!                              adams_view_name='cm'
+MARKER/12, PART = 3, QP = -75, -75, 0, REULER = 45D, 0D, 0D
+!
+!                            adams_view_name='MAR_3'
+MARKER/13, PART = 3
+!
+!                            adams_view_name='MAR_4'
+MARKER/14, PART = 3, QP = -150, -150, 0, REULER = 270D, 90D, 90D
+!
+!------------------------------ DYNAMIC GRAPHICS -------------------------------
+!
+!                   adams_view_name='FORCE_1_force_graphic_1'
+GRAPHICS/1, FORCE, ETYPE = SFORCE, EID = 1, EMARKER = 14
+!
+!                   adams_view_name='FORCE_2_force_graphic_1'
+GRAPHICS/2, FORCE, ETYPE = SFORCE, EID = 2, EMARKER = 8
+!
+!-------------------------------- CONSTRAINTS ----------------------------------
+!
+!                           adams_view_name='JOINT_1'
+JOINT/1, REVOLUTE, I = 6, J = 13, DELTA_V = 0.01, MAXIMUM_DEFORMATION = 0.01
+, MU_DYN_ROT = 0.3, MU_STAT_ROT = 0.4, MAX_FRIC_ROT = 0, PRELOAD_RADIAL = 0
+, PRELOAD_AXIAL = 0, INNER_RADIUS = 1, OUTER_RADIUS = 1.1
+!
+!                           adams_view_name='JOINT_2'
+JOINT/2, REVOLUTE, I = 7, J = 1, DELTA_V = 0.01, MAXIMUM_DEFORMATION = 0.01
+, MU_DYN_ROT = 0.3, MU_STAT_ROT = 0.4, MAX_FRIC_ROT = 0, PRELOAD_RADIAL = 0
+, PRELOAD_AXIAL = 0, INNER_RADIUS = 1, OUTER_RADIUS = 1.1
+!
+!----------------------------------- FORCES ------------------------------------
+!
+!                           adams_view_name='FORCE_1'
+SFORCE/1, TRANSLATIONAL, I = 14, J = 2, ACTIONONLY, FUNCTION = 0.4
+!
+!                           adams_view_name='FORCE_2'
+SFORCE/2, TRANSLATIONAL, I = 8, J = 9, ACTIONONLY, FUNCTION = 6.3
+!
+!-------------------------------- GFORCE INSERT ------------------------------
+!
+GFORCE/2, I=14, JFLOAT=2, RM=8, TX=24\TY=48\TZ=57\FX=18;
+VTORQUE/1,I=14, JFLOAT=2, RM=8, TX=11\TZ=22\TY=33;
+VFORCE/2, I=14, JFLOAT=2, RM=8, FX=11\FY=22\FZ=33;
+!
+!------------------------- GRAVITATIONAL ACCELERATION --------------------------
+!
+ACCGRAV/JGRAV = -9806.65
+!
+!----------------------------- ANALYSIS SETTINGS -------------------------------
+!
+OUTPUT/REQSAVE, GRSAVE
+!
+RESULTS/
+!
+END

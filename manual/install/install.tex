@@ -1,0 +1,782 @@
+% $Header$
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+%
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\documentclass[10pt,dvips]{report}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
+\usepackage{html}
+
+\input{../stdmacro}
+
+\newcommand{\kw}[1]{\texttt{#1}}
+%\newcommand{\kw}[1]{\fbox{\texttt{#1}}}
+\newcommand{\T}[1]{\boldsymbol{#1}}
+%\newcommand{\T}[1]{\bm{#1}}
+
+\begin{document}
+
+\begin{latexonly}
+\title{\bf MBDyn Installation Manual \\
+Version
+\input{../../build/version}
+}
+\author{Pierangelo Masarati \vspace{5mm}\\
+    \sc Dipartimento di Ingegneria Aerospaziale \\
+    \sc Politecnico di Milano}
+\date{Automatically generated \today}
+\maketitle
+\end{latexonly}
+
+\begin{htmlonly}
+\begin{center}
+\textbf{\LARGE MBDyn Installation Manual}
+
+\emph{\large Pierangelo Masarati}
+
+\textsc{Dipartimento di Ingegneria Aerospaziale \\ Politecnico di Milano}
+
+\today
+\end{center}
+\end{htmlonly}
+
+
+
+
+\tableofcontents
+\newpage
+
+\chapter{Introduction}
+This document describes how to download, build, install and execute
+MBDyn --- MultiBody Analysis program, a suite of tools
+for multibody/multidisciplinary analysis of complex systems.
+
+For any question or problem, to fix typos, bugs, for comments and
+suggestions, please contact the Development Team
+without hesitation:\vspace{10mm}\\
+
+\noindent
+\begin{tabular}{ll}
+\multicolumn{2}{l}{Pierangelo Masarati,} \\
+\multicolumn{2}{l}{MBDyn Development Team} \\
+\multicolumn{2}{l}{Dipartimento di Ingegneria Aerospaziale} \\
+\multicolumn{2}{l}{Politecnico di Milano} \\
+\multicolumn{2}{l}{via La Masa 34, 20156 Milano, Italy} \\
+Fax: & +39 02 2399 8334 \\
+E-mail: & \htmladdnormallink{\kw{mbdyn@aero.polimi.it}}{mailto:mbdyn@aero.polimi.it} \\
+Web: & \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn/}
+\end{tabular}
+\vspace{10mm}
+
+
+\noindent
+This document is also available online at \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/MBDyn-input/install/}}{http://www.aero.polimi.it/~masarati/MBDyn-input/install/}
+
+
+
+\chapter{Getting the package}
+
+\section{MBDyn}
+The package can be downloaded in source form from
+\begin{center}
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/\~{}mbdyn/}
+\end{center}
+
+Binary releases and snapshots are also available for Windows 2000/XP at
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/},
+compiled with Cygwin (see
+\htmladdnormallink{\kw{http://www.cygwin.com/}}{http://www.cygwin.com/})
+and thus require \kw{cygltdl-3.dll};
+they are provided to Windows users to save them the burden of installing
+Cygwin (very easy and straightforward, though) and to compile a package
+under an unfamiliar environment.
+However, no support is provided for those builds, unless problems
+are easily identifiable as related to the sources and not to the OS,
+and they impact the UN*X version as well.
+
+MBDyn may use a wide range of packages, if available on the host system
+and correctly detected by \kw{configure}.
+
+\section{Mathematical Utilities}
+MBDyn may exploit the availability of some mathematical utilities;
+neither of them is required for a basic compilation, but they may
+be useful or required for specific features.
+
+\subsection{ATLAS}\label{sec:DOWNLOAD:NUMERICAL:ATLAS}
+The Automatically Tunable Linear Algebra Subroutines are
+a replacement of the standard BLAS.
+They are exploited by the linear solver Umfpack
+(see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
+and can be used by Lapack (see Section~\ref{sec:DOWNLOAD:SOLVERS:LAPACK})
+and other packages that require BLAS
+(see Section~\ref{sec:DOWNLOAD:NUMERICAL:BLAS}).
+
+Note that ATLAS provides its own implementation of Lapack
+but only for a limited set of functions.
+This set of functions is packed into an archive called \kw{liblapack.a},
+so in typical installations it may shadow complete implementations
+of the Lapack package.
+A useful ``trick'' to have a complete Lapack installation that exploits
+ATLAS performances where available is described in
+\htmladdnormallink{\kw{http://math-atlas.sourceforge.net/errata.html\#completelp}}{http://math-atlas.sourceforge.net/errata.html\#completelp}.
+The essential instructions are reported below, assuming that
+\kw{\$ATLAS} and \kw{\$LAPACK} respectively are the paths to your ATLAS
+and Lapack static library archive files:
+\begin{verbatim}
+  mkdir tmp
+  cd tmp
+  ar x $ATLAS/liblapack.a
+  cp $LAPACK/liblapack.a $ATLAS/liblapack.a
+  ar r $ATLAS/liblapack.a *.o
+  cd ..
+  rm -rf tmp
+\end{verbatim}
+
+
+\subsection{BLAS}\label{sec:DOWNLOAD:NUMERICAL:BLAS}
+The Basic Linear Algebra Subroutines
+can be used by Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
+and other packages.
+Specially tuned binaries for each architecture (processor type,
+cache size and other special hardware features) are advisable;
+otherwise, instead of compiling them of your own, ATLAS
+(see Section~\ref{sec:DOWNLOAD:NUMERICAL:ATLAS}) are considered
+a better replacement.
+
+
+\section{Linear Solvers}
+MBDyn may use a variety of linear solvers
+
+\subsection{Naive}
+The Naive solver is also native.
+It is especially meant for medium size problems (between 100 and 1000
+unknowns) and is essentially a sparse solver optimized for speed
+rather than memory usage.
+
+\subsection{Y12}
+The Y12 solver is also built-in.
+the MBDyn Project distributes the Y12 library
+\textbf{AS IS} and \textbf{WITHOUT ANY WARRANTY} as part
+of the source code, with no copyright statement and no license.
+Of course credits go to the original Authors:
+Zahari Zlatev, Jerzy Wasniewski, and Kjeld Schaumburg,
+Comp.\ Sci., Math.\ Inst., University of Aarhus,
+Ny Munkegade, DK 8000 Aarhus.
+This solver is recommended for moderate to large problems,
+if Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
+is not available.
+
+\subsection{Umfpack}\label{sec:DOWNLOAD:SOLVERS:UMFPACK}
+The Umfpack linear sparse solver library must be downloaded separately, from
+\htmladdnormallink{\kw{http://www.cise.ufl.edu/research/sparse/umfpack/}}{http://www.cise.ufl.edu/research/sparse/umfpack/}.
+Credit goes to Timothy A.\ Davis, University of Florida.
+Umfpack is used by permission; please read its Copyright,
+License and Availability note.
+It is used as the standard sparse solver by MATLAB (see
+\htmladdnormallink{\kw{http://www.mathworks.com/}}{http://www.mathworks.com/}).
+This solver is recommended for very large problems,
+and as a general purpose solver.
+
+\subsection{Lapack}
+\label{sec:DOWNLOAD:SOLVERS:LAPACK}
+
+\subsection{SuperLU (experimental)}
+\label{sec:DOWNLOAD:SOLVERS:SUPERLU}
+
+\subsection{TAUCS (experimental)}
+\label{sec:DOWNLOAD:SOLVERS:TAUCS}
+
+\subsection{Harwell (historical)}
+\label{sec:DOWNLOAD:SOLVERS:HSL}
+
+\subsection{Meschach (historical)}
+\label{sec:DOWNLOAD:SOLVERS:MESCHACH}
+
+
+
+\section{Utilities}
+
+\section{Communication}
+
+\subsection{MPI}
+
+\subsection{Metis}
+Metis is a package that performs automatic domain decomposition.
+It is used by the Schur solution manager to partition the model
+into submodels of nearly equal computational cost and with minimal
+interface size.
+Its compilation is straightforward.
+It can be downloaded from
+\htmladdnormallink{\kw{http://www-users.cs.umn.edu/\~{}karypis/metis/metis/}}{http://www-users.cs.umn.edu/~karypis/metis/metis/}.
+Its compilation for MBDyn used to require a special patch to cleanup
+its namespace; now the patch is no longer required as a better namespace
+separation has been operated.
+No installation procedure is provided as of version 4.0; at the end
+of compilation, the library \kw{libmetis.a} is available in the build tree,
+and it should be copied to a directory where the loader can locate it;
+the headers \kw{Lib/*.h} should be copied where the C preprocessor
+can locate them.
+
+\section{Real-Time}
+
+\subsection{RTAI}
+
+\section{Build Environments}
+
+\subsection{GNU/Linux}
+The preferred build environment is GNU/Linux, using gcc, g++
+and either g77 or gfortran.
+
+\subsection{Windows: CygWin}
+MBDyn has been successfully compiled under CygWin.
+No special requirement is known.
+Special attention is required to build with some specific feature,
+significantly run-time loadable modules.
+
+\subsection{Windows: MSYS/MinGW}
+MBDyn has been successfully compiled under MSYS/MinGW.
+Special attention needs to be played to what version is used.
+
+Download packages from
+\htmladdnormallink{\kw{http://www.mingw.org/}}{http://www.mingw.org/}.
+
+Required packages (in order of installation):
+\begin{itemize}
+\item \kw{MinGW-3.1.0-1.exe} (install wizard)
+\item \kw{MSYS-1.0.10.exe} (install wizard; if not automagically done,
+edit file \kw{/etc/fstab} as indicated in MSYS' documentation)
+\item \kw{msysDTK-1.0.1.exe} (install wizard)
+\item \kw{gcc-core-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{gcc-g++-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{gcc-g77-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{msys-libtool-1.5.tar.bz2}
+	(archive; untar after changing directory into \kw{/})
+\end{itemize}
+
+
+
+\subsection{PowerPC: Mac OS X}
+(Reported by Torsten Sadowski, blindly reported here)
+
+You have to tell \texttt{configure} where to find \texttt{fink}
+includes and libraries
+\begin{verbatim}
+  export LDFLAGS=-L/sw/lib
+  export CPPFLAGS=-I/sw/include
+\end{verbatim}
+
+
+
+
+\chapter{Building}
+The configuration of the MBDyn package is based on GNU's autotools
+(see \htmladdnormallink{\kw{http://www.gnu.org/}}{http://www.gnu.org/}
+for details).
+
+\section{Configuring}
+
+\subsection{Option List}
+Specific options (from \kw{configure -{}-help}):
+{\small
+\begin{verbatim}
+  --enable-debug          enable debugging (no)
+  --with-debug-mode[={none|mem}]  with debug mode {none|mem} (none)
+  --enable-socket-drives  enable socket drives (auto)
+  --enable-runtime-loading    enable runtime loading (auto)
+  --with-static-modules   build (known) modules as static (auto)
+  --enable-crypt          enable crypt (deprecated) (no)
+  --enable-schur          enable Schur parallel solver
+                          (needs MPI and either Metis or Chaco) (auto)
+  --enable-multithread    enable multithread solution (no)
+  --with-tcl              with tcl interpreters (auto)
+  --with-libf2c[={f2c|g2c}] with f2c library (auto)
+  --with-fs[={unix|dos}]  filesystem type (unix)
+  --with-mpi              with MPI support (=pmpi for profiling) (auto)
+  --enable-debug-mpi      enable MPI debugging (no)
+  --with-metis            with Metis model partitioning support (auto)
+  --with-threads          with threads (auto)
+  --with-rtai             with RTAI support (no)
+
+       math libraries:
+  --with-blas             with (C)BLAS math library (auto)
+  --with-goto=lib(s)      with Goto BLAS implementation
+  --with-ginac            with GiNaC support
+                          (ginac-config must be in $PATH) (auto)
+
+       linear algebra solvers (naive is enabled by default):
+  --with-y12              with Y12 sparse math library (yes)
+  --with-umfpack          with Umfpack math library (auto)
+  --with-lapack           with LAPACK math library (auto)
+  --with-hsl              with HSL (Harwell) sparse math library - historical (auto)
+  --with-meschach         with Meschach math library - historical (auto)
+  --with-superlu          with SuperLU math library - eXperimental (auto)
+
+       misc security libraries:
+  --with-pam              with PAM support (auto)
+  --with-sasl2            with Cyrus SASL2 support (auto)
+
+       supported features:
+  --with-struct           with structural elements (yes)
+  --with-elec             with electric stuff (yes)
+  --with-aero             with aerodynamic stuff (yes)
+  --with-aero-output={std,gauss,node}  aerodynamic output mode (auto)
+  --with-hydr             with hydraulic stuff (yes)
+
+  --with-module=<list>    build listed modules (see modules/)
+\end{verbatim}
+}
+
+\subsection{Multithread Assembly/Solution}
+The switch \kw{-{}-enable-multithread} enables multithreaded assembly;
+it defaults to \kw{auto}, i.e.\ if the system meets the following
+requirements, it is automatically enabled.
+Essentially, a working \kw{-lpthread} library and a POSIX compliant
+\kw{pthread.h} header must be available.
+Currently, only the SuperLU sparse threaded solver is available;
+it is experimental.
+A threaded implementation of the built-in \kw{naive} sparse solver
+is under development.
+
+\subsection{Schur Parallel Solver}
+The Schur parallel solver is enabled by using the switch
+\kw{-{}-enable-schur}.
+It requires a working MPI library with the \kw{ch} driver
+and the C++ interface, and a partitioning library.
+The MPI library is selected by the switch \kw{-{}-with-mpi},
+which allows to specify the value \kw{pmpi} if the profiling
+version of the library is to be used.
+Note that recent MPI releases by default only build the profiling
+version of the C++ library, so the \kw{pmpi} value is mandatory.
+Currently, the only partitioning library that is supported by MBDyn
+is METIS; a patch to support Chaco is being incorporated,
+and may be available in future releases.
+The Schur solver is not compatible with the multithreaded
+assembly/solution, so if no switch is specified and the system
+meets the requirements for both, the multithreaded assembly wins
+over the Schur solver.
+As a consequence, the schur solver should be explicitly enabled.
+
+\subsection{Real-Time Simulator}
+The real-time simulator is enabled by using the switch
+\kw{-{}-with-rtai}, which essentially detects the availability
+of the mandatory headers of the GNU/Linux Real-Time Application
+Interface.
+These headers changed between 2.4.13 and 3.X; both versions
+are automatically detected.
+
+\chapter{Installing}
+Run \kw{make install}; this essentially installs the binary,
+the utilities, the man page and the dynamic modules, if any.
+
+\chapter{Executing}
+Prepare an input file and run \kw{mbdyn -f <input> -o <output>}.
+
+\section{Regular Execution}
+
+\section{Parallel Execution}
+
+\section{Real-Time Execution}
+
+\section{External Execution}
+To run MBDyn as a Simulink module, use the \kw{SimulinkInterface}
+that is available under \kw{contrib/}.
+
+\chapter{Troubleshooting}
+
+\chapter{HOWTOs}
+This chapter contains mini-howtos about typical significant
+configurations of MBDyn as performed by the developers.
+Feel free to contribute your own if you had to do any unusual
+configuring to meet special needs.
+
+\section{Run-Time Modules}
+To enable run-time loading of modules, a powerful means to extend
+MBDyn functionality, one needs to:
+\begin{itemize}
+\item install, and let MBDyn detect, the ltdl library, an ancillary
+library of libtool that handles platform-independent run-time loading
+of software modules;
+\item enable run-time loading of modules; this requires to configure
+MBDyn with \kw{{-}{-}enable-runtime-loading};
+\item when using gcc, it is recommended to add \kw{-rdynamic} to
+the \kw{LDFLAGS} environment variable; this is required to make
+functions and objects provided by MBDyn available in the modules;
+\item when developing a custom module, it must be placed in a subdirectory
+of the directory \kw{modules/}, named \kw{module-name/}.
+The module should be contained in one file, with the same name
+of the directory plus the language-specific extension; this should be
+	\begin{itemize}
+	\item C: \kw{module-name.c};
+	\item C++: \kw{module-name.cc};
+	\item Fortran 77: \kw{module-name.f}.
+\end{itemize}
+\item the building of each module must be explicitly enabled;
+this requires to configure with \kw{{-}{-}with-module=list},
+providing a list of the module names (without the leading \kw{module-}).
+\end{itemize}
+For example, to enable run-time loading and to build the \kw{wheel2} module,
+use
+\begin{verbatim}
+    $ ./configure --enable-runtime-loading --with-module=wheel2
+\end{verbatim}
+Occasionally, one may want to statically build some well-known modules
+into MBDyn, specifically those that implement new elements.
+This requires to configure with \kw{{-}{-}with-static-modules}.
+After that, the user-defined elements are available as joints.
+Currently, only the \kw{wheel2} module can be statically built
+into MBDyn; this feature will require some reworking.
+
+Run-time loading of dynamic modules is known to work on any flavor
+of GNU/Linux on X86/X86\_64 and on Windows using Cygwin, when compiled
+with gcc.
+It may work on other architectures and with other compilers, but it has
+not been tested by, nor reported to, the Developers.
+
+
+\section{Schur Solver}
+This section describes how the Schur parallel solver available
+within the MBDyn package has been successfully compiled and executed
+on a dual Athlon SMP machine.
+By no means it is intended to suggest how the related packages
+should be built for other purposes, nor it may represent a replacement
+for the original build and install procedures.
+Please refer to the documentation available with each package
+for more details or for troubleshooting.
+
+\noindent
+Software prerequisites:
+\begin{itemize}
+\item gcc/g++/g77 >= 3.0 (tested with gcc/g++/g77 3.2.1, 3.3.1 and 3.4.0)
+\end{itemize}
+Software requirements:
+\begin{itemize}
+\item MBDyn 1.2.1
+\item mpich 1.2.5.2
+\item Metis 4.0
+\end{itemize}
+
+\paragraph{MPI}
+\begin{itemize}
+\item download \kw{mpich.tar.gz} from
+\htmladdnormallink{\kw{http://www-unix.mcs.anl.gov/mpi/}}{http://www-unix.mcs.anl.gov/mpi/}
+\item untar the package in a temporary directory
+\item configure the package with
+\begin{verbatim}
+    $ ./configure -rsh=ssh --disable-f77 --prefix=/usr/local/mpich
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install}
+\item edit \kw{/usr/local/mpich/share/machines.<arch>} to enumerate
+the max number instances of the MBDyn process you want to allow
+on each machine; in my case \kw{<arch>} is LINUX (more details in
+\kw{/usr/local/mpich/doc/mpichman-chp4.pdf}).
+\end{itemize}
+
+\paragraph{Metis}
+\begin{itemize}
+\item download XXX from
+\htmladdnormallink{\kw{http://www-users.cs.umn.edu/\~{}karypis/metis/metis/}}{http://www-users.cs.umn.edu/~karypis/metis/metis/}
+\item untar it in a temporary directory
+\item apply the patch \kw{metis-namespace-cleanup.patch} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item \kw{make} the package
+\item ...
+\item copy the library \kw{libmetis.a} in \kw{/usr/local/lib}
+and the header files \kw{defs.h}, \kw{macros.h}, \kw{metis.h},
+\kw{proto.h}, \kw{rename.h} and \kw{struct.h} in \\
+\kw{/usr/local/include/metis}.
+\end{itemize}
+
+\paragraph{MBDyn}
+\begin{itemize}
+\item download \kw{mbdyn-1.2.1.tar.gz} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item untar it in a temporary directory
+\item make sure the compiler can find headers from MPI and Metis
+by defining
+\begin{verbatim}
+    CPPFLAGS="-I/usr/local/mpich/include \
+        -I/usr/local/mpich/include/mpi2c++ \
+        -I/usr/local/include/metis"
+\end{verbatim}
+\item make sure the linker can find the libraries from MPI and Metis
+by defining
+\begin{verbatim}
+    LDFLAGS="-L/usr/local/mpich/lib \
+        -L/usr/local/lib"
+\end{verbatim}
+\item configure MBDyn by running
+\begin{verbatim}
+    $ ./configure --with-mpi=pmpi --with-metis --enable-schur \
+        --prefix=/usr/local
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install} the package
+\end{itemize}
+
+\paragraph{Run It!} \mbox{} \\
+To test the system, one needs a test input file; the example
+\kw{cantilever2} from
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}}{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}
+should do the trick.
+The input file does not need any specific change, unless special
+features are required.
+To run it on an SMP machine, simply execute
+\begin{verbatim}
+    $ /usr/local/mpich/bin/mpirun -np 2 mbdyn -f cantilever2 -o /tmp/ -ss
+\end{verbatim}
+This generates a set of files \kw{/tmp/cantilever2.0.*}
+and \kw{/tmp/cantilever2.1.*} with the outputs from processes 0 and 1.
+
+\section{Real-Time Simulator}
+This section describes how the Real-Time simulator available
+within the MBDyn package has been successfully compiled and executed.
+By no means it is intended to suggest how the related packages
+should be built for other purposes, nor it may represent a replacement
+for the original build and install procedures.
+Please refer to the documentation available with each package
+for more details or for troubleshooting.
+
+\noindent
+Software prerequisites:
+\begin{itemize}
+\item gcc/g++/g77 >= 3.0 (tested with gcc 3.3.1 and 3.4.0)
+\end{itemize}
+Software requirements:
+\begin{itemize}
+\item MBDyn 1.2.1
+\item RTAI 3.0
+\end{itemize}
+
+\paragraph{RTAI}
+\begin{itemize}
+\item download \kw{rtai-3.0.tar.gz} from
+\htmladdnormallink{\kw{http://www.rtai.org/}}{http://www.rtai.org/}
+\item untar the package in a temporary directory
+\item configure the package with
+\begin{verbatim}
+$ ./configure
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install}
+\end{itemize}
+
+\paragraph{MBDyn}
+\begin{itemize}
+\item download \kw{mbdyn-1.2.1.tar.gz} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item untar it in a temporary directory
+\item make sure the compiler can find headers from RTAI
+by defining
+\begin{verbatim}
+    CPPFLAGS="-I/home/realtime"
+\end{verbatim}
+\item configure MBDyn by running
+\begin{verbatim}
+    $ ./configure --with-rtai
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install} the package
+\end{itemize}
+
+\paragraph{Run It!} \mbox{} \\
+To test the system, one needs a test input file; the example
+\kw{RT-MBDyn/pendulum} from
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}}{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}
+should do the trick.
+Simply execute
+\begin{verbatim}
+    $ mbdyn -f pendulum -ss
+\end{verbatim}
+...
+
+\section{Simulink Interface}
+\label{sec:SimulinkInterface}
+This section describes how the Simulink Interface available
+within the MBDyn package has been successfully compiled and executed.
+By no means it is intended to suggest how the related packages
+should be built for other purposes, nor it may represent a replacement
+for the original build and install procedures.
+Please refer to the documentation available with each package
+for more details or for troubleshooting.
+An analogous interface with Scicos \cite{SCICOS}
+is described in Section~\ref{sec:ScicosInterface}.
+
+\noindent
+Software prerequisites:
+\begin{itemize}
+\item gcc/g++/g77 >= 3.0 (tested with gcc 3.3.1 and 3.4.0)
+\item Matlab/Simulink (tested with XXX)
+\end{itemize}
+Software requirements:
+\begin{itemize}
+\item MBDyn 1.2.1
+\end{itemize}
+
+\paragraph{MBDyn}
+\begin{itemize}
+\item download \kw{mbdyn-1.2.1.tar.gz} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item untar it in a temporary directory
+\item configure MBDyn by running
+\begin{verbatim}
+    $ ./configure
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install} the package
+\item in directory \kw{contrib/SimulinkInterface}, edit the file
+\kw{Makefile} such that the appropriate \kw{mex} compiler is used;
+in my system it is \kw{/opt/matlab/bin/mex}
+\item \kw{make} the package
+\end{itemize}
+
+\paragraph{Run It!} \mbox{} \\
+To test the system, one needs a test input file; the example
+\kw{pendulum} in the subdirectory \kw{examples}
+should do the trick.
+\begin{itemize}
+\item start Matlab
+\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's
+path, by executing
+\begin{verbatim}
+    > path('<path/to>/contrib/SimulinkInterface', path);
+\end{verbatim}
+\item execute simulink by clicking on the related icon, or by running
+\begin{verbatim}
+    > simulink
+\end{verbatim}
+\item open the model by clicking \kw{File->Open} on the menubar
+\item run the model by clicking \kw{Simulation->Start} on the menubar.
+some times, the first run fails; we're still trying to track that down.
+In case, just try again...
+\item for more details on creating your own model, or on editing
+the interface parameters, refer to the \kw{README}
+in \kw{contrib/SimulinkInterface}
+\end{itemize}
+
+\section{Scicos Interface}
+\label{sec:ScicosInterface}
+This section describes how the Scicos \cite{SCICOS} interface available
+within the MBDyn package has been successfully compiled and executed.
+By no means it is intended to suggest how the related packages
+should be built for other purposes, nor it may represent a replacement
+for the original build and install procedures.
+Please refer to the documentation available with each package
+for more details or for troubleshooting.
+
+An analogous interface with Simulink \cite{SIMULINK}
+is described in Section~\ref{sec:SimulinkInterface}.
+
+\begin{comment}
+
+\bigskip
+
+\noindent
+Software prerequisites:
+\begin{itemize}
+\item gcc/g++/g77 >= 3.0 (tested with gcc 3.3.1 and 3.4.0)
+\item Matlab/Simulink (tested with XXX)
+\end{itemize}
+Software requirements:
+\begin{itemize}
+\item MBDyn 1.2.1
+\end{itemize}
+
+\paragraph{MBDyn}
+\begin{itemize}
+\item download \kw{mbdyn-1.2.1.tar.gz} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item untar it in a temporary directory
+\item configure MBDyn by running
+\begin{verbatim}
+    $ ./configure
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install} the package
+\item in directory \kw{contrib/SimulinkInterface}, edit the file
+\kw{Makefile} such that the appropriate \kw{mex} compiler is used;
+in my system it is \kw{/opt/matlab/bin/mex}
+\item \kw{make} the package
+\end{itemize}
+
+\paragraph{Run It!} \mbox{} \\
+To test the system, one needs a test input file; the example
+\kw{pendulum} in the subdirectory \kw{examples}
+should do the trick.
+\begin{itemize}
+\item start Matlab
+\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's
+path, by executing
+\begin{verbatim}
+    > path('<path/to>/contrib/SimulinkInterface', path);
+\end{verbatim}
+\item execute simulink by clicking on the related icon, or by running
+\begin{verbatim}
+    > simulink
+\end{verbatim}
+\item open the model by clicking \kw{File->Open} on the menubar
+\item run the model by clicking \kw{Simulation->Start} on the menubar.
+some times, the first run fails; we're still trying to track that down.
+In case, just try again...
+\item for more details on creating your own model, or on editing
+the interface parameters, refer to the \kw{README}
+in \kw{contrib/SimulinkInterface}
+\end{itemize}
+
+\end{comment}
+
+
+
+
+\chapter{Developers}
+
+\section{Prepare for Building}
+Developers need to prepare the build environment by running
+\begin{verbatim}
+    $ ./bootstrap.sh
+\end{verbatim}
+This need appropriate versions of the autotools:
+\begin{itemize}
+\item \kw{automake}: there seems to be no special version requirement;
+\item \kw{autoconf}: there seems to be no special version requirement;
+\item \kw{libtool}: needs to be at least version 1.5.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../mybib,../mbdyn}
+
+
+\end{document}

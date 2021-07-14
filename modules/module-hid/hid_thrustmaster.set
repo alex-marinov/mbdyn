@@ -1,0 +1,70 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+# I: Bus=0003 Vendor=044f Product=b108 Version=0100
+# N: Name="Thrustmaster T.Flight Hotas X"
+
+# counters
+set: JOYSTICK_N_BUTTONS = 12;
+set: JOYSTICK_N_LC = 7;
+
+set: JOYSTICK_LC_OFFSET = 0;
+set: JOYSTICK_BUTTON_OFFSET = JOYSTICK_N_LC;
+
+# aircraft controls
+set: JOYSTICK_AILERONS = JOYSTICK_LC_OFFSET + 1;
+set: JOYSTICK_ELEVATOR = JOYSTICK_LC_OFFSET + 2;
+set: JOYSTICK_THROTTLE = JOYSTICK_LC_OFFSET + 3;
+set: JOYSTICK_RUDDER = JOYSTICK_LC_OFFSET + 4;
+# note: rudder both by turning joystick and buttons on throttle (4)
+# where is 5?
+# lateral trim: 6
+# longitudinal trim: 7
+
+# helicopter controls
+set: JOYSTICK_CYCLIC_LATERAL = JOYSTICK_AILERONS;
+set: JOYSTICK_CYCLIC_LONGITUDINAL = JOYSTICK_ELEVATOR;
+set: JOYSTICK_COLLECTIVE = JOYSTICK_THROTTLE;
+set: JOYSTICK_PEDALS = JOYSTICK_RUDDER;
+
+# buttons
+set: JOYSTICK_BUTTON_1 = JOYSTICK_BUTTON_OFFSET + 1;
+set: JOYSTICK_BUTTON_2 = JOYSTICK_BUTTON_OFFSET + 2;	# L1 (2)
+set: JOYSTICK_BUTTON_3 = JOYSTICK_BUTTON_OFFSET + 3;	# R3 (3)
+set: JOYSTICK_BUTTON_4 = JOYSTICK_BUTTON_OFFSET + 4;	# L3 (4)
+set: JOYSTICK_BUTTON_5 = JOYSTICK_BUTTON_OFFSET + 5;	# diamond (5)
+set: JOYSTICK_BUTTON_6 = JOYSTICK_BUTTON_OFFSET + 6;	# plus (6)
+set: JOYSTICK_BUTTON_7 = JOYSTICK_BUTTON_OFFSET + 7;	# circle (7)
+set: JOYSTICK_BUTTON_8 = JOYSTICK_BUTTON_OFFSET + 8;	# triangle (8)
+set: JOYSTICK_BUTTON_9 = JOYSTICK_BUTTON_OFFSET + 9;	# R2 (9)
+set: JOYSTICK_BUTTON_10 = JOYSTICK_BUTTON_OFFSET + 10;	# L2 (10)
+set: JOYSTICK_BUTTON_11 = JOYSTICK_BUTTON_OFFSET + 11;	# SE
+set: JOYSTICK_BUTTON_12 = JOYSTICK_BUTTON_OFFSET + 12;	# ST
+
+set: JOYSTICK_TRIGGER = JOYSTICK_BUTTON_1;

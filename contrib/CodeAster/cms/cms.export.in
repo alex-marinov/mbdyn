@@ -1,0 +1,14 @@
+P actions make_etude
+P version STA@ASTERVERSION@
+P debug nodebug
+P mode interactif
+P ncpus 1
+A memjeveux 8.0
+A tpmax 600
+P corefilesize unlimited
+F mail @WORKDIR@/@MAILFNAME@ D 20
+F comm @WORKDIR@/@COMMFNAME@ D 1
+F erre @WORKDIR@/x.erre R 9
+F para @WORKDIR@/x.para R 0
+F mess @WORKDIR@/x.mass R 6
+F resu @WORKDIR@/x.resu R 8

@@ -1,0 +1,375 @@
+ADAMS/View model name: model1
+!
+!-------------------------------- SYSTEM UNITS ---------------------------------
+!
+UNITS/FORCE = NEWTON, MASS = KILOGRAM, LENGTH = METER, TIME = SECOND
+!
+!---------------------- STATEMENTS FROM ORIGINAL DATASET -----------------------
+!
+!                            adams_view_name='steel'
+MATERIAL/1, NAME = steel, YOUNGS_MODULUS = 2.07E+11, POISSONS_RATIO = 0.29
+, DENSITY = 7801
+!
+!                            adams_view_name='ground'
+PART/1, GROUND, MATERIAL = steel
+!
+!                            adams_view_name='MAR_1'
+MARKER/17172491, PART = 1, REULER = 90D, 90D, 0D
+!
+!                         adams_view_name='FMA17172508'
+MARKER/17172508, PART = 1, FLOATING
+!
+!                         adams_view_name='rif_terreno'
+MARKER/17172509, PART = 1, QP = 0, 0, 2.4
+!
+!                            adams_view_name='MAR_2'
+MARKER/17172510, PART = 1, QP = 4.9796, 0.01, 1.7924
+!
+!                            adams_view_name='PART_1'
+PART/4, CM = 13, IP = 0, 0, 0, VX = 44.75
+!
+!                            adams_view_name='MAR_1'
+MARKER/12, PART = 4, REULER = 270D, 90D, 178.4989609D
+!
+!                              adams_view_name='cm'
+MARKER/13, PART = 4
+!
+!                            adams_view_name='MAR_2'
+MARKER/17172493, PART = 4, REULER = 90D, 90D, 0D
+!
+!                            adams_view_name='MAR_5'
+MARKER/17172496, PART = 4, QP = 0.35, 0, 0
+!
+!                          adams_view_name='gamba_ant'
+PART/11, MASS = 502.03625, CM = 48, IP = 0.5086994843, 0.5118560751
+, 0.0552718941, VX = 44.75, VZ = 3.9
+!
+!                            adams_view_name='MAR_1'
+MARKER/47, PART = 11, QP = 5.1178, 0.01, 0.9685
+!
+!                              adams_view_name='cm'
+MARKER/48, PART = 11, QP = 5.148070182, 0.0100000788, 1.26224821
+, REULER = 90.00002242D, 13.79887436D, 270.0108212D
+!
+!                            adams_view_name='MAR_11'
+MARKER/49, PART = 11, QP = 5.1178, 0.01, 0.9685
+!
+!                            adams_view_name='MAR_12'
+MARKER/50, PART = 11, QP = 5.1178, -0.04, 1.0412, REULER = 180D, 90D, 90D
+!
+!                            adams_view_name='MAR_13'
+MARKER/51, PART = 11, QP = 5.1178, 0.01, 1.3317, REULER = 90D, 35.40808213D
+, 270D
+!
+!                           adams_view_name='MAR_111'
+MARKER/52, PART = 11, QP = 5.374056911, 0.01, 1.433290578, REULER = 0D, 90D
+, 234.5919179D
+!
+!                            adams_view_name='MAR_14'
+MARKER/53, PART = 11, QP = 5.2518, 0.06, 1.5202, REULER = 0D, 90D, 90D
+!
+!                            adams_view_name='MAR_15'
+MARKER/54, PART = 11, QP = 5.1178, 0.01, 1.5478, REULER = 180D, 180D, 0D
+!
+!                            adams_view_name='MAR_2'
+MARKER/55, PART = 11, QP = 5.2518, 0.01, 1.5202, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_3'
+MARKER/56, PART = 11, QP = 5.1178, 0.01, 1.0412, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_4'
+MARKER/17172498, PART = 11, QP = 0.35, 0, 0
+!
+!                        adams_view_name='forchetta_ant'
+PART/12, CM = 58, IP = 0, 0, 0, VX = 44.75, VZ = 3.9
+!
+!                            adams_view_name='MAR_1'
+MARKER/57, PART = 12, QP = 4.9796, 0.105, 1.7924, REULER = 0D, 90D, 90D
+!
+!                              adams_view_name='cm'
+MARKER/58, PART = 12, QP = 5.136768499, 0.01, 1.635231501, REULER = 270D, 45D
+, 90D
+!
+!                            adams_view_name='MAR_13'
+MARKER/59, PART = 12, QP = 4.968957288, -0.09, 1.803042713, REULER = 270D, 135D
+, 90D
+!
+!                            adams_view_name='MAR_11'
+MARKER/60, PART = 12, QP = 5.004312627, 0.01, 1.442418254, REULER = 90D, 45D
+, 90D
+!
+!                            adams_view_name='MAR_12'
+MARKER/61, PART = 12, QP = 5.166947186, -0.075, 1.605052814, REULER = 90D, 45D
+, 90D
+!
+!                            adams_view_name='MAR_2'
+MARKER/62, PART = 12, QP = 5.2518, 0.01, 1.5202, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_3'
+MARKER/63, PART = 12, QP = 5.1178, 0.01, 1.5478, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='mozzo'
+MARKER/17172500, PART = 12, QP = 4.9796, 0.01, 1.7924, REULER = 0D, 90D, 90D
+!
+!                            adams_view_name='MAR_5'
+MARKER/17172503, PART = 12, QP = 4.9796, 0.01, 1.7924, REULER = 180D, 90D, 180D
+!
+!                        adams_view_name='stelo_ammo_ant'
+PART/13, CM = 65, IP = 0, 0, 0, VX = 44.75, VZ = 3.9
+!
+!                            adams_view_name='MAR_1'
+MARKER/64, PART = 13, QP = 5.1178, 0.01, 1.5478, REULER = 180D, 180D, 0D
+!
+!                              adams_view_name='cm'
+MARKER/65, PART = 13, QP = 5.1178, 0.01, 1.3978
+!
+!                            adams_view_name='MAR_2'
+MARKER/66, PART = 13, QP = 5.1178, 0.01, 1.5478, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_3'
+MARKER/67, PART = 13, QP = 5.1178, 0.01, 1.3317
+!
+!                            adams_view_name='MAR_4'
+MARKER/78, PART = 13, QP = 5.1178, 0.01, 1.5478
+!
+!                            adams_view_name='MAR_5'
+MARKER/79, PART = 13, QP = 5.1178, 0.01, 1.5478
+!
+!                            adams_view_name='MAR_6'
+MARKER/80, PART = 13, QP = 5.1178, 0.01, 1.5478
+!
+!                          adams_view_name='CYLINDER_1'
+GRAPHICS/41, CYLINDER, CM = 64, LENGTH = 0.3, RADIUS = 0.03
+!
+!                       adams_view_name='camicia_ammo_ant'
+PART/14, CM = 69, IP = 0, 0, 0, VX = 44.75, VZ = 3.9
+!
+!                            adams_view_name='MAR_1'
+MARKER/68, PART = 14, QP = 5.1178, 0.01, 1.0412
+!
+!                              adams_view_name='cm'
+MARKER/69, PART = 14, QP = 5.1178, 0.01, 1.2162
+!
+!                            adams_view_name='MAR_2'
+MARKER/70, PART = 14, QP = 5.1178, 0.01, 1.0412, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_3'
+MARKER/71, PART = 14, QP = 5.1178, 0.01, 1.3317
+!
+!                            adams_view_name='MAR_4'
+MARKER/81, PART = 14, QP = 5.1178, 0.01, 1.0412
+!
+!                            adams_view_name='MAR_5'
+MARKER/82, PART = 14, QP = 5.1178, 0.01, 1.0412
+!
+!                            adams_view_name='MAR_6'
+MARKER/83, PART = 14, QP = 5.1178, 0.01, 1.0412
+!
+!                          adams_view_name='CYLINDER_1'
+GRAPHICS/42, CYLINDER, CM = 68, LENGTH = 0.35, RADIUS = 0.02
+!
+!                            adams_view_name='ruota'
+PART/15, MASS = 19.614, CM = 17172505, IP = 0.1393, 0.1118, 0.1393
+, MATERIAL = steel
+!
+!                            adams_view_name='MAR_1'
+MARKER/17172504, PART = 15, QP = 4.9796, -0.045, 1.7924, REULER = 180D, 90D
+, 180D
+!
+!                              adams_view_name='cm'
+MARKER/17172505, PART = 15, QP = 4.9796, 0.01, 1.7924
+!
+!                            adams_view_name='MAR_3'
+MARKER/17172507, PART = 15, QP = 4.9796, 0.01, 1.7924, REULER = 180D, 90D, 180D
+!
+!                            adams_view_name='MAR_2'
+MARKER/17172511, PART = 15, QP = 4.9796, 0.01, 1.7924
+!
+!                          adams_view_name='CYLINDER_1'
+GRAPHICS/50, CYLINDER, CM = 17172504, LENGTH = 0.11, RADIUS = 0.2197
+!
+!                   adams_view_name='FORCE_1_force_graphic_7'
+GRAPHICS/46, FORCE, ETYPE = SFORCE, EID = 7, EMARKER = 81
+!
+!                   adams_view_name='FORCE_1_force_graphic_8'
+GRAPHICS/47, FORCE, ETYPE = SFORCE, EID = 8, EMARKER = 82
+!
+!                   adams_view_name='FORCE_1_force_graphic_9'
+GRAPHICS/48, FORCE, ETYPE = SFORCE, EID = 9, EMARKER = 83
+!
+!                   adams_view_name='GFORCE_1_force_graphic_2'
+GRAPHICS/51, FORCE, ETYPE = GFORCE, EID = 1, EMARKER = 17172511
+!
+!                           adams_view_name='JOINT_3'
+JOINT/9, REVOLUTE, I = 55, J = 62
+!
+!                           adams_view_name='JOINT_4'
+JOINT/10, REVOLUTE, I = 56, J = 70
+!
+!                           adams_view_name='JOINT_5'
+JOINT/11, REVOLUTE, I = 66, J = 63
+!
+!                           adams_view_name='JOINT_6'
+JOINT/12, TRANSLATIONAL, I = 67, J = 71
+!
+!                           adams_view_name='JOINT_7'
+JOINT/17173506, TRANSLATIONAL, I = 17172493, J = 17172491
+!
+!                           adams_view_name='JOINT_10'
+JOINT/17173509, TRANSLATIONAL, I = 17172496, J = 17172498
+!
+!                            adams_view_name='mozzo'
+JOINT/17173510, REVOLUTE, I = 17172507, J = 17172503
+!
+!                          adams_view_name='molla_ant'
+SFORCE/7, TRANSLATIONAL, I = 81, J = 78, FUNCTION = 1.8005652E+06*2.023E-03*
+,(0.175/(0.175-
+,1.3*(0.5066-
+,DM(68,
+,64)
+,)))**1.2
+!
+!                          adams_view_name='smorz_ant'
+SFORCE/8, TRANSLATIONAL, I = 82, J = 79, FUNCTION = -0.5*919.70046*3.445E-03**3*
+,VR(78, 81)*
+,ABS(VR(78, 81))/
+,((IF(VR(78, 81):
+,0.0000349,0.0000349,0.0000114)-
+,IF((0.5066-
+,DM(68,64)):
+,0,0,((0.0000102-0.000008)/.03*(0.5066-
+,DM(68,64))))+
+,IF((0.5066-
+,DM(68,64)-.03):
+,0,0,((0.0000102-0.000008)/.03*(0.5066-
+,DM(68,64)-
+,.03)))-
+,IF((0.5066-
+,DM(68,64)-.06):
+,0,0,((0.000008-0.0000046)/.02*(0.5066-
+,DM(68,64)-
+,.06)))+
+,IF((0.5066-
+,DM(68,64)-.08):
+,0,0,((0.000008-0.0000046)/.02*(0.5066-
+,DM(68,64)-
+,.08)))-
+,IF((0.5066-
+,DM(68,64)-.08):
+,0,0,((0.0000046-0.000002)/.02*(0.5066-
+,DM(68,64)-
+,.08)))+
+,IF((0.5066-
+,DM(68,64)-.1):
+,0,0,((0.0000046-0.000002)/.02*(0.5066-
+,DM(68,64)-
+,.1)))-
+,IF((0.5066-
+,DM(68,64)-.1):
+,0,0,((0.000002)/.025*(0.5066-
+,DM(68,64)-
+,.1)))+
+,IF((0.5066-
+,DM(68,64)-.125):
+,0,0,((0.000002)/.025*(0.5066-
+,DM(68,64)-
+,.125))))*0.85)**2
+!
+!                          adams_view_name='fermo_ant'
+SFORCE/9, TRANSLATIONAL, I = 83, J = 80, FUNCTION = -IMPACT(0.1+0.5066-
+,DM(68, 64),
+, -VR(78, 81),
+, 0.10085, 1.0E+007, 1.0, 1.0E+006, 1.0E-006)
+!
+!                           adams_view_name='GFORCE_1'
+GFORCE/1, I = 17172511, JFLOAT = 17172508, RM = 17172510, FUNCTION = USER(7, 8,
+, 9, 1.7172509E+07, 1.71725E+07, 1.7172505E+07, 1, 2)
+!
+!                        adams_view_name='corsa_ammo_ant'
+VARIABLE/1, FUNCTION = 0.5066-
+,DM(68,
+,64)
+!
+!                         adams_view_name='sez_traf_ant'
+VARIABLE/2, FUNCTION = (IF(VR(78, 81):
+,0.0000349,0.0000349,0.0000114)-
+,IF((0.5066-
+,DM(68,64)):
+,0,0,((0.0000102-0.000008)/.03*(0.5066-
+,DM(68,64))))+
+,IF((0.5066-
+,DM(68,64)-.03):
+,0,0,((0.0000102-0.000008)/.03*(0.5066-
+,DM(68,64)-
+,.03)))-
+,IF((0.5066-
+,DM(68,64)-.06):
+,0,0,((0.000008-0.0000046)/.02*(0.5066-
+,DM(68,64)-
+,.06)))+
+,IF((0.5066-
+,DM(68,64)-.08):
+,0,0,((0.000008-0.0000046)/.02*(0.5066-
+,DM(68,64)-
+,.08)))-
+,IF((0.5066-
+,DM(68,64)-.08):
+,0,0,((0.0000046-0.000002)/.02*(0.5066-
+,DM(68,64)-
+,.08)))+
+,IF((0.5066-
+,DM(68,64)-.1):
+,0,0,((0.0000046-0.000002)/.02*(0.5066-
+,DM(68,64)-
+,.1)))-
+,IF((0.5066-
+,DM(68,64)-.1):
+,0,0,((0.000002)/.025*(0.5066-
+,DM(68,64)-
+,.1)))+
+,IF((0.5066-
+,DM(68,64)-.125):
+,0,0,((0.000002)/.025*(0.5066-
+,DM(68,64)-
+,.125))))
+!
+!                         adams_view_name='vel_ammo_ant'
+VARIABLE/3, FUNCTION = VR(78,
+, 81)
+!
+!                        adams_view_name='forza_viscosa'
+VARIABLE/4, FUNCTION = STEP(VR(81,
+,78), -0.1, 1.0, 0.1, -1.0)*
+,((SFORCE(8, 0, 2, 0)**2+
+,SFORCE(8, 0, 3, 0)**2+
+,SFORCE(8, 0, 4, 0)**2)**0.5)
+!
+!                        adams_view_name='forza_elastica'
+VARIABLE/5, FUNCTION = ((SFORCE(7, 0, 2, 0)**2+
+,SFORCE(7, 0, 3, 0)**2+
+,SFORCE(7, 0, 4, 0)**2)**0.5)
+!
+!                          adams_view_name='forza_ammo'
+VARIABLE/6, FUNCTION = VARVAL(4)+VARVAL(5)
+!
+!                         adams_view_name='ORIENT_MEA_4'
+VARIABLE/7, FUNCTION = ORIENT(29,7,17172500,0)
+!
+!                         adams_view_name='ORIENT_MEA_5'
+VARIABLE/8, FUNCTION = ORIENT(29,8,17172500,0)
+!
+!                         adams_view_name='ORIENT_MEA_6'
+VARIABLE/9, FUNCTION = ORIENT(29,9,17172500,0)
+!
+!                             adams_view_name='ARR'
+ARRAY/1, IC, SIZE = 20, NUMBERS = 0.2197, 0.055, 3, 0, 0, 8.50267E+05, 0.7, 20
+, 0.2, 0, 1.3, 0.05, 1, 30, 1.0E+10, 0.5, 0.3, 1, 0.8, 1
+!
+!                           adams_view_name='ARRAY_2'
+ARRAY/2, IC, SIZE = 6, NUMBERS = 0, 0.1, 1, 0, 0.7, 0.25
+!
+OUTPUT/REQSAVE, GRSAVE
+!
+RESULTS/
+!
+END

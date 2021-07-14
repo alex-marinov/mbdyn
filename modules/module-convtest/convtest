@@ -1,0 +1,27 @@
+# $Header$
+
+begin: data;
+	integrator: multistep;
+end: data;
+
+begin: multistep;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1e-2;
+
+	max iterations: 20;
+	tolerance: 1e-12;
+
+	derivatives max iterations: 20;
+	derivatives tolerance: 1e-12;
+
+	# output: iterations;
+end: multistep;
+
+begin: control data;
+	loadable elements: 1;
+end: control data;
+
+begin: elements;
+	loadable: 1, "./module-convtest.so", 10;
+end: elements;

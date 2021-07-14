@@ -1,0 +1,36 @@
+These Blender Python scripts were developed on a Linux  
+workstation, and with the exception of the GameBlender 
+functionality they have occasionally been shown to work
+on a Microsoft Windows operating system.
+
+First, install Blender 2.46+ from http://www.blender.org 
+and mbdyn-1.3.6+ from http://www.aero.polimi.it/~mbdyn/
+
+Note for Windows users:
+MBDyn binary executables are available at 
+http://www.aero.polimi.it/~masarati/Download/mbdyn ,
+
+The following executable was shown to work with v0.1.2 of this script
+http://www.aero.polimi.it/~masarati/Download/mbdyn/mbdyn-msys-1.3.4-Beta.exe.
+Copy and rename the executable as C:\Program Files\MBDyn\mbdyn.exe, then
+look in the mbdyn_gui.py if you encounter errors
+
+Both Blender and MBDyn have websites providing extensive 
+installation and usage instructions.
+
+After you have both of these programs working, the two 
+Python scripts of this package into a Blender accessible folder,
+for instance: 
+~/.blender/scripts in Debian Linux, or
+C:\Program Files\Blender Foundation\Blender\.blender\scripts
+   for Windows.
+
+Then start Blender, and in your Python Window click Scripts -> Update Menus.
+You will then find that the MBDyn script can be run from your Python Window 
+by clicking Scripts -> Animation -> MBDyn
+
+Video tutorials are available from www.vimeo.com/baldwin, the home page of 
+www.baldwintechnology.com, and at www.baldwintechnology.com/blender.html
+
+Please use Sourceforge for feature requests and bug reports.
+

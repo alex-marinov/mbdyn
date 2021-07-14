@@ -1,0 +1,161 @@
+# $Header$
+#
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#===============================================================================
+# Title:	Example command file for MBDyn modal joint data creation
+#		with Code Aster
+# Author:	Pierangelo Masarati <pierangelo.masarati at polimi.it>
+# Date:		July-August 2008, during a visit to EDF (LaMSID at Clamart, F)
+# 
+# This file is an example command file for the generation of MBDyn's modal
+# joint data using Code Aster <http://www.code-aster.org/>, the free FEM
+# solver developed by EDF.
+# It was inspired by the work done by Giulio Romanelli and Elisa Serioli
+# for their graduation thesis.  Lots of material was copied and modified
+# from the distributed documentation and examples.
+# Many thanks to Michael Abbas and Sylvain Mazet for their support;
+# and thanks also to Patrick Massin for making the visit and the cooperation
+# possible.
+#
+#===============================================================================
+# LOG:
+# 2007-07-29: normal modes + Craig-Bampton works
+# 2007-07-29: file creation works
+# 2007-07-31: turned into macro
+#
+#===============================================================================
+# TODO:
+# - diagonal of mass matrix output
+# - add inertia relief
+
+#===============================================================================
+#===============================================================================
+#===============================================================================
+# Example command file for MBDyn modal data generation
+# Modify the parameters below to suit your needs
+#===============================================================================
+#===============================================================================
+#===============================================================================
+
+#===============================================================================
+#===============================================================================
+#===============================================================================
+# In this example, one extremity is used as interface,
+# while the other is clamped.
+# As such, the normal modes with clamped extremities
+# are augmented by 6 interface modes related to the unclamped end.
+
+#===============================================================================
+# import mesh manipulation code
+# NOTE: probably this stuff is not yet available in distributed code...
+from Utilitai.partition import *
+
+# Path to macro
+path_to_cms_macro = '/home/masarati/Lavoro/mbdyn/mbdyn-src/contrib/CodeAster/cms';
+
+#
+# name of interface node group
+cms_interface = "EXTREMIT";
+#
+# name of the exposed nodes group
+# NOTE: cms_exposed could default to cms_interface
+# NOTE: cms_exposed should be "all nodes" if higher-order inertia is needed
+# cms_exposed = cms_interface;
+cms_exposed = "CMS_EXPO";
+# cms_exposed = 'TOUT_NO';
+#
+# output file name
+# NOTE: must become a parameter
+cms_outfname = "/tmp/mbdyn.fem";
+
+#===============================================================================
+#===============================================================================
+#===============================================================================
+# set path to macro
+import sys
+sys.path.append(path_to_cms_macro);
+from cms import CMS
+
+
+#===============================================================================
+# NOTE: PAR_LOT needs to be 'NON' to allow run-time manipulation
+# NOTE: not sure about DEBUG...
+DEBUT( PAR_LOT = 'NON', DEBUG = _F( SDVERI = 'OUI' ) );
+
+#===============================================================================
+# load mesh
+# NOTE: not specific to CMS, but needs to be known to generate CMS data
+ma = LIRE_MAILLAGE( );
+
+#===============================================================================
+# associate mesh to modeling
+# NOTE: not specific to CMS
+mo = AFFE_MODELE( MAILLAGE = ma,
+                  AFFE = _F( GROUP_MA = 'TOUT_MA',
+                             PHENOMENE = 'MECANIQUE',
+                             MODELISATION = 'POU_D_E') );
+caele = AFFE_CARA_ELEM( MODELE = mo,
+                       POUTRE = _F( GROUP_MA = 'TOUT_MA',
+                                    SECTION = 'CERCLE',
+                                    CARA = ( 'R', 'EP' ),
+                                    VALE = ( 0.15,  0.03 ) ) );
+
+#===============================================================================
+# associate material properties to modeling
+# NOTE: not specific to CMS
+mat = DEFI_MATERIAU( ELAS = _F( E = 2.1E+11,
+                                NU = 0.3,
+                                RHO = 7800.0 ) );
+chmat = AFFE_MATERIAU( MAILLAGE = ma,
+                       AFFE = _F( GROUP_MA = 'TOUT_MA',
+                                  MATER = mat ) );
+
+chbc = AFFE_CHAR_MECA(	MODELE = mo,
+			DDL_IMPO = ( _F( GROUP_NO = 'CLAMP',
+					DX = 0., DY = 0., DZ = 0.,
+					DRX = 0., DRY = 0., DRZ = 0. ) ) );
+#===============================================================================
+# this is the CMS macro that does the whole thing
+# NOTE: need to pass the complete path to the file,
+#	otherwise it's not clear where it gets written
+genm = CMS(	MAILLAGE = ma,
+		MODELE = mo,
+		CARA_ELEM = caele,
+		CHAM_MATER = chmat,
+		CHAR_MECA = chbc,
+		INTERFACE = cms_interface,
+		EXPOSED = _F( GROUP_NO = cms_exposed ),
+		OUT = _F(	TYPE = 'MBDYN',
+				FICHIER = cms_outfname )
+		);
+
+#===============================================================================
+FIN();
+

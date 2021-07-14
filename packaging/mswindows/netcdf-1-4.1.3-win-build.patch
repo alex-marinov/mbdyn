@@ -1,0 +1,71 @@
+diff -Naur netcdf-4.1.3/fortran/nfconfig.in netcdf-4.1.3-patched/fortran/nfconfig.in
+--- netcdf-4.1.3/fortran/nfconfig.in	2011-06-30 19:23:31.000000000 -0400
++++ netcdf-4.1.3-patched/fortran/nfconfig.in	2012-01-23 15:25:44.353873554 -0500
+@@ -43,18 +43,18 @@
+    FORTRAN datatype, respectively.  If the respective FORTRAN datatype
+    does not exist, then do not define the corresponding macro.
+ #endif
+-#undef NF_INT1_IS_C_SIGNED_CHAR
++#define NF_INT1_IS_C_SIGNED_CHAR 1
+ #undef NF_INT1_IS_C_SHORT
+ #undef NF_INT1_IS_C_INT
+ #undef NF_INT1_IS_C_LONG
+-#undef NF_INT2_IS_C_SHORT
++#define NF_INT2_IS_C_SHORT 1
+ #undef NF_INT2_IS_C_INT
+ #undef NF_INT2_IS_C_LONG
+-#undef NF_INT_IS_C_INT
++#define NF_INT_IS_C_INT 1
+ #undef NF_INT_IS_C_LONG
+-#undef NF_REAL_IS_C_FLOAT
++#define NF_REAL_IS_C_FLOAT 1
+ #undef NF_REAL_IS_C_DOUBLE
+-#undef NF_DOUBLEPRECISION_IS_C_DOUBLE
++#define NF_DOUBLEPRECISION_IS_C_DOUBLE 1
+ #undef NF_DOUBLEPRECISION_IS_C_FLOAT
+ 
+ 
+diff -Naur netcdf-4.1.3/libcf/nfconfig.in netcdf-4.1.3-patched/libcf/nfconfig.in
+--- netcdf-4.1.3/libcf/nfconfig.in	2011-06-30 19:22:14.000000000 -0400
++++ netcdf-4.1.3-patched/libcf/nfconfig.in	2012-01-23 15:25:17.155485974 -0500
+@@ -43,21 +43,22 @@
+    FORTRAN datatype, respectively.  If the respective FORTRAN datatype
+    does not exist, then do not define the corresponding macro.
+ #endif
+-#undef NF_INT1_IS_C_SIGNED_CHAR
++#define NF_INT1_IS_C_SIGNED_CHAR 1
+ #undef NF_INT1_IS_C_SHORT
+ #undef NF_INT1_IS_C_INT
+ #undef NF_INT1_IS_C_LONG
+-#undef NF_INT2_IS_C_SHORT
++#define NF_INT2_IS_C_SHORT 1
+ #undef NF_INT2_IS_C_INT
+ #undef NF_INT2_IS_C_LONG
+-#undef NF_INT_IS_C_INT
++#define NF_INT_IS_C_INT 1
+ #undef NF_INT_IS_C_LONG
+-#undef NF_REAL_IS_C_FLOAT
++#define NF_REAL_IS_C_FLOAT 1
+ #undef NF_REAL_IS_C_DOUBLE
+-#undef NF_DOUBLEPRECISION_IS_C_DOUBLE
++#define NF_DOUBLEPRECISION_IS_C_DOUBLE 1
+ #undef NF_DOUBLEPRECISION_IS_C_FLOAT
+ 
+ 
++
+ #if 0
+    Whether the system uses something besides the IEEE floating-point
+    format to represent floating-point values.
+diff -Naur netcdf-4.1.3/libdispatch/v2i.c netcdf-4.1.3-patched/libdispatch/v2i.c
+--- netcdf-4.1.3/libdispatch/v2i.c	2011-06-30 19:22:19.000000000 -0400
++++ netcdf-4.1.3-patched/libdispatch/v2i.c	2012-01-23 15:26:07.476053281 -0500
+@@ -38,7 +38,8 @@
+  * any additional cost was lost in measurement variation.
+  */
+ 
+-# include "onstack.h"
++# include "nc.h"
++# include "../libsrc/onstack.h"
+ 
+ static size_t
+ nvdims(int ncid, int varid)

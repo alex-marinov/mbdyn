@@ -1,0 +1,12 @@
+This library has been obtained from
+
+	http://www.netlib.org/y12m/index.html
+
+there's a download form to get the source code 
+(follow the ``y12m.f plus dependencies'' link). 
+It seems there's no copyright or license, so 
+the MBDyn Project distributes the library 
+AS IS and WITHOUT ANY WARRANTY as part of the 
+source code, with no copyright statement and 
+no license.
+

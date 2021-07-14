@@ -1,0 +1,294 @@
+% $Header$
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+%
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Overview}\label{sec:OVERVIEW}
+This chapter gives a global overview of the structure of the input file.
+
+
+\section{Execution}
+MBDyn is a command-line tool.
+This means that in order to execute it, one needs to start the executable
+from a terminal, and, as a minimum, pass it some indications about the problem
+it must analyze.
+
+Usually, this is done by preparing one or more input files that describe
+the model and the analysis that needs to be performed.
+
+\subsection{Passing the Input}
+The input file can be passed either using a specific switch
+(\texttt{-f}, preferred),
+or by listing multiple input file names on the command line.
+In the latter case, the analyses are executed in sequence.
+The format of the input file is the topic of most of this manual.
+If no input file is defined, MBDyn as a last resort tries to read
+from the standard input.
+As a consequence, the following commands are equivalent:
+\begin{verbatim}
+    # assuming file "input" exists in the current working directory and is readable...
+    $ mbdyn -f input
+    $ mbdyn input
+    $ mbdyn < input
+\end{verbatim}
+They are listed in order of preference.
+
+If the input file name consists of a path, either absolute or relative,
+the file can reside anywhere in the file system.
+In this case, MBDyn changes its current working directory
+(see \texttt{chdir(2)} for details)
+to the directory where the input file resides.
+As a consequence, the path of any included file is seen as relative
+to the directory where the file containing the \kw{include} directive
+is located (see Section~\ref{sec:INCLUDE} for details).
+
+
+
+\subsection{Passing the Output File Name}
+The output is stored in a family of files whose common name is passed
+through another switch (\texttt{-o}).
+Those files are formed by adding an extension specific to their contents
+to the output file name.
+If none is defined, the output file name defaults to \texttt{MBDyn}.
+
+If the argument of the \texttt{-o} switch consists of a path,
+either absolute or relative, and a file name,
+the full path up to the file name excluded must exist and be write-accessible.
+The output files are stored in the corresponding directory.
+Otherwise they are stored in the current working directory of the process
+at the time of its execution.
+
+If the argument of the \texttt{-o} switch consists of exactly a directory,
+either absolute or relative, without any file name,
+the name of the input file is used,
+but the output files are placed in the directory indicated in the argument
+of the \texttt{-o} switch.
+
+For example:
+\begin{verbatim}
+    $ mbdyn -f input                    # output in "input.<extension>"
+    $ mbdyn -f input -o output          # output in "output.<extension>"
+    $ mbdyn -f input -o folder/output   # output in "folder/output.<extension>"
+    $ mbdyn -f input -o folder/         # output in "folder/input.<extension>"
+    $ mbdyn < input                     # output in "MBDyn.<extension>"
+\end{verbatim}
+
+
+
+\section{Input File Structure}
+The input is divided in blocks.
+This is a consequence of the fact that almost every module of the code
+needs data and each module is responsible for its data input.
+So it is natural to make each module read and interpret its data starting
+from the input phase.
+
+Every statement (or `card') follows the syntax:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{description} [ : \bnt{arglist} ] ;
+\end{Verbatim}
+%\end{verbatim}
+\nt{arglist} is a(n optional) list of arguments, that is driven by the
+\nt{description} that identifies the card.
+The keyword can be made of multiple words separated by spaces or tabs;
+the extra spaces\footnote{
+	Anything that makes the C function \texttt{isspace()}
+	return \kw{true}
+} are skipped, and the match is case insensitive.
+The arguments are usually separated by commas\footnote{
+	A few exceptions require a colon to separate blocks of arguments;
+	wherever it is feasible, those exceptions will be eliminated
+	in future versions.
+	Those cards will be marked as deprecated.
+}.
+A semicolon ends the card.
+
+Many cards allow extra arguments that may assume default values
+if not supplied by the user.
+Usually these arguments are at the end of the card
+and must follow some rules.
+A check for the existence of extra args is made,
+and they are usually read in a fixed sequence.
+Optional args are usually prefixed by a keyword.
+
+When structured arguments like matrices, vectors, or drive callers are
+expected, they are parsed by dedicated functions.
+Anyway, the structured data always follows the rules of the general data.
+Few exceptions are present, and will be eliminated soon.
+Every data block is surrounded by the control statements \kw{begin} and
+\kw{end}:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \bnt{block_name} ;
+        # block content
+    \kw{end} : \bnt{block_name} ;
+\end{Verbatim}
+%\end{verbatim}
+The block sequence is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{data} ;
+        # select a problem
+        \kw{problem} : \bnt{problem_name} ;
+    \kw{end} : \kw{data} ;
+
+    \kw{begin} : \bnt{problem_name} ;
+        # problem-specific data
+    \kw{end} : \bnt{problem_name} ;
+
+    \kw{begin} : \kw{control data} ;
+        # model control data
+    \kw{end} : \kw{control data} ;
+
+    \kw{begin} : \kw{nodes} ;
+        # nodes data
+    \kw{end} : \kw{nodes} ;
+
+    # note: optional, if requested in \kw{control data}
+    \kw{begin} : \kw{drivers} ;
+        # special drivers data
+    \kw{end} : \kw{drivers} ;
+
+    \kw{begin} : \kw{elements} ;
+        # elements data
+    \kw{end} : \kw{elements} ;
+\end{Verbatim}
+%\end{verbatim}
+The \kw{drivers} block is optional.
+
+The Schur solver allows an extra block after that of the elements:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    # note: optional; only allowed when Schur solver is defined in \nt{problem_name}
+    \kw{begin} : \kw{parallel} ;
+        # parallel data
+    \kw{end} : \kw{parallel} ;
+\end{Verbatim}
+%\end{verbatim}
+where data specific to the partitioning and the connectivity
+of the Schur solver is provided.
+This is yet undocumented, and will likely be described
+in a future chapter.
+
+Chapter~\ref{sec:GENERAL} describes the basic and aggregate
+data structures that concur in building up the cards.
+Chapter~\ref{sec:DATA} describes problem selection options.
+Chapter~\ref{sec:PROBLEMS} describes the cards dedicated
+to the specification of the parameters of the simulation
+and of the selected integration scheme.
+Chapter~\ref{sec:CONTROL-DATA} describes the model control data.
+Chapter~\ref{sec:NODES} describes the cards related to the input
+of nodes.
+Nodes come first because they are the elementary blocks
+of the connectivity graph of the model, so historically
+they had to be defined before any element could be introduced.
+Chapter~\ref{sec:DRIVERS} describes the cards related
+to special drivers.
+Chapter~\ref{sec:ELEMENTS} describes the cards related to the input
+of elements.
+
+\subsection{Syntax Highlighting}
+To ease the creation of MBDyn file, several syntax highlighting plugins, for
+different text editors, can be used:
+
+\begin{itemize}
+  \item \textbf{Vim} 
+  (\htmladdnormallink{\texttt{http://www.vim.org/}}{http://www.vim.org/})
+  and its GUI variants: syntax highlighting for MBDyn can be activated by
+  adding the \bnt{mbdyn-directory}\kw{/var/mbd.vim} file to the
+  \kw{\textasciitilde{}/.vim/syntax/} folder;
+  %
+  \item \textbf{Geany} 
+  (\htmladdnormallink{\texttt{http://www.geany.org/}}{http://www.geany.org/})
+  : the way to add MBDyn syntax highlighting is given in Geany's wiki at
+  \htmladdnormallink{\texttt{http://wiki.geany.org/config/mbdyn}}{http://wiki.geany.org/config/mbdyn}.
+  %
+  \item \textbf{Kate and KWrite} 
+  (\htmladdnormallink{\texttt{https://kate-editor.org/}}{https://kate-editor.org/}):
+  instructions to add MBDyn syntax support can be found here:
+  \htmladdnormallink{\texttt{https://github.com/pietrodantuono/MBDynSyntaxHighlightingForKate}}{https://github.com/pietrodantuono/MBDynSyntaxHighlightingForKate};
+  %
+  \item \textbf{Atom} (\htmladdnormallink{\texttt{https://atom.io/}}{https://atom.io/}): the 
+  \textbf{language-mbdyn} package can be installed directly from the Atom 
+  \texttt{Preferences->Install}   panel: it provides both MBDyn syntax highlighting 
+  and autocompletion snippets.
+\end{itemize}
+
+\section{Output}
+The program outputs data to a set of files for each simulation.
+The contents of each file is related to the file extension,
+which is appended to the input file if no output file name
+is explicitly supplied.
+
+If no input file is explicitly provided as well, and thus input
+is directly read from \kw{stdin}, the output file name defaults
+to `MBDyn'.
+Otherwise, unless the output file name is explicitly set, the name
+of the input file is used.
+
+The contents of the output files are described within the description
+of the items (nodes or elements) that generate them.
+Only a general information file, with extension \texttt{.out},
+is described here.
+The file contains general information about the simulation;
+it is not formatted.
+
+The file contains occasional informational messages,
+prefixed by a hash mark (`\#').
+These messages should be intended as comments about the current status
+of the simulation.
+At some point, after initialization completes, the comment
+\begin{verbatim}
+# Step Time TStep NIter ResErr SolErr SolConv
+\end{verbatim}
+appears, which illustrates the contents of the lines that will be written
+for each time step.
+The fields indicate:
+\begin{enumerate}
+\item \texttt{Step}: the time step number;
+\item \texttt{Time}: the time at that step;
+\item \texttt{TStep}: the time step at that step
+	(\texttt{Time}$_k$ - \texttt{Time}$_{k-1}$);
+\item \texttt{NIter}: the number of iterations required to converge;
+\item \texttt{ResErr}: the error on the residual after convergence
+	(0 if not computed);
+\item \texttt{SolErr}: the error on the solution after convergence
+	(0 if not computed);
+\item \texttt{SolConv}: a boolean that indicates whether convergence
+	was determined by the error criterion on the residual
+	or on the solution (0 for residual, 1 for solution).
+\end{enumerate}
+
+There is also a supplementary file, with \texttt{.log} extension,
+that may contain extra (logging) information.
+Its content, although very experimental and subjected to changes,
+is documented in Appendix~\ref{sec:APP:LOGFILE}.
+
+\bigskip
+
+Experimental support for output using the NetCDF database format
+is available for selected items.
+See Appendix~\ref{sec:NETCDF} for details.

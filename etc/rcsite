@@ -1,0 +1,30 @@
+# $Header$
+# Tailor to your machine if you installed any package in uncommon way
+
+CPPFLAGS="\
+         -D__HACK_POD__ \
+         -D__HACK_POD_BINARY__ \
+         -I/home/marco/Math/UMFPACKv4.1/UMFPACK/Include \
+         -I/home/marco/Math/Taucs/src \
+         -I/home/marco/Math/Taucs/build/linux \
+	 "
+
+CFLAGS="-g -Wall -O2"
+#CFLAGS="-g -Wall"
+CXXFLAGS=$CFLAGS
+CC=gcc
+CXX=g++
+F77="g77 -O"
+
+# -rdynamic required to allow dynamic resolution of symbols in modules
+LDFLAGS="-rdynamic \
+        -L/home/marco/Math/UMFPACKv4.1/UMFPACK/Lib \
+        -L/home/marco/Math/UMFPACKv4.1/AMD/Lib \
+        -L/home/marco/Math/LAPACK \
+        -L/home/marco/Math/ATLAS/lib/Linux_ATHLONSSE1 \
+        -L/home/marco/Math/Taucs/lib/linux \
+	-L/home/marco/Math/Taucs/external/lib/linux \
+	"
+
+export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS CC CXX F77 LDFLAGS
+

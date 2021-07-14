@@ -1,0 +1,153 @@
+#
+# 	Gear joint - simple test 02
+# 	Simulation of a pair of spur gears with a different orientation
+# 	The x-axis (first axis) of both gears is contrained, instead of the z-axis (third axis).
+# 	Gear ratio = 0.1/0.3 = 1/3
+#
+#   Library of motion transmission components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 3.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-12;
+	max iterations: 10;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 1;
+   structural nodes: 3;
+   rigid bodies: 2;
+   joints: 3;
+end: control data;
+
+
+set: real r1 = 0.3;  # Radius of gear 1 [m]
+set: real r2 = 0.1;  # Radius of gear 2 [m]
+set: real w1 = 5.;   # Angular velocity of gear 1 [rad/s]
+
+set: integer gear1 = 0;
+set: integer gear2 = 1;
+
+# The relative position between gears does not have to be respected.
+# For example, the position of node 1 could be the same of node 2 (null = 0., 0., 0.).
+reference: gear1,
+	reference, global, 0., 0., r1+r2,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, w1, 0., 0.;
+
+reference: gear2,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	# Angular velocity (x-axis) of gear 2 calculated using gear ratio:
+	reference, global, -r1*w1/r2, 0., 0.;
+
+begin: nodes;
+
+   # reference node (no de referencia)
+   structural: 0, dynamic, 
+      null, 
+      eye, 
+      null, 
+      null; 
+   
+    # node of gear 1 (no da engrenagem 1):
+   structural: 1, dynamic, 
+      reference, gear1, null, 
+      eye, 
+      null, 
+      reference, gear1, null;
+   
+   # node of gear 2 (no da engrenagem 2):
+   structural: 2, dynamic, 
+      reference, gear2, null, 
+      eye, 
+      null, 
+      reference, gear2, null; 
+      
+end: nodes;
+
+
+begin: elements;
+
+	# In this simulation, reference node is clamped to the ground:
+	joint: 1, clamp, 0, node, node;
+
+	# This total joint constrains all dofs of gear 1, and impose 
+	# a rotation speed (5 rad/s) to its x-axis: 
+	joint: 2,
+	  total joint,
+		 0,
+		    position, reference, gear1, null,
+		    rotation orientation, reference, gear1, eye,
+		 1,
+		    position, reference, gear1, null,
+		    rotation orientation, reference, gear1, eye,
+		 position constraint,
+		    active, active, active,
+		    null, 
+		 orientation constraint,
+		    angular velocity, active, active, 
+		    component, 
+		       const, 5., 0., 0.;
+
+	# Total joint contrains all dofs of gear 2, except its z-axis:  
+	joint: 3,
+	  total joint,
+		 2,
+		    position, reference, gear2, null,
+		    rotation orientation, reference, gear2, eye,
+		 0,
+		    position, reference, gear2, null,
+		    rotation orientation, reference, gear2, eye,
+		 position constraint,
+		    active, active, active,
+		    null,
+		 orientation constraint,
+		    inactive, active, active,
+		    null;
+
+	# Inertia properties of gear 1:      
+	body: 0, 1,
+	  0.1,   # mass
+	  null, # relative center of mass
+	  diag, 0.01, 0.01, 0.01;  # inertia matrix
+
+	# Inertia properties of gear 2:     
+	body: 1, 2,
+	  0.1,   # mass
+	  null, # relative center of mass
+	  diag, 0.01, 0.01, 0.01;  # inertia matrix
+
+	# Load Gear Joint module:
+	module load: "libmodule-fab-motion";
+
+	# Gear Joint constrains node 1 (gear 1), node 2 (gear 2), node 0 (reference)
+	# Relative orientations of gears 1 and 2 are adopted to change the constrained axes from Z (third) to X (first).
+	user defined: 1, gear joint, 
+	  1,                                     # node of gear 1 
+	  orientation, euler, 0., -pi/2., 0.,    # relative orientation of node 1
+	  2,                                     # node of gear 2 
+	  orientation, euler, 0., -pi/2., 0.,    # relative orientation of node 2
+	  0,                                     # reference node
+	  ratio, r2/r1,                          # gear ratio
+	  output, yes;                           # enable output of constraint moments and actual angles
+
+end: elements;
+

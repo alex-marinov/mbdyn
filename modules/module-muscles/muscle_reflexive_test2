@@ -1,0 +1,140 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1e-3;
+
+	method: ms, 0.6;
+
+	tolerance: 1e-9;
+	max iterations: 20;
+
+	linear solver: naive;
+
+	output: iterations;
+	# output: residual;
+end: initial value;
+
+begin: control data;
+	structural nodes: 2;
+	rigid bodies: 1;
+	joints: 4;
+	forces: 1;
+end: control data;
+
+set: real L0 = 200.e-3;	# m
+set: real F0 = 63.;	# N
+
+module load: "libmodule-muscles.la";
+
+begin: nodes;
+	structural: 0, static, null, eye, null, null, output, no;
+	structural: 1, dynamic, 0., 0., L0, eye, null, null;
+end: nodes;
+
+begin: elements;
+	joint: 0, clamp, 0, node, node;
+
+	joint: 1, total pin joint,
+		1,
+			position, reference, global, null,
+		position, reference, global, null,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 0, 1, null;
+
+	body: 1, 1,
+		1.e-3,
+		null,
+		diag, 0., 1.e-6, 0.;
+
+	#set: const string L = "L";
+	#set: const string LPrime = "LPrime";
+	set: const real Kp = 0*.1;
+	set: const real Kd = .1;
+
+	drive caller: 2,
+		# string, ".2 + Kp*(model::element::joint(2, \"L\") - L0) + Kd*model::element::joint(2, \"LPrime\")";
+		const, .2;
+	drive caller: 3,
+		# string, ".2 + Kp*(model::element::joint(3, \"L\") - L0) + Kd*model::element::joint(3, \"LPrime\")";
+		const, .2;
+
+	joint: 2, rod,
+		0,
+			position, reference, node, L0/20., 0., 0.,
+		1,
+			position, reference, node, L0/20., 0., 0.,
+		from nodes,
+		muscle Pennestri, help,
+			# ergonomy, yes,
+			initial length, L0,
+			reference length, L0,
+			reference velocity, 2.5,
+			reference force, F0,
+			activation,
+				# string, ".2 + Kp*(model::element::joint(2, \"L\") - L0) + Kd*model::element::joint(2, \"LPrime\")",
+				reference, 2,
+			activation check, yes,
+			reflexive,
+				proportional gain, Kp,
+				derivative gain, Kd,
+				reference length, L0;
+
+	joint: 3, rod,
+		0,
+			position, reference, node, -L0/20., 0., 0.,
+		1,
+			position, reference, node, -L0/20., 0., 0.,
+		from nodes,
+		muscle Pennestri, help,
+			# ergonomy, yes,
+			initial length, L0,
+			reference length, L0,
+			reference velocity, 2.5,
+			reference force, F0,
+			activation,
+				# string, ".2 + Kp*(model::element::joint(3, \"L\") - L0) + Kd*model::element::joint(3, \"LPrime\")",
+				reference, 3,
+			activation check, yes,
+			reflexive,
+				proportional gain, Kp,
+				derivative gain, Kd,
+				reference length, L0;
+
+	couple: 1, follower,
+		1,
+			position, null,
+		0., 1., 0.,
+			sine, .1, pi/.1, .01, one, 0.;
+end: elements;

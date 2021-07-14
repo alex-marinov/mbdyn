@@ -1,0 +1,488 @@
+# $Header$
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: 10.;
+	# final time: .001;
+	time step: 1.e-3;
+
+	tolerance: 1.e-5;
+	max iterations: 10;
+
+	method: ms, .6;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-6;
+	derivatives max iterations: 10;
+	output: iterations;
+end: initial value;
+
+begin: control data;
+	structural nodes:
+		+1		# ground
+		+2*(
+			+1	# hub
+			+1	# teeter
+			+2	# blades
+		)
+	;
+	rigid bodies:
+		+2*(
+			+1	# teeter
+			+2	# blades
+		)
+	;
+	joints:
+		+1		# ground clamp
+		+2*(
+			+1	# axial rotation
+			+1	# teeter
+			+2	# blade pitch hinges
+		)
+	;
+	air properties;
+	loadable elements: 1;
+	aerodynamic elements:
+		+2*(
+			+4	# blades
+		)
+	;
+	# output results: netcdf;
+	default orientation: orientation vector;
+	# default aerodynamic output: all,
+	#	orientation description, orientation vector;
+end: control data;
+
+set: const real R = 5.;
+set: const real R_CUTOUT = 1.;
+set: const real C = .08*R;
+set: const real OMEGA = 2*pi/160./1.e-3;
+set: const real THETA_0 = 12.*deg2rad;
+
+set: const integer GROUND = 0;
+set: const integer ROTOR_1 = 1000;
+set: const integer ROTOR_2 = 2000;
+set: const integer BLADE_1 = 10;
+set: const integer BLADE_2 = 20;
+
+set: integer CURR_ROTOR;
+set: integer CURR_BLADE;
+
+set: const integer GAUSS_POINTS = 1;
+
+reference: GROUND,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+reference: ROTOR_1,
+	reference, GROUND, 0., 0., 1.,
+	reference, GROUND, eye,
+	reference, GROUND, null,
+	reference, GROUND, 0.,0.,OMEGA;
+
+reference: ROTOR_1 + BLADE_1,
+	reference, ROTOR_1, R, 0., 0.,
+	reference, ROTOR_1, eye,
+	reference, ROTOR_1, null,
+	reference, ROTOR_1, null;
+
+reference: ROTOR_1 + BLADE_2,
+	reference, ROTOR_1, -R, 0., 0.,
+	reference, ROTOR_1, 1, -1., 0., 0., 3, 0., 0., 1.,
+	reference, ROTOR_1, null,
+	reference, ROTOR_1, null;
+
+reference: ROTOR_2,
+	reference, GROUND, 0.,0.,1.5,
+	reference, GROUND, eye,
+	reference, GROUND, null,
+	reference, GROUND, 0.,0.,-OMEGA;
+
+reference: ROTOR_2 + BLADE_1,
+	reference, ROTOR_2, R, 0., 0.,
+	reference, ROTOR_2, eye,
+	reference, ROTOR_2, null,
+	reference, ROTOR_2, null;
+
+reference: ROTOR_2 + BLADE_2,
+	reference, ROTOR_2, -R, 0., 0.,
+	reference, ROTOR_2, 1, -1., 0., 0., 3, 0., 0., 1.,
+	reference, ROTOR_2, null,
+	reference, ROTOR_2, null;
+
+begin: nodes;
+	structural: GROUND, static,
+		reference, GROUND, null,
+		reference, GROUND, eye,
+		reference, GROUND, null,
+		reference, GROUND, null;
+
+	# rotor 1
+	set: CURR_ROTOR = ROTOR_1;
+	structural: CURR_ROTOR, static,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, eye,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, null;
+	structural: CURR_ROTOR + 1, dynamic,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, eye,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, null;
+	set: CURR_BLADE = BLADE_1;
+	structural: CURR_ROTOR + CURR_BLADE, dynamic,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, eye,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, null;
+	set: CURR_BLADE = BLADE_2;
+	structural: CURR_ROTOR + CURR_BLADE, dynamic,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, eye,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, null;
+
+	# rotor 2
+	set: CURR_ROTOR = ROTOR_2;
+	structural: CURR_ROTOR, static,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, eye,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, null;
+	structural: CURR_ROTOR + 1, dynamic,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, eye,
+		reference, CURR_ROTOR, null,
+		reference, CURR_ROTOR, null;
+	set: CURR_BLADE = BLADE_1;
+	structural: CURR_ROTOR + CURR_BLADE, dynamic,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, eye,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, null;
+	set: CURR_BLADE = BLADE_2;
+	structural: CURR_ROTOR + CURR_BLADE, dynamic,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, eye,
+		reference, CURR_BLADE + CURR_ROTOR, null,
+		reference, CURR_BLADE + CURR_ROTOR, null;
+end: nodes;
+
+begin: elements;
+	joint: GROUND, clamp, GROUND, node, node;
+
+	# rotor 1
+	set: CURR_ROTOR = ROTOR_1;
+	joint: CURR_ROTOR, total joint,
+		GROUND, position, reference, CURR_ROTOR, null,
+		CURR_ROTOR, position, reference, CURR_ROTOR, null,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, 0., 0., 1., linear, 0., OMEGA;
+	joint: CURR_ROTOR + 1, revolute hinge,
+		CURR_ROTOR,
+			position, reference, CURR_ROTOR, null,
+			orientation, reference, CURR_ROTOR + CURR_BLADE, 3, 0., 1., 0., 1, 1., 0., 0.,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			orientation, reference, CURR_ROTOR + CURR_BLADE, 3, 0., 1., 0., 1, 1., 0., 0.;
+	body: CURR_ROTOR + 1, CURR_ROTOR + 1,
+		1.,
+		null,
+		eye;
+	set: CURR_BLADE = BLADE_1;
+	joint: CURR_ROTOR + CURR_BLADE, total joint,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		CURR_ROTOR + CURR_BLADE,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		50.,
+		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
+		diag, 1., 50./12*R^2, 50./12*R^2;
+	set: CURR_BLADE = BLADE_2;
+	joint: CURR_ROTOR + CURR_BLADE, total joint,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		CURR_ROTOR + CURR_BLADE,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		50.,
+		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
+		diag, 1., 50./12*R^2, 50./12*R^2;
+
+	# rotor 2
+	set: CURR_ROTOR = ROTOR_2;
+	joint: CURR_ROTOR, total joint,
+		GROUND, position, reference, CURR_ROTOR, null,
+		CURR_ROTOR, position, reference, CURR_ROTOR, null,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, 0., 0., 1., linear, 0., -OMEGA;
+	joint: CURR_ROTOR + 1, revolute hinge,
+		CURR_ROTOR,
+			position, reference, CURR_ROTOR, null,
+			orientation, reference, CURR_ROTOR + CURR_BLADE, 3, 0., 1., 0., 1, 1., 0., 0.,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			orientation, reference, CURR_ROTOR + CURR_BLADE, 3, 0., 1., 0., 1, 1., 0., 0.;
+	body: CURR_ROTOR + 1, CURR_ROTOR + 1,
+		1.,
+		null,
+		eye;
+	set: CURR_BLADE = BLADE_1;
+	joint: CURR_ROTOR + CURR_BLADE, total joint,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		CURR_ROTOR + CURR_BLADE,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		50.,
+		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
+		diag, 1., 50./12*R^2, 50./12*R^2;
+	set: CURR_BLADE = BLADE_2;
+	joint: CURR_ROTOR + CURR_BLADE, total joint,
+		CURR_ROTOR + 1,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		CURR_ROTOR + CURR_BLADE,
+			position, reference, CURR_ROTOR, null,
+			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
+		position constraint, 1, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		50.,
+		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
+		diag, 1., 50./12*R^2, 50./12*R^2;
+
+	air properties: std, SI,
+		-1., 0., 0.,
+			# const, 0.;
+			const, .3*(5.*40.);
+
+	c81data: 1, "../../var/naca0012.c81";
+
+	# create a symlink to libmodule-charm.so in this folder
+	# module load: "./libmodule-charm.so";
+	user defined: 1, charm,
+		units, si,
+			# output unit, 98,
+		aircraft, 0,
+		rotors, 2,	# number of rotors
+			rotation direction, counter clockwise,	# optional
+			radius, R,
+			chord, C,
+			root cutout, R_CUTOUT,
+			omega, OMEGA,
+			hub node, ROTOR_1,
+			orientation, eye,
+			blades, 2,	# number of blades of rotor #0
+				elements, 2,	# number of elements per blade of rotor #0
+				ROTOR_1 + BLADE_1,	# elements of rotor #0, blade #0
+				ROTOR_1 + BLADE_1 + 1,
+				ROTOR_1 + BLADE_2,	# elements of rotor #0, blade #1
+				ROTOR_1 + BLADE_2 + 1,
+			rotation direction, clockwise,	# optional
+			radius, R,
+			chord, C,
+			root cutout, R_CUTOUT,
+			omega, OMEGA,
+			hub node, ROTOR_2,
+			orientation, eye,
+			blades, 2, 	# number of blades of rotor #1
+				elements, 2,	# number of elements per blade of rotor #1
+				ROTOR_2 + BLADE_1,	# elements of rotor #1, blade #0
+				ROTOR_2 + BLADE_1 + 1,
+				ROTOR_2 + BLADE_2,	# elements of rotor #1, blade #1
+				ROTOR_2 + BLADE_2 + 1,
+		trim times, .9999, 1.9999, 2.9999, 3.9999,
+		output, yes;
+
+	# rotor 1
+	set: CURR_ROTOR = ROTOR_1;
+	set: CURR_BLADE = BLADE_1;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	set: CURR_BLADE = BLADE_2;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+
+	# rotor 2
+	set: CURR_ROTOR = ROTOR_2;
+	set: CURR_BLADE = BLADE_1;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	set: CURR_BLADE = BLADE_2;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+end: elements;
+
+# vim:ft=mbd
