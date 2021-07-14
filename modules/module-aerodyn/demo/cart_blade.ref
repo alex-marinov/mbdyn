@@ -1,0 +1,61 @@
+# Copyright (C) 2007 Pierangelo Masarati <masarati@aero.polimi.it>
+#
+# This file can be freely used and modified to be run with MBDyn
+# provided this copyright notice is not altered nor removed.
+#
+# THIS MODEL IS PROVIDED AS IS, WITHOUT ANY WARRANTY OF ACCURACY
+# OR FITNESS FOR ANY PURPOSE
+
+# MBDyn model of the CART -  Controls Advanced Research Turbine
+
+# Blade
+# The root of the blade is in the teeter;
+# the blade axis goes from root to tip;
+# the y axis is oppodite to the wind (in the direction the wind comes from)
+# the z axis is chordwise, directed forward
+#
+#		^ x
+#		|
+#		|
+#	<-------o
+#	 y	 z
+#
+reference: CURR_BLADE + BLADE_ROOT,
+	reference, TEETER_PIN, null,
+	reference, TEETER_PIN,
+		1, cos(CURR_PHI), 0., sin(CURR_PHI),
+		2, 0., 1., 0.,
+	reference, TEETER_PIN, null,
+	reference, TEETER_PIN, null;
+
+# Note: as a consequence, the blade section, according to Figure 3 
+# of NREL/SR-500-32087, is defined as follows:
+#
+#	x	z
+#	 o------->
+#	 |
+#	 |
+#	 v y
+#
+# where x is the blade axis, z is pointing forward and z in the direction
+# the wind comes from.
+
+# The pitch hinge is outside the rotation axis;
+# the pitch is zero when the z axis (the chord) points upwind
+reference: CURR_BLADE + BLADE_PITCH,
+	reference, CURR_BLADE + BLADE_ROOT,
+		BLADE_CUTOUT, 0., 0.,
+	reference, CURR_BLADE + BLADE_ROOT, eye,
+	reference, CURR_BLADE + BLADE_ROOT, null,
+	reference, CURR_BLADE + BLADE_ROOT, null;
+
+reference: CURR_BLADE + BLADE_ORIGIN,
+	reference, CURR_BLADE + BLADE_PITCH, null,
+	reference, CURR_BLADE + BLADE_PITCH,
+		1, 1., 0., 0.,
+		2, 0., cos(Theta0), -sin(Theta0), ### !!! CORRECT !!! P.Rix:12-06-2012
+		### 2, 0., cos(Theta0), sin(Theta0),  ### !!! WRONG !!!
+	reference, CURR_BLADE + BLADE_PITCH, null,
+	reference, CURR_BLADE + BLADE_PITCH, null;
+
+# vim:ft=mbd

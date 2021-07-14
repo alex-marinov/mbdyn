@@ -1,0 +1,79 @@
+# $Header$
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# Author: Tommaso Solcia <tommaso.solcia@mail.polimi.it>
+
+=======================================================================
+                     Scicos Interface for MBDyn
+=======================================================================
+
+
+Scilab procedure:
+- to build blocks (one-time):
+  >> exec buildblocks.sci
+  (files sockread_comp.c and sockwrite_comp.c expect Scicos headers to be
+  in scilab/scicos_blocks/ in the include search tree of the compiler)
+- to load blocks (all times before the interface can be executed):
+  >> exec loadblocks.sci
+- start scicos
+- create the Scicos model and connect it to the MBDyn input and 
+  output blocks
+- Start MBDyn process
+- hit "Simulate -> Run";
+
+MBDyn READ block:
+- Edit->Add_New_Block and type "READ"
+- set the "Hostname" entry to "127.0.0.1"
+- set the "Port" entry to the desired port (see services(5) for details
+  on usable ports; for details, http://www.mbdyn.org/).
+- set the "Number of channels" entry to the desired number of channels
+  that will be written by MBDyn to Scicos via the "Stream Output" 
+  element (see subsection "Stream output" of section "Output Elements" 
+  in "MBDyn Input File Format" for details, http://www.mbdyn.org/).
+
+MBDyn WRITE block:
+- Edit->Add_New_Block and type "WRITE"
+- set the "Hostname" entry to "127.0.0.1"
+- set the "Port" entry to the desired port
+- set the "Number of channels" entry to the desired number of channels
+  that will be written by Scicos to MBDyn via the "Stream" drive
+  (see subsection "Stream" of section "File Drivers" 
+  in "MBDyn Input File Format" for details, http://www.mbdyn.org/).
+
+Notes:
+- Scicos currently connects to existing sockets created by MBDyn,
+  so always set "create, yes" in MBDyn models.
+- manually start the MBDyn process; it will wait until Scicos connects
+  on both read and write connections.
+
+Examples:
+example models are located in the "examples" subdirectory
+- pendulum: a simple, inverted pendulum controlled by Scicos using 
+  a PD controller
+

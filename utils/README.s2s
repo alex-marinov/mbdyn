@@ -1,0 +1,299 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2010
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Stream-related library and commands
+
+s2s.*: common utilities
+socket2stream/stream2socket: textual stream I/O utilities
+s2s_dss: SISO discrete state-space control tool (author: Mattia Mattaboni)
+s2s_gpc: AR(MA)X-based adaptive Generalized Predictive Control tool (author: Mattia Mattaboni)
+
+
+   --o-- --o-- --o--
+
+s2s_dss usage:
+
+	s2s_dss implements a SISO discrete-time state-space (DSS) controller scheduled with respect to a 
+	parameter (called velocity). It requires an input file:
+
+	./s2s_dss DSSdata.txt
+
+	the "DSSdata.txt" file contains all the input data for the DSS regulator.
+
+	- DSS INPUT FILE STRUCTURE
+
+	An example of the DSS input file structure is provided with the "DSSdataExample.txt" file.
+	Each line as the following format:
+		ParameterName: ParameterValue
+	The file format is fixed: all the lines must be present and ordered as in the example. The
+	parameter name ("ParameterName") cannot be change, just the value ("ParameterValue") can be
+	modified. No extra characters can be typed after the parameter value (no colon, semi-colon, etc).
+
+	- PARAMETERS DESCRIPTION
+
+	1. Order
+
+		The "Order" must be an integer greater than zero. It is the ORDER of the SISO discrete-time
+		 state-space model (namely the size of the A matrix).
+
+	2.  VelocityNumber
+
+		The "VelocityNumber" must be an integer greater than zero. It represents the number
+		of DSS controllers designed off-line. Each controller must have the same order.
+
+	3. ControlFrequency
+	
+		The "ControlFrequency" must be grater than zero . It is the control frequency in Hz 
+		and it is used just to convert the time from second to time steps. The actual control
+		frequency must be set in the MBDyn model by means of the "input every" and "output every"
+		parameters in the "stream output" and "file stream".
+
+	4. matrixA
+
+		"matrixA" is the name of a file containing the A matrices of the DSS controllers 
+		designed off-line. The matrices are arranged as:
+
+		[ A(1); A(2); ... ; A(VelocityNumber)]
+
+		In practice the "matrixA" files contains a matrix with "Order X VelocityNumber" rows
+		and "Order" columns.
+
+	5. matrixB
+
+		"matrixB" is the name of a file containing the B vectors of the DSS controllers 
+		designed off-line. The vectors are arranged as:
+
+		[ B(1)'; B(2)'; ... ; B(VelocityNumber)']
+
+		In practice the "matrixB" files contains a matrix with "VelocityNumber" rows
+		and "Order" columns.
+
+	6. matrixC
+
+		"matrixC" is the name of a file containing the C vectors of the DSS controllers 
+		designed off-line. The vectors are arranged as:
+
+		[ C(1); C(2); ... ; C(VelocityNumber)]
+
+		In practice the "matrixC" files contains a matrix with "VelocityNumber" rows
+		and "Order" columns.
+
+	7. matrixD
+
+		"matrixD" is the name of a file containing the D scalars of the DSS controllers 
+		designed off-line. The scalars are arranged as:
+
+		[ D(1); D(2); ... ; D(VelocityNumber)]
+
+		In practice the "matrixD" files contains a column vector with "VelocityNumber" rows.
+
+	8. Velocity
+
+		"Velocity" is the name of the file containing the value of the scheduling parameter
+		used in the off-line design of the DSS controllers. In practive the matrices 
+		A(1), B(1), C(1) and D(1) are computed with the first value of the scheduling
+		parameters contained in this file. 
+		The file contain a column vactor with "VelocityNuber" rows.
+		During the execution the scheduling parameter is read from the MBDyn simulation
+		and the DSS matrices inpterpolated to obtain the controller for different values
+		of the scheduling parameter.
+
+	9. MeasuresSocketPath
+
+		The "MeasuresSocketPath" is the name of the socket where MBDyn writes the system outputs.
+		The same socket path defined in the "file stream" of the MBDyn model must be used.
+		The number of MBDyn outputs MUST be 2, the first one MUST be the value of the parameter
+		used for the controller scheduling, whereas the second one is the input of the 
+		DSS controller.
+
+	10. ControlsSocketPath
+
+		The "ControlsSocketPath" is the name of the socket where MBDyn reads the system input 
+		(the number of MBDyn input MUST be 1 because a SISO scheduled controller is implemented).
+		The same socket path defined in the "stream output" of the MBDyn model must be used.
+
+
+   --o-- --o-- --o--
+
+s2s_gpc usage:
+
+	s2s_gpc requires an input file:
+
+	./s2s_gpc GPCdata.txt
+
+	the "GPCdata.txt" file contains all the input data for the GPC regulator.
+	An example is provided in the "tests/stream/gpc" folder.
+	
+
+	- GPC INPUT FILE STRUCTURE
+
+	An example of the GPC input file structure is provided with the "GPCdataExample.txt" file.
+	Each line as the following format:
+		ParameterName: ParameterValue
+	The file format is fixed: all the lines must be present and ordered as in the example. The
+	parameter name ("ParameterName") cannot be change, just the value ("ParameterValue") can be
+	modified. No extra characters can be typed after the parameter value (no colon, semi-colon, etc).
+
+	- PARAMETERS DESCRIPTION
+
+	1. ModelOrder
+
+		The "ModelOrder" must be an integer. It is the ORDER of the identified ARX model. 
+		When a negative value is used an ARMAX model is identified instead of the ARX
+		model.
+
+	2. InputNumber
+
+		The "InputNumber" must be an integer greater than zero. It is the number of INPUTS
+		of the identified AR(MA)X model, and therefore it is also the number of control
+		variables.
+
+	3. OutputNumber
+
+		The "OutputNumber" must be an integer greater than zero. It is the number of OUTPUTS
+		of the identified AR(MA)X model, and therefore it is also the number of measured
+		variables.
+
+	4. SimplyProperFlag
+
+		The "SimplyProperFlag" must be equal to 1 or 0. With the value 1 a SIMPLY proper
+		ARX model is identified, whereas with the value 0 a STRICTLY proper model is
+		identified. (WARNING: the SIMPLY proper case has not been deeply tested)
+
+	5. ControlFrequency
+	
+		The "ControlFrequency" must be grater than zero . It is the control frequency in Hz 
+		and it is used just to convert the time from second to time steps. The actual control
+		frequency must be set in the MBDyn model by means of the "input every" and "output every"
+		parameters in the "stream output" and "file stream".
+
+	6. ForgettingFactor
+
+		The "ForgettingFactor" must be greater than zero and lesser or equal to one. It is
+		the forgetting factor of the Recursive Least Square (RLS) algorithm used to compute the
+		AR(MA)X model matrices.
+
+	7. CovarianceInitialization
+
+		The "CovarianceInitialization" must be grater than zero. In the RLS algorithm the 
+		covariance matrix P is initialized as P = CovarianceInitialization*I, where I is
+		an identity matrix. 
+
+	8. MeasuresPreconditioningWindowLength
+
+		The "MeasuresPreconditioningWindowLength" must be an integer. It is the number of previous
+		time steps used to compute the mean value of the measures. The measures are preconditioned
+		before to be used in the RLS algorithm subtracting their mean value. 
+		If a negative "MeasuresPreconditioningWindowLength" is defined, the mean value is not
+		subtracted.
+
+	9. ControlHorizon
+	
+		The "ControlHorizon" must be an integer grater than zero. It is the length (in time steps)
+		of the control horizon used to compute the control variables.
+
+	10., 11., 12.  InitialControlPenaltyFunction, FinalControlPenaltyFunction, ControlPenaltyFunctionIntervalLength
+
+		The control penalty function is applied with a transient staring when the control is 
+		turned on the first time in order to avoid a too aggressive action at the beginning.
+		A linear variation between "InitialControlPenatyFunction" and "FinalControlPenaltyFunction"
+		during a transient of "ControlPenaltyFunctionIntervalLength" time steps is used. After the
+		transient the "FinalControlPenaltyFunction" is kept constant.
+		The "InitialControlPenaltyFunction" and the  "FinalControlPenaltyFunction" must be grater than zero,
+		and the "ControlPenaltyFunctionIntervalLength" must be an integer grater than zero.
+
+	13., 14. IdentificationON, IdentificationOFF
+
+		The identifier and the identification input are active between "IdentificationON"  and
+		"IdentificationOFF". Outside they are turned off. The "IdentificationON" and "IdentificationOFF"
+		are defined in seconds (the control frequency is used to convert the value from second to
+		time steps);
+	
+	15., 16., 17., 18., 19., 20., 21., 22. ControlONX, ControlOFFX
+
+		The controller is active in the intervals:
+			from "ControlON1" to "ControlOFF1"
+			from "ControlON2" to "ControlOFF2"
+			from "ControlON3" to "ControlOFF3"
+			from "ControlON4" to "ControlOFF4"
+		Outside the controller is turned-off. The "ControlONX" and "ControlOFFX" are defined in seconds
+		(the control frequency is used to convert the value from second to time steps);
+
+	23., 24., 25. IdentificationInputFile, IdentificationInputLength. IdentificationInputScaleFactor
+
+		The "IdentificationInputFile" contains m columns and "IdentificationInputLength" rows. 
+		The signals are multiplied by "IdentificationInputScaleFactor" before to be used in
+		GPC regulator. "IdentificationInputFile" contains the file name and "IdentificationInputLength"
+		must be an integer grater than zero.
+
+	26., 27., 28. MeasurementNoiseFile, MeasurementNoiseLength. MeasurementNoiseScaleFactor
+
+		The "MeasurementNoiseFile" contains p columns and "MeasuerementNoiseLength" rows. 
+		The signals are multiplied by "MeasurementNoiseScaleFactor" before to be added to the
+		measured signals. "MeasurementNoiseFile" contains the file name and "MeasurementNoiseLength"
+		must be an integer grater than zero.
+
+	29. MeasuresSocketPath
+
+		The "MeasuresSocketPath" is the name of the socket where MBDyn writes the system outputs.
+		The same socket path defined in the "file stream" of the MBDyn model must be used.
+
+	30. ControlsSocketPath
+
+		The "ControlsSocketPath" is the name of the socket where MBDyn reads the system inputs (
+		that is the sum of the identification inputs and the control inputs). The same socket path
+		defined in the "stream output" of the MBDyn model must be used.
+
+	31. SaveOutputsFlag
+	
+		The "SaveOutputsFlag" must be equal to 1 or 0. With the value 1 some control outputs
+		are saved in the files described below, with the value 0 no outputs are saved, the output
+		files names must be always provided.
+	
+	32. ComputedControlInputsFile
+
+		The "ComputedControlInputsFile" is the name of the file where the computed control variables
+		are saved.
+
+	33. IdentifiedOutputsFile
+	
+		The "IdentifiedOutputsFile" is the name of the file where the identified system outputs are
+		saved.
+
+	34. MeasuredOutputsFile
+	
+		The "MeasureedOutputsFile" is the name of the file where the measured system outputs are
+		saved. The comparison with the "IdentifiedOutputsFile" is useful to analyze the quality
+		of the identification.
+
+
+	35. ARXparamentersFile
+	
+		The "ARXparamentersFile" is the name where the parameters of the ARX model are saved for
+		each time step.
+

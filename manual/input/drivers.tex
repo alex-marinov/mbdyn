@@ -1,0 +1,455 @@
+% $Header$
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Drivers}\label{sec:DRIVERS}
+The \kw{drivers} section is enclosed by the cards:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{drivers} ;
+        # ...
+    \kw{end} : \kw{drivers} ;
+\end{Verbatim}
+%\end{verbatim}
+Every \kw{driver} card has the format:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{driver_type} : \bnt{arglist} ;
+\end{Verbatim}
+%\end{verbatim}
+At present the only type \nt{driver\_type} of drivers supported is \kw{file}.
+
+\section{File Drivers}
+The \kw{file} drivers are defined by the statement
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{file} : \bnt{file_arglist} ;
+\end{Verbatim}
+%\end{verbatim}
+A comprehensive family of \kw{file} drivers is available;
+their syntax is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{file_arglist} ::= \bnt{label} , \bnt{normal_arglist}
+\end{Verbatim}
+%\end{verbatim}
+The following \kw{file} drivers are supported:
+
+
+
+\subsection{Fixed Step}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{fixed step} , 
+        \{ \kw{count} | \bnt{steps_number} \} ,
+        \bnt{columns_number} ,
+        \kw{initial time} , \{ \kw{from file} | \bnt{initial_time} \} ,
+        \kw{time step} , \{ \kw{from file} | \bnt{time_step} \} ,
+        [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
+        [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \}
+            | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} \} , ]
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
+If the keyword \kw{count} is used instead of the \nt{steps\_number},
+the number of time records provided by the file is obtained
+by counting the valid records.
+
+If the keyword \kw{from file} is used instead of either 
+\nt{initial\_time} or \nt{time\_step},
+the value is read from the file.
+In this case, comment lines of the form
+\begin{verbatim}
+# initial time: <initial_time>
+# time step: <time_step>
+\end{verbatim}
+are expected; the corresponding values are parsed and checked.
+A valid value provided in the input file always overrides
+any corresponding value provided in the corresponding comment line.
+
+The value at an arbitrary time is interpolated from the available data.
+If the requested value is out of time bounds, zero is returned,
+unless \kw{pad zeroes} is set to \kw{no}, which means that the first
+or the last set of values is respectively used.
+As an alternative, if \kw{bailout} is set to \kw{upper}, \kw{lower}
+or \kw{any}, the simulation is stopped as soon as the time goes out
+of the respective ''time`` bounds.
+
+If \kw{interpolation} is \kw{linear} (the default), a linear interpolation
+is used.
+Otherwise, if \kw{interpolation} is \kw{const}, the value at the beginning
+of the time step that includes the current time is used.
+
+The file format is
+\begin{verbatim}
+# an arbitrary number of comment lines starting with `#'
+#
+# comment lines may provide special parameters
+# like "initial time", "time step" as indicated above; for example
+#
+# initial time: 0
+# time step: 0.01
+#
+# channel #1 channel #2 ... channel #n
+  1.         2.         ... 100.
+...
+\end{verbatim}
+
+
+\paragraph{Example.} \
+\begin{verbatim}
+    begin: drivers;
+        file: 100,
+            fixed step,
+            100,       # n. steps
+            1,         # n. channels
+            0,         # initial_time
+            0.01,      # time_step
+            "input.dat";
+
+        file: 200,
+            fixed step,
+            count,     # n. steps
+            1,         # n. channels
+            from file, # initial_time
+            from file, # time_step
+            "input.dat";
+    end: drivers;
+\end{verbatim}
+
+\subsection{Variable Step}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{variable step} , 
+        \bnt{channels_number} ,
+        [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
+        [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \} 
+            | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} , \} , ]
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
+The same considerations of the \kw{fixed step} type apply.
+
+The file format is
+\begin{verbatim}
+# an arbitrary number of lines starting with `#'
+#
+# time channel#1 channel#2 ... channel#n
+  0.   1.        2.        ... 100.
+  0.01 1.2       1.8       ...  90.
+...
+\end{verbatim}
+The number of available records is computed as the number
+of non-comment lines (lines not starting with a hash mark `\texttt{\#}').
+The first column contains the time, while the remaining
+\nt{channels\_number} columns contain the values of the input channels
+at that time.
+Time values must grow monotonically.
+
+
+\subsection{Socket}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{socket} , 
+        \bnt{columns_number} ,
+	[ \kw{initial values} , \bnt{value \#1} , ... , ]
+        \{ \kw{local} , " \bnt{file_name} " 
+            | [ \kw{port} , \bnt{port_number} , ] (\ty{AuthenticationMethod}) \bnt{authentication} \}
+\end{Verbatim}
+%\end{verbatim}
+The driver binds to a socket listening on port \nt{port\_number} 
+(defaults to 9011) or on the named pipe \nt{file\_name}; at the
+beginning of each time step, in case of connection, the driver expects some
+input data in text format, consisting in an authentication token 
+(if required).
+The authentication token is usually in the form
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    user: \bnt{user_name} NEWLINE
+    password: \bnt{user_password} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+where \texttt{NEWLINE} is a literal `newline' (i.e.\ `\verb;\n;').
+White-spaces may be significant in \nt{user\_name}, 
+and surely are in \nt{user\_password}.
+
+The identification is followed by a label token, in the form
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    label: \bnt{label} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+indicating the column being edited, followed by the desired changes; 
+the connection is terminated by a single mark followed by a newline:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    . NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+The permitted operations, at present, are:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    value: \bnt{value} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+sets the value the drive will assume from the current step on
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    inc: \{ \kw{yes} | \kw{no} \} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+tells whether to switch \kw{on} or \kw{off} the increment mode, resulting in
+subsequent value commands being ``set'' rather than ``add''
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    imp: \{ \kw{yes} | \kw{no} \} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+tells whether to switch \kw{on} or \kw{off} the impulse mode;
+when \kw{on}, subsequent value commands to be applied for one step only.
+At present, impulse mode supersedes any incremental mode, namely
+the value of the drive is reset to zero after one step.
+This behavior may change in the future.
+
+
+
+\subsection{RTAI Mailbox}\label{sec:RTAI_in}
+This special drive is a variant of the Socket Stream
+(Section~\ref{sec:Stream}; under development yet)
+that reads the input data from a RTAI mailbox in non-blocking mode.
+It is intended as a means of communication between different processes
+running in real-time.
+The syntax is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{RTAI input} ,
+        \kw{stream drive name} , " \bnt{stream_name} " ,
+        [ \kw{create} , \{ \kw{yes} | \kw{no} \} , ]
+        [ \kw{host} , " \bnt{host_name} " , ]
+        [ \{ [ \kw{non} ] \kw{blocking} \} , [ ... ] ]
+        \bnt{columns_number} ;
+\end{Verbatim}
+%\end{verbatim}
+where
+\begin{itemize}
+\item \nt{stream\_name} is the name of the mailbox (a unique string 
+no more than 6 characters long);
+\item the \kw{create} keyword determines whether the mailbox 
+must be created or looked-up as already existing on the system;
+\item \nt{host\_name} is the name or the IP of the remote host where 
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no} and the mailbox must be already defined
+on the remote host;
+\item the number of channels \nt{columns\_number} determines how many
+columns can be accessed via the \kw{file} drive caller mechanism 
+of Section~\ref{sec:DriveCaller:FILE}, as for all the other \kw{file} drivers.
+\end{itemize}
+This part of the program is rapidly evolving, so do please not expect
+too much documentation and backward compatibility.
+
+\emph{Note: at present, these elements require that the simulation
+be run in real-time mode (see Section~\ref{sec:REAL-TIME});
+future development will allow to emulate the use of these elements
+also when the simulation is not run in real-time, e.g.\ for modeling
+or model debugging purposes.}
+
+
+
+\subsection{Stream}\label{sec:Stream}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{stream} ,
+        \kw{name} , " \bnt{stream_name} " ,
+        \kw{create} , \{ \kw{yes} | \kw{no} \} ,
+        [ \{ \kw{local} , " \bnt{path} " ,
+            | [ \kw{port} , \bnt{port_number} , ] [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \kw{socket type} , \{ \kw{tcp} | \kw{udp} \} , ]
+        [ \{ [ \kw{no} ] \kw{signal}
+            | [ \kw{non} ] \kw{blocking} \} , [ ... ] , ]
+        [ \kw{input every} , \bnt{steps} , ]
+        [ \kw{receive first} , \{ \kw{yes} | \kw{no} \} , ]
+        [ \kw{timeout} , \bnt{timeout} , ]
+        [ \kw{echo} , " \bnt{echo_file_name} "
+            [ , \kw{precision} , \bnt{precision} ]
+            [ , \kw{shift} , \bnt{shift} ] , ]
+        \{ \bnt{columns_number}
+            [ , \kw{initial values} , \bnt{value \#1} , ... ]
+            [ , \kw{modifier} , \bnt{content_modifier} ]
+        | \bnt{user_defined} \}
+
+    \bnt{user_defined} ::= \bnt{user_defined_type} [ , ... ]
+
+    \bnt{content_modifier} ::=
+        \kw{copy}
+        | \kw{copy cast} ,
+            [ \kw{swap} ,
+                \{ \bnt{cast_type} [ , ... ]
+                | \kw{detect}
+                | \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{swap} \} \} , ]
+            \{ \kw{all} , \bnt{cast_type} | \bnt{one_cast} [ , ... ] \}
+            [ , \kw{size} , (\ty{int})\bnt{buffer_size} ]
+
+    \bnt{one_cast} ::=
+        \bnt{cast_type}
+        | \kw{skip} , (\ty{int})\bnt{num_bytes}
+
+    \bnt{cast_type} ::=
+        \kw{int8_t}
+        | \kw{uint8_t}
+        | \kw{int16_t}
+        | \kw{uint16_t}
+        | \kw{int32_t}
+        | \kw{uint32_t}
+        | \kw{float}     # assuming float is 4 bytes
+        | \kw{double}    # assuming double is 8 bytes
+
+\end{Verbatim}
+%\end{verbatim}
+The \kw{stream} drive allows MBDyn to receive streamed inputs 
+from remote processes both during regular simulations and during 
+real-time simulations under RTAI.
+If the simulation is run in real-time, it uses RTAI mailboxes, 
+otherwise regular UNIX sockets are used, either in the \kw{local} or 
+in the \kw{internet} namespace.
+
+This drive type is intended to allow the development of real-time models
+by running regular simulations for the purpose of debugging the model
+and the control process without the overhead and the potential problems
+of running in real-time.
+Then the same model can be run in real-time without changing the details
+of the communication with the controller process.
+
+\paragraph{Non real-time simulation}
+During non real-time simulations, streams operate in blocking mode.
+The meaning of the parameters is:
+\begin{itemize}
+\item \nt{stream\_name} indicates the name the stream will be known as;
+it is mostly useless, and must be no more than 6 characters long,
+since it is only allowed for compatibility with RTAI's mailboxes;
+
+\item the instruction \kw{create} determines whether the socket will be
+created or looked for by MBDyn; if \kw{create} is set to \kw{no},
+MBDyn will retry for 60 seconds and then give up;
+
+\item the keyword \kw{local} indicates that a socket 
+in the local namespace will be used; if \kw{create} is set to \kw{yes},
+the socket is created, otherwise it must exist.
+
+\item either of the keywords \kw{port} or \kw{host} indicate that a socket
+in the internet namespace will be used;
+if \kw{create} is set to \kw{yes}, \nt{host\_name} indicates 
+the host that is allowed to connect to the socket; it defaults 
+to any host (0.0.0.0); if \kw{create} is set to \kw{no},
+\nt{host\_name} indicates what host to connect to; the default 
+is localhost (127.0.0.1); the default port is 9011;
+
+\item \kw{socket type} defaults to \kw{tcp};
+
+\item the keyword \kw{no signal} disables raising a \texttt{SIGPIPE}
+in case the stream is read after it was closed by the peer;
+
+\item the keyword \kw{input every} allows to read new driver values
+every \nt{steps} time steps;
+
+\item the keyword \kw{receive first} allows to enable/disable
+receiving data at the initial time (defaults to \kw{yes},
+thus data are expected at the initial time, during derivatives);
+
+\item the keyword \kw{timeout} allows to set a timeout
+for each read operation; the timeout is expressed in seconds
+as a floating point number, with a theoretical micro-second resolution
+(the actual resolution is left to the OS);
+
+\item the keyword \kw{echo} allows to echo the streamed data
+into file \nt{echo\_file\_name}, using the optional \kw{precision}
+and a \kw{shift} for the time, to make sure step changes are captured
+correctly (a small negative value is recommended);
+the resulting file is suitable to re-execute the simulation
+using a \kw{variable step} file driver, using a \kw{const} value
+for the \kw{interpolation} option;
+
+\item the keyword \kw{initial values},
+followed by \nt{columns\_number} real values,
+allows to set the initial values of each channel;
+this is useful for example if the initial value of a channel
+is needed during initial assembly, before the first set of values
+is read from the peer.
+
+\item the keyword \kw{modifier} installs a data modification layer.
+
+\item The \kw{copy} case leaves data unaltered.
+The \kw{copy cast} case performs data casting for each channel according to the subsequent rules.
+
+\begin{itemize}
+\item the optional keyword \kw{swap} instructs MBDyn to swap bytes
+in order to make transmitted values platform-independent with respect to endianness,
+under the assumption that endianness is the same for all data types.
+The keyword \kw{swap} may be followed by a list of the types that must be swapped,
+included in those defined in \nt{cast\_type}.
+Alternatively, the keyword \kw{detect} causes the endianness of the platform
+to be detected and data converted in big endian form if needed.
+Otherwise, conversion is either forced for all types in case of \kw{yes} or non-zero value of \nt{swap},
+or ignored in case of \kw{no} or zero value of \nt{swap}.
+
+\item if the keyword \kw{all} is present, a single \nt{one\_cast} cast rule
+is applied to all channels.
+Otherwise, a \nt{one\_cast} rule is read for each channel.
+Only the types listed above are recognized.
+The special value \kw{skip} actually causes \nt{num\_bytes} to be skipped
+before the subsequent \nt{one\_cast} rule is applied.
+
+\item the optional keyword \kw{size} is used to provide the entire size of the buffer,
+in case only a portion of it is going to be used.
+\end{itemize}
+
+\end{itemize}
+If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
+and \kw{host} keywords are given, a socket is opened by default 
+in the internet namespace with the default IP and port; the \kw{create}
+keyword is mandatory.
+
+\paragraph{Real-time simulation}
+During real-time simulations, streams wrap non-blocking RTAI mailboxes.
+The meaning of the parameters is:
+\begin{itemize}
+\item the parameter \nt{stream\_name} indicates the name the stream
+will be known as in RTAI's resource namespace;
+it must no more than 6 characters long, and actually represents the mailbox name;
+\item the instruction \kw{create} determines whether the mailbox will be
+created or looked for by MBDyn;
+\item the keyword \kw{local} is ignored;
+\item the keyword \kw{host} indicates that a mailbox on a remote host 
+will be used; it is useless when \kw{create} is set to \kw{yes}, because
+RTAI does not provide the possibility to create remote resources;
+if none is given, a local mailbox is assumed;
+\item the keyword \kw{port} is ignored.
+\end{itemize}
+
+The parameter \nt{columns\_number} determines how many
+channels will be used.
+A channel is a double typed number; a \kw{stream drive} can read
+an arbitrary number of simultaneous channels.

@@ -1,0 +1,125 @@
+#
+#	Linear transmission joint - test: displacement Z to X (same reference node, same part)
+#
+#   Library of motion transmission components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-9;
+	max iterations: 20;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 1;
+   structural nodes: 2;
+   rigid bodies: 1;
+   joints: 2;
+end: control data;
+
+
+set: real c1 = 0.5;  # Coefficient associated to node 1 (eixo z)
+set: real c2 = 0.1;  # Coefficient associated to node 1 (eixo x)
+
+set: integer part1 = 0;
+
+reference: part1,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+begin: nodes;
+
+   # reference node 1 (nó de referencia 1)
+   structural: 0, dynamic, 
+      null, 
+      eye, 
+      null, 
+      null; 
+   
+    # node of part 1 (nó da peça 1):
+   structural: 1, dynamic, 
+      reference, part1, null, 
+      reference, part1, eye, 
+      reference, part1, null, 
+      reference, part1, null;
+   
+end: nodes;
+
+
+begin: elements;
+
+   # In this simulation, reference node 1 is clamped to the ground:
+   joint: 1, clamp, 0, node, node;
+  
+   # This total joint constrains all dofs of part 1, except the translation on x-axis, 
+   # and impose a displacement to its z-axis:
+   joint: 2,
+      total joint,
+         0,
+            position, null,
+         1,
+            position, null,
+         position constraint,
+            inactive, active, active,
+            component,
+            0., 0., sine, 0., 4.*pi, 5., forever, 0., 
+         orientation constraint,
+            active, active, active,
+            null;
+
+   # Inertia properties of part 1:  
+   body: 0, 1,
+      0.1,   # mass
+      null, # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+     
+   # Load Linear Transmission Joint module:
+	module load: "libmodule-fab-motion";
+
+   # Linear Transmission Joint constrains node 0 (reference 1), node 1 (part 1), node 0 (reference 2), node 1 (part 2)
+   # The transmission ratio (input/output) can be supplied as a constant real number (itself) or
+   # two constant real numbers (coef. of part 1 and coef. of part 2).
+
+   user defined: 1, LinearTransmissionJoint, 
+      1,             # node of part 1 
+      0,             # reference node of part 1 
+      1,             # node of part 1
+      orientation, euler, 0., pi/2., 0.,
+      0,             # reference node of part 1 
+      ratio, c2/c1,  # gear ratio
+      output, yes;   # enable output of constraint force and moments
+
+/*
+	output of linear transmission joint (.usr):
+	
+	column  1:  	element label
+	columns 2-4:  	force on node 1
+    columns 5-7:  	moment on node 1
+    columns 8-10:  	force on reference node 1
+    columns 11-13: 	moment on reference node 1
+    columns 14-16:  force on node 2
+    columns 17-19:  moment on node 2
+    columns 20-22: 	force on reference node 2
+    columns 23-25: 	moment on reference node 2	
+
+*/
+
+end: elements;
+

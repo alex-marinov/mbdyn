@@ -1,0 +1,161 @@
+## MBDyn (C) is a multibody analysis code.
+## http://www.mbdyn.org
+##
+## Copyright (C) 1996-2020
+##
+## Pierangelo Masarati	<masarati@aero.polimi.it>
+## Paolo Mantegazza	<mantegazza@aero.polimi.it>
+##
+## Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+## via La Masa, 34 - 20156 Milano, Italy
+## http://www.aero.polimi.it
+##
+## Changing this copyright notice is forbidden.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation (version 2 of the License).
+##
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+## AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+## Copyright (C) 2020(-2020) all rights reserved.
+
+## The copyright of this code is transferred
+## to Pierangelo Masarati and Paolo Mantegazza
+## for use in the software MBDyn as described
+## in the GNU Public License version 2.1
+
+include: "${TRIANGULAR_CONTACT_SET}";
+
+set: real omega2 = 0;
+
+begin: data;
+	problem: initial value; # the default
+end: data;
+
+begin: initial value;
+	initial time: 0;
+	final time: t1;
+
+	time step: t1 / 2000;
+	min time step: t1 / 200000;
+	max time step: t1 / 2000;
+	strategy: factor, 0.75, 1, 1.25, 3, 2, 4;
+	max iterations: 100;
+	tolerance: 1e-6;
+	method: implicit euler;
+	derivatives tolerance: 1e-3;
+	derivatives max iterations: 100;
+	derivatives coefficient: 1e-10;
+	linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 100;
+	nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, divergence check, no;
+	threads: assembly, 1;
+	output: iterations, solver condition number, stat, yes;
+end: initial value;
+
+begin: control data;
+       max iterations: 10;
+       #use: loadable elements, in assembly;
+	output meter: closest next, 0, forever, const, 1e-2;
+	joints: 1;
+	structural nodes: 4;
+	rigid bodies: 1;
+	loadable elements: 1;
+	gravity;
+	output precision: 16;
+	default output: reference frames;
+	print: dof stats;
+	print: dof description;
+	print: element connection;
+	print: node connection;
+end: control data;
+
+set: integer ref_id_contact = 901;
+set: integer node_id_contact = 1001;
+set: integer node_id_target = 1002;
+set: integer node_id_contact_1 = 1003;
+set: integer node_id_contact_2 = 1004;
+set: integer joint_id_clamp = 2001;
+set: integer body_id_contact = 3001;
+set: integer elem_id_contact = 4001;
+set: integer drive_id_Wkin = 5001;
+set: integer drive_id_Wpot = 5002;
+
+reference: ref_id_contact,
+	   reference, global, (r2 - r1) * cos(Phi0), 0., -(r2 - r1) * sin(Phi0),
+	   reference, global, eye,
+	   reference, global, null,
+	   reference, global, null;
+
+begin: nodes;
+	structural: node_id_contact, dynamic,
+		    reference, ref_id_contact, null,
+		    reference, ref_id_contact, eye,
+		    reference, ref_id_contact, null,
+		    reference, ref_id_contact, null;
+
+	structural: node_id_target, static,
+			reference, global, null,
+			reference, global, eye,
+			reference, global, null,
+			reference, global, 0., 0., omega2;
+
+	structural: node_id_contact_1, dummy,
+		    node_id_contact, offset,
+		    reference, ref_id_contact, r1, 0., 0.,
+		    reference, ref_id_contact, eye;
+
+	structural: node_id_contact_2, dummy,
+		    node_id_contact, offset,
+		    reference, ref_id_contact, -r1, 0., 0.,
+		    reference, ref_id_contact, eye;
+end: nodes;
+
+begin: elements;
+	joint: joint_id_clamp, total pin joint, node_id_target,
+	       position, reference, global, null,
+	       position orientation, reference, global, eye,
+	       rotation orientation, reference, global, eye,
+	       position, reference, global, null,
+	       position orientation, reference, global, eye,
+	       rotation orientation, reference, global, eye,
+	       position constraint,
+		       active,
+		       active,
+		       active,
+		       null,
+	       orientation constraint,
+		       active,
+		       active,
+		       angular velocity,
+		       component,
+		       null, null, omega2;
+
+	body: body_id_contact,
+	      node_id_contact,
+	      m1,
+	      reference, ref_id_contact, null,
+	      diag, J1, J1, J1,
+	      inertial, reference, ref_id_contact, eye;
+
+	scalar function: "penalty", multilinear,
+	      -1., -s1,
+	       0.,  0.,
+	       1.,  0.;
+
+	include: "${TRIANGULAR_CONTACT_ELEM}";
+
+	gravity: uniform, 0., 0., -1., g;
+
+	drive caller: drive_id_Wkin, element, body_id_contact, body, string, "E", direct, output, yes;
+	drive caller: drive_id_Wpot, element, body_id_contact, body, string, "V", direct, output, yes;
+end: elements;

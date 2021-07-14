@@ -1,0 +1,266 @@
+\documentclass{article}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{graphicx}
+\usepackage{psfrag}
+\usepackage{bm, amsmath, amsfonts, amssymb}
+%\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
+\usepackage{html}
+\usepackage{comment}
+
+\input{../../manual/stdmacro}
+%poor man's bold symbol
+\newcommand{\T}[1]{\bm{#1}}
+\newcommand{\TT}[1]{\bm{#1}}
+\newcommand{\TTT}[1]{\bm{#1}}
+\newcommand{\TTTT}[1]{\mathbb{#1}}
+\newcommand{\equu}{\overset{\text{uu}}{=}}
+\newcommand{\dof}{DOF}
+\newcommand{\dofs}{DOFs}
+
+% Custom
+\topmargin 0.31cm % 0.00cm
+\oddsidemargin 0.00cm
+\evensidemargin 0.00cm
+\marginparsep 0.00cm
+\textwidth 15.92cm
+\textheight 21.00cm % 23.62cm
+
+
+\begin{document}
+
+\title{Module IMU}
+\author{Pierangelo Masarati \\ \texttt{masarati@aero.polimi.it}}
+\date{\today}
+\maketitle
+
+
+\section{Introduction}
+\begin{subequations}
+\begin{align}
+	\TT{R}
+	&=
+	\TT{R}_n \tilde{\TT{R}}_h
+	\\
+	\T{x}
+	&=
+	\T{x}_n
+	+
+	\TT{R}_n \tilde{\T{f}}
+\end{align}
+\end{subequations}
+
+\begin{align}
+	\T{f}
+	&=
+	\TT{R}_n \tilde{\T{f}}
+\end{align}
+
+\begin{align}
+	\overline{(\cdot)}
+	&=
+	\TT{R}^T (\cdot)
+\end{align}
+
+\section{Angular Velocity Measurement}
+\begin{align}
+	\T{\omega}\times{}
+	&=
+	\dot{\TT{R}}\TT{R}^T
+	=
+	\T{\omega}_n\times{}
+\end{align}
+
+\begin{align}
+	\overline{\T{\omega}}
+	&=
+	\TT{R}^T \T{\omega}_n
+\end{align}
+
+\section{Linear Acceleration Measurement}
+\begin{align}
+	\dot{\T{x}}
+	&=
+	\dot{\T{x}}_n
+	+
+	\T{\omega}_n \times \T{f}
+\end{align}
+
+\begin{align}
+	\overline{\dot{\T{x}}}
+	&=
+	\TT{R}^T \dot{\T{x}}_n
+	+
+	\plbr{\TT{R}^T \T{\omega}_n} \times \overline{\T{f}}
+	=
+	\overline{\T{v}}
+\end{align}
+
+\begin{align}
+	\ddot{\T{x}}
+	&=
+	\ddot{\T{x}}_n
+	+
+	\dot{\T{\omega}} \times \T{f}
+	+
+	\T{\omega}_n \times \T{\omega}_n \times \T{f}
+\end{align}
+
+\begin{align}
+	\overline{\ddot{\T{x}}}
+	&=
+	\TT{R}^T \ddot{\T{x}}_n
+	+
+	\plbr{\TT{R}^T \dot{\T{\omega}}} \times \overline{\T{f}}
+	+
+	\plbr{\TT{R}^T \T{\omega}} \times \plbr{\TT{R}^T \T{\omega}} \times \overline{\T{f}}
+\end{align}
+
+\begin{align}
+	\overline{\T{f}}
+	&=
+	\TT{R}^T \T{f}
+	=
+	\tilde{\TT{R}}_h^T \tilde{\T{f}}
+\end{align}
+
+\section{IMU Constraint}
+Constraint equations
+\begin{subequations}
+\begin{align}
+	\TT{R}^T \T{\omega}_n - \overline{\T{\omega}}
+	&=
+	\T{0}
+	\\
+	\TT{R}^T \dot{\T{x}}_n
+	+
+	\plbr{\TT{R}^T \T{\omega}_n} \times \overline{\T{f}}
+	-
+	\overline{\T{v}}
+	&=
+	\T{0}
+	\\
+	\dot{\overline{\T{v}}}
+	-
+	\overline{\T{a}}
+	&=
+	\T{0}
+\end{align}
+\end{subequations}
+
+Linearization of constraint equations
+\begin{subequations}
+\begin{align}
+	\TT{R}^T \plbr{
+		\delta\T{\omega}_n
+		+
+		\T{\omega}_n \times \T{\theta}_{n\delta}
+	}
+	&\equu
+	\TT{R}^T \delta\dot{\T{g}}
+	\\
+	\TT{R}^T \plbr{
+		\delta\dot{\T{x}}_n
+		+
+		\dot{\T{x}}_n \times \T{\theta}_{n\delta}
+	}
+	+
+	\plbr{
+		\TT{R}^T \plbr{
+			\delta\T{\omega}_n
+			+
+			\T{\omega}_n \times \T{\theta}_{n\delta}
+		}
+	} \times \overline{\T{f}}
+	-
+	\delta\overline{\T{v}}
+	&\equu
+	\TT{R}^T \plbr{
+		\delta\dot{\T{x}}_n
+		+
+		\dot{\T{x}}_n \times \delta\T{g}_n
+		-
+		\T{f} \times \delta\dot{\T{g}}_n
+	}
+	-
+	\delta\overline{\T{v}}
+	\\
+	\delta\dot{\overline{\T{v}}}
+	&\equu
+	\delta\dot{\overline{\T{v}}}
+\end{align}
+\end{subequations}
+
+Forces and moments
+\begin{subequations}
+\begin{align}
+	\T{f}_n
+	&=
+	\TT{R} \T{\lambda}_{\T{v}}
+	\\
+	\T{m}_n
+	&=
+	\TT{R} \T{\lambda}_{\T{\omega}}
+	+
+	\T{f} \times \TT{R} \T{\lambda}_{\T{v}}
+\end{align}
+\end{subequations}
+
+Linearization of forces and moments
+\begin{subequations}
+\begin{align}
+	\delta\T{f}_n
+	&=
+	\TT{R} \delta \T{\lambda}_{\T{v}}
+	- \plbr{\TT{R} \T{\lambda}_{\T{v}}} \times \T{\theta}_{n\delta}
+	\\
+	\delta \T{m}_n
+	&=
+	\TT{R} \delta \T{\lambda}_{\T{\omega}}
+	+
+	\T{f} \times \TT{R} \delta \T{\lambda}_{\T{v}}
+	-
+	\plbr{
+		\TT{R} \T{\lambda}_{\T{\omega}}
+		+
+		\T{f} \times \TT{R} \T{\lambda}_{\T{v}}
+	} \times \T{\theta}_{n\delta}
+\end{align}
+\end{subequations}
+
+$\T{\lambda}_{\T{v}}$, $\T{\lambda}_{\T{\omega}}$: Lagrange's multipliers (algebraic);
+$\overline{\T{v}}$: local velocity (differential).
+
+\begin{align}
+	\sqbr{\matr{cc|cc|c}{
+		\TT{0} & -c\plbr{\TT{R} \T{\lambda}_{\T{v}}}\times{}
+			& \TT{R} & \TT{0} & \TT{0}
+		\\
+		\TT{0} & -c\plbr{\TT{R} \T{\lambda}_{\T{\omega}} + \T{f}\times\TT{R} \T{\lambda}_{\T{v}}}\times{}
+			& \T{f}\times\TT{R} & \TT{R} & \TT{0}
+		\\
+		\hline
+		\TT{R}^T & \TT{R}^T \plbr{\T{f}\times{}^T - c \dot{\T{x}}_n\times{}^T}
+			& \TT{0} & \TT{0} & -c \TT{I}
+		\\
+		\TT{0} & \TT{R}^T & \TT{0} & \TT{0} & \TT{0}
+		\\
+		\hline
+		\TT{0} & \TT{0} & \TT{0} & \TT{0} & \TT{I}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_n
+		\\
+		\delta\dot{\T{g}}_n
+		\\
+		\delta \T{\lambda}_{\T{v}}
+		\\
+		\delta \T{\lambda}_{\T{\omega}}
+		\\
+		\delta\overline{\T{v}}
+	}}
+\end{align}
+
+
+\end{document}

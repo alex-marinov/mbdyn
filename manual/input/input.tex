@@ -1,0 +1,258 @@
+% $Header$
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\documentclass[10pt]{report}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{graphicx}
+\usepackage{psfrag}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage[breaklinks=true,colorlinks=false]{hyperref}
+\usepackage{html}
+\usepackage{comment}
+\usepackage{moreverb}
+\usepackage{fancyvrb}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{enumitem}
+
+\input{../stdmacro}
+
+\newcommand{\kw}[1]{\textcolor{red}{\texttt{#1}}}
+\newcommand{\bkw}[1]{\texttt{<\textcolor{red}{#1}>}}
+\newcommand{\nt}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\bnt}[1]{\texttt{<\textcolor{blue}{#1}>}}
+\newcommand{\be}[1]{\texttt{<{#1}>}}
+\newcommand{\ty}[1]{\textcolor{green}{\texttt{#1}}}
+\newcommand{\bty}[1]{\texttt{<\textcolor{green}{#1}>}}
+
+\newcommand{\hty}[1]{\htmlref{\ty{#1}}{sec:#1}}
+\newcommand{\htybty}[2]{\htmlref{\ty{#1}\bty{#2}}{sec:#1}}
+\newcommand{\htybkw}[2]{\htmlref{\ty{#1}\bkw{#2}}{sec:#1}}
+\newcommand{\htybent}[2]{\htmlref{\ty{#1}\be{\bnt{#2}}}{sec:#1}}
+
+%\newcommand{\kw}[1]{\texttt{#1}}
+%\newcommand{\nt}[1]{\texttt{#1}}
+%\newcommand{\bnt}[1]{\texttt{<{#1}>}}
+%\newcommand{\ty}[1]{\texttt{#1}}
+
+\newcommand{\T}[1]{\boldsymbol{#1}}
+%\newcommand{\TT}[1]{\boldsymbol{#1}}
+\newcommand{\TT}[1]{\bm{\mathbf #1}}
+
+% Custom
+\topmargin 0.31cm % 0.00cm
+\oddsidemargin 0.00cm
+\evensidemargin 0.00cm
+\marginparsep 0.00cm
+\textwidth 15.92cm
+\textheight 21.00cm % 23.62cm
+
+\begin{document}
+
+\begin{latexonly}
+\title{\bf MBDyn Input File Format \\
+Version
+\input{../../build/version}
+}
+\author{Pierangelo Masarati \vspace{5mm}\\
+    \sc Dipartimento di Ingegneria Aerospaziale \\
+    \sc Politecnico di Milano}
+\date{Automatically generated \today}
+\maketitle
+\end{latexonly}
+
+\begin{htmlonly}
+\begin{center}
+\textbf{\LARGE MBDyn Input File Format}
+
+\emph{\large Pierangelo Masarati}
+
+\textsc{Dipartimento di Ingegneria Aerospaziale \\ Politecnico di Milano}
+
+\today
+\end{center}
+\end{htmlonly}
+
+\pagestyle{plain}
+
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+\chapter*{Introduction}
+This document describes the format of the input data for MBDyn,
+the Multibody Dynamics analysis suite.
+It should be considered a syntax more than a format, since the rules of the
+input allow a lot of freedom in the file format. 
+
+As the title states, this manual describes the syntax of the input.
+The reader should not expect to \emph{learn} how to model systems
+from this text; it is rather a reference manual where the user
+can find the exact and detailed description of the syntax of some
+entity, where it is assumed that the user already knows that entity
+exactly does what is required to model that system or solve that problem.
+
+To get on the right track, one may have a look at the 
+\emph{Frequently Asked Questions} (Appendix~\ref{sec:FAQ}),
+a steadily growing chapter that collects the most common issues
+arising from users.
+They might help pointing to the right statement for a given purpose,
+but in any case nothing can replace the judgment of the user
+about what entity exactly fits some need.
+The only document that may help users in growing this type of judgment
+is the \emph{tutorials} book, available from the website.
+For more specific questions, one should try the
+%\url{mbdyn-users@mbdyn.org}
+\begin{quote}
+\htmladdnormallink{\texttt{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
+\end{quote}
+mailing list (browse the archives, just in case, then post a question;
+posting is restricted to subscribers; subscription is free).
+
+\section*{Conventions on the Notation}
+Throughout the manual, a (sometimes na\"{\i}ve) 
+Backus-Naur-like syntax description is used. 
+Extensions are made, such as to put optional arguments in square brackets
+`\texttt{[]}', mutually exclusive arguments in curly brackets `\texttt{\{\}}',
+separated by the operator `\texttt{|}' (the logical ``OR'').
+Non-terminal symbols are enclosed in angle brackets `\texttt{<>}', while
+terminal symbols are written in normal types.
+The association of a non-terminal with terminal or non-terminal
+symbols is performed by means of the operator `\texttt{::=}'. 
+When required, the type of a non-terminal symbol is enforced in a ``C''
+programming language casting style, by prepending a (usually
+self-explanatory) type enclosed in plain brackets `\texttt{()}'.
+
+
+\section*{Remarks}
+The input of the program MBDyn is subject to continuous changes
+at a fast pace, since the code is under development.
+This documentation attempts to give some insight into the logic 
+that drove its implementation.
+
+While most of the software resulted from a careful design, 
+some portions are ``as they are'' only because they were made in a hurry, 
+or because no better way was at hand at the moment they were made.
+The input format partially reflects the development of the software.
+Whenever changes in the input format and in the syntax 
+of existing parts are required, an effort will be attempted to make 
+it as much backward compatible as possible, or at least reliable 
+diagnostics and error checking will be put in place that warns 
+for possible erroneous inputs related to a change in the input format. 
+
+At present the input of MBDyn already warns for many possible errors 
+and makes as many cross-checks as possible on the consistency of the data. 
+Nearly every warning and error issue shows the line of the input file 
+where the error occurred. 
+
+This document will be subjected to changes, so be sure you always have 
+a release that is aligned with the version of the code you're running.
+
+For any question or problem, to fix typos, bugs, for comments and
+suggestions, please contact the users' mailing list
+
+\begin{quote}
+\htmladdnormallink{\texttt{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
+\end{quote}
+
+Please note that you need to subscribe to be allowed to post to the list.
+Posting is public, so please only post information not subjected
+to distribution restrictions.
+
+Mailing list subscription information is available on the web site
+
+\begin{quote}
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}
+\end{quote}
+
+\bigskip
+
+As an alternative, you can directly contact the Developers' Team:
+\begin{quote}
+\begin{tabular}{ll}
+\multicolumn{2}{l}{Pierangelo Masarati,} \\
+\multicolumn{2}{l}{MBDyn Development Team} \\
+\multicolumn{2}{l}{Dipartimento di Ingegneria Aerospaziale} \\
+\multicolumn{2}{l}{Politecnico di Milano} \\
+\multicolumn{2}{l}{via La Masa 34, 20156 Milano, Italy} \\
+Fax: & +39 02 2399 8334 \\
+E-mail: & \htmladdnormallink{\texttt{mbdyn@aero.polimi.it}}{mailto:mbdyn@aero.polimi.it} \\
+Web: & \htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}
+\end{tabular}
+\end{quote}
+
+\bigskip
+
+
+This manual is also available online at \\
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/masarati/MBDyn-input/manual/index.html}}{http://www.aero.polimi.it/masarati/MBDyn-input/manual/index.html}
+
+Make sure you use the manual that refers to the version of MBDyn 
+that you are using; from MBDyn 1.2 on, the input manual is marked
+with the same version number of the package.
+
+The website \htmladdnormallink{\texttt{http://www.mbdyn.org/}}{http://www.mbdyn.org/}
+may advertise different versions of the manual, including those related 
+to past releases and a HEAD or -devel version, which refers to current
+development; this can be useful to check whether the current
+development may address problems you are having.
+Moreover, since the updating of the manual is not as prompt
+as required to keep pace with code releases,
+the -devel manual may describe features that are already
+in the latest release but not yet documented in that release's manual.
+
+\input{overview}
+\input{general}
+\input{data}
+\input{problems}
+\input{controldata}
+\input{nodes}
+\input{drivers}
+\input{elements}
+
+\appendix
+\input{modal-fem-format}
+\input{modules}
+\input{netcdfout}
+\input{outputresults} 
+\input{logfile} 
+\input{faq}
+
+\bibliographystyle{unsrt}
+\bibliography{../mybib,../mbdyn}
+
+
+\end{document}

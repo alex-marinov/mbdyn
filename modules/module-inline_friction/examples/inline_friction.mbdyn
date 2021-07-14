@@ -1,0 +1,213 @@
+#{
+
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2017
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+        Copyright (C) 2011(-2017) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
+*/
+
+set: real X0 = 20e-3;
+set: real Y0 = 30e-3;
+set: real Z0 = -15e-3;
+
+set: real m = 2;
+set: real J11 = 1;
+set: real J22 = 1;
+set: real J33 = 1;
+set: real g = 9.81;
+
+set: real gravity_Zeta = -pi/2;
+set: real gravity_Psi = 30 * pi / 180.;
+
+set: real mus = 0.8;
+set: real muc = 0.8;
+set: real vs = 1e-6;
+set: real kv = 0;
+set: real delta = 1e-6;
+set: real i = 1;
+
+set: real theta_y = 70*pi/180;
+set: real theta_z = 90*pi/180;
+
+set: integer node_id_slider = 1001;
+set: integer node_id_ground = 1002;
+set: integer prm_node_id_lambda1 = 1003;
+set: integer prm_node_id_lambda2 = 1004;
+set: integer prm_node_id_z = 1005;
+set: integer prm_node_id_zP = 1006;
+set: integer prm_node_id_tau = 1007;
+set: integer prm_node_id_v = 1008;
+set: integer body_id_slider = 2001;
+set: integer joint_id_ground = 3001;
+set: integer joint_id_slider = 3002;
+set: integer ref_id_slider = 4001;
+
+begin: data;
+	problem: initial value;	# the default
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1;
+	time step: 1e-4;
+#    min time step: 1e-4;
+#    max time step: 5e-2;
+	max iterations: 10;
+#	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
+	tolerance: 1e-8;
+
+	max iterations: 10;
+    method: ms, 0.9;
+    derivatives tolerance: 1e-5;
+    derivatives max iterations: 20;
+	derivatives coefficient: 1e-3;
+    #output: iterations;
+    #output: residual;
+    #output: solution;
+    #output: jacobian;
+    threads: assembly, 1;
+    linear solver: umfpack, colamd, scale, iterative, always, max iterations, 10;
+
+	eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,
+    output matrices, 
+	parameter, 0.01,
+	output eigenvectors, output geometry,	
+    use lapack, balance, permute;
+    #abort after: derivatives;
+end: initial value;
+
+begin: control data;
+    default output: all;
+	structural nodes: 2;
+    parameter nodes: 6;
+    rigid bodies: 1;
+    loadable elements: 1;
+    joints: 1;
+	max iterations: 100;
+	tolerance: 1e-8;
+	gravity;
+	#~ print: dof stats;
+	#~ print: equation description;
+	#~ print: dof description;
+	#~ print: element connection;
+	#~ print: node connection;	
+    use: loadable elements, in assembly;
+    print: all, to file;
+end: control data;
+
+reference: ref_id_slider,
+    position, reference, global, X0, Y0, Z0,
+    orientation, reference, global, matr, 	cos(theta_y) * cos(theta_z),	-sin(theta_z),	sin(theta_y) * cos(theta_z),
+								            cos(theta_y) * sin(theta_z),	 cos(theta_z),	sin(theta_y) * sin(theta_z),
+								            -sin(theta_y),		 	 			 	   0.,					cos(theta_y),
+    velocity,         reference, global, null,
+    angular velocity, reference, global, null;
+
+begin: nodes;
+
+# module load: "libmodule-inline_friction.la";
+
+structural: node_id_slider, dynamic,
+    position, reference, ref_id_slider, 0., 0., -15e-3,
+	orientation, reference, ref_id_slider, euler123, 45*pi/180, -60*pi/180, 30*pi/180,
+	velocity, reference, ref_id_slider, null,
+	angular velocity, reference, ref_id_slider, null;
+
+structural: node_id_ground, static,
+    position, reference, global, -150e-3, 560e-3, -100e-3,
+	orientation, reference, global, euler123, 45*pi/180, -60*pi/180, 30*pi/180,
+	velocity, reference, global, null,
+	angular velocity, reference, global, null;
+
+parameter: prm_node_id_lambda1, element;
+parameter: prm_node_id_lambda2, element;
+parameter: prm_node_id_z, element;
+parameter: prm_node_id_zP, element;
+parameter: prm_node_id_tau, element;
+parameter: prm_node_id_v, element;
+
+end: nodes;
+
+begin: elements;
+
+	body: body_id_slider,
+		# node
+		node_id_slider,
+		# mass
+		m,
+		# relative center of mass
+		reference, node, null,
+		# inertia matrix
+		diag, J11, J22, J33,
+		inertial, reference, node, eye;
+
+    joint: joint_id_ground, clamp, node_id_ground, node, node;
+
+    user defined: joint_id_slider, 
+        # octave, "InLineFriction", embed octave, yes, octave search path, "..",
+         inline friction,
+        node1,
+            node_id_ground,
+            offset, reference, ref_id_slider, null,
+            orientation, reference, ref_id_slider, eye,
+        node2,
+            node_id_slider,
+            offset, reference, ref_id_slider, null,
+        coulomb friction coefficient, muc,
+        static friction coefficient, mus,
+        sliding velocity coefficient, vs,
+        sliding velocity exponent, i,
+        micro slip displacement, delta,
+        viscous friction coefficient, kv;
+
+    bind: joint_id_slider, user defined, prm_node_id_lambda1, string, "lambda1";
+    bind: joint_id_slider, user defined, prm_node_id_lambda2, string, "lambda2";
+    bind: joint_id_slider, user defined, prm_node_id_z,       string, "z";
+    bind: joint_id_slider, user defined, prm_node_id_zP,      string, "zP";
+    bind: joint_id_slider, user defined, prm_node_id_tau,     string, "tau";
+    bind: joint_id_slider, user defined, prm_node_id_v,     string, "v";
+
+	gravity: cos(gravity_Zeta) * cos(gravity_Psi), 
+             cos(gravity_Zeta) * sin(gravity_Psi), 
+             sin(gravity_Zeta),
+	const, g;		
+end: elements;
+#}
+#/*
+fprintf(stderr,"inline_friction.mbdyn: embed octave is enabled ...\n");
+warning("error","Octave:divide-by-zero");
+#*/

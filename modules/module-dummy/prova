@@ -1,0 +1,48 @@
+# $Header$
+
+begin: data;
+    integrator: multistep;
+end: data;
+
+
+begin: multistep;
+    # abort after: input;
+
+    time step: (real dt = 1.e-3);
+    initial time: 0.;
+    final time: 20*dt;
+
+    set: (real Rho = .6);
+    method: nostro, Rho, Rho;
+    # method: crank nicholson;
+    
+    max iterations: 20;
+    tolerance: 1.e-5;
+    
+    derivatives coefficient: 1.e-12;
+    derivatives max iterations: 10;
+    derivatives tolerance: 1.e-5;
+    
+    fictitious steps number: 10;
+    fictitious steps ratio: 1.e-2;
+    fictitious steps max iterations: 10;
+    fictitious steps tolerance: 1.e-6;
+    fictitious steps method: nostro, 0.3,0.3;
+    
+    newton raphson: modified, 4;
+end: multistep;
+
+begin: control data;
+    structural nodes: 1;
+    joints: 1;
+    loadable elements: 1;
+end: control data;
+
+begin: nodes;
+    structural: 1, static, null, eye, null, null;
+end: nodes;
+
+begin: elements;
+    joint: 1, clamp, 1, node, node;
+    loadable: 1, "./module-dummy.so";
+end: elements;

@@ -1,0 +1,4 @@
+/*
+ * Copyright 1999-2007 Cassan Leonardo <lcassan@tiscalinet.it>
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ */

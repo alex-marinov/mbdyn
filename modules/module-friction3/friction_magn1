@@ -1,0 +1,107 @@
+# $Header$
+
+begin: data;
+	integrator: multistep;
+end: data;
+
+begin: multistep;
+	initial time: 0.;
+#	final time: 1.;
+#	time step: 1.e-3;
+	final time: 30.;
+#	time step: 30./40000.;
+	time step: 750.E-5;
+
+	tolerance: 1.e-6;
+	max iterations: 20;
+	method: ms, .6, .6;
+#	method: thirdorder, .6;
+
+	derivatives tolerance: 1.e-10;
+	derivatives max iterations: 20;
+	derivatives coefficient: 1.e-200;
+
+	newton raphson: modified, 1;
+
+	solver: umfpack3;
+	#output: residual, jacobian, solution;
+	#output: residual, jacobian;
+	#output: residual;
+end: multistep;
+
+begin: control data;
+	default output: all;
+	abstract nodes: 3;
+	genels: 3;
+	loadable elements: 1;
+#	forces: 1;
+end: control data;
+
+begin: nodes;
+	abstract: 1, value, 0., derivative, 0.;
+	abstract: 2, value, 0., derivative, 0.;
+	abstract: 3, value, 0., derivative, 0.;
+end: nodes;
+
+scalar function: "splinefriction", cubic spline,
+ -2 		, 1.5			,
+ -1 		, 1.5			,
+ -0.00004 	, 1.5			,
+ -0.00003 	, 1.5			,
+ -0.00002 	, 1.5			,
+ -0.00001 	, 1.5			,
+ 0 		, 1.5			,
+ 0.001  	, 1.46970653140674	,
+ 0.002  	, 1.3894003915357	,
+ 0.003  	, 1.28489141236546	,
+ 0.004  	, 1.18393972058572	,
+ 0.005  	, 1.10480569357555	,
+ 0.006  	, 1.05269961228093	,
+ 0.007  	, 1.02338531119198	,
+ 0.008  	, 1.00915781944437	,
+ 0.009  	, 1.00316485771374	,
+ 0.01 		, 1.00096522706811	,
+ 0.011  	, 1.00025978734108	,
+ 0.012		, 1.00006170490204	,
+ 0.02		, 1.00006170490204	,
+ 0.02001	, 1.00006170490204	,
+ 0.02002	, 1.00006170490204	,
+ 0.02003	, 1.00006170490204	,
+ 0.02004	, 1.00006170490204	,
+ 2.		, 1.00006170490204	
+ ;
+scalar function: "constfriction", const, 1.5;
+
+begin: elements;
+	loadable: 1000, 
+	"/home/marco/Mbdyn/mbdyn/modules/module-friction3/module-friction3.so", help,
+		1, abstract,
+		2, abstract,
+		1.
+		,
+		friction, 
+			modlugre, 1E5, sqrt(1E5),0.4,0.71, "splinefriction", 
+#			discrete coulomb, "splinefriction", 
+#				sigma2, 0.4, velocity ratio, 0.8,
+			simple
+#			simple plane hinge, 0.1
+		;
+#	force: 1, abstract, 1, abstract,
+#		sine, 
+#		0., 
+#		1., 
+#		0.35, 
+#			forever, 
+#			#4,
+#			0.;
+	genel: 2, clamp, 3, abstract, differential, const, 0.1;
+	genel: 3, cross spring support, 
+		1, abstract, differential, 
+		3, abstract, algebraic, 
+		linear elastic, -2.;
+	genel: 4, cross spring support, 
+		1, abstract, differential, 
+		2, abstract, algebraic, 
+		linear elastic, 2.;
+end: elements;
+

@@ -1,0 +1,42 @@
+diff -ur home/vgui/includex/v/v_defs.h home/vgui/includex/v/v_defs.h
+--- home/vgui/includex/v/v_defs.h	2003-04-28 19:16:56.000000000 +0200
++++ home/vgui/includex/v/v_defs.h	2005-10-31 12:17:08.628799720 +0100
+@@ -310,6 +310,7 @@
+ #define notChk 0
+ #define noSub 0
+ #define notUsed 0
++#define notUsedVar
+ #define noIcon 0
+ 
+     // standard menu definitions
+diff -ur home/vgui/includex/v/vtimer.h home/vgui/includex/v/vtimer.h
+--- home/vgui/includex/v/vtimer.h	2003-04-04 23:37:28.000000000 +0200
++++ home/vgui/includex/v/vtimer.h	2005-10-31 12:17:04.107487064 +0100
+@@ -19,13 +19,13 @@
+ 
+     extern "C"
+       {
+-	void CtimerCB(XtPointer client_data, XtIntervalId* notUsed);
++	void CtimerCB(XtPointer client_data, XtIntervalId* notUsedVar);
+       }
+ 
+     class vTimer
+       {
+ 
+-	friend void CtimerCB(XtPointer client_data, XtIntervalId* notUsed);
++	friend void CtimerCB(XtPointer client_data, XtIntervalId* notUsedVar);
+ 
+       public:		//---------------------------------------- public
+ 
+diff -ur home/vgui/srcx/vtimer.cxx home/vgui/srcx/vtimer.cxx
+--- home/vgui/srcx/vtimer.cxx	2003-04-04 23:37:00.000000000 +0200
++++ home/vgui/srcx/vtimer.cxx	2005-10-31 12:18:51.009235528 +0100
+@@ -95,7 +95,7 @@
+ extern "C"
+ {
+ //============================>>> CtimerCB <<<==========================
+-  void CtimerCB(XtPointer client_data, XtIntervalId* notUsed)
++  void CtimerCB(XtPointer client_data, XtIntervalId* notUsedVar)
+   { 
+     //	timer tick callback
+     //

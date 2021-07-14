@@ -1,0 +1,100 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.e-2;
+
+	real time: posix,
+		mode, period, time step, 10e6,
+		allow nonroot; # nanoseconds
+
+	# output: iterations;
+	max iterations: 10;
+	tolerance: 1e-6;
+end: initial value;
+
+begin: control data;
+	structural nodes: 3;
+	rigid bodies: 1;
+	joints: 5;
+	file drivers: 1;
+end: control data;
+
+module load: "libmodule-leapmotion";
+
+set: const integer HAND_TYPE = 1;
+set: const integer HAND_POSITION_X = 2;
+set: const integer HAND_POSITION_Y = 3;
+set: const integer HAND_POSITION_Z = 4;
+set: const integer HAND_DIRECTION_X = 5;
+set: const integer HAND_DIRECTION_Y = 6;
+set: const integer HAND_DIRECTION_Z = 7;
+set: const integer HAND_NORMAL_X = 8;
+set: const integer HAND_NORMAL_Y = 9;
+set: const integer HAND_NORMAL_Z = 10;
+set: const integer HAND_ROLL = 11;
+set: const integer HAND_PITCH = 12;
+set: const integer HAND_YAW = 13;
+
+begin: nodes;
+	structural: 0, static, null, eye, null, null;
+	structural: 1, dynamic, 0., 0., 1., eye, null, null;
+	structural: 2, static, 0., 0., 2., eye, null, null;
+end: nodes;
+
+begin: drivers;
+	file: 0, leapmotion hand;
+end: drivers;
+
+begin: elements;
+	body: 1, 1, 1., null, null;
+	joint: 0, clamp, 0, node, node;
+	joint: 1, total joint,
+		0, position, reference, node, null,
+		1, position, reference, node, null,
+		position constraint, 1, 1, 0, null,
+		orientation constraint, 1, 1, 1, null;
+	joint: 2, total joint,
+		0, position, reference, node, 0., 0., 2.,
+		2, position, reference, node, null,
+		position constraint, 1, 1, 1,
+			0., 0., 1., file, 0,
+				# HAND_POSITION_Y, amplitude, 1e-3,
+				HAND_ROLL, amplitude, 1e-0,
+		orientation constraint, 1, 1, 1, null;
+	joint: 10, rod, 0, 1, from nodes, linear viscoelastic generic, 1e3, 2e1;
+	joint: 20, rod, 1, 2, from nodes, linear viscoelastic generic, 1e3, 2e1;
+end: elements;
+

@@ -1,0 +1,66 @@
+%\documentclass[10pt]{article}
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+%\usepackage[T1]{fontenc}
+%\usepackage{ae,aecompl}
+%\usepackage{graphicx}
+%\usepackage{psfrag}
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%\usepackage{bm}
+%\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
+%\usepackage{html}
+%\usepackage{comment}
+%\usepackage{moreverb}
+%\usepackage{fancyvrb}
+%\usepackage{xcolor}
+%\usepackage{framed}
+%
+%\newcommand{\kw}[1]{\textcolor{red}{\texttt{#1}}}
+%\newcommand{\bkw}[1]{\texttt{<\textcolor{red}{#1}>}}
+%\newcommand{\nt}[1]{\textcolor{blue}{\texttt{#1}}}
+%\newcommand{\bnt}[1]{\texttt{<\textcolor{blue}{#1}>}}
+%\newcommand{\be}[1]{\texttt{<{#1}>}}
+%\newcommand{\ty}[1]{\textcolor{green}{\texttt{#1}}}
+%\newcommand{\bty}[1]{\texttt{<\textcolor{green}{#1}>}}
+%\newcommand{\hty}[1]{\htmlref{\ty{#1}}{sec:#1}}
+%
+%\author{Reinhard Resch}
+%\title{module-hydrodynamic\_plain\_bearing}
+%\begin{document}
+%\maketitle
+
+
+This module implements a hydrodynamic plain bearing according to Hans J\"urgen Butensch\"on 1976 Das hydrodynamische zylindrische Gleitlager endlicher Breite unter instation\"arer Belastung.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{hydrodynamic_plain_bearing_with_offset}
+
+    \bnt{arglist} ::=
+        \kw{shaft}, (\bnt{label}) \bnt{shaft\_node} ,
+        [ \kw{offset} , (\hty{Vec3}) \bnt{o1} , ]
+        \kw{bearing} , (\bnt{label}) \bnt{bearing\_node} ,
+        [ \kw{offset} , (\hty{Vec3}) \bnt{o2} , ]
+        \kw{bearing width} , (\ty{real}) \bnt{b} ,
+        \{ , \kw{shaft diameter} , (\ty{real}) \bnt{d} | \kw{bearing_diameter} , (\ty{real}) \bnt{D} \} ,
+        \kw{relative clearance} , (\ty{real}) \bnt{Psi} ,
+        \kw{oil viscosity} , (\ty{real}) \bnt{eta} ,
+        \kw{initial assembly factor} , (\hty{DriveCaller}) \bnt{assembly_factor}
+        [ , \kw{number of gauss points} , (\ty{integer}) \bnt{num_gauss_points} ]
+        [ , \kw{output points} , (\ty{integer}) \bnt{num_output_points} 
+            [ , \{ \kw{gauss point} , (\ty{integer}) \bnt{gauss_index_1 } |
+                \kw{custom} , \kw{r} , (\ty{real}) \bnt{r_1} , 
+                \kw{alpha} , (\ty{real}) \bnt{alpha_1} \}
+            ]
+        ]
+        [ , \kw{extend shaft to bearing center} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{extend\_axis\_of\_shaft} \} ]
+        [ , \kw{epsilon max} , (\ty{real}) \bnt{epsilon\_max} ]
+\end{Verbatim}
+We assume that the axis of rotation is always axis three in the reference frame of the node. Only small misalignments of bearing and shaft are allowed.
+\begin{equation}
+\cos{\varphi}={\boldsymbol{e}_{3}}^T \, {\boldsymbol{R}_1}^T \, \boldsymbol{R}_2 \, \boldsymbol{e}_{3} \approx 1
+\end{equation}
+The effective angular velocity of the bearing rigidly connected to node \bnt{bearing\_node} is $\bar{\omega}_2={\boldsymbol{e}_{3}}^T\,{\boldsymbol{R}_{2}}^T\,\boldsymbol{\omega}_2$ and the effective angular velocity of the shaft connected to node \bnt{shaft\_node} is $\bar{\omega}_1={\boldsymbol{e}_{3}}^T\,{\boldsymbol{R}_{2}}^T\,\boldsymbol{\omega}_1$.
+\bnt{o1} and \bnt{o2} are the offsets between nodes and centre of the shaft and bearing respectively. The width of the bearing is \bnt{b} and the relative clearance of the bearing is defined as $\bnt{Psi}=(\bnt{D} - \bnt{d})/\bnt{D}$ where \bnt{D} is the inner diameter of bearing and \bnt{d} is the outer diameter of the shaft. \bnt{eta} is the dynamic viscosity of the oil and its SI unit is [Pa s]. It is possible to disable the hydrodynamic bearing force at the beginning of the simulation by providing some sort of ramp up function called \bnt{assembly\_factor}. In order to take into account small misalignments between shaft and bearing, one can set the number of Gauss points \bnt{num\_gauss\_points} to a value of two, three or six. In that case hydrodynamic bearing forces will be evaluated at multiple points along the width of the bearing and output will be generated for each Gauss point by default. Output can be customised by selecting only a subset of available Gauss points by means of \bnt{gauss\_index\_1} or by specifying custom locations \bnt{r\_1} and weighting factors \bnt{alpha\_1} to be output. If the option \bnt{extend\_axis\_of\_shaft} is enabled, axial movement of the shaft is allowed and bearing kinematics and reaction forces will be evaluated at the intersection point between the axis of the shaft and centre plane of the bearing. According to the theory of a rigid bearing, eccentricities of $\varepsilon \geq 1$ are not possible and the simulation would fail if $\varepsilon$ becomes one or higher. In addition to that, the approximation of the Sommerfeld numbers is valid until a relative eccentricity of $\varepsilon=0.999$. For that reason a linear extrapolation of the Sommferfeld numbers is used in case of $\varepsilon \geq \bnt{epsilon\_max}$ which is equal to $0.999$ by default.
+%\end{document}

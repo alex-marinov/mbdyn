@@ -1,0 +1,116 @@
+$Header$
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2017
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation (version 2 of the License).
+
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+COPYRIGHT (C) 2003-2004
+
+Michele Attolico <attolico@aero.polimi.it>
+
+=======================================================================
+                     Simulink Interface for MBDyn
+=======================================================================
+
+You need:
+- a working Matlab/Simulink installation; see http://www.mathworks.com
+- the "mex" compiler in your PATH; on my system it's in /opt/matlab/bin
+- MBDyn 1.2.0 or later
+- as Matlab occasionally provides its own version of libraries, like
+  libstdc++.so, and populates the environment with LD_LIBRARY_PATH
+  pointing to its own libraries, you may want to use the mbdyn.sh
+  script instead of mbdyn binary, to restore a sane environment before
+  running the binary; hack that script to fit your installation
+- once for all, you can set MBDyn's install path in Matlab's global path
+  (see setup.m; may change in the future)
+
+Simulink procedure:
+- File->New->Model
+- File->Open->MBDynCom.mdl
+- create the simulink model and connect it to the MBDyn input and 
+  output blocks
+- leave the MBDyn start block alone
+- in "Simulation->Simulation Parameters set "Type" to "Fixed Step"
+  and set "Fixed Step Size" to the value of the (fixed) time step
+- hit "Simulation->Start"; some times, the first run fails; we're
+  still trying to track that down.  In case, just try again...
+
+Start MBDyn block:
+- set the "MBDyn path" entry to the custom executable path if required;
+  better use the mbdyn.sh script, and hack it as appropriate
+- set the "Input file" entry to the name of the model file
+- set the "Output file" entry to the name of the output file
+  if different from that of the model; the path is relative to that
+  of the SimulinkInterface directory
+- select verbose and pedantic radio buttons as desired
+
+Read MBDyn block:
+- unckeck the "RTAI" radio button
+- check the "Socket" radio button
+- check the "Net/Local" button (means "Net"), because "Local" sockets
+  are currently broken
+- set the "Node" entry to "127.0.0.1"
+- set the "Port" entry to the desired port (see services(5) for details
+  on usable ports)
+  http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/).
+- set the "Number of channels" entry to the desired number of channels
+  that will be written by MBDyn to Simulink via the "Stream Output" 
+  element (see subsection "Stream output" of section "Output Elements" 
+  in "MBDyn Input File Format" for details,
+  http://www.aero.polimi.it/~masarati/MBDyn-input/manual/).
+- set the "Sample time" entry to the value of the (fixed) time step
+
+Write MBDyn block:
+- unckeck the "RTAI" radio button
+- check the "Socket" radio button
+- check the "Net/Local" button (means "Net"), because "Local" sockets
+  are currently broken
+- set the "Node" entry to "127.0.0.1"
+- set the "Port" entry to the desired port (see services(5) for details
+  on usable ports)
+- set the "Number of channels" entry to the desired number of channels
+  that will be written by Simulink to MBDyn via the "Stream" drive
+  (see subsection "Stream" of section "File Drivers" 
+  in "MBDyn Input File Format" for details,
+  http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/).
+- set the "Sample time" entry to the value of the (fixed) time step
+
+Notes:
+- simulink currently connects to existing sockets created by MBDyn,
+  so always set "create, yes" in MBDyn models.
+- local socket seems to be broken at the moment; use inet
+  on loopback device.
+- in case you can't make the "Start" block work, or if for any reason
+  you need a tighter control on MBDyn execution, you can manually start
+  the process; it will wait until Simulink connects on both read and write
+  connections.
+
+Examples:
+example models are located in the "examples" subdirectory
+- pendulum: a simple, inverted pendulum controlled by Simulink using 
+  a PD controller
+

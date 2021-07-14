@@ -1,0 +1,204 @@
+# $Header$
+#
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+module load: "./libmodule-hunt-crossley.so";
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: 20.;
+	# final time: .01;
+	time step: 2*pi/40./200;
+
+	linear solver: naive, colamd;
+
+	tolerance: 1e-3;
+	max iterations: 50, at most;
+
+	derivatives tolerance: 1e-0;
+	derivatives max iterations: 20;
+
+	#output: solution;
+	#output: residual;
+	#output: iterations;
+
+	threads: disable;
+end: initial value;
+
+begin: control data;
+	structural nodes:
+		+1		# ground
+		+1		# hub
+		+1		# blade
+	;
+	rigid bodies:
+		+1		# blade
+	;
+	joints:
+		+1		# ground
+		+1		# hub rotation
+		+1		# flap hinge
+		+1		# flap stops
+	;
+	gravity;
+	default orientation: orientation vector;
+end: control data;
+
+set: const integer GROUND = 0;
+set: const integer HUB = 100;
+
+set: const integer NB = 4;
+set: const integer BLADE_1 = 1000;
+set: integer CURR_BLADE;
+
+set: real OMEGA = 40.;
+set: real OMEGA_0 = 0.;
+set: real R = 5.;
+set: real FLAP_OFFSET = 0.04*R;
+set: real M = 50.;
+set: real JP = 2.;
+set: real JB = M/12*R^2;
+
+reference: GROUND,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+reference: HUB,
+	reference, GROUND, null,
+	reference, GROUND, eye,
+	reference, GROUND, null,
+	reference, GROUND, 0., 0., OMEGA_0;
+
+set: CURR_BLADE = BLADE_1;
+reference: CURR_BLADE + 1,
+	reference, HUB, null,
+	reference, HUB,
+		3, 0., 0., 1.,
+		1, cos(CURR_BLADE/BLADE_1*2*pi/NB), sin(CURR_BLADE/BLADE_1*2*pi/NB), 0.,
+	reference, HUB, null,
+	reference, HUB, null;
+reference: CURR_BLADE,
+	reference, CURR_BLADE + 1, FLAP_OFFSET, 0., 0.,
+	reference, CURR_BLADE + 1, eye,
+	reference, CURR_BLADE + 1, null,
+	reference, CURR_BLADE + 1, null;
+
+begin: nodes;
+	structural: GROUND, static,
+		reference, GROUND, null,
+		reference, GROUND, eye,
+		reference, GROUND, null,
+		reference, GROUND, null,
+		output, no;
+
+	structural: HUB, static,
+		reference, HUB, null,
+		reference, HUB, eye,
+		reference, HUB, null,
+		reference, HUB, null;
+
+	set: CURR_BLADE = BLADE_1;
+	structural: CURR_BLADE, dynamic,
+		reference, CURR_BLADE, (R - FLAP_OFFSET)/2, 0., 0.,
+		reference, CURR_BLADE, eye,
+		reference, CURR_BLADE, null,
+		reference, CURR_BLADE, null;
+end: nodes;
+
+begin: elements;
+	gravity: 0., 0., -1., 9.81;
+
+	joint: GROUND, clamp, GROUND, node, node;
+
+	joint: HUB, total joint,
+		GROUND,
+			position, reference, GROUND, null,
+			position orientation, reference, GROUND, eye,
+			rotation orientation, reference, GROUND, eye,
+		HUB,
+			position, reference, GROUND, null,
+			position orientation, reference, GROUND, eye,
+			rotation orientation, reference, GROUND, eye,
+		position constraint, active, active, active, null,
+		orientation constraint, active, active, angular velocity,
+			0., 0., 1.,
+				array, 2,
+				 	cosine, 2., 2*pi/10., (OMEGA - OMEGA_0)/2, half, OMEGA_0,
+				 	cosine, 10., 2*pi/10., -(OMEGA - OMEGA_0)/2, half, 0.;
+
+	set: CURR_BLADE = BLADE_1;
+	body: CURR_BLADE, CURR_BLADE,
+		M,
+		reference, node, null,
+		diag, JP, JB, JB;
+
+	joint: CURR_BLADE + 1, total joint,
+		HUB,
+			position, reference, CURR_BLADE, null,
+			position orientation, reference, CURR_BLADE, eye,
+			rotation orientation, reference, CURR_BLADE, eye,
+		CURR_BLADE,
+			position, reference, CURR_BLADE, null,
+			position orientation, reference, CURR_BLADE, eye,
+			rotation orientation, reference, CURR_BLADE, eye,
+		position constraint, active, active, active, null,
+		orientation constraint, active, inactive, active, null;
+
+	set: real ALPHA = 4e0;
+	set: real KAPPA = 1e9;
+	set: real EXPONENT = 3./2;
+
+	joint: CURR_BLADE + 2, deformable axial joint,
+		HUB,
+			position, reference, CURR_BLADE, null,
+			orientation, reference, CURR_BLADE,
+				3, 0., -1., 0.,
+				1, 1., 0., 0.,
+		CURR_BLADE,
+			position, reference, CURR_BLADE, null,
+			orientation, reference, CURR_BLADE,
+				3, 0., -1., 0.,
+				1, 1., 0., 0.,
+		array, 2,
+			# upper limit
+			hunt crossley, sign, positive, alpha, ALPHA, kappa, KAPPA, exp, EXPONENT,
+				prestrain,
+					const, 5.*deg2rad,
+			# lower limit
+			hunt crossley, alpha, ALPHA, kappa, KAPPA, exp, EXPONENT,
+				prestrain,
+					cosine, 0., 2*pi/1., -5.*deg2rad/2, half, 0.;
+					# const, -5.*deg2rad;
+end: elements;

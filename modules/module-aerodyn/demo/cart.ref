@@ -1,0 +1,156 @@
+#
+# Copyright (C) 2007 Pierangelo Masarati <masarati@aero.polimi.it>
+#
+# This file can be freely used and modified to be run with MBDyn
+# provided this copyright notice is not altered nor removed.
+#
+# THIS MODEL IS PROVIDED AS IS, WITHOUT ANY WARRANTY OF ACCURACY
+# OR FITNESS FOR ANY PURPOSE
+#
+# MBDyn model of the CART -  Controls Advanced Research Turbine
+#
+reference: GROUND,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+# The bottom of the tower is coincident with the ground,
+# but its x axis is vertical, pointing up
+#
+reference: TOWER_BOTTOM,
+	reference, GROUND, null,
+	reference, GROUND,
+		1, 0., 0., 1.,
+		2, 0., 1., 0.,
+	reference, GROUND, null,
+	reference, GROUND, null;
+
+#
+reference: TOWER_TOP,
+	reference, TOWER_BOTTOM,
+		TOWER_LENGTH, 0., 0.,
+	reference, TOWER_BOTTOM, eye,
+	reference, TOWER_BOTTOM, null,
+	reference, TOWER_BOTTOM, null;
+
+# The nacelle yaw bearing is at the top of the tower
+#
+reference: NACELLE_YAW,
+	reference, TOWER_TOP, null,
+	reference, TOWER_TOP,
+		2, 0., 1., 0.,
+		3, 1., 0., 0., # z points upwards
+	reference, TOWER_TOP, null,
+	reference, TOWER_TOP, null;
+
+# The origin of the nacelle is 1.734 m above the nacelle yaw joint
+# along the tower axis, with a fixed, imposed tilt
+#
+reference: NACELLE_ORIGIN,
+	reference, NACELLE_YAW,
+		0., 0., 1.734, # m
+	reference, NACELLE_YAW,
+		2, 0., -1., 0.,
+		1, -cos(NACELLE_TILT_ANGLE), 0., -sin(NACELLE_TILT_ANGLE), # x == rotation axis downwind, z points upwards
+	reference, NACELLE_YAW, null,
+	reference, NACELLE_YAW, null;
+
+# The CG of the nacelle is 0.402 m upwind of the nacelle origin
+#
+reference: NACELLE_CG,
+	reference, NACELLE_ORIGIN,
+		-0.402, 0., 0.,
+	reference, NACELLE_ORIGIN,
+		# eye,
+		2, 0., 1., 0.,
+		3, 1., 0., 0., # z == rotation axis downwind, x points downwards
+	reference, NACELLE_ORIGIN, null,
+	reference, NACELLE_ORIGIN, null;
+
+# The Low Speed Shaft (LSS) coupling is 2.519 m upwind of the nacelle origin,
+# oriented with axis 3 as the bear rotation axis
+#
+reference: NACELLE_LSS_COUPLING,
+	reference, NACELLE_ORIGIN,
+		-2.519, 0., 0.,
+	reference, NACELLE_ORIGIN,
+		2, 0., 1., 0.,
+		3, 1., 0., 0.,	# z == rotation axis downwind, x points downwards
+	reference, NACELLE_ORIGIN, null,
+	reference, NACELLE_ORIGIN, null;
+
+# The teeter pin is 3.867 m upwind of the nacelle origin
+reference: NACELLE_TEETER,
+	reference, NACELLE_ORIGIN,
+		-3.867, 0., 0.,
+	reference, NACELLE_ORIGIN, eye , # x == rotation axis downwind, z points upwards
+	reference, NACELLE_ORIGIN, null,
+	reference, NACELLE_ORIGIN, null;
+
+# The Low Speed Shaft (LSS) is oriented as the nacelle,
+reference: LSS,
+	reference, NACELLE_LSS_COUPLING, null,
+	reference, NACELLE_ORIGIN,
+		1, 1., 0.       , 0.       , # x == rotation axis downwind (z points upwards)
+		2, 0., cos(Psi0), sin(Psi0), # (downwind) clockwise rotation if Psi0 > 0
+	reference, NACELLE_LSS_COUPLING, null,
+	reference, NACELLE_ORIGIN, Omega0, 0., 0.;
+
+#
+reference: LSS_BEARINGS,
+	reference, LSS, null,
+	reference, LSS,
+		2, 0., 1., 0., 
+		3, 1., 0., 0., # z == rotation axis downwind, x points downwards
+	reference, LSS, null, 
+	reference, LSS, null;
+
+#
+reference: LSS_END,
+	reference, LSS,
+		-0.688, 0., 0.,
+	reference, LSS, eye , # x == rotation axis downwind, z points upwards
+	reference, LSS, null,
+	reference, LSS, null;
+
+#
+reference: LSS_END_BEARINGS,
+	reference, LSS_END, null,
+	reference, LSS_END,
+		2, 0., 1., 0., 
+		3, 1., 0., 0., # z == rotation axis downwind, x points downwards
+	reference, LSS_END, null,
+	reference, LSS_END, null;
+
+#
+reference: TEETER,
+	reference, NACELLE_TEETER, null,
+	reference, LSS,
+		1, 0., 0., 1.,
+		3, 1., 0., 0., # z == rotation axis downwind, x points upwards
+	reference, NACELLE_TEETER, null,
+	reference, LSS, null;
+
+# The teeter pin is oriented 90 deg apart from the blades
+reference: TEETER_PIN,
+	reference, TEETER, null,
+	reference, TEETER,
+		1, 1., 0., 0., 
+		3, 0., 1., 0., # y == rotation axis upwind, x points upwards
+	reference, TEETER, null,
+	reference, TEETER, null;
+
+# Blade 1
+set: CURR_BLADE = BLADE_1;
+set: CURR_PHI = 0.*deg2rad;
+
+include: "cart_blade.ref";
+
+# Blade 2
+set: CURR_BLADE = BLADE_2;
+set: CURR_PHI = 180.*deg2rad;
+
+include: "cart_blade.ref";
+
+# vim:ft=mbd

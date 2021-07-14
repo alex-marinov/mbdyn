@@ -1,0 +1,126 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.;
+
+	max iterations: 100;
+	tolerance: 1e-6;
+
+	output: iterations;
+	# output: residual;
+	# output: jacobian;
+end: initial value;
+
+begin: control data;
+	structural nodes: 2;
+	joints: 2;
+	loadable elements: 1 + 2;
+end: control data;
+
+begin: nodes;
+	structural: 0, static,
+		null,
+		eye,
+		null,
+		null;
+	structural: 1, static,
+		null,
+		eye,
+		null,
+		null;
+end: nodes;
+
+scalar function: "snapback", cubic spline,
+	-1. + .41, -10000.,
+	-.41 + .41, 0,
+	-.4 + .41, 100.,
+	0. + .41, 0.,
+	.4 + .41, -100.,
+	.41 + .41, 0.,
+	1. + .41, 10000.; 
+scalar function: "travel", multilinear,
+	-1., -100000.,
+	-23.354*deg2rad, 0.,
+	23.354*deg2rad, 0.,
+	1., 100000.;
+constitutive law: 99, 6, nlsf viscoelastic,
+	diag, 1., 1., 1., 1., 1., 1.,
+		null,
+		null,
+		"snapback",
+		# "travel",
+		null,
+		null,
+		"snapback",
+	diag, 0., 0., 1.e2, 0., 0., 1.e2,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null;
+
+begin: elements;
+	joint: 0, clamp, 0, node, node;
+	joint: 1, deformable joint,
+		0, position, null, orientation, eye,
+		1, position, null, orientation, eye,
+		# linear elastic  isotropic, 1000.;
+		reference, 99;
+
+	module load: "./libmodule-loadinc.so";
+
+	user defined: 0, load increment normalization,
+		help,
+		max load, 1.e3,
+		compliance, 1.e-4,
+		reference length, 1.,
+		const, .01;
+	user defined: 1, load increment force,
+		help,
+		force, absolute,
+		# couple, absolute,
+		1, position, null,
+		0., 0., 1.,
+		load increment normalization, 0;
+	user defined: 2, load increment force,
+		# force, absolute,
+		couple, absolute,
+		1, position, null,
+		0., 0., 1.,
+		load increment normalization, 0;
+end: elements;
+
+# vim:ft=mbd

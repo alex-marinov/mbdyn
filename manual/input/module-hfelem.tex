@@ -1,0 +1,362 @@
+% MBDyn (C) is a multibody analysis code. 
+% http://www.mbdyn.org
+% 
+% Copyright (C) 1996-2017
+% 
+% Pierangelo Masarati	<masarati@aero.polimi.it>
+% Paolo Mantegazza	<mantegazza@aero.polimi.it>
+% 
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+% 
+% Changing this copyright notice is forbidden.
+% 
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 
+
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati <pierangelo.masarati@polimi.it>
+%
+% Sponsored by Hutchinson CdR, 2018-2019
+
+
+\emph{Author: Pierangelo Masarati} \\
+\emph{This element was sponsored by Hutchinson CdR}
+
+\bigskip
+
+This element produces a harmonic excitation with variable frequency, which is used to control the time marching simulation to support the extraction of the harmonic response.
+
+The element produces a harmonic signal, of specified frequency, and monitors a set of signals produced by the analysis.
+When the fundamental harmonic of the monitored signals' response converges, the frequency of the excitation is changed, according to a prescribed pattern.
+The time step is changed accordingly, such that a period is performed within a prescribed number of time steps of equal length.
+The (complex) magnitude of the fundamental harmonic of each signal is logged at convergence.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{harmonic excitation}
+
+    \bnt{arglist} ::=
+        \kw{inputs number} , (\ty{integer}) \bnt{inputs_number} ,
+            (\hty{DriveCaller}) \bnt{input_signal}
+                    [ \{ \kw{test} | \kw{output} | \kw{target} \} , \{ \kw{true} | \kw{false} | (\ty{bool}) \bnt{value} \} ]
+                [ , ... ] , # \nt{inputs_number} occurrences
+        [ \kw{output format} , \{ \kw{complex} | \kw{magnitude phase} \}, [\kw{normalized} ,]]
+	\kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
+        [ \kw{max delta t} , (\hty{DriveCaller}) \bnt{max_delta_t} ,]
+        \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
+            [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
+            \kw{angular frequency increment} ,
+                \{ \kw{additive} , (\ty{real}) \bnt{omega_add_increment}
+                    | \kw{multiplicative} , (\ty{real}) \bnt{omega_mul_increment}
+                    | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
+        [ \kw{initial time} , (\ty{real}) \bnt{initial_time} ,
+	    [ \kw{prescribed time step} , (\hty{DriveCaller}) \bnt{initial_time_step} , ] ]
+        [ \kw{RMS test}, 
+	    [ \kw{RMS target}, (\hty{DriveCaller}) \bnt{RMS_target_value} 
+	        [ , \kw{initial amplitude} , (\ty{real}) \bnt{initial_amplitude} ]
+	        [ , \kw{overshoot} , (\ty{real}) \bnt{overshoot} ] , ]
+	    [ \kw{RMS prev periods}, (\ty{integer}) \bnt{RMS_prev_periods} ] ]
+        [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
+        \kw{min periods} , (\ty{integer}) \bnt{min_periods}
+        [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
+            [ , \kw{no convergence strategy} , \{ \kw{continue} | \kw{abort} \} ] ]
+        [ , \kw{timestep drive label} , (\ty{unsigned}) \bnt{timestep_label} ]
+        [ , \kw{print all periods} ]
+        [ , \kw{write after convergence periods} , (\ty{integer}) \bnt{write_after_convergence_periods} 
+	    [ , \kw{frequency} , (\ty{integer}) \bnt{write_frequency_after_convergence} ] ]
+\end{Verbatim}
+with
+\begin{itemize}
+\item $\nt{inputs\_number} > 0$;
+this field indicates the number of signals -- or measures -- that are used to evaluate the first harmonic of the response
+(they are the \emph{inputs} to the harmonic analysis process);
+it is suggested that the
+% \kw{node},
+% \kw{element} 
+\hyperref{\kw{node}}{\kw{node} (see Section~}{)}{sec:DriveCaller:NODE},
+\hyperref{\kw{element}}{\kw{element} (see Section~}{)}{sec:DriveCaller:ELEMENT}
+drive callers, either alone or in combination with other drive callers, are used to extract relevant measures of the output of the system;
+If \kw{test} is \kw{true}, the signal will be used to evaluate convergence, otherwise it will be ignored;
+If \kw{output} is \kw{true}, the fundamental harmonic of the signal will appear in the output, otherwise it will be ignored;
+by default, i.e.\ if neither of the keywords \kw{test} nor \kw{output} are used, the signal is used to test for convergence and appears in the output;
+If \kw{target} is \kw{true}, and option \kw{RMS target} is an argument, the signal is used to change \kw{amplitude} until the signal's RMS amplitude matches $\nt{RMS\_target\_value}$, within the $\nt{tolerance}$.
+
+\item \kw{output format}; coose the output format: either \kw{complex} (default) of \kw{magnitude phase};
+if \kw{normalized} the output is normalized with respect to the \kw{amplitude} (see
+\ref{hfelem_output} for the output description);
+
+\item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
+\begin{align*}
+	\Delta t = \frac{2 \pi}{\omega \cdot \nt{steps\_number}}
+\end{align*}
+
+\item $\nt{max\_delta\_t}$; drive caller that contains a function of the excitation angular frequency (passed as $Var$) returning the maximum value of the time step $\Delta t$; 
+if the time step computed using $\nt{steps\_number}$ is greater
+than the value returned by $\nt{max\_delta\_t}$ then the time step is reduced according to 
+$\Delta t = \Delta t / \mathrm{ceil}(\Delta t / \nt{max\_delta\_t})$. The value returned by $\nt{max\_delta\_t}$ must always be greater than 0.
+
+\item $\nt{omega0} > 0$, the initial excitation angular frequency;
+
+\item $\nt{omega\_max} > \nt{omega0}$; if the \kw{max angular frequency} field is not present, or if the keyword \kw{forever} is used, the simulation ends when the \kw{final time} (as defined in the \nt{problem} block) is reached.
+
+Since the amount of simulation time required to reach a certain excitation angular frequency cannot be determined a priori, it is suggested that \kw{final time} (in the \nt{problem} block) is set to \kw{forever}, and termination is controlled using the \kw{omega\_max} field, or the \kw{custom} variant of the angular frequency increment field;
+
+\item $\nt{omega\_add\_increment} > 0$ when the angular frequency increment pattern is \kw{additive};
+
+\item $\nt{omega\_mul\_increment} > 1$ when the angular frequency increment pattern is \kw{multiplicative};
+
+\item $\nt{omega}_i > \nt{omega}_{i-1}$ when the angular frequency increment pattern is \kw{custom}; in this latter case, the simulation ends either when the last angular frequency value is reached or when $\nt{omega}_i > \nt{omega\_max}$, if the latter is defined.
+
+The list of custom angular frequencies is terminated by the keyword \kw{last};
+
+\item $\nt{initial\_time}$; the simulation time after which the elements begins its action
+
+\item $\nt{initial\_time\_step}$; optional drive caller that returns the prescribed time step for $t<=\nt{initial\_time}$; $\nt{initial\_time\_step}(\nt{initial\_time})$
+needs to be equal to the time step computed by the element for the first forcing frequency.
+
+\item \kw{RMS test} is a keyword to perform the test not on the difference between the values of the test functions,
+but on their RMSs; the relative difference of each test function RMS between two periods needs to be
+$<=\nt{tolerance}$.
+
+\item \kw{RMS target} modifies the RMS convergence test: convergence is achieved if the target function RMS 
+also matches, within $\nt{tolerance}$, the value returned by the drive $\nt{RMS\_target\_value}$, which is a function of the excitation angular frequency  (passed as $Var$). This is
+accomplished by changing the module \kw{amplitude} private data. This option makes sense if and only if
+there is a single \kw{target} variable. If $\nt{min\_periods}$ is specified then the periods counter
+is reset also for an \kw{amplitude} change, and not only for a frequency change.
+
+\item $\nt{initial\_amplitude}$ is the initial value of the private data \kw{amplitude}.
+
+\item $\nt{overshoot}$: multiplicated to $\nt{tolerance}$ gives the value by which the upper and lower values of the old RMSs are overestimated and underestimated, respectively, when computing the approximate gradient needed to compute the next value of the private data \kw{amplitude} with the Newton's method.
+
+\item $\nt{RMS\_prev\_periods}$: number of periods preceding the current period whose test signals RMS amplitude are compared to the current period test signals RMS amplitude to check convergence; default value is 2.
+
+\item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
+
+\item $\nt{max\_periods} > \nt{min\_periods}$ is the maximum number of periods that can be performed for convergence.
+In case convergence is not achieved, if the value of \kw{no convergence strategy} is
+\begin{itemize}
+\item \kw{continue}: the frequency is marked as not converged
+(the value of the number of periods for convergence is set to $-\nt{max\_periods}$) and the analysis moves to the subsequent frequency;
+
+\item \kw{abort}: the analysis is aborted.
+\end{itemize}
+
+\item \nt{timestep\_label} is the label of the timestep drive caller, as defined in the \kw{strategy}\texttt{:} \kw{change} statement in the \kw{initial value} block, and postponed until the definition of the user-defined element.
+Using this keyword replaces the need to manually define an \kw{element} drive caller for the timestep
+(see the discussion of the \kw{timestep} private datum).
+
+\item \kw{print all periods} is a keyword to print a row in the \emph{user-defined} elements output file at the end of each period, and not only at convergence for each specific excitation frequency.
+
+\item $\nt{write\_after\_convergence\_periods}>=0$ is the number of periods to be run after convergence is achieved; default value is 0.
+This option makes sense if the output of the simulation is controlled by an \kw{output meter} using the private data \kw{output},
+ which is a boolean variable defined by this element that is equal to 1 when the output must be written to the \texttt{.usr} file or for $\nt{write\_after\_convergence\_periods}$ periods after convergence.
+
+\item $\nt{write\_frequency\_after\_convergence}$ causes the private data \kw{output} to be equal to 1 
+every $\nt{write\_frequency\_after\_convergence}$ timesteps during the 
+$\nt{write\_after\_convergence\_periods}$ periods; the default value is 1. 
+\end{itemize}
+
+\paragraph{Output.}\label{hfelem_output}
+Output in text format takes place in the \emph{user-defined} elements output file (the one with the \texttt{.usr} extension).
+
+The output of this element differs a bit from that of regular ones, since it only occurs at convergence for each specific excitation frequency (except for when \kw{print all periods} is specified as a keyword), which in turn can only occur at the end of a period.
+
+\bigskip
+
+\begin{framed}
+\noindent
+\emph{Beware that, in case other user-defined elements are present in the model, this might ``screw up'' any regularity in the output file.}
+\end{framed}
+
+\bigskip
+
+Each output row contains:
+\begin{itemize}
+\item[1)] the label (unsigned)
+\item[2)] the time at which convergence was reached (real)
+\item[3)] the angular frequency (real)
+\item[4)] how many periods were required to reach convergence (unsigned)
+\item[5--?)] fundamental frequency coefficient of output signals; for each of them, 
+\begin{itemize}
+	\item the real and the imaginary part are output (pairs of reals) 
+	if \kw{output format} is either not set or set equal to \kw{complex};
+	they are both divided by \kw{amplitude}	if \kw{output format} is \kw{normalized};
+	\item the magnitude and phase are output (pair of reals)
+	if \kw{output format} is set equal to \kw{magnitude phase};
+	the magnitude is divided by \kw{amplitude} if \kw{output format} is \kw{normalized}.
+\end{itemize}
+\item[last)] in case that the argument \kw{RMS target} was provided, the value of private data \kw{amplitude} and the RMS of the target signal.
+\end{itemize}
+For example, to plot the results of the first output signal in Octave (or Matlab), one can use:
+\begin{framed}
+\begin{verbatim}
+    octave:1> data = load('output_file.usr');
+    octave:2> omega = data(:, 3);
+    octave:3> x = data(:, 5) + j*data(:, 6);
+    octave:4> figure; loglog(omega, abs(x));
+    octave:5> figure; semilogx(omega, atan2(imag(x), real(x))*180/pi);
+\end{verbatim}
+\end{framed}
+
+
+No output in NetCDF format is currently available.
+
+\paragraph{Private Data.}
+This element exposes several signals in form of private data.
+The first two are fundamental for the functionality of this element.
+\begin{itemize}
+\item \kw{timestep}, i.e.\ the time step to be used in the simulation; to this end, the analysis (typically, an \kw{initial value} problem) must be set up with a \nt{problem} block containing
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{strategy} : \kw{change} , \kw{postponed} , (\ty{unsigned}) \bnt{timestep_drive_label} ;
+\end{Verbatim}
+Then, after instantiating the \kw{hfelem}, one must reference the time step drive, with the statement
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{drive caller} : (\ty{unsigned}) \bnt{timestep_drive_label} ,
+        \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+        \kw{string} , \kw{"timestep"} , \kw{direct} ;
+\end{Verbatim}
+Alternatively, one can use the optional keyword \kw{timestep drive label} to pass the element the label of the timestep drive caller,
+which is directly instantiated by the element.
+
+\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and \kw{amplitude} amplitude.
+This signal must be used to excite the problem (e.g.\ as the multiplier of a force or moment, or a prescribed displacement or rotation).
+For example, in the case of a force:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
+        (\ty{unsigned}) \bnt{node_label} ,
+            \kw{position}, \kw{null} ,
+        1., 0., 0., # absolute x direction
+        \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+            \kw{string} , \kw{"excitation"} , \kw{linear} , 0., 100. ;
+\end{Verbatim}
+In the above example, the force is applied to node \nt{node\_label}
+along the (absolute) $x$ direction, and scaled by a factor 100.
+
+\item \kw{psi}, i.e.\ the argument of the sine function that corresponds to the \kw{excitation}:
+\begin{align}
+	\kw{excitation} ::= \sin\plbr{\kw{psi}}
+\end{align}
+Its definition is thus
+\begin{align}
+	\kw{psi} ::= \kw{omega} \cdot (t - t_0)
+\end{align}
+It may be useful to have multiple inputs with different phases; for example, in the case of a force whose components have different phases:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
+        (\ty{unsigned}) \bnt{node_label} ,
+            \kw{position}, \kw{null} ,
+        component,
+            # absolute x direction
+            \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+                \kw{string} , \kw{"psi"} , \kw{string} , "100.*sin(Var)",
+            # absolute y direction
+            \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+                \kw{string} , \kw{"psi"} , \kw{string} , "50.*sin(Var - pi/2)",
+            # absolute z direction
+            const, 0.;
+\end{Verbatim}
+In the above example, the force is applied to node \nt{node\_label}
+along the (absolute) $x$ direction, scaled by a factor 100, and
+along the (absolute) $y$ direction, scaled by a factor 50, with 90 deg phase delay.
+
+\item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
+This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
+
+\item \kw{amplitude}, the amplitude of the excitation signal (equal to 1, unless \kw{RMS target} is set).
+
+\item \kw{count}, the number of frequencies that have been applied so far.
+
+\item \kw{output}, boolean variable equal to 1 when the output must be written to the \texttt{.usr} file or for $\nt{write\_after\_convergence\_periods}$ periods after convergence every $\nt{write\_frequency\_after\_convergence}$ timesteps. This private data should be called by an \kw{output meter}, and it is conceived to avoid the need very large output files (other than the \texttt{.usr} file) when only the history of the variables in the converged periods matters.
+
+To this end, the analysis (typically, an \kw{initial value} problem) should be set up with a \nt{control data} section containing
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{output meter} : \kw{postponed} , (\ty{unsigned}) \bnt{outputmeter_drive_label} ;
+\end{Verbatim}
+Then, after instantiating the \kw{hfelem}, one must define the drive caller $\nt{outputmeter\_drive\_label}$ with the following statement or any other statement calling the \kw{hfelem} private data \kw{output}.
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{drive caller} : (\ty{unsigned}) \bnt{outputmeter_drive_label} ,
+        \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+        \kw{string} , \kw{"output"} , \kw{direct} ;
+\end{Verbatim}
+
+
+
+\end{itemize}
+
+\paragraph{Notes.}
+\begin{itemize}
+\item As illustrated in the \textbf{Private Data} \kw{timestep} section, \underline{the time step must be controlled by this element}.
+
+\item Only one instance of this element should be used in the analysis; currently, a warning is issued if it is instantiated more than once, and the two instances operate together, with undefined results (convergence is likely never reached, because the solution does not tend to become periodic with any of the expected periods).
+
+\item This element might terminate the simulation in the following cases:
+\begin{enumerate}[label=\alph*)] %{itemize}
+\item the excitation angular frequency becomes greater than \nt{omega\_max};
+\item the \kw{angular frequency increment} pattern is \kw{custom}, and convergence is reached for the last value of excitation angular frequency.
+\item the \kw{no convergence strategy} option for the \kw{max periods} optional parameters is \kw{abort}, and no steady value is achieved for the fundamental harmonic of the response within the specified maximum number of periods.
+\end{enumerate} %{itemize}
+\end{itemize}
+
+\paragraph{Example.}
+\begin{verbatim}
+begin: initial value;
+    # ...
+    final time: forever;
+
+    # the time step will be passed from outside
+    set: const integer TIMESTEP_DRIVE = 99;
+    strategy: change, postponed, TIMESTEP_DRIVE;
+
+    # ...
+end: initial value;
+
+# ...
+
+begin: elements;
+    # ...
+
+    set: const integer HARMONIC_EXCITATION = 99;
+    user defined: HARMONIC_EXCITATION, harmonic excitation,
+        inputs number, 2,
+            node, 2, structural, string, "X[1]", direct,
+            node, 2, structural, string, "XP[1]", direct,
+        steps number, 128,
+        initial angular frequency, 2.*2*pi,
+            max angular frequency, 25.*2*pi, # otherwise forever (or until max time)
+            angular frequency increment,
+                # additive, 0.25*2*pi,
+                multiplicative, 1.06,
+                # custom, 4.*2*pi, 8.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, last,
+        # initial time, 5., # defaults to "always"
+        tolerance, 1.e-8,
+        min periods, 2;
+
+    # make sure output occurs...
+    output: loadable, HARMONIC_EXCITATION;
+
+    # pass time step to solver (alternatively, use the "timestep drive label" option)
+    drive caller: TIMESTEP_DRIVE, element, HARMONIC_EXCITATION, loadable,
+        string, "timestep", direct;
+
+    # ...
+end: elements;
+\end{verbatim}
+
+\paragraph{TODOs?}
+\begin{itemize}
+\item Make it possible to continue the analysis instead of stopping when \nt{omega\_max} is reached?
+\end{itemize}

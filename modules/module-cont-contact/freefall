@@ -1,0 +1,133 @@
+# $Header$
+#
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# Test model for module-cont-contact.
+# It simulates a MASS falling vertically to the GROUND. 
+# The contact is modeled with a stiff reaction governed by a force-deformation constitutive law, due to Flores et al. 
+# This Flores law comprises an Hertzian elastic part and a dissipative part that results in the desired Newtonian coefficient of restitution.
+#
+# Author: Matteo Fancello
+
+module load: "libmodule-cont-contact";
+
+
+begin: data;
+   problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time:   0.;
+	final time:     5.;
+	time step:      1e-5;
+	max iterations: 100;
+	tolerance:      1.e-5;
+end: initial value;
+
+
+begin: control data;
+
+   structural NODEs: 	+1
+   			+1;
+   rigid bodies:     	+1;
+   joints:           	+1
+   			+1;
+   gravity;
+   default output: none;
+
+end: control data;
+
+
+#-----------------------------------------------------------------------------
+# 	Design Variables
+
+set: const real MASS  	= 1.; 
+set: const real LROD	= 1.; 		# rod lenght: 1. !!!
+set: const real HEIGHT 	= 1.;		# Contact distance from zero
+
+#	LABELS
+set: integer NODE_MASS		= 10;
+set: integer NODE_GROUND	= 20;
+set: integer BODY_MASS		= 100;
+set: integer CLAMP      	= 200;
+set: integer DEFDIS 		= 300;
+
+#-----------------------------------------------------------------------------
+
+
+begin: nodes;
+
+   structural: NODE_MASS, dynamic,
+      0., 0., HEIGHT, 		# absolute position
+      eye,        		# absolute orientation
+      null,       		# absolute velocity
+      null;       		# absolute angular velocity
+
+   structural: NODE_GROUND, static,
+      0., 0., -LROD, 		# absolute position
+      eye,  			# absolute orientation
+      null, 			# absolute velocity
+      null; 			# absolute angular velocity
+      
+   output: structural,  NODE_MASS; 
+
+end: nodes;
+
+
+begin: elements;
+
+   body: BODY_MASS, NODE_MASS,
+	MASS,			# MASS
+	null,			# relative center of MASS
+	eye;			# inertia matrix
+          
+   joint: CLAMP,
+	clamp,
+	NODE_GROUND,
+	node,			# absolute position
+	eye;			# absolute orientation 
+
+  joint: DEFDIS,
+	rod,  
+	NODE_GROUND,
+		position, reference, NODE, null,
+	NODE_MASS,
+		position, reference, NODE, null,
+	LROD,
+	continuous contact, sign, negative, formulation, flores, restitution, 0.8, kappa, 2.4e10, exp, 1.5;
+
+   gravity:	
+	0., 0., -1., const, 9.81;
+   
+   output:
+	joint,	DEFDIS;
+
+end: elements;
+

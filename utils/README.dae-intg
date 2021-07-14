@@ -1,0 +1,43 @@
+$Header$
+Copyright 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+
+dae-intg is a test program that integrates initial value problems 
+provided by dynamically loaded modules by using different integration
+schemes.
+
+modules must provide a minimal set of methods to perform:
+
+read()		data entry
+help()		provide a description (activated via -H switch)
+init()		data and state arryas initialization
+size()		size of state arryas
+grad()		computation of jacobian matrices f_{/\dot{x}} and f_{/x}
+func()		computation of residual f(x, \dot{x}, t) = 0
+out()		output
+destroy()	resource release
+
+currently provided modules are:
+
+moddae-osc.cc	
+	linear damped oscillator, explicit ODE rewritten as implicit
+
+moddae-prig.cc
+	rigid pendulum, explicit ODE rewritten as implicit
+
+moddae-prig2.cc
+	rigid pendulum, DAE
+
+moddae-prig3.cc
+	rigid pendulum, DAE with constraint stabilization
+
+moddae-pdef.cc
+	deformable pendulum, explicit ODE rewritten as implicit
+
+moddae-mass.cc
+	linear dae system: two masses and two springs; a constraint
+		impose coincidence positions
+
+to build the modules, type
+
+	make <module-name>.so
+

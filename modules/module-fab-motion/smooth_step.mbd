@@ -1,0 +1,81 @@
+#
+#	Smooth step drive - test
+#	Based on the "smootherstep" (Ken Perlin's version) - http://en.wikipedia.org/wiki/Smoothstep
+#
+#   Library of motion transmission components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 3.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-1;
+	max iterations: 10;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 10;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+   	structural nodes: 2;
+   	joints: 2;
+end: control data;
+
+set: integer rblock = 1;
+
+reference: rblock,
+	reference, global, 0.1, 0., 0.,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null; 
+
+begin: nodes;
+
+   structural: 0, dynamic, null, eye, null, null; # reference node (no de referencia)
+
+   structural: 1, dynamic,
+   	reference, rblock, null, 
+   	reference, rblock, eye,
+   	reference, rblock, null,
+   	reference, rblock, null;
+
+end: nodes;
+
+set: real fvalue = 1.3;
+
+begin: elements;
+   	joint: 1, clamp, 0, node, node;
+
+	module load: "libmodule-fab-motion";
+ 
+	joint: 2,
+	  total joint,
+		 0,
+		    position, null,
+		 1,
+		    position, null,
+		 position constraint,
+		    active, active, active,
+		    component, 
+		       smooth step, 0.5, 2.5, 0.1, fvalue, # smooth step, start time, end time, initial value, final value
+		       0., 0.,
+		 orientation constraint,
+		    active, active, active,
+		    null; 
+ 
+end: elements;
+

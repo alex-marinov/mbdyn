@@ -1,0 +1,59 @@
+begin: initial value; 
+        initial time: 0.; 
+        final time: 2. * pi; 
+        time step: 5.e-4; 
+ 
+        method: ms, 0.6; 
+        #method: ms, 0.1; 
+ 
+        tolerance: 1.; 
+        max iterations: 20; 
+ 
+        derivatives tolerance: 1e6; 
+ 
+        linear solver: klu, cc; 
+ 
+        output: iterations; 
+        threads: disable; 
+        #output: residual; 
+end: initial value;
+
+
+#beginpreprocess
+ConstMBVar('NX', 'integer', 6)
+ConstMBVar('NY', 'integer', 2)
+n_dynamic_nodes = (NX + 1) * (NY + 1)
+n_static_nodes = 2
+nshells = NX * NY
+nbeams = NY
+nels = nshells + nbeams + 3 + NY
+nbodies = nshells * 4 + nbeams * 2
+
+ConstMBVar('L','real', 1.)
+ConstMBVar('h','real', 0.08)
+ConstMBVar('t','real', 2.E-3)
+ConstMBVar('L1','real', 0.5)
+ConstMBVar('Lc','real', 0.1)
+
+ConstMBVar('a', 'real', 0.004)
+ConstMBVar('A', 'real', a * a)
+#J = ConstMBVar('J', 'float', '1. / 12 * a^4') #DOES NOT WORK WHEN I DEFINE EJ = E * J
+ConstMBVar('J', 'real', 1. / 12 * pow(a, 4))
+
+ConstMBVar('E','real', 210.E9)
+ConstMBVar('nu','real', 0.25)
+ConstMBVar('G','real', E/2/(1.+nu))
+ConstMBVar('rho','real', 7870)
+
+ConstMBVar('EA', 'real', E * A)
+ConstMBVar('EJ', 'real', E * J)
+ConstMBVar('GJ', 'real', G * 2.25 / 16. * A * A)
+ConstMBVar('kGA', 'real', 0.6 * G * A)
+
+ConstMBVar('Omega', 'real', 1.)
+
+#endpreprocess
+
+
+
+
