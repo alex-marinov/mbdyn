@@ -1,3 +1,0 @@
-[submodule "tests"]
-	path = tests
-	url = git@gitlab.com:zanoni-mbdyn/mbdyn-tests.git

@@ -1,8 +1,0 @@
-# $Header$
-
-enhancements:
-- add support for local sockets
-
-bugs:
-- check inet sockets with host name other than localhost
-
