@@ -178,7 +178,9 @@ public:
 	                            doublereal /* dCoef */ ,
 	                            const VectorHandler& /* XCurr */ ,
 	                            const VectorHandler& /* XPrimeCurr */ );
-    unsigned int iGedNumPrivData(void) const;
+    unsigned int iGetNumPrivData(void) const;
+    unsigned int iGetPrivDataIdx(const char* s) const;
+    doublereal dGetPrivData(unsigned int i) const;
     int iGetNumConnectedNodes(void) const;
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,

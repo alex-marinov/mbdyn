@@ -50,6 +50,10 @@ begin: control data;
     +1 # tail rotor module
   ;
 
+  output elements:
+    +1 # private data output test
+  ;
+
 
 
 end: control data;
@@ -110,12 +114,15 @@ begin: elements;
 
   user defined: 153, rotordisc,
       0, # hub structural node label
-      position, null,# rotor relative arm wrt structural node
-      # (the rotor force is always oriented as the Z of the node)
-      const, 0.,# control input driver (collective input [rad])
-      const, 1.225,# air density driver (rho [kg/m3])
-      const, 0.0,# rotor angular velocity driver [rad/s]
-      1.0,# rotor radius [m]
+      position, null,   # rotor relative arm wrt structural node
+      orientation, reference, node, #eye,
+      1, 1., 0., 0.,
+      3, 0., 0., -1.,
+      const, 0.,        # control input driver (collective input [rad])
+      const, 1.225,     # air density driver (rho [kg/m3])
+      const, 0.0,       # rotor angular velocity driver [rad/s]
+      1.0,              # rotor radius [m]
+      pi*1.0^2,
       0.1,# rotor solidity [-]
       2*pi,# blade clalpha [1/rad]
       -5.0*pi/180.0,# blade twist [rad]
@@ -130,8 +137,17 @@ begin: elements;
       # reference rotor angular velocity [rad/s]
       # (e.g.: for tail rotor, the main rotor angular velocity)
 
-
-
-
+  stream output: 153,
+    stream name, "ROTOR DISC",
+    create, yes,
+    port, 5000, 
+    host, "127.0.0.1",
+    values, 6,
+    drive, element, 153, loadable, string, "T", direct,
+    drive, element, 153, loadable, string, "D", direct,
+    drive, element, 153, loadable, string, "P", direct,
+    drive, element, 153, loadable, string, "t", direct,
+    drive, element, 153, loadable, string, "r", direct,
+    drive, element, 153, loadable, string, "omega", direct;
 
 end: elements;

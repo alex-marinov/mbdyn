@@ -504,9 +504,61 @@ RotorDisc::AssJac(VariableSubMatrixHandler& Workmat,
     
 }
 
-unsigned int RotorDisc::iGedNumPrivData(void) const
+unsigned int RotorDisc::iGetNumPrivData(void) const
 {
-    return 0;
+    // number of private data that can be extracted from the module
+    // Thrust      
+    // DragInduced 
+    // PowerInduced
+    // thetaColl
+    // rho         
+    // RotorOmega  
+    return 6;
+}
+
+unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
+{
+    unsigned idx = 0;
+    switch(s[0])
+    {
+        case 'T'://hrust
+            idx += 1;
+            break;
+        case 'D'://ragInduced
+            idx += 2;
+            break;
+        case 'P'://owerInduced
+            idx += 3;
+            break;
+        case 't'://heta0
+            idx += 4;
+            break;
+        case 'r'://ho
+            idx += 5;
+            break;
+        case 'o'://mega
+            idx += 6;
+            break;
+        default:
+            return 0;
+    }
+    return idx;
+}
+
+doublereal RotorDisc::dGetPrivData(unsigned int i) const
+{
+    ASSERT(i > 1 && i <= iGetNumPrivData());
+    switch (i)
+    {
+        case 1: return Thrust;
+        case 2: return DragInduced;
+        case 3: return PowerInduced;
+        case 4: return thetaColl;
+        case 5: return rho;
+        case 6: return RotorOmega;
+    }
+
+    return 0.;
 }
 
 int RotorDisc::iGetNumConnectedNodes(void) const
