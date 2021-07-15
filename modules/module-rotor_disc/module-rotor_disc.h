@@ -161,6 +161,18 @@ public:
     // method to build partial derivatives and jacobians
     void assemblyJacobian();
 
+    ////////////////////////////////////////////////////////////////////////
+    enum PrivData {
+        
+        THRUST = 1,
+        DRAGINDUCED,
+        POWERINDUCED,
+        THETA0,
+        RHO,
+        OMEGA,
+
+        LASTPRIVDATA
+    };
 
 
     ////////////////////////////////////////////////////////////////////////

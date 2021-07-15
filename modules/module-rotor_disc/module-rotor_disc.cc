@@ -518,44 +518,80 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
 
 unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
 {
-    unsigned idx = 0;
-    switch(s[0])
+
+    ASSERT(s != NULL);
+
+    struct 
     {
-        case 'T'://hrust
-            idx += 1;
-            break;
-        case 'D'://ragInduced
-            idx += 2;
-            break;
-        case 'P'://owerInduced
-            idx += 3;
-            break;
-        case 't'://heta0
-            idx += 4;
-            break;
-        case 'r'://ho
-            idx += 5;
-            break;
-        case 'o'://mega
-            idx += 6;
-            break;
-        default:
-            return 0;
+        const char* s;
+        int i;
+    } sPrivData[] = {
+        {"Thrust", THRUST},
+        {"DragInd", DRAGINDUCED},
+        {"PowerInd", POWERINDUCED},
+        {"theta0", THETA0},
+        {"rho", RHO},
+        {"omega", OMEGA},
+        {0}
+    };
+
+    for (int i = 0; sPrivData[i].s != 0; i++)
+    {
+        if (strcasecmp(s, sPrivData[i].s) == 0)
+        {
+            return sPrivData[i].i;
+        }
     }
-    return idx;
+
+    return 0;
+    
+
+    //unsigned idx = 0;
+    //switch(s[0])
+    //{
+    //    case 'T'://hrust
+    //        idx += 1;
+    //        break;
+    //    case 'D'://ragInduced
+    //        idx += 2;
+    //        break;
+    //    case 'P'://owerInduced
+    //        idx += 3;
+    //        break;
+    //    case 't'://heta0
+    //        idx += 4;
+    //        break;
+    //    case 'r'://ho
+    //        idx += 5;
+    //        break;
+    //    case 'o'://mega
+    //        idx += 6;
+    //        break;
+    //    default:
+    //        return 0;
+    //}
+    //return idx;
 }
 
 doublereal RotorDisc::dGetPrivData(unsigned int i) const
 {
-    ASSERT(i > 1 && i <= iGetNumPrivData());
-    switch (i)
+    if (i <= 0 || i >= LASTPRIVDATA)
     {
-        case 1: return Thrust;
-        case 2: return DragInduced;
-        case 3: return PowerInduced;
-        case 4: return thetaColl;
-        case 5: return rho;
-        case 6: return RotorOmega;
+        silent_cerr("rotordisc("<<GetLabel()<<"): "
+        "private data "<< i << "not available" << std::endl);
+        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+    }
+    else
+    {
+        switch (i)
+        {
+            case THRUST         : return Thrust;
+            case DRAGINDUCED    : return DragInduced;
+            case POWERINDUCED   : return PowerInduced;
+            case THETA0         : return thetaColl;
+            case RHO            : return rho;
+            case OMEGA          : return RotorOmega;
+        }
     }
 
     return 0.;

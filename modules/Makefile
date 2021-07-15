@@ -168,13 +168,13 @@ BLAS_LIBS = -lblas  -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0 -L/usr/lib/gcc/x86
 BULLET_LIBS = 
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -O0 -g -pthread -Werror -Wno-error=cpp -Wno-error=format-truncation
+CFLAGS = -O3 -w -g -std=gnu17 -pthread
 CHACO_LIBS = 
 CPPFLAGS = -I/usr/include/suitesparse/
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -O0 -g -pthread -Werror -Wno-error=cpp -Wno-error=format-truncation
+CXXFLAGS = -O3 -w -g -std=c++11 -pthread
 CYGPATH_W = echo
 DATE = 
 DEFS = -DHAVE_CONFIG_H
@@ -189,9 +189,9 @@ EGREP = /usr/bin/grep -E
 EXEEXT = 
 F77 = gfortran
 FC = gfortran
-FCFLAGS = -O0 -g
+FCFLAGS =  -O3 -w -g -fallow-argument-mismatch
 FCLIBS =  -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0 -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../.. -lsuitesparseconfig -lgfortran -lm -lquadmath
-FFLAGS = -g -O2
+FFLAGS = -O3 -w -g -fallow-argument-mismatch
 FGREP = /usr/bin/grep -F
 FLIBS = 
 GINACLIB_CPPFLAGS = 
@@ -220,7 +220,7 @@ MANIFEST_TOOL = :
 MESCHACH_LIBS = 
 METIS_LIBS = 
 MKDIR_P = /usr/bin/mkdir -p
-MODULES_DIRS =  module-muscles module-wheel2 module-hid module-flightgear module-rotor_disc
+MODULES_DIRS =  module-hid module-flightgear module-rotor_disc
 MODULE_LOADPATH = ${exec_prefix}/libexec
 MPI_LIBS = 
 NETCDF_LIBS = -lnetcdf_c++4 -lnetcdf
@@ -228,26 +228,18 @@ NM = /usr/bin/nm -B
 NMEDIT = 
 OBJDUMP = objdump
 OBJEXT = o
-OCTAVE_CLI = 
 OCTAVE_INCLUDE = 
 OCTAVE_LIBS = 
-OCTAVE_MKOCTFILE = 
 OTOOL = 
 OTOOL64 = 
 PACKAGE = mbdyn
 PACKAGE_BUGREPORT = 
 PACKAGE_NAME = mbdyn
-PACKAGE_STRING = mbdyn develop
+PACKAGE_STRING = mbdyn 1.7.3
 PACKAGE_TARNAME = mbdyn
 PACKAGE_URL = 
-PACKAGE_VERSION = develop
-PARDISO_LIBS = 
-PASTIX_INC = 
-PASTIX_LIBS = 
+PACKAGE_VERSION = 1.7.3
 PATH_SEPARATOR = :
-PKG_CONFIG = /usr/bin/pkg-config
-PKG_CONFIG_LIBDIR = 
-PKG_CONFIG_PATH = /usr/local/lib/pkgconfig/
 PTHREAD_CC = gcc
 PTHREAD_CFLAGS = -pthread
 PTHREAD_LIBS = 
@@ -259,7 +251,6 @@ PYTHON_LDFLAGS =
 PYTHON_NUMPY_HEADERS = 
 PYTHON_SITE_PKG = 
 PYTHON_VERSION = 
-QRUPDATE_LIBS = 
 RANLIB = ranlib
 RTAI_LDFLAGS = 
 RT_LIBS = -lrt
@@ -268,8 +259,6 @@ SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-STRUMPACK_LIBS = 
-SUITESPARSEQR_LIBS = 
 SUPERLU_LIBS = 
 SWIG = 
 SWIG_LIB = 
@@ -277,7 +266,7 @@ TAUCS_LIBS =
 THREAD_LIBS = 
 UDUNITS_LIBS = 
 UMFPACK_LIBS = -lumfpack -lcholmod  -lm -lcamd -lm -lccolamd -lm -lcolamd -lm -lamd -lm
-VERSION = develop
+VERSION = 1.7.3
 WSMP_LIBS = 
 Y12_LIBS = /home/matteo/mbdyn/libraries/liby12/liby12.la -lm
 abs_builddir = /home/matteo/mbdyn/modules
@@ -288,7 +277,7 @@ ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_DUMPBIN = 
-ac_ct_F77 = gfortran
+ac_ct_F77 = 
 ac_ct_FC = gfortran
 am__include = include
 am__leading_dot = .
@@ -418,14 +407,16 @@ EXTRA_DIST = Makefile.module Makefile.template \
 	module-FMU/mbdynFMI.cc module-FMU/mbdynFMI_config.cc \
 	module-FMU/mbdynFMI_config.h module-FMU/mbdynFMI.h \
 	module-FMU/module-FMU.cc module-FMU/module-FMU.h \
-	module-FMU/README.md module-hfelem/harmonicExcitationElem2.mbd \
-	module-hfelem/harmonicExcitationElem.mbd \
-	module-hfelem/module-hfelem.cc module-hfelem/module-hfelem.h \
-	module-hid/README module-hid/Makefile.inc \
+	module-FMU/README.md module-hid/README module-hid/Makefile.inc \
 	module-hid/module-hid.cc module-hid/hid_detect.c \
 	module-hid/hid.set module-hid/hid_ms_sidewinder.set \
 	module-hid/hid_thrustmaster.set module-hid/hid_saitek_x45.set \
 	module-hid/hid_aircraft module-hid/hid_test \
+	module-hydrodynamic_plain_bearing/diffsizes.f95 \
+	module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
+	module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
+	module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.h \
+	module-hydrodynamic_plain_bearing/Makefile.inc \
 	module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 	module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
 	module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
@@ -772,24 +763,11 @@ uninstall-am:
 export LTCXXCOMPILE = $(SHELL) $(top_builddir)/libtool --tag=CXX --mode=compile g++ -DHAVE_CONFIG_H \
 	-I. -I. \
 	-I../../include \
-	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/libraries/libmbutil \
-	-I$(top_srcdir)/libraries/libmbmath \
-	-I$(top_srcdir)/libraries/libmbwrap \
-	-I$(top_srcdir)/libraries/libobjs \
-	-I$(top_srcdir)/libraries/libmbc \
-	-I$(top_srcdir)/mbdyn \
-	-I$(top_srcdir)/mbdyn/base \
-	-I$(top_srcdir)/mbdyn/struct \
-	-I$(top_srcdir)/mbdyn/aero \
-	-I$(top_srcdir)/mbdyn/elec \
-	-I$(top_srcdir)/mbdyn/hydr \
 	-I../$(top_srcdir)/include \
 	-I../$(top_srcdir)/libraries/libmbutil \
 	-I../$(top_srcdir)/libraries/libmbmath \
 	-I../$(top_srcdir)/libraries/libmbwrap \
 	-I../$(top_srcdir)/libraries/libobjs \
-	-I../$(top_srcdir)/libraries/libmbc \
 	-I../$(top_srcdir)/mbdyn \
 	-I../$(top_srcdir)/mbdyn/base \
 	-I../$(top_srcdir)/mbdyn/struct \
@@ -797,26 +775,13 @@ export LTCXXCOMPILE = $(SHELL) $(top_builddir)/libtool --tag=CXX --mode=compile 
 	-I../$(top_srcdir)/mbdyn/elec \
 	-I../$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
-	$(AM_CPPFLAGS) -I/usr/include/suitesparse/ $(AM_CXXFLAGS) -O0 -g -pthread -Werror -Wno-error=cpp -Wno-error=format-truncation
+	$(AM_CPPFLAGS) -I/usr/include/suitesparse/ $(AM_CXXFLAGS) -O3 -w -g -std=c++11 -pthread
 export CXXLINK = $(SHELL) $(top_builddir)/libtool --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	-O0 -g -pthread -Werror -Wno-error=cpp -Wno-error=format-truncation -rdynamic -lsuitesparseconfig  -pthread -Wl,--export-dynamic -shared  -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0 -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../.. -lsuitesparseconfig -lgfortran -lm -lquadmath
+	-O3 -w -g -std=c++11 -pthread -rdynamic -lsuitesparseconfig  -pthread -Wl,--export-dynamic -shared  -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0 -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/../../.. -lsuitesparseconfig -lgfortran -lm -lquadmath
 export LTCOMPILE = $(SHELL) $(top_builddir)/libtool --mode=compile gcc -DHAVE_CONFIG_H \
 	-I. -I. \
 	-I../../include \
-	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/libraries/libmbc \
-	-I$(top_srcdir)/libraries/libmbutil \
-	-I$(top_srcdir)/libraries/libmbmath \
-	-I$(top_srcdir)/libraries/libmbwrap \
-	-I$(top_srcdir)/libraries/libobjs \
-	-I$(top_srcdir)/mbdyn \
-	-I$(top_srcdir)/mbdyn/base \
-	-I$(top_srcdir)/mbdyn/struct \
-	-I$(top_srcdir)/mbdyn/aero \
-	-I$(top_srcdir)/mbdyn/elec \
-	-I$(top_srcdir)/mbdyn/hydr \
 	-I../$(top_srcdir)/include \
-	-I../$(top_srcdir)/libraries/libmbc \
 	-I../$(top_srcdir)/libraries/libmbutil \
 	-I../$(top_srcdir)/libraries/libmbmath \
 	-I../$(top_srcdir)/libraries/libmbwrap \
@@ -828,13 +793,13 @@ export LTCOMPILE = $(SHELL) $(top_builddir)/libtool --mode=compile gcc -DHAVE_CO
 	-I../$(top_srcdir)/mbdyn/elec \
 	-I../$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
-	$(AM_CPPFLAGS) -I/usr/include/suitesparse/ $(AM_CFLAGS) -O0 -g -pthread -Werror -Wno-error=cpp -Wno-error=format-truncation
-export LTF77COMPILE = $(SHELL) $(top_builddir)/libtool --tag=F77 --mode=compile gfortran $(AM_FFLAGS) -g -O2 \
+	$(AM_CPPFLAGS) -I/usr/include/suitesparse/ $(AM_CFLAGS) -O3 -w -g -std=gnu17 -pthread
+export LTF77COMPILE = $(SHELL) $(top_builddir)/libtool --tag=F77 --mode=compile gfortran $(AM_FFLAGS) -O3 -w -g -fallow-argument-mismatch \
 	-prefer-pic
-export LTFCCOMPILE = $(SHELL) $(top_builddir)/libtool --tag=FC --mode=compile gfortran $(AM_FFLAGS) -g -O2 \
+export LTFCCOMPILE = $(SHELL) $(top_builddir)/libtool --tag=FC --mode=compile gfortran $(AM_FFLAGS) -O3 -w -g -fallow-argument-mismatch \
 	-prefer-pic
 export LIBTOOL = $(SHELL) $(top_builddir)/libtool
-export MODULES_DIRS= module-muscles module-wheel2 module-hid module-flightgear module-rotor_disc
+export MODULES_DIRS= module-hid module-flightgear module-rotor_disc
 export INSTALL_PROGRAM=${INSTALL}
 export LIBEXEC_DIR=$(libexecdir)
 
@@ -846,7 +811,7 @@ export LIBEXEC_DIR=$(libexecdir)
 
 all: libtool all__
 
-libtool:
+libtool: 
 	-@ln -sf ../libtool .
 
 all__:
@@ -857,15 +822,12 @@ all__:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
-			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrc/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
-			( cd $$i && $(MAKE) OCTAVE_INCLUDE="$(OCTAVE_INCLUDE)" \
-					    OCTAVE_LIBS="$(OCTAVE_LIBS)" \
-					    MBDYN_MODULE_SRCDIR=$$isrca ) ; \
+			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$$isrc ) ; \
 			rm -f $$i/Makefile ; \
 		done \
 	fi
@@ -878,10 +840,9 @@ install: all__
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
-			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrc/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) install ) ; \
