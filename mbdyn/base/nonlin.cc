@@ -270,6 +270,9 @@ NonlinearSolverTestRelNorm::MakeTest(Solver *pS, const integer &Size,
 	/* get norm for residual vector */
 	doublereal res_test = NonlinearSolverTest::MakeTest(pS, Size, Vec, bResidual, dScaleAlgEqu, pTestDiff);
 
+	if ( abs_res_test == 0)
+		return 0.;
+
 	return res_test/abs_res_test;
 }
 
@@ -363,7 +366,12 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 
 		dTest = TestPost(dTest);
 		abs_dTest = TestPost(abs_dTest);
-		testsVector.push_back(dTest/abs_dTest);
+		if (abs_dTest != 0) {
+			testsVector.push_back(dTest/abs_dTest);
+		} else {
+			testsVector.push_back(0.);
+		}
+		
 	}
 
 	*pTestDiff = *max_element(testDiffsVector.begin(), testDiffsVector.end());
