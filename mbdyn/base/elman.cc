@@ -572,7 +572,7 @@ DataManager::SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::se
 				integer first_index = dof_pTmpEl->iGetFirstIndex();
 
 				/* set the indices value to corresponding dimensions */
-				for (integer i = 1; i <= dof_pTmpEl->iGetNumDof(); i++) {
+				for (unsigned int i = 1; i <= dof_pTmpEl->iGetNumDof(); i++) {
 					(*pDimMap)[dof_pTmpEl->GetEquationDimension(i)].insert(first_index + i);
 				}
 
@@ -584,11 +584,11 @@ DataManager::SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::se
 
 void
 DataManager::SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) {
-	for (integer i = 0; i < Nodes.size(); i++) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		integer first_index = Nodes[i]->iGetFirstIndex();
 
 		/* set the indices value to corresponding dimensions */
-		for (integer j = 1; j <= Nodes[i]->iGetNumDof(); j++) {
+		for (unsigned int j = 1; j <= Nodes[i]->iGetNumDof(); j++) {
 			(*pDimMap)[Nodes[i]->GetEquationDimension(j)].insert(first_index + j);
 		}
 	}

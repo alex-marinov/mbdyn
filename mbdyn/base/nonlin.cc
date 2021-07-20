@@ -331,6 +331,8 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 
 	std::vector<doublereal> testsVector;
 	std::vector<doublereal> testDiffsVector;
+	std::vector<doublereal> abs_dTestVector;
+	std::vector<doublereal> dTestVector;
 
    	for (auto it = MapOfDimensionIndices.begin(); it != MapOfDimensionIndices.end(); ++it) {
 
@@ -365,13 +367,26 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 		}
 
 		dTest = TestPost(dTest);
+		dTestVector.push_back(dTest);
 		abs_dTest = TestPost(abs_dTest);
-		if (abs_dTest != 0) {
+		abs_dTestVector.push_back(abs_dTest);
+	}
+
+	doublereal abs_dTest_max = *max_element(abs_dTestVector.begin(), abs_dTestVector.end());
+
+	doublereal eps1, eps2;
+	eps1 = 1E-1;
+	eps2 = 1E-5;
+
+	for ( int i = 0; i < dTestVector.size(); i++) {
+		doublereal dTest = dTestVector[i];
+		doublereal abs_dTest = abs_dTestVector[i];
+
+		if ((abs_dTest != 0) && (dTest/abs_dTest > eps1) && (abs_dTest < eps2 * abs_dTest_max) ) {
 			testsVector.push_back(dTest/abs_dTest);
 		} else {
 			testsVector.push_back(0.);
 		}
-		
 	}
 
 	*pTestDiff = *max_element(testDiffsVector.begin(), testDiffsVector.end());
