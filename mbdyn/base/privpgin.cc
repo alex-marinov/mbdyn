@@ -161,8 +161,20 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 	}
 
 	if (iIndex == 0 || iIndex > iMaxIndex) {
-		silent_cerr("illegal index " << iIndex << " for "
-			<< *this << std::endl);
+		const char *what = "";
+		if (dynamic_cast<NodePrivPlugIn*>(this)) {
+			what = "node ";
+		} else if (dynamic_cast<ElemPrivPlugIn *>(this)) {
+			what = "element ";
+		}
+
+		if (!sIndexName.empty()) {
+			silent_cerr("illegal index " << iIndex << " (" << sIndexName << ") for "
+				<< *this << " " << what << "plugin, must be in the range [1--" << iMaxIndex << "]" << std::endl);
+		} else {
+			silent_cerr("illegal index " << iIndex << " for "
+				<< *this << " " << what << "plugin, must be in the range [1--" << iMaxIndex << "]" << std::endl);
+		}
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
