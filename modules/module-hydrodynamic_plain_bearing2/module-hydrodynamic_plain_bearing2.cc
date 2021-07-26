@@ -10804,13 +10804,6 @@ namespace {
                     }
                     HYDRO_TRACE(std::endl);
                }
-
-               for (index_type i = 0; i < iNumNodes; ++i) {
-                    const Node2D* pNode = pRootElem->pGetNode(i);
-                    const HydroNode* const pHydrNode = dynamic_cast<const HydroNode*>(pNode);
-                    index_type iCompIndex = pHydrNode ? pHydrNode->iGetComplianceIndex() : -1;
-                    HYDRO_TRACE("node #" << pNode->iGetNodeNumber() << "(" << pNode->GetPosition2D()(1) << "," << pNode->GetPosition2D()(2) << "):" << iCompIndex << std::endl);
-               }
           }
 #endif
      }
@@ -11898,7 +11891,7 @@ namespace {
 
           pedantic_cout("hydrodynamic plain bearing2("
                         << pMesh->pGetParent()->GetLabel()
-                        << ") listing of updated nodes:\n");
+                        << "): listing of updated nodes:\n");
 
           for (index_type i = 0; i < static_cast<ssize_t>(rgNodesHyd.size()); ++i) {
                pedantic_cout("\thydrodynamic node(" << i + 1 << "):" << rgNodesHyd[i].x << " " << rgNodesHyd[i].z << " " << rgNodesHyd[i].iComplianceIndex << "\n");
@@ -11942,6 +11935,8 @@ namespace {
                     MATRIX_E3,
                     MATRIX_RPhiK,
                     MATRIX_Phin,
+                    VECTOR_CENTER,
+                    MATRIX_ORIENT,
                     LAST_TAG
                };
 
@@ -11964,7 +11959,9 @@ namespace {
                     {MATRIX_D3,        MATMA_NODAL3, "substruct total contrib matrix"},
                     {MATRIX_E3,        MATMA_NODAL3, "substruct total residual matrix"},
                     {MATRIX_RPhiK,     MATMA_MODAL1, "modal load"},
-                    {MATRIX_Phin,      MATMA_MODAL1, "mode shapes"}
+                    {MATRIX_Phin,      MATMA_MODAL1, "mode shapes"},
+                    {VECTOR_CENTER,    MATMA_ALL,    "bearing center"},
+                    {MATRIX_ORIENT,    MATMA_ALL,    "bearing orientation"}
                };
 
                enum FileFormatType {
@@ -12135,7 +12132,7 @@ namespace {
 
                                         if (oMatData.eMeshLocation == LOC_MESH_FIXED && iNumDofFE != static_cast<ssize_t>(rgNodesHyd.size())) {
                                              silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                         << " number of FEM DOF in file \"" << strFileName << "\" = " << iNumDofFE
+                                                         << "): number of FEM DOF in file \"" << strFileName << "\" = " << iNumDofFE
                                                          << " does not match  number of hydrodynamic nodes = "
                                                          << rgNodesHyd.size() << std::endl);
                                              throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -12310,7 +12307,7 @@ namespace {
 
                                         if (oMatData.rgMatrices.GetMatrixType() != eFileTypeCurr) {
                                              silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                         << " invalid matrix type for selected compliance model in file \""
+                                                         << "): invalid matrix type for selected compliance model in file \""
                                                          << strFileName << "\" at line " << iLineNo << std::endl);
                                              throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
@@ -12335,7 +12332,7 @@ namespace {
                                         case MATRIX_C1:
                                              if (oMatData.pModalJoint) {
                                                   silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                              << " keyword \"modal element\" must not be used for matrix type \""
+                                                              << "): keyword \"modal element\" must not be used for matrix type \""
                                                               << rgTags[iTag].szName << "\" in file \""
                                                               << strFileName << "\" at line " << iLineNo << std::endl);
                                                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -12349,7 +12346,7 @@ namespace {
                                         case MATRIX_E3: {
                                              if (!oMatData.pModalJoint) {
                                                   silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                              << " keyword \"modal element\" is required for matrix type \""
+                                                              << "): keyword \"modal element\" is required for matrix type \""
                                                               << rgTags[iTag].szName << "\" in file \""
                                                               << strFileName << "\" at line " << iLineNo << std::endl);
                                                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -12370,7 +12367,7 @@ namespace {
 
                                              if (!bValid) {
                                                   silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                              << " structural node number " << pNodeInterface->GetLabel()
+                                                              << "): structural node number " << pNodeInterface->GetLabel()
                                                               << " does not belong to modal joint " << oMatData.pModalJoint->GetLabel()
                                                               << " which is mandatory for matrix type \""
                                                               << rgTags[iTag].szName << "\" in file \""
@@ -12390,7 +12387,7 @@ namespace {
 
                                              if (!pModalNode || pModalNode != oMatData.pModalJoint->pGetModalNode()) {
                                                   silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
-                                                              << " node number " << pNodeInterface->GetLabel()
+                                                              << "): node number " << pNodeInterface->GetLabel()
                                                               << " is not the modal node of modal joint " << oMatData.pModalJoint->GetLabel()
                                                               << " which is mandatory for for matrix type \""
                                                               << rgTags[iTag].szName << "\" in file \""
@@ -12628,7 +12625,110 @@ namespace {
 
                                         rgTagsParsed[eCurrMatrix] = true;
                                    } break;
+                                   case VECTOR_CENTER:
+                                   case MATRIX_ORIENT: {
+                                        SpColVectorA<doublereal, 3> dX;
+                                        SpMatrixA<doublereal, 3, 3> dR;
 
+                                        switch (rgTags[iTag].eTag) {
+                                        case VECTOR_CENTER:
+                                             for (index_type i = 1; i <= 3; ++i) {
+                                                  oFile >> dX(i);
+                                             }
+                                             break;
+                                        case MATRIX_ORIENT:
+                                             for (index_type i = 1; i <= 3; ++i) {
+                                                  for (index_type j = 1; j <= 3; ++j) {
+                                                       oFile >> dR(i, j);
+                                                  }
+                                             }
+                                             break;
+                                        default:
+                                             HYDRO_ASSERT(0);
+                                        }
+
+                                        const StructNode* pNodeInterface = nullptr;
+
+                                        const RigidBodyBearing* pGeometry = pMesh->pGetGeometry();
+                                        const BearingGeometry::Type eBearingType = pGeometry->GetType();
+                                        SpColVectorA<doublereal, 3> oc;
+                                        SpMatrixA<doublereal, 3, 3> Rb;
+
+                                        if ((oMatData.eMeshLocation == LOC_MESH_FIXED && eBearingType == BearingGeometry::CYLINDRICAL_MESH_AT_SHAFT) ||
+                                            (oMatData.eMeshLocation == LOC_MESH_MOVING && eBearingType == BearingGeometry::CYLINDRICAL_MESH_AT_BEARING)) {
+                                             pNodeInterface = pGeometry->pGetNode1();
+                                             oc = pGeometry->GetOffsetNode1();
+                                             Rb = pGeometry->GetOrientationNode1();
+                                        } else if ((oMatData.eMeshLocation == LOC_MESH_FIXED && eBearingType == BearingGeometry::CYLINDRICAL_MESH_AT_BEARING) ||
+                                                   (oMatData.eMeshLocation == LOC_MESH_MOVING && eBearingType == BearingGeometry::CYLINDRICAL_MESH_AT_SHAFT)) {
+                                             pNodeInterface = pGeometry->pGetNode2();
+                                             oc = pGeometry->GetOffsetNode2();
+                                             Rb = pGeometry->GetOrientationNode2();
+                                        } else {
+                                             HYDRO_ASSERT(0);
+                                             throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                        }
+
+                                        const StructNode* pModalNode = nullptr;
+
+                                        if (oMatData.pModalJoint) {
+                                             pModalNode = oMatData.pModalJoint->pGetModalNode();
+                                        }
+
+                                        if (pModalNode && pNodeInterface) {
+                                             constexpr doublereal dTolRel = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+                                             const Vec3& X0 = pModalNode->GetXCurr();
+                                             const Mat3x3& R0 = pModalNode->GetRCurr();
+
+                                             switch (rgTags[iTag].eTag) {
+                                             case VECTOR_CENTER: {
+                                                  const SpColVector<doublereal, 3> Xc = pNodeInterface->GetXCurr() + pNodeInterface->GetRCurr() * oc;
+                                                  const SpColVector<doublereal, 3> dX0 = Transpose(R0) * (Xc - X0);
+                                                  const doublereal f = Norm(dX0 - dX);
+
+                                                  const doublereal dTolAbs = dTolRel * std::max(oMatData.dBearingWidth, oMatData.dBearingDiameter);
+
+                                                  if (f > dTolAbs) {
+                                                       silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                                   << "): position of structural node number " << pNodeInterface->GetLabel()
+                                                                   << " does not match to modal joint number " << oMatData.pModalJoint->GetLabel()
+                                                                   << " (expected: " << dX << ", actual: " << dX0 << ", distance:" << f << ")"
+                                                                   << " in file \""
+                                                                   << strFileName << "\" at line " << iLineNo << std::endl);
+                                                       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                  }
+                                             } break;
+                                             case MATRIX_ORIENT: {
+                                                  const Mat3x3& Rc = pNodeInterface->GetRCurr();
+                                                  const SpMatrix<doublereal, 3, 3> dR0 = Transpose(R0) * Rc * Rb;
+
+                                                  doublereal fmax = 0.;
+
+                                                  for (index_type j = 1; j <= 3; ++j) {
+                                                       for (index_type i = 1; i <= 3; ++i) {
+                                                            fmax = std::max(fmax, fabs(dR(i, j) - dR0(i, j)));
+                                                       }
+                                                  }
+
+                                                  if (fmax > dTolRel) {
+                                                       silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                                   << "): orientation of structural node number " << pNodeInterface->GetLabel()
+                                                                   << " does not match to modal joint number " << oMatData.pModalJoint->GetLabel()
+                                                                   << " (expected: " << dR << ", actual: " << dR0 << ", difference:" << fmax << ")"
+                                                                   << " in file \""
+                                                                   << strFileName << "\" at line " << iLineNo << std::endl);
+                                                       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                  }
+
+                                             } break;
+                                             default:
+                                                  HYDRO_ASSERT(0);
+                                             }
+                                        }
+
+                                        rgTagsParsed[rgTags[iTag].eTag] = true;
+                                   } break;
                                    default:
                                         HYDRO_ASSERT(false);
                                    };
@@ -13528,12 +13628,39 @@ namespace {
           const auto& o2 = rParent.GetOffsetNode2();
           const auto& Rb2 = rParent.GetOrientationNode2();
 
+#if HYDRO_DEBUG > 1
+          int prec1 = std::cout.precision();
+          int prec2 = std::cerr.precision();
+          std::cout.precision(16);
+          std::cerr.precision(16);
+#endif
+
+          HYDRO_TRACE("X1=[" << X1 << "].';\n");
+          HYDRO_TRACE("R1=[" << R1 << "].';\n");
+          HYDRO_TRACE("o1=[" << o1 << "].';\n");
+          HYDRO_TRACE("Rb1_v1=[" << Rb1_v1 << "].';\n");
+
+          HYDRO_TRACE("X2=[" << X2 << "].';\n");
+          HYDRO_TRACE("R2=[" << R2 << "].';\n");
+          HYDRO_TRACE("o2=[" << o2 << "].';\n");
+          HYDRO_TRACE("Rb2=[" << Rb2 << "];\n");
+
+          HYDRO_TRACE("X1P=[" << X1P << "].';\n");
+          HYDRO_TRACE("omega1=[" << omega1 << "].';\n");
+          HYDRO_TRACE("X2P=[" << X2P << "].';\n");
+          HYDRO_TRACE("omega2=[" << omega2 << "].';\n");
+
           const SpColVector<T, 3> a0 = R1 * (o1 + Rb1_v1);
           const SpColVector<T, 3> a2 = EvalUnique(X1 - X2 + a0);
           const SpColVector<T, 3> a1 = EvalUnique(X1P + Cross(omega1, a0)
                                                   - X2P - Cross(omega2, a2));
           const SpColVector<T, 3> b = EvalUnique(Rb2T_R2T * a2 - Rb2T_o2);
+
+          HYDRO_TRACE("b=[" << b << "].';\n");
+
           const doublereal R = rParent.dGetBearingRadius();
+
+          HYDRO_TRACE("R=" << R << ";\n");
 
           const T a5 = EvalUnique(b(1) * b(1) + b(2) * b(2));
           const T a3 = sqrt(a5);
@@ -13583,11 +13710,18 @@ namespace {
           const T h0 = R + Deltay2 - a3;
           h = EvalUnique(h0 + w);
 
+          HYDRO_TRACE("h=" << h << ";\n");
+
           const SpColVector<T, 3> db_dt = Rb2T_R2T * a1;
+
+          HYDRO_TRACE("db_dt=[" << db_dt << "].';\n");
+
           const T dx2_dt = R * (b(1) * db_dt(2) - db_dt(1) * b(2)) / a5;
           const T& dz2_dt = db_dt(3);
           const T dDeltay2_dt = dDeltay2_dx2 * dx2_dt + dDeltay2_dz2 * dz2_dt;
           dh_dt = EvalUnique(dDeltay2_dt - (b(1) * db_dt(1) + b(2) * db_dt(2)) / a3 + dw_dt);
+
+          HYDRO_TRACE("dh_dt=" << dh_dt << ";\n");
 
           const SpColVector<T, 3> v2{EvalUnique((R + Deltay2) * cos_Phi2),
                                      EvalUnique((R + Deltay2) * sin_Phi2),
@@ -13596,6 +13730,9 @@ namespace {
           const SpColVector<T, 3> vh{EvalUnique(h0 * cos_Phi2),
                                      EvalUnique(h0 * sin_Phi2),
                                      T{}};
+
+          HYDRO_TRACE("v2=[" << v2 << "].';\n");
+          HYDRO_TRACE("vh=[" << vh << "].';\n");
 
           const SpColVector<T, 3> P1Dot = EvalUnique(X1P + Cross(omega1, a0));
           const SpColVector<T, 3> P2Dot = EvalUnique(X2P + Cross(omega2, (R2 * (o2 + Rb2 * v2))) - Cross(omega1, (R2 * (Rb2 * vh))));
@@ -13609,6 +13746,11 @@ namespace {
           U2 = Transpose(SubMatrix<1, 1, 3, 1, 2, 2>(Rbt1)) * P2Dot_R1;
 
           U = EvalUnique((U2 - U1) * 0.5);
+
+#if HYDRO_DEBUG > 1
+          std::cout.precision(prec1);
+          std::cerr.precision(prec2);
+#endif
      }
 
      template <typename T>
@@ -14620,7 +14762,7 @@ namespace {
                } else {
                     silent_cerr("hydrodynamic plain bearing2("
                                 << pGetMesh()->pGetParent()->GetLabel()
-                                << ") keyword \"meters\" or \"micro meters\" expected at line "
+                                << "): keyword \"meters\" or \"micro meters\" expected at line "
                                 << HP.GetLineData() << std::endl);
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
@@ -17864,7 +18006,7 @@ namespace {
                mdotz -= EvalUnique((rho * dx / iNumNodesOutletBound) * h * (Uz - h * h * dp_dz / (12. * eta)));
           }
 
-          HYDRO_TRACE("mdotz(" << sref << ")=" << dGetValue(mdotz) * iNumNodesOutletBound << std::endl);
+          HYDRO_TRACE("mdotz(" << sref << ")=" << SpGradient::dGetValue(mdotz) * iNumNodesOutletBound << std::endl);
 
           for (index_type i = 0; i < iNumNodesOutletBound; ++i) {
                HYDRO_ASSERT(rgNodes[pNodeIndexOutletBound[i]]->bIsNodeType(HydroNode::COUPLED_NODE));
