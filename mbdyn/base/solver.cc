@@ -4923,6 +4923,17 @@ Solver::Eig(bool bNewLine)
 	DEBUGCOUT("Solver::Eig(): performing eigenanalysis" << std::endl);
 
 	integer iSize = iNumDofs;
+	
+	/* 
+	 * Call AssRes before AssJac in order to be sure that all 
+	 * the elements have updated the internal data
+	 */
+	VectorHandler *pVec = 0;
+	SAFENEWWITHCONSTRUCTOR(pVec, MyVectorHandler,
+		MyVectorHandler(iNumDofs));
+	pVec->Reset();
+	pDM->AssRes(*pVec);
+	SAFEDELETE(pVec);
 
 	SolutionManager *pSM = 0;
 	MatrixHandler *pMatA = 0;
