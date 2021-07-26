@@ -95,6 +95,11 @@ public:
                 return Elem::BODY;
         };
 
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
+
         /* Numero gdl durante l'assemblaggio iniziale */
         virtual unsigned int iGetInitialNumDof(void) const {
                 return 0;
@@ -337,6 +342,11 @@ public:
         virtual Elem::Type GetElemType(void) const {
                 return Elem::BODY;
         };
+
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
 
         /* Numero gdl durante l'assemblaggio iniziale */
         virtual unsigned int iGetInitialNumDof(void) const {
