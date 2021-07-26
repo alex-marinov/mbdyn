@@ -225,7 +225,7 @@ InitialAssemblyElem::~InitialAssemblyElem(void)
 	NO_OP;
 }
 
-bool InitialAssemblyElem::bIsDeformable() {
+bool InitialAssemblyElem::bIsDeformable() const {
 	return false;
 }
 

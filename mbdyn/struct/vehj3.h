@@ -122,7 +122,7 @@ public:
 	};
     
 	/* Deformable element */
-	virtual bool bIsDeformable() {
+	virtual bool bIsDeformable() const {
 		return true;
 	};
 

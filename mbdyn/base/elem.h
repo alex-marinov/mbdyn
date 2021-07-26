@@ -325,7 +325,7 @@ public:
 	   but should really not contribute to InitialAssembly;
 	   this methods allows to identify them
 	*/
-	virtual bool bIsDeformable();
+	virtual bool bIsDeformable() const;
 };
 
 /* InitialAssemblyElem - end */
