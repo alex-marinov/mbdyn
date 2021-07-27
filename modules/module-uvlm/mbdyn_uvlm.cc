@@ -39,13 +39,20 @@
 #include <vector>
 #include <variant>
 #include <algorithm>
+#include <sys/time.h>
+#include <unistd.h>
 
 
 #include "mbdyn_uvlm.h"
+#include "UVLM-master/include/cpp_interface.h"
+#include "UVLM-master/include/unsteady.h"
+#include "UVLM-master/lib/libuvlm"
+
+clock_t startTime, endTime;
+struct timeval start_time, end_time;
 
 
- /***************************************************************/
- // Functions private to this .cc file
+ // Functions private to this .cc file [START]
 
 std::vector<double>
 QuadInterpol1D(std::vector<double>& x, std::vector<double>& y, std::vector<double>& xp) {
@@ -240,7 +247,7 @@ crv_dot2omega(std::vector<double>& crv, std::vector<double>& crv_dot, std::vecto
 }
 
 double
-angle_between_vectors_sign(std::vector<double>& vec_a, std::vector<double>& vec_b, std::vector<double>& orientation_in) {
+angle_between_vectors_sign(std::vector<double>& vec_a, std::vector<double>& vec_b, const std::vector<double>& orientation_in) {
 
 	std::vector<double> cross_prod;
 	cross_prod[0] = vec_a[1] * vec_b[2] - vec_a[2] * vec_b[1];
@@ -274,26 +281,118 @@ angle_between_vectors_sign(std::vector<double>& vec_a, std::vector<double>& vec_
 
 
 /***************************************************************/
-
-
-/***************************************************************/
 // Functions used in coupling with MBDyn and UVLM subsystem
-extern "C" void MBDyn_UVLM_Init()
-{
+extern "C" void 
+MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+	const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+	const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+	const UVMopts* MBDyn_UVLM_UVMopts,
+	const FlightConditions* MBDyn_UVLM_FlightConditions,
+	Beam_inputs& MBDyn_UVLM_Beam_inputs,
+	Aero_inputs& MBDyn_UVLM_Aero_inputs,
+	StraightWake& MBDyn_UVLM_StraightWake,
+	SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField) {
 
+	gettimeofday(&start_time, NULL);  // get the start time
+	startTime = clock();
 
+	// Define Beam_inputs
+	MBDyn_UVLM_Beam_inputs.Beam_inputs_generate(/*input the number of nodes*/);
 
+	// Define Aero_inputs
+	MBDyn_UVLM_Aero_inputs.Aero_inputs_generate(/*input the numner of nodes*/);
 
+	// Initialize the StraightWake
+	MBDyn_UVLM_StraightWake.StraightWake_initialize(MBDyn_UVLM_StraightWake_settings);
 
-
+	// Initialize the Velocity field
+	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_initialize(MBDyn_UVLM_FlightConditions);
 }
+
+
+extern "C" bool
+MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+	const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+	const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+	const UVMopts* MBDyn_UVLM_UVMopts,
+	const FlightConditions* MBDyn_UVLM_FlightConditions,
+	Beam_inputs& MBDyn_UVLM_Beam_inputs,
+	Aero_inputs& MBDyn_UVLM_Aero_inputs,
+	StraightWake& MBDyn_UVLM_StraightWake,
+	SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+	Aerogrid& MBDyn_UVLM_Aerogrid,
+	std::vector<AeroTimeStepInfo>& MBDyn_UVLM_AeroPreviousTimeStepInfo,
+	double time_step) {
+
+
+	// Generate the Grid (This function creates the grid for each and every time step)
+	MBDyn_UVLM_Aerogrid.generate(MBDyn_UVLM_Aero_inputs, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aerogrid_settings,
+		time_step);
+
+	// Aero_timestep_info for the current time step
+	AeroTimeStepInfo MBDyn_UVLM_AeroTimeStepInfo;
+	MBDyn_UVLM_AeroTimeStepInfo = MBDyn_UVLM_Aerogrid.aero_timestep_info[time_step];
+
+	// Wake shape generator
+	MBDyn_UVLM_StraightWake.StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo);
+
+	// Generate u_ext and u_ext_star
+	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_generate(MBDyn_UVLM_AeroTimeStepInfo, MBDyn_UVLM_UVMopts);
+
+	// Call the solver here
+	libuvlm.run_UVLM();
+
+
+
+	// Unsteady Contribution
+	if (~MBDyn_UVLM_UVMopts->quasi_steady) {
+		// Calculate the unsteady (added mass) forces:
+		double dt = MBDyn_UVLM_UVMopts->dt;
+		MBDyn_UVLM_Aerogrid.compute_gamma_dot(MBDyn_UVLM_Aero_inputs, dt, MBDyn_UVLM_AeroTimeStepInfo, MBDyn_UVLM_AeroPreviousTimeStepInfo, time_step);
+		
+		// gamma_dot_filtering is yet to be implemented (but not now)
+
+
+		// Call the unsteady forces function from the UVLM lib
+	
+	
+	}
+	else {
+		for (int i_surf = 0; i_surf < MBDyn_UVLM_AeroTimeStepInfo.gamma.size(); ++i_surf) {
+			for (int i = 0; i < MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf].size(); ++i) {
+				for (int j = 0; j < MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf][i].size(); ++j) {
+					MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf][i][j] = 0.0;
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+	// We store the results for the next time step
+	MBDyn_UVLM_AeroPreviousTimeStepInfo.push_back(MBDyn_UVLM_AeroTimeStepInfo);
+}
+
+
+
+
+
+
+
+
 /***************************************************************/
 
 
+AeroTimeStepInfo::AeroTimeStepInfo() {
+	NO_OP;
+}
 
-
-
-MBDyn_UVLM_AeroTimeStepInfo::MBDyn_UVLM_AeroTimeStepInfo(std::vector<std::pair<int, int>>& dimensions,
+void
+AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	std::vector<std::pair<int, int>>& dimensions_star) {
 
 	unsigned int number_of_surfaces = dimensions.size();
@@ -429,10 +528,9 @@ MBDyn_UVLM_AeroTimeStepInfo::MBDyn_UVLM_AeroTimeStepInfo(std::vector<std::pair<i
 			dist_to_orig[i][j].resize(dimensions[i].second + 1);
 		}
 	}
-
 }
 
-MBDyn_UVLM_AeroTimeStepInfo::~MBDyn_UVLM_AeroTimeStepInfo() {
+AeroTimeStepInfo::~AeroTimeStepInfo() {
 	NO_OP;
 }
 
@@ -442,9 +540,11 @@ Beam_inputs::Beam_inputs() {
 	NO_OP;
 }
 
-void Beam_inputs::Beam_inputs_generate() {
+void 
+Beam_inputs::Beam_inputs_generate(int NumberofNodes) {
 
-	// do remember to input the raw inputs from MBDyn
+	num_node_elem = 3;
+	num_elem = (NumberofNodes - 1) / (num_node_elem - 1);
 
 	connectivities.resize(num_elem);
 	reordered_connectivities.resize(num_elem);
@@ -490,8 +590,13 @@ void Beam_inputs::Beam_inputs_generate() {
 		connectivities[ielem][2] = 1 + ielem * (num_node_elem - 1) + 1;
 		working_elem++;
 	}
+	connectivities[num_elem - 1][1] = 0;
 
-	reordered_connectivities = connectivities;
+	for (int ielem = 0; ielem < num_elem; ++ielem) {
+		reordered_connectivities[ielem][0] = connectivities[ielem][0];
+		reordered_connectivities[ielem][1] = connectivities[ielem][2];
+		reordered_connectivities[ielem][2] = connectivities[ielem][1];
+	}
 }
 
 Beam_inputs::~Beam_inputs() {
@@ -504,35 +609,36 @@ Aero_inputs::Aero_inputs() {
 }
 
 void
-Aero_inputs::Aero_inputs_generate() {
+Aero_inputs::Aero_inputs_generate(int NumberofNodes) {
 
-	// do remeber to input the values of the private variables of this class
-	// along with the necessary raw inputs (see generate_planarwing in SHARPy)
+	int num_node_elem = 3;   // Number of nodes per element
+	int num_elem = (NumberofNodes - 1) / (num_node_elem - 1);  // Total number of elements
+	int num_surfaces = 2;   // Number of surfaces
 
-	surface_distribution_input.resize(_num_elem);
-	surface_m.resize(_num_surfaces);
+	surface_distribution_input.resize(num_elem);
+	surface_m.resize(num_surfaces);
 	m_distribution = "uniform";
-	aero_node_input.resize(_num_node);
+	aero_node_input.resize(NumberofNodes);
 
-	airfoil_distribution_input.resize(_num_elem);
-	twist.resize(_num_elem);
-	chords.resize(_num_elem);
-	elastic_axis.resize(_num_elem);
-	sweep.resize(_num_elem);
-	for (int i = 0; i < _num_elem; ++i) {
-		chords[i].resize(_num_node_elem);
-		twist[i].resize(_num_node_elem);
-		sweep[i].resize(_num_node_elem);
-		airfoil_distribution_input[i].resize(_num_node_elem);
-		elastic_axis[i].resize(_num_node_elem);
+	airfoil_distribution_input.resize(num_elem);
+	twist.resize(num_elem);
+	chords.resize(num_elem);
+	elastic_axis.resize(num_elem);
+	sweep.resize(num_elem);
+	for (int i = 0; i < num_elem; ++i) {
+		chords[i].resize(num_node_elem);
+		twist[i].resize(num_node_elem);
+		sweep[i].resize(num_node_elem);
+		airfoil_distribution_input[i].resize(num_node_elem);
+		elastic_axis[i].resize(num_node_elem);
 	}
 
 	int working_elem = 0;
 	int working_node = 0;
 	// right wing (surface 0 , beam 0)
 	int i_surf = 0;
-	for (int i = 0; i < _num_elem / 2; ++i) {
-		for (int j = 0; j < _num_node_elem; ++j) {
+	for (int i = 0; i < num_elem / 2; ++i) {
+		for (int j = 0; j < num_node_elem; ++j) {
 			airfoil_distribution_input[i][j] = 0;
 			chords[i][j] = ;  // input from the MBDyn input
 			elastic_axis[i][j] = ; // input from the MBDyn input
@@ -543,15 +649,15 @@ Aero_inputs::Aero_inputs_generate() {
 		working_elem++;
 	}
 	surface_m[i_surf] = ; // number of chordwise panelling for each surface
-	for (int i = 0; i < _num_node / 2; ++i) {
+	for (int i = 0; i < NumberofNodes / 2; ++i) {
 		aero_node_input[i] = true;
 		working_node++;
 	}
 
 	// left wing (surface 1, beam 1)
 	i_surf = 1;
-	for (int i = working_elem; i < _num_elem; ++i) {
-		for (int j = 0; j < _num_node_elem; ++j) {
+	for (int i = working_elem; i < num_elem; ++i) {
+		for (int j = 0; j < num_node_elem; ++j) {
 			airfoil_distribution_input[i][j] = 0;
 			chords[i][j] = ;  // input from the MBDyn input
 			elastic_axis[i][j] = ; // input from the MBDyn input
@@ -562,7 +668,7 @@ Aero_inputs::Aero_inputs_generate() {
 		working_elem++;
 	}
 	surface_m[i_surf] = ; // number of chordwise panelling for each surface
-	for (int i = working_node; i < _num_node; ++i) {
+	for (int i = working_node; i < NumberofNodes; ++i) {
 		aero_node_input[i] = true;
 		working_node++;
 	}
@@ -573,6 +679,10 @@ Aero_inputs::Aero_inputs_generate() {
 	double M = 0;
 	airfoils[0] = generate_naca_camber(P, M);
 
+}
+
+Aero_inputs::~Aero_inputs() {
+	NO_OP;
 }
 
 double
@@ -604,34 +714,32 @@ Aero_inputs::generate_naca_camber(double P, double M) {
 	return airfoil_data;
 }
 
-Aero_inputs::~Aero_inputs() {
-	NO_OP;
-}
 
 
 
 
 
-void Aerogrid::generate(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs, Aerogrid_settings* aerogrid_settings,
+void 
+Aerogrid::generate(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs, const Aerogrid_settings* aerogrid_settings,
 	double ts) {
 
 	// number of total nodes (structural + aero&struct)
-	n_node = aero_inputs->aero_node_input.size();
+	n_node = aero_inputs.aero_node_input.size();
 
 	// number of elements
-	n_elem = aero_inputs->surface_distribution_input.size();
+	n_elem = aero_inputs.surface_distribution_input.size();
 
 	// Surface distribution
-	surface_distribution = aero_inputs->surface_distribution_input;
+	surface_distribution = aero_inputs.surface_distribution_input;
 
 	// number of surfaces
-	n_surf = aero_inputs->surface_m.size();
+	n_surf = aero_inputs.surface_m.size();
 
 	// number of chordwise panels
-	surface_m = aero_inputs->surface_m;
+	surface_m = aero_inputs.surface_m;
 
 	// number of aero nodes
-	n_aero_node = aero_inputs->aero_node_input.size();
+	n_aero_node = aero_inputs.aero_node_input.size();
 
 	// get N per surface
 	calculate_dimensions(aero_inputs, beam_inputs, aerogrid_settings);
@@ -640,15 +748,16 @@ void Aerogrid::generate(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs, Aero
 	output_info(aero_inputs);
 
 	// allocating the initial storage
-	aero_ini_info = MBDyn_UVLM_AeroTimeStepInfo(dimensions, dimensions_star);
+	aero_ini_info.initialize(dimensions, dimensions_star);
 
 	add_timestep();
 	generate_mapping(aero_inputs, beam_inputs);
 	generate_zeta(aero_inputs, beam_inputs, aerogrid_settings, ts);
 }
 
-void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs,
-	Aerogrid_settings* aerogrid_settings) {
+void 
+Aerogrid::calculate_dimensions(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs,
+	const Aerogrid_settings* aerogrid_settings) {
 
 	dimensions.resize(n_surf);
 	dimensions_star.resize(n_surf);
@@ -659,10 +768,10 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, Beam_inputs* beam_
 	}
 	// Count N values (actually the count result will be N+1)
 	std::vector<std::vector<int>> nodes_in_surface;
-	for (int i_elem = 0; i_elem < beam_inputs->num_elem; ++i_elem) {
+	for (int i_elem = 0; i_elem < beam_inputs.num_elem; ++i_elem) {
 		std::vector<int> nodes;
-		nodes = beam_inputs->connectivities[i_elem];
-		int i_surf = aero_inputs->surface_distribution_input[i_elem];
+		nodes = beam_inputs.connectivities[i_elem];
+		int i_surf = aero_inputs.surface_distribution_input[i_elem];
 		if (i_surf < 0) {
 			continue;
 		}
@@ -675,7 +784,7 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, Beam_inputs* beam_
 			else {
 				nodes_in_surface[i_surf].push_back(nodes[i_global_node]);
 			}
-			if (aero_inputs->aero_node_input[nodes[i_global_node]]) {
+			if (aero_inputs.aero_node_input[nodes[i_global_node]]) {
 				dimensions[i_surf].second += 1;
 			}
 		}
@@ -692,9 +801,10 @@ void Aerogrid::calculate_dimensions(Aero_inputs* aero_inputs, Beam_inputs* beam_
 
 }
 
-void Aerogrid::output_info(Aero_inputs* aero_inputs) {
+void 
+Aerogrid::output_info(Aero_inputs& aero_inputs) {
 
-	int _n_surf = aero_inputs->surface_m.size(); // should i use this defination of _n_surf or should I use the updated value of the private variable of this class(DOUBT###############)
+	int _n_surf = aero_inputs.surface_m.size(); 
 	std::cout << "The aerodynamic grid contains " << _n_surf << " surfaces" << std::endl;
 
 	for (int i_surf = 0; i_surf < _n_surf; ++i_surf) {
@@ -719,7 +829,8 @@ void Aerogrid::output_info(Aero_inputs* aero_inputs) {
 	std::cout << "Total number of panels : " << total_bound_panels + total_wake_panels << std::endl;
 }
 
-void Aerogrid::add_timestep() {
+void 
+Aerogrid::add_timestep() {
 
 	if (aero_timestep_info.empty()) {
 		aero_timestep_info.push_back(aero_ini_info);
@@ -729,23 +840,24 @@ void Aerogrid::add_timestep() {
 	}
 }
 
-void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs, MBDyn_UVLM_AeroTimeStepInfo& aero_tstep,
-	Aerogrid_settings* aerogrid_settings) {
+void 
+Aerogrid::generate_zeta_timestep_info(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs, AeroTimeStepInfo& aero_tstep,
+	const Aerogrid_settings* aerogrid_settings) {
 
 	std::vector<std::vector<int>> global_node_in_surface;
 	global_node_in_surface.resize(n_surf);
 
 	// One surface per element
 	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
-		int i_surf = aero_inputs->surface_distribution_input[i_elem];
+		int i_surf = aero_inputs.surface_distribution_input[i_elem];
 		// Check if we have to generate a surface here
 		if (i_surf == -1) {
 			continue;
 		}
 
-		for (int i_local_node = 0; i_local_node < beam_inputs->connectivities[i_elem].size(); ++i_local_node) {
-			int i_global_node = beam_inputs->connectivities[i_elem][i_local_node];
-			if (aero_inputs->aero_node_input[i_global_node] == false) {
+		for (int i_local_node = 0; i_local_node < beam_inputs.connectivities[i_elem].size(); ++i_local_node) {
+			int i_global_node = beam_inputs.connectivities[i_elem][i_local_node];
+			if (aero_inputs.aero_node_input[i_global_node] == false) {
 				continue;
 			}
 			if (std::find(global_node_in_surface[i_surf].begin(),
@@ -775,18 +887,18 @@ void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, Beam_inputs
 			node_info.i_local_node = i_local_node;
 			node_info.i_surf = i_surf;
 			node_info.i_n = i_n;
-			node_info.chord = aero_inputs->chords[i_elem][i_local_node];
-			node_info.eaxis = aero_inputs->elastic_axis[i_elem][i_local_node];
-			node_info.twist = aero_inputs->twist[i_elem][i_local_node];
-			node_info.sweep = aero_inputs->sweep[i_elem][i_local_node];
+			node_info.chord = aero_inputs.chords[i_elem][i_local_node];
+			node_info.eaxis = aero_inputs.elastic_axis[i_elem][i_local_node];
+			node_info.twist = aero_inputs.twist[i_elem][i_local_node];
+			node_info.sweep = aero_inputs.sweep[i_elem][i_local_node];
 			node_info.M = dimensions[i_surf].first;
-			node_info.M_distribution = aero_inputs->m_distribution;
-			node_info.airfoil = aero_inputs->airfoil_distribution_input[i_elem][i_local_node];
+			node_info.M_distribution = aero_inputs.m_distribution;
+			node_info.airfoil = aero_inputs.airfoil_distribution_input[i_elem][i_local_node];
 			//node_info.beam_coord = ;
 			//node_info.pos_dot = ;
 			//node_info.beam_psi = ;
 			//node_info.psi_dot = ;
-			node_info.for_delta = beam_inputs->frame_of_reference_delta[i_elem][i_local_node];
+			node_info.for_delta = beam_inputs.frame_of_reference_delta[i_elem][i_local_node];
 			//node_info.cga = ;
 
 			generate_strip(aero_inputs, aerogrid_settings, aero_tstep);
@@ -794,12 +906,14 @@ void Aerogrid::generate_zeta_timestep_info(Aero_inputs* aero_inputs, Beam_inputs
 	}
 }
 
-void Aerogrid::generate_zeta(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs, Aerogrid_settings* aerogrid_settings,
+void 
+Aerogrid::generate_zeta(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs, const Aerogrid_settings* aerogrid_settings,
 	double ts) {
 	generate_zeta_timestep_info(aero_inputs, beam_inputs, aero_timestep_info[ts], aerogrid_settings);
 }
 
-void Aerogrid::generate_mapping(Aero_inputs* aero_inputs, Beam_inputs* beam_inputs) {
+void 
+Aerogrid::generate_mapping(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs) {
 
 	struct2aero_mapping.resize(n_node);
 	std::vector<int> surf_n_counter(n_surf, 0);
@@ -808,13 +922,13 @@ void Aerogrid::generate_mapping(Aero_inputs* aero_inputs, Beam_inputs* beam_inpu
 
 	std::vector<int> global_nodes;
 	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
-		int i_surf = aero_inputs->surface_distribution_input[i_elem];
+		int i_surf = aero_inputs.surface_distribution_input[i_elem];
 		if (i_surf == -1) {
 			continue;
 		}
-		global_nodes = beam_inputs->reordered_connectivities[i_elem];
+		global_nodes = beam_inputs.reordered_connectivities[i_elem];
 		for (int i_global_node = 0; i_global_node < global_nodes.size(); ++i_global_node) {
-			if (aero_inputs->aero_node_input[global_nodes[i_global_node]] == false) {
+			if (aero_inputs.aero_node_input[global_nodes[i_global_node]] == false) {
 				continue;
 			}
 			if (std::find(nodes_in_surface[i_surf].begin(),
@@ -839,9 +953,9 @@ void Aerogrid::generate_mapping(Aero_inputs* aero_inputs, Beam_inputs* beam_inpu
 		aero2struct_mapping[i_surf].resize(surf_n_counter[i_surf]);
 	}
 	for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
-		global_nodes = beam_inputs->connectivities[i_elem];
+		global_nodes = beam_inputs.connectivities[i_elem];
 		for (int i_global_node = 0; i_global_node < global_nodes.size(); ++i_global_node) {
-			for (int i = 0; i < struct2aero_mapping[global_nodes[i_global_node]].size(); ++i) {
+			for (int i = 0; i < struct2aero_mapping[global_nodes[i_global_node]].size(); ++i) {  // this loop is if a single node belongs to multiple surfaces
 				int i_surf = struct2aero_mapping[global_nodes[i_global_node]][i].first;
 				int i_n = struct2aero_mapping[global_nodes[i_global_node]][i].second;
 
@@ -859,32 +973,34 @@ void Aerogrid::generate_mapping(Aero_inputs* aero_inputs, Beam_inputs* beam_inpu
 	}
 }
 
-void Aerogrid::compute_gamma_dot(Aero_inputs* aero_inputs, double dt, MBDyn_UVLM_AeroTimeStepInfo* tstep,
-	std::vector<MBDyn_UVLM_AeroTimeStepInfo*>& previous_tsteps) {
+void 
+Aerogrid::compute_gamma_dot(Aero_inputs& aero_inputs, double dt, AeroTimeStepInfo& tstep,
+	std::vector<AeroTimeStepInfo>& previous_tsteps, double time_step) {
 
-	int n_surf = aero_inputs->surface_m.size();
+	int n_surf = aero_inputs.surface_m.size();
 
-	if (previous_tsteps.size() == 0) {
+	if (previous_tsteps.size() < 2) {
 		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-			for (int j = 0; j < tstep->gamma_dot[i_surf].size(); ++j) {
-				for (int k = 0; k < tstep->gamma_dot[i_surf][j].size(); ++k) {
-					tstep->gamma_dot[i_surf][j][k] = 0.0;
+			for (int j = 0; j < tstep.gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < tstep.gamma_dot[i_surf][j].size(); ++k) {
+					tstep.gamma_dot[i_surf][j][k] = 0.0;
 				}
 			}
 		}
 	}
 	else {
 		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-			for (int j = 0; j < tstep->gamma_dot[i_surf].size(); ++j) {
-				for (int k = 0; k < tstep->gamma_dot[i_surf][j].size(); ++k) {
-					tstep->gamma_dot[i_surf][j][k] = (tstep->gamma[i_surf][j][k] - previous_tsteps[/*-2 in python sense*/]->gamma[i_surf][j][k]) / dt;
+			for (int j = 0; j < tstep.gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < tstep.gamma_dot[i_surf][j].size(); ++k) {
+					tstep.gamma_dot[i_surf][j][k] = (tstep.gamma[i_surf][j][k] - previous_tsteps[time_step - 2].gamma[i_surf][j][k]) / dt;
 				}
 			}
 		}
 	}
 }
 
-void Aerogrid::generate_strip(Aero_inputs* aero_inputs, Aerogrid_settings* aerogrid_settings, MBDyn_UVLM_AeroTimeStepInfo& aero_tstep) {
+void 
+Aerogrid::generate_strip(Aero_inputs& aero_inputs, const Aerogrid_settings* aerogrid_settings, AeroTimeStepInfo& aero_tstep) {
 
 	std::vector<std::vector<double>> strip_coordinates_a_frame(3, std::vector<double>(node_info.M + 1));
 	std::vector<std::vector<double>> strip_coordinates_b_frame(3, std::vector<double>(node_info.M + 1));
@@ -910,7 +1026,7 @@ void Aerogrid::generate_strip(Aero_inputs* aero_inputs, Aerogrid_settings* aerog
 
 	// load airfoils db
 	std::vector<std::pair<double, double>> airfoils_coords;
-	airfoils_coords = aero_inputs->airfoils[node_info.airfoil];
+	airfoils_coords = aero_inputs.airfoils[node_info.airfoil];
 	std::vector<double> airfoils_coords_x_c(airfoils_coords.size());
 	std::vector<double> airfoils_coords_y_c(airfoils_coords.size());
 	for (int i = 0; i < airfoils_coords.size(); ++i) {
@@ -1064,14 +1180,12 @@ void Aerogrid::generate_strip(Aero_inputs* aero_inputs, Aerogrid_settings* aerog
 		zeta_dot_a_frame[2][i_M] = MatVecMul_Res[2];
 	}
 
-
 	for (int i = 0; i < 3; ++i) {
 		for (int j = 0; j < node_info.M + 1; ++j) {
 			aero_tstep.zeta[node_info.i_surf][i][j][node_info.i_n] = strip_coordinates_a_frame[i][j];
 			aero_tstep.zeta_dot[node_info.i_surf][i][j][node_info.i_n] = zeta_dot_a_frame[i][j];
 		}
 	}
-
 }
 
 
@@ -1080,7 +1194,8 @@ StraightWake::StraightWake() {
 	NO_OP;
 }
 
-void StraightWake::StraightWake_initialize(StraighWake_settings* straightwakesettings) {
+void 
+StraightWake::StraightWake_initialize(const StraightWake_settings* straightwakesettings) {
 
 
 	_u_inf = straightwakesettings->u_inf;
@@ -1105,51 +1220,52 @@ void StraightWake::StraightWake_initialize(StraighWake_settings* straightwakeset
 	}
 }
 
-void StraightWake::StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo* aero_tstep) {
+void 
+StraightWake::StraightWake_generate(AeroTimeStepInfo& aero_tstep) {
 
-	int nsurf = aero_tstep->zeta.size();
+	int nsurf = aero_tstep.zeta.size();
 	for (int isurf = 0; isurf < nsurf; ++isurf) {
-		int M = aero_tstep->zeta_star[isurf][0].size();
-		int N = aero_tstep->zeta_star[isurf][0][0].size();
+		int M = aero_tstep.zeta_star[isurf][0].size();
+		int N = aero_tstep.zeta_star[isurf][0][0].size();
 		for (int j = 0; j < N; ++j) {
 			for (int k = 0; k < 3; ++k) {
-				aero_tstep->zeta_star[isurf][k][0][j] = aero_tstep->zeta[isurf][k][M][j];
+				aero_tstep.zeta_star[isurf][k][0][j] = aero_tstep.zeta[isurf][k][M][j];
 			}
 			for (int i = 1; i < M; ++i) {
 				double deltax = StraightWake_get_deltax(i, _dx1, _ndx1, _r, _dxmax);
 				for (int k = 0; k < 3; ++k) {
-					aero_tstep->zeta_star[isurf][k][i][j] = aero_tstep->zeta_star[isurf][k][i - 1][j] + deltax * _u_inf_direction[k];
+					aero_tstep.zeta_star[isurf][k][i][j] = aero_tstep.zeta_star[isurf][k][i - 1][j] + deltax * _u_inf_direction[k];
 				}
 			}
 		}
-		for (int j = 0; j < aero_tstep->gamma[isurf].size(); ++j) {
-			for (int i = 0; i < aero_tstep->gamma[isurf][0].size(); ++i) {
-				aero_tstep->gamma[isurf][j][i] *= 0;
-				aero_tstep->gamma_star[isurf][j][i] *= 0;
+		for (int j = 0; j < aero_tstep.gamma[isurf].size(); ++j) {
+			for (int i = 0; i < aero_tstep.gamma[isurf][0].size(); ++i) {
+				aero_tstep.gamma[isurf][j][i] *= 0;
+				aero_tstep.gamma_star[isurf][j][i] *= 0;
 			}
 		}
 	}
 
 	for (int isurf = 0; isurf < nsurf; ++isurf) {
-		int M = aero_tstep->zeta_star[isurf][0].size();
-		int N = aero_tstep->zeta_star[isurf][0][0].size();
-		for (int j = 0; j < aero_tstep->dist_to_orig[isurf].size(); ++j) {
-			for (int i = 0; i < aero_tstep->dist_to_orig[isurf][0].size(); ++i) {
-				aero_tstep->dist_to_orig[isurf][j][i] = 0;
+		int M = aero_tstep.zeta_star[isurf][0].size();
+		int N = aero_tstep.zeta_star[isurf][0][0].size();
+		for (int j = 0; j < aero_tstep.dist_to_orig[isurf].size(); ++j) {
+			for (int i = 0; i < aero_tstep.dist_to_orig[isurf][0].size(); ++i) {
+				aero_tstep.dist_to_orig[isurf][j][i] = 0;
 			}
 		}
 		for (int j = 0; j < N; ++j) {
 			for (int i = 1; i < M; ++i) {
 				double norm = 0;
 				for (int k = 0; k < 3; ++k) {
-					norm = norm + (aero_tstep->zeta_star[isurf][k][i][j] - aero_tstep->zeta_star[isurf][k][i - 1][j]) *
-						(aero_tstep->zeta_star[isurf][k][i][j] - aero_tstep->zeta_star[isurf][k][i - 1][j]);
+					norm = norm + (aero_tstep.zeta_star[isurf][k][i][j] - aero_tstep.zeta_star[isurf][k][i - 1][j]) *
+						(aero_tstep.zeta_star[isurf][k][i][j] - aero_tstep.zeta_star[isurf][k][i - 1][j]);
 				}
 				norm = sqrt(norm);
-				aero_tstep->dist_to_orig[isurf][i][j] = aero_tstep->dist_to_orig[isurf][i - 1][j] + norm;
+				aero_tstep.dist_to_orig[isurf][i][j] = aero_tstep.dist_to_orig[isurf][i - 1][j] + norm;
 			}
 			for (int i = 0; i < M; ++i) {
-				aero_tstep->dist_to_orig[isurf][i][j] /= aero_tstep->dist_to_orig[isurf][M][j];
+				aero_tstep.dist_to_orig[isurf][i][j] /= aero_tstep.dist_to_orig[isurf][M][j];
 			}
 		}
 	}
@@ -1159,7 +1275,8 @@ StraightWake::~StraightWake() {
 	NO_OP;
 }
 
-double StraightWake::StraightWake_get_deltax(int i, double dx1, double ndx1, double r, double dxmax) {
+double 
+StraightWake::StraightWake_get_deltax(int i, double dx1, double ndx1, double r, double dxmax) {
 
 	double deltax;
 	if (i < ndx1 + 1) {
@@ -1174,3 +1291,46 @@ double StraightWake::StraightWake_get_deltax(int i, double dx1, double ndx1, dou
 }
 
 
+
+SteadyVelocityField::SteadyVelocityField() {
+
+	NO_OP;
+}
+
+void
+SteadyVelocityField::SteadyVelocityField_initialize(const FlightConditions* flight_conditions) {
+
+	u_inf = flight_conditions->uinf;
+	u_inf_direction = flight_conditions->uinf_direction;
+}
+
+void 
+SteadyVelocityField::SteadyVelocityField_generate(AeroTimeStepInfo& aero_tstep, const UVMopts* uvmopts) {
+
+	for (int i_surf = 0; i_surf < aero_tstep.zeta.size(); ++i_surf) {
+		for (int k = 0; k < aero_tstep.zeta[i_surf].size(); ++k) {
+			for (int i = 0; i < aero_tstep.zeta[i_surf][k].size(); ++i) {
+				for (int j = 0; j < aero_tstep.zeta[i_surf][k][i].size(); ++j) {
+					aero_tstep.u_ext[i_surf][k][i][j] += u_inf * u_inf_direction[k];
+				}
+			}
+		}
+	}
+
+	if (((uvmopts->convection_scheme > 1) && uvmopts->convect_wake) || ~uvmopts->cfl1) {
+		for (int i_surf = 0; i_surf < aero_tstep.zeta_star.size(); ++i_surf) {
+			for (int k = 0; k < aero_tstep.zeta_star[i_surf].size(); ++k) {
+				for (int i = 0; i < aero_tstep.zeta_star[i_surf][k].size(); ++i) {
+					for (int j = 0; j < aero_tstep.zeta_star[i_surf][k][i].size(); ++j) {
+						aero_tstep.u_ext_star[i_surf][k][i][j] += u_inf * u_inf_direction[k];
+					}
+				}
+			}
+		}
+	}
+}
+
+SteadyVelocityField::~SteadyVelocityField() {
+
+	NO_OP;
+}
