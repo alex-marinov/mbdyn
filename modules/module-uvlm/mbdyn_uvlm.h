@@ -41,11 +41,30 @@
 #include <math.h>
 #include <cmath>
 
+
+#include "dataman.h"
 #include "aeroelem.h"
 
 
 extern "C" {
 
+	//- IDs of coupling bodies UVLM
+	//- a set of IDs
+	//- Body_Label: body label in UVLM;
+	//- bool output: output the body motion in UVLM;
+	//- constraint (MotionImposed) in UVLM:
+	//- Node in MBDyn  >>>>> Body Ground (Marker Ground);
+	//- Body in UVLM >>>>> Body i (Marker i);
+	//- constraint connects Marker i and Marker Ground;
+	//- constraints are described in Marker i local ref. 
+
+	struct MBDYN_UVLM_MODELDATA {
+		unsigned MBDyn_UVLM_Body_Label;
+		bool bMBDyn_UVLM_Body_Output;
+		bool bMBDyn_UVLM_Constraint[6];              //- position and rotation constraints, expresed in node local ref.
+		double MBDyn_UVLM_Body_Offset[3];            //- relative position between constraints (Marker i) and UVLM body, expressed in UVLM body ref.
+		double MBDyn_UVLM_Body_Rh[9];                //- relative rotation between constraints and MBDyn Node, expressed in node ref.
+	};
 
 	struct StepUVLM_settings {
 		int gamma_dot_filtering;
@@ -64,12 +83,10 @@ extern "C" {
 		bool aligned_grid;
 		std::vector<double> freestream_dir;
 		int mstar;
-		std::string control_surface_generator;
-		// input array or matrix for the control surface generator needs to be defined
 		std::string wake_shape_generator;  // this should contain a string which will decide which struct to use out of starightwake and helicoidal wake
 	};
 
-	struct StraighWake_settings {
+	struct StraightWake_settings {
 		double u_inf;
 		std::vector<double> u_inf_direction;
 		double dt;
@@ -79,7 +96,7 @@ extern "C" {
 		double dxmax;
 	};
 
-	struct MBDyn_UVLM_UVMopts {
+	struct UVMopts {
 		double dt;
 		unsigned int NumCores;
 		unsigned int NumSurfaces;
@@ -99,7 +116,7 @@ extern "C" {
 		bool quasi_steady;
 	};
 
-	struct MBDyn_UVLM_FlightConditions {
+	struct FlightConditions {
 		double uinf;
 		std::vector<double> uinf_direction;
 		double rho;
@@ -107,7 +124,7 @@ extern "C" {
 	};
 
 
-	class MBDyn_UVLM_AeroTimeStepInfo
+	class AeroTimeStepInfo
 	{
 		typedef std::vector<double> vector_1d;
 		typedef std::vector<vector_1d> vector_2d;
@@ -128,9 +145,10 @@ extern "C" {
 		vector_3d gamma_dot;
 		vector_3d dist_to_orig;
 
-		MBDyn_UVLM_AeroTimeStepInfo(std::vector<std::pair<int, int>>&,
+		AeroTimeStepInfo();
+		void initialize(std::vector<std::pair<int, int>>&,
 			std::vector<std::pair<int, int>>&);
-		~MBDyn_UVLM_AeroTimeStepInfo();
+		~AeroTimeStepInfo();
 	};
 
 
@@ -141,11 +159,11 @@ extern "C" {
 		int num_elem;
 		int num_node;
 		std::vector<std::vector<int>> connectivities;
-		std::vector<std::vector<int>> reordered_connectivities;
+		std::vector<std::vector<int>> reordered_connectivities; 
 		std::vector<std::vector<std::vector<double>>> frame_of_reference_delta;
 
 		Beam_inputs();
-		void Beam_inputs_generate();
+		void Beam_inputs_generate(int);
 		~Beam_inputs();
 	};
 
@@ -165,15 +183,10 @@ extern "C" {
 		std::vector<std::vector<double>> elastic_axis;  // Indicates the elastic axis location with respect to the leading edge as a fraction of the chord of that rib. Note that the elastic axis is already determined, as the beam is fixed now, so this setting controls the location of the lifting surface with respect to the beam
 
 		Aero_inputs();
-		void Aero_inputs_generate();
+		void Aero_inputs_generate(int);
 		~Aero_inputs();
 
 	private:
-		int _num_elem = 0;      // Total number of elements
-		int _num_surfaces = 0;   // Number of surfaces
-		int _num_node_elem = 0;  // Number of nodes per element
-		int _num_node = 0;       // Total number of nodes
-
 		double naca(double, double, double);
 		std::vector<std::pair<double, double>>& generate_naca_camber(double, double);
 	};
@@ -183,8 +196,8 @@ extern "C" {
 
 	public:
 
-		MBDyn_UVLM_AeroTimeStepInfo aero_ini_info;
-		std::vector<MBDyn_UVLM_AeroTimeStepInfo> aero_timestep_info;
+		AeroTimeStepInfo aero_ini_info;
+		std::vector<AeroTimeStepInfo> aero_timestep_info;
 		std::vector<int> surface_distribution;
 		std::vector<int> surface_m;
 		std::vector<std::pair<int, int>> dimensions;
@@ -194,15 +207,15 @@ extern "C" {
 		std::vector<std::vector<int>> aero2struct_mapping;
 
 		Aerogrid();
-		void generate(Aero_inputs*, Beam_inputs*, Aerogrid_settings*, double);
-		void output_info(Aero_inputs*);
-		void calculate_dimensions(Aero_inputs*, Beam_inputs*, Aerogrid_settings*);
+		void generate(Aero_inputs&, Beam_inputs&, const Aerogrid_settings*, double);
+		void output_info(Aero_inputs&);
+		void calculate_dimensions(Aero_inputs&, Beam_inputs&, const Aerogrid_settings*);
 		void add_timestep();
-		void generate_zeta_timestep_info(Aero_inputs*, Beam_inputs*, MBDyn_UVLM_AeroTimeStepInfo&, Aerogrid_settings*);
-		void generate_zeta(Aero_inputs*, Beam_inputs*, Aerogrid_settings*, double);
-		void generate_mapping(Aero_inputs*, Beam_inputs*);
-		void compute_gamma_dot(Aero_inputs*, double, MBDyn_UVLM_AeroTimeStepInfo*, std::vector<MBDyn_UVLM_AeroTimeStepInfo*>&);
-		void generate_strip(Aero_inputs*, Aerogrid_settings*, MBDyn_UVLM_AeroTimeStepInfo&);
+		void generate_zeta_timestep_info(Aero_inputs&, Beam_inputs&, AeroTimeStepInfo&, const Aerogrid_settings*);
+		void generate_zeta(Aero_inputs&, Beam_inputs&, const Aerogrid_settings*, double);
+		void generate_mapping(Aero_inputs&, Beam_inputs&);
+		void compute_gamma_dot(Aero_inputs&, double, AeroTimeStepInfo&, std::vector<AeroTimeStepInfo>&, double);
+		void generate_strip(Aero_inputs&, const Aerogrid_settings*, AeroTimeStepInfo&);
 		~Aerogrid();
 
 	private:
@@ -238,8 +251,8 @@ extern "C" {
 
 	public:
 		StraightWake();
-		void StraightWake_initialize(StraighWake_settings*);
-		void StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo*);
+		void StraightWake_initialize(const StraightWake_settings*);
+		void StraightWake_generate(AeroTimeStepInfo&);
 		~StraightWake();
 
 	private:
@@ -255,9 +268,20 @@ extern "C" {
 	};
 
 
+	class SteadyVelocityField {
 
+	public:
+		SteadyVelocityField();
+		void SteadyVelocityField_initialize(const FlightConditions*);
+		void SteadyVelocityField_generate(AeroTimeStepInfo&, const UVMopts*);
+		~SteadyVelocityField();
 
+	private:
 
+		double u_inf;
+		std::vector<double> u_inf_direction;
+
+	};
 
 	// Coupling cases: 
 	enum MBDyn_UVLM_COUPLING
@@ -268,7 +292,6 @@ extern "C" {
 		COUPLING_TIGHT = 1           // Tight coupling
 	};
 
-
 	// Loose coupling:
 	enum MBDyn_UVLM_COUPLING_LOOSE
 	{
@@ -278,13 +301,44 @@ extern "C" {
 		LOOSE_GAUSS = 3              // Gauss/serial type
 	};
 
-
 	// Type of force:
 	enum MBDyn_UVLM_FORCETYPE
 	{
 		REACTION_FORCE = 0,  //- using reaction forces as coupling forces (coupled by constraints)
 		CONTACT_FORCE = 1,   //- using contact forces as coupling forces (coupled by anytype, but using coupling forces acting on the coupling bodies)
 	};
+
+	enum MBDYN_UVLM_OUTPUTTYPE
+	{
+		MBDYN_UVLM_OUTPUT_ALLBODIES = 0,              //- outputing kinematic data of all bodies in UVLM
+		MBDYN_UVLM_OUTPUT_SELECTEDCOUPLINGBODIES = 1, //- outputing kinematic data of selected coupling bodies in UVLM
+	};
+
+	//- create the Init function
+	void
+		MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+			const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+			const UVMopts* MBDyn_UVLM_UVMopts,
+			const FlightConditions* MBDyn_UVLM_FlightConditions,
+			Beam_inputs& MBDyn_UVLM_Beam_inputs,
+			Aero_inputs& MBDyn_UVLM_Aero_inputs,
+			StraightWake& MBDyn_UVLM_StraightWake,
+			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField);
+
+	bool
+		MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+			const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+			const UVMopts* MBDyn_UVLM_UVMopts,
+			const FlightConditions* MBDyn_UVLM_FlightConditions,
+			Beam_inputs& MBDyn_UVLM_Beam_inputs,
+			Aero_inputs& MBDyn_UVLM_Aero_inputs,
+			StraightWake& MBDyn_UVLM_StraightWake,
+			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+			Aerogrid& MBDyn_UVLM_Aerogrid,
+			std::vector<AeroTimeStepInfo>& MBDyn_UVLM_AeroInfo,
+			double time_step);
 
 
 }

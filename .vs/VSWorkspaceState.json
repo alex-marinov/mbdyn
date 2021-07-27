@@ -2,10 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\mbdyn",
-    "\\mbdyn\\aero",
     "\\modules",
+    "\\modules\\module-aerodyn",
     "\\modules\\module-uvlm"
   ],
-  "SelectedNode": "\\mbdyn\\aero\\aerodyn.cc",
+  "SelectedNode": "\\modules\\module-uvlm\\module-uvlm.h",
   "PreviewInSolutionExplorer": false
 }
