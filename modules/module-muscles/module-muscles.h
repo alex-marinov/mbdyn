@@ -209,6 +209,7 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
 	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
 
@@ -278,6 +279,7 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
 	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
 };

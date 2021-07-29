@@ -62,7 +62,13 @@ MusclePennestriCL::Restart(std::ostream& out) const
 std::ostream& 
 MusclePennestriCL::OutputAppend(std::ostream& out) const 
 {
-	return out << " " << a << " " << aReq;
+	return out 
+		<< " " << a 
+		<< " " << aReq
+		<< " " << f1
+		<< " " << f2
+		<< " " << f3
+		;
 };
 
 void 
@@ -195,6 +201,21 @@ MusclePennestriReflexiveCL::Update(const doublereal& Eps, const doublereal& EpsP
 	ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*Kp.dGet())*f2 + df3dx)*dxdEps;
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*Kd.dGet())*dvdEpsPrime;
+};
+
+std::ostream& 
+MusclePennestriReflexiveCL::OutputAppend(std::ostream& out) const 
+{
+	return out 
+		<< " " << a 
+		<< " " << aReq 
+		<< " " << f1
+		<< " " << f2
+		<< " " << f3
+		<< " " << Kp.dGet()
+		<< " " << Kd.dGet()
+		<< " " << ReferenceLength.dGet()
+		;
 };
 
 void 
@@ -332,6 +353,23 @@ MusclePennestriReflexiveCLWithSRS::Update(const doublereal& Eps, const doublerea
 		F0*(df1dx*(f2*aRef + SRSf) + f1*(SRSdfdx + Kp.dGet()*f2) + df3dx)*dxdEps;
 };
 		
+std::ostream& 
+MusclePennestriReflexiveCLWithSRS::OutputAppend(std::ostream& out) const 
+{
+	return out 
+		<< " " << a 
+		<< " " << aReq 
+		<< " " << f1
+		<< " " << f2
+		<< " " << f3
+		<< " " << Kp.dGet()
+		<< " " << Kd.dGet()
+		<< " " << ReferenceLength.dGet()
+		<< " " << F0*f1*SRSf
+		<< " " << F0*(df1dx*SRSf + f1*SRSdfdx)
+		;
+};
+
 
 void 
 MusclePennestriReflexiveCLWithSRS::NetCDFOutputAppend(OutputHandler& OH) const 
