@@ -728,6 +728,10 @@ based on \cite{PENNESTRI-2007-JB}.
             \kw{proportional gain} , \bnt{kp} ,
             \kw{derivative gain} , \bnt{kd} ,
             \kw{reference length} , (\hty{DriveCaller}) \bnt{lref} ]
+        [ , \kw{short range stiffness} ]
+        [ , \kw{model} , \{ \kw{exponential} | \kw{linear} \} ]
+        [ , \kw{gamma} , \bnt{gamma} ]
+        [ , \kw{delta} , \bnt{delta} ]
 \end{Verbatim}
 The \kw{ergonomy} flag, when active, indicates that the equivalent damping
 must not be used.
@@ -758,6 +762,72 @@ to the reflexive contribution to muscular activation, which is defined as
 	+
 	\nt{kd} \cdot \frac{\dot{\ell}}{\nt{V0}}
 \end{align}
+The contribution of the muscle short-range stiffness (SRS) can be added with \kw{short
+range stiffness}. The optional  parameter \nt{delta} represents the maximum nondimensional
+stretch perturbation, above which the short-range stiffness contribution to the muscle
+force gradient vanishes. A default value of $5.7\cdot10^{-3}$ is set. The optional
+parameter \nt{gamma} represents the SRS constant, according to the model proposed by
+De Groote et al.~\cite{DEGROOTE-2017-SRS}. The default value is $280$.
+The optional keyword \kw{model} activates the selection of the implementation: 
+\begin{itemize}
+  \item \kw{linear}, which is the default, defines the SRS contribution through a
+    piecewise linear relationship with the muscle stretch 
+    (as proposed in~\cite{DEGROOTE-2017-SRS}):
+    \begin{equation}
+      \begin{cases}
+        F_{\text{SRS}} = 0 &\Delta x < 0 \\
+        F_{\text{SRS}} = 
+          \nt{gamma}
+          \cdot 
+          \nt{F0} 
+          \cdot 
+          \nt{activation} 
+          \cdot 
+          f_1(x)
+          \cdot
+          \Delta x
+          & 0 \leq \Delta x < \delta
+        \\
+        F_{\text{SRS}} = 
+          \nt{gamma}
+          \cdot 
+          \nt{F0} 
+          \cdot 
+          \nt{activation} 
+          \cdot 
+          f_1(x)
+          \cdot
+          \nt{delta}
+          & \Delta x \ge \delta
+      \end{cases}
+    \end{equation}
+    where $f_1$ is the active force-stretch relationship defined according to the model
+    presented in~\ref{PENNESTRI-2007-JB}, $x = \nt{lref}/\nt{L0}$ and 
+    $\Delta x = \frac{\ell}{\nt{L0}} - \frac{\nt{lref}}{\nt{L0}}$;
+  \item \kw{exponential} defines the SRS contribution through a smooth model, preserving
+    the initial gradient in the reference configuration:
+    \begin{equation}
+      F_{\text{SRS}} = 
+      \text{step}(\Delta x) 
+      \cdot
+      \nt{gamma} 
+      \cdot
+      \nt{F0}
+      \cdot
+      \nt{activation} 
+      \cdot
+      f_1(x)
+      \cdot
+      \nt{delta}
+      \cdot
+      \left(
+        1 - \text{exp}
+        \left(
+          1 - \text{exp}(\Delta x/\nt{delta})
+        \right)
+      \right)
+    \end{equation}
+\end{itemize}
 
 \paragraph{Output.}
 The module appends additional output to the row of the element it is
@@ -765,7 +835,21 @@ attached to in the \texttt{.jnt} file. Two columns are added:
 \begin{itemize}
   \item \kw{a}: the actual total activation of the muscle;
   \item \kw{aReq}: the \emph{requested} activation of the muscle, before
-    saturation is applied to confine it in the $0 < a < 1$ range. 
+    saturation is applied to confine it in the $0 < a < 1$ range;
+  \item \kw{f1}: the active force-stretch relationship (Cf.~\cite{PENNESTRI-2007-JB}),
+    evaluated at the current stretch;
+  \item \kw{f2}: the active force-contraction velocity relationship
+    (Cf.~\cite{PENNESTRI-2007-JB}), evaluated at the current contraction velocity;
+  \item \kw{f3}: the passive force-stretch relationship (Cf.~\cite{PENNESTRI-2007-JB}),
+    evaluated at the current stretch;
+  \item (if \kw{reflexive}) \kw{Kp}: the current value of the proportional gain, in the
+    reflexive contribution;
+  \item (if \kw{reflexive}) \kw{Kd}: the current value of the derivative gain, in the
+    reflexive contribution;
+  \item (if \kw{reflexive}) \kw{Lref}: the current value of \nt{lref};
+  \item (if \kw{short range stiffness}): \kw{SRSf}: the short-range stiffness force contribution;
+  \item (if \kw{short range stiffness}): \kw{SRSdfdx}: the gradient of the short-range
+    stiffness force contribution with respect to the nondimensional stretch.
 \end{itemize}
 The two parameters are also added to the NetCDF output of the element.
 
