@@ -420,7 +420,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                        derivative gain , (DriveCaller) <kd> ,\n"
 				"                        reference length, (DriveCaller) <lref> ]\n"
 				"		  	[ , short range stiffness ]\n"
-				"			[ 	, model, {linear | exponential} ,]\n"
+				"			[ 	, model, { exponential | linear } ,]\n"
 				" 		  	[ 	, gamma, (real) <gamma> ,]\n"
 				"		   	[ 	, delta, (real) <delta> ,]\n"
 				"                [ , prestress, <prestress> ]\n"
