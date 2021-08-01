@@ -11948,7 +11948,7 @@ namespace {
                     MATMA_NODAL2 = 0x2,
                     MATMA_NODAL3 = 0x4,
                     MATMA_MODAL1 = 0x8,
-                    MATMA_NODAL12 = MATMA_NODAL2 | MATMA_NODAL3,
+                    MATMA_NODAL23 = MATMA_NODAL2 | MATMA_NODAL3,
                     MATMA_ALL = MATMA_NODAL1 | MATMA_NODAL2 | MATMA_NODAL3 | MATMA_MODAL1
                };
 
@@ -11998,7 +11998,7 @@ namespace {
                     {MATRIX_Phin,      MATMA_MODAL1,  "mode shapes"},
                     {VECTOR_CENTER,    MATMA_ALL,     "bearing center"},
                     {MATRIX_ORIENT,    MATMA_ALL,     "bearing orientation"},
-                    {MODAL_SUBSET,     MATMA_NODAL12, "modal subset vector"}
+                    {MODAL_SUBSET,     MATMA_NODAL23, "modal subset vector"}
                };
 
                enum FileFormatType {
