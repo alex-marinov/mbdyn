@@ -4053,7 +4053,7 @@ namespace {
                std::vector<index_type>* pGetModeIndex() const {
                     HYDRO_ASSERT(pModeIndex != nullptr);
                     HYDRO_ASSERT(eMatType == ComplianceMatrixCommon::MAT_FULL);
-                    
+
                     return pModeIndex;
                }
 
@@ -10327,7 +10327,7 @@ namespace {
 
           w.ResizeReset(iNumNodes, 0);
           dw_dt.ResizeReset(iNumNodes, 0);
-          
+
           for (index_type i = 0; i < 2; ++i) {
                if (rgMatrices[i].get()) {
                     rgMatrices[i]->AddCompliance(oMatData,
@@ -11418,7 +11418,7 @@ namespace {
                     for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
                          HYDRO_ASSERT(rgModeIndex[DEHD_BODY_FIXED][i - 1] >= 1);
                          HYDRO_ASSERT(rgModeIndex[DEHD_BODY_FIXED][i - 1] <= rgModalJoints[DEHD_BODY_FIXED]->uGetNModes());
-                         
+
                          WorkVec.AddItem(iEqIndexModal1 + rgModeIndex[DEHD_BODY_FIXED][i - 1], f2(i));
                     }
                }
@@ -11469,7 +11469,7 @@ namespace {
                     for (index_type i = 1; i <= E[DEHD_BODY_MOVING].iGetNumRows(); ++i) {
                          HYDRO_ASSERT(rgModeIndex[DEHD_BODY_MOVING][i - 1] >= 1);
                          HYDRO_ASSERT(rgModeIndex[DEHD_BODY_MOVING][i - 1] <= rgModalJoints[DEHD_BODY_MOVING]->uGetNModes());
-                         
+
                          WorkVec.AddItem(iEqIndexModal2 + rgModeIndex[DEHD_BODY_MOVING][i - 1], fm2(i));
                     }
                }
@@ -12678,7 +12678,7 @@ namespace {
                                              for (index_type i = 1; i <= 3; ++i) {
                                                   oFile >> dX(i);
                                              }
-                                             
+
                                              ++iLineNo;
                                              break;
                                         case MATRIX_ORIENT:
@@ -12686,7 +12686,7 @@ namespace {
                                                   for (index_type j = 1; j <= 3; ++j) {
                                                        oFile >> dR(i, j);
                                                   }
-                                                  
+
                                                   ++iLineNo;
                                              }
                                              break;
@@ -12783,7 +12783,7 @@ namespace {
                                                          << strFileName << "\" at line " << iLineNo << std::endl);
                                              throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
-                                        
+
                                         index_type iNumModesSubset;
 
                                         oFile >> iNumModesSubset;
@@ -12794,16 +12794,16 @@ namespace {
                                                          << " must be in range zero to number of available modes " << oMatData.pModalJoint->uGetNModes()
                                                          << " of modal joint " << oMatData.pModalJoint->GetLabel() << " in file \""
                                                          << strFileName << "\" at line " << iLineNo << std::endl);
-                                             throw ErrGeneric(MBDYN_EXCEPT_ARGS);              
+                                             throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
 
                                         std::vector<index_type>& rgModeIndex = *oMatData.rgMatrices.pGetModeIndex();
-                                        
+
                                         rgModeIndex.resize(iNumModesSubset);
 
                                         for (index_type i = 0; i < iNumModesSubset; ++i) {
                                              oFile >> rgModeIndex[i];
-                                             
+
                                              ++iLineNo;
 
                                              if (rgModeIndex[i] <= 0 || rgModeIndex[i] > oMatData.pModalJoint->uGetNModes()) {
@@ -12812,7 +12812,7 @@ namespace {
                                                               << " which is not within the number of available modes " << oMatData.pModalJoint->uGetNModes()
                                                               << " for modal joint " << oMatData.pModalJoint->GetLabel() << " in file \""
                                                               << strFileName << "\" at line " << iLineNo << std::endl);
-                                                  throw ErrGeneric(MBDYN_EXCEPT_ARGS);              
+                                                  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                              }
                                         }
 
