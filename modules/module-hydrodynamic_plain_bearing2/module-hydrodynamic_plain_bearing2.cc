@@ -3992,13 +3992,13 @@ namespace {
 
           class MatrixArray {
           public:
-               MatrixArray(MatrixType* pC, MatrixType* pD, MatrixType* pE)
-                    :pC(pC), pD(pD), pE(pE), eMatType(ComplianceMatrixCommon::MAT_FULL) {
+               MatrixArray(MatrixType* pC, MatrixType* pD, MatrixType* pE, std::vector<index_type>* pModeIndex)
+                    :pC(pC), pD(pD), pE(pE), pModeIndex(pModeIndex), eMatType(ComplianceMatrixCommon::MAT_FULL) {
                }
 
                MatrixArray(MatrixType* pRPhiK, MatrixType* pPhin)
                     :pRPhiK(pRPhiK), pPhin(pPhin), eMatType(ComplianceMatrixCommon::MAT_MODAL) {
-                    rgMat[2] = nullptr;
+                    rgMat[2] = rgMat[3] = nullptr;
                }
 
                MatrixKind GetMatrixType() const {
@@ -4050,12 +4050,23 @@ namespace {
                     return rgMat[i];
                }
 
+               std::vector<index_type>* pGetModeIndex() const {
+                    HYDRO_ASSERT(pModeIndex != nullptr);
+                    HYDRO_ASSERT(eMatType == ComplianceMatrixCommon::MAT_FULL);
+
+                    return pModeIndex;
+               }
+
+               index_type iGetNumActiveModes() const {
+                    return pGetModeIndex()->size();
+               }
           private:
                union {
                     struct {
                          MatrixType* pC;
                          MatrixType* pD;
                          MatrixType* pE;
+                         std::vector<index_type>* pModeIndex;
                     };
 
                     struct {
@@ -4354,6 +4365,7 @@ namespace {
           SpColVector<doublereal> w, dw_dt;
           const Modal* const pModalJoint;
           ComplianceMatrixArray rgMatrices;
+          std::vector<index_type> rgModeIndex;
           sp_grad::SpFunctionCall eCurrFunc;
      };
 
@@ -4536,6 +4548,7 @@ namespace {
           std::array<SpMatrix<doublereal>, DEHD_BODY_LAST> C, D, E;
           std::array<SpColVector<doublereal>, DEHD_DEF_MOVING_INTERP + 1> w;
           std::array<SpColVector<doublereal>, DEHD_DEF_MOVING + 1> dw_dt;
+          std::array<std::vector<index_type>, DEHD_BODY_LAST> rgModeIndex;
           std::array<std::vector<doublereal>, DEHD_BODY_LAST> xi, zi;
           std::array<std::vector<index_type>, DEHD_BODY_LAST> rgMatIdx;
           std::array<std::vector<ComplianceMatrix::GridIndex>, DEHD_BODY_LAST> rgActGridIdx;
@@ -10221,8 +10234,10 @@ namespace {
           }
 
           if (pModalJoint) {
-               HYDRO_ASSERT(pModalJoint->uGetNModes() == E.iGetNumRows());
-               HYDRO_ASSERT(pModalJoint->uGetNModes() == D.iGetNumCols());
+               HYDRO_ASSERT(pModalJoint->uGetNModes() >= E.iGetNumRows());
+               HYDRO_ASSERT(pModalJoint->uGetNModes() >= D.iGetNumCols());
+               HYDRO_ASSERT(rgModeIndex.size() == static_cast<size_t>(D.iGetNumCols()));
+               HYDRO_ASSERT(rgModeIndex.size() == static_cast<size_t>(E.iGetNumRows()));
                HYDRO_ASSERT(iNumNodes == E.iGetNumCols());
                HYDRO_ASSERT(iNumNodes == D.iGetNumRows());
           }
@@ -10256,16 +10271,20 @@ namespace {
                const index_type iEqIndexModal = pModalJoint->iGetFirstIndex() + pModalJoint->uGetNModes();
 
                for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
-                    WorkVec.AddItem(iEqIndexModal + i, f2(i));
+                    HYDRO_ASSERT(rgModeIndex[i - 1] >= 1);
+                    HYDRO_ASSERT(rgModeIndex[i - 1] <= pModalJoint->uGetNModes());
+                    WorkVec.AddItem(iEqIndexModal + rgModeIndex[i - 1], f2(i));
                }
 
-               HYDRO_ASSERT(pModalJoint->uGetNModes() == D.iGetNumCols());
+               HYDRO_ASSERT(pModalJoint->uGetNModes() >= D.iGetNumCols());
                HYDRO_ASSERT(D.iGetNumRows() == C.iGetNumRows());
 
                SpColVector<T> a(D.iGetNumCols(), 1);
 
                for (index_type j = 1; j <= D.iGetNumCols(); ++j) {
-                    pModalJoint->GetACurr(j, a(j), dCoef, func);
+                    HYDRO_ASSERT(rgModeIndex[j - 1] >= 1);
+                    HYDRO_ASSERT(rgModeIndex[j - 1] <= pModalJoint->uGetNModes());
+                    pModalJoint->GetACurr(rgModeIndex[j - 1], a(j), dCoef, func);
                }
 
                SpColVector<T> f1 = D * a;
@@ -10285,7 +10304,7 @@ namespace {
 
           if (pModalJoint) {
                *piNumRows += E.iGetNumRows();
-               *piNumCols += pModalJoint->uGetNModes();
+               *piNumCols += D.iGetNumCols();
           }
 
           *piNumCols += pGetMesh()->pGetGeometry()->iGetNumColsWorkSpace(eFunc);
@@ -10296,16 +10315,18 @@ namespace {
           ComplianceModel::Initialize();
 
           iNumNodes = iGetNumNodes();
-          iNumModes = pModalJoint ? pModalJoint->uGetNModes() : 0;
-
-          w.ResizeReset(iNumNodes, 0);
-          dw_dt.ResizeReset(iNumNodes, 0);
 
           ComplianceMatrix::MatrixData oMatData{ComplianceMatrix::LOC_MESH_FIXED,
                                                 pModalJoint,
                                                 &C,
                                                 &D,
-                                                &E};
+                                                &E,
+                                                &rgModeIndex};
+
+          iNumModes = rgModeIndex.size();
+
+          w.ResizeReset(iNumNodes, 0);
+          dw_dt.ResizeReset(iNumNodes, 0);
 
           for (index_type i = 0; i < 2; ++i) {
                if (rgMatrices[i].get()) {
@@ -10596,10 +10617,8 @@ namespace {
                *piNumCols = rgNumNodes[DEHD_BODY_FIXED] + (eFunc & SpFunctionCall::REGULAR_FLAG ? iGetNumDof() : iGetInitialNumDof());
 
                for (index_type i = 0; i < DEHD_BODY_LAST; ++i) {
-                    if (rgModalJoints[i]) {
-                         *piNumRows += rgModalJoints[i]->uGetNModes();
-                         *piNumCols += rgModalJoints[i]->uGetNModes();
-                    }
+                    *piNumRows += rgModeIndex[i].size();
+                    *piNumCols += rgModeIndex[i].size();
                }
 
                *piNumCols += pGetMesh()->pGetGeometry()->iGetNumColsWorkSpace(eFunc);
@@ -10617,7 +10636,12 @@ namespace {
           const std::array<ComplianceMatrix::MeshLocation, DEHD_BODY_LAST> rgMeshLoc = {ComplianceMatrix::LOC_MESH_FIXED,
                                                                                         ComplianceMatrix::LOC_MESH_MOVING};
           for (index_type i = 0; i < DEHD_BODY_LAST; ++i) {
-               ComplianceMatrix::MatrixData oMatData{rgMeshLoc[i], rgModalJoints[i], &C[i], &D[i], &E[i]};
+               ComplianceMatrix::MatrixData oMatData{rgMeshLoc[i],
+                                                     rgModalJoints[i],
+                                                     &C[i],
+                                                     &D[i],
+                                                     &E[i],
+                                                     &rgModeIndex[i]};
 
                if (!rgMatrices[i].get()) {
                     HYDRO_ASSERT(0);
@@ -10639,8 +10663,10 @@ namespace {
 #ifdef HYDRO_DEBUG
                if (rgModalJoints[i]) {
                     HYDRO_ASSERT(D[i].iGetNumRows() == rgNumNodes[i]);
-                    HYDRO_ASSERT(D[i].iGetNumCols() == rgModalJoints[i]->uGetNModes());
-                    HYDRO_ASSERT(E[i].iGetNumRows() == rgModalJoints[i]->uGetNModes());
+                    HYDRO_ASSERT(D[i].iGetNumCols() <= rgModalJoints[i]->uGetNModes());
+                    HYDRO_ASSERT(E[i].iGetNumRows() <= rgModalJoints[i]->uGetNModes());
+                    HYDRO_ASSERT(static_cast<size_t>(D[i].iGetNumCols()) == rgModeIndex[i].size());
+                    HYDRO_ASSERT(static_cast<size_t>(E[i].iGetNumRows()) == rgModeIndex[i].size());
                     HYDRO_ASSERT(E[i].iGetNumCols() == rgNumNodes[i]);
                }
 
@@ -11318,10 +11344,12 @@ namespace {
                     HYDRO_ASSERT((D[k].iGetNumRows() == C[k].iGetNumRows()) || C[k].iGetNumRows() == 0);
                     HYDRO_ASSERT(D[k].iGetNumRows() == w[k].iGetNumRows());
 
-                    a[k].ResizeReset(rgModalJoints[k]->uGetNModes(), 1);
+                    a[k].ResizeReset(rgModeIndex[k].size(), 1);
 
                     for (index_type j = 1; j <= D[k].iGetNumCols(); ++j) {
-                         rgModalJoints[k]->GetACurr(j, a[k](j), dCoef, func);
+                         HYDRO_ASSERT(rgModeIndex[k][j - 1] >= 1);
+                         HYDRO_ASSERT(rgModeIndex[k][j - 1] <= rgModalJoints[k]->uGetNModes());
+                         rgModalJoints[k]->GetACurr(rgModeIndex[k][j - 1], a[k](j), dCoef, func);
                     }
                }
           }
@@ -11385,10 +11413,13 @@ namespace {
 
                if (rgModalJoints[DEHD_BODY_FIXED]) {
                     const SpColVector<T> f2 = E[DEHD_BODY_FIXED] * ptot_scaled;
-                    index_type iEqIndexModal1 = rgModalJoints[DEHD_BODY_FIXED]->iGetFirstIndex() + rgModalJoints[DEHD_BODY_FIXED]->uGetNModes() + 1;
+                    index_type iEqIndexModal1 = rgModalJoints[DEHD_BODY_FIXED]->iGetFirstIndex() + rgModalJoints[DEHD_BODY_FIXED]->uGetNModes();
 
                     for (index_type i = 1; i <= f2.iGetNumRows(); ++i) {
-                         WorkVec.AddItem(iEqIndexModal1++, f2(i));
+                         HYDRO_ASSERT(rgModeIndex[DEHD_BODY_FIXED][i - 1] >= 1);
+                         HYDRO_ASSERT(rgModeIndex[DEHD_BODY_FIXED][i - 1] <= rgModalJoints[DEHD_BODY_FIXED]->uGetNModes());
+
+                         WorkVec.AddItem(iEqIndexModal1 + rgModeIndex[DEHD_BODY_FIXED][i - 1], f2(i));
                     }
                }
           }
@@ -11433,10 +11464,13 @@ namespace {
                     const SpColVector<T> fm2 = E[DEHD_BODY_MOVING] * pm_scaled;
 
                     index_type iEqIndexModal2 = rgModalJoints[DEHD_BODY_MOVING]->iGetFirstIndex()
-                         + rgModalJoints[DEHD_BODY_MOVING]->uGetNModes() + 1;
+                         + rgModalJoints[DEHD_BODY_MOVING]->uGetNModes();
 
                     for (index_type i = 1; i <= E[DEHD_BODY_MOVING].iGetNumRows(); ++i) {
-                         WorkVec.AddItem(iEqIndexModal2++, fm2(i));
+                         HYDRO_ASSERT(rgModeIndex[DEHD_BODY_MOVING][i - 1] >= 1);
+                         HYDRO_ASSERT(rgModeIndex[DEHD_BODY_MOVING][i - 1] <= rgModalJoints[DEHD_BODY_MOVING]->uGetNModes());
+
+                         WorkVec.AddItem(iEqIndexModal2 + rgModeIndex[DEHD_BODY_MOVING][i - 1], fm2(i));
                     }
                }
           }
@@ -11914,6 +11948,7 @@ namespace {
                     MATMA_NODAL2 = 0x2,
                     MATMA_NODAL3 = 0x4,
                     MATMA_MODAL1 = 0x8,
+                    MATMA_NODAL23 = MATMA_NODAL2 | MATMA_NODAL3,
                     MATMA_ALL = MATMA_NODAL1 | MATMA_NODAL2 | MATMA_NODAL3 | MATMA_MODAL1
                };
 
@@ -11937,6 +11972,7 @@ namespace {
                     MATRIX_Phin,
                     VECTOR_CENTER,
                     MATRIX_ORIENT,
+                    MODAL_SUBSET,
                     LAST_TAG
                };
 
@@ -11945,23 +11981,24 @@ namespace {
                     MatMask eMatMask;
                     char szName[32];
                } rgTags[] = {
-                    {FILE_FORMAT,      MATMA_ALL,    "file format"},
-                    {BEARING_DIAMETER, MATMA_ALL,    "bearing diameter"},
-                    {BEARING_WIDTH,    MATMA_ALL,    "bearing width"},
-                    {GRID_X,           MATMA_ALL,    "circumferential grid"},
-                    {GRID_Z,           MATMA_ALL,    "axial grid"},
-                    {NODES,            MATMA_ALL,    "nodes"},
-                    {REF_PRESSURE,     MATMA_ALL,    "reference pressure"},
-                    {MATRIX_C1,        MATMA_NODAL1, "compliance matrix"},
-                    {MATRIX_C2,        MATMA_NODAL2, "compliance matrix substruct"},
-                    {MATRIX_D2,        MATMA_NODAL2, "substruct contrib matrix"},
-                    {MATRIX_E2,        MATMA_NODAL2, "substruct residual matrix"},
-                    {MATRIX_D3,        MATMA_NODAL3, "substruct total contrib matrix"},
-                    {MATRIX_E3,        MATMA_NODAL3, "substruct total residual matrix"},
-                    {MATRIX_RPhiK,     MATMA_MODAL1, "modal load"},
-                    {MATRIX_Phin,      MATMA_MODAL1, "mode shapes"},
-                    {VECTOR_CENTER,    MATMA_ALL,    "bearing center"},
-                    {MATRIX_ORIENT,    MATMA_ALL,    "bearing orientation"}
+                    {FILE_FORMAT,      MATMA_ALL,     "file format"},
+                    {BEARING_DIAMETER, MATMA_ALL,     "bearing diameter"},
+                    {BEARING_WIDTH,    MATMA_ALL,     "bearing width"},
+                    {GRID_X,           MATMA_ALL,     "circumferential grid"},
+                    {GRID_Z,           MATMA_ALL,     "axial grid"},
+                    {NODES,            MATMA_ALL,     "nodes"},
+                    {REF_PRESSURE,     MATMA_ALL,     "reference pressure"},
+                    {MATRIX_C1,        MATMA_NODAL1,  "compliance matrix"},
+                    {MATRIX_C2,        MATMA_NODAL2,  "compliance matrix substruct"},
+                    {MATRIX_D2,        MATMA_NODAL2,  "substruct contrib matrix"},
+                    {MATRIX_E2,        MATMA_NODAL2,  "substruct residual matrix"},
+                    {MATRIX_D3,        MATMA_NODAL3,  "substruct total contrib matrix"},
+                    {MATRIX_E3,        MATMA_NODAL3,  "substruct total residual matrix"},
+                    {MATRIX_RPhiK,     MATMA_MODAL1,  "modal load"},
+                    {MATRIX_Phin,      MATMA_MODAL1,  "mode shapes"},
+                    {VECTOR_CENTER,    MATMA_ALL,     "bearing center"},
+                    {MATRIX_ORIENT,    MATMA_ALL,     "bearing orientation"},
+                    {MODAL_SUBSET,     MATMA_NODAL23, "modal subset vector"}
                };
 
                enum FileFormatType {
@@ -12352,6 +12389,14 @@ namespace {
                                                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                              }
 
+                                             if (!rgTagsParsed[MODAL_SUBSET]) {
+                                                  silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                              << "): missing record \"modal subset vector\" for matrix type \""
+                                                              << rgTags[iTag].szName << "\" in file \""
+                                                              << strFileName << "\" at line " << iLineNo << std::endl);
+                                                  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                             }
+
                                              std::vector<const Node*> rgNodes;
 
                                              oMatData.pModalJoint->GetConnectedNodes(rgNodes);
@@ -12422,7 +12467,7 @@ namespace {
 
                                         case MATRIX_E2:
                                         case MATRIX_E3:
-                                             if (!oMatData.pModalJoint || iNumRows != oMatData.pModalJoint->uGetNModes()) {
+                                             if (!oMatData.pModalJoint || iNumRows != oMatData.rgMatrices.iGetNumActiveModes()) {
                                                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                              }
                                              break;
@@ -12451,7 +12496,7 @@ namespace {
                                              break;
                                         case MATRIX_D2:
                                         case MATRIX_D3:
-                                             if (!oMatData.pModalJoint || iNumCols != oMatData.pModalJoint->uGetNModes()) {
+                                             if (!oMatData.pModalJoint || iNumCols != oMatData.rgMatrices.iGetNumActiveModes()) {
                                                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                              }
                                              break;
@@ -12508,11 +12553,10 @@ namespace {
                                              HYDRO_ASSERT(oMatData.pModalJoint != nullptr);
 
                                              pCurrMat = oMatData.rgMatrices.D();
-                                             pCurrMat->ResizeReset(rgCompIndexHyd.size(), oMatData.pModalJoint->uGetNModes(), 0);
+                                             pCurrMat->ResizeReset(rgCompIndexHyd.size(), oMatData.rgMatrices.iGetNumActiveModes(), 0);
 
                                              if (oMatData.eMeshLocation != LOC_MESH_MOVING) {
                                                   HYDRO_ASSERT(static_cast<size_t>(pCurrMat->iGetNumRows()) == rgNodes.size());
-                                                  HYDRO_ASSERT(pCurrMat->iGetNumCols() == oMatData.pModalJoint->uGetNModes());
                                                   HYDRO_ASSERT(rgNodes.size() == rgCompIndexHyd.size());
                                              }
                                              break;
@@ -12522,11 +12566,10 @@ namespace {
                                              HYDRO_ASSERT(oMatData.pModalJoint != nullptr);
 
                                              pCurrMat = oMatData.rgMatrices.E();
-                                             pCurrMat->ResizeReset(oMatData.pModalJoint->uGetNModes(), rgCompIndexHyd.size(), 0);
+                                             pCurrMat->ResizeReset(oMatData.rgMatrices.iGetNumActiveModes(), rgCompIndexHyd.size(), 0);
 
                                              if (oMatData.eMeshLocation != LOC_MESH_MOVING) {
                                                   HYDRO_ASSERT(static_cast<size_t>(pCurrMat->iGetNumCols()) == rgNodes.size());
-                                                  HYDRO_ASSERT(pCurrMat->iGetNumRows() == oMatData.pModalJoint->uGetNModes());
                                                   HYDRO_ASSERT(rgNodes.size() == rgCompIndexHyd.size());
                                              }
                                              break;
@@ -12635,12 +12678,16 @@ namespace {
                                              for (index_type i = 1; i <= 3; ++i) {
                                                   oFile >> dX(i);
                                              }
+
+                                             ++iLineNo;
                                              break;
                                         case MATRIX_ORIENT:
                                              for (index_type i = 1; i <= 3; ++i) {
                                                   for (index_type j = 1; j <= 3; ++j) {
                                                        oFile >> dR(i, j);
                                                   }
+
+                                                  ++iLineNo;
                                              }
                                              break;
                                         default:
@@ -12728,6 +12775,48 @@ namespace {
                                         }
 
                                         rgTagsParsed[rgTags[iTag].eTag] = true;
+                                   } break;
+                                   case MODAL_SUBSET: {
+                                        if (!oMatData.pModalJoint) {
+                                             silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                         << "): a modal joint is mandatory for the selected compliance model in file \""
+                                                         << strFileName << "\" at line " << iLineNo << std::endl);
+                                             throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                        }
+
+                                        index_type iNumModesSubset;
+
+                                        oFile >> iNumModesSubset;
+
+                                        if (iNumModesSubset < 0 || iNumModesSubset > oMatData.pModalJoint->uGetNModes()) {
+                                             silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                         << "): number of modes " << iNumModesSubset
+                                                         << " must be in range zero to number of available modes " << oMatData.pModalJoint->uGetNModes()
+                                                         << " of modal joint " << oMatData.pModalJoint->GetLabel() << " in file \""
+                                                         << strFileName << "\" at line " << iLineNo << std::endl);
+                                             throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                        }
+
+                                        std::vector<index_type>& rgModeIndex = *oMatData.rgMatrices.pGetModeIndex();
+
+                                        rgModeIndex.resize(iNumModesSubset);
+
+                                        for (index_type i = 0; i < iNumModesSubset; ++i) {
+                                             oFile >> rgModeIndex[i];
+
+                                             ++iLineNo;
+
+                                             if (rgModeIndex[i] <= 0 || rgModeIndex[i] > oMatData.pModalJoint->uGetNModes()) {
+                                                  silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
+                                                              << "): mode index " << i + 1 << " is equal to " << rgModeIndex[i]
+                                                              << " which is not within the number of available modes " << oMatData.pModalJoint->uGetNModes()
+                                                              << " for modal joint " << oMatData.pModalJoint->GetLabel() << " in file \""
+                                                              << strFileName << "\" at line " << iLineNo << std::endl);
+                                                  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                             }
+                                        }
+
+                                        rgTagsParsed[MODAL_SUBSET] = true;
                                    } break;
                                    default:
                                         HYDRO_ASSERT(false);
