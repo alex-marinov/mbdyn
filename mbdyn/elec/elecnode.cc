@@ -61,5 +61,20 @@ ElectricNode::GetNodeType(void) const
 	return Node::ELECTRIC;
 }
 
+const OutputHandler::Dimensions 
+ElectricNode::GetEquationDimension(integer index) const {
+   // DOF == 1
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Current;
+			break;
+	}
+
+	return dimension;
+}
+
 /* ElectricNode - end */
 

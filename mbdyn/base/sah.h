@@ -35,7 +35,7 @@
 #include <node.h>
 #include <drive.h>
 
-/* SampleAndHold - begin */
+/* SampleAndHold - begin */ 
 
 class SampleAndHold : public ParameterNode {
 protected:

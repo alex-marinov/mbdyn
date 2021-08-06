@@ -2536,6 +2536,24 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+const OutputHandler::Dimensions
+PlaneRotationJoint::GetEquationDimension(integer index) const {
+	
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
 /* PlaneRotationJoint - end */
 
 
@@ -3987,6 +4005,36 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 	silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
 		"illegal private data " << i << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const OutputHandler::Dimensions
+AxialRotationJoint::GetEquationDimension(integer index) const {
+	
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+	}
+
+	return dimension;
 }
 
 /* AxialRotationJoint - end */

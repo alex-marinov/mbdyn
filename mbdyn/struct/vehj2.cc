@@ -580,6 +580,11 @@ DeformableDispJoint::dGetPrivData(unsigned int i) const
 	}
 }
 
+const OutputHandler::Dimensions
+DeformableDispJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* DeformableDispJoint - end */
 
 

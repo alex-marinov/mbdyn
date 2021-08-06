@@ -631,6 +631,30 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
+
+const OutputHandler::Dimensions
+UniversalHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+     	case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
 /* UniversalHingeJoint - end */
 
 
@@ -1146,6 +1170,21 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
+
+const OutputHandler::Dimensions
+UniversalRotationJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
 /* UniversalRotationJoint - end */
 
 
@@ -1596,4 +1635,27 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+UniversalPinJoint::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+     	case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
 /* UniversalPinJoint - end */

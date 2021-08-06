@@ -117,6 +117,9 @@ class LinearAccelerationJoint
      
    };
    /* ************************************************ */   
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* LinearAccelerationJoint - end */
@@ -201,7 +204,10 @@ class AngularAccelerationJoint
      connectedNodes[0] = pNode;
      
    };
-   /* ************************************************ */   
+   /* ************************************************ */ 
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;  
 };
 
 /* AngularAccelerationJoint - end */

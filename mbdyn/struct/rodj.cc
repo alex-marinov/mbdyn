@@ -521,6 +521,12 @@ Rod::dGetPrivData(unsigned int i) const
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
 }
 
+const OutputHandler::Dimensions
+Rod::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* Rod - end */
 
 

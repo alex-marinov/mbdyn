@@ -3645,6 +3645,27 @@ Modal::GetG_int(void) const
 	return ::Zero3;
 }
 
+const OutputHandler::Dimensions
+Modal::GetEquationDimension(integer index) const {
+	// DOF is varible
+	// TODO
+
+	std::map<int, OutputHandler::Dimensions> index_map;
+
+	int i, j;
+
+	for (i = 1; i <= NModes; i++) {
+		index_map[i] = OutputHandler::Dimensions::Momentum;
+	}
+
+	for ( i = NModes + 1; i <= 2 * NModes; i++) {
+		index_map[i] = OutputHandler::Dimensions::Force;
+	}
+
+	// TODO
+	return index_map[index];
+}
+
 Joint *
 ReadModal(DataManager* pDM,
 	MBDynParser& HP,

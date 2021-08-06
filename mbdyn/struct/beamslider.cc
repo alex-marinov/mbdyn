@@ -779,5 +779,37 @@ BeamSliderJoint::InitialAssRes(
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+BeamSliderJoint::GetEquationDimension(integer index) const {
+	// DOF is unknown
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
 /* BeamSliderJoint - end */
 

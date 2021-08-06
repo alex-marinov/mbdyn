@@ -250,6 +250,27 @@ Accelerometer::SetValue(DataManager *pDM,
 	X.PutCoef(iGetFirstIndex() + 1, v);
 }
 
+const OutputHandler::Dimensions 
+Accelerometer::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Acceleration;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Jerk;
+			break;
+	}
+
+	return dimension;
+}
+
 /* Accelerometer - end */
 
 
@@ -399,6 +420,21 @@ TranslAccel::SetValue(DataManager *pDM,
 	XP.PutCoef(iGetFirstIndex() + 1, 0.);
 }
 
+const OutputHandler::Dimensions 
+TranslAccel::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
 /* TranslAccel - end */
 
 
@@ -533,6 +569,21 @@ RotAccel::SetValue(DataManager *pDM,
 {
 	doublereal v = (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetWCurr());
 	X.PutCoef(iGetFirstIndex() + 1, v);
+}
+
+const OutputHandler::Dimensions 
+RotAccel::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+	}
+
+	return dimension;
 }
 
 /* RotAccel - end */

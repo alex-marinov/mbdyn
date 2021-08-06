@@ -461,6 +461,21 @@ void Pipe::SetValue(DataManager *pDM,
    X.PutCoef(i+1, q0);  /* portata iniziale nodo 2 */
 }
 
+const OutputHandler::Dimensions 
+Pipe::GetEquationDimension(integer index) const {
+   // DOF == 1
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+	}
+
+	return dimension;
+}
+
 /* Pipe - end */
 
 
@@ -998,6 +1013,27 @@ Dynamic_pipe::SetValue(DataManager *pDM,
    XP.PutCoef(i+3, 0.);
 }
 
+const OutputHandler::Dimensions 
+Dynamic_pipe::GetEquationDimension(integer index) const {
+   // DOF == 3
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::MassFlow;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+	}
+
+	return dimension;
+}
+
 /* Dynamic_pipe - end */
 
 
@@ -1410,4 +1446,27 @@ DynamicPipe::SetValue(DataManager *pDM,
    XP.PutCoef(i+4, 0.);
 }
 
+const OutputHandler::Dimensions 
+DynamicPipe::GetEquationDimension(integer index) const {
+   // DOF == 4
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+	}
+
+	return dimension;
+}
 /* DynamicPipe - end */

@@ -443,6 +443,15 @@ Aerodynamic2DElem<iNN>::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+/* returns dimension of eqution */
+template <unsigned iNN>
+const OutputHandler::Dimensions 
+Aerodynamic2DElem<iNN>::GetEquationDimension(integer index) const {
+	// TODO
+
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)

@@ -540,5 +540,10 @@ ViscousBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+const OutputHandler::Dimensions
+ViscousBody::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* ViscousBody - end */
 

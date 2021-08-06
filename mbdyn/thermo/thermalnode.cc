@@ -35,7 +35,7 @@
 #include "solman.h"
 
 
-/* ThermalNode - begin */
+/* ThermalNode - begin */ 
 
 /* Costruttore */
 ThermalNode::ThermalNode(unsigned int uL,
@@ -66,6 +66,21 @@ void
 ThermalNode::Output(OutputHandler& OH) const
 {
 	ScalarDifferentialNode::Output(OH.Get(OutputHandler::THERMALNODES));
+}
+
+const OutputHandler::Dimensions 
+ThermalNode::GetEquationDimension(integer index) const {
+
+		OutputHandler::Dimensions dimension;
+
+		switch (index)
+		{
+		case 1:
+			dimension = OutputHandler::Dimensions::Power;
+			break;
+		}
+
+		return dimension;
 }
 
 /* ThermalNode - end */

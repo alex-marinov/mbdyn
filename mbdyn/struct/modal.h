@@ -519,6 +519,9 @@ public:
 		}
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Modal - end */

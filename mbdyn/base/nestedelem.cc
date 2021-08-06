@@ -554,3 +554,13 @@ NestedElem::SetInitialValue(VectorHandler& X)
 	}
 }
 
+const OutputHandler::Dimensions 
+NestedElem::GetEquationDimension(integer index) const {
+	ASSERT(pElem != NULL);
+	ElemWithDofs*  temp_pElem = dynamic_cast<ElemWithDofs*> (pElem);
+
+	if (temp_pElem != 0) {
+		return temp_pElem->GetEquationDimension(index);
+	} 
+	return OutputHandler::Dimensions::UnknownDimension;
+}

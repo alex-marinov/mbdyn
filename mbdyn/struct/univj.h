@@ -132,6 +132,9 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* UniversalHingeJoint - end */
@@ -234,6 +237,9 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* UniversalRotationJoint - end */
@@ -332,6 +338,9 @@ public:
 		connectedNodes[0] = pNode;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* UniversalPinJoint - end */

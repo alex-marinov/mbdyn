@@ -425,3 +425,18 @@ doublereal Motor::dGetPrivData(unsigned int iIndex) const
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
+
+const OutputHandler::Dimensions 
+Motor::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}

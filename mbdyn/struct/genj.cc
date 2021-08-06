@@ -639,6 +639,30 @@ DistanceJoint::SetValue(DataManager *pDM,
 	X.Put(iGetFirstIndex() + 1, v);
 }
 
+const OutputHandler::Dimensions
+DistanceJoint::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+	
+}
 /* DistanceJoint - end */
 
 
@@ -1271,6 +1295,29 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 	X.Put(iGetFirstIndex() + 1, v);
 }
 
+const OutputHandler::Dimensions
+DistanceJointWithOffset::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+}
 
 /* DistanceJointWithOffset - end */
 

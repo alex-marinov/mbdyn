@@ -213,6 +213,12 @@ MinorLoss::Output(OutputHandler& OH) const
 	}
 }
 
+const OutputHandler::Dimensions 
+MinorLoss::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* MinorLoss - end */
 
 
@@ -409,13 +415,19 @@ ThreeWayMinorLoss::Output(OutputHandler& OH) const
 	}
 }
 
+const OutputHandler::Dimensions 
+ThreeWayMinorLoss::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* ThreeWayMinorLoss - end */
 
 
 /* Orifice - begin */
 
-/* se Re < Rec avrò sicuramente moto laminare
- * se invece Re > Rec avrò sicuramente moto turbolento */
+/* se Re < Rec avrï¿½ sicuramente moto laminare
+ * se invece Re > Rec avrï¿½ sicuramente moto turbolento */
 
 Orifice::Orifice(unsigned int uL, const DofOwner* pDO,
 	 HydraulicFluid* hf,
@@ -440,7 +452,7 @@ turbulent(false)
 	ASSERT(A_diaf > std::numeric_limits<doublereal>::epsilon());
 	ASSERT(A_pipe > std::numeric_limits<doublereal>::epsilon());
 
-	/* se |p1-p2| < CriticJump avrò sicuramente moto laminare se no turbolento */
+	/* se |p1-p2| < CriticJump avrï¿½ sicuramente moto laminare se no turbolento */
 
 	viscosity = HF->dGetViscosity();
 	/*
@@ -638,6 +650,12 @@ Orifice::Output(OutputHandler& OH) const
 			<< " " << turbulent		/*  5 */
 			<< std::endl;
 	}
+}
+
+const OutputHandler::Dimensions 
+Orifice::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
 }
 
 /* Orifice - end */

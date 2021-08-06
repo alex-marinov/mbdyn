@@ -223,6 +223,9 @@ public:
 		connectedNodes[0] = pModalNode;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* AerodynamicModal - end */

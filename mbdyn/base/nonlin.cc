@@ -382,7 +382,7 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 		doublereal dTest = dTestVector[i];
 		doublereal abs_dTest = abs_dTestVector[i];
 
-		if ((abs_dTest != 0) && (dTest/abs_dTest > eps1) && (abs_dTest < eps2 * abs_dTest_max) ) {
+		if ((abs_dTest != 0) && !((dTest/abs_dTest > eps1) && (abs_dTest < eps2 * abs_dTest_max))) {
 			testsVector.push_back(dTest/abs_dTest);
 		} else {
 			testsVector.push_back(0.);

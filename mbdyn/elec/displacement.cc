@@ -166,4 +166,12 @@ DispMeasure::SetValue(DataManager *pDM,
 	XP.PutCoef(iIndex, v);
 }
 
+const OutputHandler::Dimensions 
+DispMeasure::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	// TODO
+
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* DispMeasure - end */

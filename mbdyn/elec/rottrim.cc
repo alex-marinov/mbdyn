@@ -214,6 +214,12 @@ RotorTrimBase::GetConnectedNodes(std::vector<const Node *>& connectedNodes) cons
 	}
 }
 
+const OutputHandler::Dimensions 
+RotorTrimBase::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 static unsigned iRotorTz = 0;
 static unsigned iRotorMx = 0;
 static unsigned iRotorMy = 0;

@@ -806,6 +806,11 @@ DeformableJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+DeformableJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* DeformableJoint - end */
 
 

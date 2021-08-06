@@ -143,6 +143,9 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* SphericalHingeJoint - end */
@@ -240,6 +243,9 @@ class PinJoint : virtual public Elem, public Joint {
      connectedNodes[0] = pNode;
    };
    /* ************************************************ */ 
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PinJoint - end */

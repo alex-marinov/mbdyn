@@ -568,6 +568,12 @@ DeformableHingeJoint::dGetPrivDataInv(unsigned int i) const
 	}
 }
 
+const OutputHandler::Dimensions
+DeformableHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* DeformableHingeJoint - end */
 
 

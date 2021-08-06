@@ -202,6 +202,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Rod - end */

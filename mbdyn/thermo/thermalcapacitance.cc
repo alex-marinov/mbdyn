@@ -89,3 +89,8 @@ void ThermalCapacitance::GetConnectedNodes(std::vector<const Node *>& connectedN
 //    /* ************************************************ */
 // };
 
+const OutputHandler::Dimensions 
+ThermalCapacitance::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}

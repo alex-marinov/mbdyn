@@ -94,6 +94,8 @@ public:
 		connectedNodes[1] = pAbsNode;
 	};
 	/* ************************************************ */
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Accelerometer - end */
@@ -153,6 +155,9 @@ public:
 		connectedNodes[1] = pAbsNode;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* TranslAccel - end */
@@ -211,6 +216,8 @@ public:
 		connectedNodes[1] = pAbsNode;
 	};
 	/* ************************************************ */
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* RotAccel - end */

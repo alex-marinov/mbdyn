@@ -161,7 +161,13 @@ public:
 		Charge,
 		Frequency,
 		deg,
-		rad
+		rad,
+
+		/* added for GetEquationDimension method of DofOwnerOwner class */
+		MassFlow,
+		Jerk,
+		VoltageDerivative,
+		UnknownDimension
 	};
 
 private:

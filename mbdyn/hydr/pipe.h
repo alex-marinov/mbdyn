@@ -107,6 +107,8 @@ class Pipe : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Pipe - end */
@@ -191,6 +193,9 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Dynamic_pipe - end */
@@ -282,6 +287,9 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
       connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Dynamic_pipe - end */

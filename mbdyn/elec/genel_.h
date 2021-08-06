@@ -93,6 +93,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelClamp - end */
@@ -152,6 +155,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelDistance - end */
@@ -205,6 +211,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelSpring - end */
@@ -260,6 +269,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelSpringSupport - end */
@@ -314,6 +326,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelCrossSpringSupport - end */
@@ -369,6 +384,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelCrossSpringDamperSupport - end */
@@ -421,6 +439,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelSpringDamperSupport - end */
@@ -475,6 +496,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GenelMass - end */

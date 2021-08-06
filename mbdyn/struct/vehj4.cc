@@ -330,6 +330,12 @@ DeformableAxialJoint::dGetPrivData(unsigned int i) const
 	}
 }
 
+const OutputHandler::Dimensions
+DeformableAxialJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* DeformableAxialJoint - end */
 
 

@@ -263,6 +263,21 @@ void ModLugreFriction::AssJac(
  */
 };
 
+const OutputHandler::Dimensions
+ModLugreFriction::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
 //----------------------
 DiscreteCoulombFriction::DiscreteCoulombFriction(
 		const BasicScalarFunction *const ff,
@@ -540,6 +555,15 @@ void DiscreteCoulombFriction::AssJac(
 	}
 	}
 };
+
+const OutputHandler::Dimensions
+DiscreteCoulombFriction::GetEquationDimension(integer index) const {
+	// DOF == 1
+	
+	throw("Should not be called as DOF is 0\n");
+
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 
 
 
