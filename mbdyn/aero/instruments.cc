@@ -368,6 +368,12 @@ AircraftInstruments::GetConnectedNodes(std::vector<const Node *>& connectedNodes
 	connectedNodes[0] = pNode;
 }
 
+const OutputHandler::Dimensions 
+AircraftInstruments::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 Elem *
 ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)

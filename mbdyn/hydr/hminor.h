@@ -94,6 +94,9 @@ class MinorLoss : virtual public Elem, public HydraulicElem {
 		connectedNodes[1] = m_pNode2;
 	};
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* MinorLoss - end */
@@ -160,6 +163,9 @@ public:
 		connectedNodes[2] = m_pNode2;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* ThreeWayMinorLoss - end */
@@ -226,6 +232,9 @@ class Orifice : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = m_pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Orifice - end */

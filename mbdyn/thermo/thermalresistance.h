@@ -47,6 +47,9 @@ public:
 		utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 #endif  /* THERMALRESISTANCE_H */

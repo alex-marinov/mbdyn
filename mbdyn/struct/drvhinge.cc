@@ -651,4 +651,33 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+DriveHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 6
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 4:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 5:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 6:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	}
+
+	return dimension;
+}
 /* DriveHingeJoint - end */

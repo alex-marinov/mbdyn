@@ -369,6 +369,21 @@ void InPlaneJoint::SetInitialValue(VectorHandler& /* X */ )
    NO_OP;
 }
 
+const OutputHandler::Dimensions
+InPlaneJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+}
+
 /* InPlaneJoint - end */
 
 
@@ -769,6 +784,21 @@ InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 void InPlaneWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ )
 { 
    NO_OP;
+}
+
+const OutputHandler::Dimensions
+InPlaneWithOffsetJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
 }
 
 /* InPlaneWithOffsetJoint - end */

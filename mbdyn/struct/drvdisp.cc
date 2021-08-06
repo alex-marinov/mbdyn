@@ -697,6 +697,27 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
+
+const OutputHandler::Dimensions
+DriveDisplacementJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	}
+
+	return dimension;
+}
 					   
 /* DriveDisplacementJoint - end */
 
@@ -1271,6 +1292,27 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(15 + 1, PhiPrime);
 
 	return WorkVec;
+}
+
+const OutputHandler::Dimensions
+DriveDisplacementPinJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	}
+
+	return dimension;
 }
 					   
 /* DriveDisplacementPinJoint - end */

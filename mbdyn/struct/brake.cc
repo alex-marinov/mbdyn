@@ -586,6 +586,19 @@ doublereal Brake::dGetPrivData(unsigned int i) const
    }
 }
 
+const OutputHandler::Dimensions
+Brake::GetEquationDimension(integer index) const {
+	// DOF is unknown
+   if (fc && fc->iGetNumDof() > 0) {
+      if ( index >= NumSelfDof + 1 && index <= NumSelfDof + fc->iGetNumDof()) {
+         // TODO
+         return fc->GetEquationDimension(index - NumSelfDof);
+      }
+   }
+
+   return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* Brake - end */
 
 

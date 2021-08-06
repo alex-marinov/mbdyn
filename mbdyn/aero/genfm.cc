@@ -486,6 +486,12 @@ GenericAerodynamicForce::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions 
+GenericAerodynamicForce::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 extern Elem *
 ReadGenericAerodynamicForce(DataManager* pDM,
 	MBDynParser& HP,

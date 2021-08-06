@@ -260,5 +260,11 @@ SwashPlate::SetInitialValue(VectorHandler& /* X */ )
 	NO_OP;
 }
 
+const OutputHandler::Dimensions 
+SwashPlate::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* SwashPlate - end */
 

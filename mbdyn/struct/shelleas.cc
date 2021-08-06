@@ -1343,3 +1343,52 @@ ReadShell4EAS(DataManager* pDM,
 	return pEl;
 }
 
+const OutputHandler::Dimensions 
+Shell4EAS::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 8:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 9:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 10:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 11:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 12:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 13:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+	}
+
+	return dimension;
+}

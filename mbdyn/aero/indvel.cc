@@ -196,7 +196,7 @@ InducedVelocity::ExchangeLoads(flag fWhat)
 #ifdef MPI_PROFILING
 	MPE_Log_event(33, 0, "start Induced Velocity Loads Exchange ");
 #endif /* MPI_PROFILING */
-	/* Se il rotore è connesso ad una sola macchina non è necessario scambiare messaggi */
+	/* Se il rotore ï¿½ connesso ad una sola macchina non ï¿½ necessario scambiare messaggi */
 	if (is_parallel && IndVelComm.Get_size() > 1) {
 		if (fWhat) {
 			/* Scambia F e M */
@@ -337,5 +337,10 @@ InducedVelocityElem::GetAerodynamicElemType(void) const
 	return AerodynamicElem::INDUCEDVELOCITY;
 }
 
+const OutputHandler::Dimensions 
+InducedVelocityElem::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* InducedVelocity - end */
 

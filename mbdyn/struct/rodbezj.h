@@ -185,6 +185,9 @@ public:
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	doublereal dGetPrivData(unsigned int i) const;
 
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
 private:
 	inline doublereal Ap1(doublereal u) { return (-3*u*u + 6*u -3); };
 	inline doublereal Ap2(doublereal u) { return (9*u*u - 12*u + 3); };

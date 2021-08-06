@@ -80,7 +80,7 @@ c_spost(cs), c_vel(cv), c_acc(ca)
       s_min_gas = stroke*pow(press0/press_max, 1./Kappa);
    }
    
-   s_max = .999*stroke-s_min_gas;  /* ho messo 0.999 perchè se uso un accumulatore senza gas avrei un termine che va a +infinito */    
+   s_max = .999*stroke-s_min_gas;  /* ho messo 0.999 perchï¿½ se uso un accumulatore senza gas avrei un termine che va a +infinito */    
    ratio2 = area*area/(area_pipe*area_pipe); /* rapporto (area accumulatore/area tubo)^2 */
 }
 
@@ -389,6 +389,24 @@ Accumulator::SetValue(DataManager *pDM,
    XP.PutCoef(i+2, 0.);  
 }
 
+const OutputHandler::Dimensions 
+Accumulator::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
 /* Accumulator - end */
 
 
@@ -679,6 +697,21 @@ Tank::SetValue(DataManager *pDM,
 {
    integer i = iGetFirstIndex();
    X.PutCoef(i+1, level);
+}
+
+const OutputHandler::Dimensions 
+Tank::GetEquationDimension(integer index) const {
+   // DOF == 1
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
 }
 
 /* Tank - end */

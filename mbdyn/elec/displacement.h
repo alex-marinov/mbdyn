@@ -91,6 +91,9 @@ public:
 		connectedNodes[2] = pAbsNode;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DispMeasure - end */

@@ -186,6 +186,21 @@ GenelClamp::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelClamp::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}
+
 /* GenelClamp - end */
 
 
@@ -365,6 +380,21 @@ GenelDistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) cons
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelDistance::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}
+
 /* GenelDistance - end */
 
 
@@ -509,6 +539,11 @@ GenelSpring::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const 
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpring::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* GenelSpring - end */
 
 
@@ -651,6 +686,11 @@ doublereal GenelSpringSupport::dGetPrivData(unsigned int i) const
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpringSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* GenelSpringSupport - end */
 
 
@@ -770,6 +810,11 @@ GenelCrossSpringSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelCrossSpringSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* GenelCrossSpringSupport - end */
 
 
@@ -891,6 +936,11 @@ GenelCrossSpringDamperSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelCrossSpringDamperSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* GenelCrossSpringDamperSupport - end */
 
 
@@ -1006,6 +1056,11 @@ GenelSpringDamperSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpringDamperSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* GenelSpringDamperSupport - end */
 
 
@@ -1132,5 +1187,19 @@ GenelMass::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelMass::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::VoltageDerivative;
+			break;
+	}
+
+	return dimension;
+}
 /* GenelMass - end */
 

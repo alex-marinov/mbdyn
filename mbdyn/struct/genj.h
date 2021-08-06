@@ -135,6 +135,8 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DistanceJoint - end */
@@ -242,6 +244,8 @@ virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DistanceJointWithOffset - end */

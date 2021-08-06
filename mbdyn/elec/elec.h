@@ -69,6 +69,7 @@ class Electric : virtual public Elem, public ElemWithDofs {
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
    virtual Electric::Type GetElectricType(void) const = 0;
+
 };
 
 /* Electric - end */

@@ -285,6 +285,26 @@ LinearAccelerationJoint::dGetPrivData(unsigned int i) const
    }
 }
 
+const OutputHandler::Dimensions
+LinearAccelerationJoint::GetEquationDimension(integer index) const {
+	// DOF == 2
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Acceleration;
+			break;
+	}
+
+	return dimension;
+}
+
+/* ClampJoint - end */
+
 /* LinearAccelerationJoint - end */
 
 
@@ -540,6 +560,24 @@ AngularAccelerationJoint::dGetPrivData(unsigned int i) const
     default:
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
+}
+
+const OutputHandler::Dimensions
+AngularAccelerationJoint::GetEquationDimension(integer index) const {
+	// DOF == 2
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::AngularAcceleration;
+			break;
+	}
+
+	return dimension;
 }
 
 /* AngularAccelerationJoint - end */

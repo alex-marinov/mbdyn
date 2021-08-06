@@ -157,6 +157,9 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* GimbalRotationJoint - end */

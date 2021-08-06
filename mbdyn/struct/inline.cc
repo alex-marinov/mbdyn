@@ -562,6 +562,30 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+const OutputHandler::Dimensions
+InLineJoint::GetEquationDimension(integer index) const {
+	// DOF is unknown
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+   if (fc && fc->iGetNumDof() > 0) {
+      if ( index >= NumSelfDof + 1 && index <= NumSelfDof + fc->iGetNumDof() ) {
+         dimension = fc->GetEquationDimension(index - NumSelfDof);
+      }
+   }
+
+	return dimension;
+}
+
 /* InLineJoint - end */
 
 
@@ -1035,6 +1059,24 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.PutCoef(28, x2qmx1.Dot(RvTmp.GetVec(2).Cross(Omega1))-RvTmp.GetVec(2).Dot(xp2qmxp1));
    
    return WorkVec;
+}
+
+const OutputHandler::Dimensions
+InLineWithOffsetJoint::GetEquationDimension(integer index) const {
+	// DOF == 2
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
 }
 
 /* InLineWithOffsetJoint - end */

@@ -565,6 +565,27 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+const OutputHandler::Dimensions
+SphericalHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+      case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+}
+
 /* SphericalHingeJoint - end */
 
 
@@ -901,6 +922,27 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(16, v+OWedged);
       
    return WorkVec;
+}
+
+const OutputHandler::Dimensions
+PinJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+   OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+      case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
 }
 
 /* PinJoint - end */

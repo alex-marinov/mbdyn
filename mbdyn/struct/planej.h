@@ -338,6 +338,9 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlaneRotationJoint - end */
@@ -513,6 +516,9 @@ public Joint, public DriveOwner {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* AxialRotationJoint - end */

@@ -136,6 +136,9 @@ public:
 		connectedNodes[5] = pNode3;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* SwashPlate - end */

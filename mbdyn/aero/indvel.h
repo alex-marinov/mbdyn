@@ -290,6 +290,9 @@ public:
 		ASSERT(i >= 0 && i < this->iGetNumDof());
 		return DofOrder::DIFFERENTIAL;
 	};
+
+	/* return s the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* InducedVelocityElem - end */

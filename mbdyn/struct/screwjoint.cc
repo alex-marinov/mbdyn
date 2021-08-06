@@ -1031,4 +1031,15 @@ ScrewJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+ScrewJoint::GetEquationDimension(integer index) const {
+	// DOF is variable 
+	if (fc && fc->iGetNumDof() > 0) {
+		if (index >= 2 && index <= fc->iGetNumDof()) {
+			return fc->GetEquationDimension(index - 1);
+		}
+	}
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* ScrewJoint - end */

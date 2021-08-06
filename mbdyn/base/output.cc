@@ -125,7 +125,14 @@ const std::unordered_map<const OutputHandler::Dimensions, const std::string> Dim
 	{ OutputHandler::Dimensions::Charge , std::string("Charge") },
 	{ OutputHandler::Dimensions::Frequency , std::string("Frequency") },
 	{ OutputHandler::Dimensions::deg , std::string("deg") },
-	{ OutputHandler::Dimensions::rad , std::string("rad") }
+	{ OutputHandler::Dimensions::rad , std::string("rad") },
+
+	/* added later for GetEquationDimension method of DofOwnerOwner class */
+
+	{ OutputHandler::Dimensions::MassFlow, std::string("Mass flow")},
+	{ OutputHandler::Dimensions::Jerk , std::string("Jerk") },
+	{ OutputHandler::Dimensions::VoltageDerivative , std::string("Voltage derivative") },
+	{ OutputHandler::Dimensions::UnknownDimension , std::string("Unknown dimension") }
 });
 
 /* Costruttore senza inizializzazione */
@@ -289,6 +296,13 @@ void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>&
 		Units[Dimensions::Current];
 	Units[Dimensions::deg] = "deg";
 	Units[Dimensions::rad] = "rad";
+	Units[Dimensions::MassFlow] = Units[Dimensions::Mass] + " " + 
+		Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::Jerk] = Units[Dimensions::Mass] + " " +
+        Units[Dimensions::Time] + "^-3";
+	Units[Dimensions::VoltageDerivative] = Units[Dimensions::Voltage] + " " +
+        Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::VoltageDerivative] = "UnknownDimension";
 };
 
 void OutputHandler::SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units) {

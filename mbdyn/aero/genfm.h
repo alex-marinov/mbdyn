@@ -172,6 +172,9 @@ public:
 	 */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 extern Elem *

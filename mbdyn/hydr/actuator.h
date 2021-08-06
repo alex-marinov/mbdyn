@@ -124,6 +124,9 @@ class Actuator : virtual public Elem, public HydraulicElem {
      connectedNodes[3] = pNodeStr2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Actuator - end */

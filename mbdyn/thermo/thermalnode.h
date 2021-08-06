@@ -52,6 +52,9 @@ public:
 	
 	/* Output */
 	void Output(OutputHandler&OH) const;
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* ThermalNode - end */

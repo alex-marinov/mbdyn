@@ -110,3 +110,8 @@ void ThermalResistance::GetConnectedNodes(std::vector<const Node *>& connectedNo
 //    /* ************************************************ */
 // };
 
+const OutputHandler::Dimensions \
+ThermalResistance::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}

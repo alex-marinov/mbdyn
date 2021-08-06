@@ -285,6 +285,27 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+const OutputHandler::Dimensions
+LinearVelocityJoint::GetEquationDimension(integer index) const {
+	// DOF == 6
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
 /* LinearVelocity - end */
 
 
@@ -547,6 +568,27 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.PutCoef(4, dw0-Dir.Dot(Omega));
    
    return WorkVec;
+}
+
+const OutputHandler::Dimensions
+AngularVelocityJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+	}
+
+	return dimension;
 }
 
 /* AngularVelocity - end */

@@ -408,6 +408,13 @@ GenelStateSpaceSISO::GetConnectedNodes(
 	}
 }
 
+const OutputHandler::Dimensions 
+GenelStateSpaceSISO::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	
+	return OutputHandler::Dimensions::VoltageDerivative;
+}
+
 /* GenelStateSpaceSISO - end */
 
 
@@ -854,6 +861,12 @@ GenelStateSpaceMIMO::GetConnectedNodes(
 			connectedNodes[i++] = ndp->pNode;
 		}
 	}
+}
+
+const OutputHandler::Dimensions 
+GenelStateSpaceMIMO::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::VoltageDerivative;
 }
 
 /* GenelStateSpaceMIMO - end */

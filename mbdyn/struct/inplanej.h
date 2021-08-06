@@ -139,6 +139,8 @@ class InPlaneJoint : virtual public Elem, public Joint {
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* InPlaneJoint - end */
@@ -242,7 +244,10 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
    };
-   /* ************************************************ */  
+   /* ************************************************ */ 
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const; 
 };
 
 /* InPlaneWithOffsetJoint - end */
