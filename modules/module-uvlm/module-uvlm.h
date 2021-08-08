@@ -47,6 +47,7 @@
 #include "aeroelem.h"
 
 #include "mbdyn_uvlm.h"
+#include "UVLM-master/src/uvlm.h"
 
 
  /* We introduce a start class UVLM*/
@@ -56,9 +57,9 @@ class UvlmInterfaceBaseElem
 private:
 	DataManager *m_PDM;
 	// A function that transfer doublereal Vec3 to double Vec3 (data between MBDyn structural part and the UVLM aero part should be of the same type)
-	void MBDyn_UVLM_Vec3D(const Vec3& mbdynuvlm_Vec3, double *mbdynuvlm_temp, double MBDyn_UVLM_LengthScale) const;
+	void MBDyn_UVLM_Vec3D(const Vec3& mbdynuvlm_Vec3, std::vector<double>& mbdynuvlm_temp, double MBDyn_UVLM_LengthScale) const;
 	// A function that transfer doublereal Mat3x3 to double Mat3x3 (data between MBDyn structural part and the UVLM aero part should be of the same type)
-	void MBDyn_UVLM_Mat3x3D(const Mat3x3& mbdynuvlm_Mat3x3, double *mbdynuvlm_temp) const;
+	void MBDyn_UVLM_Mat3x3D(const Mat3x3& mbdynuvlm_Mat3x3, std::vector<double>& mbdynuvlm_temp) const;
 	double MBDyn_UVLM_CalculateError();  // Calculate the error of coupling forces
 	// A function that prints the coupling data on the screen
 	void MBDyn_UVLM_MBDynPrint() const;
@@ -67,17 +68,7 @@ protected:
 	std::vector<double> MBDyn_UVLM_CouplingKinematic;                       //- for coupling motion
 	std::vector<double> MBDyn_UVLM_CouplingDynamic;                         //- for coupling forces
 	std::vector<double> MBDyn_UVLM_CouplingDynamic_pre;                     //- for coupling forces in last iterations.
-	double *pMBDyn_UVLM_CouplingKinematic_x = NULL;                         //- consistent with the external struct force element
-	double *pMBDyn_UVLM_CouplingKinematic_R = NULL;
-	double *pMBDyn_UVLM_CouplingKinematic_xp = NULL;
-	double *pMBDyn_UVLM_CouplingKinematic_omega = NULL;
-	double *pMBDyn_UVLM_CouplingKinematic_xpp = NULL;
-	double *pMBDyn_UVLM_CouplingKinematic_omegap = NULL;
-	double *pMBDyn_UVLM_Frame = NULL;                                       //- the position [3] and the orietation [9] of UVLM ground coordinate
-	double *pMBDyn_UVLM_CouplingDynamic_f = NULL;
-	double *pMBDyn_UVLM_CouplingDynamic_m = NULL;
-	double *pMBDyn_UVLM_CouplingDynamic_f_pre = NULL;
-	double *pMBDyn_UVLM_CouplingDynamic_m_pre = NULL;
+
 	struct {
 		unsigned Size_Kinematic;
 		unsigned Size_Dynamic;
@@ -96,7 +87,6 @@ protected:
 	mutable std::ofstream MBDyn_UVLM_out_forces;                     //- ofstream for outputing coupling forces.
 
 public:
-	pMBDyn_UVLM_Model_t pMBDyn_UVLM_Model = NULL;
 	std::vector<double> MBDyn_UVLM_Model_Data;                       //- for reloading UVLM data in the tight coupling scheme 
 	std::vector<MBDYN_UVLM_MODELDATA> MBDyn_UVLM_Model_Label;        //- IDs of the coupling body
 	double MBDyn_UVLM_Scale[4];                                      //- the Unit used in UVLM. 1 Unit(m) in MBDyn = MBDyn_UVLM_Scale * Unit() in UVLM
@@ -109,6 +99,7 @@ public:
 		Vec3 MBDyn_UVLM_Offset;                                      //- offset of the marker in MBDyn. By default, MBDyn_CE_Offset == null;
 		Mat3x3 MBDyn_UVLM_RhM;                                       //- orientation of the marker in MBDyn. By default, Rh_M == eye; bool constraints are also defined in this orientation,
 		Vec3 MBDyn_UVLM_F;
+		Vec3 MBDyn_UVLM_DF;
 		Vec3 MBDyn_UVLM_M;
 	};
 
@@ -126,9 +117,13 @@ public:
 	FlightConditions* MBDyn_UVLM_FlightConditions;
 	Beam_inputs MBDyn_UVLM_Beam_inputs;
 	Aero_inputs MBDyn_UVLM_Aero_inputs;
-	std::vector<AeroTimeStepInfo> MBDyn_UVLM_AeroPreviousTimeStepInfo;
 	StraightWake MBDyn_UVLM_StraightWake;
+	SteadyVelocityField MBDyn_UVLM_SteadyVelocityField;
 	Aerogrid MBDyn_UVLM_Aerogrid;
+	UvlmLibVar MBDyn_UVLM_UvlmLibVar;
+	UVLM::Types::VMopts VMoptions;
+	UVLM::Types::UVMopts UVMoptions;
+	UVLM::Types::FlightConditions FlightConditions;
 
 public:
 	int MBDyn_UVLM_CouplingType;

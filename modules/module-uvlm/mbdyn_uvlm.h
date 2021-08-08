@@ -44,7 +44,7 @@
 
 #include "dataman.h"
 #include "aeroelem.h"
-
+#include "UVLM-master/src/uvlm.h"
 
 extern "C" {
 
@@ -146,8 +146,8 @@ extern "C" {
 		vector_3d dist_to_orig;
 
 		AeroTimeStepInfo();
-		void initialize(std::vector<std::pair<int, int>>&,
-			std::vector<std::pair<int, int>>&);
+		void initialize(std::vector<std::pair<unsigned int, unsigned int>>&,
+			std::vector<std::pair<unsigned int, unsigned int>>&);
 		~AeroTimeStepInfo();
 	};
 
@@ -196,15 +196,24 @@ extern "C" {
 
 	public:
 
+		//- Aerodynamic data at each time step
 		AeroTimeStepInfo aero_ini_info;
 		std::vector<AeroTimeStepInfo> aero_timestep_info;
 		std::vector<int> surface_distribution;
 		std::vector<int> surface_m;
-		std::vector<std::pair<int, int>> dimensions;
-		std::vector<std::pair<int, int>> dimensions_star;
+		std::vector<std::pair<unsigned int, unsigned int>> dimensions;
+		std::vector<std::pair<unsigned int, unsigned int>> dimensions_star;
 		std::map<int, std::vector<double>> airfoil_db;
 		std::vector<std::vector<std::pair<int, int>>> struct2aero_mapping;
 		std::vector<std::vector<int>> aero2struct_mapping;
+
+		//- Kinematic data required at each time step
+		std::vector<std::vector<double>> node_displacements;
+		std::vector<std::vector<double>> node_displacements_der;
+		std::vector<std::vector<double>> node_CRV;
+		std::vector<std::vector<double>> node_CRV_der;
+		std::vector<std::vector<std::vector<double>>> node_cga;
+
 
 		Aerogrid();
 		void generate(Aero_inputs&, Beam_inputs&, const Aerogrid_settings*, double);
@@ -214,7 +223,7 @@ extern "C" {
 		void generate_zeta_timestep_info(Aero_inputs&, Beam_inputs&, AeroTimeStepInfo&, const Aerogrid_settings*);
 		void generate_zeta(Aero_inputs&, Beam_inputs&, const Aerogrid_settings*, double);
 		void generate_mapping(Aero_inputs&, Beam_inputs&);
-		void compute_gamma_dot(Aero_inputs&, double, AeroTimeStepInfo&, std::vector<AeroTimeStepInfo>&, double);
+		void compute_gamma_dot(Aero_inputs&, double, double);
 		void generate_strip(Aero_inputs&, const Aerogrid_settings*, AeroTimeStepInfo&);
 		~Aerogrid();
 
@@ -244,6 +253,36 @@ extern "C" {
 			std::vector<double> for_delta;
 			std::vector<std::vector<double>> cga;
 		} node_info;
+	};
+
+
+	class UvlmLibVar {
+
+	public:
+
+		unsigned int** p_dimensions = NULL;
+		unsigned int** p_dimensions_star = NULL;
+		unsigned int i_iter;
+		double** p_uext = NULL;
+		double** p_uext_star = NULL;
+		double** p_zeta = NULL;
+		double** p_zeta_star = NULL;
+		double** p_zeta_dot = NULL;
+		double** p_zeta_star_dot = NULL;
+		double* p_rbm_vel = NULL;
+		double* p_centre_rot = NULL;
+		double** p_gamma = NULL;
+		double** p_gamma_star = NULL;
+		double** p_gamma_dot = NULL;
+		double** p_dist_to_orig = NULL;
+		double** p_normals = NULL;
+		double** p_forces = NULL;
+		double** p_dynamic_forces = NULL;
+
+		UvlmLibVar();
+		void UvlmLibVar_generate(Aerogrid&, double);
+		void UvlmLibVar_save(Aerogrid&, double);
+		~UvlmLibVar();
 	};
 
 
@@ -324,9 +363,15 @@ extern "C" {
 			Beam_inputs& MBDyn_UVLM_Beam_inputs,
 			Aero_inputs& MBDyn_UVLM_Aero_inputs,
 			StraightWake& MBDyn_UVLM_StraightWake,
-			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField);
+			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+			UVLM::Types::VMopts& VMoptions,
+			UVLM::Types::UVMopts& UVMoptions,
+			UVLM::Types::FlightConditions& FlightConditions,
+			unsigned MBDyn_UVLM_NodesNum);
 
-	bool
+	//- Performs a step of Integration
+	void
 		MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
 			const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
@@ -337,9 +382,23 @@ extern "C" {
 			StraightWake& MBDyn_UVLM_StraightWake,
 			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
 			Aerogrid& MBDyn_UVLM_Aerogrid,
-			std::vector<AeroTimeStepInfo>& MBDyn_UVLM_AeroInfo,
+			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+			UVLM::Types::UVMopts& UVMoptions,
+			UVLM::Types::FlightConditions& FlightConditions,
 			double time_step);
 
+	//- UVLM models receive coupling motion from the buffer
+	void
+		MBDyn_UVLM_Model_RecvFromBuf(Aerogrid& MBDyn_UVLM_Aerogrid, 
+			std::vector<double> &MBDyn_CE_CouplingKinematic,
+			const unsigned &MBDyn_CE_NodesNum);
+
+	//- UVLM models send the force information to the buffer 
+	void
+		MBDyn_UVLM_Model_SendToBuf(Aerogrid& MBDyn_UVLM_Aerogrid,
+			std::vector<double>& MBDyn_UVLM_CouplingDynamic,
+			const unsigned &MBDyn_UVLM_NodesNum,
+			double time_step);
 
 }
 #endif //- MBDYN_UVLM_H

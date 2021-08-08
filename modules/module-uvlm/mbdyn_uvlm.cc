@@ -44,9 +44,7 @@
 
 
 #include "mbdyn_uvlm.h"
-#include "UVLM-master/include/cpp_interface.h"
-#include "UVLM-master/include/unsteady.h"
-#include "UVLM-master/lib/libuvlm"
+#include "UVLM-master/src/uvlm.h"
 
 clock_t startTime, endTime;
 struct timeval start_time, end_time;
@@ -192,6 +190,133 @@ crv2rotation(std::vector<std::vector<double>>& Mat, std::vector<double>& psi) {
 	}
 }
 
+std::vector<double>
+matrix2skewvec(std::vector<std::vector<double>>& Mat) {
+
+	std::vector<double> vec(3, 0);
+
+	vec[0] = Mat[2][1] - Mat[1][2];
+	vec[1] = Mat[0][2] - Mat[2][0];
+	vec[2] = Mat[1][0] - Mat[0][1];
+
+	return vec;
+}
+
+std::vector<double>
+rotation2quat(std::vector<std::vector<double>>& Mat) {
+
+	std::vector<std::vector<double>> s(4, std::vector<double>(4, 0));
+	
+	s[0][0] = 1.0 + Mat[0][0] + Mat[1][1] + Mat[2][2];
+	std::vector<double> vec(3, 0);
+	vec = matrix2skewvec(Mat);
+	s[0][1] = vec[0];
+	s[0][2] = vec[1];
+	s[0][3] = vec[2];
+
+	s[1][0] = Mat[2][1] - Mat[1][2];
+	s[1][1] = 1.0 + Mat[0][0] - Mat[1][1] - Mat[2][2];
+	s[1][2] = Mat[0][1] + Mat[1][0];
+	s[1][3] = Mat[0][2] + Mat[2][0];
+
+	s[2][0] = Mat[0][2] - Mat[2][0];
+	s[2][1] = Mat[1][0] + Mat[0][1];
+	s[2][2] = 1.0 - Mat[0][0] + Mat[1][1] - Mat[2][2];
+	s[2][3] = Mat[1][2] + Mat[2][1];
+
+	s[3][0] = Mat[1][0] - Mat[0][1];
+	s[3][1] = Mat[0][2] + Mat[2][0];
+	s[3][2] = Mat[1][2] + Mat[2][1];
+	s[3][3] = 1.0 - Mat[0][0] - Mat[1][1] + Mat[2][2];
+
+	std::vector<double> diag_s(4, 0);
+	diag_s[0] = s[0][0];
+	diag_s[1] = s[1][1];
+	diag_s[2] = s[2][2];
+	diag_s[3] = s[3][3];
+
+	double smax = *std::max_element(diag_s.begin(), diag_s.end());
+	int ismax = std::distance(diag_s.begin(), std::max_element(diag_s.begin(), diag_s.end()));
+	// compute quaternion angles
+	std::vector<double> quat(4, 0);
+	quat[ismax] = 0.5 * sqrt(smax);
+	for (int i = 0; i < 4; i++) {
+		if (i == ismax) {
+			continue;
+		}
+		quat[i] = 0.25 * s[ismax][i] / quat[ismax];
+	}
+
+	// quat bound
+	if (quat[0] < 0) {
+		quat[0] *= -1;
+		quat[1] *= -1;
+		quat[2] *= -1;
+		quat[3] *= -1;
+	}
+
+	return quat;
+}
+
+std::vector<double>
+quat2crv(std::vector<double>& quat) {
+
+	double crv_norm = 2.0*acos(std::max(-1.0, std::min(quat[0], 1.0)));
+
+	// normal vector
+	std::vector<double> psi(3, 0);
+	if (abs(crv_norm) < 1.0e-15) {
+		psi = { 0.0, 0.0, 0.0 };
+	}
+	else {
+		psi[0] = crv_norm * quat[1] / sin(crv_norm*0.5);
+		psi[1] = crv_norm * quat[2] / sin(crv_norm*0.5);
+		psi[2] = crv_norm * quat[3] / sin(crv_norm*0.5);
+	}
+
+	return psi;
+}
+
+
+std::vector<double>
+rotation2crv(std::vector<std::vector<double>>& Mat) {
+
+	std::vector<double> quat;
+	std::vector<double> psi;
+
+	quat = rotation2crv(Mat);
+	psi = quat2crv(quat);
+
+	// crv bounds
+	double norm_ini = 0;
+	for (const auto& itr : psi) {
+		norm_ini += itr * itr;
+	}
+	norm_ini = sqrt(norm_ini);
+
+	// forces the norm to be in [-pi, pi]
+	double norm = norm_ini - 2.0*M_PI * int(norm_ini / (2 * M_PI));
+
+	if (norm == 0.0) {
+		psi[0] *= 0.0;
+		psi[1] *= 0.0;
+		psi[2] *= 0.0;
+	}
+	else {
+		if (norm > M_PI) {
+			norm -= 2.0*M_PI;
+		}
+		else if (norm < -M_PI) {
+			norm += 2.0*M_PI;
+		}
+		psi[0] *= (norm / norm_ini);
+		psi[1] *= (norm / norm_ini);
+		psi[2] *= (norm / norm_ini);
+	}
+
+	return psi;
+}
+
 void
 crv2tan(std::vector<std::vector<double>>& Mat, std::vector<double>& psi) {
 
@@ -279,6 +404,16 @@ angle_between_vectors_sign(std::vector<double>& vec_a, std::vector<double>& vec_
 	return angle;
 }
 
+std::vector<double>
+flatten(std::vector<std::vector<double>>& Mat) {
+
+	std::vector<double> ret;
+	for (auto &v : Mat)
+		ret.insert(ret.end(), v.begin(), v.end());
+
+	return ret;
+}
+
 
 /***************************************************************/
 // Functions used in coupling with MBDyn and UVLM subsystem
@@ -291,26 +426,96 @@ MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 	Beam_inputs& MBDyn_UVLM_Beam_inputs,
 	Aero_inputs& MBDyn_UVLM_Aero_inputs,
 	StraightWake& MBDyn_UVLM_StraightWake,
-	SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField) {
+	SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+	UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+	UVLM::Types::VMopts& VMoptions,
+	UVLM::Types::UVMopts& UVMoptions,
+	UVLM::Types::FlightConditions& FlightConditions,
+	unsigned MBDyn_UVLM_NodesNum) {
 
 	gettimeofday(&start_time, NULL);  // get the start time
 	startTime = clock();
 
 	// Define Beam_inputs
-	MBDyn_UVLM_Beam_inputs.Beam_inputs_generate(/*input the number of nodes*/);
+	MBDyn_UVLM_Beam_inputs.Beam_inputs_generate(MBDyn_UVLM_NodesNum);
 
 	// Define Aero_inputs
-	MBDyn_UVLM_Aero_inputs.Aero_inputs_generate(/*input the numner of nodes*/);
+	MBDyn_UVLM_Aero_inputs.Aero_inputs_generate(MBDyn_UVLM_NodesNum);
 
 	// Initialize the StraightWake
 	MBDyn_UVLM_StraightWake.StraightWake_initialize(MBDyn_UVLM_StraightWake_settings);
 
 	// Initialize the Velocity field
 	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_initialize(MBDyn_UVLM_FlightConditions);
+
+	// Create variables for the initialization function of the Uvlm library
+	Aerogrid aerogrid;
+	double time_step = 0;  // Initial iteration
+	aerogrid.generate(MBDyn_UVLM_Aero_inputs, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aerogrid_settings, time_step);
+	MBDyn_UVLM_StraightWake.StraightWake_generate(aerogrid.aero_timestep_info[0]);
+	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_generate(aerogrid.aero_timestep_info[0], MBDyn_UVLM_UVMopts);
+
+	// constructing the VMopts as input
+	VMoptions.cfl1 = MBDyn_UVLM_UVMopts->cfl1;
+	VMoptions.DelTime = 1.0;
+	VMoptions.dt = MBDyn_UVLM_UVMopts->dt;
+	VMoptions.horseshoe = true;
+	VMoptions.ImageMethod = MBDyn_UVLM_UVMopts->ImageMethod;
+	VMoptions.iterative_precond = MBDyn_UVLM_UVMopts->iterative_precond;
+	VMoptions.iterative_solver = MBDyn_UVLM_UVMopts->iterative_solver;
+	VMoptions.iterative_tol = MBDyn_UVLM_UVMopts->iterative_tol;
+	VMoptions.KJMeth = false;
+	VMoptions.NewAIC = false;
+	VMoptions.NumCores = MBDyn_UVLM_UVMopts->NumCores;
+	VMoptions.NumSurfaces = MBDyn_UVLM_UVMopts->NumSurfaces;
+	VMoptions.n_rollup = 0;
+	VMoptions.Rollup = false;
+	VMoptions.rollup_aic_refresh = 1;
+	VMoptions.rollup_tolerance = 1.0e-5;
+	VMoptions.Steady = true;
+	VMoptions.vortex_radius = MBDyn_UVLM_UVMopts->vortex_radius;
+	VMoptions.vortex_radius_wake_ind = MBDyn_UVLM_UVMopts->vortex_radius_wake_ind;
+
+	// constructing the UVMopts as the input
+	UVMoptions.cfl1 = MBDyn_UVLM_UVMopts->cfl1;
+	UVMoptions.convection_scheme = MBDyn_UVLM_UVMopts->convection_scheme;
+	UVMoptions.convect_wake = MBDyn_UVLM_UVMopts->convect_wake;
+	UVMoptions.dt = MBDyn_UVLM_UVMopts->dt;
+	UVMoptions.filter_method = MBDyn_UVLM_UVMopts->filter_method;
+	UVMoptions.ImageMethod = MBDyn_UVLM_UVMopts->ImageMethod;
+	UVMoptions.interp_coords = MBDyn_UVLM_UVMopts->interp_coords;
+	UVMoptions.interp_method = MBDyn_UVLM_UVMopts->interp_method;
+	UVMoptions.iterative_precond = MBDyn_UVLM_UVMopts->iterative_precond;
+	UVMoptions.iterative_solver = MBDyn_UVLM_UVMopts->iterative_solver;
+	UVMoptions.iterative_tol = MBDyn_UVLM_UVMopts->iterative_tol;
+	UVMoptions.NumCores = MBDyn_UVLM_UVMopts->NumCores;
+	UVMoptions.NumSurfaces = MBDyn_UVLM_UVMopts->NumSurfaces;
+	UVMoptions.quasi_steady = MBDyn_UVLM_UVMopts->quasi_steady;
+	UVMoptions.vortex_radius = MBDyn_UVLM_UVMopts->vortex_radius;
+	UVMoptions.vortex_radius_wake_ind = MBDyn_UVLM_UVMopts->vortex_radius_wake_ind;
+	UVMoptions.yaw_slerp = MBDyn_UVLM_UVMopts->yaw_slerp;
+
+	// constructing the FlightConditions as input
+	FlightConditions.c_ref = MBDyn_UVLM_FlightConditions->c_ref;
+	FlightConditions.rho = MBDyn_UVLM_FlightConditions->rho;
+	FlightConditions.uinf = MBDyn_UVLM_FlightConditions->uinf;
+	FlightConditions.uinf_direction[0] = MBDyn_UVLM_FlightConditions->uinf_direction[0];
+	FlightConditions.uinf_direction[1] = MBDyn_UVLM_FlightConditions->uinf_direction[1];
+	FlightConditions.uinf_direction[2] = MBDyn_UVLM_FlightConditions->uinf_direction[2];
+
+	// generate the pointers for the UVLM variables 
+	MBDyn_UVLM_UvlmLibVar.UvlmLibVar_generate(aerogrid, time_step);
+
+	// call the initializer function from the UVLM library
+	init_UVLM(VMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+		MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot, 
+		MBDyn_UVLM_UvlmLibVar.p_zeta_star_dot, MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_gamma, MBDyn_UVLM_UvlmLibVar.p_gamma_star, 
+		MBDyn_UVLM_UvlmLibVar.p_normals, MBDyn_UVLM_UvlmLibVar.p_forces);
+
 }
 
 
-extern "C" bool
+extern "C" void
 MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 	const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
 	const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
@@ -321,31 +526,52 @@ MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_set
 	StraightWake& MBDyn_UVLM_StraightWake,
 	SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
 	Aerogrid& MBDyn_UVLM_Aerogrid,
-	std::vector<AeroTimeStepInfo>& MBDyn_UVLM_AeroPreviousTimeStepInfo,
+	UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+	UVLM::Types::UVMopts& UVMoptions,
+	UVLM::Types::FlightConditions& FlightConditions,
 	double time_step) {
 
+	if (MBDyn_UVLM_Aerogrid.aero_timestep_info.size() == 0) {    
+		// This is for the very first time step (here we will use the values obtained from the init function 
+		// and will pass these in the UVLM solver)
+		run_UVLM(UVMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+			MBDyn_UVLM_UvlmLibVar.i_iter, MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_uext_star, 
+			MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot, 
+			MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_centre_rot, MBDyn_UVLM_UvlmLibVar.p_gamma, 
+			MBDyn_UVLM_UvlmLibVar.p_gamma_star, MBDyn_UVLM_UvlmLibVar.p_dist_to_orig, MBDyn_UVLM_UvlmLibVar.p_normals, 
+			MBDyn_UVLM_UvlmLibVar.p_forces, MBDyn_UVLM_UvlmLibVar.p_dynamic_forces);
+	}
+	else {
+		// Generate the Grid (This function creates the grid for each and every time step)
+		MBDyn_UVLM_Aerogrid.generate(MBDyn_UVLM_Aero_inputs, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aerogrid_settings, time_step);
 
-	// Generate the Grid (This function creates the grid for each and every time step)
-	MBDyn_UVLM_Aerogrid.generate(MBDyn_UVLM_Aero_inputs, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aerogrid_settings,
-		time_step);
+		// Wake shape generator
+		MBDyn_UVLM_StraightWake.StraightWake_generate(MBDyn_UVLM_Aerogrid.aero_timestep_info[time_step]);
 
-	// Aero_timestep_info for the current time step
-	AeroTimeStepInfo MBDyn_UVLM_AeroTimeStepInfo;
-	MBDyn_UVLM_AeroTimeStepInfo = MBDyn_UVLM_Aerogrid.aero_timestep_info[time_step];
+		// Generate u_ext and u_ext_star
+		MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_generate(MBDyn_UVLM_Aerogrid.aero_timestep_info[time_step], MBDyn_UVLM_UVMopts);
 
-	// Wake shape generator
-	MBDyn_UVLM_StraightWake.StraightWake_generate(MBDyn_UVLM_AeroTimeStepInfo);
+		// Generate the pointers for the UVLM variables
+		MBDyn_UVLM_UvlmLibVar.UvlmLibVar_generate(MBDyn_UVLM_Aerogrid, time_step);
 
-	// Generate u_ext and u_ext_star
-	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_generate(MBDyn_UVLM_AeroTimeStepInfo, MBDyn_UVLM_UVMopts);
+		// call the solver 
+		run_UVLM(UVMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+			MBDyn_UVLM_UvlmLibVar.i_iter, MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_uext_star, 
+			MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot,
+			MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_centre_rot, MBDyn_UVLM_UvlmLibVar.p_gamma, 
+			MBDyn_UVLM_UvlmLibVar.p_gamma_star, MBDyn_UVLM_UvlmLibVar.p_dist_to_orig, MBDyn_UVLM_UvlmLibVar.p_normals, 
+			MBDyn_UVLM_UvlmLibVar.p_forces, MBDyn_UVLM_UvlmLibVar.p_dynamic_forces);
+	}
 
-	// Call the solver here
-	libuvlm.run_UVLM();
 
+	// Unsteady Contribution for later usage
+	//1. Copy the value of pointer gamma into the aerogrid timestep info gamma.
+	//2. pass the aerogrid into the compute_gamma_dot function and use these gamma values to compute the gamma_dot
+	//3. copy the computed gamma_dot value into the pointer gamma_dot.
+	//4. then use the UvlmLibVar_save function to save all the possible updated values.
 
-
-	// Unsteady Contribution
-	if (~MBDyn_UVLM_UVMopts->quasi_steady) {
+	/*
+	if (!MBDyn_UVLM_UVMopts->quasi_steady) {
 		// Calculate the unsteady (added mass) forces:
 		double dt = MBDyn_UVLM_UVMopts->dt;
 		MBDyn_UVLM_Aerogrid.compute_gamma_dot(MBDyn_UVLM_Aero_inputs, dt, MBDyn_UVLM_AeroTimeStepInfo, MBDyn_UVLM_AeroPreviousTimeStepInfo, time_step);
@@ -358,23 +584,110 @@ MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_set
 	
 	}
 	else {
-		for (int i_surf = 0; i_surf < MBDyn_UVLM_AeroTimeStepInfo.gamma.size(); ++i_surf) {
-			for (int i = 0; i < MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf].size(); ++i) {
-				for (int j = 0; j < MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf][i].size(); ++j) {
-					MBDyn_UVLM_AeroTimeStepInfo.gamma[i_surf][i][j] = 0.0;
+		for (int i_surf = 0; i_surf < MBDyn_UVLM_AeroTimeStepInfo.gamma_dot.size(); ++i_surf) {
+			for (int i = 0; i < MBDyn_UVLM_AeroTimeStepInfo.gamma_dot[i_surf].size(); ++i) {
+				for (int j = 0; j < MBDyn_UVLM_AeroTimeStepInfo.gamma_dot[i_surf][i].size(); ++j) {
+					MBDyn_UVLM_AeroTimeStepInfo.gamma_dot[i_surf][i][j] = 0.0;
 				}
 			}
 		}
 	}
+	*/
+
+	// Save the updated values of the UVLM variables into the current time step "aero_timestep_info"
+	MBDyn_UVLM_UvlmLibVar.UvlmLibVar_save(MBDyn_UVLM_Aerogrid, time_step);
 
 
+}
 
 
+extern "C" void
+MBDyn_UVLM_Model_RecvFromBuf(Aerogrid& MBDyn_UVLM_Aerogrid,
+	std::vector<double> &MBDyn_UVLM_CouplingKinematic,
+	const unsigned &MBDyn_UVLM_NodesNum) {
+
+	// Resize the kinematic data members of the Aerogrid class
+	MBDyn_UVLM_Aerogrid.node_displacements.resize(MBDyn_UVLM_NodesNum);
+	MBDyn_UVLM_Aerogrid.node_displacements_der.resize(MBDyn_UVLM_NodesNum);
+	MBDyn_UVLM_Aerogrid.node_CRV.resize(MBDyn_UVLM_NodesNum);
+	MBDyn_UVLM_Aerogrid.node_CRV_der.resize(MBDyn_UVLM_NodesNum);
+	for (int i = 0; i < MBDyn_UVLM_NodesNum; ++i){
+		MBDyn_UVLM_Aerogrid.node_displacements[i].resize(3);
+		MBDyn_UVLM_Aerogrid.node_displacements_der[i].resize(3);
+		MBDyn_UVLM_Aerogrid.node_CRV[i].resize(3);
+		MBDyn_UVLM_Aerogrid.node_CRV_der[i].resize(3);
+	}
+
+	std::vector<std::vector<double>> Cag(3, std::vector<double>(3, 0));
+	// Obtain the kinematic data
+	for (unsigned i = 0; i < MBDyn_UVLM_NodesNum; ++i) {
+		// The coordinates and the derivative of the coordinates are all in the "G" frame of reference. We need to 
+		// convert them into "A" frame of reference. For this we multiply these by the rotation matrix "Cag".
+		Cag[0][0] = MBDyn_UVLM_CouplingKinematic[9 * i + 3 * MBDyn_UVLM_NodesNum];
+		Cag[1][0] = MBDyn_UVLM_CouplingKinematic[9 * i + 1 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[2][0] = MBDyn_UVLM_CouplingKinematic[9 * i + 2 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[0][1] = MBDyn_UVLM_CouplingKinematic[9 * i + 3 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[1][1] = MBDyn_UVLM_CouplingKinematic[9 * i + 4 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[2][1] = MBDyn_UVLM_CouplingKinematic[9 * i + 5 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[0][2] = MBDyn_UVLM_CouplingKinematic[9 * i + 6 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[1][2] = MBDyn_UVLM_CouplingKinematic[9 * i + 7 + 3 * MBDyn_UVLM_NodesNum];
+		Cag[2][2] = MBDyn_UVLM_CouplingKinematic[9 * i + 8 + 3 * MBDyn_UVLM_NodesNum];
+
+		//- Filling up the coordinates of the structural beam nodes 
+		MBDyn_UVLM_Aerogrid.node_displacements[i] = MatVecMul(Cag, { MBDyn_UVLM_CouplingKinematic[3 * i],
+			MBDyn_UVLM_CouplingKinematic[3 * i + 1], MBDyn_UVLM_CouplingKinematic[3 * i + 2] });
+
+		//- Filling up the derivatives of the coordinates of the structural beam nodes
+		MBDyn_UVLM_Aerogrid.node_displacements_der[i] = MatVecMul(Cag, { MBDyn_UVLM_CouplingKinematic[3 * i + 12 * MBDyn_UVLM_NodesNum],
+			MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 12 * MBDyn_UVLM_NodesNum], MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 12 * MBDyn_UVLM_NodesNum] });
+
+		//- Filling up the Cga matrix for each node 
+		MBDyn_UVLM_Aerogrid.node_cga[i][0][0] = Cag[0][0];
+		MBDyn_UVLM_Aerogrid.node_cga[i][0][1] = Cag[1][0];
+		MBDyn_UVLM_Aerogrid.node_cga[i][0][2] = Cag[2][0];
+		MBDyn_UVLM_Aerogrid.node_cga[i][1][0] = Cag[0][1];
+		MBDyn_UVLM_Aerogrid.node_cga[i][1][1] = Cag[1][1];
+		MBDyn_UVLM_Aerogrid.node_cga[i][1][2] = Cag[2][1];
+		MBDyn_UVLM_Aerogrid.node_cga[i][2][0] = Cag[0][2];
+		MBDyn_UVLM_Aerogrid.node_cga[i][2][1] = Cag[1][2];
+		MBDyn_UVLM_Aerogrid.node_cga[i][2][2] = Cag[2][2];
+
+		//- Filling up the Cartesian rotation vector for each node of each element
+		MBDyn_UVLM_Aerogrid.node_CRV[i] = rotation2crv(Cag);
+
+		//- Filling up the derivatives of the cartwsian rotation vector of each node of each element
+
+	}
 
 
+}
 
-	// We store the results for the next time step
-	MBDyn_UVLM_AeroPreviousTimeStepInfo.push_back(MBDyn_UVLM_AeroTimeStepInfo);
+extern "C" void
+MBDyn_UVLM_Model_SendToBuf(Aerogrid& MBDyn_UVLM_Aerogrid,
+	std::vector<double>& MBDyn_UVLM_CouplingDynamic,
+	const unsigned &MBDyn_UVLM_NodesNum,
+	double time_step) {
+
+	// The values returned are the forces, dynamic forces and moments at each node .
+	for (unsigned i = 0; i < MBDyn_UVLM_NodesNum; ++i) {
+		if (MBDyn_UVLM_Aerogrid.aero_timestep_info.size() == 0) {
+			MBDyn_UVLM_CouplingDynamic[3 * i] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 3 * MBDyn_UVLM_NodesNum] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum] = 0.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum] = 0.0;
+		}
+		else {
+
+		}
+	}
+	
+
+
 }
 
 
@@ -392,14 +705,13 @@ AeroTimeStepInfo::AeroTimeStepInfo() {
 }
 
 void
-AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
-	std::vector<std::pair<int, int>>& dimensions_star) {
+AeroTimeStepInfo::initialize(std::vector<std::pair<unsigned int, unsigned int>>& dimensions,
+	std::vector<std::pair<unsigned int, unsigned int>>& dimensions_star) {
 
 	unsigned int number_of_surfaces = dimensions.size();
 
 	zeta.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		zeta[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			zeta[i][j].resize(dimensions[i].first + 1);
@@ -410,8 +722,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	zeta_dot.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		zeta_dot[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			zeta_dot[i][j].resize(dimensions[i].first + 1);
@@ -422,8 +733,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	normals.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		normals[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			normals[i][j].resize(dimensions[i].first);
@@ -434,8 +744,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	forces.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		forces[i].resize(6);
 		for (int j = 0; j < 6; ++j) {
 			forces[i][j].resize(dimensions[i].first + 1);
@@ -446,8 +755,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	dynamic_forces.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		dynamic_forces[i].resize(6);
 		for (int j = 0; j < 6; ++j) {
 			dynamic_forces[i][j].resize(dimensions[i].first + 1);
@@ -458,8 +766,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	zeta_star.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		zeta_star[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			zeta_star[i][j].resize(dimensions_star[i].first + 1);
@@ -470,8 +777,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	u_ext.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		u_ext[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			u_ext[i][j].resize(dimensions[i].first + 1);
@@ -482,8 +788,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	u_ext_star.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		u_ext_star[i].resize(3);
 		for (int j = 0; j < 3; ++j) {
 			u_ext_star[i][j].resize(dimensions_star[i].first + 1);
@@ -494,8 +799,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	gamma.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		gamma[i].resize(dimensions[i].first);
 		for (int j = 0; j < dimensions[i].first; ++j) {
 			gamma[i][j].resize(dimensions[i].second);
@@ -503,8 +807,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	gamma_star.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		gamma_star[i].resize(dimensions_star[i].first);
 		for (int j = 0; j < dimensions_star[i].first; ++j) {
 			gamma_star[i][j].resize(dimensions_star[i].second);
@@ -512,8 +815,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	gamma_dot.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		gamma_dot[i].resize(dimensions[i].first);
 		for (int j = 0; j < dimensions[i].first; ++j) {
 			gamma_dot[i][j].resize(dimensions[i].second);
@@ -521,8 +823,7 @@ AeroTimeStepInfo::initialize(std::vector<std::pair<int, int>>& dimensions,
 	}
 
 	dist_to_orig.resize(number_of_surfaces);
-	for (int i = 0; i < number_of_surfaces; ++i)
-	{
+	for (int i = 0; i < number_of_surfaces; ++i){
 		dist_to_orig[i].resize(dimensions[i].first + 1);
 		for (int j = 0; j < dimensions[i].first + 1; ++j) {
 			dist_to_orig[i][j].resize(dimensions[i].second + 1);
@@ -716,8 +1017,10 @@ Aero_inputs::generate_naca_camber(double P, double M) {
 
 
 
+Aerogrid::Aerogrid() {
 
-
+	NO_OP;
+}
 
 void 
 Aerogrid::generate(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs, const Aerogrid_settings* aerogrid_settings,
@@ -836,7 +1139,7 @@ Aerogrid::add_timestep() {
 		aero_timestep_info.push_back(aero_ini_info);
 	}
 	else {
-		aero_timestep_info.push_back(aero_timestep_info.back());    // doubtful**************************************
+		aero_timestep_info.push_back(aero_timestep_info.back());
 	}
 }
 
@@ -894,12 +1197,14 @@ Aerogrid::generate_zeta_timestep_info(Aero_inputs& aero_inputs, Beam_inputs& bea
 			node_info.M = dimensions[i_surf].first;
 			node_info.M_distribution = aero_inputs.m_distribution;
 			node_info.airfoil = aero_inputs.airfoil_distribution_input[i_elem][i_local_node];
-			//node_info.beam_coord = ;
-			//node_info.pos_dot = ;
-			//node_info.beam_psi = ;
-			//node_info.psi_dot = ;
+			node_info.beam_coord = node_displacements[i_global_node];
+			node_info.pos_dot = node_displacements_der[i_global_node];
+//			node_info.beam_psi = node_CRV[i_elem][i_local_node];
+//			node_info.psi_dot = node_CRV_der[i_elem][i_local_node];
+			node_info.beam_psi = node_CRV[beam_inputs.connectivities[i_elem][i_local_node]];
+			node_info.psi_dot = node_CRV_der[beam_inputs.connectivities[i_elem][i_local_node]];
 			node_info.for_delta = beam_inputs.frame_of_reference_delta[i_elem][i_local_node];
-			//node_info.cga = ;
+			node_info.cga = node_cga[i_global_node];
 
 			generate_strip(aero_inputs, aerogrid_settings, aero_tstep);
 		}
@@ -974,25 +1279,25 @@ Aerogrid::generate_mapping(Aero_inputs& aero_inputs, Beam_inputs& beam_inputs) {
 }
 
 void 
-Aerogrid::compute_gamma_dot(Aero_inputs& aero_inputs, double dt, AeroTimeStepInfo& tstep,
-	std::vector<AeroTimeStepInfo>& previous_tsteps, double time_step) {
+Aerogrid::compute_gamma_dot(Aero_inputs& aero_inputs, double dt, double time_step) {
 
 	int n_surf = aero_inputs.surface_m.size();
 
-	if (previous_tsteps.size() < 2) {
+	if (aero_timestep_info.size() <= 2) {
 		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-			for (int j = 0; j < tstep.gamma_dot[i_surf].size(); ++j) {
-				for (int k = 0; k < tstep.gamma_dot[i_surf][j].size(); ++k) {
-					tstep.gamma_dot[i_surf][j][k] = 0.0;
+			for (int j = 0; j < aero_timestep_info[time_step].gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < aero_timestep_info[time_step].gamma_dot[i_surf][j].size(); ++k) {
+					aero_timestep_info[time_step].gamma_dot[i_surf][j][k] = 0.0;
 				}
 			}
 		}
 	}
 	else {
 		for (int i_surf = 0; i_surf < n_surf; ++i_surf) {
-			for (int j = 0; j < tstep.gamma_dot[i_surf].size(); ++j) {
-				for (int k = 0; k < tstep.gamma_dot[i_surf][j].size(); ++k) {
-					tstep.gamma_dot[i_surf][j][k] = (tstep.gamma[i_surf][j][k] - previous_tsteps[time_step - 2].gamma[i_surf][j][k]) / dt;
+			for (int j = 0; j < aero_timestep_info[time_step].gamma_dot[i_surf].size(); ++j) {
+				for (int k = 0; k < aero_timestep_info[time_step].gamma_dot[i_surf][j].size(); ++k) {
+					aero_timestep_info[time_step].gamma_dot[i_surf][j][k] = (aero_timestep_info[time_step].gamma[i_surf][j][k] - 
+						aero_timestep_info[time_step - 2].gamma[i_surf][j][k]) / dt;
 				}
 			}
 		}
@@ -1188,6 +1493,399 @@ Aerogrid::generate_strip(Aero_inputs& aero_inputs, const Aerogrid_settings* aero
 	}
 }
 
+Aerogrid::~Aerogrid() {
+
+	NO_OP;
+}
+
+
+
+UvlmLibVar::UvlmLibVar() {
+
+	NO_OP;
+}
+
+void
+UvlmLibVar::UvlmLibVar_generate(Aerogrid& aerogrid, double time_step) {
+
+	// constructing the "p_dimensions" pointer
+	p_dimensions = new unsigned int*[aerogrid.dimensions.size()];
+	for (unsigned i = 0; i < aerogrid.dimensions.size(); i++) {
+		p_dimensions[i] = new unsigned int[2];
+		p_dimensions[i][0] = aerogrid.dimensions[i].first;
+		p_dimensions[i][1] = aerogrid.dimensions[i].second;
+	}
+
+	// constructing the "p_dimensions_star" pointer
+	p_dimensions_star = new unsigned int*[aerogrid.dimensions_star.size()];
+	for (unsigned i = 0; i < aerogrid.dimensions_star.size(); i++) {
+		p_dimensions_star[i] = new unsigned int[2];
+		p_dimensions_star[i][0] = aerogrid.dimensions_star[i].first;
+		p_dimensions_star[i][1] = aerogrid.dimensions_star[i].second;
+	}
+
+	// constructing the "i_iter"
+	i_iter = static_cast<unsigned int>(time_step);
+
+	// constructing the "p_uext" pointer
+	int n_surf = aerogrid.aero_timestep_info[time_step].u_ext.size();
+	p_uext = new double*[n_surf * 3];
+	std::vector<double> flatten_vec_x;
+	std::vector<double> flatten_vec_y;
+	std::vector<double> flatten_vec_z;
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions[i].first + 1)*(aerogrid.dimensions[i].second + 1);
+		p_uext[3 * i] = new double[NumOfGridVertices];
+		p_uext[3 * i + 1] = new double[NumOfGridVertices];
+		p_uext[3 * i + 2] = new double[NumOfGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].u_ext[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].u_ext[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].u_ext[i][2]);
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_uext[3 * i][j] = flatten_vec_x[j];
+			p_uext[3 * i + 1][j] = flatten_vec_y[j];
+			p_uext[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_uext_star" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].u_ext_star.size();
+	p_uext_star = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfWakeGridVertices = (aerogrid.dimensions_star[i].first + 1)*(aerogrid.dimensions_star[i].second + 1);
+		p_uext_star[3 * i] = new double[NumOfWakeGridVertices];
+		p_uext_star[3 * i + 1] = new double[NumOfWakeGridVertices];
+		p_uext_star[3 * i + 2] = new double[NumOfWakeGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].u_ext_star[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].u_ext_star[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].u_ext_star[i][2]);
+		for (unsigned j = 0; j < NumOfWakeGridVertices; j++) {
+			p_uext_star[3 * i][j] = flatten_vec_x[j];
+			p_uext_star[3 * i + 1][j] = flatten_vec_y[j];
+			p_uext_star[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_zeta" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].zeta.size();
+	p_zeta = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions[i].first + 1)*(aerogrid.dimensions[i].second + 1);
+		p_zeta[3 * i] = new double[NumOfGridVertices];
+		p_zeta[3 * i + 1] = new double[NumOfGridVertices];
+		p_zeta[3 * i + 2] = new double[NumOfGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].zeta[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].zeta[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].zeta[i][2]);
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_zeta[3 * i][j] = flatten_vec_x[j];
+			p_zeta[3 * i + 1][j] = flatten_vec_y[j];
+			p_zeta[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_zeta_star" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].zeta_star.size();
+	p_zeta_star = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfWakeGridVertices = (aerogrid.dimensions_star[i].first + 1)*(aerogrid.dimensions_star[i].second + 1);
+		p_zeta_star[3 * i] = new double[NumOfWakeGridVertices];
+		p_zeta_star[3 * i + 1] = new double[NumOfWakeGridVertices];
+		p_zeta_star[3 * i + 2] = new double[NumOfWakeGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].zeta_star[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].zeta_star[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].zeta_star[i][2]);
+		for (unsigned j = 0; j < NumOfWakeGridVertices; j++) {
+			p_zeta_star[3 * i][j] = flatten_vec_x[j];
+			p_zeta_star[3 * i + 1][j] = flatten_vec_y[j];
+			p_zeta_star[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_zeta_dot" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].zeta_dot.size();
+	p_zeta_dot = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions[i].first + 1)*(aerogrid.dimensions[i].second + 1);
+		p_zeta_dot[3 * i] = new double[NumOfGridVertices];
+		p_zeta_dot[3 * i + 1] = new double[NumOfGridVertices];
+		p_zeta_dot[3 * i + 2] = new double[NumOfGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].zeta_dot[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].zeta_dot[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].zeta_dot[i][2]);
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_zeta_dot[3 * i][j] = flatten_vec_x[j];
+			p_zeta_dot[3 * i + 1][j] = flatten_vec_y[j];
+			p_zeta_dot[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_zeta_star_dot" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].zeta_star.size();
+	p_zeta_star_dot = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions_star[i].first + 1)*(aerogrid.dimensions_star[i].second + 1);
+		p_zeta_star_dot[3 * i] = new double[NumOfGridVertices];
+		p_zeta_star_dot[3 * i + 1] = new double[NumOfGridVertices];
+		p_zeta_star_dot[3 * i + 2] = new double[NumOfGridVertices];
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_zeta_star_dot[3 * i][j] = 0.0;
+			p_zeta_star_dot[3 * i + 1][j] = 0.0;
+			p_zeta_star_dot[3 * i + 2][j] = 0.0;
+		}
+	}
+
+	// constructing the "p_rbm_vel" pointer
+	p_rbm_vel = new double[6];
+	for (unsigned i = 0; i < 6; i++) {
+		p_rbm_vel[i] = 0.0;     // for now it is considered to be 0 (has to be included if the dynamic simulation is required)
+	}
+
+	// constructing the "p_centre_rot" pointer
+	p_centre_rot = new double[3];
+	p_centre_rot[0] = 0.0;
+	p_centre_rot[1] = 0.0;
+	p_centre_rot[2] = 0.0;
+
+	// constructing the "p_gamma" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].gamma.size();
+	p_gamma = new double*[n_surf];
+	std::vector<double> flatten_vec_gamma;
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfPanels = (aerogrid.dimensions[i].first)*(aerogrid.dimensions[i].second);
+		p_gamma[i] = new double[NumOfPanels];
+		flatten_vec_gamma = flatten(aerogrid.aero_timestep_info[time_step].gamma[i]);
+		for (unsigned j = 0; j < NumOfPanels; j++) {
+			p_gamma[i][j] = flatten_vec_gamma[j];
+		}
+	}
+
+	// constructing the "p_gamma_star" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].gamma_star.size();
+	p_gamma_star = new double*[n_surf];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfWakePanels = (aerogrid.dimensions_star[i].first)*(aerogrid.dimensions_star[i].second);
+		p_gamma_star[i] = new double[NumOfWakePanels];
+		flatten_vec_gamma = flatten(aerogrid.aero_timestep_info[time_step].gamma_star[i]);
+		for (unsigned j = 0; j < NumOfWakePanels; j++) {
+			p_gamma_star[i][j] = flatten_vec_gamma[j];
+		}
+	}
+
+	// constructing the "p_gamma_dot" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].gamma_dot.size();
+	p_gamma_dot = new double*[n_surf];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfPanels = (aerogrid.dimensions[i].first)*(aerogrid.dimensions[i].second);
+		p_gamma_dot[i] = new double[NumOfPanels];
+		flatten_vec_gamma = flatten(aerogrid.aero_timestep_info[time_step].gamma_dot[i]);
+		for (unsigned j = 0; j < NumOfPanels; j++) {
+			p_gamma_dot[i][j] = flatten_vec_gamma[j];
+		}
+	}
+
+	// constructing the "p_dist_to_orig" pointer
+	// Distance from the trailing edge of the wake vertices
+	n_surf = aerogrid.aero_timestep_info[time_step].dist_to_orig.size();
+	p_dist_to_orig = new double*[n_surf];
+	std::vector<double> flatten_vec_dist_to_orig;
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfWakeGridVertices = (aerogrid.dimensions_star[i].first + 1)*(aerogrid.dimensions_star[i].second + 1);
+		p_dist_to_orig[i] = new double[NumOfWakeGridVertices];
+		flatten_vec_dist_to_orig = flatten(aerogrid.aero_timestep_info[time_step].dist_to_orig[i]);
+		for (unsigned j = 0; j < NumOfWakeGridVertices; j++) {
+			p_dist_to_orig[i][j] = flatten_vec_dist_to_orig[j];
+		}
+	}
+
+	// constructing the "p_normals" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].normals.size();
+	p_normals = new double*[n_surf * 3];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfPanels = (aerogrid.dimensions[i].first)*(aerogrid.dimensions[i].second);
+		p_normals[3 * i] = new double[NumOfPanels];
+		p_normals[3 * i + 1] = new double[NumOfPanels];
+		p_normals[3 * i + 2] = new double[NumOfPanels];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].normals[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].normals[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].normals[i][2]);
+		for (unsigned j = 0; j < NumOfPanels; j++) {
+			p_normals[3 * i][j] = flatten_vec_x[j];
+			p_normals[3 * i + 1][j] = flatten_vec_y[j];
+			p_normals[3 * i + 2][j] = flatten_vec_z[j];
+		}
+	}
+
+	// constructing the "p_forces" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].forces.size();
+	p_forces = new double*[n_surf * 6];
+	std::vector<double> flatten_vec_x_prime;
+	std::vector<double> flatten_vec_y_prime;
+	std::vector<double> flatten_vec_z_prime;
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions[i].first + 1)*(aerogrid.dimensions[i].second + 1);
+		p_forces[3 * i] = new double[NumOfGridVertices];
+		p_forces[3 * i + 1] = new double[NumOfGridVertices];
+		p_forces[3 * i + 2] = new double[NumOfGridVertices];
+		p_forces[3 * i + 3] = new double[NumOfGridVertices];
+		p_forces[3 * i + 4] = new double[NumOfGridVertices];
+		p_forces[3 * i + 5] = new double[NumOfGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].forces[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].forces[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].forces[i][2]);
+		flatten_vec_x_prime = flatten(aerogrid.aero_timestep_info[time_step].forces[i][3]);
+		flatten_vec_y_prime = flatten(aerogrid.aero_timestep_info[time_step].forces[i][4]);
+		flatten_vec_z_prime = flatten(aerogrid.aero_timestep_info[time_step].forces[i][5]);
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_forces[3 * i][j] = flatten_vec_x[j];
+			p_forces[3 * i + 1][j] = flatten_vec_y[j];
+			p_forces[3 * i + 2][j] = flatten_vec_z[j];
+			p_forces[3 * i + 3][j] = flatten_vec_x_prime[j];
+			p_forces[3 * i + 4][j] = flatten_vec_y_prime[j];
+			p_forces[3 * i + 5][j] = flatten_vec_z_prime[j];
+		}
+	}
+
+	// constructing the "p_dynamic_forces" pointer
+	n_surf = aerogrid.aero_timestep_info[time_step].dynamic_forces.size();
+	p_dynamic_forces = new double*[n_surf * 6];
+	for (unsigned i = 0; i < n_surf; i++) {
+		unsigned int NumOfGridVertices = (aerogrid.dimensions[i].first + 1)*(aerogrid.dimensions[i].second + 1);
+		p_dynamic_forces[3 * i] = new double[NumOfGridVertices];
+		p_dynamic_forces[3 * i + 1] = new double[NumOfGridVertices];
+		p_dynamic_forces[3 * i + 2] = new double[NumOfGridVertices];
+		p_dynamic_forces[3 * i + 3] = new double[NumOfGridVertices];
+		p_dynamic_forces[3 * i + 4] = new double[NumOfGridVertices];
+		p_dynamic_forces[3 * i + 5] = new double[NumOfGridVertices];
+		flatten_vec_x = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][0]);
+		flatten_vec_y = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][1]);
+		flatten_vec_z = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][2]);
+		flatten_vec_x_prime = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][3]);
+		flatten_vec_y_prime = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][4]);
+		flatten_vec_z_prime = flatten(aerogrid.aero_timestep_info[time_step].dynamic_forces[i][5]);
+		for (unsigned j = 0; j < NumOfGridVertices; j++) {
+			p_dynamic_forces[3 * i][j] = flatten_vec_x[j];
+			p_dynamic_forces[3 * i + 1][j] = flatten_vec_y[j];
+			p_dynamic_forces[3 * i + 2][j] = flatten_vec_z[j];
+			p_dynamic_forces[3 * i + 3][j] = flatten_vec_x_prime[j];
+			p_dynamic_forces[3 * i + 4][j] = flatten_vec_y_prime[j];
+			p_dynamic_forces[3 * i + 5][j] = flatten_vec_z_prime[j];
+		}
+	}
+}
+
+void
+UvlmLibVar::UvlmLibVar_save(Aerogrid& aerogrid, double time_step) {
+
+	// saving the values of "p_uext"
+	int n_surf = aerogrid.aero_timestep_info[time_step].u_ext.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].u_ext[i_surf].size(); i++) {
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].u_ext[i_surf][i].size(); j++) {
+				int N = aerogrid.aero_timestep_info[time_step].u_ext[i_surf][i][j].size();  // Number of columns in the core matrix
+				for (int k = 0; k < aerogrid.aero_timestep_info[time_step].u_ext[i_surf][i][j].size(); k++) {
+					aerogrid.aero_timestep_info[time_step].u_ext[i_surf][i][j][k] = p_uext[i + i_surf * n_surf][j*N + k];
+				}
+			}
+		}
+	}
+
+	// saving the value of "p_uext_star" and "p_zeta_star"
+	n_surf = aerogrid.aero_timestep_info[time_step].u_ext_star.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].u_ext_star[i_surf].size(); i++) {
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].u_ext_star[i_surf][i].size(); j++) {
+				int N = aerogrid.aero_timestep_info[time_step].u_ext_star[i_surf][i][j].size();  // Number of columns in the core matrix
+				for (int k = 0; k < aerogrid.aero_timestep_info[time_step].u_ext_star[i_surf][i][j].size(); k++) {
+					aerogrid.aero_timestep_info[time_step].u_ext_star[i_surf][i][j][k] = p_uext_star[i + i_surf * n_surf][j*N + k];
+					aerogrid.aero_timestep_info[time_step].zeta_star[i_surf][i][j][k] = p_zeta_star[i + i_surf * n_surf][j*N + k];
+				}
+			}
+		}
+	}
+
+	// saving the value of "p_zeta" and "p_zeta_dot"
+	n_surf = aerogrid.aero_timestep_info[time_step].zeta.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].zeta[i_surf].size(); i++) {
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].zeta[i_surf][i].size(); j++) {
+				int N = aerogrid.aero_timestep_info[time_step].zeta[i_surf][i][j].size();  // Number of columns in the core matrix
+				for (int k = 0; k < aerogrid.aero_timestep_info[time_step].zeta[i_surf][i][j].size(); k++) {
+					aerogrid.aero_timestep_info[time_step].zeta[i_surf][i][j][k] = p_zeta[i + i_surf * n_surf][j*N + k];
+					aerogrid.aero_timestep_info[time_step].zeta_dot[i_surf][i][j][k] = p_zeta_dot[i + i_surf * n_surf][j*N + k];
+				}
+			}
+		}
+	}
+
+	// saving the values of "p_gamma" and "p_gamma_dot"
+	n_surf = aerogrid.aero_timestep_info[time_step].gamma.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].gamma[i_surf].size(); i++) {
+			int N = aerogrid.aero_timestep_info[time_step].gamma[i_surf][i].size();  // Number of columns in the core matrix
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].gamma[i_surf][i].size(); j++) {
+				aerogrid.aero_timestep_info[time_step].gamma[i_surf][i][j] = p_gamma[i_surf][i*N + j];
+				aerogrid.aero_timestep_info[time_step].gamma_dot[i_surf][i][j] = p_gamma_dot[i_surf][i*N + j];
+			}
+		}
+	}
+
+	// saving the values of "p_gamma_star"
+	n_surf = aerogrid.aero_timestep_info[time_step].gamma_star.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].gamma_star[i_surf].size(); i++) {
+			int N = aerogrid.aero_timestep_info[time_step].gamma_star[i_surf][i].size();  // Number of columns in the core matrix
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].gamma_star[i_surf][i].size(); j++) {
+				aerogrid.aero_timestep_info[time_step].gamma_star[i_surf][i][j] = p_gamma_star[i_surf][i*N + j];
+			}
+		}
+	}
+
+	// saving the values of "p_dist_to_orig"
+	n_surf = aerogrid.aero_timestep_info[time_step].dist_to_orig.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].dist_to_orig[i_surf].size(); i++) {
+			int N = aerogrid.aero_timestep_info[time_step].dist_to_orig[i_surf][i].size();  // Number of columns in the core matrix
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].dist_to_orig[i_surf][i].size(); j++) {
+				aerogrid.aero_timestep_info[time_step].dist_to_orig[i_surf][i][j] = p_dist_to_orig[i_surf][i*N + j];
+			}
+		}
+	}
+
+	// saving the values of "p_normals"
+	n_surf = aerogrid.aero_timestep_info[time_step].normals.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].normals[i_surf].size(); i++) {
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].normals[i_surf][i].size(); j++) {
+				int N = aerogrid.aero_timestep_info[time_step].normals[i_surf][i][j].size();  // Number of columns in the core matrix
+				for (int k = 0; k < aerogrid.aero_timestep_info[time_step].normals[i_surf][i][j].size(); k++) {
+					aerogrid.aero_timestep_info[time_step].normals[i_surf][i][j][k] = p_normals[i + i_surf * n_surf][j*N + k];
+				}
+			}
+		}
+	}
+
+	// saving the "p_forces" and the "p_dynamic_forces"
+	n_surf = aerogrid.aero_timestep_info[time_step].forces.size();
+	for (int i_surf = 0; i_surf < n_surf; i_surf++) {
+		for (int i = 0; i < aerogrid.aero_timestep_info[time_step].forces[i_surf].size(); i++) {
+			for (int j = 0; j < aerogrid.aero_timestep_info[time_step].forces[i_surf][i].size(); j++) {
+
+				int N = aerogrid.aero_timestep_info[time_step].forces[i_surf][i][j].size();  // Number of columns in the core matrix
+				for (int k = 0; k < aerogrid.aero_timestep_info[time_step].forces[i_surf][i][j].size(); k++) {
+					aerogrid.aero_timestep_info[time_step].forces[i_surf][i][j][k] = p_forces[i + i_surf * n_surf][j*N + k];
+					aerogrid.aero_timestep_info[time_step].dynamic_forces[i_surf][i][j][k] = p_dynamic_forces[i + i_surf * n_surf][j*N + k];
+				}
+			}
+		}
+	}
+}
+
+UvlmLibVar::~UvlmLibVar() {
+
+	NO_OP;
+}
+
 
 
 StraightWake::StraightWake() {
@@ -1317,7 +2015,7 @@ SteadyVelocityField::SteadyVelocityField_generate(AeroTimeStepInfo& aero_tstep, 
 		}
 	}
 
-	if (((uvmopts->convection_scheme > 1) && uvmopts->convect_wake) || ~uvmopts->cfl1) {
+	if (((uvmopts->convection_scheme > 1) && uvmopts->convect_wake) || !uvmopts->cfl1) {
 		for (int i_surf = 0; i_surf < aero_tstep.zeta_star.size(); ++i_surf) {
 			for (int k = 0; k < aero_tstep.zeta_star[i_surf].size(); ++k) {
 				for (int i = 0; i < aero_tstep.zeta_star[i_surf][k].size(); ++i) {
@@ -1334,3 +2032,20 @@ SteadyVelocityField::~SteadyVelocityField() {
 
 	NO_OP;
 }
+
+
+
+
+/*
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_x;                    //- consistent with the external struct force element
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_R;
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_xp;
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_omega;
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_xpp;
+std::vector<double> pMBDyn_UVLM_CouplingKinematic_omegap;
+std::vector<double> pMBDyn_UVLM_Frame;                                       //- the position [3] and the orietation [9] of UVLM ground coordinate
+std::vector<double> pMBDyn_UVLM_CouplingDynamic_f;
+std::vector<double> pMBDyn_UVLM_CouplingDynamic_m;
+std::vector<double> pMBDyn_UVLM_CouplingDynamic_f_pre;
+std::vector<double> pMBDyn_UVLM_CouplingDynamic_m_pre;
+*/

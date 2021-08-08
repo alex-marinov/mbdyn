@@ -34,6 +34,7 @@
 #include <iomanip>
 #include <cfloat>
 #include <vector>
+#include "matvec3.h"
 #include "elem.h"
 #include "strnode.h"
 #include "dataman.h"
@@ -100,6 +101,7 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
+
 
 	// Read information from the script    [START]
 	//--------------- 1. <cosimulation_platform> ------------------------
@@ -206,8 +208,8 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	//----- nodes number
 	MBDyn_UVLM_NodesNum = 0;
 	//----- UVLM ground reference
-	double mbdyn_uvlm_ref_x[3] = { 0.0, 0.0, 0.0 };
-	double mbdyn_uvlm_ref_R[9];
+	std::vector<double> mbdyn_uvlm_ref_x(3, 0.0);
+	std::vector<double> mbdyn_uvlm_ref_R(9, 0.0);
 	for (unsigned i = 0; i < 3; i++) //- default: two system has the same coordinate
 	{
 		mbdyn_uvlm_ref_x[i] = MBDyn_UVLM_Scale[0] * mbdyn_uvlm_ref_x[i];
@@ -250,7 +252,7 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 
 		/* Offset of the aerodynamic body w.r.t. the node */
 		const StructNode* pNode1 = pBeam->pGetNode(1);
-
+		
 		ReferenceFrame RF(pNode1);
 		Vec3 f1(HP.GetPosRel(RF));
 		DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
@@ -330,8 +332,9 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 				MBDyn_UVLM_Model_Label[i].MBDyn_UVLM_Body_Rh[j] = mbdyn_UVLM_RhM_abs.pGetMat()[j];
 				std::cout << "\t\trotation matrix:\t" << MBDyn_UVLM_Model_Label[i].MBDyn_UVLM_Body_Rh[j] << "\n";
 			}
-			//--------- Force and Torque
+			//--------- Forces associated without and with the time derivatives (i.e. forces and dynamic forces)
 			MBDyn_UVLM_Nodes[i].MBDyn_UVLM_F = Zero3;
+			MBDyn_UVLM_Nodes[i].MBDyn_UVLM_DF = Zero3;
 			MBDyn_UVLM_Nodes[i].MBDyn_UVLM_M = Zero3;
 			MBDyn_UVLM_Nodes[i].MBDyn_UVLM_uLabel = MBDyn_UVLM_Nodes[i].pMBDyn_UVLM_Node->GetLabel();  //- node label (MBDyn)
 
@@ -515,28 +518,45 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	//---------- allocate space for coupling variables (std::vectors for the coupling variables, motion and force)
 	//- kinematic motion + 12 (for the global coordinate in uvlm)
 	MBDyn_UVLM_CouplingSize.Size_Kinematic = MBDyn_UVLM_NodesNum * (3 + 9 + 3 + 3 + 3 + 3) + 12; //- motion
-	MBDyn_UVLM_CouplingSize.Size_Dynamic = MBDyn_UVLM_NodesNum * (3 + 3); //- dynamic variables
+	MBDyn_UVLM_CouplingSize.Size_Dynamic = MBDyn_UVLM_NodesNum * (3 + 3 + 3); //- dynamic variables
 
 	MBDyn_UVLM_CouplingKinematic.resize(MBDyn_UVLM_CouplingSize.Size_Kinematic, 0.0);
 	MBDyn_UVLM_CouplingDynamic.resize(MBDyn_UVLM_CouplingSize.Size_Dynamic, 0.0);
 	MBDyn_UVLM_CouplingDynamic_pre.resize(MBDyn_UVLM_CouplingSize.Size_Dynamic, 0.0); //- vector for last iteration
 	//- pointer to motion
-	pMBDyn_UVLM_CouplingKinematic_x = &MBDyn_UVLM_CouplingKinematic[0];
-	pMBDyn_UVLM_CouplingKinematic_R = &MBDyn_UVLM_CouplingKinematic[3 * MBDyn_UVLM_NodesNum];
-	pMBDyn_UVLM_CouplingKinematic_xp = &MBDyn_UVLM_CouplingKinematic[12 * MBDyn_UVLM_NodesNum];
-	pMBDyn_UVLM_CouplingKinematic_omega = &MBDyn_UVLM_CouplingKinematic[15 * MBDyn_UVLM_NodesNum];
-	pMBDyn_UVLM_CouplingKinematic_xpp = &MBDyn_UVLM_CouplingKinematic[18 * MBDyn_UVLM_NodesNum];
-	pMBDyn_UVLM_CouplingKinematic_omegap = &MBDyn_UVLM_CouplingKinematic[21 * MBDyn_UVLM_NodesNum];
-	//- UVLM ground coordinate
-	pMBDyn_UVLM_Frame = &MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum]; //- pointer to Ground information
-	memcpy(&pMBDyn_UVLM_Frame[0], mbdyn_uvlm_ref_x, 3 * sizeof(double));
-	memcpy(&pMBDyn_UVLM_Frame[3], mbdyn_uvlm_ref_R, 9 * sizeof(double));
+	/*
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin(), MBDyn_UVLM_CouplingKinematic.begin() + 3 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_x);
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 3 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 12 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_R);
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 12 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 15 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_xp);
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 15 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 18 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_omega);
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 18 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 21 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_xpp);
+	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 21 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 24 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_omegap);
+	*/
+
+	//- UVLM ground coordinate  
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_ref_x[0];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 1] = mbdyn_uvlm_ref_x[1];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 2] = mbdyn_uvlm_ref_x[2];
+
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 3] = mbdyn_uvlm_ref_R[0];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 4] = mbdyn_uvlm_ref_R[1];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 5] = mbdyn_uvlm_ref_R[2];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 6] = mbdyn_uvlm_ref_R[3];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 7] = mbdyn_uvlm_ref_R[4];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 8] = mbdyn_uvlm_ref_R[5];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 9] = mbdyn_uvlm_ref_R[6];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 10] = mbdyn_uvlm_ref_R[7];
+	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum + 11] = mbdyn_uvlm_ref_R[8];
+
+	/*
 	//- pointer to force
 	pMBDyn_UVLM_CouplingDynamic_f = &MBDyn_UVLM_CouplingDynamic[0];
 	pMBDyn_UVLM_CouplingDynamic_m = &MBDyn_UVLM_CouplingDynamic[3 * MBDyn_UVLM_NodesNum];
 	//- pointer to force of last iteration (not time step)
 	pMBDyn_UVLM_CouplingDynamic_f_pre = &MBDyn_UVLM_CouplingDynamic_pre[0];
 	pMBDyn_UVLM_CouplingDynamic_m_pre = &MBDyn_UVLM_CouplingDynamic_pre[3 * MBDyn_UVLM_NodesNum];
+	*/
+
 	// initialization (std::vector<>) - [END]
 
 
@@ -544,8 +564,10 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	//---------- initial UVLM model, and allocate space for reloading UVLM model data
 	MBDyn_UVLM_Model_Init(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings, 
 		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
-		MBDyn_UVLM_StraightWake);
+		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_UvlmLibVar, VMoptions, UVMoptions, 
+		FlightConditions, MBDyn_UVLM_NodesNum);
 	// Initial UVLM system - [END]
+
 }
 
 UvlmInterfaceBaseElem::~UvlmInterfaceBaseElem() {
@@ -567,11 +589,11 @@ UvlmInterfaceBaseElem::SetValue(DataManager *pDM, VectorHandler &X, VectorHandle
 	//---------- set gravity 
 	//- the default graivity is: (0.0,-9.81,0.0)
 	Vec3 mbdyn_uvlm_mbdyn_gravity_vec3;
-	double mbdyn_uvlm_mbdyn_gravity[3];
+	std::vector<double> mbdyn_uvlm_mbdyn_gravity(3);
 	Vec3 mbdyn_uvlm_mbdyn_vec3 = Zero3; // arm of the gravity. is not used.
 	bool bmbdyn_uvlm_gravity;
 	GravityOwner::bGetGravity(mbdyn_uvlm_mbdyn_vec3, mbdyn_uvlm_mbdyn_gravity_vec3);
-	MBDyn_UVLM_Vec3D(mbdyn_uvlm_mbdyn_gravity_vec3, mbdyn_uvlm_mbdyn_gravity, MBDyn_UVLM_Scale[0]); //- transfer Vec3 to double[]
+	MBDyn_UVLM_Vec3D(mbdyn_uvlm_mbdyn_gravity_vec3, mbdyn_uvlm_mbdyn_gravity, MBDyn_UVLM_Scale[0]); //- transfer Vec3 to double vector
 	std::cout << "\t\tgravity is: " << mbdyn_uvlm_mbdyn_gravity[0] << "\t" << mbdyn_uvlm_mbdyn_gravity[1] << "\t" << mbdyn_uvlm_mbdyn_gravity[2] << "\n"; //- print in screen
 
 	//-------------- Initial send data to Buffer
@@ -711,13 +733,13 @@ UvlmInterfaceBaseElem::AfterPredict(VectorHandler &X, VectorHandler &XP) {
 	case MBDyn_UVLM_COUPLING::COUPLING_NONE:
 		pedantic_cout("\t MBDyn::AfterPredict() - no_coupling \n");
 		time_step = m_PDM->pGetDrvHdl()->dGetTimeStep();  //-  get time step
-		if (MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
-			MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
-			MBDyn_UVLM_StraightWake, MBDyn_UVLM_Aerogrid, time_step, bMBDyn_UVLM_Verbose)) {
 
-			silent_cerr("UvlmInterface(" << uLabel << ") Uvlm integration process is wrong " << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		// Perform one step dynamics
+		MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
+			MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
+			MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
+			MBDyn_UVLM_UvlmLibVar, UVMoptions, FlightConditions, time_step);
+
 		bMBDyn_UVLM_FirstSend = false;
 		bMBDyn_UVLM_Model_DoStepDynamics = false;   //- only do time integration once
 		MBDyn_UVLM_Model_Converged.Set(Converged::State::CONVERGED);
@@ -831,10 +853,21 @@ UvlmInterfaceBaseElem::AssRes(SubVectorHandler& WorkVec,
 			}
 
 			WorkVec.Add(i*iOffset + 1, point.MBDyn_UVLM_F);
-			WorkVec.Add(i*iOffset + 4, point.MBDyn_UVLM_M + (point.pMBDyn_UVLM_Node->GetRCurr()*point.MBDyn_UVLM_Offset).Cross(point.MBDyn_UVLM_F));
+			WorkVec.Add(i*iOffset + 4, point.MBDyn_UVLM_DF);
+			WorkVec.Add(i*iOffset + 7, point.MBDyn_UVLM_M + (point.pMBDyn_UVLM_Node->GetRCurr()*point.MBDyn_UVLM_Offset).Cross(point.MBDyn_UVLM_F));
 			//- save the force of last iteration (only used in tight co-simulation)
-			memcpy(&pMBDyn_UVLM_CouplingDynamic_f_pre[3 * i], &pMBDyn_UVLM_CouplingDynamic_f[3 * i], 3 * sizeof(double));
-			memcpy(&pMBDyn_UVLM_CouplingDynamic_m_pre[3 * i], &pMBDyn_UVLM_CouplingDynamic_m[3 * i], 3 * sizeof(double));
+			// Force components 
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i] = MBDyn_UVLM_CouplingDynamic[3 * i];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 1] = MBDyn_UVLM_CouplingDynamic[3 * i + 1];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 2] = MBDyn_UVLM_CouplingDynamic[3 * i + 2];
+			// Dynamic force components
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 3 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 3 * MBDyn_UVLM_NodesNum];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum];
+			//- Moment components
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 6 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum];
+			MBDyn_UVLM_CouplingDynamic_pre[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum] = MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum];
 		}
 	}
 	return WorkVec;
@@ -919,26 +952,50 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Prev() {
 		Vec3 mbdyn_uvlm_a = mbdyn_uvlm_point.pMBDyn_UVLM_Node->GetXPPPrev() + mbdyn_uvlm_wp.Cross(mbdyn_uvlm_f) +
 			mbdyn_uvlm_w.Cross(mbdyn_uvlm_wCrossf);
 
-		double mbdyn_uvlm_tempvec3_x[3];
-		double mbdyn_uvlm_tempvec3_v[3];
-		double mbdyn_uvlm_tempvec3_a[3];
-		double mbdyn_uvlm_tempvec3_w[3];
-		double mbdyn_uvlm_tempvec3_wp[3];
+		std::vector<double> mbdyn_uvlm_tempvec3_x(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_v(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_a(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_w(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_wp(3);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_x, mbdyn_uvlm_tempvec3_x, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_v, mbdyn_uvlm_tempvec3_v, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_a, mbdyn_uvlm_tempvec3_a, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_w, mbdyn_uvlm_tempvec3_w, 1.0);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_wp, mbdyn_uvlm_tempvec3_wp, 1.0);
-		double mbdyn_uvlm_tempmat3x3_R[9];
+		std::vector<double> mbdyn_uvlm_tempmat3x3_R(9);
 		MBDyn_UVLM_Mat3x3D(mbdyn_uvlm_R_marker, mbdyn_uvlm_tempmat3x3_R);
 
 
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_x[3 * i], mbdyn_uvlm_tempvec3_x, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_R[9 * i], mbdyn_uvlm_tempmat3x3_R, 9 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_xp[3 * i], mbdyn_uvlm_tempvec3_v, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_omega[3 * i], mbdyn_uvlm_tempvec3_w, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_xpp[3 * i], mbdyn_uvlm_tempvec3_a, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_omegap[3 * i], mbdyn_uvlm_tempvec3_wp, 3 * sizeof(double));
+		MBDyn_UVLM_CouplingKinematic[3 * i] = mbdyn_uvlm_tempvec3_x[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1] = mbdyn_uvlm_tempvec3_x[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2] = mbdyn_uvlm_tempvec3_x[2];
+
+		MBDyn_UVLM_CouplingKinematic[9 * i + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[0];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 1 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[1];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 2 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[2];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 3 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[3];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 4 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[4];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 5 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[5];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 6 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[6];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 7 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[7];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 8 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[8];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[2];
+
 	}
 }
 
@@ -970,26 +1027,49 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_SendDataToBuf_Curr() {
 		const Vec3 &mbdyn_uvlm_wp = mbdyn_uvlm_point.pMBDyn_UVLM_Node->GetWPCurr();
 		Vec3 mbdyn_uvlm_a = mbdyn_uvlm_point.pMBDyn_UVLM_Node->GetXPPCurr() + mbdyn_uvlm_wp.Cross(mbdyn_uvlm_f) + mbdyn_uvlm_w.Cross(mbdyn_uvlm_wCrossf);
 
-		double mbdyn_uvlm_tempvec3_x[3];
-		double mbdyn_uvlm_tempvec3_v[3];
-		double mbdyn_uvlm_tempvec3_a[3];
-		double mbdyn_uvlm_tempvec3_w[3];
-		double mbdyn_uvlm_tempvec3_wp[3];
+		std::vector<double> mbdyn_uvlm_tempvec3_x(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_v(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_a(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_w(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_wp(3);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_x, mbdyn_uvlm_tempvec3_x, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_v, mbdyn_uvlm_tempvec3_v, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_a, mbdyn_uvlm_tempvec3_a, MBDyn_UVLM_Scale[0]);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_w, mbdyn_uvlm_tempvec3_w, 1.0);
 		MBDyn_UVLM_Vec3D(mbdyn_uvlm_wp, mbdyn_uvlm_tempvec3_wp, 1.0);
-		double mbdyn_uvlm_tempmat3x3_R[9];
+		std::vector<double> mbdyn_uvlm_tempmat3x3_R(9);
 		MBDyn_UVLM_Mat3x3D(mbdyn_uvlm_R_marker, mbdyn_uvlm_tempmat3x3_R);
 
+		
+		MBDyn_UVLM_CouplingKinematic[3 * i] = mbdyn_uvlm_tempvec3_x[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1] = mbdyn_uvlm_tempvec3_x[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2] = mbdyn_uvlm_tempvec3_x[2];
 
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_x[3 * i], mbdyn_uvlm_tempvec3_x, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_R[9 * i], mbdyn_uvlm_tempmat3x3_R, 9 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_xp[3 * i], mbdyn_uvlm_tempvec3_v, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_omega[3 * i], mbdyn_uvlm_tempvec3_w, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_xpp[3 * i], mbdyn_uvlm_tempvec3_a, 3 * sizeof(double));
-		memcpy(&pMBDyn_UVLM_CouplingKinematic_omegap[3 * i], mbdyn_uvlm_tempvec3_wp, 3 * sizeof(double));
+		MBDyn_UVLM_CouplingKinematic[9 * i + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[0];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 1 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[1];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 2 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[2];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 3 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[3];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 4 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[4];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 5 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[5];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 6 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[6];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 7 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[7];
+		MBDyn_UVLM_CouplingKinematic[9 * i + 8 + 3 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempmat3x3_R[8];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 12 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_v[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 15 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_w[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 18 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_a[2];
+
+		MBDyn_UVLM_CouplingKinematic[3 * i + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[0];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 1 + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[1];
+		MBDyn_UVLM_CouplingKinematic[3 * i + 2 + 21 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_tempvec3_wp[2];
 	}
 }
 
@@ -1010,24 +1090,18 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_UpdateUVLMModel() {
 
 	//---------- 3. UVLM models read the coupling data from buffer;
 	time_step = m_PDM->pGetDrvHdl()->dGetTimeStep();  //- get time step
-	/*
-	!
-	!
-	!
-	!
-	!
-	*/
-	//---------- 4. C::E models do integration (one step);
-	/*
-	!
-	!
-	!
-	!
-	!
-	*/
+	MBDyn_UVLM_Model_RecvFromBuf(MBDyn_UVLM_Aerogrid, MBDyn_UVLM_CouplingKinematic, MBDyn_UVLM_NodesNum);
+
+	//---------- 4. UVLM models do integration (one step);
+	MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
+		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
+		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
+		MBDyn_UVLM_UvlmLibVar, UVMoptions, FlightConditions, time_step);
+
+	pedantic_cout("\t MBDyn_UVLM::Update a regular step\n");
 }
 
-//- Read the data from buffer, and write them to the Vec3 MBDyn_UVLM_F and Vec3 MBDyn_UVLM_M;
+//- Read the data from buffer, and write them to the Vec3 MBDyn_UVLM_F, Vec3 MBDyn_UVLM_DF and Vec3 MBDyn_UVLM_M;
 void
 UvlmInterfaceBaseElem::MBDyn_UVLM_RecvDataFromBuf() {
 
@@ -1044,8 +1118,9 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_RecvDataFromBuf() {
 
 		//- read from the buffer
 		MBDYN_UVLM_POINTDATA& mbdyn_uvlm_point = MBDyn_UVLM_Nodes[i];
-		mbdyn_uvlm_point.MBDyn_UVLM_F = Vec3(pMBDyn_UVLM_CouplingDynamic_f[3 * i], pMBDyn_UVLM_CouplingDynamic_f[3 * i + 1], pMBDyn_UVLM_CouplingDynamic_f[3 * i + 2]);
-		mbdyn_uvlm_point.MBDyn_UVLM_M = Vec3(pMBDyn_UVLM_CouplingDynamic_m[3 * i], pMBDyn_UVLM_CouplingDynamic_m[3 * i + 1], pMBDyn_UVLM_CouplingDynamic_m[3 * i + 2]);
+		mbdyn_uvlm_point.MBDyn_UVLM_F = Vec3(MBDyn_UVLM_CouplingDynamic[3 * i], MBDyn_UVLM_CouplingDynamic[3 * i + 1], MBDyn_UVLM_CouplingDynamic[3 * i + 2]);
+		mbdyn_uvlm_point.MBDyn_UVLM_DF = Vec3(MBDyn_UVLM_CouplingDynamic[3 * i + 3 * MBDyn_UVLM_NodesNum], MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum], MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum]);
+		mbdyn_uvlm_point.MBDyn_UVLM_M = Vec3(MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum], MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum], MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum]);
 	}
 }
 
@@ -1074,15 +1149,18 @@ UvlmInterfaceBaseElem::Output(OutputHandler& OH) const {
 			if (uvlm_body.bMBDyn_UVLM_Body_Output || MBDyn_UVLM_OutputType == MBDYN_UVLM_OUTPUTTYPE::MBDYN_UVLM_OUTPUT_ALLBODIES) {
 
 				MBDyn_UVLM_out_forces << std::setw(8) << point.MBDyn_UVLM_uLabel
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_f[3 * i]
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_f[3 * i + 1]
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_f[3 * i + 2]
-					<< std::setw(16) << temp_moment.pGetVec()[0]                   // moment in the res.
-					<< std::setw(16) << temp_moment.pGetVec()[1]                   // moment in the res.
-					<< std::setw(16) << temp_moment.pGetVec()[2]                   // moment in the res.
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_m[3 * i]         // received moment.
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_m[3 * i + 1]     // received moment.
-					<< std::setw(16) << pMBDyn_UVLM_CouplingDynamic_m[3 * i + 2]     // received moment.
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i]
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 1]
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 2]
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 3 * MBDyn_UVLM_NodesNum]         
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum]     
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum]     
+					<< std::setw(16) << temp_moment.pGetVec()[0]                                            // moment in the res.
+					<< std::setw(16) << temp_moment.pGetVec()[1]                                            // moment in the res.
+					<< std::setw(16) << temp_moment.pGetVec()[2]                                            // moment in the res.
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum]         // received moment.
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum]     // received moment.
+					<< std::setw(16) << MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum]     // received moment.
 					<< std::endl;
 			}
 		}
@@ -1117,7 +1195,7 @@ UvlmInterfaceBaseElem::iGetInitialNumDof(void) const
 // private functions: [START]
 
 void
-UvlmInterfaceBaseElem::MBDyn_UVLM_Vec3D(const Vec3& mbdyn_uvlm_Vec3, double* mbdyn_uvlm_temp,
+UvlmInterfaceBaseElem::MBDyn_UVLM_Vec3D(const Vec3& mbdyn_uvlm_Vec3, std::vector<double>& mbdyn_uvlm_temp,
 	double MBDyn_UVLM_LengthScale) const {
 
 	mbdyn_uvlm_temp[0] = MBDyn_UVLM_LengthScale * static_cast<double>(*(mbdyn_uvlm_Vec3.pGetVec()));
@@ -1126,7 +1204,7 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_Vec3D(const Vec3& mbdyn_uvlm_Vec3, double* mbd
 }
 
 void
-UvlmInterfaceBaseElem::MBDyn_UVLM_Mat3x3D(const Mat3x3& mbdyn_uvlm_Mat3x3, double* mbdyn_uvlm_temp) const {
+UvlmInterfaceBaseElem::MBDyn_UVLM_Mat3x3D(const Mat3x3& mbdyn_uvlm_Mat3x3, std::vector<double>& mbdyn_uvlm_temp) const {
 
 	for (unsigned i = 0; i < 9; i++) {
 		mbdyn_uvlm_temp[i] = static_cast<double>(mbdyn_uvlm_Mat3x3.pGetMat()[i]);
@@ -1139,8 +1217,9 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_CalculateError() {    //- calculate the error 
 	double mbdyn_uvlm_temp_error = 0.0;  //- using Euclidean norm
 	for (unsigned i = 0; i < MBDyn_UVLM_NodesNum; ++i) {
 		for (unsigned j = 0; j < 3; ++j) {
-			mbdyn_uvlm_temp_error += pow(pMBDyn_UVLM_CouplingDynamic_f_pre[3 * i + j] - pMBDyn_UVLM_CouplingDynamic_f[3 * i + j], 2);
-			mbdyn_uvlm_temp_error += pow(pMBDyn_UVLM_CouplingDynamic_m_pre[3 * i + j] - pMBDyn_UVLM_CouplingDynamic_m[3 * i + j], 2);
+			mbdyn_uvlm_temp_error += pow(MBDyn_UVLM_CouplingDynamic_pre[3 * i + j] - MBDyn_UVLM_CouplingDynamic[3 * i + j], 2);
+			mbdyn_uvlm_temp_error += pow(MBDyn_UVLM_CouplingDynamic_pre[3 * i + j + 3 * MBDyn_UVLM_NodesNum] - MBDyn_UVLM_CouplingDynamic[3 * i + j + 3 * MBDyn_UVLM_NodesNum], 2);
+			mbdyn_uvlm_temp_error += pow(MBDyn_UVLM_CouplingDynamic_pre[3 * i + j + 6 * MBDyn_UVLM_NodesNum] - MBDyn_UVLM_CouplingDynamic[3 * i + j + 6 * MBDyn_UVLM_NodesNum], 2);
 		}
 	}
 	return sqrt(mbdyn_uvlm_temp_error);
@@ -1157,26 +1236,26 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_MBDynPrint() const {
 		const MBDYN_UVLM_POINTDATA &mbdyn_uvlm_point = MBDyn_UVLM_Nodes[i];
 		std::cout << "time in MBDyn: " << time << "\n\t"
 			<< "coupling node" << mbdyn_uvlm_point.MBDyn_UVLM_uLabel << "\n"
-			<< "\t\t forces obtained: " << pMBDyn_UVLM_CouplingDynamic_f[i] << "\t" << pMBDyn_UVLM_CouplingDynamic_f[i + 1] << "\t" << pMBDyn_UVLM_CouplingDynamic_f[i + 2]
+			<< "\t\t forces obtained: " << MBDyn_UVLM_CouplingDynamic[3 * i] << "\t" << MBDyn_UVLM_CouplingDynamic[3 * i + 1] << "\t" << MBDyn_UVLM_CouplingDynamic[3 * i + 2]
 			<< "\n"
-			<< "\t \t torques obtained: " << pMBDyn_UVLM_CouplingDynamic_m[i] << "\t" << pMBDyn_UVLM_CouplingDynamic_m[i + 1] << "\t" << pMBDyn_UVLM_CouplingDynamic_m[i + 2]
+			<< "\t \t torques obtained: " << MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum] << "\t" << MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum] << "\t" << MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum]
 			<< "\n";
 
 		//- current states
-		double mbdyn_uvlm_tempvec3_x[3];
-		double mbdyn_uvlm_tempvec3_v[3];
-		double mbdyn_uvlm_tempvec3_a[3];
-		double mbdyn_uvlm_tempvec3_w[3];
-		double mbdyn_uvlm_tempvec3_wp[3];
-		double mbdyn_uvlm_tempmat3x3_R[9];
+		std::vector<double> mbdyn_uvlm_tempvec3_x(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_v(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_a(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_w(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_wp(3);
+		std::vector<double> mbdyn_uvlm_tempmat3x3_R(9);
 
 		//- states of last step
-		double mbdyn_uvlm_tempvec3_xPrev[3];
-		double mbdyn_uvlm_tempvec3_vPrev[3];
-		double mbdyn_uvlm_tempvec3_aPrev[3];
-		double mbdyn_uvlm_tempvec3_wPrev[3];
-		double mbdyn_uvlm_tempvec3_wpPrev[3];
-		double mbdyn_uvlm_tempmat3x3_RPrev[9];
+		std::vector<double> mbdyn_uvlm_tempvec3_xPrev(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_vPrev(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_aPrev(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_wPrev(3);
+		std::vector<double> mbdyn_uvlm_tempvec3_wpPrev(3);
+		std::vector<double> mbdyn_uvlm_tempmat3x3_RPrev(9);
 		{
 			//- rotation and position
 			const Mat3x3 &mbdyn_uvlm_R = mbdyn_uvlm_point.pMBDyn_UVLM_Node->GetRCurr();
