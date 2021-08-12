@@ -302,7 +302,7 @@ void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>&
         Units[Dimensions::Time] + "^-3";
 	Units[Dimensions::VoltageDerivative] = Units[Dimensions::Voltage] + " " +
         Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::VoltageDerivative] = "UnknownDimension";
+	Units[Dimensions::UnknownDimension] = "UnknownDimension";
 };
 
 void OutputHandler::SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units) {

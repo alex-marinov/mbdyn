@@ -378,7 +378,7 @@ NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size,
 	eps1 = 1E-1;
 	eps2 = 1E-5;
 
-	for ( int i = 0; i < dTestVector.size(); i++) {
+	for ( std::vector<double>::size_type i = 0; i < dTestVector.size(); i++) {
 		doublereal dTest = dTestVector[i];
 		doublereal abs_dTest = abs_dTestVector[i];
 

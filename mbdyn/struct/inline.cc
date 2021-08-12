@@ -578,7 +578,8 @@ InLineJoint::GetEquationDimension(integer index) const {
 	}
 
    if (fc && fc->iGetNumDof() > 0) {
-      if ( index >= NumSelfDof + 1 && index <= NumSelfDof + fc->iGetNumDof() ) {
+      unsigned int i = index;
+      if ( i >= NumSelfDof + 1 && i <= NumSelfDof + fc->iGetNumDof() ) {
          dimension = fc->GetEquationDimension(index - NumSelfDof);
       }
    }

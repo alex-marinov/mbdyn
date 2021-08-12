@@ -3648,11 +3648,9 @@ Modal::GetG_int(void) const
 const OutputHandler::Dimensions
 Modal::GetEquationDimension(integer index) const {
 	// DOF is varible
-	// TODO
-
 	std::map<int, OutputHandler::Dimensions> index_map;
 
-	int i, j;
+	unsigned int i;
 
 	for (i = 1; i <= NModes; i++) {
 		index_map[i] = OutputHandler::Dimensions::Momentum;

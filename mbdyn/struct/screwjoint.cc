@@ -1035,7 +1035,8 @@ const OutputHandler::Dimensions
 ScrewJoint::GetEquationDimension(integer index) const {
 	// DOF is variable 
 	if (fc && fc->iGetNumDof() > 0) {
-		if (index >= 2 && index <= fc->iGetNumDof()) {
+		unsigned int i = index;
+		if (i >= 2 && i <= fc->iGetNumDof()) {
 			return fc->GetEquationDimension(index - 1);
 		}
 	}

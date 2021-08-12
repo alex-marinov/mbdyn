@@ -560,9 +560,16 @@ const OutputHandler::Dimensions
 DiscreteCoulombFriction::GetEquationDimension(integer index) const {
 	// DOF == 1
 	
-	throw("Should not be called as DOF is 0\n");
+	OutputHandler::Dimensions dimension;
 
-	return OutputHandler::Dimensions::UnknownDimension;
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::UnknownDimension;
+		break;
+	}
+
+	return dimension;
 }
 
 
