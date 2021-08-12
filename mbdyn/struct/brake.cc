@@ -590,8 +590,8 @@ const OutputHandler::Dimensions
 Brake::GetEquationDimension(integer index) const {
 	// DOF is unknown
    if (fc && fc->iGetNumDof() > 0) {
-      if ( index >= NumSelfDof + 1 && index <= NumSelfDof + fc->iGetNumDof()) {
-         // TODO
+      unsigned int i = index;
+      if ( i >= NumSelfDof + 1 && i <= NumSelfDof + fc->iGetNumDof()) {
          return fc->GetEquationDimension(index - NumSelfDof);
       }
    }
