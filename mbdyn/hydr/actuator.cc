@@ -510,5 +510,18 @@ Actuator::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Actuator::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": " <<
+			"actuator pressure balance" << std::endl;
+
+	return out;
+}
+
 /* Actuator - end */
 

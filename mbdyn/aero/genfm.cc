@@ -492,6 +492,16 @@ GenericAerodynamicForce::GetEquationDimension(integer index) const {
 	return OutputHandler::Dimensions::UnknownDimension;
 }
 
+std::ostream&
+GenericAerodynamicForce::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
+
 extern Elem *
 ReadGenericAerodynamicForce(DataManager* pDM,
 	MBDynParser& HP,

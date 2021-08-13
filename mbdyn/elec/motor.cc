@@ -440,3 +440,16 @@ Motor::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+Motor::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"motor voltage" << std::endl;
+
+	return out;
+}

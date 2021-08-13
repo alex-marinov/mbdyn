@@ -811,5 +811,33 @@ BeamSliderJoint::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+BeamSliderJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"reaction force component tangent to the beam" << std::endl
+		<< prefix << iIndex + 2 << "->" << iIndex + 4 << ": "
+			"contact position along the beam" << std::endl;
+
+		if (iType == BeamSliderJoint::Type::CLASSIC) {
+			out
+				<< prefix << iIndex + 5 << "->" << iIndex + 6 << ": "
+				"orientation constraints" << std::endl;
+		}
+
+		// TODO
+		// it should be slider
+		if (iType == BeamSliderJoint::Type::SPLINE) {
+			out
+				<< prefix << iIndex + 5 << "->" << iIndex + 7 << ": "
+				"orientation constraints" << std::endl;
+		}
+
+	return out;
+}
 /* BeamSliderJoint - end */
 

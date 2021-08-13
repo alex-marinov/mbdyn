@@ -687,3 +687,16 @@ Membrane4EAS::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+Membrane4EAS::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 7 << ": "
+			"force balance" << std::endl;
+
+	return out;
+}

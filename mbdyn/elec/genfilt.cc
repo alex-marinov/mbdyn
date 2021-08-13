@@ -415,6 +415,18 @@ GenelStateSpaceSISO::GetEquationDimension(integer index) const {
 	return OutputHandler::Dimensions::VoltageDerivative;
 }
 
+std::ostream&
+GenelStateSpaceSISO::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + iNumDofs << ": " <<
+			"genel SISO state deivative" << std::endl;
+
+	return out;
+}
 /* GenelStateSpaceSISO - end */
 
 
@@ -867,6 +879,19 @@ const OutputHandler::Dimensions
 GenelStateSpaceMIMO::GetEquationDimension(integer index) const {
 	// DOF is unknown
 	return OutputHandler::Dimensions::VoltageDerivative;
+}
+
+std::ostream&
+GenelStateSpaceMIMO::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + iNumDofs << ": " <<
+			"genel MIMO state deivative" << std::endl;
+
+	return out;
 }
 
 /* GenelStateSpaceMIMO - end */

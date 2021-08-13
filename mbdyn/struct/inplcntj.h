@@ -142,7 +142,25 @@ class InPlaneContactJoint : public Joint {
 
 	return dimension;
    };
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
+
+std::ostream&
+InPlaneContactJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
+}
 
 /* InPlaneContactJoint - end */
 

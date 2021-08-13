@@ -407,6 +407,22 @@ Accumulator::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Accumulator::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"accumulator force balance" << std::endl
+
+      << prefix << iIndex + 2 << ": " <<
+         "accumulator velocity" << std::endl;
+
+
+	return out;
+}
 /* Accumulator - end */
 
 
@@ -712,6 +728,19 @@ Tank::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+Tank::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 7 << ": " <<
+			"tank filling velocity" << std::endl;
+
+	return out;
 }
 
 /* Tank - end */

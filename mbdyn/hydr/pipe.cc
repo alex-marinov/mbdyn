@@ -476,6 +476,19 @@ Pipe::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Pipe::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"pipe pressure balance" << std::endl;
+
+	return out;
+}
+
 /* Pipe - end */
 
 
@@ -1034,6 +1047,25 @@ Dynamic_pipe::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Dynamic_pipe::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"dynamic pipe pressure balance" << std::endl
+
+      << prefix << iIndex + 2 << ": " <<
+         "dynamic pipe mass flow balance" << std::endl
+      
+      << prefix << iIndex + 3 << ": " <<
+         "dynamic pipe force balance" << std::endl;
+
+	return out;
+}
+
 /* Dynamic_pipe - end */
 
 
@@ -1468,5 +1500,21 @@ DynamicPipe::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+DynamicPipe::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": " <<
+			"dynamic pipe force balance" << std::endl 
+      
+      << prefix << iIndex + 3 << "->" << iIndex + 4 << ": " <<
+         "dynamic pipe pressure balance" << std::endl;
+
+	return out;
 }
 /* DynamicPipe - end */

@@ -271,6 +271,20 @@ class ContactJoint : virtual public Elem, public Joint {
 
 	return dimension;
    };
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const {
+
+           int iIndex = iGetFirstIndex();
+
+            out
+               << prefix << iIndex + 1 << ": " 
+               << "contact joint compenetration" << std::endl;
+            
+            return out;
+   }
 };
 
 /* ContactJoint - end */

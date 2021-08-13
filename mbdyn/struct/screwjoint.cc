@@ -413,7 +413,7 @@ ScrewJoint::DescribeEq(std::ostream& out,
 
 	return out;
 
-}
+} 
 
 void //TODO
 ScrewJoint::DescribeEq(std::vector<std::string>& desc,

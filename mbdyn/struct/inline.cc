@@ -587,6 +587,25 @@ InLineJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+InLineJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": " <<
+			"distance constraints" << std::endl;
+
+   if (fc && fc->iGetNumDof() > 0) {
+      out 
+         << prefix << iIndex + NumSelfDof + 1 << "->" << iIndex + NumSelfDof + fc->iGetNumDof() << ": friction equation(s)" << std::endl
+         << "        ", fc->DescribeEq(out, prefix, bInitial);
+   }
+	
+	return out;
+}
+
 /* InLineJoint - end */
 
 
@@ -1078,6 +1097,19 @@ InLineWithOffsetJoint::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+InLineWithOffsetJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
 }
 
 /* InLineWithOffsetJoint - end */

@@ -169,9 +169,16 @@ DispMeasure::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 DispMeasure::GetEquationDimension(integer index) const {
 	// DOF is unknown
-	// TODO
-
 	return OutputHandler::Dimensions::UnknownDimension;
 }
 
+std::ostream&
+DispMeasure::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* DispMeasure - end */

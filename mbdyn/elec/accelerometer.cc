@@ -271,6 +271,25 @@ Accelerometer::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Accelerometer::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"accelerometer velocity" << std::endl
+      
+        << prefix << iIndex + 2 << ": " <<
+            "accelerometer first state derivative" << std::endl
+		
+		<< prefix << iIndex + 3 << ": " <<
+			"accelerometer second state derivative" << std::endl;
+
+	return out;
+}
+
 /* Accelerometer - end */
 
 
@@ -435,6 +454,19 @@ TranslAccel::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+TranslAccel::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"trans accelerometer velocity" << std::endl;
+
+	return out;
+}
+
 /* TranslAccel - end */
 
 
@@ -584,6 +616,19 @@ RotAccel::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+RotAccel::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"rot accelerometer velocity" << std::endl;
+
+	return out;
 }
 
 /* RotAccel - end */

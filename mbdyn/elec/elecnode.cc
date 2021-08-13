@@ -76,5 +76,17 @@ ElectricNode::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+ElectricNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"electric current balance" << std::endl;
+
+	return out;
+}
 /* ElectricNode - end */
 

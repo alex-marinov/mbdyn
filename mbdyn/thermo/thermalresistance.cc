@@ -115,3 +115,13 @@ ThermalResistance::GetEquationDimension(integer index) const {
 	// DOF == 0
 	return OutputHandler::Dimensions::UnknownDimension;
 }
+
+std::ostream&
+ThermalResistance::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
