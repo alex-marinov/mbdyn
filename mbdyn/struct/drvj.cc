@@ -306,6 +306,18 @@ LinearVelocityJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+LinearVelocityJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"velocity error" << std::endl;
+
+	return out;
+}
 /* LinearVelocity - end */
 
 
@@ -591,4 +603,16 @@ AngularVelocityJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+AngularVelocityJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"angular velocity error" << std::endl;
+
+	return out;
+}
 /* AngularVelocity - end */

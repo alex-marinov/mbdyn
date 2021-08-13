@@ -109,6 +109,11 @@ class Pipe : virtual public Elem, public HydraulicElem {
    /* ************************************************ */
    /* returns the dimension of the component */
 	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Pipe - end */
@@ -196,6 +201,11 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
 
    /* returns the dimension of the component */
 	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Dynamic_pipe - end */
@@ -290,6 +300,11 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
 
    /* returns the dimension of the component */
 	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Dynamic_pipe - end */

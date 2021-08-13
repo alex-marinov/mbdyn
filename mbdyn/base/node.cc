@@ -165,6 +165,19 @@ ScalarNode::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+ScalarNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"scalar node equation" << std::endl;
+
+	return out;
+}
+
 /* ScalarNode - end */
 
 
@@ -373,6 +386,19 @@ ScalarDifferentialNode::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+ScalarDifferentialNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"scalar differential node equation" << std::endl;
+
+	return out;
 }
 
 /* ScalarDifferentialNode - end */

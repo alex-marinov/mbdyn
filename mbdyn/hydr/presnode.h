@@ -72,6 +72,20 @@ class PressureNode : public ScalarAlgebraicNode {
 
 	   return dimension;
    }
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const {
+
+      integer iIndex = iGetFirstIndex();
+
+      out
+         << prefix << iIndex + 1 << ": " <<
+         "mass flow balance" << std::endl;
+
+      return out;
+   }
 };
 
 #endif /* PRESNODE_H */

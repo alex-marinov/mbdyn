@@ -655,6 +655,22 @@ UniversalHingeJoint::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+UniversalHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"relative position constraints" << std::endl
+      
+      << prefix << iIndex + 4 << ": " <<
+			"relative rotation constraint iCnt" << std::endl;
+
+	return out;
+}
 /* UniversalHingeJoint - end */
 
 
@@ -1185,6 +1201,19 @@ UniversalRotationJoint::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+UniversalRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+      << prefix << iIndex + 1 << ": " <<
+			"relative rotation constraint iCnt" << std::endl;
+
+	return out;
+}
 /* UniversalRotationJoint - end */
 
 
@@ -1657,5 +1686,21 @@ UniversalPinJoint::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+UniversalPinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"position constraints" << std::endl
+      
+      << prefix << iIndex + 4 << ": " <<
+			"rotation constraint iCnt" << std::endl;
+
+	return out;
 }
 /* UniversalPinJoint - end */

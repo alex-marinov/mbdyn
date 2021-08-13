@@ -384,6 +384,18 @@ InPlaneJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+InPlaneJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
+}
 /* InPlaneJoint - end */
 
 
@@ -799,6 +811,19 @@ InPlaneWithOffsetJoint::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+InPlaneWithOffsetJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
 }
 
 /* InPlaneWithOffsetJoint - end */

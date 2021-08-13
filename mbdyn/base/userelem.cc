@@ -229,3 +229,13 @@ UserDefinedElem::GetEquationDimension(integer index) const {
 	
 	return OutputHandler::Dimensions::UnknownDimension;
 }
+
+std::ostream&
+UserDefinedElem::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "base class for user defined elements" << std::endl;
+
+	return out;
+}

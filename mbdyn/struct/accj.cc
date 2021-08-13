@@ -303,8 +303,21 @@ LinearAccelerationJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
-/* ClampJoint - end */
+std::ostream&
+LinearAccelerationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
 
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"velocity component along prescribed direction" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+			"acceleration value error" << std::endl;
+
+	return out;
+}
 /* LinearAccelerationJoint - end */
 
 
@@ -578,6 +591,22 @@ AngularAccelerationJoint::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+AngularAccelerationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"angular velocity component along prescribed direction" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+			"angular acceleration" << std::endl;
+
+	return out;
 }
 
 /* AngularAccelerationJoint - end */

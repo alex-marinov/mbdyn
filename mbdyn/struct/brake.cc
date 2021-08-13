@@ -599,6 +599,23 @@ Brake::GetEquationDimension(integer index) const {
    return OutputHandler::Dimensions::UnknownDimension;
 }
 
+std::ostream&
+Brake::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+   int iIndex = iGetFirstIndex();
+
+   // TODO
+   if (fc && fc->iGetNumDof() > 0) {
+      out
+         << prefix << iIndex + NumSelfDof + 1 << "->" << iIndex + NumSelfDof + fc->iGetNumDof() << ": friction equation(s)" << std::endl
+         << "        ", fc->DescribeEq(out, prefix, bInitial);
+   }
+
+	return out;
+}
+
+
 /* Brake - end */
 
 

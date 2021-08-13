@@ -328,6 +328,15 @@ Control_valve::GetEquationDimension(integer index) const {
    return OutputHandler::Dimensions::UnknownDimension;
 }
 
+std::ostream&
+Control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* Control_valve - end */
 
 
@@ -631,6 +640,19 @@ Control_valve2::GetEquationDimension(integer index) const {
    // DOF == LAST_Q = 6
    
    return OutputHandler::Dimensions::Force;
+}
+
+std::ostream&
+Control_valve2::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + LAST_Q << ": " <<
+			"control valve 2 force balance" << std::endl;
+
+	return out;
 }
 
 /* Control_valve2 - end */
@@ -1094,6 +1116,22 @@ Dynamic_control_valve::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+Dynamic_control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"dynamic control valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "dynamic control valve velocity" << std::endl;
+
+	return out;
+}
  
 /* Dynamic_control_valve - end */
 
@@ -1536,6 +1574,22 @@ Pressure_flow_control_valve::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
+
+std::ostream&
+Pressure_flow_control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"pressure flow valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "pressure flow valve velocity" << std::endl;
+
+	return out;
+}
 /* Pressure_flow_control_valve - end */
 
 
@@ -1907,6 +1961,22 @@ Pressure_valve::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+Pressure_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"pressure valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "pressure valve velocity" << std::endl;
+
+	return out;
 }
 
 /* Pressure_valve - end */
@@ -2387,4 +2457,19 @@ Flow_valve::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+Flow_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"flow valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "flow valve velocity" << std::endl;
+
+	return out;
+}
 /* Flow_valve - end */

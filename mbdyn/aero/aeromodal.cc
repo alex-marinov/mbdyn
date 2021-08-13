@@ -776,3 +776,16 @@ AerodynamicModal::GetEquationDimension(integer index) const {
 	
 	return OutputHandler::Dimensions::UnknownDimension;
 }
+
+std::ostream&
+AerodynamicModal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 <<  "->" << iIndex + NAeroStates + NGust*2 << ": " <<
+			"aerodynamic modal state equations" << std::endl;
+
+	return out;
+}

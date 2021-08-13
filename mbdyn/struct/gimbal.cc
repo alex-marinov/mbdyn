@@ -538,4 +538,20 @@ GimbalRotationJoint::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+std::ostream&
+GimbalRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"relative orientation matrices constraint" << std::endl
+
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": " <<
+			"moment transformation" << std::endl;
+
+	return out;
+}
+
 /* GimbalRotationJoint - end */

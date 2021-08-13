@@ -663,6 +663,22 @@ DistanceJoint::GetEquationDimension(integer index) const {
 	return dimension;
 	
 }
+
+std::ostream&
+DistanceJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"distance error components" << std::endl
+
+		<< prefix << iIndex + 4 << ": " <<
+			"direction normalization" << std::endl;
+
+	return out;
+}
 /* DistanceJoint - end */
 
 
@@ -1317,6 +1333,22 @@ DistanceJointWithOffset::GetEquationDimension(integer index) const {
 	}
 
 	return dimension;
+}
+
+std::ostream&
+DistanceJointWithOffset::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"distance error components" << std::endl
+
+		<< prefix << iIndex + 4 << ": " <<
+			"direction normalization" << std::endl;
+
+	return out;
 }
 
 /* DistanceJointWithOffset - end */

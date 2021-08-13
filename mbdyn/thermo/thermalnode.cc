@@ -83,4 +83,17 @@ ThermalNode::GetEquationDimension(integer index) const {
 		return dimension;
 }
 
+std::ostream&
+ThermalNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": "
+			"heat flux balance" << std::endl;
+
+	return out;
+}
+
 /* ThermalNode - end */
