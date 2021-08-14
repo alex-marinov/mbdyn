@@ -828,9 +828,6 @@ BeamSliderJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial
 				<< prefix << iIndex + 5 << "->" << iIndex + 6 << ": "
 				"orientation constraints" << std::endl;
 		}
-
-		// TODO
-		// it should be slider
 		if (iType == BeamSliderJoint::Type::SPLINE) {
 			out
 				<< prefix << iIndex + 5 << "->" << iIndex + 7 << ": "
