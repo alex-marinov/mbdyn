@@ -41,19 +41,19 @@
 #include <algorithm>
 #include <sys/time.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 
 #include "mbdyn_uvlm.h"
-#include "UVLM-master/src/uvlm.h"
+//#include "UVLM-master/src/uvlmlib.h"
+//#include "UVLM-master/include/cpp_interface.h"
+
 
 clock_t startTime, endTime;
 struct timeval start_time, end_time;
 
 
  // Functions private to this .cc file [START]
-
-
-// TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 
 std::vector<double>
 QuadInterpol1D(std::vector<double>& x, std::vector<double>& y, std::vector<double>& xp) {
@@ -433,7 +433,7 @@ MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 	UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
 	UVLM::Types::VMopts& VMoptions,
 	UVLM::Types::UVMopts& UVMoptions,
-	UVLM::Types::FlightConditions& FlightConditions,
+	UVLM::Types::FlightConditions& Flight_Conditions,
 	unsigned MBDyn_UVLM_NodesNum) {
 
 	gettimeofday(&start_time, NULL);  // get the start time
@@ -458,6 +458,7 @@ MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 	MBDyn_UVLM_StraightWake.StraightWake_generate(aerogrid.aero_timestep_info[0]);
 	MBDyn_UVLM_SteadyVelocityField.SteadyVelocityField_generate(aerogrid.aero_timestep_info[0], MBDyn_UVLM_UVMopts);
 
+	
 	// constructing the VMopts as input
 	VMoptions.cfl1 = MBDyn_UVLM_UVMopts->cfl1;
 	VMoptions.DelTime = 1.0;
@@ -499,18 +500,21 @@ MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 	UVMoptions.yaw_slerp = MBDyn_UVLM_UVMopts->yaw_slerp;
 
 	// constructing the FlightConditions as input
-	FlightConditions.c_ref = MBDyn_UVLM_FlightConditions->c_ref;
-	FlightConditions.rho = MBDyn_UVLM_FlightConditions->rho;
-	FlightConditions.uinf = MBDyn_UVLM_FlightConditions->uinf;
-	FlightConditions.uinf_direction[0] = MBDyn_UVLM_FlightConditions->uinf_direction[0];
-	FlightConditions.uinf_direction[1] = MBDyn_UVLM_FlightConditions->uinf_direction[1];
-	FlightConditions.uinf_direction[2] = MBDyn_UVLM_FlightConditions->uinf_direction[2];
+	Flight_Conditions.c_ref = MBDyn_UVLM_FlightConditions->c_ref;
+	Flight_Conditions.rho = MBDyn_UVLM_FlightConditions->rho;
+	Flight_Conditions.uinf = MBDyn_UVLM_FlightConditions->uinf;
+	Flight_Conditions.uinf_direction[0] = MBDyn_UVLM_FlightConditions->uinf_direction[0];
+	Flight_Conditions.uinf_direction[1] = MBDyn_UVLM_FlightConditions->uinf_direction[1];
+	Flight_Conditions.uinf_direction[2] = MBDyn_UVLM_FlightConditions->uinf_direction[2];
+	
 
 	// generate the pointers for the UVLM variables 
 	MBDyn_UVLM_UvlmLibVar.UvlmLibVar_generate(aerogrid, time_step);
 
+//	void* handle = dlopen("./libuvlm.so", RTLD_LAZY);
+
 	// call the initializer function from the UVLM library
-	init_UVLM(VMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+	init_UVLM(VMoptions, Flight_Conditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
 		MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot, 
 		MBDyn_UVLM_UvlmLibVar.p_zeta_star_dot, MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_gamma, MBDyn_UVLM_UvlmLibVar.p_gamma_star, 
 		MBDyn_UVLM_UvlmLibVar.p_normals, MBDyn_UVLM_UvlmLibVar.p_forces);
@@ -531,13 +535,13 @@ MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_set
 	Aerogrid& MBDyn_UVLM_Aerogrid,
 	UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
 	UVLM::Types::UVMopts& UVMoptions,
-	UVLM::Types::FlightConditions& FlightConditions,
+	UVLM::Types::FlightConditions& Flight_Conditions,
 	double time_step) {
 
 	if (MBDyn_UVLM_Aerogrid.aero_timestep_info.size() == 0) {    
 		// This is for the very first time step (here we will use the values obtained from the init function 
 		// and will pass these in the UVLM solver)
-		run_UVLM(UVMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+		run_UVLM(UVMoptions, Flight_Conditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
 			MBDyn_UVLM_UvlmLibVar.i_iter, MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_uext_star, 
 			MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot, 
 			MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_centre_rot, MBDyn_UVLM_UvlmLibVar.p_gamma, 
@@ -558,7 +562,7 @@ MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_set
 		MBDyn_UVLM_UvlmLibVar.UvlmLibVar_generate(MBDyn_UVLM_Aerogrid, time_step);
 
 		// call the solver 
-		run_UVLM(UVMoptions, FlightConditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
+		run_UVLM(UVMoptions, Flight_Conditions, MBDyn_UVLM_UvlmLibVar.p_dimensions, MBDyn_UVLM_UvlmLibVar.p_dimensions_star, 
 			MBDyn_UVLM_UvlmLibVar.i_iter, MBDyn_UVLM_UvlmLibVar.p_uext, MBDyn_UVLM_UvlmLibVar.p_uext_star, 
 			MBDyn_UVLM_UvlmLibVar.p_zeta, MBDyn_UVLM_UvlmLibVar.p_zeta_star, MBDyn_UVLM_UvlmLibVar.p_zeta_dot,
 			MBDyn_UVLM_UvlmLibVar.p_rbm_vel, MBDyn_UVLM_UvlmLibVar.p_centre_rot, MBDyn_UVLM_UvlmLibVar.p_gamma, 
@@ -599,7 +603,6 @@ MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_set
 
 	// Save the updated values of the UVLM variables into the current time step "aero_timestep_info"
 	MBDyn_UVLM_UvlmLibVar.UvlmLibVar_save(MBDyn_UVLM_Aerogrid, time_step);
-
 
 }
 
@@ -658,11 +661,9 @@ MBDyn_UVLM_Model_RecvFromBuf(Aerogrid& MBDyn_UVLM_Aerogrid,
 		//- Filling up the Cartesian rotation vector for each node of each element
 		MBDyn_UVLM_Aerogrid.node_CRV[i] = rotation2crv(Cag);
 
-		//- Filling up the derivatives of the cartwsian rotation vector of each node of each element
-
+		//- Filling up the derivatives of the cartesian rotation vector of each node of each element
+		MBDyn_UVLM_Aerogrid.node_CRV_der[i] = { 0.0, 0.0, 0.0 };
 	}
-
-
 }
 
 extern "C" void
@@ -685,12 +686,17 @@ MBDyn_UVLM_Model_SendToBuf(Aerogrid& MBDyn_UVLM_Aerogrid,
 			MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum] = 0.0;
 		}
 		else {
-
+			MBDyn_UVLM_CouplingDynamic[3 * i] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 3 * MBDyn_UVLM_NodesNum] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 3 * MBDyn_UVLM_NodesNum] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 3 * MBDyn_UVLM_NodesNum] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 6 * MBDyn_UVLM_NodesNum] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 1 + 6 * MBDyn_UVLM_NodesNum] = 1.0;
+			MBDyn_UVLM_CouplingDynamic[3 * i + 2 + 6 * MBDyn_UVLM_NodesNum] = 1.0;
 		}
 	}
-	
-
-
 }
 
 
@@ -864,7 +870,7 @@ Beam_inputs::Beam_inputs_generate(int NumberofNodes) {
 
 	// right wing (beam 0)
 	int working_elem = 0;
-	for (int ielem = 0; ielem < num_elem / 2; ++ielem) {
+	for (int ielem = 0; ielem < num_elem; ++ielem) {
 		for (int inode = 0; inode < num_node_elem; ++inode) {
 			frame_of_reference_delta[ielem][inode][0] = -1;
 			frame_of_reference_delta[ielem][inode][1] = 0;
@@ -872,13 +878,14 @@ Beam_inputs::Beam_inputs_generate(int NumberofNodes) {
 		}
 	}
 	// connectivity
-	for (int ielem = 0; ielem < num_elem / 2; ++ielem) {
+	for (int ielem = 0; ielem < num_elem; ++ielem) {
 		connectivities[ielem][0] = 0 + ielem * (num_node_elem - 1);
 		connectivities[ielem][1] = 2 + ielem * (num_node_elem - 1);
 		connectivities[ielem][2] = 1 + ielem * (num_node_elem - 1);
 		working_elem++;
 	}
 
+	/*
 	// left wing (beam 1)
 	for (int ielem = working_elem; ielem < num_elem; ++ielem) {
 		for (int inode = 0; inode < num_node_elem; ++inode) {
@@ -895,6 +902,8 @@ Beam_inputs::Beam_inputs_generate(int NumberofNodes) {
 		working_elem++;
 	}
 	connectivities[num_elem - 1][1] = 0;
+
+	*/
 
 	for (int ielem = 0; ielem < num_elem; ++ielem) {
 		reordered_connectivities[ielem][0] = connectivities[ielem][0];
@@ -917,7 +926,7 @@ Aero_inputs::Aero_inputs_generate(int NumberofNodes) {
 
 	int num_node_elem = 3;   // Number of nodes per element
 	int num_elem = (NumberofNodes - 1) / (num_node_elem - 1);  // Total number of elements
-	int num_surfaces = 2;   // Number of surfaces
+	int num_surfaces = 1;   // Number of surfaces
 
 	surface_distribution_input.resize(num_elem);
 	surface_m.resize(num_surfaces);
@@ -941,48 +950,49 @@ Aero_inputs::Aero_inputs_generate(int NumberofNodes) {
 	int working_node = 0;
 	// right wing (surface 0 , beam 0)
 	int i_surf = 0;
-	for (int i = 0; i < num_elem / 2; ++i) {
+	for (int i = 0; i < num_elem; ++i) {
 		for (int j = 0; j < num_node_elem; ++j) {
 			airfoil_distribution_input[i][j] = 0;
-			chords[i][j] = ;  // input from the MBDyn input
-			elastic_axis[i][j] = ; // input from the MBDyn input
-			twist[i][j] = ; // input from MBDyn
-			sweep[i][j] = ; // input from MBDyn
+			chords[i][j] = 1.0;  // input from the MBDyn input
+			elastic_axis[i][j] = 0.5; // input from the MBDyn input
+			twist[i][j] = 0.0; // input from MBDyn
+			sweep[i][j] = 0.0; // input from MBDyn
 		}
 		surface_distribution_input[i] = i_surf;
 		working_elem++;
 	}
-	surface_m[i_surf] = ; // number of chordwise panelling for each surface
-	for (int i = 0; i < NumberofNodes / 2; ++i) {
+	surface_m[i_surf] = 1; // number of chordwise panelling for each surface
+	for (int i = 0; i < NumberofNodes; ++i) {
 		aero_node_input[i] = true;
 		working_node++;
 	}
 
+	/*
 	// left wing (surface 1, beam 1)
 	i_surf = 1;
 	for (int i = working_elem; i < num_elem; ++i) {
 		for (int j = 0; j < num_node_elem; ++j) {
 			airfoil_distribution_input[i][j] = 0;
-			chords[i][j] = ;  // input from the MBDyn input
-			elastic_axis[i][j] = ; // input from the MBDyn input
-			twist[i][j] = ; // input from MBDyn
-			sweep[i][j] = ; // input from MBDyn
+			chords[i][j] = 1.0;  // input from the MBDyn input
+			elastic_axis[i][j] = 0.5; // input from the MBDyn input
+			twist[i][j] = 0.0; // input from MBDyn
+			sweep[i][j] = 0.0; // input from MBDyn
 		}
 		surface_distribution_input[i] = i_surf;
 		working_elem++;
 	}
-	surface_m[i_surf] = ; // number of chordwise panelling for each surface
+	surface_m[i_surf] = 1; // number of chordwise panelling for each surface
 	for (int i = working_node; i < NumberofNodes; ++i) {
 		aero_node_input[i] = true;
 		working_node++;
 	}
+	*/
 
 	// Generate data for a single airfoil. 
 	// In order to create data for more airfoils we just have to change the vaue of M and P.
 	double P = 0;
 	double M = 0;
 	airfoils[0] = generate_naca_camber(P, M);
-
 }
 
 Aero_inputs::~Aero_inputs() {

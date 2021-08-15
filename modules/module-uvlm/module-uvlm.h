@@ -46,9 +46,10 @@
 #include "converged.h"
 #include "aeroelem.h"
 
-#include "mbdyn_uvlm.h"
-#include "UVLM-master/src/uvlm.h"
 
+#include "mbdyn_uvlm.h"
+#include "UVLM-master/include/uvlmlib.h"
+//#include "UVLM-master/include/cpp_interface.h"
 
  /* We introduce a start class UVLM*/
 
@@ -108,6 +109,8 @@ protected:
 	std::vector<const StructNode*> MBDyn_UVLM_AeroNodes;             //- Vector to read the AerodynamicBeam3 nodes into the UvlmInterfaceBaseElem
 	std::vector<MBDYN_UVLM_POINTDATA> MBDyn_UVLM_Nodes;              //- Nodes info in MBDyn
 	unsigned MBDyn_UVLM_NodesNum;
+	unsigned MBDyn_UVLM_NumOfSurfaces;
+	unsigned MBDyn_UVLM_NumOfElements;
 
 public:
 	StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings;
@@ -123,12 +126,7 @@ public:
 	UvlmLibVar MBDyn_UVLM_UvlmLibVar;
 	UVLM::Types::VMopts VMoptions;
 	UVLM::Types::UVMopts UVMoptions;
-	UVLM::Types::FlightConditions FlightConditions;
-
-public:
-	int MBDyn_UVLM_CouplingType;
-	int MBDyn_UVLM_CouplingType_loose;
-	int MBDyn_UVLM_ForceType;
+	UVLM::Types::FlightConditions Flight_Conditions;
 
 public:
 	int MBDyn_UVLM_CouplingType;

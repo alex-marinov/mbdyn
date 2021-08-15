@@ -44,7 +44,9 @@
 
 #include "dataman.h"
 #include "aeroelem.h"
-#include "UVLM-master/src/uvlm.h"
+#include "UVLM-master/include/uvlmlib.h"
+//#include "UVLM-master/include/cpp_interface.h"
+
 
 extern "C" {
 
@@ -72,7 +74,7 @@ extern "C" {
 		std::string gust_shape;
 		double gust_length;
 		double gust_intensity;
-		double gust_offset;
+		std::vector<double> gust_offset;
 		double span;
 		bool relative_motion;
 		unsigned int n_time_steps;
@@ -354,6 +356,7 @@ extern "C" {
 	};
 
 	//- create the Init function
+	
 	void
 		MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
@@ -367,10 +370,24 @@ extern "C" {
 			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
 			UVLM::Types::VMopts& VMoptions,
 			UVLM::Types::UVMopts& UVMoptions,
-			UVLM::Types::FlightConditions& FlightConditions,
+			UVLM::Types::FlightConditions& Flight_Conditions,
 			unsigned MBDyn_UVLM_NodesNum);
-
+	/*
+	void
+		MBDyn_UVLM_Model_Init(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+			const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+			const UVMopts* MBDyn_UVLM_UVMopts,
+			const FlightConditions* MBDyn_UVLM_FlightConditions,
+			Beam_inputs& MBDyn_UVLM_Beam_inputs,
+			Aero_inputs& MBDyn_UVLM_Aero_inputs,
+			StraightWake& MBDyn_UVLM_StraightWake,
+			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+			unsigned MBDyn_UVLM_NodesNum);
+			*/
 	//- Performs a step of Integration
+	
 	void
 		MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
 			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
@@ -384,9 +401,23 @@ extern "C" {
 			Aerogrid& MBDyn_UVLM_Aerogrid,
 			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
 			UVLM::Types::UVMopts& UVMoptions,
-			UVLM::Types::FlightConditions& FlightConditions,
+			UVLM::Types::FlightConditions& Flight_Conditions,
 			double time_step);
-
+	/*
+	void
+		MBDyn_UVLM_Model_DoStepDynamics(const StepUVLM_settings* MBDyn_UVLM_StepUVLM_settings,
+			const Aerogrid_settings* MBDyn_UVLM_Aerogrid_settings,
+			const StraightWake_settings* MBDyn_UVLM_StraightWake_settings,
+			const UVMopts* MBDyn_UVLM_UVMopts,
+			const FlightConditions* MBDyn_UVLM_FlightConditions,
+			Beam_inputs& MBDyn_UVLM_Beam_inputs,
+			Aero_inputs& MBDyn_UVLM_Aero_inputs,
+			StraightWake& MBDyn_UVLM_StraightWake,
+			SteadyVelocityField& MBDyn_UVLM_SteadyVelocityField,
+			Aerogrid& MBDyn_UVLM_Aerogrid,
+			UvlmLibVar& MBDyn_UVLM_UvlmLibVar,
+			double time_step);
+			*/
 	//- UVLM models receive coupling motion from the buffer
 	void
 		MBDyn_UVLM_Model_RecvFromBuf(Aerogrid& MBDyn_UVLM_Aerogrid, 

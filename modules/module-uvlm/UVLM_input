@@ -1,0 +1,247 @@
+# === data ======================================================
+begin: data;
+  problem: initial value;
+end: data;
+
+
+set: const real air_speed = 100; #m/s
+# === initial value problem =====================================
+begin: initial value;
+  initial time: 0;
+  final time: 1;
+  time step: 0.001;
+
+  method: ms, 0.7;
+  linear solver: naive, colamd;
+  nonlinear solver: newton raphson, modified, 5;
+
+  tolerance: 1e-4;
+  max iterations: 100;
+
+  derivatives coefficient: 1e-6; # 1.e-9;
+  derivatives tolerance: 1e-6;
+  derivatives max iterations: 10;
+/*
+  eigenanalysis: 1.0,
+        output matrices,
+        output eigenvectors,
+        output geometry,
+        upper frequency limit, 200,
+        lower frequency limit, 1,
+        use lapack;
+*/
+  
+    output: counter;
+  # output: iterations;
+  # output: residual;
+end: initial value;
+
+
+# === some variables ============================================
+set: integer curr_elem;
+set: const integer GROUND = 0;
+set: const integer MASS_1 = 1;
+set: const integer MASS_2 = 2;
+set: const integer MASS_3 = 3;
+# --- beam ---
+set: integer Nsurf = 1;
+set: integer Nel = 1;
+set: real L = 6.096;  # wing span meter meter
+set: real Chord = 1.829; # wing chord meter  
+set: real M =  217.74912; 
+set: real dL = L/Nel;
+set: real m = M/L;
+set: real j = 7.452;
+set: real EA  = 1.e+10;    
+set: real GAy = 1.e+10;   
+set: real GAz = 1.e+10;   
+set: real GJ  = 9.88e+5;  
+set: real EJx = 9.77e+6;   
+set: real EJz = 9.77e+7;   
+set: real CA_location = 25; 
+set: real EA_location = 33; 
+set: real CG_location = 43; 
+set: real Off_CA = (CA_location-EA_location)*Chord/100;
+set: real Off_CG = (CG_location-EA_location)*Chord/100;
+set: const real initial_position = 1.0;
+set: const real initial_velocity=0.1;#0.1
+set: const real alpha=0.0*deg2rad; # angle with respect to axis z
+set: const integer naca0012 = 1;
+c81 data: naca0012, "naca0012.c81";
+
+
+# === control data ==============================================
+begin: control data;
+  structural nodes: +1                        # ground
+                    +Nsurf*(2*Nel + 1);       # N.masses
+  rigid bodies:     +2*Nel + 1;               # masses
+  joints:           +1;                       # ground clamp				
+  beams:            +Nel*Nsurf;               # beam elems
+  aerodynamic elements: Nel*Nsurf;            # aerobeam
+#  forces:           +1;                       # couple
+  air properties;
+  default output: reference frames;
+	default orientation: orientation vector;
+  output results: netcdf, no text;
+
+end: control data;
+
+# === reference frame ===========================================
+reference: GROUND,
+  reference, global, null,
+  reference, global, eye,
+  reference, global, null,
+  reference, global, null;
+
+reference: MASS_1,
+  reference, GROUND, initial_position, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+  
+reference: MASS_2,
+  reference, GROUND, initial_position, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+  
+reference: MASS_3,
+  reference, GROUND, initial_position, 0.0 ,0.0,
+  reference, GROUND, eye,
+  reference, GROUND, null,
+  reference, GROUND, null;
+
+# === nodes =====================================================
+begin: nodes;
+  structural:  GROUND, dynamic,  # static,
+    reference, GROUND, null,
+    reference, GROUND, eye,
+    reference, GROUND, null,
+    reference, GROUND, null,
+    output, no;
+
+   structural: MASS_1,
+    dynamic,
+    reference, MASS_1, null,
+    #reference, MASS_1, eye,
+    matr, cos(alpha), -sin(alpha), 0.0,
+          sin(alpha), cos(alpha),  0.0,
+          0.0,        0.0,         1.0,
+    reference, MASS_1, initial_velocity,.0,.0,
+    reference, MASS_1, null,
+    accelerations, yes;
+	
+   structural: MASS_2,
+    dynamic,
+    reference, MASS_2, null,
+    #reference, MASS_2, eye,
+    matr, cos(alpha), -sin(alpha), 0.0,
+          sin(alpha), cos(alpha),  0.0,
+          0.0,        0.0,         1.0,
+    reference, MASS_2, initial_velocity,.0,.0,
+    reference, MASS_2, null,
+    accelerations, yes;
+	
+   structural: MASS_3,
+    dynamic,
+    reference, MASS_3, null,
+    #reference, MASS_3, eye,
+    matr, cos(alpha), -sin(alpha), 0.0,
+          sin(alpha), cos(alpha),  0.0,
+          0.0,        0.0,         1.0,
+    reference, MASS_3, initial_velocity,.0,.0,
+    reference, MASS_3, null,
+    accelerations, yes;
+
+end: nodes;
+
+
+# === elements ==================================================
+begin: elements;
+
+	#> === Bodies ===
+	body: GROUND, GROUND,
+	(dL/4.)*m,
+	reference, node, Off_CG, + dL/8, 0.0,
+	diag, 1./12.*(dL/4.)^3*m, (dL/4.)*j, 1./12.*(dL/4.)^3*m;
+
+
+    set: curr_elem = 1;
+	body: 2*curr_elem-1, 2*curr_elem-1,
+	  (dL/2.)*m,
+	  reference, node, Off_CG, 0.0, 0.0,
+	  diag, 1./12.*(dL/2.)^3*m, (dL/2.)*j, 1./12.*(dL/2.)^3*m;
+
+	body: 2*curr_elem, 2*curr_elem,
+	  (dL/2.)*m,
+	  reference, node, Off_CG, 0.0, 0.0,
+	  diag,  1./12.*(dL/2.)^3*m, (dL/2.)*j, 1./12.*(dL/2.)^3*m;
+
+	beam3: curr_elem,
+	  2*curr_elem-2, null,
+	  2*curr_elem-1, null,
+	  2*curr_elem  , null,
+	  eye,
+	  linear time variant viscoelastic generic,
+		diag, 
+				EA, GAy, GAz, 
+				EJx, GJ, EJz,
+				const, 1.,
+		proportional, 0*1e-2,
+		const, 1,
+				#ramp, -2.5 , 0.0, 0.4, 1.,
+	  same,
+	  same;
+
+	aerodynamic beam3: curr_elem, curr_elem,
+	  reference, node, Off_CA, 0.0, 0.0, 
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  reference, node, Off_CA, 0.0, 0.0,
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  reference, node, Off_CA, 0.0, 0.0,
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  const,  Chord,           #chord
+	  const,  0.0,           #AC offset
+	  const, -Chord/2,          #collocation point
+	  const,  0.0,           #twist
+	  5, theodorsen, c81, naca0012, 
+	  jacobian, yes;      #gauss points and c81 table
+
+  module load: "libmodule-uvlm";
+  user defined: 1, UVLMInterface,
+                coupling,
+                loose, embedded, #jacobian,
+                #tight,10, tolerance, 1e-6,# tight coupling
+                #force type, contact,
+                length scale, 1000.0,
+                mass scale, 1.0,# length scale, force scale...
+				Surface number, Nsurf,
+                Element number, Nel*Nsurf, 
+				Uvlm Elem, curr_elem, offset, null,
+                Uvlm body, 1, output uvlmbody,yes,
+                ground, 0,
+                position, 1.0,0.0,0.0,
+                orientation, eye;
+
+
+  #> === Joints ===
+  joint: GROUND, clamp, 0, node, node; # middle node
+  
+    
+  #inertia: 1, 
+  #position, reference, global, null,
+  #      body, all, output, log;
+
+  air properties: 1.225, 340, 
+                  1, 0, 0,
+                  const, air_speed;
+
+
+
+end: elements;
+
+
+

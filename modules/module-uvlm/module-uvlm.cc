@@ -67,7 +67,7 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 			"Usage: \n"
 			"<elem_type> ::= user defined \n"
 			"<user_defined_type> ::=UvlmInterface \n"
-			"<ChronoInterface_arglist> ::= <cosimulation_platform>, \n"
+			"<UvlmInterface_arglist> ::= <cosimulation_platform>, \n"
 			"                              <coupling_variables>, \n"
 			"                              <coupling_bodies>, \n"
 			"                              <other_settings>; \n"
@@ -101,7 +101,6 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
-
 
 	// Read information from the script    [START]
 	//--------------- 1. <cosimulation_platform> ------------------------
@@ -225,73 +224,97 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	//---------- values obtained from scripts
 	if (MBDyn_UVLM_CouplingType >= -1) {		//- if coupled
 
+		//---- Total number of aerodynamic surfaces
+		if (HP.IsKeyWord("Surface" "number"))
+		{
+			MBDyn_UVLM_NumOfSurfaces = HP.GetInt();
+		}
+
+		//---- Total number of elements global
+		if (HP.IsKeyWord("Element" "number")) {
+
+			MBDyn_UVLM_NumOfElements = HP.GetInt();
+		}
+
+
+		for (int i = 0; i < MBDyn_UVLM_NumOfElements; ++i) {
+			//---- Input the Uvlm aerodynamic element (AerodynamicBeam3 element)
+			if (HP.IsKeyWord("Uvlm" "Elem")) {
+
+				//---- read the ID of the aerodynamic beam 
+				unsigned int uBeam = (unsigned int)HP.GetInt();
+
+				DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
+
+				Elem* p = pDM->pFindElem(Elem::BEAM, uBeam);
+				if (p == 0) {
+					silent_cerr("Beam3(" << uBeam << ") not defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				Beam *pBeam = dynamic_cast<Beam *>(p);
+				if (pBeam == 0) {
+					silent_cerr("Beam(" << uBeam << ") is not a Beam3 "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				ASSERT(pBeam != 0);
+
+				/* Node 1: */
+
+				/* Offset of the aerodynamic body w.r.t. the node */
+				const StructNode* pNode1 = pBeam->pGetNode(1);
+
+				ReferenceFrame RF(pNode1);
+				Vec3 f1(HP.GetPosRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
+
+				Mat3x3 Ra1(HP.GetRotRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Node 1 rotation matrix: " << std::endl << Ra1 << std::endl);
+
+				if (i != 0) {
+					MBDyn_UVLM_AeroNodes.push_back(pNode1);
+				}
+				
+
+				/* Node 2: */
+
+				/* Offset of the aerodynamic body w.r.t. the node */
+				const StructNode* pNode2 = pBeam->pGetNode(2);
+
+				RF = ReferenceFrame(pNode2);
+				Vec3 f2(HP.GetPosRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
+
+				Mat3x3 Ra2(HP.GetRotRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
+
+				MBDyn_UVLM_AeroNodes.push_back(pNode2);
+
+				/* Node 3: */
+
+				/* Offset of the aerodynamic body w.r.t. the node */
+				const StructNode* pNode3 = pBeam->pGetNode(3);
+
+				RF = ReferenceFrame(pNode3);
+				Vec3 f3(HP.GetPosRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << std::endl);
+
+				Mat3x3 Ra3(HP.GetRotRel(RF));
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Node 3 rotation matrix: " << std::endl << Ra3 << std::endl);
+
+				MBDyn_UVLM_AeroNodes.push_back(pNode3);
+			}
+		}
+
+
 		//---- Total number of coupling nodes 
-		MBDyn_UVLM_NodesNum = 0;
-		//---- read the ID of the aerodynamic beam 
-		unsigned int uBeam = (unsigned int)HP.GetInt();
-
-		DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
-
-		Elem* p = pDM->pFindElem(Elem::BEAM, uBeam);
-		if (p == 0) {
-			silent_cerr("Beam3(" << uBeam << ") not defined "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		Beam *pBeam = dynamic_cast<Beam *>(p);
-		if (pBeam == 0) {
-			silent_cerr("Beam(" << uBeam << ") is not a Beam3 "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		ASSERT(pBeam != 0);
-
-		/* Node 1: */
-
-		/* Offset of the aerodynamic body w.r.t. the node */
-		const StructNode* pNode1 = pBeam->pGetNode(1);
-		
-		ReferenceFrame RF(pNode1);
-		Vec3 f1(HP.GetPosRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
-
-		Mat3x3 Ra1(HP.GetRotRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Node 1 rotation matrix: " << std::endl << Ra1 << std::endl);
-		MBDyn_UVLM_NodesNum += 1;
-		MBDyn_UVLM_AeroNodes.push_back(pNode1);
-
-		/* Node 2: */
-
-		/* Offset of the aerodynamic body w.r.t. the node */
-		const StructNode* pNode2 = pBeam->pGetNode(2);
-
-		RF = ReferenceFrame(pNode2);
-		Vec3 f2(HP.GetPosRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
-
-		Mat3x3 Ra2(HP.GetRotRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
-		MBDyn_UVLM_NodesNum += 1;
-		MBDyn_UVLM_AeroNodes.push_back(pNode2);
-
-		/* Node 3: */
-
-		/* Offset of the aerodynamic body w.r.t. the node */
-		const StructNode* pNode3 = pBeam->pGetNode(3);
-
-		RF = ReferenceFrame(pNode3);
-		Vec3 f3(HP.GetPosRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << std::endl);
-
-		Mat3x3 Ra3(HP.GetRotRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Node 3 rotation matrix: " << std::endl << Ra3 << std::endl);
-		MBDyn_UVLM_NodesNum += 1;
-		MBDyn_UVLM_AeroNodes.push_back(pNode3);
+		MBDyn_UVLM_NodesNum = 2 * MBDyn_UVLM_NumOfElements + 1;
 
 		//----- preparing for reading information of coupling nodes
 		MBDyn_UVLM_Nodes.resize(MBDyn_UVLM_NodesNum);
@@ -468,34 +491,34 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	// Initialization (std::vector<>) - [START]
 
 	// Initialize the constant values for the UVLM part
-	MBDyn_UVLM_StepUVLM_settings->gamma_dot_filtering = ;   // Filtering parameter for the Welch filter for the Gamma_dot estimation. Used when ``unsteady_force_contribution`` is ``on``.'
-	MBDyn_UVLM_StepUVLM_settings->gust_intensity = ;
-	MBDyn_UVLM_StepUVLM_settings->gust_length = ;
-	MBDyn_UVLM_StepUVLM_settings->gust_offset = ;
-	MBDyn_UVLM_StepUVLM_settings->gust_shape = ;
-	MBDyn_UVLM_StepUVLM_settings->n_time_steps = ;
+	MBDyn_UVLM_StepUVLM_settings->gamma_dot_filtering = 0;   // Filtering parameter for the Welch filter for the Gamma_dot estimation. Used when ``unsteady_force_contribution`` is ``on``.'
+	MBDyn_UVLM_StepUVLM_settings->gust_intensity = 0.20;
+	MBDyn_UVLM_StepUVLM_settings->gust_length = 1.0;
+	MBDyn_UVLM_StepUVLM_settings->gust_offset = { 0.5, 0.0, 0.0 };
+	MBDyn_UVLM_StepUVLM_settings->gust_shape = "1-cos";
+	MBDyn_UVLM_StepUVLM_settings->n_time_steps = 1000;
 	MBDyn_UVLM_StepUVLM_settings->relative_motion = "off";   // "on" when there is NOT free flight
-	MBDyn_UVLM_StepUVLM_settings->span = ;
-	MBDyn_UVLM_StepUVLM_settings->velocity_field_generator = ;
+	MBDyn_UVLM_StepUVLM_settings->span = 10;
+	MBDyn_UVLM_StepUVLM_settings->velocity_field_generator = "SteadyVelocityField";
 	
 	MBDyn_UVLM_Aerogrid_settings->aligned_grid = true;
-	MBDyn_UVLM_Aerogrid_settings->freestream_dir = ;
-	MBDyn_UVLM_Aerogrid_settings->mstar = ;  // Number of chordwise panels
+	MBDyn_UVLM_Aerogrid_settings->freestream_dir = { 1.0,0.0,0.0 };
+	MBDyn_UVLM_Aerogrid_settings->mstar = 1;  // Number of chordwise panels
 	MBDyn_UVLM_Aerogrid_settings->unsteady = false;
 	MBDyn_UVLM_Aerogrid_settings->wake_shape_generator = "StraightWake";
 
-	MBDyn_UVLM_StraightWake_settings->dt = ;  // Times step;
+	MBDyn_UVLM_StraightWake_settings->dt = 0.001;  // Times step;
 	MBDyn_UVLM_StraightWake_settings->dx1 = -1.0;  // Size of the first wake panel
 	MBDyn_UVLM_StraightWake_settings->dxmax = -1.0; // Maximum panel size
 	MBDyn_UVLM_StraightWake_settings->ndx1 = 1; // Number of panels with size "dx1"
 	MBDyn_UVLM_StraightWake_settings->r = 1.0; // Growth rate after "ndx1" panels
-	MBDyn_UVLM_StraightWake_settings->u_inf = ;
-	MBDyn_UVLM_StraightWake_settings->u_inf_direction = ;
+	MBDyn_UVLM_StraightWake_settings->u_inf = 1.0;
+	MBDyn_UVLM_StraightWake_settings->u_inf_direction = { 1.0,0.0,0.0 };
 
 	MBDyn_UVLM_UVMopts->cfl1 = true;  // 'If it is ``True``, it assumes that the discretisation complies with CFL=1'
 	MBDyn_UVLM_UVMopts->convection_scheme = 3;  // '``0``: fixed wake, ' \'``2``: convected with background flow;' \'``3``: full force-free wake'
 	MBDyn_UVLM_UVMopts->convect_wake = true;
-	MBDyn_UVLM_UVMopts->dt = ;
+	MBDyn_UVLM_UVMopts->dt = 0.001;
 	MBDyn_UVLM_UVMopts->filter_method = 0;  // Method to filter the points: no filter (0) moving average(2)'
 	MBDyn_UVLM_UVMopts->ImageMethod = false;
 	MBDyn_UVLM_UVMopts->interp_coords = 0; // Coordinates to use for wake description: cartesian(0) or cylindrical_z(1)'
@@ -504,16 +527,16 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	MBDyn_UVLM_UVMopts->iterative_solver = false;
 	MBDyn_UVLM_UVMopts->iterative_tol = 1.0e-4;
 	MBDyn_UVLM_UVMopts->NumCores = 0;  // Number of cores to use in UVLM solver
-	MBDyn_UVLM_UVMopts->NumSurfaces = ;  // Number of surfaces
+	MBDyn_UVLM_UVMopts->NumSurfaces = MBDyn_UVLM_NumOfSurfaces;  // Number of surfaces
 	MBDyn_UVLM_UVMopts->quasi_steady = false;  // Use quasi-steady approximation in UVLM
 	MBDyn_UVLM_UVMopts->vortex_radius = 1.0e-6;  //Distance between points below which induction is not computed
 	MBDyn_UVLM_UVMopts->vortex_radius_wake_ind = 1.0e-6; // Distance between points below which induction is not computed in the wake convection
 	MBDyn_UVLM_UVMopts->yaw_slerp = 0;  // Yaw angle in radians to be used when interp_metod == 4
 
-	MBDyn_UVLM_FlightConditions->c_ref = ;
-	MBDyn_UVLM_FlightConditions->rho = ;
-	MBDyn_UVLM_FlightConditions->uinf = ;
-	MBDyn_UVLM_FlightConditions->uinf_direction = ;
+	MBDyn_UVLM_FlightConditions->c_ref = 1.0;
+	MBDyn_UVLM_FlightConditions->rho = 1.225;
+	MBDyn_UVLM_FlightConditions->uinf = 1.0;
+	MBDyn_UVLM_FlightConditions->uinf_direction = { 1.0,0.0,0.0 };
 
 	//---------- allocate space for coupling variables (std::vectors for the coupling variables, motion and force)
 	//- kinematic motion + 12 (for the global coordinate in uvlm)
@@ -523,15 +546,6 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	MBDyn_UVLM_CouplingKinematic.resize(MBDyn_UVLM_CouplingSize.Size_Kinematic, 0.0);
 	MBDyn_UVLM_CouplingDynamic.resize(MBDyn_UVLM_CouplingSize.Size_Dynamic, 0.0);
 	MBDyn_UVLM_CouplingDynamic_pre.resize(MBDyn_UVLM_CouplingSize.Size_Dynamic, 0.0); //- vector for last iteration
-	//- pointer to motion
-	/*
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin(), MBDyn_UVLM_CouplingKinematic.begin() + 3 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_x);
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 3 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 12 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_R);
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 12 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 15 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_xp);
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 15 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 18 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_omega);
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 18 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 21 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_xpp);
-	std::copy(MBDyn_UVLM_CouplingKinematic.begin() + 21 * MBDyn_UVLM_NodesNum, MBDyn_UVLM_CouplingKinematic.begin() + 24 * MBDyn_UVLM_NodesNum, pMBDyn_UVLM_CouplingKinematic_omegap);
-	*/
 
 	//- UVLM ground coordinate  
 	MBDyn_UVLM_CouplingKinematic[24 * MBDyn_UVLM_NodesNum] = mbdyn_uvlm_ref_x[0];
@@ -565,7 +579,10 @@ UvlmInterfaceBaseElem::UvlmInterfaceBaseElem(
 	MBDyn_UVLM_Model_Init(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings, 
 		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
 		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_UvlmLibVar, VMoptions, UVMoptions, 
-		FlightConditions, MBDyn_UVLM_NodesNum);
+		Flight_Conditions, MBDyn_UVLM_NodesNum);
+//	MBDyn_UVLM_Model_Init(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
+//		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
+//		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_UvlmLibVar, MBDyn_UVLM_NodesNum);
 	// Initial UVLM system - [END]
 
 }
@@ -738,7 +755,12 @@ UvlmInterfaceBaseElem::AfterPredict(VectorHandler &X, VectorHandler &XP) {
 		MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
 			MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
 			MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
-			MBDyn_UVLM_UvlmLibVar, UVMoptions, FlightConditions, time_step);
+			MBDyn_UVLM_UvlmLibVar, UVMoptions, Flight_Conditions, time_step);
+
+//		MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
+//			MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
+//			MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
+//			MBDyn_UVLM_UvlmLibVar, time_step);
 
 		bMBDyn_UVLM_FirstSend = false;
 		bMBDyn_UVLM_Model_DoStepDynamics = false;   //- only do time integration once
@@ -1096,7 +1118,12 @@ UvlmInterfaceBaseElem::MBDyn_UVLM_UpdateUVLMModel() {
 	MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
 		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
 		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
-		MBDyn_UVLM_UvlmLibVar, UVMoptions, FlightConditions, time_step);
+		MBDyn_UVLM_UvlmLibVar, UVMoptions, Flight_Conditions, time_step);
+
+//	MBDyn_UVLM_Model_DoStepDynamics(MBDyn_UVLM_StepUVLM_settings, MBDyn_UVLM_Aerogrid_settings, MBDyn_UVLM_StraightWake_settings,
+//		MBDyn_UVLM_UVMopts, MBDyn_UVLM_FlightConditions, MBDyn_UVLM_Beam_inputs, MBDyn_UVLM_Aero_inputs,
+//		MBDyn_UVLM_StraightWake, MBDyn_UVLM_SteadyVelocityField, MBDyn_UVLM_Aerogrid,
+//		MBDyn_UVLM_UvlmLibVar, time_step);
 
 	pedantic_cout("\t MBDyn_UVLM::Update a regular step\n");
 }
@@ -1326,7 +1353,7 @@ module_init(const char *module_name, void *pdm, void *php)
 {
 	UserDefinedElemRead *rf = new UDERead<UvlmInterfaceBaseElem>;
 
-	if (!SetUDE("UVLM", rf)) {
+	if (!SetUDE("UVLMInterface", rf)) {
 		delete rf;
 
 		silent_cerr("module-UVLM: "
