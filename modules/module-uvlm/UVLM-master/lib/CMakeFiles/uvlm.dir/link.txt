@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -O3 -DNDEBUG  -shared -Wl,-soname,libuvlm.so -o libuvlm.so CMakeFiles/uvlm.dir/src/cpp_interface.cpp.o /usr/lib/x86_64-linux-gnu/liblapack.so /usr/lib/x86_64-linux-gnu/libblas.so /usr/lib/gcc/x86_64-linux-gnu/7/libgomp.so -lpthread 
