@@ -1,0 +1,52 @@
+#  user defined: 1, UVLMInterface,
+#                coupling,
+#                loose, embedded, #jacobian,
+#                #tight,10, tolerance, 1e-6,# tight coupling
+#                #force type, contact,
+#                length scale, 1000.0,
+#                mass scale, 1.0,# length scale, force scale...
+#				Surface number, Nsurf,
+#                Element number, Nel*Nsurf, 
+#				Uvlm Elem, curr_elem, offset, null,
+#                Uvlm body, 1, output uvlmbody,yes,
+#                ground, 0,
+#                position, 1.0,0.0,0.0,
+#                orientation, eye,
+
+
+
+
+
+	aerodynamic beam3: curr_elem, curr_elem,
+	  reference, node, Off_CA, 0.0, 0.0, 
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  reference, node, Off_CA, 0.0, 0.0,
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  reference, node, Off_CA, 0.0, 0.0,
+	  1, -1, 0, 0, 
+	  2,  0, 0, 1,
+	  const,  Chord,           #chord
+	  const,  0.0,           #AC offset
+	  const, -Chord/2,          #collocation point
+	  const,  0.0,           #twist
+	  5, theodorsen, c81, naca0012, 
+	  jacobian, yes;      #gauss points and c81 table
+	  
+	  
+	  
+	  
+	    make distclean
+		sh bootstrap.sh
+		./configure --enable-runtime-loading --with-module=fab-electric
+		make >& make.log
+		make install
+		export LD_LIBRARY_PATH=`pwd`/modules/module-fab-electric/.libs:$LD_LIBRARY_PATH
+
+
+
+
+
+
+sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
