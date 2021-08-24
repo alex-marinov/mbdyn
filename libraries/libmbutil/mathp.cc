@@ -3096,7 +3096,19 @@ start_parsing:;
 #else /* !HAVE_STRTOL */
 			value.Set(Int(atoi(s)));
 #endif /* !HAVE_STRTOL */
-
+			// check for undeflow or overflow.
+			// this is required because 
+			//   1) Int is not a long, thus we can have underflow/overflow with Int(l)
+			//      even if the return value of atol is checked
+			//   2) if atol is not available we fallback to atoi
+			std::string check_string = std::to_string(value.GetInt());
+			if (check_string.compare(std::string(s, endptr - s))) {
+				throw ErrGeneric(this,
+					MBDYN_EXCEPT_ARGS,
+					std::string("integer value ") + std::string(s, endptr - s) + " underflow or overflow " +
+					 " leading to " + check_string
+				);
+			}
 		} else {
 			value.SetType(TypedValue::VAR_REAL);
 #ifdef HAVE_STRTOD
