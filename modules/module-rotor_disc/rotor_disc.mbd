@@ -28,7 +28,8 @@ begin: control data;
   default orientation: orientation vector;
 
 
-  #gravity;
+  gravity;
+  air properties;
 
   structural nodes:
     # add structural nodes number
@@ -50,9 +51,9 @@ begin: control data;
     +1 # tail rotor module
   ;
 
-  output elements:
-    +1 # private data output test
-  ;
+  #output elements:
+  #  +1 # private data output test
+  #;
 
 
 
@@ -89,7 +90,9 @@ end: nodes;
 
 begin: elements;
 
-  # gravity: uniform, 0., 0., 1., (-9.81);
+  gravity: uniform, 0., 0., 1., -9.81;
+
+  air properties: std, SI, reference altitude, 0.0, null;
 
 
   body: 0, 0,
@@ -107,9 +110,9 @@ begin: elements;
     position orientation, reference, 0, eye,
     rotation orientation, reference, 0, eye,
     position constraint,
-      1, 1, 1, null,
+      1, 1, 0, null,
     orientation constraint,
-      1, 1, 0, null
+      1, 1, 1, null
   ;
 
   user defined: 153, rotordisc,
@@ -117,37 +120,39 @@ begin: elements;
       position, null,   # rotor relative arm wrt structural node
       orientation, reference, node, #eye,
       1, 1., 0., 0.,
-      3, 0., 0., -1.,
-      const, 0.,        # control input driver (collective input [rad])
-      const, 1.225,     # air density driver (rho [kg/m3])
-      const, 0.0,       # rotor angular velocity driver [rad/s]
-      1.0,              # rotor radius [m]
-      pi*1.0^2,
-      0.1,# rotor solidity [-]
-      2*pi,# blade clalpha [1/rad]
-      -5.0*pi/180.0,# blade twist [rad]
-      R,# rotor distance wrt reference point [m]\n"
+      3, 0., 0., 1.,
+      collective input,
+        const, 0.,        # control input driver (collective input [rad])
+      angular velocity,
+        const, 40.0,       # rotor angular velocity driver [rad/s]
+      radius, 1.0,              # rotor radius [m]
+      sigma,  0.1,# rotor solidity [-]
+      clalpha, 2*pi,# blade clalpha [1/rad]
+      twist,  -5.0*pi/180.0,# blade twist [rad]
+      stall limits,# rotor distance wrt reference point [m]\n"
       # (e.g.: for tail rotor, the distance between main and tail hub centers)
-      -90.0*pi/180.0,# alpha stall min (stall) [rad]
-      90.0*pi/180.0,# alpha stall max (stall) [rad]
-      -10.0*pi/180.0,# control input minvalue (saturation) [rad]
-      10.0*pi/180.0,# control input maxvalue (saturation) [rad]
-      1,# reference power  [shp]
-      5;# (e.g.: for tail rotor, the main rotor nominal power)
+        -90.0*pi/180.0,# alpha stall min (stall) [rad]
+        90.0*pi/180.0,# alpha stall max (stall) [rad]
+      control limits,
+        -10.0*pi/180.0,# control input minvalue (saturation) [rad]
+        10.0*pi/180.0,# control input maxvalue (saturation) [rad]
+      MTOW, 1000.0;
+      #1,# reference power  [shp]
+      #5;# (e.g.: for tail rotor, the main rotor nominal power)
       # reference rotor angular velocity [rad/s]
       # (e.g.: for tail rotor, the main rotor angular velocity)
 
-  stream output: 153,
-    stream name, "ROTOR DISC",
-    create, yes,
-    port, 5000, 
-    host, "127.0.0.1",
-    values, 6,
-    drive, element, 153, loadable, string, "T", direct,
-    drive, element, 153, loadable, string, "D", direct,
-    drive, element, 153, loadable, string, "P", direct,
-    drive, element, 153, loadable, string, "t", direct,
-    drive, element, 153, loadable, string, "r", direct,
-    drive, element, 153, loadable, string, "omega", direct;
+  #stream output: 153,
+  #  stream name, "ROTOR DISC",
+  #  create, yes,
+  #  port, 5000,
+  #  host, "127.0.0.1",
+  #  values, 6,
+  #  drive, element, 153, loadable, string, "T", direct,
+  #  drive, element, 153, loadable, string, "D", direct,
+  #  drive, element, 153, loadable, string, "P", direct,
+  #  drive, element, 153, loadable, string, "t", direct,
+  #  drive, element, 153, loadable, string, "r", direct,
+  #  drive, element, 153, loadable, string, "omega", direct;
 
 end: elements;

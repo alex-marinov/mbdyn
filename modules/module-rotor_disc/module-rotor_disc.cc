@@ -56,6 +56,8 @@
 
 RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
                                 DataManager* pDM, MBDynParser& HP)
+//: AerodynamicElem(uLabel, pDO, flag(0))
+//: Elem(uLabel, flag(0)), AerodynamicElem(uLabel, pDO, flag(0)), UserDefinedElem(uLabel, pDO)
 : Elem(uLabel, flag(0)), UserDefinedElem(uLabel, pDO)
 {
     if (HP.IsKeyWord("help")) {
@@ -72,10 +74,8 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "   rotor relative arm wrt structural node,\n"
         "   (the rotor force is always oriented as the Z of the node),\n"
         "   control input driver (collective input [rad]),\n"
-        "   air density driver (rho [kg/m3]),\n"
         "   rotor angular velocity driver [rad/s],\n"
         "   rotor radius [m],\n"
-        "   disc area [m2],\n"
         "   rotor solidity [-],\n"
         "   blade ClAlpha [1/rad],\n"
         "   blade twist [rad],\n"
@@ -151,39 +151,150 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
     // pDCForceDir = ReadDCVecRel(pDM, HP, rf);    
     // initialize the drive owner of the force direction
     // DOForceDir.Set(pDCForceDir);
-
     // drive di input (collective pitch)
-    pXColl  = HP.GetDriveCaller(); // da adoperare assieme a pXColl->dGet()
-    // drive di input air density
-    pRho    = HP.GetDriveCaller();
-    // drive di input tail rotor angular speed;
-    pOmega  = HP.GetDriveCaller();
-    // dati di progetto del rotore
-    RotorRadius             = HP.GetReal();
-    DiscArea                = HP.GetReal();
-    RotorSolidity           = HP.GetReal();
-    ClAlpha                 = HP.GetReal();
-    BladeTwist              = HP.GetReal();
-    AOAStallMin             = HP.GetReal();
-    AOAStallMax             = HP.GetReal();
-    thetaCollMin            = HP.GetReal();
-    thetaCollMax            = HP.GetReal();
-    hubs_distance           = HP.GetReal();
-    mr_nominal_power_shp    = HP.GetReal();
-    mr_nominal_omega        = HP.GetReal();
-    
-    // pay attention to possible negative values
-    if (hubs_distance <= std::numeric_limits<doublereal>::epsilon())
-    {
-        hubs_distance *= -1.0;
+    if (HP.IsKeyWord("collective" "input")){
+        pXColl  = HP.GetDriveCaller(); // da adoperare assieme a pXColl->dGet()
     }
-    // compute nominal main rotor torque in hover
-    doublereal mr_nominal_power_w   = mr_nominal_power_shp*sHP2W;
-    doublereal mr_nominal_torque_Nm = mr_nominal_power_w/mr_nominal_omega;
-    Th                              = mr_nominal_torque_Nm/hubs_distance;
+    // drive di input air density
+    // pRho    = HP.GetDriveCaller();
+
+    // air density taken by exploiting class inheritance on aerodynamic element
+    // const Vec3& XPosAbs(pHubNode->GetXCurr());
+    std::cout<<"rotordisc("<< uLabel << "): rho = "<< rho <<std::endl;
+    rho = 1.225 ; // dGetAirDensity(pHubNode->GetXCurr());
+    std::cout<<"rotordisc("<< uLabel << "): rho = "<< rho <<std::endl;
+
+    bool bGotOmega      = false;
+    bool bGotChord      = false;
+    bool bGotNBlades    = false;
+    bool bGotSigma      = false;
+    // drive di input rotor angular speed;
+    if (HP.IsKeyWord("angular" "velocity")){
+        pOmega  = HP.GetDriveCaller();
+        bGotOmega = true;
+    }
+    // dati di progetto del rotore
+    if (HP.IsKeyWord("radius")){
+        RotorRadius             = HP.GetReal();    
+    }
+
+
+    // TODO: AGGIUNGERE METODO CHE DECIDA COME SI VOGLIONO CALCOLARE I DATI
+    if (HP.IsKeyWord("chord")){
+        Chord = HP.GetReal();
+        bGotChord = true;
+    }
+    if (HP.IsKeyWord("blade" "number")){
+        NBlades = HP.GetInt();
+        bGotNBlades = true;
+    }
+    // if i have both then useless to look for solidity in the data
+    if (bGotChord & bGotNBlades){
+        RotorSolidity = doublereal(NBlades)*Chord/(M_PI*RotorRadius);
+    }
+    else if (HP.IsKeyWord("sigma")){
+        RotorSolidity = HP.GetReal();
+    }
+    
+    if (HP.IsKeyWord("clalpha")){
+        ClAlpha = HP.GetReal();
+    }
+
+    if (HP.IsKeyWord("twist")){
+        BladeTwist = HP.GetReal();
+    }
+    else {
+        std::cout << "rotordisc(" << uLabel << "): twist not provided, assuming null twist"<< std::endl;
+        BladeTwist = 0.0;
+    }
+
+    if (HP.IsKeyWord("stall" "limits")){
+        AOAStallMin             = HP.GetReal();
+        AOAStallMax             = HP.GetReal();
+    }
+    else {
+        std::cout << "rotordisc(" << uLabel << "): stall limits not provided, stall will not be included in the model"<< std::endl;
+        AOAStallMin = -2.e32;
+        AOAStallMax =  2.e32;
+    }
+
+    if (HP.IsKeyWord("control" "limits")){
+        thetaCollMin            = HP.GetReal();
+        thetaCollMax            = HP.GetReal();
+    }
+    else {
+        std::cout << "rotordisc(" << uLabel << "): control limits not provided, saturation not included"<< std::endl;
+        thetaCollMin            = -2.e32;
+        thetaCollMax            = 2.e32;
+    }
+
+    // disc area
+    DiscArea = M_PI*pow(RotorRadius, 2.0);
+
+    bool bGotTailRotor = false;
+    bool bGotMainRotor = false;
+
+    // reference values if we are dealing with a tail rotor
+    if (HP.IsKeyWord("main" "rotor" "data")){
+        if (HP.IsKeyWord("hubs" "distance")){
+            hubs_distance = HP.GetReal();
+            // pay attention to possible negative values
+            hubs_distance = std::abs(hubs_distance);
+        }
+        if (HP.IsKeyWord("main" "rotor" "nominal" "power")){
+            mr_nominal_power_shp    = HP.GetReal();
+        }
+        if (HP.IsKeyWord("main" "rotor" "nominal" "angular" "speed")){
+            mr_nominal_omega        = HP.GetReal();
+            if (bGotOmega == false){
+                std::cout << "rotordisc(" << uLabel << "): tail rotor angular speed not provided: "<< std::endl;
+                std::cout << "using as default value: tail_rotor_omega = 4*main_rotor_omega"<< std::endl;
+                RotorOmega = 4.0*mr_nominal_omega;
+            }
+        }
+
+
+        // compute nominal main rotor torque in hover
+        doublereal mr_nominal_power_w   = mr_nominal_power_shp*sHP2W;
+        doublereal mr_nominal_torque_Nm = mr_nominal_power_w/mr_nominal_omega;
+        Th                              = mr_nominal_torque_Nm/hubs_distance;
+
+        bGotTailRotor = true;
+
+    }
+    // second case: we are dealing with a disc rotor, we need to compute the thrust in hover
+    // at sea level to find the induced velocity in hover
+    else if (HP.IsKeyWord("MTOW")){
+
+        MTOW = HP.GetReal();
+        Th = MTOW*g;
+        
+        bGotMainRotor = true;
+    }
+
     // v1h depending on costant rotor parameters
     v1hPart             = sqrt(Th/(2.0*DiscArea));
     doublereal v1hInit  = v1hPart/sqrt(1.225);
+    
+    //DiscArea                = HP.GetReal();
+    //RotorSolidity           = HP.GetReal();
+    //ClAlpha                 = HP.GetReal();
+    //BladeTwist              = HP.GetReal();
+    //AOAStallMin             = HP.GetReal();
+    //AOAStallMax             = HP.GetReal();
+    //thetaCollMin            = HP.GetReal();
+    //thetaCollMax            = HP.GetReal();
+    //hubs_distance           = HP.GetReal();
+    //mr_nominal_power_shp    = HP.GetReal();
+    //mr_nominal_omega        = HP.GetReal();
+
+    // // compute nominal main rotor torque in hover
+    // doublereal mr_nominal_power_w   = mr_nominal_power_shp*sHP2W;
+    // doublereal mr_nominal_torque_Nm = mr_nominal_power_w/mr_nominal_omega;
+    // Th                              = mr_nominal_torque_Nm/hubs_distance;
+    // // v1h depending on costant rotor parameters
+    // v1hPart             = sqrt(Th/(2.0*DiscArea));
+    // doublereal v1hInit  = v1hPart/sqrt(1.225);
 
     std::cout <<"Tail rotor initialized:" << std::endl;
     std::cout <<"Radius [m]: " << RotorRadius << std::endl;
@@ -195,9 +306,14 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
     std::cout <<"AOAStallMax [rad]: " << AOAStallMax << std::endl;
     std::cout <<"thetaCollMin [rad]: " << thetaCollMin << std::endl;
     std::cout <<"thetaCollMax [rad]: " << thetaCollMax << std::endl;
-    std::cout <<"ref distance [m]: " << hubs_distance << std::endl;
-    std::cout <<"ref nominal power [rad]: " << mr_nominal_power_shp << std::endl;
-    std::cout <<"ref omega [rad/s]: " << mr_nominal_omega << std::endl;
+    if (bGotTailRotor){
+        std::cout <<"ref distance [m]: " << hubs_distance << std::endl;
+        std::cout <<"ref nominal power [rad]: " << mr_nominal_power_shp << std::endl;
+        std::cout <<"ref omega [rad/s]: " << mr_nominal_omega << std::endl;
+    }
+    else if (bGotMainRotor){
+        std::cout <<"MTOW [kg]: " << MTOW << std::endl;
+    }
     std::cout <<"###########################" << std::endl;
     std::cout <<"Induced velocity in Hover [m/s]: " << v1hInit << std::endl;
     std::cout <<"Thrust required for Hover [N]: " << Th << std::endl;
@@ -206,22 +322,40 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
 
     SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
     std::ostream& out = pDM->GetLogFile();
-    out << "rotordisc: " << uLabel
-        << " " << pHubNode->GetLabel() // node label
-        << " " << HubNodeArm
-        << " " << RotorRadius
-        << " " << DiscArea
-        << " " << RotorSolidity                
-        << " " << ClAlpha              
-        << " " << BladeTwist             
-        << " " << AOAStallMin       
-        << " " << AOAStallMax
-        << " " << thetaCollMin
-        << " " << thetaCollMax
-        << " " << hubs_distance        
-        << " " << mr_nominal_power_shp 
-        << " " << mr_nominal_omega                  
-        << std::endl;
+    if (bGotTailRotor){
+        out << "rotordisc: " << uLabel
+            << " " << pHubNode->GetLabel() // node label
+            << " " << HubNodeArm
+            << " " << RotorRadius
+            << " " << DiscArea
+            << " " << RotorSolidity                
+            << " " << ClAlpha              
+            << " " << BladeTwist             
+            << " " << AOAStallMin       
+            << " " << AOAStallMax
+            << " " << thetaCollMin
+            << " " << thetaCollMax
+            << " " << hubs_distance        
+            << " " << mr_nominal_power_shp 
+            << " " << mr_nominal_omega                  
+            << std::endl;
+    }
+    else if (bGotMainRotor){
+        out << "rotordisc: " << uLabel
+            << " " << pHubNode->GetLabel() // node label
+            << " " << HubNodeArm
+            << " " << RotorRadius
+            << " " << DiscArea
+            << " " << RotorSolidity                
+            << " " << ClAlpha              
+            << " " << BladeTwist             
+            << " " << AOAStallMin       
+            << " " << AOAStallMax
+            << " " << thetaCollMin
+            << " " << thetaCollMax
+            << " " << MTOW                 
+            << std::endl;       
+    }
 }
 
 RotorDisc::~RotorDisc()
@@ -357,7 +491,9 @@ void RotorDisc::ThrustCalc()
 
     OutputThrust[0] = 0.0;
     OutputThrust[1] = 0.0;
-    OutputThrust[2] = Thrust;
+    // WARNING: THRUST IS APPLIED AS A FOLLOWER FORCE APPLIED ON THE LOCAL Z AXIS, 
+    // THE SIGN HAS BE CHANGED TO TAKE INTO ACCOUNT THE CORRECT DIRECTION OF APPLICATION
+    OutputThrust[2] = - Thrust;
 }
 
 void RotorDisc::dTCalc()
@@ -544,33 +680,7 @@ unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
     }
 
     return 0;
-    
 
-    //unsigned idx = 0;
-    //switch(s[0])
-    //{
-    //    case 'T'://hrust
-    //        idx += 1;
-    //        break;
-    //    case 'D'://ragInduced
-    //        idx += 2;
-    //        break;
-    //    case 'P'://owerInduced
-    //        idx += 3;
-    //        break;
-    //    case 't'://heta0
-    //        idx += 4;
-    //        break;
-    //    case 'r'://ho
-    //        idx += 5;
-    //        break;
-    //    case 'o'://mega
-    //        idx += 6;
-    //        break;
-    //    default:
-    //        return 0;
-    //}
-    //return idx;
 }
 
 doublereal RotorDisc::dGetPrivData(unsigned int i) const
@@ -647,7 +757,8 @@ RotorDisc::AssRes(SubVectorHandler& WorkVec,
     //VTrHub = pHubNode->GetVCurr() + pHubNode->GetWCurr().Cross(HubNodeArm);
     // air density and rotor angular velocity
     RotorOmega  = pOmega->dGet();
-    rho         = pRho->dGet();
+    // air density taken by exploiting class inheritance on aerodynamic element
+    rho = dGetAirDensity(pHubNode->GetXCurr());
     // rotor collective pitch input
     thetaColl   = pXColl->dGet();
     

@@ -1,16 +1,17 @@
 // Author: Matteo Daniele <matteo.daniele@polimi.it>
-// tail rotor module for mbdyn
+// disc rotor module for mbdyn
 #ifndef MODULE_ROTOR_DISC_H
 #define MODULE_ROTOR_DISC_H
 
 extern bool RotorDiscSet(void);
 
 #include "elem.h"
+#include "indvel.h"
 #include "dataman.h"
 #include "userelem.h"
-#include "strforce.h"
-#include "tpldrive_impl.h"
-#include "strforce_impl.h"
+//#include "strforce.h"
+//#include "tpldrive_impl.h"
+//#include "strforce_impl.h"
 
 /*
 FROM PROUTY "HELICOPTER PERFORMANCE, STABILITY AND OCONTROL, CHAPTER 3"
@@ -18,6 +19,7 @@ V1 IS CALLED CONSTANT MOMENTUM INDUCED VELOCITY:
 GOOD APPROXIMATION OF INDUCED VELOCITY AT SPEED > 30KT
 */
 
+//class RotorDisc : virtual public Elem, AerodynamicElem, public UserDefinedElem
 class RotorDisc : virtual public Elem, public UserDefinedElem
 {
 private:
@@ -33,8 +35,7 @@ private:
 
     // control input (rad)
     const DriveCaller* pXColl;
-    // air density driver (kg/m3)
-    const DriveCaller* pRho;
+
     //rotor angular speed driver (rad/s)
     const DriveCaller* pOmega;
 
@@ -60,6 +61,13 @@ private:
     doublereal PowerInduced;
     // elements of thrust for jacobian assembly
     doublereal dThrust[5];
+
+    // air properties from the properties of the aerodynamic element (inherited)
+    doublereal rho; // density
+    doublereal SoundSPeed; // speed of sound
+    doublereal AirPressure; // pressure
+    doublereal AirTemperature; // temperature
+    // absolute position wrt reference to calculate air properties
     
     // partial derivatives of advance ratio
     void dMuCalc(void);
@@ -86,10 +94,12 @@ private:
 
     
     
-    // dimensional data of the tail rotor
-    doublereal RotorRadius;           // tail rotor radius [m]
-    doublereal DiscArea;           // tail rotor disc area [m^2]
-    doublereal RotorSolidity;       // tail rotor solidity [-]
+    // dimensional data of the  rotor
+    doublereal RotorRadius;           //  rotor radius [m]
+    doublereal Chord;           // blade chord [m]
+    int NBlades;                // blade number
+    doublereal DiscArea;           //  rotor disc area [m^2]
+    doublereal RotorSolidity;       //  rotor solidity [-]
     doublereal ClAlpha ;     // lift slope curve [1/rad]
     doublereal BladeTwist;    // twist angle at tip [rad]
 
@@ -102,6 +112,10 @@ private:
     doublereal mr_nominal_power_shp;    // main rotor nominal power, OGE [hp]
     doublereal mr_nominal_omega;        // main rotor nominal angular speed [rad/s]
 
+    // if we consider a rotor disc model
+    doublereal MTOW; // helicopter max takeoff weight [kg]
+    const doublereal g = 9.81;
+
     // shp2W
     const doublereal sHP2W = 745.7; // conversion factor, horsepower to watt
 
@@ -111,12 +125,12 @@ private:
     doublereal Th;
     doublereal v1hPart;
 
-    // airspeed in body frame acting on tail rotor center node (x pointing towards nose, z pointing outwards)
+    // airspeed in body frame acting on  rotor center node (x pointing towards nose, z pointing outwards)
     Vec3 VTrHub;
-    // tail rotor angular speed
+    // rotor angular speed
     doublereal RotorOmega;
-    // air density
-    doublereal rho;
+    // air density defined above
+    // doublereal rho;
     // STATE DEPENDENT VARIABLES
     doublereal u;
     doublereal v;
@@ -206,6 +220,13 @@ public:
     /* Contributo al residuo durante l'assemblaggio iniziale */
     SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
                                     const VectorHandler& /* XCurr */ );
+
+    //#########################################################################
+    // in fase di compilazione chiede il tipo di elemento
+    //virtual Elem::Type e(void) const
+    //{
+    //    return InducedVelocity::NO;
+    //}
 
 };
 
