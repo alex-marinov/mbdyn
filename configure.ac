@@ -251,7 +251,7 @@ OL_ARG_WITH(y12,[
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
 OL_ARG_WITH(klu,[  --with-klu              with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-harwell              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with IBM Watson library],no,[auto yes no])
