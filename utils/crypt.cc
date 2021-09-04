@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 
 	char	*salt_format = NULL, salt[35];
 	char	*asserted_cred = NULL, asserted_cred_buf[35];
-	size_t	asserted_cred_len = 0;
+	//size_t	asserted_cred_len = 0;
 
 	while (1) {
 		int	opt = getopt(argc, argv, "c:f:h");
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 			asserted_cred[STRLENOF(asserted_cred_buf)] = '\0';
 			asserted_cred = asserted_cred_buf;
 		}
-		asserted_cred_len = strlen(asserted_cred);
+		//asserted_cred_len = strlen(asserted_cred);
 	}
 
 	argv = &argv[optind];
