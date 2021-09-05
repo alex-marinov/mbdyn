@@ -65,13 +65,13 @@ _mbc_py_la_LIBADD = @LIBS@ libmbc.la
 _mbc_py_la_LDFLAGS = -module
 
 install-exec-local:
-	$(mkinstalldirs) $(libexecdir)/mbpy
-	$(install_sh_PROGRAM) .libs/_mbc_py.so $(libexecdir)/mbpy/
-	$(install_sh_DATA) mbc_py.py $(srcdir)/mbc_py_interface.py $(libexecdir)/mbpy/
+	$(mkinstalldirs) $(DESTDIR)$(libexecdir)/mbpy
+	$(install_sh_PROGRAM) .libs/_mbc_py.so $(DESTDIR)$(libexecdir)/mbpy/
+	$(install_sh_DATA) mbc_py.py $(srcdir)/mbc_py_interface.py $(DESTDIR)$(libexecdir)/mbpy/
 
-# remove _mbc_py.* because not directly usable; _mbc_py.so already in $(libexecdir)/mbpy/
+# remove _mbc_py.* because not directly usable; _mbc_py.so already in $(DESTDIR)$(libexecdir)/mbpy/
 install-exec-hook:
-	rm -f $(libdir)/_mbc_py.*
+	rm -f $(DESTDIR)$(libdir)/_mbc_py.*
 
 clean-local:
 	rm -f mbc_py_wrap.cc mbc_py.py

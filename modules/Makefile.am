@@ -106,7 +106,7 @@ all__:
 	fi
 
 install: all__
-	$(mkinstalldirs) $(libexecdir)
+	$(mkinstalldirs) $(DESTDIR)$(libexecdir)
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
 			echo "Installing $$i ..."; \
