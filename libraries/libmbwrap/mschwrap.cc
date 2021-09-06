@@ -36,6 +36,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "ls.h"
 #include "mschwrap.h"
 
 /* MeschachVectorHandler - begin */
@@ -164,13 +165,20 @@ MeschachSparseMatrixHandler::Reset(void)
    	sp_zero(mat);
 }
 
+void
+MeschachSparseMatrixHandler::Resize(integer m, integer n)
+{
+	sp_resize(mat, m, n);
+}
+
+
 /* MeschachSparseMatrixHandler - end */
 
 /* MeschachSparseSolutionManager - begin */
 
 void
-MeschachSparseSolutionManager::Create(unsigned integer iSize,
-					unsigned integer iMaxSize) 
+MeschachSparseSolutionManager::Create(integer iSize,
+					integer iMaxSize) 
 {
    	if (prhs == NULL) {
       		SAFENEWWITHCONSTRUCTOR(prhs, 
@@ -180,7 +188,7 @@ MeschachSparseSolutionManager::Create(unsigned integer iSize,
       		prhs->Resize(iSize);
    	}
    
-   	if (pivot == PNULL || pivot->size < iSize) {
+   	if (pivot == PNULL || pivot->size < (unsigned)iSize) {
       		PERM* p = px_resize(pivot, iSize);
       		if (p == PNULL) {
 	 		silent_cerr("out of memory?" << std::endl);

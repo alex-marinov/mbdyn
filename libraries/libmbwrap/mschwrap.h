@@ -40,7 +40,53 @@
 #include <submat.h>
 
 extern "C" {   
+/*
+ * Meschach defines "min" and "max" as a macros,
+ * screwing up C++ includes.
+ * luckily the definitions are guarded by
+ * #ifdef max and #ifdef min,
+ * thus it should suffice to define them
+ * before including anything from meschach
+ * and later on undefining them
+ */
+#ifndef max
+#define max max
+#define have_defined_max_meschach_workaround
+#endif
+
+#ifndef min
+#define min min
+#define have_defined_max_meschach_workaround
+#endif
+
+#ifndef ANSI_C
+#define ANSI_C
+#define ANSI_C_meshach_defined
+#endif
+
+#define m_free int m_free
+// we need only sparse2 here; 
+// adding also matrix2, that is needed by
+// mbdyn/elec/gpc.h to avoid having to dulicate there
+// all the dirty tricks made here
+#include <meschach/matrix2.h>
 #include <meschach/sparse2.h>
+#undef m_free
+#ifdef ANSI_C_meshach_defined
+#undef ANSI_C
+#undef ANSI_C_meshach_defined
+#endif
+
+
+#ifdef have_defined_max_meschach_workaround
+#undef max
+#undef have_defined_max_meschach_workaround
+#endif
+
+#ifdef have_defined_min_meschach_workaround
+#undef min
+#undef have_defined_min_meschach_workaround
+#endif
 }
 
 /*
@@ -73,9 +119,9 @@ public:
    	virtual void Resize(integer iNewSize);
    	virtual void Reset(void);
    
-   	virtual inline flag PutCoef(integer iRow, const doublereal& dCoef);
-   	virtual inline flag IncCoef(integer iRow, const doublereal& dCoef);
-   	virtual inline flag DecCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline void PutCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline void IncCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline void DecCoef(integer iRow, const doublereal& dCoef);
    	virtual inline const doublereal& dGetCoef(integer iRow) const;
 
 	virtual inline const doublereal& operator () (integer iRow) const;
@@ -110,34 +156,34 @@ MeschachVectorHandler::iGetSize(void) const
    	return integer(pv->dim);
 }
 
-inline flag
+inline void
 MeschachVectorHandler::PutCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
    	pdVecm1[iRow] = dCoef;
-   	return flag(1);
+   	return;
 }
 
-inline flag
+inline void
 MeschachVectorHandler::IncCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
    	pdVecm1[iRow] += dCoef;
-   	return flag(1);
+   	return;
 }
 
-inline flag
+inline void
 MeschachVectorHandler::DecCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
    	pdVecm1[iRow] -= dCoef;
-   	return flag(1);
+   	return;
 }
 
 inline const doublereal&
@@ -194,19 +240,24 @@ public:
    	void Reset(void);
    
    	/* Inserisce un coefficiente */
-   	inline flag PutCoef(integer iRow, integer iCol,
+   	inline void PutCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 			     
    	/* Incrementa un coefficiente - se non esiste lo crea */
-   	inline flag IncCoef(integer iRow, integer iCol,
+   	inline void IncCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 	
    	/* Decrementa un coefficiente - se non esiste lo crea */
-   	inline flag DecCoef(integer iRow, integer iCol,
+   	inline void DecCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 			     
    	/* Restituisce un coefficiente - zero se non e' definito */
    	inline const doublereal& dGetCoef(integer iRow, integer iCol) const;
+	
+	inline const doublereal& operator()(integer iRow, integer iCol) const;
+	inline doublereal& operator()(integer iRow, integer iCol);
+
+	void Resize(integer m, integer n);
 
    	inline SPMAT* pGetMAT(void) const;
 };
@@ -231,7 +282,7 @@ MeschachSparseMatrixHandler::iGetNumCols(void) const
 }
 
 /* Inserisce un coefficiente */
-inline flag
+inline void
 MeschachSparseMatrixHandler::PutCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef)
 {
@@ -240,13 +291,13 @@ MeschachSparseMatrixHandler::PutCoef(integer iRow, integer iCol,
 #endif /* DEBUG */
    	if (dCoef != 0.) {
       		sp_set_val(mat, --iRow, --iCol, dCoef);
-      		return flag(0);
+      		return;
    	}
-   	return flag(1);
+   	return;
 }
 
 /* Incrementa un coefficiente - se non esiste lo crea */
-inline flag
+inline void
 MeschachSparseMatrixHandler::IncCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef) 
 {
@@ -255,14 +306,16 @@ MeschachSparseMatrixHandler::IncCoef(integer iRow, integer iCol,
 #endif /* DEBUG */
    	if (dCoef != 0.) {
 		/* FIXME: this is an extension to Meschach */
-      		sp_inc_val(mat, --iRow, --iCol, dCoef);
-      		return flag(0);
+      		/* sp_inc_val(mat, --iRow, --iCol, dCoef); */
+		double tmp = sp_get_val(mat, --iRow, --iCol);
+      		sp_set_val(mat, iRow, iCol, tmp+dCoef);
+      		return;
    	}
-   	return flag(1);
+   	return;
 }
 
 /* Decrementa un coefficiente - se non esiste lo crea */
-inline flag
+inline void
 MeschachSparseMatrixHandler::DecCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef) 
 {
@@ -271,10 +324,12 @@ MeschachSparseMatrixHandler::DecCoef(integer iRow, integer iCol,
 #endif /* DEBUG */
    	if (dCoef != 0.) {
 		/* FIXME: this is an extension to Meschach */
-      		sp_dec_val(mat, --iRow, --iCol, dCoef);
-      		return flag(0);
+      		/* sp_dec_val(mat, --iRow, --iCol, dCoef); */
+		double tmp = sp_get_val(mat, --iRow, --iCol);
+      		sp_set_val(mat, iRow, iCol, tmp-dCoef);
+      		return;
    	}
-   	return flag(1);
+   	return;
 }
 
 /* Restituisce un coefficiente - zero se non e' definito */
@@ -286,6 +341,20 @@ MeschachSparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 #endif /* DEBUG */
    	return ((doublereal&)dDmy = sp_get_val(mat, --iRow, --iCol));
 }
+
+inline const doublereal&
+MeschachSparseMatrixHandler::operator()(integer iRow, integer iCol) const
+{
+	return dGetCoef(iRow, iCol);
+}
+
+inline doublereal&
+MeschachSparseMatrixHandler::operator()(integer iRow, integer iCol)
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	return (doublereal&)dGetCoef(iRow, iCol);
+}
+
 
 inline SPMAT*
 MeschachSparseMatrixHandler::pGetMAT(void) const 

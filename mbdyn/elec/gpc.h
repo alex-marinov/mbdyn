@@ -36,11 +36,17 @@
 #include <drive.h>
 
 #ifdef USE_MESCHACH
-extern "C" {
-#include <meschach/matrix2.h>
-}
+// inlcude mschwrap.h instead of meschach/matrix2.h
+// in ordert to avoid duplicating here all the
+// dirty triks required to include meschach
+// added there matrix2 only because of this
+// 
+// meschach should really be removed
+#include "mschwrap.h"
+//extern "C" {
+//#include <meschach/matrix2.h>
+//}
 #endif /* USE_MESCHACH */
-
 
 /*
  * classe di routines che consentono di invertire matrici;
