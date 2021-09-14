@@ -19,7 +19,7 @@ eu2phi \
 femgen \
 intg \
 posrel \
-printenv \
+print_env \
 rot2eu \
 rot2eup \
 rot2phi \
@@ -147,7 +147,7 @@ crypt_SOURCES = crypt.cc
 cl_SOURCES = cl.cc
 dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
-printenv_SOURCES = env.c
+print_env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 eu2phi_SOURCES = eu2phi.cc
 femgen_SOURCES = femgen.c
