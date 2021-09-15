@@ -252,7 +252,6 @@ OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[
 OL_ARG_WITH(klu,[  --with-klu              with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-harwell              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
-OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with IBM Watson library],no,[auto yes no])
 OL_ARG_WITH(pardiso,[  --with-pardiso          with Intel MKL Pardiso library],no,[auto yes no])
@@ -399,7 +398,6 @@ KLU_LIBS=
 BLAS_LIBS=
 THREAD_LIBS=
 ATOMIC_OPS_LIBS=
-MESCHACH_LIBS=
 SUPERLU_LIBS=
 PARDISO_LIBS=
 WSMP_LIBS=
@@ -2714,47 +2712,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for Meschach
-dnl
-ol_link_meschach=no
-if test $ol_with_meschach != no ; then
-	AC_CHECK_HEADERS(meschach/sparse2.h)
-
-	if test "$ac_cv_header_meschach_sparse2_h" = "yes" ; then
-
-		AC_MSG_CHECKING([for meschach library])
-		try_meschach_LIBS="-lmeschach"
-		save_LIBS=$LIBS
-		LIBS="$LIBS $try_meschach_LIBS"
-		AC_TRY_LINK([
-#include <meschach/sparse2.h>
-],[
-	SPMAT* mat;
-	mat = sp_get(10, 20, 10);
-		],[have_meschach=yes],[have_meschach=no])
-		LIBS=$save_LIBS
-
-		if test $have_meschach != no ; then
-			MESCHACH_LIBS=$try_meschach_LIBS
-			AC_DEFINE(USE_MESCHACH,1,[define if you want to use Meschach])
-			ol_link_meschach=yes
-			AC_MSG_RESULT([yes])
-		else
-			AC_MSG_RESULT([no])
-		fi
-	fi
-
-	if test $ol_link_meschach = no ; then
-		if test $ol_with_meschach != auto ; then
-			AC_MSG_ERROR([Could not locate Meschach])
-		else
-			AC_MSG_WARN([Meschach not supported])
-		fi
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for SuperLU
 dnl
 ol_link_superlu=no
@@ -3537,7 +3494,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks id DeadBeat can be built
 dnl
-if test $ol_link_lapack != no -o $ol_link_meschach != no ; then
+if test $ol_link_lapack != no ; then
 	AC_DEFINE(USE_DBC,1,[define if you want to use GPC/DeadBeat control])
 else
 	dnl Required for GPC/Deadbeat (should be able to work it 'round...)
@@ -3735,7 +3692,6 @@ AC_SUBST(PASTIX_LIBS)
 AC_SUBST(QRUPDATE_LIBS)
 AC_SUBST(SUITESPARSEQR_LIBS)
 AC_SUBST(STRUMPACK_LIBS)
-AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
 AC_SUBST(TAUCS_LIBS)

@@ -52,7 +52,6 @@ extern "C" {
 #include "dirccmh.h"
 #include "y12wrap.h"
 #include "harwrap.h"
-#include "mschwrap.h"
 #include "umfpackwrap.h"
 #include "parsuperluwrap.h"
 #include "superluwrap.h"
@@ -78,9 +77,6 @@ const char *solvers[] = {
 #endif
 #if defined(USE_HARWELL)
 		"harwell",
-#endif
-#if defined(USE_MESCHACH)
-		"meschach",
 #endif
 #if defined(USE_LAPACK)
 		"lapack",
@@ -425,8 +421,6 @@ main(int argc, char *argv[])
 		"superlu"
 #elif defined(USE_HARWELL)
 		"harwell"
-#elif defined(USE_MESCHACH)
-		"meschach"
 #elif defined(USE_LAPACK)
 		"lapack"
 #elif defined(USE_TAUCS)
@@ -750,16 +744,6 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 #endif /* !USE_HARWELL */
 
-	} else if (strcasecmp(solver, "meschach") == 0) {
-#ifdef USE_MESCHACH
-		std::cerr << "Meschach solver" << std::endl;
-		SAFENEWWITHCONSTRUCTOR(pSM, MeschachSparseSolutionManager,
-				MeschachSparseSolutionManager(size));
-#else /* !USE_MESCHACH */
-		std::cerr << "need --with-meschach to use Meschach library" 
-			<< std::endl;
-		usage(EXIT_FAILURE);
-#endif /* !USE_MESCHACH */
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK

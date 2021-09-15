@@ -35,19 +35,6 @@
 #include <ac/f2c.h>
 #include <drive.h>
 
-#ifdef USE_MESCHACH
-// inlcude mschwrap.h instead of meschach/matrix2.h
-// in ordert to avoid duplicating here all the
-// dirty triks required to include meschach
-// added there matrix2 only because of this
-// 
-// meschach should really be removed
-#include "mschwrap.h"
-//extern "C" {
-//#include <meschach/matrix2.h>
-//}
-#endif /* USE_MESCHACH */
-
 /*
  * classe di routines che consentono di invertire matrici;
  * allocano autonomamente lo spazio di lavoro lo gestiscono e lo distruggono;
@@ -101,29 +88,6 @@ public:
 
 /* GPC_LAPACK_pinv - end */
 
-
-#ifdef USE_MESCHACH
-/* GPC_Meschach_QRinv - begin */
-
-class GPC_Meschach_QRinv : public GPCInv {
-protected:
-   	integer m; /* in realta' non servono, e' solo per sicurezza */
-   	integer n;
-   
-   	MAT* A;
-   	VEC* diag;
-   	VEC* x;
-   	VEC* b;
-   	PERM* pivot;
-   
-public:
-   	GPC_Meschach_QRinv(integer m, integer n);
-   	~GPC_Meschach_QRinv(void);
-   	integer Inv(integer ndima, integer nrowa, integer ncola, doublereal* a);
-};
-
-/* GPC_Meschach_QRinv - end */
-#endif /* USE_MESCHACH */
 
 
 /*

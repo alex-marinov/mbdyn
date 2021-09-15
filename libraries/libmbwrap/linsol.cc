@@ -40,7 +40,6 @@
 #include "ccmh.h"
 #include "dirccmh.h"
 #include "harwrap.h"
-#include "mschwrap.h"
 #include "y12wrap.h"
 #include "umfpackwrap.h"
 #include "kluwrap.h"
@@ -71,11 +70,6 @@ const LinSol::solver_t solver[] = {
 		-1., -1. },
 	{ "Lapack", NULL,
 		LinSol::LAPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE,
-		-1., -1. },
-	{ "Meschach", NULL,
-		LinSol::MESCHACH_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE,
 		-1., -1. },
@@ -317,11 +311,6 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		return true;
 #endif /* USE_HARWELL */
 
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		currSolver = t;
-		return true;
-#endif /* USE_MESCHACH */
         case LinSol::PARDISO_SOLVER:
 #ifdef USE_PARDISO
              currSolver = t;
@@ -718,19 +707,6 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable superlu solver" << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_SUPERLU */
-
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseSolutionManager,
-			MeschachSparseSolutionManager(iNLD, iLWS,
-				dPivotFactor));
-		break;
-#else /* !USE_MESCHACH */
-		silent_cerr("Configure with --with-meschach "
-			"to enable Meschach solver" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* !USE_MESCHACH */
 
 	case LinSol::LAPACK_SOLVER:
 #ifdef USE_LAPACK

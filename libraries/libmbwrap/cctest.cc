@@ -43,7 +43,6 @@
 #include "dirccmh.h"
 #include "y12wrap.h"
 #include "harwrap.h"
-#include "mschwrap.h"
 #include "umfpackwrap.h"
 #include "parsuperluwrap.h"
 #include "superluwrap.h"
