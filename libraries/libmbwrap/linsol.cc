@@ -89,7 +89,7 @@ const LinSol::solver_t solver[] = {
 #endif /* USE_NAIVE_MULTITHREAD */
 			0,
 		LinSol::SOLVER_FLAGS_NONE,
-		1.e-8, -1. },
+		1.e-5, -1. },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD |

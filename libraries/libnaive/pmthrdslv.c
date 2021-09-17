@@ -52,7 +52,7 @@ typedef double  doublereal;
 
 #include "pmthrdslv.h"
 
-#define MINPIV   (1.0e-8)
+#define MINPIV   (1.0e-5)
 
 int
 pnaivfct(doublereal** a,

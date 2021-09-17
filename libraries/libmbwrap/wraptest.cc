@@ -884,7 +884,7 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (dpivot == -1.) {
-			dpivot = 1.E-8;
+			dpivot = 1.E-5;
 		}
 		if (cc) {
 			std::cerr << " with Colamd ordering";
