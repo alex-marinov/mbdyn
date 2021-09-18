@@ -50,7 +50,8 @@
 
 #include "pardisowrap.h"
 
-PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThreads, integer iNumIter, const SolutionManager::ScaleOpt& scale, integer iVerbose)
+template <typename MKL_INT_TYPE>
+PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, const SolutionManager::ScaleOpt& scale, integer iVerbose)
      :LinearSolver(pSM),
       pAx(nullptr),
       pAi(nullptr),
@@ -70,13 +71,14 @@ PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThr
      iparm[0] = 1; // Use default values.
      iparm[1] = 3; // The parallel (OpenMP) version of the nested dissection algorithm
      iparm[7] = iNumIter; // Iterative refinement step
-     iparm[9] = 13; // Pivoting perturbation
+     iparm[9] = -log10(dPivot); // Pivoting perturbation
 
      switch (scale.algorithm) {
      case SolutionManager::SCALEA_NONE:
-          break;
+       iparm[10] = 1; // Enable builtin scaling
+       break;
      default:
-          iparm[10] = 1; // Enable scaling
+       iparm[10] = 0; // Disable builtin scaling
      }
 
      iparm[12] = 1; // Improved accuracy using (non-) symmetric weighted matching.
@@ -86,33 +88,36 @@ PardisoSolver::PardisoSolver(SolutionManager* pSM, integer iDim, integer iNumThr
 #endif
 }
 
-PardisoSolver::~PardisoSolver()
+template <typename MKL_INT_TYPE>
+PardisoSolver<MKL_INT_TYPE>::~PardisoSolver()
 {
-     MKL_INT ierror;
+     MKL_INT_TYPE ierror;
 
      phase = -1;
 
-     pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, nullptr, nullptr, &ierror);
+     SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, nullptr, nullptr, &ierror);
 
      ASSERT(ierror == 0);
 }
 
-void PardisoSolver::Solve(void) const
+template <typename MKL_INT_TYPE>
+void PardisoSolver<MKL_INT_TYPE>::Solve(void) const
 
 {
-     const MKL_INT iNumNzA = pAp[n] - pAp[0];
+     const MKL_INT_TYPE iNumNzA = pAp[n] - pAp[0];
      const bool bForceOrderingStep = iNumNz != iNumNzA;
 
-     MKL_INT ierror;
+     MKL_INT_TYPE ierror;
 
      if (bHasBeenReset) {
           if (bForceOrderingStep) {
                phase = 11; // Analysis step
 
-               pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+               SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
                if (ierror != 0) {
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                    silent_cerr("Pardiso symbolic factorization failed with status " << ierror << "\n");
+                    throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
                }
 
                iNumNz = iNumNzA;
@@ -120,9 +125,10 @@ void PardisoSolver::Solve(void) const
 
           phase = 22; // Numerical factorization step
 
-          pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+          SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
           if (ierror != 0) {
+               silent_cerr("Pardiso numeric factorization failed with status " << ierror << "\n");
                throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
           }
 
@@ -131,104 +137,165 @@ void PardisoSolver::Solve(void) const
 
      phase = 33; // Solve, iterative refinement step
 
-     pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+     SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
      if (ierror) {
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          silent_cerr("Pardiso solve failed with status " << ierror << "\n");
+          throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
      }
 }
 
-MKL_INT PardisoSolver::MakeCompactForm(SparseMatrixHandler& mh,
-                                       std::vector<doublereal>& Ax,
-                                       std::vector<MKL_INT>& Ai,
-                                       std::vector<MKL_INT>& Ap) const
+template <typename MKL_INT_TYPE>
+MKL_INT_TYPE PardisoSolver<MKL_INT_TYPE>::MakeCompactForm(SparseMatrixHandler& mh,
+                                                          std::vector<doublereal>& Ax,
+                                                          std::vector<MH_INT_TYPE>& Ai,
+                                                          std::vector<MH_INT_TYPE>& Ap) const
 {
-     MKL_INT iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
+     MKL_INT_TYPE iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
 
      n = mh.iGetNumCols();
 
      pAx = &Ax.front();
-     pAi = &Ai.front();
-     pAp = &Ap.front();
+
+     static_assert(sizeof(MH_INT_TYPE) == sizeof(MKL_INT_TYPE));
+
+     pAi = reinterpret_cast<MKL_INT_TYPE*>(&Ai.front());
+     pAp = reinterpret_cast<MKL_INT_TYPE*>(&Ap.front());
 
      return iNumNzA;
 }
 
-template <typename MatrixHandlerType>
-PardisoSolutionManager<MatrixHandlerType>::PardisoSolutionManager(integer iDim, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, integer iVerbose)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::ScaleMatrixAndRightHandSide(MatrixHandlerType &mh)
+{
+    if (scale.when != SCALEW_NEVER) {
+         MatrixScale<MatrixHandlerType>& rMatScale = GetMatrixScale();
+
+         if (pLS->bReset()) {
+              if (!rMatScale.bGetInitialized()
+                  || scale.when == SolutionManager::SCALEW_ALWAYS) {
+                   // (re)compute
+                   rMatScale.ComputeScaleFactors(mh);
+              }
+              // in any case scale matrix and right-hand-side
+              rMatScale.ScaleMatrix(mh);
+
+              if (silent_err) {
+                   rMatScale.Report(std::cerr);
+              }
+         }
+
+         rMatScale.ScaleRightHandSide(b);
+    }
+}
+
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+MatrixScale<MatrixHandlerType>&
+PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::GetMatrixScale()
+{
+    if (pMatScale == nullptr) {
+         pMatScale = MatrixScale<MatrixHandlerType>::Allocate(scale);
+    }
+
+    return *pMatScale;
+}
+
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::ScaleSolution()
+{
+        if (scale.when != SCALEW_NEVER) {
+                ASSERT(pMatScale != nullptr);
+                // scale solution
+                pMatScale->ScaleSolution(x);
+        }
+}
+
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::PardisoSolutionManager(integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, integer iVerbose)
     :x(iDim),
      b(iDim),
+     scale(scale),
+     pMatScale(nullptr),
      A(iDim, iDim)
 {
     SAFENEWWITHCONSTRUCTOR(pLS,
-                           PardisoSolver,
-                           PardisoSolver(this, iDim, iNumThreads, iNumIter, scale, iVerbose));
+                           PardisoSolver<MKL_INT_TYPE>,
+                           PardisoSolver<MKL_INT_TYPE>(this, iDim, dPivot, iNumThreads, iNumIter, scale, iVerbose));
 
     pLS->pdSetResVec(b.pdGetVec());
     pLS->pdSetSolVec(x.pdGetVec());
 }
 
-template <typename MatrixHandlerType>
-PardisoSolutionManager<MatrixHandlerType>::~PardisoSolutionManager(void)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::~PardisoSolutionManager(void)
 {
-
+    if (pMatScale) {
+         SAFEDELETE(pMatScale);
+         pMatScale = nullptr;
+    }
 }
 
 #ifdef DEBUG
-template <typename MatrixHandlerType>
-void PardisoSolutionManager<MatrixHandlerType>::IsValid() const
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::IsValid() const
 {
 }
 #endif
 
-template <typename MatrixHandlerType>
-void PardisoSolutionManager<MatrixHandlerType>::MatrReset(void)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::MatrReset(void)
 {
     pLS->Reset();
 }
 
-template <typename MatrixHandlerType>
-void PardisoSolutionManager<MatrixHandlerType>::MatrInitialize(void)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::MatrInitialize(void)
 {
     MatrReset();
 }
 
-template <typename MatrixHandlerType>
-void PardisoSolutionManager<MatrixHandlerType>::MakeCompressedRowForm(void)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::MakeCompressedRowForm(void)
 {
-     pGetSolver()->MakeCompactForm(A, Ax, Ai, Ap);
+    ScaleMatrixAndRightHandSide(A);
+
+    pGetSolver()->MakeCompactForm(A, Ax, Ai, Ap);
 }
 
-template <typename MatrixHandlerType>
-void PardisoSolutionManager<MatrixHandlerType>::Solve(void)
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::Solve(void)
 {
     MakeCompressedRowForm();
 
     pLS->Solve();
+
+    ScaleSolution();
 }
 
-template <typename MatrixHandlerType>
-MatrixHandler* PardisoSolutionManager<MatrixHandlerType>::pMatHdl(void) const
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+MatrixHandler* PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::pMatHdl(void) const
 {
     return &A;
 }
 
-template <typename MatrixHandlerType>
-VectorHandler* PardisoSolutionManager<MatrixHandlerType>::pResHdl(void) const
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+VectorHandler* PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::pResHdl(void) const
 {
     return &b;
 }
 
-template <typename MatrixHandlerType>
-VectorHandler* PardisoSolutionManager<MatrixHandlerType>::pSolHdl(void) const
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
+VectorHandler* PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::pSolHdl(void) const
 {
     return &x;
 }
 
-template class PardisoSolutionManager<SpMapMatrixHandler>;
+template class PardisoSolutionManager<SpMapMatrixHandler, MKL_INT>;
+template class PardisoSolutionManager<SpMapMatrixHandler, long long>;
 
 #ifdef USE_SPARSE_AUTODIFF
-template class PardisoSolutionManager<SpGradientSparseMatrixHandler>;
+template class PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT>;
+template class PardisoSolutionManager<SpGradientSparseMatrixHandler, long long>;
 #endif
 
 #endif
