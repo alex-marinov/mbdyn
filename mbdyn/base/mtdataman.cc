@@ -189,9 +189,9 @@ propagate_ErrMatrixRebuild(AO_TS_INITIALIZER)
 
 MultiThreadDataManager::~MultiThreadDataManager(void)
 {
-	pthread_mutex_destroy(&thread_mutex);
-	pthread_cond_destroy(&thread_cond);
-	ThreadDestroy();
+        ThreadDestroy();
+        pthread_mutex_destroy(&thread_mutex);
+        pthread_cond_destroy(&thread_cond);
 }
 
 void MultiThreadDataManager::ThreadDestroy(void)
