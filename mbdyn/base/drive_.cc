@@ -239,9 +239,10 @@ MultDriveCaller::pCopy(void) const
 std::ostream&
 MultDriveCaller::Restart(std::ostream& out) const
 {
-	return out << "mult, ",
-		DO1.pGetDriveCaller()->Restart(out) << ", ";
-		DO2.pGetDriveCaller()->Restart(out);
+     out << "mult, ";
+     DO1.pGetDriveCaller()->Restart(out) << ", ";
+     DO2.pGetDriveCaller()->Restart(out);
+     return out;
 }
 
 /* MultDriveCaller - end */
