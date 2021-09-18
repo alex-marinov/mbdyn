@@ -51,6 +51,7 @@
 #include "ls.h"
 #include "solman.h"
 #include "spmapmh.h"
+#include "dgeequ.h"
 
 #ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
@@ -58,47 +59,79 @@
 
 #include <mkl/mkl_pardiso.h>
 
+template <typename MKL_INT_TYPE>
+struct PardisoSolverTraits;
+
+template <>
+struct PardisoSolverTraits<MKL_INT> {
+     typedef std::int32_t MH_INT_TYPE;
+     static constexpr auto pardiso = ::pardiso;
+};
+
+template <>
+struct PardisoSolverTraits<long long> {
+     typedef std::int64_t MH_INT_TYPE;
+     static constexpr auto pardiso = ::pardiso_64;
+};
+
+template <typename MKL_INT_TYPE>
 class PardisoSolver: public LinearSolver {
 private:
+     typedef PardisoSolverTraits<MKL_INT_TYPE> SolverType;
+     typedef typename SolverType::MH_INT_TYPE MH_INT_TYPE;
+     
+     static_assert(sizeof(MH_INT_TYPE) == sizeof(MKL_INT_TYPE));
+     
      mutable _MKL_DSS_HANDLE_t pt[64];
-     mutable MKL_INT iparm[64];
+     mutable MKL_INT_TYPE iparm[64];
      mutable doublereal* pAx;
-     mutable MKL_INT* pAi;
-     mutable MKL_INT* pAp;
-     mutable MKL_INT iNumNz;
-     mutable MKL_INT phase, maxfct, mnum, mtype, n, nrhs, msglvl;
-
+     mutable MKL_INT_TYPE* pAi;
+     mutable MKL_INT_TYPE* pAp;
+     mutable MKL_INT_TYPE iNumNz;
+     mutable MKL_INT_TYPE phase, maxfct, mnum, mtype, n, nrhs, msglvl;
+     
 public:
      explicit PardisoSolver(SolutionManager* pSM,
                             integer iDim,
+                            doublereal dPivot,
                             integer iNumThreads,
                             integer iNumIter,
                             const SolutionManager::ScaleOpt& scale,
                             integer iVerbose);
      ~PardisoSolver();
-     
+
      virtual void Solve() const override;
-     
-     MKL_INT MakeCompactForm(SparseMatrixHandler& mh,
-                             std::vector<doublereal>& Ax,
-                             std::vector<MKL_INT>& Ai,
-                             std::vector<MKL_INT>& Ap) const;
+
+     MKL_INT_TYPE MakeCompactForm(SparseMatrixHandler& mh,
+                                  std::vector<doublereal>& Ax,
+                                  std::vector<MH_INT_TYPE>& Ai,
+                                  std::vector<MH_INT_TYPE>& Ap) const;
 };
 
-template <typename MatrixHandlerType>
+template <typename MatrixHandlerType, typename MKL_INT_TYPE>
 class PardisoSolutionManager: public SolutionManager {
 private:
+     typedef typename PardisoSolverTraits<MKL_INT_TYPE>::MH_INT_TYPE MH_INT_TYPE;
      mutable MyVectorHandler x, b;
-     std::vector<MKL_INT> Ai, Ap;
+     std::vector<MH_INT_TYPE> Ai, Ap;
      std::vector<doublereal> Ax;
-     
+     ScaleOpt scale;
+     MatrixScale<MatrixHandlerType>* pMatScale;
+
 protected:
      mutable MatrixHandlerType A;
 
-     PardisoSolver* pGetSolver() { return static_cast<PardisoSolver*>(pLS); }
+     void ScaleMatrixAndRightHandSide(MatrixHandlerType &mh);
+
+     MatrixScale<MatrixHandlerType>& GetMatrixScale();
+
+     void ScaleSolution();
+
+     PardisoSolver<MKL_INT_TYPE>* pGetSolver() { return static_cast<PardisoSolver<MKL_INT_TYPE>*>(pLS); }
 
 public:
      PardisoSolutionManager(integer iDim,
+                            doublereal dPivot,
                             integer iNumThreads,
                             integer iNumIter,
                             const ScaleOpt& scale = ScaleOpt(),
@@ -108,7 +141,7 @@ public:
 #ifdef DEBUG
      virtual void IsValid() const override;
 #endif
-     
+
      virtual void MatrReset() override;
      virtual void MatrInitialize() override;
      virtual void Solve() override;

@@ -2785,8 +2785,9 @@ if test $ol_with_pardiso != no ; then
         if test "$have_mkl_pardiso_h" = "yes" ; then
 	        try_PARDISO_LIBS="-lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -lm -lgomp"
 	        AC_CHECK_LIB(mkl_gf_lp64,pardiso_,[have_mkl_pardiso_lib=yes],[have_mkl_pardiso_lib=no],[$try_PARDISO_LIBS])
+                AC_CHECK_LIB(mkl_gf_lp64,pardiso_64_,[have_mkl_pardiso_64_lib=yes],[have_mkl_pardiso_64_lib=no],[$try_PARDISO_LIBS])
                 AC_CHECK_LIB(gomp,omp_set_num_threads,[have_omp_set_num_threads=yes],[have_omp_set_num_threads=no],[$try_PARDISO_LIBS])
-	        if test "$have_mkl_pardiso_lib" = "yes"; then
+	        if test "$have_mkl_pardiso_lib" = "yes" -a "$have_mkl_pardiso_64_lib" = "yes"; then
 		        AC_DEFINE(USE_PARDISO,1,[define to use Intel MKL Pardiso library])
                         ol_link_pardiso=yes
 		        PARDISO_LIBS="$try_PARDISO_LIBS"

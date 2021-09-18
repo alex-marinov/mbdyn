@@ -52,6 +52,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
                 ::solver[LinSol::PARDISO_SOLVER].s_name,
+                ::solver[LinSol::PARDISO_64_SOLVER].s_name,
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
@@ -73,6 +74,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		KLU,
 		Y12,
                 PARDISO,
+                PARDISO_64,
                 PASTIX,
                 QR,
                 SPQR,
@@ -204,6 +206,17 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 bGotIt = true;
 #endif /* USE_PARDISO */
                 break;
+
+        case PARDISO_64:
+                cs.SetSolver(LinSol::PARDISO_64_SOLVER);
+
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using pardiso_64 sparse LU solver" << std::endl);
+#ifdef USE_PARDISO
+                bGotIt = true;
+#endif /* USE_PARDISO */
+                break;
+
                 
 	case PASTIX:
 		cs.SetSolver(LinSol::PASTIX_SOLVER);

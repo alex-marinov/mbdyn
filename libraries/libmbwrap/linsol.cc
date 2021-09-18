@@ -146,7 +146,17 @@ const LinSol::solver_t solver[] = {
 #endif	  
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
-		-1., -1. },        
+		1e-13, -1. },
+        { "Pardiso_64", NULL,
+		LinSol::PARDISO_64_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+#ifdef USE_SPARSE_AUTODIFF
+	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
+#endif	  
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+		1e-13, -1. },
         { "Pastix", NULL,
 		LinSol::PASTIX_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
@@ -312,6 +322,7 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif /* USE_HARWELL */
 
         case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
 #ifdef USE_PARDISO
              currSolver = t;
              return true;
@@ -535,6 +546,7 @@ LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::KLU_SOLVER:
         case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
 	case LinSol::WATSON_SOLVER:
@@ -560,6 +572,7 @@ LinSol::SetMaxIterations(integer iMaxIterations)
 	switch (currSolver) {
 	case LinSol::UMFPACK_SOLVER:
         case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
 	case LinSol::WATSON_SOLVER:
@@ -578,6 +591,7 @@ bool LinSol::SetVerbose(integer iVerb)
      switch (currSolver) {
      case LinSol::UMFPACK_SOLVER:
      case LinSol::PARDISO_SOLVER:
+     case LinSol::PARDISO_64_SOLVER:
      case LinSol::PASTIX_SOLVER:
      case LinSol::STRUMPACK_SOLVER:
 	  iVerbose = iVerb;
@@ -843,21 +857,39 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_KLU */
         case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
 #ifdef USE_PARDISO
                 {
-                switch (type) {
+                        typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT> PARDISO_SM_GRAD;
+                        typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISO_SM_MAP;
+                        typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, long long> PARDISO_64_SM_GRAD;
+                        typedef PardisoSolutionManager<SpMapMatrixHandler, long long> PARDISO_64_SM_MAP;
+                        
+                        switch (type) {
 #ifdef USE_SPARSE_AUTODIFF
-                case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
-                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
-                                               PardisoSolutionManager<SpGradientSparseMatrixHandler>,
-                                               PardisoSolutionManager<SpGradientSparseMatrixHandler>(iNLD, nThreads, iMaxIter, scale, iVerbose));
-                } break;
+                        case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
+                                if (currSolver == LinSol::PARDISO_64_SOLVER) {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_64_SM_GRAD,
+                                                               PARDISO_64_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_SM_GRAD,
+                                                               PARDISO_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                }
+                        } break;
 #endif
-                default:
-			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-                                               PardisoSolutionManager<SpMapMatrixHandler>,
-                                               PardisoSolutionManager<SpMapMatrixHandler>(iNLD, nThreads, iMaxIter, scale, iVerbose));
-                }
+                        default:
+                                if (currSolver == LinSol::PARDISO_64_SOLVER) {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_64_SM_MAP,
+                                                               PARDISO_64_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_SM_MAP,
+                                                               PARDISO_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                }
+                        }
 		} break;
 #else /* !USE_PARDISO */
       		silent_cerr("Configure with --with-pardiso "
