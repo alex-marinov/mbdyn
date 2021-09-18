@@ -157,7 +157,11 @@ extern "C" void
 mbdyn_modify_last_iteration_handler(int signum)
 {
 	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
+#ifdef USE_MULTITHREAD
+     	signal(signum, mbdyn_modify_last_iteration_handler);
+#else
 	signal(signum, mbdyn_really_exit_handler);
+#endif
 }
 
 extern "C" void
