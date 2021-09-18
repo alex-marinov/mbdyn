@@ -4866,7 +4866,7 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
-			pDM->OutputGeometry(pEA->iResultsPrecision);
+			pDM->OutputEigGeometry(uCurr, pEA->iResultsPrecision);
 		}
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
