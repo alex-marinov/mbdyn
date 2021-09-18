@@ -43,7 +43,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		::solver[LinSol::HARWELL_SOLVER].s_name,
 		::solver[LinSol::LAPACK_SOLVER].s_name,
-		::solver[LinSol::MESCHACH_SOLVER].s_name,
 		::solver[LinSol::NAIVE_SOLVER].s_name,
 		::solver[LinSol::SUPERLU_SOLVER].s_name,
 		::solver[LinSol::TAUCS_SOLVER].s_name,
@@ -64,7 +63,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		EMPTY,
 		HARWELL,
 		LAPACK,
-		MESCHACH,
 		NAIVE,
 		SUPERLU,
 		TAUCS,
@@ -116,16 +114,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 #ifdef USE_LAPACK
 		bGotIt = true;
 #endif /* USE_LAPACK */
-		break;
-
-	case MESCHACH:
-		cs.SetSolver(LinSol::MESCHACH_SOLVER);
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using meschach sparse LU solver"
-				<< std::endl);
-#ifdef USE_MESCHACH
-		bGotIt = true;
-#endif /* USE_MESCHACH */
 		break;
 
 	case NAIVE:
