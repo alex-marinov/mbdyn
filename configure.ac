@@ -322,12 +322,13 @@ AC_FC_LIBRARY_LDFLAGS
 AC_PROG_F77
 have_fc_f77=no
 if test "x$FC" = "x" ; then
-	if test "x$F77" = "x" ; then
-		AC_MSG_ERROR([Need a working Fortran compiler])
+	if test "x$F77" != "x" ; then
+dnl		AC_MSG_ERROR([Need a working Fortran compiler])
+dnl	else
+		AC_F77_LIBRARY_LDFLAGS
+		LIBS="$LIBS $F77LIBS"
+		have_fc_f77=yes
 	fi
-	AC_F77_LIBRARY_LDFLAGS
-	LIBS="$LIBS $F77LIBS"
-	have_fc_f77=yes
 else
 	F77="$FC"
 	F77LIBS="$FCLIBS"
@@ -3748,6 +3749,8 @@ AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(USE_FORTRAN,[test "$have_fc_f77" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 AM_CONDITIONAL(BUILD_AEROD2_F,[test "$have_fc_f77" = yes])
+
+AM_CONDITIONAL(HAVE_FORTRAN,[test "$have_fc_f77" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
 AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])

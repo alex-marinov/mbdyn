@@ -15,8 +15,13 @@ crypt \
 dae-intg \
 deriv \
 eu2rot \
-eu2phi \
-femgen \
+eu2phi
+
+if HAVE_FORTRAN
+bin_PROGRAMS += femgen
+endif
+
+bin_PROGRAMS += \
 intg \
 posrel \
 print_env \
@@ -90,27 +95,41 @@ noinst_PROGRAMS += \
 mbdyn_util_oct.oct
 endif
 
-noinst_LTLIBRARIES = libfemgen.la
+noinst_LTLIBRARIES =
+
+if HAVE_FORTRAN
+noinst_LTLIBRARIES += libfemgen.la
+endif
 
 if USE_SOCKET
 if INSTALL_TEST_PROGRAMS
 bin_PROGRAMS += \
 test_modalext_socket \
-test_strext_socket \
+test_strext_socket
+if HAVE_FORTRAN
+bin_PROGRAMS += \
 test_strext_socket_f \
-test_strext_socket_cxx \
 test_strext_socket_f_cxx
+endif
+bin_PROGRAMS += \
+test_strext_socket_cxx
 else
 noinst_PROGRAMS += \
 test_modalext_socket \
-test_strext_socket \
+test_strext_socket
+if HAVE_FORTRAN
+noinst_PROGRAMS += \
 test_strext_socket_f \
-test_strext_socket_cxx \
 test_strext_socket_f_cxx
+endif
+noinst_PROGRAMS += \
+test_strext_socket_cxx
 endif
 
 # fake library to tweak the selected linker
+if HAVE_FORTRAN
 noinst_LTLIBRARIES += libstrext_socket_f.la
+endif
 endif
 
 MYLIBS = \
@@ -149,8 +168,12 @@ deriv_SOURCES = deriv.c
 print_env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 eu2phi_SOURCES = eu2phi.cc
+
+if HAVE_FORTRAN
 femgen_SOURCES = femgen.c
 libfemgen_la_SOURCES = femgen_f.f
+endif
+
 intg_SOURCES = intg.cc intg.h
 playground_SOURCES = playground.cc
 logproc_SOURCES = logproc.c
@@ -178,18 +201,23 @@ test_strext_socket_cxx_SOURCES = \
 test_strext_socket.c \
 test_strext_socket_lib_cxx.cc \
 test_strext_socket_lib.h
+if HAVE_FORTRAN
 # most of the code is in libstrext_socket_f.la to force linking with C linker
 test_strext_socket_f_SOURCES = \
 test_strext_socket_lib.c \
 test_strext_socket_lib.h
+
 # most of the code is in libstrext_socket_f.la to force linking with C++ linker
 test_strext_socket_f_cxx_SOURCES = \
 test_strext_socket_lib_cxx.cc \
 test_strext_socket_lib.h
+
 libstrext_socket_f_la_SOURCES = \
 test_strext_socket_f.f \
-test_strext_socket_f_main.c \
+test_strext_socket_f_main.c
 test_strext_socket_lib.h
+endif
+
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 nodist_mbfem_SOURCES = \
@@ -249,7 +277,11 @@ cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)
 eu2phi_LDADD = $(MYLIBS)
+
+if HAVE_FORTRAN
 femgen_LDADD = libfemgen.la
+endif
+
 intg_LDADD = $(MYLIBS)
 logproc_LDADD = @RTAI_LDFLAGS@
 playground_LDADD = $(MYLIBS)
@@ -269,9 +301,13 @@ test_modalext_edge_LDADD = $(MYLIBS)
 test_modalext_socket_LDADD = $(MYLIBS)
 test_strext_edge_LDADD = $(MYLIBS)
 test_strext_socket_LDADD = $(MYLIBS)
+
+if HAVE_FORTRAN
 test_strext_socket_f_LDADD = $(MYLIBS) libstrext_socket_f.la
-test_strext_socket_cxx_LDADD = $(MYLIBS)
 test_strext_socket_f_cxx_LDADD = $(MYLIBS) libstrext_socket_f.la
+endif
+
+test_strext_socket_cxx_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
