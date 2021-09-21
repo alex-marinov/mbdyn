@@ -220,17 +220,32 @@ the tolerance to zero, or by using the keyword \kw{null};
 however, it can be restored to any mechanism for output purposes.
 
 The \kw{relnorm} test can be useful when the magnitude of the
-generalized forces involved in the model is unknown, thus
-one does not know what value of tolerance may make sense for the problem at hand.
+generalized forces involved in the model is unknown or is known to vary
+considerably during the simulation, thus one does not know what value 
+of tolerance may make sense for the problem at hand.
 In this case \kw{relnorm} allows to compute a reference scale, so that the
-converge test will be mosty unaffected by the system of units chosen for the simulation.
-This automatic scaling comes with a small run time penalty, because two global vectors
-needs to be assembled insetad of one whnever the model residual is computed.
+converge test will be mostly unaffected by problem-dependent variables, 
+like the system of units chosen for the simulation. 
+The automatic scaling comes with a small run time penalty, because two global vectors
+needs to be assembled instead of one whenever the model residual is computed.\\
+Actually, assuming $\T{f}(\T{x}) = \T{0}$ to be the nonlinear problem at hand, 
+the residual test is modified from the default
+\begin{equation}
+  \sqrt{\T{f}^{T}\T{f}} < \text{\nt{residual\_tolerance}} 
+\end{equation}
+to
+\begin{equation}
+  \dfrac{\sqrt{\T{f}^{T}\T{f}}}{\sqrt{\tilde{\T{f}}^{T}\tilde{\T{f}}}}
+  < \text{\nt{residual\_tolerance}}
+\end{equation}
+where $\tilde{\T{f}}$ is the vector in which the absolute values of all the contributions
+from the elements are assembled.\\
 The \kw{sepnorm} test is a generalization of \kw{relnorm}: the residual check is performed 
-independently for each set of equations with the same physical dimension, and the correspondig residual norm
+independently for each set of equations with the same physical dimension, and the
+corresponding residual norm
 is automatically scaled. The worst residual among all the different sets of equations is returned.
 See the tecman for an exhaustive explanation of both approaches.
-A meamningful tolerance for both \kw{relnorm} and \kw{sepnorm} could be in the range [1.E-6, 1.E-4].
+A meaningful tolerance for both \kw{relnorm} and \kw{sepnorm} is generally in the range [1.E-6, 1.E-4].
 
 The optional parameter \kw{scale} is used to enable the scaling
 of the residual before performing the test; default scale factors 
@@ -258,6 +273,11 @@ Currently, no scaling is allowed in the solution test.
     tolerance: 1.e-6, 1.e-9;
     # residual test with computation of solution norm
     tolerance: 1.e-6, null, test, norm;
+    # residual test relative to the magnitude of the norm vector
+    tolerance: 1.e-6, test, relnorm;
+    # residual test relative to the magnitude of the norm vector, computed on
+    # consistent physical domains
+    tolerance: 1.e-6, test, sepnorm;
 \end{verbatim}
 
 \subsubsection{Max Iterations}
