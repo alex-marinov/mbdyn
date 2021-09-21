@@ -214,7 +214,7 @@ test_strext_socket_lib.h
 
 libstrext_socket_f_la_SOURCES = \
 test_strext_socket_f.f \
-test_strext_socket_f_main.c
+test_strext_socket_f_main.c \
 test_strext_socket_lib.h
 endif
 
