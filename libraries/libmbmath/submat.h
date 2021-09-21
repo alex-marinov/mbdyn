@@ -191,6 +191,7 @@ protected:
 	integer iVecSize;
 	/* Puntatore al vettore di incidenza delle righe.
 	 * Nota: coincide con il puntatore al vettore di incidenza */
+	integer* piRow;
 	integer* piRowm1;
 	/* Puntatore al vettore di incidenza delle colonne */
 	integer* piColm1;
@@ -770,11 +771,11 @@ private:
 	integer iNumItems;
 	/* Puntatore all'array degli indici di riga.
 	 * Coincide con il puntatore all'array degli inidici, che e' unico */
-	integer* piRowm1;
+	integer* piRow, *piRowm1;
 	/* Puntatore all'array degli indici di colonna */
 	integer* piColm1;
 	/* Puntatore all'array dei coefficienti */
-	doublereal* pdMatm1;
+	doublereal* pdMat, *pdMatm1;
 
 private:
 	SparseSubMatrixHandler(const SparseSubMatrixHandler&);
@@ -1576,7 +1577,7 @@ protected:
 	 * Usato per rendere piu' efficiente l'accesso,
 	 * dato che gli indici sono a base 1, in stile FORTRAN
 	 */
-	integer* piRowm1;
+	integer* piRow, *piRowm1;
 
 private:
 	MySubVectorHandler(const MySubVectorHandler&);

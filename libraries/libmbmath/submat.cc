@@ -57,7 +57,7 @@ FullSubMatrixHandler::FullSubMatrixHandler(integer iIntSize,
 		integer iMaxCols,
 		doublereal **ppdCols)
 : FullMatrixHandler(pdTmpMat, ppdCols, iDoubleSize, 1, 1, iMaxCols),
-iVecSize(iIntSize), piRowm1(0), piColm1(0)
+iVecSize(iIntSize), piRow(0), piRowm1(0), piColm1(0)
 {
 #ifdef DEBUG
 	IsValid();
@@ -69,17 +69,18 @@ iVecSize(iIntSize), piRowm1(0), piColm1(0)
 	 * che la submatrix sia in seguito ridimensionata nei modi
 	 * piu' vari. */
 	ASSERT(piTmpVec);
+	piRow = piTmpVec;
 	piRowm1 = piTmpVec - 1;
 	piColm1 = piRowm1 + iNumRows;
 }
 
 FullSubMatrixHandler::FullSubMatrixHandler(integer iNR, integer iNC)
-: FullMatrixHandler(iNR, iNC), iVecSize(iNR + iNC), piRowm1(0), piColm1(0)
+: FullMatrixHandler(iNR, iNC), iVecSize(iNR + iNC), piRow(0), piRowm1(0), piColm1(0)
 {
 	ASSERT(bOwnsMemory);
-	SAFENEWARR(piRowm1, integer, iVecSize);
+	SAFENEWARR(piRow, integer, iVecSize);
 
-	piRowm1--;
+	piRowm1 = piRow - 1;
 	piColm1 = piRowm1 + iNR;
 }
 
@@ -87,8 +88,7 @@ FullSubMatrixHandler::FullSubMatrixHandler(integer iNR, integer iNC)
 FullSubMatrixHandler::~FullSubMatrixHandler(void)
 {
 	if (bOwnsMemory) {
-		piRowm1++;
-		SAFEDELETEARR(piRowm1);
+		SAFEDELETEARR(piRow);
 	}
 }
 
@@ -104,7 +104,7 @@ FullSubMatrixHandler::IsValid(void) const
 	ASSERT(piColm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(piRowm1 + 1,
+	ASSERT(defaultMemoryManager.fIsValid(piRow,
 				iVecSize*sizeof(integer)));
 #endif /* DEBUG_MEMMANAGER */
 }
@@ -196,10 +196,10 @@ FullSubMatrixHandler::Attach(int iRows, int iCols, integer* piTmpIndx)
 	iNumCols = iCols;
 	
 	if (bOwnsMemory) {
-		if (piRowm1 != 0) {
-			piRowm1++;
-			SAFEDELETEARR(piRowm1);
+		if (piRow != 0) {
+			SAFEDELETEARR(piRow);
 		}
+		piRow = piTmpIndx;
 		piRowm1 = piTmpIndx - 1;
 		piColm1 = piRowm1 + iNumRows;
 	}
@@ -1014,15 +1014,17 @@ SparseSubMatrixHandler::SparseSubMatrixHandler(integer iTmpInt,
 : bOwnsMemory(false),
 iIntSize(iTmpInt), iDoubleSize(iTmpDouble),
 iNumItems(iTmpInt/2),
-piRowm1(0), piColm1(0),
-pdMatm1(0)
+piRow(0), piRowm1(0), piColm1(0),
+pdMat(0), pdMatm1(0)
 {
 	ASSERT(piTmpIndex);
 	ASSERT(pdTmpMat);
 
+	piRow = piTmpIndex;
 	piRowm1 = piTmpIndex - 1;
 	piColm1 = piRowm1 + iNumItems;
 
+	pdMat = pdTmpMat;
 	pdMatm1 = pdTmpMat - 1;
 
 #ifdef DEBUG
@@ -1032,13 +1034,13 @@ pdMatm1(0)
 
 SparseSubMatrixHandler::SparseSubMatrixHandler(integer iTmpInt)
 : iIntSize(2*iTmpInt), iDoubleSize(iTmpInt),
-iNumItems(iTmpInt), piRowm1(0), piColm1(0), pdMatm1(0)
+iNumItems(iTmpInt), piRow(0), piRowm1(0), piColm1(0), pdMat(0), pdMatm1(0)
 {
-	SAFENEWARR(pdMatm1, doublereal, iNumItems);
-	pdMatm1--;
+	SAFENEWARR(pdMat, doublereal, iNumItems);
+	pdMatm1 = pdMat - 1;
 
-	SAFENEWARR(piRowm1, integer, iIntSize);
-	piRowm1--;
+	SAFENEWARR(piRow, integer, iIntSize);
+	piRowm1 = piRow - 1;
 	piColm1 = piRowm1 + iNumItems;
 	
 	bOwnsMemory = true;
@@ -1051,11 +1053,9 @@ iNumItems(iTmpInt), piRowm1(0), piColm1(0), pdMatm1(0)
 SparseSubMatrixHandler::~SparseSubMatrixHandler(void)
 {
 	if (bOwnsMemory) {
-		pdMatm1++;
-		SAFEDELETEARR(pdMatm1);
+		SAFEDELETEARR(pdMat);
 
-		piRowm1++;
-		SAFEDELETEARR(piRowm1);
+		SAFEDELETEARR(piRow);
 	}
 }
 
@@ -1073,9 +1073,9 @@ SparseSubMatrixHandler::IsValid(void) const
 	ASSERT(pdMatm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(piRowm1 + 1,
+	ASSERT(defaultMemoryManager.fIsValid(piRow,
 				iIntSize*sizeof(integer)));
-	ASSERT(defaultMemoryManager.fIsValid(pdMatm1 + 1,
+	ASSERT(defaultMemoryManager.fIsValid(pdMat,
 				iDoubleSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
@@ -1136,11 +1136,9 @@ SparseSubMatrixHandler::Attach(int iNumEntr, doublereal* pdTmpMat,
 		integer* piTmpIndx)
 {
 	if (bOwnsMemory) {
-		piRowm1++;
-		SAFEDELETEARR(piRowm1);
+		SAFEDELETEARR(piRow);
 
-		pdMatm1++;
-		SAFEDELETEARR(pdMatm1);
+		SAFEDELETEARR(pdMat);
 
 		bOwnsMemory = false;
 	}
@@ -1152,8 +1150,10 @@ SparseSubMatrixHandler::Attach(int iNumEntr, doublereal* pdTmpMat,
 	iIntSize = iNumEntr*2;
 	iDoubleSize = iNumEntr;
 	iNumItems = iNumEntr;
+	piRow = piTmpIndx;
 	piRowm1 = piTmpIndx - 1;
 	piColm1 = piRowm1 + iNumEntr;
+	pdMat = pdTmpMat;
 	pdMatm1 = pdTmpMat - 1;
 
 #ifdef DEBUG
@@ -1839,7 +1839,7 @@ MySubVectorHandler::MySubVectorHandler(integer iSize)
 
 MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 	       doublereal* pdTmpVec)
-: MyVectorHandler(iSize, pdTmpVec), piRowm1(0)
+: MyVectorHandler(iSize, pdTmpVec), piRow(0), piRowm1(0)
 {
 	if (piTmpRow == 0) {
 		/* ... because set by MyVectorHandler() */
@@ -1850,7 +1850,8 @@ MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
-		SAFENEWARR(piRowm1, integer, iSize);
+		SAFENEWARR(piRow, integer, iSize);
+		piRowm1 = piRow;
 	}
 
 	piRowm1--;
@@ -1894,20 +1895,20 @@ MySubVectorHandler::Resize(integer iSize)
 
 				integer* pi = NULL;
 				SAFENEWARR(pi, integer, iSize);
-				pi--;
-				for (integer i = iCurSize; i > 0; i--) {
+				//pi--;
+				for (integer i = iCurSize-1; i >= 0; i--) {
 	       				pi[i] = piRowm1[i];
 	    			}
 
 				//pdVecm1++;
 				SAFEDELETEARR(pdVec);
 
-				piRowm1++;
-	    			SAFEDELETEARR(piRowm1);
+				SAFEDELETEARR(piRow);
 	    			
 				pdVec = pd;
 				pdVecm1 = pd - 1;
-				piRowm1 = pi;
+				piRow = pi;
+				piRowm1 = pi - 1;
 				iMaxSize = iCurSize = iSize;
 			}
 
@@ -1918,8 +1919,8 @@ MySubVectorHandler::Resize(integer iSize)
 				SAFENEWARR(pdVec, doublereal, iSize);
 				pdVecm1 = pdVec - 1;
 				
-				SAFENEWARR(piRowm1, integer, iSize);
-				piRowm1--;
+				SAFENEWARR(piRow, integer, iSize);
+				piRowm1 = piRow - 1;
 				
 				iMaxSize = iCurSize = iSize;
 			}
@@ -1935,8 +1936,7 @@ MySubVectorHandler::Detach(void)
 			//pdVecm1++;
 			SAFEDELETEARR(pdVec);
 
-			piRowm1++;
-			SAFEDELETEARR(piRowm1);
+			SAFEDELETEARR(piRow);
 		}
 		
 		bOwnsMemory = false;
@@ -1945,6 +1945,7 @@ MySubVectorHandler::Detach(void)
 	iMaxSize = iCurSize = 0;
 	pdVec = NULL;
 	pdVecm1 = NULL;
+	piRow = NULL;
 	piRowm1 = NULL;
 }
 
@@ -1964,6 +1965,7 @@ MySubVectorHandler::Attach(integer iSize, doublereal* pd,
 
 	pdVec = pd;
 	pdVecm1 = pd - 1;
+	piRow = pi;
 	piRowm1 = pi - 1;
 }
 
@@ -1976,7 +1978,7 @@ MySubVectorHandler::IsValid(void) const
 	ASSERT(piRowm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(piRowm1 + 1,
+	ASSERT(defaultMemoryManager.fIsValid(piRow,
 				MyVectorHandler::iMaxSize*sizeof(integer)));
 #endif /* DEBUG_MEMMANAGER */
 }
