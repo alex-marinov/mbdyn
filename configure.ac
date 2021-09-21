@@ -110,7 +110,7 @@ dnl Determine host platform
 dnl             we try not to use this for much
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 dnl We use autoconf features new to 2.13.
 dnl aclocal.m4 should be built using aclocal from automake 1.4
