@@ -514,8 +514,6 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef, VectorHandler*const
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
 	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec, pAbsResHdl);
-	SetElemDimensionIndices();
-	SetNodeDimensionIndices();
 }
 
 void
