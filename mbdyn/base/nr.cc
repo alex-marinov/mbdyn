@@ -112,7 +112,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	while (true) {
 		pRes = pSM->pResHdl();
 		pAbsRes = pGetResTest()->GetAbsRes();
-		pDimMap = pGetResTest()->GetDimMap();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
 
@@ -127,7 +126,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 		bool forceJacobian(false);
 		try {
-	      		pNLP->Residual(pRes, pAbsRes, pDimMap);
+	      		pNLP->Residual(pRes, pAbsRes);
 		}
 		catch (SolutionDataManager::ChangedEquationStructure& e) {
 			if (bHonorJacRequest) {
