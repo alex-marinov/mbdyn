@@ -59,6 +59,10 @@
 
 #include <mkl/mkl_pardiso.h>
 
+#ifdef USE_IPPCP_HASH
+#include <ippcp.h>
+#endif
+
 template <typename MKL_INT_TYPE>
 struct PardisoSolverTraits;
 
@@ -89,7 +93,10 @@ private:
      mutable MKL_INT_TYPE* pAp;
      mutable MKL_INT_TYPE iNumNz;
      mutable MKL_INT_TYPE phase, maxfct, mnum, mtype, n, nrhs, msglvl;
-     
+#ifdef USE_IPPCP_HASH
+     mutable Ipp8u rgNzPatt[20];
+     mutable bool bNzPattDiff;
+#endif
 public:
      explicit PardisoSolver(SolutionManager* pSM,
                             integer iDim,
