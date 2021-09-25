@@ -43,9 +43,11 @@
 #ifdef USE_PARDISO
 
 #include <algorithm>
+#include <cstring>
+#include <memory>
 
-#ifdef USE_OMP_SET_NUM_THREADS
-#include <omp.h>
+#ifdef USE_MKL_SET_NUM_THREADS_LOCAL
+#include <mkl/mkl_service.h>
 #endif
 
 #include "pardisowrap.h"
@@ -64,10 +66,17 @@ PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, d
       n(-1),
       nrhs(1),
       msglvl(iVerbose)
+#ifdef USE_IPPCP_HASH
+     ,bNzPattDiff(true)
+#endif
 {
      std::fill(std::begin(iparm), std::end(iparm), 0);
      std::fill(std::begin(pt), std::end(pt), nullptr);
 
+#ifdef USE_IPPCP_HASH
+     std::fill(std::begin(rgNzPatt), std::end(rgNzPatt), 0);
+#endif
+     
      iparm[0] = 1; // Use default values.
      iparm[1] = 3; // The parallel (OpenMP) version of the nested dissection algorithm
      iparm[7] = iNumIter; // Iterative refinement step
@@ -83,8 +92,8 @@ PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, d
 
      iparm[12] = 1; // Improved accuracy using (non-) symmetric weighted matching.
 
-#ifdef USE_OMP_SET_NUM_THREADS
-     omp_set_num_threads(iNumThreads);
+#ifdef USE_MKL_SET_NUM_THREADS_LOCAL
+     mkl_set_num_threads_local(iNumThreads);
 #endif
 }
 
@@ -105,12 +114,13 @@ void PardisoSolver<MKL_INT_TYPE>::Solve(void) const
 
 {
      const MKL_INT_TYPE iNumNzA = pAp[n] - pAp[0];
-     const bool bForceOrderingStep = iNumNz != iNumNzA;
 
      MKL_INT_TYPE ierror;
 
      if (bHasBeenReset) {
-          if (bForceOrderingStep) {
+#ifdef USE_IPPCP_HASH
+          if (bNzPattDiff) {
+#endif
                phase = 11; // Analysis step
 
                SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
@@ -121,8 +131,9 @@ void PardisoSolver<MKL_INT_TYPE>::Solve(void) const
                }
 
                iNumNz = iNumNzA;
+#ifdef USE_IPPCP_HASH
           }
-
+#endif
           phase = 22; // Numerical factorization step
 
           SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
@@ -151,7 +162,7 @@ MKL_INT_TYPE PardisoSolver<MKL_INT_TYPE>::MakeCompactForm(SparseMatrixHandler& m
                                                           std::vector<MH_INT_TYPE>& Ai,
                                                           std::vector<MH_INT_TYPE>& Ap) const
 {
-     MKL_INT_TYPE iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
+     MH_INT_TYPE iNumNzA = mh.MakeCompressedRowForm(Ax, Ai, Ap, 1);
 
      n = mh.iGetNumCols();
 
@@ -162,6 +173,60 @@ MKL_INT_TYPE PardisoSolver<MKL_INT_TYPE>::MakeCompactForm(SparseMatrixHandler& m
      pAi = reinterpret_cast<MKL_INT_TYPE*>(&Ai.front());
      pAp = reinterpret_cast<MKL_INT_TYPE*>(&Ap.front());
 
+#ifdef USE_IPPCP_HASH
+     int iHashSize = 0;
+
+     IppStatus iStatus = ippsHashGetSize_rmf(&iHashSize);
+     
+     if (ippStsNoErr != iStatus) {
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+
+     std::unique_ptr<IppsHashState_rmf, decltype(&free)> pCtx{reinterpret_cast<IppsHashState_rmf*>(malloc(iHashSize)), &free};
+
+     if (!pCtx) {
+          throw std::bad_alloc();
+     }
+
+     iStatus = ippsHashInit_rmf(pCtx.get(), ippsHashMethod_SHA1());
+     
+     if (ippStsNoErr != iStatus) {
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+
+     struct {
+          MKL_INT_TYPE iRow;
+          MKL_INT_TYPE iCol;
+     } oItem;
+          
+     for (MKL_INT_TYPE i = 0; i < n; ++i) {
+          for (MKL_INT_TYPE j = pAp[i]; j < pAp[i + 1]; ++j) {
+               if (pAx[j - 1]) {
+                    oItem.iRow = i + 1;
+                    oItem.iCol = pAi[j - 1];
+
+                    if (ippStsNoErr != ippsHashUpdate_rmf(reinterpret_cast<Ipp8u*>(&oItem), sizeof(oItem), pCtx.get())) {
+                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                    }
+               }
+          }
+     }
+
+     Ipp8u rgNzPattCurr[20];
+
+     iStatus = ippsHashFinal_rmf(rgNzPattCurr, pCtx.get());
+
+     if (ippStsNoErr != iStatus) {
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+
+     static_assert(sizeof(rgNzPattCurr) == sizeof(rgNzPatt));
+
+     bNzPattDiff = (iNumNz != iNumNzA) || (0 != std::memcmp(rgNzPattCurr, rgNzPatt, sizeof(rgNzPatt)));
+
+     std::memcpy(rgNzPatt, rgNzPattCurr, sizeof(rgNzPatt));
+#endif
+     
      return iNumNzA;
 }
 

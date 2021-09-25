@@ -2782,14 +2782,16 @@ dnl
 ol_link_pardiso=no
 if test $ol_with_pardiso != no ; then
         AC_CHECK_HEADER(mkl/mkl_pardiso.h, [have_mkl_pardiso_h=yes], [have_mkl_pardiso_h=no])
-        AC_CHECK_HEADER(omp.h, [have_omp_h=yes], [have_omp_h=no])
+        AC_CHECK_HEADER(mkl/mkl_service.h, [have_mkl_service_h=yes], [have_mkl_service_h=no])
+        
         if test "$have_mkl_pardiso_h" = "yes" ; then
 	        try_PARDISO_LIBS="-lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -lm -lgomp"
-	        AC_CHECK_LIB(mkl_gf_lp64,pardiso_,[have_mkl_pardiso_lib=yes],[have_mkl_pardiso_lib=no],[$try_PARDISO_LIBS])
-                AC_CHECK_LIB(mkl_gf_lp64,pardiso_64_,[have_mkl_pardiso_64_lib=yes],[have_mkl_pardiso_64_lib=no],[$try_PARDISO_LIBS])
-                AC_CHECK_LIB(gomp,omp_set_num_threads,[have_omp_set_num_threads=yes],[have_omp_set_num_threads=no],[$try_PARDISO_LIBS])
+	        AC_CHECK_LIB(mkl_gf_lp64, pardiso_, [have_mkl_pardiso_lib=yes], [have_mkl_pardiso_lib=no], [$try_PARDISO_LIBS])
+                AC_CHECK_LIB(mkl_gf_lp64, pardiso_64_, [have_mkl_pardiso_64_lib=yes], [have_mkl_pardiso_64_lib=no], [$try_PARDISO_LIBS])
+                AC_CHECK_LIB(mkl_gf_lp64, mkl_set_num_threads_local, [have_mkl_set_num_threads_local=yes], [have_mkl_set_num_threads_local=no], [$try_PARDISO_LIBS])
+                
 	        if test "$have_mkl_pardiso_lib" = "yes" -a "$have_mkl_pardiso_64_lib" = "yes"; then
-		        AC_DEFINE(USE_PARDISO,1,[define to use Intel MKL Pardiso library])
+		        AC_DEFINE(USE_PARDISO, 1, [define to use Intel MKL Pardiso library])
                         ol_link_pardiso=yes
 		        PARDISO_LIBS="$try_PARDISO_LIBS"
 	        else
@@ -2798,8 +2800,21 @@ if test $ol_with_pardiso != no ; then
 		        fi
 	        fi
 
-                if test "$have_omp_h" = "yes" && test "$have_omp_set_num_threads" = "yes" ; then
-                   AC_DEFINE(USE_OMP_SET_NUM_THREADS,1,[define to use omp_set_num_threads])
+                if test "$have_mkl_service_h" = "yes" -a "$have_mkl_set_num_threads_local" = "yes" ; then
+                   AC_DEFINE(USE_MKL_SET_NUM_THREADS_LOCAL,1,[define to use mkl_set_num_threads_local])
+                fi
+
+                AC_CHECK_HEADER(ippcp.h, [have_ippcp_hash_h=yes], [have_ippcp_hash_h=no])
+
+                try_IPPCP_HASH_LIBS="-lippcp"
+                
+                AC_CHECK_LIB(ippcp, ippsHashInit, [have_hash_init=yes], [have_hash_init=no], [$try_IPPCP_HASH_LIBS])
+                AC_CHECK_LIB(ippcp, ippsHashUpdate, [have_hash_update=yes], [have_hash_update=no], [$try_IPPCP_HASH_LIBS])
+                AC_CHECK_LIB(ippcp, ippsHashFinal, [have_hash_final=yes], [have_hash_final=no], [$try_IPPCP_HASH_LIBS])
+
+                if test "$have_ippcp_hash_h" = "yes" -a "$have_hash_init" = "yes" -a "$have_hash_update" = "yes" -a "$have_hash_final" = "yes"; then
+                   AC_DEFINE(USE_IPPCP_HASH, 1, [define to use ippsHashInit, ippsHashUpdate and ippsHashFinal])
+                   PARDISO_LIBS="$PARDISO_LIBS $try_IPPCP_HASH_LIBS"
                 fi
         fi
 fi
