@@ -272,7 +272,7 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
       bool ChangeJac(false);
 
       Vec3 e3a(RvTmp.GetVec(3));
-      doublereal v = (pNode1->GetVCurr()-pNode2->GetVCurr()).Dot(e3a);
+      v = (pNode1->GetVCurr()-pNode2->GetVCurr()).Dot(e3a);
       doublereal modF = std::max(F.Norm(), preF);
       try {
           fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
@@ -318,6 +318,10 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 				Var_fc = OH.CreateVar<doublereal>(name + "fc",
 						OutputHandler::Dimensions::Dimensionless,
 						"friction coefficient");
+
+				Var_v = OH.CreateVar<doublereal>(name + "v",
+						OutputHandler::Dimensions::Velocity,
+						"relative sliding velocity");
 			}
 		}
 #endif // USE_NETCDF
@@ -334,6 +338,7 @@ void InLineJoint::Output(OutputHandler& OH) const
 			if (fc) {
 				OH.WriteNcVar(Var_FF, F3);
 				OH.WriteNcVar(Var_fc, fc->fc());
+				OH.WriteNcVar(Var_v, v);
 			}
 		}
 #endif // USE_NETCDF
@@ -343,7 +348,7 @@ void InLineJoint::Output(OutputHandler& OH) const
 				F, Zero3, RvTmp*F, Zero3);
 		  	// TODO: output relative position and orientation
 			if (fc) {
-				of << " " << F3 << " " << fc->fc();
+				of << " " << F3 << " " << fc->fc() << " " << v;
 			}
 			of << std::endl;
 		}
