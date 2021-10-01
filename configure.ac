@@ -2803,19 +2803,6 @@ if test $ol_with_pardiso != no ; then
                 if test "$have_mkl_service_h" = "yes" -a "$have_mkl_set_num_threads_local" = "yes" ; then
                    AC_DEFINE(USE_MKL_SET_NUM_THREADS_LOCAL,1,[define to use mkl_set_num_threads_local])
                 fi
-
-                AC_CHECK_HEADER(ippcp.h, [have_ippcp_hash_h=yes], [have_ippcp_hash_h=no])
-
-                try_IPPCP_HASH_LIBS="-lippcp"
-                
-                AC_CHECK_LIB(ippcp, ippsHashInit, [have_hash_init=yes], [have_hash_init=no], [$try_IPPCP_HASH_LIBS])
-                AC_CHECK_LIB(ippcp, ippsHashUpdate, [have_hash_update=yes], [have_hash_update=no], [$try_IPPCP_HASH_LIBS])
-                AC_CHECK_LIB(ippcp, ippsHashFinal, [have_hash_final=yes], [have_hash_final=no], [$try_IPPCP_HASH_LIBS])
-
-                if test "$have_ippcp_hash_h" = "yes" -a "$have_hash_init" = "yes" -a "$have_hash_update" = "yes" -a "$have_hash_final" = "yes"; then
-                   AC_DEFINE(USE_IPPCP_HASH, 1, [define to use ippsHashInit, ippsHashUpdate and ippsHashFinal])
-                   PARDISO_LIBS="$PARDISO_LIBS $try_IPPCP_HASH_LIBS"
-                fi
         fi
 fi
 
