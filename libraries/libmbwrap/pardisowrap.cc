@@ -51,6 +51,7 @@
 #endif
 
 #include "pardisowrap.h"
+#include "cscmhtpl.h"
 
 template <typename MKL_INT_TYPE>
 PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, const SolutionManager::ScaleOpt& scale, integer iVerbose)
@@ -65,18 +66,12 @@ PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, d
       mtype(11),
       n(-1),
       nrhs(1),
-      msglvl(iVerbose)
-#ifdef USE_IPPCP_HASH
-     ,bNzPattDiff(true)
-#endif
+      msglvl(iVerbose),
+      AX(iDim)
 {
      std::fill(std::begin(iparm), std::end(iparm), 0);
      std::fill(std::begin(pt), std::end(pt), nullptr);
 
-#ifdef USE_IPPCP_HASH
-     std::fill(std::begin(rgNzPatt), std::end(rgNzPatt), 0);
-#endif
-     
      iparm[0] = 1; // Use default values.
      iparm[1] = 3; // The parallel (OpenMP) version of the nested dissection algorithm
      iparm[7] = iNumIter; // Iterative refinement step
@@ -113,47 +108,76 @@ template <typename MKL_INT_TYPE>
 void PardisoSolver<MKL_INT_TYPE>::Solve(void) const
 
 {
-     const MKL_INT_TYPE iNumNzA = pAp[n] - pAp[0];
+    const MKL_INT_TYPE iNumNzA = pAp[n] - pAp[0];
 
-     MKL_INT_TYPE ierror;
+    MKL_INT_TYPE ierror = 0;
+    constexpr doublereal dTolBW = sqrt(std::numeric_limits<doublereal>::epsilon());
+    doublereal dErrBW = std::numeric_limits<doublereal>::max();
+    bool bSymbolicFactor = iNumNzA != iNumNz;
+    bool bRepeatFactor = false;
+    
+    do {
+         if (bRepeatFactor) {
+              bHasBeenReset = bSymbolicFactor = true;
+         }
+      
+         if (bHasBeenReset) {        
+              if (bSymbolicFactor) {
+                   phase = 11; // Analysis step
 
-     if (bHasBeenReset) {
-#ifdef USE_IPPCP_HASH
-          if (bNzPattDiff) {
-#endif
-               phase = 11; // Analysis step
+                   SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
-               SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+                   if (ierror != 0) {
+                        silent_cerr("Pardiso symbolic factorization failed with status " << ierror << "\n");
+                        throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+                   }
 
-               if (ierror != 0) {
-                    silent_cerr("Pardiso symbolic factorization failed with status " << ierror << "\n");
-                    throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
-               }
+                   iNumNz = iNumNzA;
+              }
+          
+              phase = 22; // Numerical factorization step
 
-               iNumNz = iNumNzA;
-#ifdef USE_IPPCP_HASH
-          }
-#endif
-          phase = 22; // Numerical factorization step
+              SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
-          SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+              if (ierror != 0) {
+                   silent_cerr("Pardiso numeric factorization failed with status " << ierror << "\n");
+                   throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+              }
 
-          if (ierror != 0) {
-               silent_cerr("Pardiso numeric factorization failed with status " << ierror << "\n");
-               throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
-          }
+              bHasBeenReset = false;
+         }
 
-          bHasBeenReset = false;
-     }
+         phase = 33; // Solve, iterative refinement step
 
-     phase = 33; // Solve, iterative refinement step
+         SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
 
-     SolverType::pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, pAx, pAp, pAi, nullptr, &nrhs, iparm, &msglvl, pdRhs, pdSol, &ierror);
+         const CSCMatrixHandlerTpl<doublereal, MKL_INT_TYPE, 1> A(pAx, pAi, pAp, n, iNumNzA);
 
-     if (ierror) {
-          silent_cerr("Pardiso solve failed with status " << ierror << "\n");
-          throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
-     }
+         const MyVectorHandler X(n, pdSol);
+     
+         A.MatTVecMul(AX, X);
+
+         const doublereal* const pAX = AX.pdGetVec();
+         doublereal normAXpB = 0., normAXmB = 0.;
+
+         for (MKL_INT_TYPE i = 0; i < n; ++i) {
+              normAXpB += std::pow(pAX[i] + pdRhs[i], 2);
+              normAXmB += std::pow(pAX[i] - pdRhs[i], 2);
+         }
+
+         dErrBW = sqrt(normAXmB / normAXpB);
+
+         if (msglvl) {
+              silent_cerr("Pardiso: backward error: " << dErrBW << "\n");
+         }
+
+         bRepeatFactor = (ierror != 0 || dErrBW > dTolBW);
+    } while (bRepeatFactor && !bSymbolicFactor);
+
+    if (ierror) {
+         silent_cerr("Pardiso solve failed with status " << ierror << "\n");
+         throw ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+    }
 }
 
 template <typename MKL_INT_TYPE>
@@ -169,64 +193,12 @@ MKL_INT_TYPE PardisoSolver<MKL_INT_TYPE>::MakeCompactForm(SparseMatrixHandler& m
      pAx = &Ax.front();
 
      static_assert(sizeof(MH_INT_TYPE) == sizeof(MKL_INT_TYPE));
-
+     static_assert(std::numeric_limits<MH_INT_TYPE>::is_integer);
+     static_assert(std::numeric_limits<MKL_INT_TYPE>::is_integer);
+     
      pAi = reinterpret_cast<MKL_INT_TYPE*>(&Ai.front());
      pAp = reinterpret_cast<MKL_INT_TYPE*>(&Ap.front());
 
-#ifdef USE_IPPCP_HASH
-     int iHashSize = 0;
-
-     IppStatus iStatus = ippsHashGetSize_rmf(&iHashSize);
-     
-     if (ippStsNoErr != iStatus) {
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-     }
-
-     std::unique_ptr<IppsHashState_rmf, decltype(&free)> pCtx{reinterpret_cast<IppsHashState_rmf*>(malloc(iHashSize)), &free};
-
-     if (!pCtx) {
-          throw std::bad_alloc();
-     }
-
-     iStatus = ippsHashInit_rmf(pCtx.get(), ippsHashMethod_SHA1());
-     
-     if (ippStsNoErr != iStatus) {
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-     }
-
-     struct {
-          MKL_INT_TYPE iRow;
-          MKL_INT_TYPE iCol;
-     } oItem;
-          
-     for (MKL_INT_TYPE i = 0; i < n; ++i) {
-          for (MKL_INT_TYPE j = pAp[i]; j < pAp[i + 1]; ++j) {
-               if (pAx[j - 1]) {
-                    oItem.iRow = i + 1;
-                    oItem.iCol = pAi[j - 1];
-
-                    if (ippStsNoErr != ippsHashUpdate_rmf(reinterpret_cast<Ipp8u*>(&oItem), sizeof(oItem), pCtx.get())) {
-                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                    }
-               }
-          }
-     }
-
-     Ipp8u rgNzPattCurr[20];
-
-     iStatus = ippsHashFinal_rmf(rgNzPattCurr, pCtx.get());
-
-     if (ippStsNoErr != iStatus) {
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-     }
-
-     static_assert(sizeof(rgNzPattCurr) == sizeof(rgNzPatt));
-
-     bNzPattDiff = (iNumNz != iNumNzA) || (0 != std::memcmp(rgNzPattCurr, rgNzPatt, sizeof(rgNzPatt)));
-
-     std::memcpy(rgNzPatt, rgNzPattCurr, sizeof(rgNzPatt));
-#endif
-     
      return iNumNzA;
 }
 
