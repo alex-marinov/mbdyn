@@ -701,7 +701,7 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 DriveDisplacementJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1297,7 +1297,7 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 DriveDisplacementPinJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

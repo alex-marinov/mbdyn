@@ -782,7 +782,7 @@ BeamSliderJoint::InitialAssRes(
 const OutputHandler::Dimensions
 BeamSliderJoint::GetEquationDimension(integer index) const {
 	// DOF is unknown
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

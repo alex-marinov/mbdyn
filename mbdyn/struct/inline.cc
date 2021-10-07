@@ -570,7 +570,7 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 InLineJoint::GetEquationDimension(integer index) const {
 	// DOF is unknown
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1089,7 +1089,7 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 InLineWithOffsetJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

@@ -392,7 +392,7 @@ Accumulator::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Accumulator::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -718,7 +718,7 @@ Tank::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Tank::GetEquationDimension(integer index) const {
    // DOF == 1
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

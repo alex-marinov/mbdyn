@@ -71,7 +71,7 @@ ThermalNode::Output(OutputHandler& OH) const
 const OutputHandler::Dimensions 
 ThermalNode::GetEquationDimension(integer index) const {
 
-		OutputHandler::Dimensions dimension;
+		OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 		switch (index)
 		{

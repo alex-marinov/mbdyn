@@ -1345,7 +1345,7 @@ ReadShell4EAS(DataManager* pDM,
 
 const OutputHandler::Dimensions 
 Shell4EAS::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

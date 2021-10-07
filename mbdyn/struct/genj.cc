@@ -642,7 +642,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions
 DistanceJoint::GetEquationDimension(integer index) const {
 	// DOF == 4
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1314,7 +1314,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions
 DistanceJointWithOffset::GetEquationDimension(integer index) const {
 	// DOF == 4
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1900,7 +1900,7 @@ ClampJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 ClampJoint::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

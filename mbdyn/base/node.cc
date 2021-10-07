@@ -153,7 +153,7 @@ ScalarNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 const OutputHandler::Dimensions 
 ScalarNode::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -376,7 +376,7 @@ ScalarDifferentialNode::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions 
 ScalarDifferentialNode::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

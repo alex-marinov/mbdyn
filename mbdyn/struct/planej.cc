@@ -1522,7 +1522,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 
 const OutputHandler::Dimensions
 PlaneHingeJoint::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -2539,7 +2539,7 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 PlaneRotationJoint::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -4010,7 +4010,7 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 AxialRotationJoint::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -4966,7 +4966,7 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
 
 const OutputHandler::Dimensions
 PlanePinJoint::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

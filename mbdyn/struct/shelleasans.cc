@@ -940,7 +940,7 @@ ReadShell4EASANS(DataManager* pDM,
 
 const OutputHandler::Dimensions 
 Shell4EASANS::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

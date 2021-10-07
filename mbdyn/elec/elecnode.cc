@@ -64,7 +64,7 @@ ElectricNode::GetNodeType(void) const
 const OutputHandler::Dimensions 
 ElectricNode::GetEquationDimension(integer index) const {
    // DOF == 1
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

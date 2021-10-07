@@ -1102,7 +1102,7 @@ Dynamic_control_valve::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Dynamic_control_valve::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1560,7 +1560,7 @@ Pressure_flow_control_valve::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Pressure_flow_control_valve::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1948,7 +1948,7 @@ void Pressure_valve::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Pressure_valve::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -2442,7 +2442,7 @@ void Flow_valve::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Flow_valve::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

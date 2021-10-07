@@ -568,7 +568,7 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 SphericalHingeJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -940,7 +940,7 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 PinJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

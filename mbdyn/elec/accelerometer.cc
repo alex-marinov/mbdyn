@@ -253,7 +253,7 @@ Accelerometer::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Accelerometer::GetEquationDimension(integer index) const {
 	// DOF == 3
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -442,7 +442,7 @@ TranslAccel::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 TranslAccel::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -606,7 +606,7 @@ RotAccel::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 RotAccel::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

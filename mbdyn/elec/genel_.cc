@@ -189,7 +189,7 @@ GenelClamp::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 const OutputHandler::Dimensions 
 GenelClamp::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -396,7 +396,7 @@ GenelDistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) cons
 const OutputHandler::Dimensions 
 GenelDistance::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1266,7 +1266,7 @@ GenelMass::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 const OutputHandler::Dimensions 
 GenelMass::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

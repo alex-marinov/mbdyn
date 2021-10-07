@@ -654,7 +654,7 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 DriveHingeJoint::GetEquationDimension(integer index) const {
 	// DOF == 6
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

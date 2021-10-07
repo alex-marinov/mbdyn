@@ -635,7 +635,7 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 UniversalHingeJoint::GetEquationDimension(integer index) const {
 	// DOF == 4
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1190,7 +1190,7 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 UniversalRotationJoint::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1667,7 +1667,7 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 UniversalPinJoint::GetEquationDimension(integer index) const {
 	// DOF == 4
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1677,7 +1677,7 @@ UniversalPinJoint::GetEquationDimension(integer index) const {
 		case 2:
 			dimension = OutputHandler::Dimensions::Length;
 			break;
-     	case 3:
+		case 3:
 			dimension = OutputHandler::Dimensions::Length;
 			break;
 		case 4:

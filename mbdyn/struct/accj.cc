@@ -288,7 +288,7 @@ LinearAccelerationJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 LinearAccelerationJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -578,7 +578,7 @@ AngularAccelerationJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 AngularAccelerationJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

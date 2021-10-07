@@ -372,7 +372,7 @@ void InPlaneJoint::SetInitialValue(VectorHandler& /* X */ )
 const OutputHandler::Dimensions
 InPlaneJoint::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -801,7 +801,7 @@ void InPlaneWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ )
 const OutputHandler::Dimensions
 InPlaneWithOffsetJoint::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

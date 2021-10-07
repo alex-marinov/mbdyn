@@ -464,7 +464,7 @@ void Pipe::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Pipe::GetEquationDimension(integer index) const {
    // DOF == 1
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1029,7 +1029,7 @@ Dynamic_pipe::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Dynamic_pipe::GetEquationDimension(integer index) const {
    // DOF == 3
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -1481,7 +1481,7 @@ DynamicPipe::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 DynamicPipe::GetEquationDimension(integer index) const {
    // DOF == 4
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

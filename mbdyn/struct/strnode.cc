@@ -1076,7 +1076,7 @@ StructDispNode::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 StructDispNode::GetEquationDimension(integer index) const {
 
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 		{
@@ -1427,7 +1427,7 @@ DynamicStructDispNode::SetOutputFlag(flag f)
 
 const OutputHandler::Dimensions
 DynamicStructDispNode::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -3152,7 +3152,7 @@ StructNode::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 StructNode::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -3527,7 +3527,7 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 const OutputHandler::Dimensions
 DynamicStructNode::GetEquationDimension(integer index) const {
 
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -3843,7 +3843,7 @@ ModalNode::AfterConvergence(const VectorHandler& X,
 
 const OutputHandler::Dimensions
 ModalNode::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

@@ -288,7 +288,7 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 LinearVelocityJoint::GetEquationDimension(integer index) const {
 	// DOF == 6
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -585,7 +585,7 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
 const OutputHandler::Dimensions
 AngularVelocityJoint::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

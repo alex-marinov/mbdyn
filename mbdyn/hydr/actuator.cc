@@ -495,7 +495,7 @@ void Actuator::SetValue(DataManager *pDM,
 const OutputHandler::Dimensions 
 Actuator::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension;
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{

@@ -514,7 +514,7 @@ GimbalRotationJoint::dGetPrivData(unsigned int i) const
 const OutputHandler::Dimensions
 GimbalRotationJoint::GetEquationDimension(integer index) const {
 	// DOF == 5
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
