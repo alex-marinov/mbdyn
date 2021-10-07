@@ -266,7 +266,7 @@ void ModLugreFriction::AssJac(
 const OutputHandler::Dimensions
 ModLugreFriction::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
@@ -560,7 +560,7 @@ const OutputHandler::Dimensions
 DiscreteCoulombFriction::GetEquationDimension(integer index) const {
 	// DOF == 1
 	
-	OutputHandler::Dimensions dimension;
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
