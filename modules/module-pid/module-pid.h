@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,13 +27,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* module-rotor_disc
+/* module-pid
  * Author: Matteo Daniele
  *
  * Copyright (C) 2008-2021
  *
  * Matteo Daniele <matteo.daniele@polimi.it>
- * 
+ *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
  * http://www.aero.polimi.it
@@ -71,7 +71,7 @@ class Pid : virtual public Elem, public UserDefinedElem
         doublereal PrevInputErr = 0.0;
         doublereal InputError;
         doublereal dInputError;
-        doublereal e1;  // derivator 
+        doublereal e1;  // derivator
         doublereal e2;  // anti windup
         // output
         doublereal YOut;
@@ -88,8 +88,8 @@ class Pid : virtual public Elem, public UserDefinedElem
         // wind-up saturation
         const DriveCaller* pYmin;
         const DriveCaller* pYmax;
-        doublereal Ymin = -2.e32;
-        doublereal Ymax =  2.e32;
+        doublereal Ymin = std::numeric_limits<doublereal>::min();
+        doublereal Ymax = std::numeric_limits<doublereal>::max();
         bool bGotYmin = false;
         bool bGotYmax = false;
 
@@ -98,14 +98,14 @@ class Pid : virtual public Elem, public UserDefinedElem
         doublereal YiOut; // integral output
         doublereal YdOut; // derivative output
         doublereal YbOut; // output before saturation
-        
+
         // integral value
         doublereal Ii;
         doublereal Id;
 
         ////////////////////////////////////////////////////////////////////////
-        
-    
+
+
     public:
 
         Pid( unsigned int uL, const DofOwner* pDO,
@@ -121,13 +121,13 @@ class Pid : virtual public Elem, public UserDefinedElem
             YBOUT,
             LASTPRIVDATA
         };
-        
+
         virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
         virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
         //contributo al file di restart
         std::ostream& Restart(std::ostream& out) const;
         // assemblaggio yacobiano
-        VariableSubMatrixHandler& AssJac(   VariableSubMatrixHandler& WorkMat, 
+        VariableSubMatrixHandler& AssJac(   VariableSubMatrixHandler& WorkMat,
                                             doublereal dCoef,
                                             const VectorHandler& /* XCurr */ ,
                                             const VectorHandler& /* XPrimeCurr */ );

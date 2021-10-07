@@ -15,7 +15,7 @@ extern bool RotorDiscSet(void);
 
 /*
 FROM PROUTY "HELICOPTER PERFORMANCE, STABILITY AND OCONTROL, CHAPTER 3"
-V1 IS CALLED CONSTANT MOMENTUM INDUCED VELOCITY: 
+V1 IS CALLED CONSTANT MOMENTUM INDUCED VELOCITY:
 GOOD APPROXIMATION OF INDUCED VELOCITY AT SPEED > 30KT
 */
 
@@ -68,7 +68,7 @@ private:
     doublereal AirPressure; // pressure
     doublereal AirTemperature; // temperature
     // absolute position wrt reference to calculate air properties
-    
+
     // partial derivatives of advance ratio
     void dMuCalc(void);
     // partial derivatives of inflow ratio
@@ -79,7 +79,7 @@ private:
     void dTThetaCalc(void);
     void dTLambdaCalc(void);
 
-    // thrust components 
+    // thrust components
     void T0Calc(void);
     void TThetaCalc(void);
     void TLambdaCalc(void);
@@ -92,8 +92,8 @@ private:
     // state-dependent variable calculation
     void updateStatesDeps(void);
 
-    
-    
+
+
     // dimensional data of the  rotor
     doublereal RotorRadius;           //  rotor radius [m]
     doublereal Chord;           // blade chord [m]
@@ -103,10 +103,10 @@ private:
     doublereal ClAlpha ;     // lift slope curve [1/rad]
     doublereal BladeTwist;    // twist angle at tip [rad]
 
-    // Cl stall angle [rad] 
-    doublereal AOAStallMin;        
-    doublereal AOAStallMax;        
-    
+    // Cl stall angle [rad]
+    doublereal AOAStallMin = std::numeric_limits<doublereal>::min();
+    doublereal AOAStallMax = std::numeric_limits<doublereal>::max();
+
     // main rotor data for v1hover
     doublereal hubs_distance;           // distance between mr and tr hub [m]
     doublereal mr_nominal_power_shp;    // main rotor nominal power, OGE [hp]
@@ -120,7 +120,7 @@ private:
     const doublereal sHP2W = 745.7; // conversion factor, horsepower to watt
 
     // part of v1h depending only on the constant factors:
-    // v1hPart = sqrt(Th/2A), where Th is the required rotor 
+    // v1hPart = sqrt(Th/2A), where Th is the required rotor
     // thrust in hover to compensate for nominal rotor torque
     doublereal Th;
     doublereal v1hPart;
@@ -155,8 +155,8 @@ private:
     // pedal input [rad]
     doublereal thetaColl;
     // pedal angle limits [rad]
-    doublereal thetaCollMin; 
-    doublereal thetaCollMax; 
+    doublereal thetaCollMin = std::numeric_limits<doublereal>::min();
+    doublereal thetaCollMax = std::numeric_limits<doublereal>::max();
 
     Vec3 F;
     Vec3 M;
@@ -167,7 +167,7 @@ public:
     RotorDisc( unsigned int uL, const DofOwner *pDO,
                     DataManager* pDM, MBDynParser& HP);
     virtual ~RotorDisc();
-    
+
     // update inputs - check saturation limits
     void inputSaturation();
     // compute thrust
@@ -177,7 +177,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////
     enum PrivData {
-        
+
         THRUST = 1,
         DRAGINDUCED,
         POWERINDUCED,
@@ -195,7 +195,7 @@ public:
     //contributo al file di restart
     std::ostream& Restart(std::ostream& out) const;
     // assemblaggio yacobiano
-    VariableSubMatrixHandler& AssJac(   VariableSubMatrixHandler& WorkMat, 
+    VariableSubMatrixHandler& AssJac(   VariableSubMatrixHandler& WorkMat,
                                         doublereal dCoef,
 	                                    const VectorHandler& /* XCurr */ ,
 	                                    const VectorHandler& /* XPrimeCurr */ );

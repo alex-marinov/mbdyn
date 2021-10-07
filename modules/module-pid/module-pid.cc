@@ -3,7 +3,6 @@
 #include "mbconfig.h"
 #include <iostream>
 #include <cmath>
-#include <iostream>
 #include <fstream>
 #include "module-pid.h"
 
@@ -59,7 +58,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     DoTime.Set(new TimeStepDriveCaller(pDM->pGetDrvHdl()));
 
     // gather input parameters
-    std::cout << "reading PID(" << uLabel << ") element..." << std::endl;
+    DEBUGCOUT( "reading PID(" << uLabel << ") element..." << std::endl);
     //
     //bSetPoint = false;
     if (HP.IsKeyWord("setpoint")){
@@ -68,7 +67,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else {
         //SetPoint = 0.0;
-        std::cout << "PID(" << uLabel << "): setpoint not provided, using " << SetPoint << " as setpoint value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): setpoint not provided, using " << SetPoint << " as setpoint value" << std::endl);
     }
     //
     if (HP.IsKeyWord("measure")){
@@ -89,7 +88,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else{
         //Kn = 100.0;
-        std::cout << "PID(" << uLabel << "): Kn not provided, using " << Kn << " as default value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): Kn not provided, using " << Kn << " as default value" << std::endl);
     }
     //
     if (HP.IsKeyWord("Ii0")){
@@ -97,7 +96,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else{
         //Ii0 = 0.0;
-        std::cout << "PID(" << uLabel << "): Ii0 for the integrator not provided, using " << Ii0 << " as initial integrator value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): Ii0 for the integrator not provided, using " << Ii0 << " as initial integrator value" << std::endl);
     }
     //
     if (HP.IsKeyWord("Id0")){
@@ -105,7 +104,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else {
         //Id0 = 0.0;
-        std::cout << "PID(" << uLabel << "): Id0 for the derivator not provided, using " << Id0 << " as initial derivator value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): Id0 for the derivator not provided, using " << Id0 << " as initial derivator value" << std::endl);
     }
     //
     if (HP.IsKeyWord("Ks")){
@@ -113,7 +112,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else {
         //Ks = 1.0;
-        std::cout << "PID(" << uLabel << "): anti windup scale factor not provided, using " << Ks << " as value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): anti windup scale factor not provided, using " << Ks << " as value" << std::endl);
     }
     //
     //bGotYmin = false;
@@ -125,7 +124,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else {
         //Ymin = -2.e32; //-std::numeric_limits<doublereal>::max();
-        std::cout << "PID(" << uLabel << "): lower limit saturation not provided, using " << Ymin << " as minimum value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): lower limit saturation not provided, using " << Ymin << " as minimum value" << std::endl);
     }
 
     if (HP.IsKeyWord("Ymax")){
@@ -134,14 +133,14 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     }
     else {
         //Ymax = 2.e32; //std::numeric_limits<doublereal>::max();
-        std::cout << "PID(" << uLabel << "): upper limit saturation not provided, using " << Ymax << " as maximum value" << std::endl;
+        DEBUGCOUT( "PID(" << uLabel << "): upper limit saturation not provided, using " << Ymax << " as maximum value" << std::endl);
     }
 
     // INITIALIZATION
     if (bSetPoint){
         SetPoint = pSetPoint->dGet();
     }
-    
+
     Measure  = pMeasure->dGet();
 
     // initialize integrals
@@ -160,7 +159,7 @@ Pid::Pid(unsigned int uLabel, const DofOwner *pDO,
     if (bGotYmax){
         Ymax  = pYmax->dGet();
     }
-    
+
     YOut  = std::max(std::min(YbOut, Ymax), Ymin);
 
 
@@ -259,7 +258,7 @@ unsigned int Pid::iGetPrivDataIdx(const char* s) const
     }
 
     return 0;
-    
+
 }
 
 doublereal Pid::dGetPrivData(unsigned int i) const
@@ -332,11 +331,11 @@ Pid::AssRes(SubVectorHandler& WorkVec,
     // error derivative
     dInputError = InputError-(PrevInputErr)/dt;
     PrevInputErr = InputError;
-    
-    //std::cout << "InputError: " << InputError << std::endl;
-    //std::cout << "dt: " << dt << std::endl;
-    //std::cout << "dInputError/dt: " << dInputError << std::endl;
-    
+
+    DEBUGCOUT( "InputError: " << InputError << std::endl);
+    DEBUGCOUT( "dt: " << dt << std::endl);
+    DEBUGCOUT( "dInputError/dt: " << dInputError << std::endl);
+
     // proportional control
     YpOut = Kp*InputError;
     // integral control
@@ -370,7 +369,7 @@ Pid::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 SubVectorHandler&
-Pid::InitialAssRes(SubVectorHandler& WorkVec, 
+Pid::InitialAssRes(SubVectorHandler& WorkVec,
                     const VectorHandler& XCurr)
 {
     WorkVec.Resize(0);
