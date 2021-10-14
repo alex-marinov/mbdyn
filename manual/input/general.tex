@@ -4629,7 +4629,7 @@ No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
 This constitutive law wrapper transforms a 1D constitutive law into a corresponding 3D constitutive law that acts about an axis that is fixed in the relative reference of the first node.  It is intended to be used with \kw{deformable hinge} joints that act between nodes constrained by a \kw{revolute hinge} joint, and thus are only allowed relative rotation about one axis.
 The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{specific_const_law} ::= \kw{axial wrap} ,
+    \bnt{specific_const_law} ::= \kw{axial wrapper} ,
         (\hty{Vec3})\bnt{dir} ,
         (\htmlref{\ty{ConstitutiveLaw}\be{\kw{doublereal}, \kw{doublereal}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
