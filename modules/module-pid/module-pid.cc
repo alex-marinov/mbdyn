@@ -329,7 +329,7 @@ Pid::AssRes(SubVectorHandler& WorkVec,
     // compute input error
     InputError = SetPoint - Measure;
     // error derivative
-    dInputError = InputError-(PrevInputErr)/dt;
+    dInputError = (InputError-PrevInputErr)/dt;
     PrevInputErr = InputError;
 
     DEBUGCOUT( "InputError: " << InputError << std::endl);
