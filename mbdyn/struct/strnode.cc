@@ -2998,6 +2998,10 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 6 + idx;
 	}
 
+	if (strncmp(s, "phi", len) == 0) {
+		return 46 + idx;
+	}
+
 	if (strncmp(s, "XP", len) == 0) {
 		return 9 + idx;
 	}
@@ -3169,6 +3173,15 @@ StructNode::dGetPrivData(unsigned int i) const
 	case 46:
 		ASSERT(bComputeAccelerations() == true);
 		return RCurr.GetVec(i - 43)*WPCurr;
+
+	case 47:
+	case 48:
+	case 49: {
+		/* TODO */
+		Vec3 Phi(RotManip::VecRot(RCurr));
+		return RCurr.GetVec(i - 46)*Phi;
+	}
+
 	}
 
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
