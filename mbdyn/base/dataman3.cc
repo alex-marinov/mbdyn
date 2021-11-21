@@ -2544,22 +2544,26 @@ ReadOrientationDescription(MBDynParser& HP)
 }
 
 OrientationDescription
-ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP)
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP, OrientationDescription od /* = UNKNOWN_ORIENTATION_DESCRIPTION */ )
 {
-	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
+	OrientationDescription dod = od;
 
 	if (HP.IsKeyWord("orientation" "description")) {
+		// override existing
 		dod = ReadOrientationDescription(HP);
 
-	} else if (pDM != 0) {
-		/* get a sane default */
-		dod = pDM->GetOrientationDescription();
+	} else if (od == UNKNOWN_ORIENTATION_DESCRIPTION) {
+		if (pDM != 0) {
+			// get model-wide default
+			dod = pDM->GetOrientationDescription();
 
-	} else {
-		dod = EULER_123;
-		silent_cerr("Warning, data manager not defined yet, "
-			"using default orientation (\"euler 123\") "
-			"at line " << HP.GetLineData() << std::endl);
+		} else {
+			// use legacy default
+			dod = EULER_123;
+			silent_cerr("Warning, data manager not defined yet, "
+				"using default orientation (\"euler 123\") "
+				"at line " << HP.GetLineData() << std::endl);
+		}
 	}
 
 	return dod;

@@ -249,6 +249,8 @@ public:
 	/* Output del nodo strutturale (da mettere a punto) */
 	virtual void Output(OutputHandler& OH) const;
 
+	virtual const OrientationDescription& GetOrientationDescription(void) const;
+
 #if 0
 	/* Output della soluzione perturbata (modi ...) */
 	virtual void Output(OutputHandler& OH,

@@ -1094,6 +1094,12 @@ StructDispNode::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+const OrientationDescription&
+StructDispNode::GetOrientationDescription(void) const
+{
+	return od;
+}
+
 /* StructDispNode - end */
 
 /* DynamicStructDispNode - begin */
@@ -1842,6 +1848,8 @@ StructNode::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
+			std::string glocal("global");
+
 			// node
 			const char *type;
 			switch (GetStructNodeType()) {
@@ -1859,6 +1867,14 @@ StructNode::OutputPrepare(OutputHandler &OH)
 
 			case DUMMY:
 				type = "dummy";
+				switch ((dynamic_cast<const DummyStructNode *>(this))->GetDummyType()) {
+				case DummyStructNode::RELATIVEFRAME:
+				case DummyStructNode::PIVOTRELATIVEFRAME:
+					glocal = "relative";
+					break;
+				default:
+					NO_OP;
+				}
 				break;
 
 			default:
@@ -1878,27 +1894,27 @@ StructNode::OutputPrepare(OutputHandler &OH)
 
 			Var_X = OH.CreateVar<Vec3>(name + "X",
 				OutputHandler::Dimensions::Length,
-				"global position vector (X, Y, Z)");
+				glocal + " position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
 			Var_XP = OH.CreateVar<Vec3>(name + "XP",
 				OutputHandler::Dimensions::Velocity,
-				"global velocity vector (v_X, v_Y, v_Z)");
+				glocal + " velocity vector (v_X, v_Y, v_Z)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
 				OutputHandler::Dimensions::AngularVelocity,
-				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
+				glocal + " angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
 				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
 					OutputHandler::Dimensions::Acceleration,
-					"global acceleration vector (a_X, a_Y, a_Z)");
+					glocal + " acceleration vector (a_X, a_Y, a_Z)");
 
 				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
 					OutputHandler::Dimensions::AngularAcceleration,
-					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
+					glocal + " angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
 #endif // USE_NETCDF
@@ -4442,6 +4458,8 @@ ReadStructNode(DataManager* pDM,
 	if (CurrType == DUMMY) {
 		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
+		od = pNode->GetOrientationDescription();
+
 		DummyType = KeyWords(HP.GetWord());
 		switch (DummyType) {
 		case OFFSET: {
@@ -4449,7 +4467,7 @@ ReadStructNode(DataManager* pDM,
 			Vec3 f(HP.GetPosRel(RF));
 			Mat3x3 R(HP.GetRotRel(RF));
 
-			od = ReadOptionalOrientationDescription(pDM, HP);
+			od = ReadOptionalOrientationDescription(pDM, HP, od);
 
 			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 			SAFENEWWITHCONSTRUCTOR(pNd,
@@ -4471,9 +4489,9 @@ ReadStructNode(DataManager* pDM,
 			Mat3x3 Rh(Eye3);
 			if (HP.IsKeyWord("orientation")) {
 				Rh = HP.GetRotRel(RF);
-
-				od = ReadOptionalOrientationDescription(pDM, HP);
 			}
+
+			od = ReadOptionalOrientationDescription(pDM, HP, od);
 
 			const StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);

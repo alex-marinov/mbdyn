@@ -1127,6 +1127,6 @@ extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);
 
 extern OrientationDescription
-ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP);
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP, OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION);
 
 #endif /* DATAMAN_H */
