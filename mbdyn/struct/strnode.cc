@@ -1865,9 +1865,16 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				type = "modal";
 				break;
 
-			case DUMMY:
+			case DUMMY: {
 				type = "dummy";
-				switch ((dynamic_cast<const DummyStructNode *>(this))->GetDummyType()) {
+				const DummyStructNode *pDSN = dynamic_cast<const DummyStructNode *>(this);
+				ASSERT(pDSN != 0);
+				if (pDSN == 0) {
+					silent_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
+						"not a dummy node!" << std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				switch (pDSN->GetDummyType()) {
 				case DummyStructNode::RELATIVEFRAME:
 				case DummyStructNode::PIVOTRELATIVEFRAME:
 					glocal = "relative";
@@ -1876,11 +1883,12 @@ StructNode::OutputPrepare(OutputHandler &OH)
 					NO_OP;
 				}
 				break;
+			}
 
 			default:
-				pedantic_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
-					"warning, unknown node type?" << std::endl);
-				type = "unknown";
+				silent_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
+					"unknown node type!" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 
