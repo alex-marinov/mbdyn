@@ -1964,8 +1964,9 @@ StructNode::Output(OutputHandler& OH) const
 				/* impossible */
 				break;
 			}
-				OH.WriteNcVar(Var_XP, VCurr);
-				OH.WriteNcVar(Var_Omega, WCurr);
+
+			OH.WriteNcVar(Var_XP, VCurr);
+			OH.WriteNcVar(Var_Omega, WCurr);
 				
 			if (bOutputAccels) {
 					OH.WriteNcVar(Var_XPP, XPPCurr);
