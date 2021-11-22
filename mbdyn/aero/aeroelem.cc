@@ -1330,7 +1330,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 		// specific for Gauss points force output
 		if (bToBeOutput()) {
-			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
+			SetData(VTmp, dTng, Xnr, RRloc, Vr, Wn, FTmp, MTmp);
 		}
 
 		FTmp *= dWght;
