@@ -949,14 +949,14 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	int iPnt = 0;
 	do {
 		doublereal dCsi = PW.dGetPnt();
-		Vec3 Xr(Rn*(f + Ra3*(dHalfSpan*dCsi)));
-		Vec3 Xnr = Xn + Xr;
-		Vec3 Vr(Vn + Wn.Cross(Xr));
+		Vec3 Xb(Rn*(f + Ra3*(dHalfSpan*dCsi)));
+		Vec3 Xr = Xn + Xb;
+		Vec3 Vr(Vn + Wn.Cross(Xb));
 
 		/* Contributo di velocita' del vento */
 		/* Airstream speed contribution */
 		Vec3 VTmp(Zero3);
-		if (fGetAirVelocity(VTmp, Xnr)) {
+		if (fGetAirVelocity(VTmp, Xr)) {
 			Vr -= VTmp;
 		}
 
@@ -970,7 +970,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		 */
 		if (pIndVel != 0) {
 			Vr += pIndVel->GetInducedVelocity(GetElemType(),
-				GetLabel(), iPnt, Xnr);
+				GetLabel(), iPnt, Xr);
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
@@ -1036,7 +1036,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3 RRlocT(RRloc.Transpose());
 
 			vx.PutMat3x3(1, RRlocT);
-			vx.PutMat3x3(4, RRloc.MulTM(Mat3x3(MatCross, (Vr + Xr.Cross(Wn))*dCoef - Xr)));
+			vx.PutMat3x3(4, RRloc.MulTM(Mat3x3(MatCross, (Vr + Xb.Cross(Wn))*dCoef - Xb)));
 			wx.PutMat3x3(4, RRlocT);
 
 			// equations from iFirstEq on are dealt with by aerodata
@@ -1048,7 +1048,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 			integer iOffset = 6 + iPnt*iNumDof;
 			for (integer iCol = 1; iCol <= iNumDof; iCol++) {
 				Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
-				Vec3 cqTmp(Xr.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
+				Vec3 cqTmp(Xb.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
 
 				WM.Sub(1, iOffset + iCol, fqTmp * dCoef);
 				WM.Sub(4, iOffset + iCol, cqTmp * dCoef);
@@ -1066,16 +1066,16 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
 
 		Vec3 fTmp(RRloc*(Vec3(&Fa0[0])*dCoef));
-		Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + Xr.Cross(fTmp));
+		Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + Xb.Cross(fTmp));
 
 		// compute submatrices (see tecman.pdf)
-		Mat3x3 Mat21(Xr.Cross(JFaR.GetMat11()) + JFaR.GetMat21());
+		Mat3x3 Mat21(Xb.Cross(JFaR.GetMat11()) + JFaR.GetMat21());
 
-		Mat3x3 Mat12(JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, Xr));
+		Mat3x3 Mat12(JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, Xb));
 
-		Mat3x3 Mat22(Xr.Cross(JFaR.GetMat12()) + JFaR.GetMat22() - Mat21*Mat3x3(MatCross, Xr));
+		Mat3x3 Mat22(Xb.Cross(JFaR.GetMat12()) + JFaR.GetMat22() - Mat21*Mat3x3(MatCross, Xb));
 
-		Mat3x3 MatV(MatCross, (Vr + Xr.Cross(Wn))*dCoef);
+		Mat3x3 MatV(MatCross, (Vr + Xb.Cross(Wn))*dCoef);
 
 		Mat12 += JFaR.GetMat11()*MatV - Mat3x3(MatCross, fTmp);
 
@@ -1229,14 +1229,14 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	int iPnt = 0;
 	do {
 		doublereal dCsi = PW.dGetPnt();
-		Vec3 Xr(Rn*(f + Ra3*(dHalfSpan*dCsi)));
-		Vec3 Xnr = Xn + Xr;
-		Vec3 Vr(Vn + Wn.Cross(Xr));
+		Vec3 Xb(Rn*(f + Ra3*(dHalfSpan*dCsi)));
+		Vec3 Xr = Xn + Xb;
+		Vec3 Vr(Vn + Wn.Cross(Xb));
 
 		/* Contributo di velocita' del vento */
 		/* Airstream speed contribution */
 		Vec3 VTmp(Zero3);
-		if (fGetAirVelocity(VTmp, Xnr)) {
+		if (fGetAirVelocity(VTmp, Xr)) {
 	 		Vr -= VTmp;
 		}
 
@@ -1250,7 +1250,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		 */
 		if (pIndVel != 0) {
 	 		Vr += pIndVel->GetInducedVelocity(GetElemType(),
-				GetLabel(), iPnt, Xnr);
+				GetLabel(), iPnt, Xr);
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
@@ -1326,11 +1326,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
 		// If a rotor is defined, adds the thrust contribution
-		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xnr, RRloc, Vr, Wn);
+		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wn);
 
 		// specific for Gauss points force output
 		if (bToBeOutput()) {
-			SetData(VTmp, dTng, Xnr, RRloc, Vr, Wn, FTmp, MTmp);
+			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
 		}
 
 		FTmp *= dWght;
@@ -1338,7 +1338,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 		F += FTmp;
 		M += MTmp;
-		M += Xr.Cross(FTmp);
+		M += Xb.Cross(FTmp);
 
 		iPnt++;
 
