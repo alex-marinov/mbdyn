@@ -3056,7 +3056,10 @@ The function
 	\xi &= \cfrac{t - \nt{initial\_time}}{\nt{final\_time} - \nt{initial\_time}}
 	\nonumber 
 \end{align}
-i.e.\ a continuous 5th order polynomial approximation of a step, with continuous derivative.
+i.e.\ a continuous 5th order polynomial approximation of a step of amplitude $A = \nt{final\_value} - \nt{initial\_value}$
+and finite duration $\nt{final\_time} - \nt{initial\_time}$,
+starting at time \nt{initial\_time} with value \nt{initial\_value} and ending at time \nt{final\_time} with value \nt{final\_value},
+with continuous 1st- and 2nd-order derivatives.
 
 \subsection{String drive}
 %\begin{verbatim}
