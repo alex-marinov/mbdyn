@@ -51,6 +51,7 @@ class InLineJoint : virtual public Elem, public Joint {
    MBDynNcVar Var_FF;
    MBDynNcVar Var_fc; 
    MBDynNcVar Var_v; 
+   MBDynNcVar Var_displ;
 #endif // USE_NETCDF
 
    /* friction related data */
@@ -59,6 +60,7 @@ class InLineJoint : virtual public Elem, public Joint {
    const doublereal preF;
    doublereal F3;
    doublereal v;
+   doublereal displ;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
