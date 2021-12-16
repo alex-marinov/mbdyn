@@ -192,16 +192,6 @@ void
 Beam::Init(void)
 {
 	for (unsigned i = 0; i < NUMSEZ; i++) {
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-		Var_X[i] = 0;
-		Var_Phi[i] = 0;
-		Var_F[i] = 0;
-		Var_M[i] = 0;
-		Var_Nu[i] = 0;
-		Var_K[i] = 0;
-		Var_NuP[i] = 0;
-		Var_KP[i] = 0;
-#endif /* USE_NETCDFC */
 
 		Omega[i] = Zero3;
 		Az[i] = Zero6;

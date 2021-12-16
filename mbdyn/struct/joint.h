@@ -57,7 +57,7 @@ protected:
 	MBDynNcVar Var_M_local;
 	MBDynNcVar Var_F_global;
 	MBDynNcVar Var_M_global;
-#endif // USE_NETCDF
+#endif /* USE_NETCDF */
 
 	virtual void OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string& name);
 
@@ -209,7 +209,7 @@ public:
 	NetCDFOutput(OutputHandler &OH,
 		const Vec3& FLocal, const Vec3& MLocal,
 		const Vec3& FGlobal, const Vec3& MGlobal) const;
-#endif
+#endif /* USE_NETCDF */
 	/* Derivate da ElemWith Dofs */
 
 	/* Setta il valore iniziale delle proprie variabili */

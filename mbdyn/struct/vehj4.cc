@@ -102,11 +102,6 @@ tilde_R1h(tilde_R1h),
 tilde_R2h(tilde_R2h),
 bFirstRes(false),
 dTol(0.)
-#ifdef USE_NETCDFC
-,
-Var_Theta(0),
-Var_Omega(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

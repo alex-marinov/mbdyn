@@ -216,12 +216,6 @@ public:
 	bPenalty(false),
 	pAreaPinPlus(NULL), pAreaPinMinus(NULL), pAreaOrifices(NULL),
 	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) 
-#if defined(USE_NETCDFC)
-	, Var_dPressure(0),
-	Var_dArea(0),
-	Var_dFelastic(0),
-	Var_dFviscous(0)
-#endif /*! USE_NETCDFC */
 	{
 		if (HP.IsKeyWord("help")) {
 

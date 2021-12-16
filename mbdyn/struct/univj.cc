@@ -688,9 +688,6 @@ UniversalRotationJoint::UniversalRotationJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-#endif // USE_NETCDFC
 R1h(R1hTmp), R2h(R2hTmp), dM(0.), od(od)
 {
 	NO_OP;

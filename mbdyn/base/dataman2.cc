@@ -1635,10 +1635,6 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
 
-#if defined(USE_NETCDFC)
-		Var_Eig_dAplus->put(MatB.pdGetMat(), nrows, ncols);
-		Var_Eig_dAminus->put(MatA.pdGetMat(), nrows, ncols);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 		std::vector<size_t> ncStartPos, ncCount;
 		ncStartPos.push_back(0); // implicit cast here ok?
 		ncStartPos.push_back(0); // implicit cast here ok?
@@ -1646,7 +1642,6 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 		ncCount.push_back(ncols);
 		Var_Eig_dAplus.putVar(MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
 		Var_Eig_dAminus.putVar(MatA.pdGetMat());
-#endif  /* USE_NETCDF4 */
 
 	}
 #endif /* USE_NETCDF */
@@ -1786,7 +1781,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		}
 
 	}
-#endif
+#endif /* USE_NETCDF */
 }
 
 void
@@ -1876,7 +1871,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		}
 
 	}
-#endif
+#endif /* USE_NETCDF */
 }
 
 void

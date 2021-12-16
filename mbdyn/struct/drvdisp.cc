@@ -57,10 +57,6 @@ RRef(Eye3),
 f2Ref(Zero3),
 dRef(Zero3),
 F(Zero3)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_d(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -738,10 +734,6 @@ pNode(pN), f(f), x(x),
 fRef(Zero3),
 dRef(Zero3),
 F(Zero3)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_d(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);

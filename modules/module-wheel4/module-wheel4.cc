@@ -256,296 +256,132 @@ Wheel4::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file
-			 * -->  pDM->OutHdl.BinFile */
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
+		        std::ostringstream os;
+		        os << "loadable." << GetLabel();
+		        (void)OH.CreateVar(os.str(), "wheel4");
 
-			int l = snprintf(buf, sizeof(buf), "loadable.wheel4.%lu",
-				(unsigned long)GetLabel());
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".dXxProj"))) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-
-			// add var name separator
-			buf[l++] = '.';
+		        // joint sub-data
+		        os << '.';
+		        std::string name = os.str();
 
 			/* Add NetCDF (output) variables to the BinFile object
 			 * and save the NcVar* pointer returned from add_var
 			 * as handle for later write accesses.
 			 * Define also variable attributes */
-
-			strcpy(&buf[l], "Fint");
-			Var_Fint = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_Fint == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fint->add_att("units", "N")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fint->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fint->add_att("description", "force btwn ring and patch acting on patch (X, Y, Z)")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Xpar");
-			Var_Xpar = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_Xpar == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpar->add_att("units", "m")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpar->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpar->add_att("description", "rel pos of patch (X, Y, Z)")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Xparp");
-			Var_Xparp = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_Xparp == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xparp->add_att("units", "m")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xparp->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xparp->add_att("description", "rel pos of patch expressed in the ring non-rotating reference frame (X, Y, Z)")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-
-			strcpy(&buf[l], "dXxProj");
-			Var_dXxProj = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV1());
-			if (Var_dXxProj == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dXxProj->add_att("units", "m")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dXxProj->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dXxProj->add_att("description", "patch center point x-value of the road profile (attention: this is not the same thing as the patch position")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-//			NetCDFPrepare(OutputHandler OH, char buf);
-
-			strcpy(&buf[l], "dRoad");
-			Var_dRoad = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dRoad == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoad->add_att("units", "m")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoad->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoad->add_att("description", "road height")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "F");
-			Var_F = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_F == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_F->add_att("units", "N")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_F->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_F->add_att("description", "Road-patch friction force expressed in absolute reference frame")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Fn");
-			Var_Fn = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_Fn == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fn->add_att("units", "N")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fn->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fn->add_att("description", "Normal force at the patch")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "debug");
-			Var_debug = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_debug == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_debug->add_att("units", "x")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_debug->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_debug->add_att("description", "Debugging variable")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dSr");
-			Var_dSr = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dSr == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSr->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSr->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSr->add_att("description", "dSr")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "ddistM");
-			Var_ddistM = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_ddistM == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_ddistM->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_ddistM->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_ddistM->add_att("description", "ddistM")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Fcent");
-			Var_Fcent = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_Fcent == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fcent->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fcent->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fcent->add_att("description", "Fcent")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dLs");
-			Var_dLs = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dLs == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dLs->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dLs->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dLs->add_att("description", "dLs")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "R_e");
-			Var_R_e = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_R_e == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_R_e->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_R_e->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_R_e->add_att("description", "R_e")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dSa");
-			Var_dSa = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dSa == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSa->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSa->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dSa->add_att("description", "dSa")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dvax");
-			Var_dvax = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dvax == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvax->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvax->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvax->add_att("description", "dvax")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dvx");
-			Var_dvx = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dvx == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvx->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvx->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvx->add_att("description", "dvx")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dvay");
-			Var_dvay = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dvay == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvay->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvay->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dvay->add_att("description", "dvay")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dMuY");
-			Var_dMuY = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dMuY == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuY->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuY->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuY->add_att("description", "dMuY")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dMuX");
-			Var_dMuX = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dMuX == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuX->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuX->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dMuX->add_att("description", "dMuX")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "KE");
-			Var_KE = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_KE == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_KE->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_KE->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_KE->add_att("description", "KE")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "PE");
-			Var_PE = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_PE == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_PE->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_PE->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_PE->add_att("description", "PE")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "E");
-			Var_E = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_E == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_E->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_E->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_E->add_att("description", "E")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dRoadAhead");
-			Var_dRoadAhead = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dRoadAhead == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadAhead->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadAhead->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadAhead->add_att("description", "dRoadAhead")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dRoadBehind");
-			Var_dRoadBehind = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dRoadBehind == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadBehind->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadBehind->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dRoadBehind->add_att("description", "dRoadBehind")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "dCt");
-			Var_dCt = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV1());
-			if (Var_dCt == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dCt->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dCt->add_att("type", "doublereal")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_dCt->add_att("description", "dCt")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "M");
-			Var_M = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_M == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_M->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_M->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_M->add_att("description", "M")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "distM");
-			Var_distM = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_distM == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_distM->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_distM->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_distM->add_att("description", "distM")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "n");
-			Var_n = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_n == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_n->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_n->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_n->add_att("description", "n")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Xpa");
-			Var_Xpa = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Xpa == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpa->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpa->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Xpa->add_att("description", "Xpa")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Vpa");
-			Var_Vpa = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Vpa == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpa->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpa->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpa->add_att("description", "Vpa")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Vpar");
-			Var_Vpar = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Vpar == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpar->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpar->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Vpar->add_att("description", "Vpar")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "fwd");
-			Var_fwd = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_fwd == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwd->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwd->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwd->add_att("description", "fwd")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "fwdRing");
-			Var_fwdRing = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_fwdRing == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRing->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRing->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRing->add_att("description", "fwdRing")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "fwdRingFlat");
-			Var_fwdRingFlat = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_fwdRingFlat == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRingFlat->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRingFlat->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_fwdRingFlat->add_att("description", "fwdRingFlat")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "pcRing");
-			Var_pcRing = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_pcRing == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_pcRing->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_pcRing->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_pcRing->add_att("description", "pcRing")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "VparWheel");
-			Var_VparWheel = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_VparWheel == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_VparWheel->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_VparWheel->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_VparWheel->add_att("description", "VparWheel")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Fr");
-			Var_Fr = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Fr == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fr->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fr->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Fr->add_att("description", "Fr")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			strcpy(&buf[l], "Mz");
-			Var_Mz = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Mz == 0) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Mz->add_att("units", "NA")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Mz->add_att("type", "Vec3")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			if (!Var_Mz->add_att("description", "Mz")) throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			OH.CreateVar<Vec3>(name + "Fint",
+                                                OutputHandler::Dimensions::Force,
+                                                "force btwn ring and patch acting on patch (x, y, z)");
+			OH.CreateVar<Vec3>(name + "Xpar",
+                                                OutputHandler::Dimensions::Length,
+                                                "rel pos of patch (x, y, z)");
+			OH.CreateVar<Vec3>(name + "Xparp",
+                                                OutputHandler::Dimensions::Length,
+                                                "rel pos of patch expressed in the ring non-rotating reference frame (x, y, z)");
+			OH.CreateVar<doublereal>(name + "dXxProj",
+                                                OutputHandler::Dimensions::Length,
+                                                "patch center point x-value of the road profile (attention: this is not the same thing as the patch position)");
+			OH.CreateVar<doublereal>(name + "dRoad",
+                                                OutputHandler::Dimensions::Length,
+                                                "road height");
+			OH.CreateVar<Vec3>(name + "F",
+                                                OutputHandler::Dimensions::Force,
+                                                "Road-patch friction force expressed in absolute reference frame (x, y, z)");
+			OH.CreateVar<doublereal>(name + "Fn",
+                                                OutputHandler::Dimensions::Force,
+                                                "Normal force at the patch");
+			OH.CreateVar<doublereal>(name + "debug",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Debugging variable");
+			OH.CreateVar<doublereal>(name + "dSr",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dSr");
+			OH.CreateVar<doublereal>(name + "ddistM",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "ddistM");
+			OH.CreateVar<doublereal>(name + "Fcent",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Fcent");
+			OH.CreateVar<doublereal>(name + "dLs",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dLs");
+			OH.CreateVar<doublereal>(name + "R_e",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "R_e");
+			OH.CreateVar<doublereal>(name + "dSa",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dSa");
+			OH.CreateVar<doublereal>(name + "dvax",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dvax");
+			OH.CreateVar<doublereal>(name + "dvx",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dvx");
+			OH.CreateVar<doublereal>(name + "dvay",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dvay");
+			OH.CreateVar<doublereal>(name + "dMuY",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dMuY");
+			OH.CreateVar<doublereal>(name + "dMuX",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dMuX");
+			OH.CreateVar<doublereal>(name + "KE",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "KE");
+			OH.CreateVar<doublereal>(name + "PE",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "PE");
+			OH.CreateVar<doublereal>(name + "E",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "E");
+			OH.CreateVar<doublereal>(name + "dRoadAhead",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dRoadAhead");
+			OH.CreateVar<doublereal>(name + "dRoadBehind",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dRoadBehind");
+			OH.CreateVar<doublereal>(name + "dCt",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "dCt");
+			OH.CreateVar<Vec3>(name + "M",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "M");
+			OH.CreateVar<Vec3>(name + "distM",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "distM");
+			OH.CreateVar<Vec3>(name + "n",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "n");
+			OH.CreateVar<Vec3>(name + "Xpa",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Xpa");
+			OH.CreateVar<Vec3>(name + "Vpa",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Vpa");
+			OH.CreateVar<Vec3>(name + "Vpar",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Vpar");
+			OH.CreateVar<Vec3>(name + "fwd",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "fwd");
+			OH.CreateVar<Vec3>(name + "fwdRing",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "fwdRing");
+			OH.CreateVar<Vec3>(name + "fwdRingFlat",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "fwdRingFlat");
+			OH.CreateVar<Vec3>(name + "pcRing",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "pcRing");
+			OH.CreateVar<Vec3>(name + "VparWheel",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "VparWheel");
+			OH.CreateVar<Vec3>(name + "Fr",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Fr");
+			OH.CreateVar<Vec3>(name + "Mz",
+                                                OutputHandler::Dimensions::UnknownDimension,
+                                                "Mz");
 
 
 		}
@@ -585,45 +421,44 @@ Wheel4::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
-			Var_Fint->put_rec(Fint.pGetVec(), OH.GetCurrentStep());
-			Var_Xpar->put_rec(Xpar.pGetVec(), OH.GetCurrentStep());
-			Var_Xparp->put_rec(Xparp.pGetVec(), OH.GetCurrentStep());
-			Var_dXxProj->put_rec(&dXxProj, OH.GetCurrentStep());
-			Var_dRoad->put_rec(&dRoad, OH.GetCurrentStep());
-			Var_F->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_Fn->put_rec(&Fn, OH.GetCurrentStep());
-			Var_debug->put_rec(&dDebug, OH.GetCurrentStep());
-			Var_dSr->put_rec((&dSr), OH.GetCurrentStep());
-			Var_ddistM->put_rec((&ddistM), OH.GetCurrentStep());
-			Var_Fcent->put_rec((&Fcent), OH.GetCurrentStep());
-			Var_dLs->put_rec((&dLs), OH.GetCurrentStep());
-			Var_R_e->put_rec((&R_e), OH.GetCurrentStep());
-			Var_dSa->put_rec((&dSa), OH.GetCurrentStep());
-			Var_dvax->put_rec((&dvax), OH.GetCurrentStep());
-			Var_dvx->put_rec((&dvx), OH.GetCurrentStep());
-			Var_dvay->put_rec((&dvay), OH.GetCurrentStep());
-			Var_dMuY->put_rec((&dMuY), OH.GetCurrentStep());
-			Var_dMuX->put_rec((&dMuX), OH.GetCurrentStep());
-			Var_KE->put_rec((&KE), OH.GetCurrentStep());
-			Var_PE->put_rec((&PE), OH.GetCurrentStep());
-			Var_E->put_rec((&E), OH.GetCurrentStep());
-			Var_dRoadAhead->put_rec((&dRoadAhead), OH.GetCurrentStep());
-			Var_dRoadBehind->put_rec((&dRoadBehind), OH.GetCurrentStep());
-			Var_dCt->put_rec((&dCt), OH.GetCurrentStep());
-			Var_M->put_rec((M.pGetVec()), OH.GetCurrentStep());
-			Var_distM->put_rec((distM.pGetVec()), OH.GetCurrentStep());
-			Var_n->put_rec((n.pGetVec()), OH.GetCurrentStep());
-			Var_Xpa->put_rec((Xpa.pGetVec()), OH.GetCurrentStep());
-			Var_Vpa->put_rec((Vpa.pGetVec()), OH.GetCurrentStep());
-			Var_Vpar->put_rec((Vpar.pGetVec()), OH.GetCurrentStep());
-			Var_fwd->put_rec((fwd.pGetVec()), OH.GetCurrentStep());
-			Var_fwdRing->put_rec((fwdRing.pGetVec()), OH.GetCurrentStep());
-			Var_fwdRingFlat->put_rec((fwdRingFlat.pGetVec()), OH.GetCurrentStep());
-			Var_pcRing->put_rec((pcRing.pGetVec()), OH.GetCurrentStep());
-			Var_VparWheel->put_rec((VparWheel.pGetVec()), OH.GetCurrentStep());
-			Var_Fr->put_rec((Fr.pGetVec()), OH.GetCurrentStep());
-			Var_Mz->put_rec((Mz.pGetVec()), OH.GetCurrentStep());
-
+			OH.WriteNcVar(Var_Fint, Fint);
+			OH.WriteNcVar(Var_Xpar, Xpar);
+			OH.WriteNcVar(Var_Xparp, Xparp);
+			OH.WriteNcVar(Var_dXxProj, dXxProj);
+			OH.WriteNcVar(Var_dRoad, dRoad);
+			OH.WriteNcVar(Var_F, F);
+			OH.WriteNcVar(Var_Fn, Fn);
+			OH.WriteNcVar(Var_debug, dDebug);
+			OH.WriteNcVar(Var_dSr, dSr);
+			OH.WriteNcVar(Var_ddistM, ddistM);
+			OH.WriteNcVar(Var_Fcent, Fcent);
+			OH.WriteNcVar(Var_dLs, dLs);
+			OH.WriteNcVar(Var_R_e, R_e);
+			OH.WriteNcVar(Var_dSa, dSa);
+			OH.WriteNcVar(Var_dvax, dvax);
+			OH.WriteNcVar(Var_dvx, dvx);
+			OH.WriteNcVar(Var_dvay, dvay);
+			OH.WriteNcVar(Var_dMuY, dMuY);
+			OH.WriteNcVar(Var_dMuX, dMuX);
+			OH.WriteNcVar(Var_KE, KE);
+			OH.WriteNcVar(Var_PE, PE);
+			OH.WriteNcVar(Var_E, E);
+			OH.WriteNcVar(Var_dRoadAhead, dRoadAhead);
+			OH.WriteNcVar(Var_dRoadBehind, dRoadBehind);
+			OH.WriteNcVar(Var_dCt, dCt);
+			OH.WriteNcVar(Var_M, M);
+			OH.WriteNcVar(Var_distM, distM);
+			OH.WriteNcVar(Var_n, n);
+			OH.WriteNcVar(Var_Xpa, Xpa);
+			OH.WriteNcVar(Var_Vpa, Vpa);
+			OH.WriteNcVar(Var_Vpar, Vpar);
+			OH.WriteNcVar(Var_fwd, fwd);
+			OH.WriteNcVar(Var_fwdRing, fwdRing);
+			OH.WriteNcVar(Var_fwdRingFlat, fwdRingFlat);
+			OH.WriteNcVar(Var_pcRing, pcRing);
+			OH.WriteNcVar(Var_VparWheel, VparWheel);
+			OH.WriteNcVar(Var_Fr, Fr);
+			OH.WriteNcVar(Var_Mz, Mz);
 		}
 #endif /* USE_NETCDF */
 
@@ -1326,7 +1161,7 @@ Wheel4::AssRes(SubVectorHandler& WorkVec,
 
 								} else if ( dt_adjFactor > 1.)
 								{
-									doublereal dt_stepInflRatio;
+									doublereal dt_stepInflRatio = 0.;
 									for (int iCnt = 1; iCnt <= dt_numAhead; iCnt++) {  // this loop checks if a smaller timestep guarantees a smaller bump
 										dt_maxHeight = -std::numeric_limits<doublereal>::max();
 										dt_minHeight = std::numeric_limits<doublereal>::max();

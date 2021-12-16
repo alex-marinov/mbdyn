@@ -54,11 +54,6 @@ Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), v(Zero3), 
 dAlpha(0.)
-#ifdef USE_NETCDFC
-,
-Var_V(0),
-Var_d(0)
-#endif // USE_NETCDFC
 {
    NO_OP;
 }
@@ -1700,7 +1695,7 @@ void ClampJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Clamp", OH, name);
 		}
-#endif
+#endif // USE_NETCDF
 	}
 }
 

@@ -59,10 +59,6 @@ ThetaRef(Zero3),
 ThetaCurr(Zero3),
 M(Zero3),
 bFirstRes(false)
-#ifdef USE_NETCDFC
-,
-Var_Phi(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

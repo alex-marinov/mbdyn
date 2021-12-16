@@ -53,10 +53,6 @@ AbsoluteDispForce::AbsoluteDispForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_F(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -223,10 +219,6 @@ Force(uL, fOut),
 f(pDC),
 pNode1(pN1),
 pNode2(pN2)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_F(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -404,10 +396,6 @@ StructuralForce::StructuralForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_F(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -441,10 +429,6 @@ AbsoluteForce::AbsoluteForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_A(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -718,10 +702,6 @@ FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_A(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -1471,10 +1451,6 @@ StructuralInternalForce::StructuralInternalForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode1(pN1), pNode2(pN2)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_F(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
@@ -1512,11 +1488,6 @@ AbsoluteInternalForce::AbsoluteInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_A1(0),
-Var_A2(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -1858,11 +1829,6 @@ FollowerInternalForce::FollowerInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_A1(0),
-Var_A2(0)
-#endif // USE_NETCDFC
 {
 	NO_OP;
 }

@@ -11,6 +11,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- get rid of legacy NetCDF 3; require NetCDF > 4.3 with c++ wrappers (Marco Morandini)
+		- new "relnorm" and "sepnorm" residual checks (GSOC 2021, Satyam Kumar and Marco Morandini)
 		- refactor and improve output units (Marco Morandini)
 		- increase Naive solver's default pivot factor from 1E-8 to 1E-5 (Marco Morandini)
 		- remove Meschach (Marco Morandini)

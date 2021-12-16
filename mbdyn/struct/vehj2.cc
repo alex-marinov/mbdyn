@@ -59,13 +59,6 @@ tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 tilde_R1hT_tilde_f1(tilde_R1h.Transpose()*tilde_f1),
 tilde_d(Zero3), tilde_dPrime(Zero3),
 bFirstRes(false), F(Zero3)
-# ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_tilde_d(0),
-Var_tilde_dPrime(0),
-Var_d(0),
-Var_dPrime(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

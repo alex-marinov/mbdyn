@@ -50,10 +50,6 @@ DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
 dF(0.)
-#ifdef USE_NETCDFC   // Netcdf4 has non-pointer variables...
-,
-Var_a(0)
-#endif // USE_NETCDFC
 {
    ASSERT(pNode != NULL);
    ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());
@@ -336,10 +332,6 @@ DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
 dM(0.)
-#ifdef USE_NETCDFC
-,
-Var_wP(0)
-#endif // USE_NETCDFC
 {
    ASSERT(pNode != NULL);
    ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());

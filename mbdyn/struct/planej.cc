@@ -62,12 +62,6 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars... TODO: try to remove
-Var_Phi(0),
-Var_Omega(0),
-Var_MFR(0),
-Var_fc(0),
-#endif // USE_NETCDFC
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
@@ -1571,10 +1565,6 @@ pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), M(Zero3),
 NTheta(0), dTheta(0.),
 dThetaWrapped(0.),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-Var_Omega(0),
-#endif // USE_NETCDFC
 od(od)
 {
    NO_OP;
@@ -2582,12 +2572,6 @@ DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-Var_Omega(0),
-Var_MFR(0),
-Var_fc(0),
-#endif // USE_NETCDFC
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
 {

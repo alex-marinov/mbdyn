@@ -51,10 +51,6 @@ DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), Vec(Zero3), 
-#ifdef USE_NETCDFC
-Var_V(0),
-Var_d(0),
-#endif // USE_NETCDF
 dAlpha(0.)
 {
 	NO_OP;

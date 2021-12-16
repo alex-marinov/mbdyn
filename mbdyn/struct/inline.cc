@@ -47,10 +47,6 @@ InLineJoint::InLineJoint(unsigned int uL, const DofOwner* pDO,
           BasicFriction *const f)
 : Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(Zero3),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_FF(0),
-Var_fc(0),
-#endif // USE_NETCDFC
 Sh_c(sh),
 fc(f),
 preF(pref)

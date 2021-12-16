@@ -85,7 +85,7 @@ test_strext_edge
 endif
 
 
-if USE_NETCDF4
+if USE_NETCDF
 noinst_PROGRAMS += \
 ncprint
 endif

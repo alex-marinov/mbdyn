@@ -615,15 +615,9 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 			MBDynNcVar VarLabels = OH.CreateVar(std::string("elem.") + ElemData[et].ShortDesc, MbNcInt, attrs, dim);
 			ElemContainerType::const_iterator p = ElemData[et].ElemContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumElems); i++, p++) {
-#if defined(USE_NETCDFC)
-				VarLabels->set_cur(i);
-				const long l = p->second->GetLabel();
-				VarLabels->put(&l, 1);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				const std::vector<size_t> ncStartPos(1,i);
 				const long l = p->second->GetLabel();
 				VarLabels.putVar(ncStartPos, &l);
-#endif  /* USE_NETCDF4 */
 			}
 		}
 	}

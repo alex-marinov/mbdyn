@@ -97,22 +97,13 @@ AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd,
 		}
 
 #ifdef USE_NETCDF
-#if defined(USE_NETCDFC)
-		if (OutputIter->Var_X) OutputIter->X = X;
-		if (OutputIter->Var_Phi) OutputIter->R = R;
-		if (OutputIter->Var_V) OutputIter->V = V;
-		if (OutputIter->Var_W) OutputIter->W = W;
-		if (OutputIter->Var_F) OutputIter->F = F;
-		if (OutputIter->Var_M) OutputIter->M = M;
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 		if (!OutputIter->Var_X.isNull()) OutputIter->X = X;
 		if (!OutputIter->Var_Phi.isNull()) OutputIter->R = R;
 		if (!OutputIter->Var_V.isNull()) OutputIter->V = V;
 		if (!OutputIter->Var_W.isNull()) OutputIter->W = W;
 		if (!OutputIter->Var_F.isNull()) OutputIter->F = F;
 		if (!OutputIter->Var_M.isNull()) OutputIter->M = M;
-#endif  /* USE_NETCDF4 */
-#endif // USE_NETCDF
+#endif  /* USE_NETCDF */
 
 		++OutputIter;
 	}
@@ -496,21 +487,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 				 * returned from add_var
 				 * as handle for later write accesses.
 				 * Define also variable attributes */
-#if defined(USE_NETCDFC)
-				i->Var_alpha = 0;
-				i->Var_gamma = 0;
-				i->Var_Mach = 0;
-				i->Var_cl = 0;
-				i->Var_cd = 0;
-				i->Var_cm = 0;
-
-				i->Var_X = 0;
-				i->Var_Phi = 0;
-				i->Var_V = 0;
-				i->Var_W = 0;
-				i->Var_F = 0;
-				i->Var_M = 0;
-#endif  /* USE_NETCDFC */ // netcdf4 has no var pointer...
 				{
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -645,20 +621,12 @@ Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 				OH.WriteNcVar(i->Var_cm, OUTA[j].cm);
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_X)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_X.isNull())
-#endif // USE_NETCDF4
 			{
 				OH.WriteNcVar(i->Var_X, i->X);
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_Phi)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_Phi.isNull())
-#endif // USE_NETCDF4
 			{
 				Vec3 E;
 				switch (od) {
@@ -704,38 +672,22 @@ Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 				}
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_V)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_V.isNull())
-#endif // USE_NETCDF4
 			{
 				OH.WriteNcVar(i->Var_V, i->V);
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_W)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_W.isNull())
-#endif // USE_NETCDF4
 			{
 				OH.WriteNcVar(i->Var_W, i->W);
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_F)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_F.isNull())
-#endif // USE_NETCDF4
 			{
 				OH.WriteNcVar(i->Var_F, i->F);
 			}
 
-#if defined(USE_NETCDFC)
-			if (i->Var_M)
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_M.isNull())
-#endif // USE_NETCDF4
 			{
 				OH.WriteNcVar(i->Var_M, i->M);
 			}

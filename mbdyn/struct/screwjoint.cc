@@ -95,14 +95,6 @@ GammaInv(Eye3),
 F1(Zero3), C1(Zero3), C2(Zero3),
 Sh_c(sh),
 fc(f)
-#ifdef USE_NETCDFC
-,
-Var_dTheta(0),
-Var_Theta(0),
-Var_vrel(0),
-Var_fc(0),
-Var_MFR(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

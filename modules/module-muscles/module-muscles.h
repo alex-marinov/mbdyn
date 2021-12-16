@@ -82,9 +82,6 @@ public:
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
 	Li(Li), L0(L0), V0(V0), F0(F0), f1(0), f2(0), f3(0), df1dx(0), df2dv(0), df3dx(0),
 	Activation(pAct), bActivationOverflow(bActivationOverflow), bActivationOverflowWarn(bActivationOverflowWarn)
-#ifdef USE_NETCDFC
-	, Var_dAct(0), Var_dActReq(0), Var_dAref(0), Var_f1(0), Var_f2(0), Var_f3(0), Var_df1dx(0), Var_df2dv(0), Var_df3dx(0)
-#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};
@@ -181,9 +178,6 @@ public:
 		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
 	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength)
-#ifdef USE_NETCDFC
-	, Var_dKp(0), Var_dKd(0), Var_dReferenceLength(0)
-#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};
@@ -248,11 +242,8 @@ public:
 		const doublereal SRSGamma, const doublereal SRSDelta, 
 		const SRSModel m_SRSModel)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
-	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), m_SRSModel(m_SRSModel),
+	m_SRSModel(m_SRSModel), Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta),
 	SRSf(0), SRSdfdx(0)
-#ifdef USE_NETCDFC
-	, Var_dKp(0), Var_dKd(0), Var_dReferenceLength(0), Var_dSRSf(0), Var_dSRSdfdx(0)
-#endif // USE_NETCDFC
 	{
 		NO_OP;
 	};

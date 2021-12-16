@@ -73,19 +73,6 @@ Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
 RRotTranspose(::Zero3x3), RRot(::Eye3), RRot3(::Zero3),
 VCraft(::Zero3),
-#ifdef USE_NETCDFC	// netcdfcxx4 has non-pointer vars...
-Var_f(0),
-Var_m(0),
-Var_dUMean(0),
-Var_dVelocity(0),
-Var_dAlpha(0),
-Var_dMu(0),
-Var_dLambda(0),
-Var_dChi(0),
-Var_dPsi0(0),
-Var_bUMeanRefConverged(0),
-Var_iCurrIter(0),
-#endif // USE_NETCDFC
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
@@ -1678,11 +1665,6 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	flag fOut)
 : Elem(uLabel, flag(0)),
 Rotor(uLabel, pDO),
-#ifdef USE_NETCDFC	// netcdfcxx4 has non-pointer vars...
-Var_dVConst(0),
-Var_dVSine(0),
-Var_dVCosine(0),
-#endif // USE_NETCDFC
 dVConst(0), dVSine(0), dVCosine(0),
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {

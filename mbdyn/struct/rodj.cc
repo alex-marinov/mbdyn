@@ -57,12 +57,6 @@ v(Zero3),
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_v(0),
-Var_dElle(0),
-Var_dEllePrime(0)
-#endif // USE_NETCDFC
 {
 	/* Verifica di consistenza dei dati iniziali */
 	ASSERT(pNode1 != 0);

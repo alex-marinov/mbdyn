@@ -50,9 +50,6 @@ SphericalHingeJoint::SphericalHingeJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), 
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-#endif // USE_NETCDFC
 d1(dTmp1), R1h(RTmp1h),
 d2(dTmp2), R2h(RTmp2h), 
 F(Zero3),
@@ -610,10 +607,6 @@ PinJoint::PinJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), 
 F(Zero3)
-#ifdef USE_NETCDFC
-,
-Var_Phi(0)
-#endif // USE_NETCDFC
 {
    NO_OP;
 }
