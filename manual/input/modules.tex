@@ -684,8 +684,8 @@ Note that in this case $0 < \nt{restitution\_coef} \le 1$.
 	\nt{dissipation\_coef} &= \frac{3}{4} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}^2}{\dot{x}_0}
 \end{align}
 \end{itemize}
-Note that $\nt{dissipation\_coef} = 0$ when $|\dot{x}_0| < \nt{initial\_eps\_prime\_tol}$;
-i.e., when the initial contact velocity is below the threshold, no dissipation takes place.
+Note that, to avoid division by zero, $\nt{dissipation\_coef} = 0$ when $|\dot{x}_0| < \nt{initial\_eps\_prime\_tol}$;
+as a consequence, when the initial contact velocity is below the threshold no dissipation takes place.
 
 
 \subsection{Module-damper-graall}
