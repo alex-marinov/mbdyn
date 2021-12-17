@@ -408,9 +408,17 @@ the experimental support for NetCDF output, which eventually
 will replace the current textual output:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \kw{sync} ] [ , \kw{no text} ] ;
+    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \bnt{file_format} ] [ , \kw{sync} ] [ , \kw{no text} ] ;
 \end{Verbatim}
 %\end{verbatim}
+where
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{file_format} ::= \{ \kw{classic} | \kw{classic64} | \kw{nc4} | \kw{nc4classic} \}
+\end{Verbatim}
+allows to choose the preferrend file format, with \kw{nc4} the default.
+The optional \kw{sync} keyword forces syncing of the
+output file after each time step; this allows to monitor the results of an ongoing simulation, 
+at the expense of a slightly increased I/O time.
 If the optional keyword \kw{no text} is present,
 standard output in ASCII form is disabled.
 

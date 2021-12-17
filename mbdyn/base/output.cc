@@ -546,20 +546,12 @@ OutputHandler::~OutputHandler(void)
 }
 
 /* Aggiungere qui le funzioni che aprono i singoli stream */
-bool
+void
 OutputHandler::Open(const OutputHandler::OutFiles out)
 {
 #ifdef USE_NETCDF
 	if (out == NETCDF && !IsOpen(out)) {
-		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, netCDF::NcFile::classic); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
-		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
-		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
-
-		// Let's define some dimensions which could be useful
-		m_DimTime = CreateDim("time");
-		m_DimV1 = CreateDim("Vec1", 1);
-		m_DimV3 = CreateDim("Vec3", 3);
-
+		return NetCDFOpen(out, netCDF::NcFile::nc4);
 	} else
 #endif /* USE_NETCDF */
 	{
@@ -588,13 +580,32 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 			}
 		}
 
-		return true;
+		return;
 	}
 
-	return false;
+	return;
 }
 
-bool
+#ifdef USE_NETCDF
+void
+OutputHandler::NetCDFOpen(const OutputHandler::OutFiles out, const netCDF::NcFile::FileFormat NetCDF_Format)
+{
+	if (!IsOpen(out)) {
+		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, NetCDF_Format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
+		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
+		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
+
+		// Let's define some dimensions which could be useful
+		m_DimTime = CreateDim("time");
+		m_DimV1 = CreateDim("Vec1", 1);
+		m_DimV3 = CreateDim("Vec3", 3);
+	}
+
+	return;
+}
+#endif /* USE_NETCDF */
+
+void
 OutputHandler::Open(const int out, const std::string& postfix)
 {
 	if (UseText(out) && !IsOpen(out)) {
@@ -633,10 +644,10 @@ OutputHandler::Open(const int out, const std::string& postfix)
 			OutData[out].pof->setf(std::ios::scientific);
 		}
 
-		return true;
+		return;
 	}
 
-	return false;
+	return;
 }
 
 bool
@@ -801,7 +812,7 @@ OutputHandler::Close(const OutputHandler::OutFiles out)
 	return true;
 }
 
-bool
+void
 OutputHandler::OutputOpen(void)
 {
 	return Open(OUTPUT);
@@ -874,14 +885,14 @@ OutputHandler::RestartOpen(bool openResXSol)
 	return true;
 }
 
-bool
+void
 OutputHandler::PartitionOpen(void)
 {
 	ASSERT(!IsOpen(PARTITION));
 	return Open(PARTITION);
 }
 
-bool
+void
 OutputHandler::LogOpen(void)
 {
 	ASSERT(!IsOpen(LOG));

@@ -148,6 +148,7 @@ pFDJacMeter(0),
 ResMode(RES_TEXT),
 #ifdef USE_NETCDF
 // NetCDF stuff
+NetCDF_Format(netCDF::NcFile::nc4),
 bNetCDFsync(false),
 bNetCDFnoText(false),
 #endif // USE_NETCDF

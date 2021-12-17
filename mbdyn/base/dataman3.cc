@@ -982,6 +982,23 @@ EndOfUse:
 
 				} else if (HP.IsKeyWord("netcdf")) {
 					ResMode |= RES_NETCDF;
+					if (HP.IsKeyWord("classic")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::classic;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("classic64")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::classic64;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("nc4")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::nc4;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("nc4classic")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::nc4classic;
+#endif // USE_NETCDF
+					}
 					if (HP.IsKeyWord("sync")) {
 #ifdef USE_NETCDF
 						bNetCDFsync = true;

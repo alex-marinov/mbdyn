@@ -202,6 +202,7 @@ protected:
 #ifdef USE_NETCDF
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 	/* NetCDF stuff */
+	netCDF::NcFile::FileFormat NetCDF_Format;
 	bool bNetCDFsync;
 	bool bNetCDFnoText;
 	MBDynNcVar Var_Step;

@@ -1494,7 +1494,7 @@ DataManager::OutputPrepare(void)
 #ifdef USE_NETCDF
 	/* Set up NetCDF stuff if required */
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutHdl.Open(OutputHandler::NETCDF);
+		OutHdl.NetCDFOpen(OutputHandler::NETCDF, NetCDF_Format);
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
 		Var_Step = OutHdl.CreateVar<integer>("run.step", 
