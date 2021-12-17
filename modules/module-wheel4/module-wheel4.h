@@ -281,7 +281,7 @@ private:
 	MBDynNcVar Var_dXxProj;
 	MBDynNcVar Var_dRoad;
 	MBDynNcVar Var_F;
-	MBDynNcVar ar_Fn;
+	MBDynNcVar Var_Fn;
 	MBDynNcVar Var_debug;
 	MBDynNcVar Var_dSr;
 	MBDynNcVar Var_ddistM;
