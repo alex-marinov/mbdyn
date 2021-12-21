@@ -1760,6 +1760,10 @@ MySubVectorHandler::PutRowIndex(integer iSubRow, integer iRow)
 #endif /* DEBUG */
 
 	piRowm1[iSubRow] = iRow;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 inline integer
@@ -1785,6 +1789,10 @@ MySubVectorHandler::PutItem(integer iSubRow, integer iRow,
 
 	piRowm1[iSubRow] = iRow;
 	pdVecm1[iSubRow] = dCoef;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 /* Operazioni esterne su SubMatrixHandler e su SubVectorHandler */
