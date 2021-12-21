@@ -446,9 +446,8 @@ MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 void
 MyVectorHandler::IsValid(void) const
 {
-	ASSERT(iMaxSize > 0);
 	ASSERT(iCurSize >= 0 && iCurSize <= iMaxSize);
-	ASSERT(pdVecm1 != NULL);
+	ASSERT((pdVecm1 != NULL && iMaxSize > 0) || (pdVecm1 == NULL && iMaxSize == 0));
 
 #ifdef DEBUG_MEMMANAGER
 	if (bOwnsMemory) {
