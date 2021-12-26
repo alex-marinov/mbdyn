@@ -315,6 +315,8 @@ public:
      
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
+     virtual SpGradientSparseMatrixWrapper* Copy() const override;
+     
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
