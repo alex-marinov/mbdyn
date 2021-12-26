@@ -1705,8 +1705,6 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 	const unsigned uCurrEigSol,
 	const int iMatrixPrecision)
 {
-	const SpMapMatrixHandler& MatB = dynamic_cast<const SpMapMatrixHandler &>(*pMatB);
-	const SpMapMatrixHandler& MatA = dynamic_cast<const SpMapMatrixHandler &>(*pMatA);
 
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
@@ -1722,13 +1720,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 			<< "% F/xPrime + dCoef *F/x" << std::endl
 			<< "Aplus" << " = [";
 
-		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-			}
-		}
+                pMatB->Print(out, MatrixHandler::MAT_PRINT_SPCONVERT);
 
 		out << "];" << std::endl
 			<< "Aplus = spconvert(Aplus);" << std::endl;
@@ -1737,14 +1729,8 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 			<< "% F/xPrime - dCoef *F/x" << std::endl
 			<< "Aminus" << " = [";
 
-		for (SpMapMatrixHandler::const_iterator i = MatA.begin();
-				i != MatA.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-			}
-		}
-
+                pMatA->Print(out, MatrixHandler::MAT_PRINT_SPCONVERT);
+                
 		out << "];" << std::endl
 			<< "Aminus = spconvert(Aminus);" << std::endl;
 	}
@@ -1762,32 +1748,28 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
 			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
-		size_t iCnt = 0;
-		Vec3 v;
-		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
-				iCnt++;
-			}
-		}
-
-		iCnt = 0;
-		for (SpMapMatrixHandler::const_iterator j = MatA.begin();
-				j != MatA.end(); ++j)
-		{
-			if (j->dCoef != 0.) {
-				v = Vec3(j->iRow + 1, j->iCol + 1, j->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
-				iCnt++;
-			}
-		}
-
+                OutputEigSparseMatrixNc(Var_Eig_dAplus, *pMatB);
+                OutputEigSparseMatrixNc(Var_Eig_dAminus, *pMatA);           
 	}
 #endif
 }
+
+#ifdef USE_NETCDF
+void DataManager::OutputEigSparseMatrixNc(const MBDynNcVar& var, const MatrixHandler& mh)
+{
+     ASSERT(OutHdl.UseNetCDF(OutputHandler::NETCDF));
+     
+     size_t iCnt = 0;
+     
+     auto func = [this, &iCnt, &var] (integer iRow, integer iCol, doublereal dCoef) {
+                      Vec3 v(iRow, iCol, dCoef);
+                      OutHdl.WriteNcVar(var, v, iCnt);
+                      ++iCnt;
+                 };
+
+     mh.EnumerateNz(func);
+}
+#endif
 
 void
 DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,

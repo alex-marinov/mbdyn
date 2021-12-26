@@ -930,6 +930,8 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 {
      using namespace sp_grad;
 
+     DEBUGCOUT("dCoef=" << dCoef << "\n");
+     
      std::array<SpColVectorA<T, 3>, NUMNODES> X, xTmp, gNod;
      SpMatrixA<T, 3, 3> RNod;
      
@@ -939,6 +941,12 @@ Beam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           pNode[i]->GetXCurr(X[i], dCoef, func);
 
           xTmp[i] = X[i] + RNod * f[i];
+
+          DEBUGCOUT("f[" << i << "]=" << f[i] << "\n");
+          DEBUGCOUT("gNod[" << i << "]=" << gNod[i] << "\n");
+          DEBUGCOUT("RNod[" << i << "]=" << RNod << "\n");
+          DEBUGCOUT("X[" << i << "]=" << X[i] << "\n");
+          DEBUGCOUT("xTmp[" << i << "]=" << xTmp[i] << "\n");
      }
 
      std::array<SpMatrixA<T, 3, 3>, NUMSEZ> RDelta, R;

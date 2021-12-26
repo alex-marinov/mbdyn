@@ -148,7 +148,8 @@ public:
 
         virtual
         void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
-     
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 protected:
         /* Matrix Matrix product */
 	virtual MatrixHandler&
@@ -169,6 +170,7 @@ protected:
 	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 				const doublereal& dCoef),
 			VectorHandler& out, const VectorHandler& in) const;
+        virtual NaiveMatrixHandler* Copy() const override;
 };
 
 

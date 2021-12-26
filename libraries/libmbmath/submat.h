@@ -159,6 +159,10 @@ public:
 	 * Nota: le dimensioni devono essere compatibili.
 	 */
 	virtual MatrixHandler& SubFromT(MatrixHandler& MH) const = 0;
+
+        virtual SubMatrixHandler* Copy() const override;
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 };
 
 /* SubMatrixHandler - end */

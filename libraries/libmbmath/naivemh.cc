@@ -398,6 +398,13 @@ void NaiveMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const s
      IteratorScale(*this, oRowScale, oColScale);
 }
 
+void NaiveMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+        for (const auto& d: *this) {
+                func(d.iRow + 1, d.iCol + 1, d.dCoef);
+        }     
+}
+
 /* Matrix Matrix product */
 MatrixHandler&
 NaiveMatrixHandler::MatMatMul_base(
@@ -557,6 +564,15 @@ bool
 NaiveMatrixHandler::const_iterator::operator != (const NaiveMatrixHandler::const_iterator& op) const
 {
 	return elem != op.elem;
+}
+
+NaiveMatrixHandler* NaiveMatrixHandler::Copy() const
+{
+     NaiveMatrixHandler* pMH = nullptr;
+
+     SAFENEWWITHCONSTRUCTOR(pMH, NaiveMatrixHandler, NaiveMatrixHandler(iGetNumRows(), nullptr));
+
+     return pMH;
 }
 
 /* NaiveMatrixHandler end */
@@ -837,6 +853,6 @@ void NaivePermMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, con
 {
      IteratorScale(*this, oRowScale, oColScale);
 }
-     
+
 /* NaivePermMatrixHandler end */
 

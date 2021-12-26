@@ -45,6 +45,16 @@ SubMatrixHandler::~SubMatrixHandler(void)
         NO_OP;
 }
 
+SubMatrixHandler* SubMatrixHandler::Copy() const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+void SubMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 /* SubMatrixHandler - end */
 
 

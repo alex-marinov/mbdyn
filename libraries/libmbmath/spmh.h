@@ -298,6 +298,8 @@ public:
         virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 
         virtual integer Nz() const override;
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 };
 
 #endif /* SPMH_H */

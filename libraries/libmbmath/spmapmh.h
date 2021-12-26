@@ -338,7 +338,8 @@ protected:
 			VectorHandler& out, const VectorHandler& in) const;
 
 public:
-        virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const;
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
+        virtual SpMapMatrixHandler* Copy() const override;
 };
 
 #endif /* SpMapMatrixHandler_hh */

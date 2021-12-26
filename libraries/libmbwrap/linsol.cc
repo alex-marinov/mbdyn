@@ -860,9 +860,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
         case LinSol::PARDISO_64_SOLVER:
 #ifdef USE_PARDISO
                 {
+#ifdef USE_SPARSE_AUTODIFF
                         typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT> PARDISO_SM_GRAD;
-                        typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISO_SM_MAP;
                         typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, long long> PARDISO_64_SM_GRAD;
+#endif
+                        typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISO_SM_MAP;
                         typedef PardisoSolutionManager<SpMapMatrixHandler, long long> PARDISO_64_SM_MAP;
                         
                         switch (type) {

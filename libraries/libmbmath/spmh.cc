@@ -523,6 +523,14 @@ void CompactSparseMatrixHandler_tpl<off, idx_type>::Scale(const std::vector<doub
      this->IteratorScale(*this, oRowScale, oColScale);
 }
 
+template <int off, typename idx_type>
+void CompactSparseMatrixHandler_tpl<off, idx_type>::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+     for (const auto& d: *this) {
+          func(d.iRow + 1, d.iCol + 1, d.dCoef);
+     }
+}
+
 template class CompactSparseMatrixHandler_tpl<0, int32_t>;
 template class CompactSparseMatrixHandler_tpl<1, int32_t>;
 template class CompactSparseMatrixHandler_tpl<1, int64_t>;

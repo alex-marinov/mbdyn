@@ -74,7 +74,7 @@
 #include "solman.h"
 #include "readlinsol.h"
 #include "ls.h"
-#include "naivewrap.h"
+#include "naivemh.h"
 #include "Rot.hh"
 #include "cleanup.h"
 #include "drive_.h"
@@ -4472,10 +4472,6 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	DataManager *pDM, Solver::EigenAnalysis *pEA,
 	bool bNewLine, const unsigned uCurr)
 {
-	NaiveSparsePermSolutionManager<Colamd_ordering>& sm
-		= dynamic_cast<NaiveSparsePermSolutionManager<Colamd_ordering> &>(*pSM);
-	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
-
 	// shift
 	doublereal SIGMAR = 0.;
 	doublereal SIGMAI = 0.;
@@ -4500,7 +4496,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	IDO = 0;
 	BMAT = "I";
-	N = MatA.iGetNumRows();
+	N = pMatA->iGetNumRows();
 	WHICH = "SM";
 	NEV = pEA->arpack.iNEV;
 	if (NEV > N) {
@@ -4587,11 +4583,11 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		 */
 
 
-		MatA.MatVecMul(*sm.pResHdl(), X);
-		sm.Solve();
-		*sm.pSolHdl() -= X;
+		pMatA->MatVecMul(*pSM->pResHdl(), X);
+		pSM->Solve();
+		*pSM->pSolHdl() -= X;
 
-		Y = *sm.pSolHdl();
+		Y = *pSM->pSolHdl();
 
 		static const int CNT = 100;
 		cnt++;
@@ -4964,18 +4960,7 @@ Solver::Eig(bool bNewLine)
 
 	integer iSize = iNumDofs;
 	
-	/* 
-	 * Call AssRes before AssJac in order to be sure that all 
-	 * the elements have updated the internal data
-	 */
-	VectorHandler *pVec = 0;
-	SAFENEWWITHCONSTRUCTOR(pVec, MyVectorHandler,
-		MyVectorHandler(iNumDofs));
-	pVec->Reset();
-	pDM->AssRes(*pVec);
-	SAFEDELETE(pVec);
-
-	SolutionManager *pSM = 0;
+        SolutionManager *pSM = 0;
 	MatrixHandler *pMatA = 0;
 	MatrixHandler *pMatB = 0;
 
@@ -4986,11 +4971,19 @@ Solver::Eig(bool bNewLine)
 			FullMatrixHandler(iSize));
 
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_USE_ARPACK) {
-		SAFENEWWITHCONSTRUCTOR(pSM, NaiveSparsePermSolutionManager<Colamd_ordering>,
-			NaiveSparsePermSolutionManager<Colamd_ordering>(iSize));
-		SAFENEWWITHCONSTRUCTOR(pMatA, NaiveMatrixHandler,
-			NaiveMatrixHandler(iSize));
+                const integer iStates = pRegularSteps->GetIntegratorNumUnknownStates();
+                const integer iWorkSpaceSize = CurrLinearSolver.iGetWorkSpaceSize();
+                integer iLWS = iWorkSpaceSize;
+                integer iNLD = iNumDofs*iStates;
+                
+                if (bParallel) {
+                        iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
+                        iNLD = iNumLocDofs*iStates;
+                }
+
+                pSM = AllocateSolman(iNLD, iLWS);                
 		pMatB = pSM->pMatHdl();
+                pMatA = pMatB->Copy();
 
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_USE_JDQZ) {
 		SAFENEWWITHCONSTRUCTOR(pMatA, NaiveMatrixHandler,
@@ -5010,15 +5003,30 @@ Solver::Eig(bool bNewLine)
 		SAFENEWWITHCONSTRUCTOR(pMatB, FullMatrixHandler,
 			FullMatrixHandler(iSize));
 	}
-
-	pMatA->Reset();
-	pMatB->Reset();
-
+        
 	// Matrices assembly (see eig.ps)
-	doublereal h = EigAn.dParam;
-	pDM->AssJac(*pMatA, -h/2.);
-	pDM->AssJac(*pMatB, h/2.);
+	const doublereal h = EigAn.dParam;
 
+        /* 
+	 * Call AssRes before AssJac in order to be sure that all 
+	 * the elements have updated the internal data
+	 */
+        {
+             MyVectorHandler Res(iNumDofs);
+             
+             pDM->Update();
+             Res.Reset();
+             pDM->AssRes(Res, -h/2.);
+             pMatA->Reset();
+             pDM->AssJac(*pMatA, -h/2.);
+             
+             pDM->Update();
+             Res.Reset();
+             pDM->AssRes(Res, h/2.);
+             pMatB->Reset();
+             pDM->AssJac(*pMatB, h/2.);
+        }
+        
 #ifdef DEBUG
 	DEBUGCOUT(std::endl
 		<< "Matrix A:" << std::endl << *pMatA << std::endl
@@ -5051,14 +5059,10 @@ Solver::Eig(bool bNewLine)
 		}
 	}
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
-		pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
+                pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 	}
 	else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
-		if (dynamic_cast<const NaiveMatrixHandler *>(pMatB)) {
-			pDM->OutputEigNaiveMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
-		} else {
-			pDM->OutputEigSparseMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
-		}
+                pDM->OutputEigSparseMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 	}
 
 	switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
