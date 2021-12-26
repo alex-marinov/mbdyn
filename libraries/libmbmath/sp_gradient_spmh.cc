@@ -620,6 +620,11 @@ doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
+SpGradientSparseMatrixWrapper* SpGradientSparseMatrixWrapper::Copy() const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 MatrixHandler&
 SpGradientSparseMatrixWrapper::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 									const doublereal& dCoef),
