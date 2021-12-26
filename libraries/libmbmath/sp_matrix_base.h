@@ -1790,10 +1790,8 @@ namespace sp_grad {
 	  SpMatrixDataType* pData;
      };
 
-#ifdef SP_GRAD_DEBUG
      template <typename ValueType, index_type NumRows, index_type NumCols>
      inline std::ostream& operator<<(std::ostream& os, const SpMatrixBase<ValueType, NumRows, NumCols>& A);
-#endif
      
      template <typename ValueType,
 	       index_type NumRows = SpMatrixSize::DYNAMIC,
@@ -4251,7 +4249,6 @@ namespace sp_grad {
 		    A(1, 1) / detA};
      }
 
-#ifdef SP_GRAD_DEBUG
      template <typename ValueType, index_type NumRows, index_type NumCols>
      inline std::ostream& operator<<(std::ostream& os, const SpMatrixBase<ValueType, NumRows, NumCols>& A) {
           os << '\n';
@@ -4266,7 +4263,6 @@ namespace sp_grad {
 
 	  return os;
      }
-#endif
 }
 
 #endif
