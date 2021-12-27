@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,26 +46,26 @@
 #include "solman.h"
 #include "naivemh.h"
 #include "dgeequ.h"
-	
+
 /* NaiveSolver - begin */
 
 class NaiveSolver: public LinearSolver {
 private:
-	integer iSize;
-	doublereal dMinPiv;
-	mutable std::vector<integer> piv;
-	NaiveMatrixHandler *A;
+        integer iSize;
+        doublereal dMinPiv;
+        mutable std::vector<integer> piv;
+        NaiveMatrixHandler *A;
 
-	void Factor(void) /*throw(LinearSolver::ErrFactor)*/;
+        void Factor(void) /*throw(LinearSolver::ErrFactor)*/;
 
 public:
-	NaiveSolver(const integer &size, const doublereal &dMP,
-			NaiveMatrixHandler *const a = 0);
-	~NaiveSolver(void);
+        NaiveSolver(const integer &size, const doublereal &dMP,
+                        NaiveMatrixHandler *const a = 0);
+        ~NaiveSolver(void);
 
-	void SetMat(NaiveMatrixHandler *const a);
-	void Reset(void);
-	void Solve(void) const;
+        void SetMat(NaiveMatrixHandler *const a);
+        void Reset(void);
+        void Solve(void) const;
 };
 
 /* NaiveSolver - end */
@@ -74,45 +74,43 @@ public:
 
 class NaiveSparseSolutionManager: public SolutionManager {
 protected:
-	mutable NaiveMatrixHandler *A;
-	mutable MyVectorHandler VH;
+        mutable NaiveMatrixHandler *A;
+        mutable MyVectorHandler VH;
 
-	ScaleOpt scale;
-	MatrixScaleBase* pMatScale;
+        ScaleOpt scale;
+        MatrixScaleBase* pMatScale;
 
-	template <class MH>
-	void ScaleMatrixAndRightHandSide(MH& mh);
+        template <class MH>
+        void ScaleMatrixAndRightHandSide(MH& mh);
 
-	template <typename MH>
-	MatrixScale<MH>& GetMatrixScale();
+        template <typename MH>
+        MatrixScale<MH>& GetMatrixScale();
 
-	void ScaleSolution(void);
+        void ScaleSolution(void);
 
 public:
-	NaiveSparseSolutionManager(const integer Dim,
-							   const doublereal dMP = 1.e-9,
-							   const ScaleOpt& scale = ScaleOpt());
-	virtual ~NaiveSparseSolutionManager(void);
+        NaiveSparseSolutionManager(const integer Dim,
+                                                           const doublereal dMP = 1.e-9,
+                                                           const ScaleOpt& scale = ScaleOpt());
+        virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
-	virtual void IsValid(void) const {
-		NO_OP;
-	};
+        virtual void IsValid(void) const;
 #endif /* DEBUG */
 
-	/* Inizializzatore generico */
-	virtual void MatrReset(void);
-	
-	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
-	virtual void Solve(void);
+        /* Inizializzatore generico */
+        virtual void MatrReset(void);
 
-	/* Rende disponibile l'handler per la matrice */
-	virtual MatrixHandler* pMatHdl(void) const;
+        /* Risolve il sistema Backward Substitution; fattorizza se necessario */
+        virtual void Solve(void);
 
-	/* Rende disponibile l'handler per il termine noto */
-	virtual MyVectorHandler* pResHdl(void) const;
+        /* Rende disponibile l'handler per la matrice */
+        virtual MatrixHandler* pMatHdl(void) const;
 
-	/* Rende disponibile l'handler per la soluzione */
-	virtual MyVectorHandler* pSolHdl(void) const;
+        /* Rende disponibile l'handler per il termine noto */
+        virtual MyVectorHandler* pResHdl(void) const;
+
+        /* Rende disponibile l'handler per la soluzione */
+        virtual MyVectorHandler* pSolHdl(void) const;
 };
 
 /* NaiveSparseSolutionManager - end */
@@ -123,66 +121,66 @@ public:
 template<class T>
 class NaiveSparsePermSolutionManager: public NaiveSparseSolutionManager {
 private:
-	const doublereal dMinPiv;
-	mutable MyVectorHandler TmpH;
+        const doublereal dMinPiv;
+        mutable MyVectorHandler TmpH;
 
-	void ComputePermutation(void);
-	void BackPerm(void);
+        void ComputePermutation(void);
+        void BackPerm(void);
 
 protected:
-	enum {
-		PERM_NO,
-		PERM_INTERMEDIATE,
-		PERM_READY
-	} ePermState;
-	
-	mutable std::vector<integer> perm;
-	mutable std::vector<integer> invperm;
+        enum {
+                PERM_NO,
+                PERM_INTERMEDIATE,
+                PERM_READY
+        } ePermState;
 
-	virtual void MatrReset(void);
-	
+        mutable std::vector<integer> perm;
+        mutable std::vector<integer> invperm;
+
+        virtual void MatrReset(void);
+
 public:
-	NaiveSparsePermSolutionManager(const integer Dim,
-								   const doublereal dMP = 1.e-9,
-								   const ScaleOpt& scale = ScaleOpt());
-	virtual ~NaiveSparsePermSolutionManager(void);
+        NaiveSparsePermSolutionManager(const integer Dim,
+                                                                   const doublereal dMP = 1.e-9,
+                                                                   const ScaleOpt& scale = ScaleOpt());
+        virtual ~NaiveSparsePermSolutionManager(void);
 
-	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
-	virtual void Solve(void);
+        /* Risolve il sistema Backward Substitution; fattorizza se necessario */
+        virtual void Solve(void);
 
-	/* Inizializzatore "speciale" */
-	virtual void MatrInitialize(void);
+        /* Inizializzatore "speciale" */
+        virtual void MatrInitialize(void);
 };
 
 // class NaiveSparseCuthillMcKeePermSolutionManager: public NaiveSparseSolutionManager {
 // private:
-// 	const doublereal dMinPiv;
-// 	mutable MyVectorHandler TmpH;
-// 
-// 	void ComputePermutation();
-// 	void BackPerm();
-// 
+//      const doublereal dMinPiv;
+//      mutable MyVectorHandler TmpH;
+//
+//      void ComputePermutation();
+//      void BackPerm();
+//
 // protected:
-// 	enum {
-// 		PERM_NO,
-// 		PERM_INTERMEDIATE,
-// 		PERM_READY
-// 	} ePermState;
-// 	
-// 	mutable std::vector<integer> perm;
-// 	mutable std::vector<integer> invperm;
-// 
-// 	virtual void MatrReset(void);
-// 	
+//      enum {
+//              PERM_NO,
+//              PERM_INTERMEDIATE,
+//              PERM_READY
+//      } ePermState;
+//
+//      mutable std::vector<integer> perm;
+//      mutable std::vector<integer> invperm;
+//
+//      virtual void MatrReset(void);
+//
 // public:
-// 	NaiveSparseCuthillMcKeePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
-// 	virtual ~NaiveSparseCuthillMcKeePermSolutionManager(void);
-// 
-// 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
-// 	virtual void Solve(void);
-// 
-// 	/* Inizializzatore "speciale" */
-// 	virtual void MatrInitialize(void);
+//      NaiveSparseCuthillMcKeePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+//      virtual ~NaiveSparseCuthillMcKeePermSolutionManager(void);
+//
+//      /* Risolve il sistema Backward Substitution; fattorizza se necessario */
+//      virtual void Solve(void);
+//
+//      /* Inizializzatore "speciale" */
+//      virtual void MatrInitialize(void);
 // };
 
 /* NaiveSparsePermSolutionManager - end */
@@ -205,4 +203,3 @@ class amd_ordering;
 
 
 #endif // NaiveSolutionManager_hh
-
