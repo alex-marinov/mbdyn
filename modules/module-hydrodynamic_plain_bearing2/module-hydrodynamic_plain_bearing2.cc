@@ -2311,6 +2311,7 @@ namespace {
                             const SpColVector<SpGradient, 3>& F2,
                             const SpColVector<SpGradient, 3>& M2);
 
+          SpColVectorA<doublereal, 3> F1, M1, F2, M2;
      private:
           const StructNode* pNode1;   // shaft node
           const StructNode* pNode2;   // bearing node
@@ -2318,7 +2319,6 @@ namespace {
           SpColVectorA<doublereal, 3> o2_R2;
           SpMatrixA<doublereal, 3, 3> Rb1;
           SpMatrixA<doublereal, 3, 3> Rb2;
-          SpColVectorA<doublereal, 3> F1, M1, F2, M2;
      };
 
      class CylindricalBearing: public RigidBodyBearing {
@@ -3818,6 +3818,8 @@ namespace {
            */
           virtual void GetPressure(const HydroNode* pNode, doublereal& p, doublereal=0.) const;
           virtual void GetPressure(const HydroNode* pNode, SpGradient& p, doublereal dCoef=0.) const;
+          void GetPressureBoundCond(const SpColVector<doublereal, 2>& x, doublereal& p, doublereal dCoef, SpFunctionCall func) const;
+          void GetPressureBoundCond(const SpColVector<doublereal, 2>& x, SpGradient& p, doublereal dCoef, SpFunctionCall func) const;
           virtual void ParseInput(DataManager* pDM, MBDynParser& HP)=0;
           virtual integer iGetNumNodes() const=0;
           virtual integer iGetNumElements() const=0;
@@ -3842,8 +3844,8 @@ namespace {
           typedef std::vector<std::unique_ptr<LubricationGroove> > LubrGrooveVector;
           typedef std::vector<std::unique_ptr<PressureCouplingCond> > CouplingVector;
 
-          LubricationGroove* pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId);
-          PressureCouplingCond* pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId);
+          LubricationGroove* pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId) const;
+          PressureCouplingCond* pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId) const;
 
           void ParseGeometry(DataManager* pDM, MBDynParser& HP);
           void ParseBoundaryCond(DataManager* pDM, MBDynParser& HP);
@@ -3856,6 +3858,9 @@ namespace {
           void GenerateBoundaryConditions();
           void GenerateComplianceModel();
           void GenerateMovingLubricationGrooves();
+          template <typename T>
+          void GetPressureBoundCondTpl(const SpColVector<doublereal, 2>& x, T& p, doublereal dCoef, SpFunctionCall func) const;
+
           BoundaryCondVector rgBoundaryCond;
           LubrGrooveVector rgGrooves;
           CouplingVector rgCouplingCond;
@@ -3998,7 +4003,8 @@ namespace {
 
                MatrixArray(MatrixType* pRPhiK, MatrixType* pPhin)
                     :pRPhiK(pRPhiK), pPhin(pPhin), eMatType(ComplianceMatrixCommon::MAT_MODAL) {
-                    rgMat[2] = rgMat[3] = nullptr;
+                    rgMat[2] = nullptr;
+                    pModeIndex = nullptr;
                }
 
                MatrixKind GetMatrixType() const {
@@ -5695,12 +5701,10 @@ namespace {
           profile.dtUpdateNodes[PROF_RES] += high_resolution_clock::now() - start;
           start = high_resolution_clock::now();
 #endif
-
-          SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
+          WorkVec.ResizeReset(0); // Avoid memory reallocation if the first element does not contribute to the residual
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               (*i)->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, mode);
-               mode = SpGradientAssVecBase::APPEND;
+               (*i)->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, SpGradientAssVecBase::APPEND);
           }
 
 #if MBDYN_ENABLE_PROFILE
@@ -5708,7 +5712,7 @@ namespace {
           start = high_resolution_clock::now();
 #endif
 
-          pMesh->pGetGeometry()->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, mode);
+          pMesh->pGetGeometry()->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr, SpGradientAssVecBase::APPEND);
 
 #if MBDYN_ENABLE_PROFILE
           profile.dtGeomAss[PROF_RES] += high_resolution_clock::now() - start;
@@ -5933,6 +5937,8 @@ namespace {
           SubVectorHandler& WorkVec,
           const VectorHandler& XCurr)
      {
+          WorkVec.ResizeReset(0); // Avoid reallocation of workspace if the first element does not contribute to the residual
+
           if (uInitAssFlags != INIT_ASS_NONE) {
                HYDRO_ASSERT(rgElements.size() > 0);
 
@@ -5948,16 +5954,26 @@ namespace {
                     (*i)->Update(XCurr, *pXPrimeCurr, 1., SpFunctionCall::INITIAL_ASS_RES);
                }
 
-               SpGradientAssVecBase::SpAssMode mode = SpGradientAssVecBase::RESET;
-
+#if HYDRO_DEBUG > 0
+               integer iSizeCurr = WorkVec.iGetSize();
+#endif
                for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                    (*i)->InitialAssRes(WorkVec, XCurr, mode);
-                    mode = SpGradientAssVecBase::APPEND;
+                    (*i)->InitialAssRes(WorkVec, XCurr, SpGradientAssVecBase::APPEND);
+
+#if HYDRO_DEBUG > 0
+                    integer iSizeDiff = WorkVec.iGetSize() - iSizeCurr;
+                    integer iNumRows = 0, iNumCols = 0;
+                    (*i)->WorkSpaceDim(&iNumRows, &iNumCols, SpFunctionCall::INITIAL_ASS_JAC);
+
+                    ASSERT(iSizeDiff <= iNumRows);
+                    iSizeCurr = WorkVec.iGetSize();
+#endif
+#ifdef DEBUG
+                    WorkVec.IsValid();
+#endif
                }
 
-               pMesh->pGetGeometry()->InitialAssRes(WorkVec, XCurr, mode);
-          } else {
-               WorkVec.ResizeReset(0);
+               pMesh->pGetGeometry()->InitialAssRes(WorkVec, XCurr, SpGradientAssVecBase::APPEND);
           }
 
           return WorkVec;
@@ -6831,7 +6847,7 @@ namespace {
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
 
-               const double P = 2. * M_PI * pParent->dGetMeshRadius() * sin(beta) / K;
+               const doublereal P = 2. * M_PI * pParent->dGetMeshRadius() * sin(beta) / K;
 
                return std::unique_ptr<Pocket>{new HelicalGroove{std::move(pGeometry), std::move(rgProfile), R0, x0, P}};
           } else {
@@ -11114,12 +11130,12 @@ namespace {
                                                   T& fij_f,
                                                   const doublereal dCoef,
                                                   const SpFunctionCall func) const {
-          T alpha{1.};
+          T alpha{1.}, fbc_f{0.};
 
           static_assert(eMshSrc != eMshDst, "source mesh must be different from destination mesh");
           static_assert((eMshSrc == DEHD_BODY_FIXED && eField == FT_TOTAL_PRESS) || (eMshSrc == DEHD_BODY_MOVING && eField == FT_DEF_MOVING), "interpolation not supported");
 
-          const std::array<doublereal, DEHD_BODY_LAST> rgDirInterp = {-1., 1};
+          constexpr std::array<doublereal, DEHD_BODY_LAST> rgDirInterp = {-1., 1.};
 
           HYDRO_ASSERT(fabs(rgDirInterp[eMshDst]) == 1.);
 
@@ -11156,15 +11172,33 @@ namespace {
           HYDRO_ASSERT(zi[eMshSrc].back() > zi[eMshSrc].front());
 
           if (eInterpolOption == INT_AXIAL_LARGE_DISP) {
-               if (z_f < zi[eMshSrc].front() - dAxialThreshold || z_f > zi[eMshSrc].back() + dAxialThreshold) {
-                    SpGradient::ResizeReset(fij_f, 0., 0);
-                    return;
-               } else if (z_f < zi[eMshSrc].front() + dAxialThreshold) {
-                    alpha = (z_f - (zi[eMshSrc].front() - dAxialThreshold)) / (2. * dAxialThreshold);
-               } else if (z_f > zi[eMshSrc].back() - dAxialThreshold) {
-                    alpha = ((zi[eMshSrc].back() + dAxialThreshold) - z_f) / (2. * dAxialThreshold);
+               const bool zi_front_plus_thr = z_f < zi[eMshSrc].front() + dAxialThreshold;
+               const bool zi_back_minus_thr = z_f > zi[eMshSrc].back() - dAxialThreshold;
+               const bool zi_front_minus_thr = z_f < zi[eMshSrc].front() - dAxialThreshold;
+               const bool zi_back_plus_thr = z_f > zi[eMshSrc].back() + dAxialThreshold;
+
+               if (eField == FT_TOTAL_PRESS && (zi_front_plus_thr || zi_back_minus_thr)) {
+                    const SpColVector<doublereal, 2> xbc{SpGradient::dGetValue(x_f), SpGradient::dGetValue(z_f)};
+
+                    pGetMesh()->GetPressureBoundCond(xbc, fbc_f, dCoef, func);
                }
-          } else if (eInterpolOption == INT_AXIAL_SMALL_DISP) {
+
+               if (zi_front_minus_thr || zi_back_plus_thr) {
+                    fij_f = fbc_f * dScale; // completely outside of the mesh
+                    return;
+               } else if (zi_front_plus_thr) {
+                    // within the transition region
+                    alpha = (z_f - (zi[eMshSrc].front() - dAxialThreshold)) / (2. * dAxialThreshold);
+               } else if (zi_back_minus_thr) {
+                    // within the transition region
+                    alpha = ((zi[eMshSrc].back() + dAxialThreshold) - z_f) / (2. * dAxialThreshold);
+               } else {
+                    // completely inside the mesh
+                    HYDRO_ASSERT(alpha == 1.);
+               }
+          }
+
+          if (eInterpolOption != INT_AXIAL_EXTRAPOLATE) {
                if (z_f < zi[eMshSrc].front()) {
                     SpGradient::ResizeReset(z_f, zi[eMshSrc].front(), 0);
                } else if (z_f > zi[eMshSrc].back()) {
@@ -11300,7 +11334,10 @@ namespace {
                }
           }
 
-          fij_f *= EvalUnique(alpha / wij_f);
+          HYDRO_ASSERT(alpha >= 0.);
+          HYDRO_ASSERT(alpha <= 1.);
+
+          fij_f = EvalUnique(alpha * fij_f / wij_f + (1. - alpha) * fbc_f * dScale);
      }
 
      void ComplianceModelNodalDouble::UpdateDefMovingInterp(index_type iCompIndex, doublereal wmi)
@@ -14182,35 +14219,33 @@ namespace {
      CylindricalMeshAtShaft::bGetPrivateData(HydroRootBase::PrivateDataType eType,
                                              doublereal& dPrivData) const
      {
-          const SpMatrix<doublereal, 3, 3>& Rb1 = GetOrientationNode1();
-
           switch (eType) {
           case HydroRootBase::PD_F1x:
           case HydroRootBase::PD_F1y:
           case HydroRootBase::PD_F1z: {
                const index_type iIndex = eType - HydroRootBase::PD_F1x + 1;
-               dPrivData = Dot(Rb1.GetCol(iIndex), oReaction.F1_R1);
+               dPrivData = F1(iIndex);
                return true;
           }
           case HydroRootBase::PD_M1x:
           case HydroRootBase::PD_M1y:
           case HydroRootBase::PD_M1z: {
                const index_type iIndex = eType - HydroRootBase::PD_M1x + 1;
-               dPrivData = Dot(Rb1.GetCol(iIndex), oReaction.M1_R1);
+               dPrivData = M1(iIndex);
                return true;
           }
           case HydroRootBase::PD_F2x:
           case HydroRootBase::PD_F2y:
           case HydroRootBase::PD_F2z: {
                const index_type iIndex = eType - HydroRootBase::PD_F2x + 1;
-               dPrivData = Dot(Rb1.GetCol(iIndex), oReaction.F2_R1);
+               dPrivData = F2(iIndex);
                return true;
           }
           case HydroRootBase::PD_M2x:
           case HydroRootBase::PD_M2y:
           case HydroRootBase::PD_M2z: {
                const index_type iIndex = eType - HydroRootBase::PD_M2x + 1;
-               dPrivData = Dot(Rb1.GetCol(iIndex), oReaction.M2_R1);
+               dPrivData = M2(iIndex);
                return true;
           }
           default:
@@ -14455,35 +14490,33 @@ namespace {
      CylindricalMeshAtBearing::bGetPrivateData(HydroRootBase::PrivateDataType eType,
                                                doublereal& dPrivData) const
      {
-          const SpMatrix<doublereal, 3, 3>& Rb2 = GetOrientationNode2();
-
           switch (eType) {
           case HydroRootBase::PD_F1x:
           case HydroRootBase::PD_F1y:
           case HydroRootBase::PD_F1z: {
                const index_type iIndex = eType - HydroRootBase::PD_F1x + 1;
-               dPrivData = Dot(Rb2.GetCol(iIndex), oReaction.F1_R2);
+               dPrivData = F1(iIndex);
                return true;
           }
           case HydroRootBase::PD_M1x:
           case HydroRootBase::PD_M1y:
           case HydroRootBase::PD_M1z: {
                const index_type iIndex = eType - HydroRootBase::PD_M1x + 1;
-               dPrivData = Dot(Rb2.GetCol(iIndex), oReaction.M1_R2);
+               dPrivData = M1(iIndex);
                return true;
           }
           case HydroRootBase::PD_F2x:
           case HydroRootBase::PD_F2y:
           case HydroRootBase::PD_F2z: {
                const index_type iIndex = eType - HydroRootBase::PD_F2x + 1;
-               dPrivData = Dot(Rb2.GetCol(iIndex), oReaction.F2_R2);
+               dPrivData = F2(iIndex);
                return true;
           }
           case HydroRootBase::PD_M2x:
           case HydroRootBase::PD_M2y:
           case HydroRootBase::PD_M2z: {
                const index_type iIndex = eType - HydroRootBase::PD_M2x + 1;
-               dPrivData = Dot(Rb2.GetCol(iIndex), oReaction.M2_R2);
+               dPrivData = M2(iIndex);
                return true;
           }
           default:
@@ -14843,60 +14876,114 @@ namespace {
                UNIT_um
           } eUnits = UNIT_um;
 
-          if (HP.IsKeyWord("base" "unit")) {
-               if (HP.IsKeyWord("meters")) {
+          if (HP.IsKeyWord("base" "unit") || HP.IsKeyWord("unit" "system")) {
+               if (HP.IsKeyWord("meters") || HP.IsKeyWord("consistent")) {
                     eUnits = UNIT_m;
                } else if (HP.IsKeyWord("micro" "meters")) {
                     eUnits = UNIT_um;
                } else {
                     silent_cerr("hydrodynamic plain bearing2("
                                 << pGetMesh()->pGetParent()->GetLabel()
-                                << "): keyword \"meters\" or \"micro meters\" expected at line "
+                                << "): keyword \"consistent\" or \"micro meters\" expected at line "
                                 << HP.GetLineData() << std::endl);
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
           }
 
-          if (!HP.IsKeyWord("M0")) {
-               silent_cerr("hydrodynamic plain bearing2("
-                           << pGetMesh()->pGetParent()->GetLabel()
-                           << "): keyword \"M0\" expected at line "
-                           << HP.GetLineData() << std::endl);
+          doublereal betaasp = -1., etaasp = -1.;
 
-               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          if (HP.IsKeyWord("sigma") || HP.IsKeyWord("standard" "deviation")) {
+               sigmaDelta = HP.GetReal();
+
+               if (eUnits == UNIT_um) {
+                    sigmaDelta *= 1e-6;
+               }
+
+               if (!(HP.IsKeyWord("eta") || HP.IsKeyWord("asperity" "density"))) {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetMesh()->pGetParent()->GetLabel()
+                                << "): keyword \"eta\" expected at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               etaasp = HP.GetReal();
+
+               if (eUnits == UNIT_um) {
+                    etaasp *= 1e12;
+               }
+
+               if (!(HP.IsKeyWord("beta") || HP.IsKeyWord("asperity" "curvature"))) {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetMesh()->pGetParent()->GetLabel()
+                                << "): keyword \"beta\" expected at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               betaasp = HP.GetReal();
+
+               if (eUnits == UNIT_um) {
+                    betaasp *= 1e-6;
+               }
+          } else {
+               if (!HP.IsKeyWord("M0")) {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetMesh()->pGetParent()->GetLabel()
+                                << "): keyword \"M0\" expected at line "
+                                << HP.GetLineData() << std::endl);
+
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               doublereal M0 = HP.GetReal(); // assume unit (um)^2
+
+               if (eUnits == UNIT_um) {
+                    M0 *= 1e-12;
+               }
+
+               if (!HP.IsKeyWord("M2")) {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetMesh()->pGetParent()->GetLabel()
+                                << "): keyword \"M2\" expected at line "
+                                << HP.GetLineData() << std::endl);
+
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               const doublereal M2 = HP.GetReal();     // unity dimension
+
+               if (!HP.IsKeyWord("M4")) {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetMesh()->pGetParent()->GetLabel()
+                                << "): keyword \"M4\" expected at line "
+                                << HP.GetLineData() << std::endl);
+
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               doublereal M4 = HP.GetReal(); // assume unit 1/(um)^2
+
+               if (eUnits == UNIT_um) {
+                    M4 *= 1e12;
+               }
+
+               sigmaDelta = sqrt(M0);
+
+               etaasp = M4 / (M2 * 6. * M_PI * sqrt(3.));
+
+               betaasp = 3. * sqrt(M_PI) / (8. * sqrt(M4));
           }
 
-          doublereal M0 = HP.GetReal(); // assume unit (um)^2
+          if (HP.IsKeyWord("offset") || HP.IsKeyWord("asperity" "mean" "height")) {
+               Hoffset = HP.GetReal();
+          }
 
           if (eUnits == UNIT_um) {
-               M0 *= 1e-12;
+               Hoffset *= 1e-6;
           }
 
-          if (!HP.IsKeyWord("M2")) {
-               silent_cerr("hydrodynamic plain bearing2("
-                           << pGetMesh()->pGetParent()->GetLabel()
-                           << "): keyword \"M2\" expected at line "
-                           << HP.GetLineData() << std::endl);
-
-               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-          }
-
-          const doublereal M2 = HP.GetReal();     // dimension less
-
-          if (!HP.IsKeyWord("M4")) {
-               silent_cerr("hydrodynamic plain bearing2("
-                           << pGetMesh()->pGetParent()->GetLabel()
-                           << "): keyword \"M4\" expected at line "
-                           << HP.GetLineData() << std::endl);
-
-               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-          }
-
-          doublereal M4 = HP.GetReal(); // assume unit 1/(um)^2
-
-          if (eUnits == UNIT_um) {
-               M4 *= 1e12;
-          }
+          Hoffset /= sigmaDelta;
 
           if (HP.IsKeyWord("H0") || HP.IsKeyWord("linearize")) {
                if (HP.IsKeyWord("never")) {
@@ -14906,20 +14993,19 @@ namespace {
                }
           }
 
-          if (HP.IsKeyWord("offset")) {
-               Hoffset = HP.GetReal();
-          }
-
           a0 = pow(4 - H0, 6.804);
           a1 = -6.804 * pow(4 - H0, 5.804);
 
-          sigmaDelta = sqrt(M0);
+          const double K = 16. * sqrt(2) / 15. * M_PI * std::pow(etaasp * betaasp * sigmaDelta, 2) * sqrt(sigmaDelta / betaasp);
 
-          const doublereal etaasp = M4 / (M2 * 6. * M_PI * sqrt(3.));
+          k = 4.4086e-5 * K * E;
 
-          const doublereal betaasp = 3. * sqrt(M_PI) / (8. * sqrt(M4));
-
-          k = 16. * sqrt(2) / 15. * M_PI * std::pow(etaasp * betaasp * sigmaDelta, 2) * E * sqrt(sigmaDelta / betaasp) * 4.4086e-5;
+          pedantic_cerr("hydrodynamic plain bearing2("
+                        << pGetMesh()->pGetParent()->GetLabel()
+                        << "): Greenwood Tripp (standard deviation = " << sigmaDelta
+                        << ", elastic factor = " << K
+                        << ", asperity mean height = " << Hoffset
+                        << ", composite Young's modulus = " << E << ")\n");
      }
 
      bool GreenwoodTrippCM::GetContactPressure(const doublereal h, doublereal& pasp) const
@@ -19638,6 +19724,37 @@ namespace {
           }
      }
 
+     template <typename T>
+     void HydroMesh::GetPressureBoundCondTpl(const SpColVector<doublereal, 2>& x, T& p, const doublereal dCoef, const SpFunctionCall func) const
+     {
+          const index_type iIndexAxial = x(2) <= 0. ? 0 : 1;
+
+          if (bUseOutletAxial) {
+               const PressureNode* const pExtNode = rgOutletAxial[iIndexAxial].pExtHydroNode;
+               pExtNode->GetX(p, dCoef, func);
+          } else {
+               FluidStateBoundaryCond* pBoundaryCond = nullptr;
+
+               const LubricationGroove* const pGroove = pFindGroove(x, Node2D::HYDRAULIC_NODE, -2);
+
+               if (pGroove) {
+                    pBoundaryCond = pGroove->pGetBoundaryCond();
+               } else {
+                    pBoundaryCond = pParent->pGetBoundaryCondition(iIndexAxial);
+               }
+
+               if (!pBoundaryCond->bIncludeNode(Node2D::HYDRAULIC_NODE)) {
+                    silent_cerr("hydrodynamic plain bearing2(" << pGetParent()->GetLabel()
+                                << "): pressure boundary condition not defined for axial boundary conditions\n");
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+
+               SpGradient::ResizeReset(p, pBoundaryCond->dGetPressure(), 0); // FIXME: assuming h == 0
+          }
+
+          pGetParent()->pGetFluid()->Cavitation(p);
+     }
+
      void HydroMesh::GenerateComplianceModel()
      {
           if (pCompliance) {
@@ -19657,6 +19774,16 @@ namespace {
      {
           pNode->GetPressure(p, dCoef);
           pGetParent()->pGetFluid()->Cavitation(p);
+     }
+
+     void HydroMesh::GetPressureBoundCond(const SpColVector<doublereal, 2>& x, doublereal& p, doublereal dCoef, SpFunctionCall func) const
+     {
+          GetPressureBoundCondTpl(x, p, dCoef, func);
+     }
+
+     void HydroMesh::GetPressureBoundCond(const SpColVector<doublereal, 2>& x, SpGradient& p, doublereal dCoef, SpFunctionCall func) const
+     {
+          GetPressureBoundCondTpl(x, p, dCoef, func);
      }
 
      integer HydroMesh::iGetNumBounaryConditions() const
@@ -19702,7 +19829,7 @@ namespace {
           return os;
      }
 
-     LubricationGroove* HydroMesh::pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId)
+     LubricationGroove* HydroMesh::pFindGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType, integer iNodeId) const
      {
           LubricationGroove* pGroove = nullptr;
 
@@ -19725,7 +19852,7 @@ namespace {
           return pGroove;
      }
 
-     PressureCouplingCond* HydroMesh::pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId)
+     PressureCouplingCond* HydroMesh::pFindCouplingCond(const SpColVector<doublereal, 2>& x, integer iNodeId) const
      {
           PressureCouplingCond* pCouplingCond = 0;
 
@@ -20802,7 +20929,7 @@ namespace {
                const doublereal c = 2 * M_PI * pGeometry->dGetMeshRadius();
 
                for (index_type i = 1; i <= iNumNodesPhi; ++i) {
-                    x(i) = static_cast<double>(i - 1) / (iNumNodesPhi - 1) * c;
+                    x(i) = static_cast<doublereal>(i - 1) / (iNumNodesPhi - 1) * c;
                }
           } break;
           case HELICAL_GROOVE_PUMP: {
