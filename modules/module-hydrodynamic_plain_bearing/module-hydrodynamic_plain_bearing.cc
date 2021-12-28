@@ -455,7 +455,7 @@ HydrodynamicPlainBearing::HydrodynamicPlainBearing(
 
 #undef CASE_GAUSS_POINT_NUM_
         
-    ASSERT(m_iNumGaussPoints <= sizeof(m_output) / sizeof(m_output[0]));
+    ASSERT(static_cast<size_t>(m_iNumGaussPoints) <= sizeof(m_output) / sizeof(m_output[0]));
         
     if (HP.IsKeyWord("output" "points")) {
         m_iNumOutputPoints = HP.GetInt();
