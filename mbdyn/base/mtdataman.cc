@@ -251,110 +251,115 @@ MultiThreadDataManager::thread(void *p)
         SetAffinity(*arg);
 
         while (bKeepGoing) {
-                /* stop here until told to start */
-                /*
-                 * NOTE: here
-                 * - the requested operation must be set;
-                 * - the appropriate operation args must be set
-                 * - the thread_count must be set to nThreads - 1
-                 */
-                sem_wait(&arg->sem);
+             /* stop here until told to start */
+             /*
+              * NOTE: here
+              * - the requested operation must be set;
+              * - the appropriate operation args must be set
+              * - the thread_count must be set to nThreads - 1
+              */
+             sem_wait(&arg->sem);
 
-                DEBUGCOUT("thread " << arg->threadNumber << ": "
-                                "op " << arg->pDM->op << std::endl);
+             try {
+                  DEBUGCOUT("thread " << arg->threadNumber << ": "
+                            "op " << arg->pDM->op << std::endl);
 
-                /* select requested operation */
-                switch (arg->pDM->op) {
-                case MultiThreadDataManager::OP_ASSJAC_CC:
-                        //arg->pJacHdl->Reset();
-                        try {
-                                arg->pDM->DataManager::AssJac(*arg->pJacHdl,
-                                                arg->dCoef,
-                                                arg->ElemIter,
-                                                *arg->pWorkMat);
+                  /* select requested operation */
+                  switch (arg->pDM->op) {
+                  case MultiThreadDataManager::OP_ASSJAC_CC:
+                       //arg->pJacHdl->Reset();
+                       try {
+                            arg->pDM->DataManager::AssJac(*arg->pJacHdl,
+                                                          arg->dCoef,
+                                                          arg->ElemIter,
+                                                          *arg->pWorkMat);
 
-                        } catch (MatrixHandler::ErrRebuildMatrix& e) {
-                                silent_cerr("thread " << arg->threadNumber
-                                                << " caught ErrRebuildMatrix"
-                                                << std::endl);
+                       } catch (MatrixHandler::ErrRebuildMatrix& e) {
+                            silent_cerr("thread " << arg->threadNumber
+                                        << " caught ErrRebuildMatrix"
+                                        << std::endl);
 
-                                mbdyn_test_and_set(&arg->pDM->propagate_ErrMatrixRebuild);
+                            mbdyn_test_and_set(&arg->pDM->propagate_ErrMatrixRebuild);
 
-                        } catch (...) {
-                                throw;
-                        }
-                        break;
+                       } catch (...) {
+                            throw;
+                       }
+                       break;
 #ifdef USE_NAIVE_MULTITHREAD
-                case MultiThreadDataManager::OP_ASSJAC_NAIVE:
+                  case MultiThreadDataManager::OP_ASSJAC_NAIVE:
 #if 0
-                        arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
+                       arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
 #endif
-                        /* NOTE: Naive should never throw
-                         * ErrRebuildMatrix ... */
-                        arg->pDM->DataManager::AssJac(*arg->ppNaiveJacHdl[arg->threadNumber],
-                                        arg->dCoef,
-                                        arg->ElemIter,
-                                        *arg->pWorkMat);
-                        break;
+                       /* NOTE: Naive should never throw
+                        * ErrRebuildMatrix ... */
+                       arg->pDM->DataManager::AssJac(*arg->ppNaiveJacHdl[arg->threadNumber],
+                                                     arg->dCoef,
+                                                     arg->ElemIter,
+                                                     *arg->pWorkMat);
+                       break;
 
-                case MultiThreadDataManager::OP_SUM_NAIVE:
-                {
-                        /* FIXME: if the naive matrix is permuted (colamd),
-                         * this should not impact the parallel assembly,
-                         * because all the matrices refer to the same
-                         * permutation vector */
-                        NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
-                        integer nn = to->iGetNumRows();
-                        integer iFrom = (nn*(arg->threadNumber))/arg->pDM->nThreads;
-                        integer iTo = (nn*(arg->threadNumber + 1))/arg->pDM->nThreads;
-                        for (unsigned int matrix = 1; matrix < arg->pDM->nThreads; matrix++) {
-                                NaiveMatrixHandler* from = arg->ppNaiveJacHdl[matrix];
-                                naivepsad(to->ppdRows,
-                                                to->ppiRows, to->piNzr,
-                                                to->ppiCols, to->piNzc, to->ppnonzero,
-                                                from->ppdRows, from->ppiCols, from->piNzc,
-                                                iFrom, iTo, arg->lock);
-                        }
-                        break;
-                }
+                  case MultiThreadDataManager::OP_SUM_NAIVE:
+                  {
+                       /* FIXME: if the naive matrix is permuted (colamd),
+                        * this should not impact the parallel assembly,
+                        * because all the matrices refer to the same
+                        * permutation vector */
+                       NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
+                       integer nn = to->iGetNumRows();
+                       integer iFrom = (nn*(arg->threadNumber))/arg->pDM->nThreads;
+                       integer iTo = (nn*(arg->threadNumber + 1))/arg->pDM->nThreads;
+                       for (unsigned int matrix = 1; matrix < arg->pDM->nThreads; matrix++) {
+                            NaiveMatrixHandler* from = arg->ppNaiveJacHdl[matrix];
+                            naivepsad(to->ppdRows,
+                                      to->ppiRows, to->piNzr,
+                                      to->ppiCols, to->piNzc, to->ppnonzero,
+                                      from->ppdRows, from->ppiCols, from->piNzc,
+                                      iFrom, iTo, arg->lock);
+                       }
+                       break;
+                  }
 #endif
 #ifdef USE_SPARSE_AUTODIFF
-                case MultiThreadDataManager::OP_ASSJAC_GRAD:
-                {
-                     arg->pDM->DataManager::AssJac(arg->oGradJacHdl,
-                                                   arg->dCoef,
-                                                   arg->ElemIter,
-                                                   *arg->pWorkMat);
-                     break;
-                }
+                  case MultiThreadDataManager::OP_ASSJAC_GRAD:
+                  {
+                       arg->pDM->DataManager::AssJac(arg->oGradJacHdl,
+                                                     arg->dCoef,
+                                                     arg->ElemIter,
+                                                     *arg->pWorkMat);
+                       break;
+                  }
 #endif
 #ifdef MBDYN_X_MT_ASSRES
-                case MultiThreadDataManager::OP_ASSRES:
-                        arg->pResHdl->Reset();
-                        if (arg->pAbsResHdl) arg->pAbsResHdl->Reset();
-                        arg->pDM->DataManager::AssRes(*arg->pResHdl,
-                                        arg->dCoef,
-                                        arg->ElemIter,
-                                        *arg->pWorkVec,
-                                        arg->pAbsResHdl);
-                        break;
+                  case MultiThreadDataManager::OP_ASSRES:
+                       arg->pResHdl->Reset();
+                       if (arg->pAbsResHdl) arg->pAbsResHdl->Reset();
+                       arg->pDM->DataManager::AssRes(*arg->pResHdl,
+                                                     arg->dCoef,
+                                                     arg->ElemIter,
+                                                     *arg->pWorkVec,
+                                                     arg->pAbsResHdl);
+                       break;
 #endif /* MBDYN_X_MT_ASSRES */
 
-                case MultiThreadDataManager::OP_EXIT:
-                        /* cleanup */
-                        thread_cleanup(arg);
-                        bKeepGoing = false;
-                        break;
+                  case MultiThreadDataManager::OP_EXIT:
+                       /* cleanup */
+                       thread_cleanup(arg);
+                       bKeepGoing = false;
+                       break;
 
-                default:
-                        silent_cerr("MultiThreadDataManager: unhandled op"
-                                        << std::endl);
-                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                }
+                  default:
+                       silent_cerr("MultiThreadDataManager: unhandled op"
+                                   << std::endl);
+                       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                  }
 
-                /* decrease counter and signal if last
-                 * (mutex + cond) */
-                arg->pDM->EndOfOp();
+             } catch (...) {
+                  arg->except = std::current_exception();
+             }
+
+             /* decrease counter and signal if last
+              * (mutex + cond) */
+             arg->pDM->EndOfOp();                
         }
 
         /* all threads are joined */
@@ -622,6 +627,10 @@ retry:;
         op = MultiThreadDataManager::OP_ASSJAC_CC;
         thread_count = nThreads - 1;
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             thread_data[i].except = std::exception_ptr{};
+        }
+        
         for (unsigned i = 1; i < nThreads; i++) {
                 thread_data[i].dCoef = dCoef;
 
@@ -638,6 +647,8 @@ retry:;
                                 << std::endl);
 
                 mbdyn_test_and_set(&propagate_ErrMatrixRebuild);
+        } catch (...) {
+             thread_data[0].except = std::current_exception();
         }
 
         pthread_mutex_lock(&thread_mutex);
@@ -659,6 +670,12 @@ retry:;
                 throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
         }
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             if (thread_data[i].except) {
+                  std::rethrow_exception(thread_data[i].except);
+             }
+        }
+        
         for (unsigned i = 1; i < nThreads; i++) {
                 pMH->AddUnchecked(*thread_data[i].pJacHdl);
         }
@@ -760,6 +777,10 @@ MultiThreadDataManager::NaiveAssJac(NaiveMatrixHandler& JacHdl, doublereal dCoef
         op = MultiThreadDataManager::OP_ASSJAC_NAIVE;
         thread_count = nThreads - 1;
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             thread_data[i].except = std::exception_ptr{};
+        }
+
         for (unsigned i = 1; i < nThreads; i++) {
                 thread_data[i].dCoef = dCoef;
 
@@ -771,17 +792,27 @@ MultiThreadDataManager::NaiveAssJac(NaiveMatrixHandler& JacHdl, doublereal dCoef
 #if 0
         thread_data[0].ppNaiveJacHdl[0]->Reset();
 #endif
-        DataManager::AssJac(*thread_data[0].ppNaiveJacHdl[0],
-                        dCoef,
-                        thread_data[0].ElemIter,
-                        *thread_data[0].pWorkMat);
-
+        try {
+             DataManager::AssJac(*thread_data[0].ppNaiveJacHdl[0],
+                                 dCoef,
+                                 thread_data[0].ElemIter,
+                                 *thread_data[0].pWorkMat);
+        } catch (...) {
+             thread_data[0].except = std::current_exception();
+        }
+        
         pthread_mutex_lock(&thread_mutex);
         if (thread_count > 0) {
                 pthread_cond_wait(&thread_cond, &thread_mutex);
         }
         pthread_mutex_unlock(&thread_mutex);
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             if (thread_data[i].except) {
+                  std::rethrow_exception(thread_data[i].except);
+             }
+        }
+        
         /* Sum per-thread matrices */
         op = MultiThreadDataManager::OP_SUM_NAIVE;
         thread_count = nThreads - 1;
@@ -826,15 +857,23 @@ MultiThreadDataManager::GradAssJac(SpGradientSparseMatrixHandler& JacHdl, double
         op = MultiThreadDataManager::OP_ASSJAC_GRAD;
         thread_count = nThreads - 1;
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             thread_data[i].except = std::exception_ptr{};
+        }
+        
         for (unsigned i = 1; i < nThreads; i++) {
                 thread_data[i].dCoef = dCoef;
                 thread_data[i].oGradJacHdl.SetMatrixHandler(&JacHdl);
                 sem_post(&thread_data[i].sem);
         }
 
-        DataManager::AssJac(thread_data[0].oGradJacHdl, dCoef, thread_data[0].ElemIter,
-                            *thread_data[0].pWorkMat);
-
+        try {
+             DataManager::AssJac(thread_data[0].oGradJacHdl, dCoef, thread_data[0].ElemIter,
+                                 *thread_data[0].pWorkMat);
+        } catch (...) {
+             thread_data[0].except = std::current_exception();
+        }
+        
         pthread_mutex_lock(&thread_mutex);
 
         if (thread_count > 0) {
@@ -842,6 +881,12 @@ MultiThreadDataManager::GradAssJac(SpGradientSparseMatrixHandler& JacHdl, double
         }
 
         pthread_mutex_unlock(&thread_mutex);
+
+        for (unsigned i = 0; i < nThreads; ++i) {
+             if (thread_data[i].except) {
+                  std::rethrow_exception(thread_data[i].except);
+             }
+        }
 }
 #endif
 

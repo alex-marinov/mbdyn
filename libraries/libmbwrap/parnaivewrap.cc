@@ -155,6 +155,12 @@ ParNaiveSolver::~ParNaiveSolver(void)
         }
         pthread_mutex_unlock(&thread_mutex);
 
+        for (unsigned i = 0; i < nThreads; ++i) {
+             pthread_join(thread_data[i].thread, nullptr);
+             
+             DEBUGCERR("thread[" << i << "] returned\n");
+        }
+
         for (unsigned i = 1; i < nThreads; i++) {
                 sem_destroy(&thread_data[i].sem);
         }
@@ -267,6 +273,11 @@ ParNaiveSolver::thread_op(void *arg)
                 td->pSLUS->EndOfOp();
         }
 
+        DEBUGCERR("ParNaiveSolver: thread " << td->threadNumber
+                  << " [self=" << pthread_self()
+                  << ",pid=" << getpid() << "]"
+                  << " terminating ..." << std::endl);
+        
         pthread_exit(NULL);
 }
 

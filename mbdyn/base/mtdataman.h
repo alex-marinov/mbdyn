@@ -84,6 +84,7 @@ protected:
                 integer iCPUIndex;
                 pthread_t thread;
                 sem_t sem;
+                std::exception_ptr except;
                 mutable MT_VecIter<Elem *> ElemIter;
 
                 VariableSubMatrixHandler *pWorkMatA;	/* Working SubMatrix */
