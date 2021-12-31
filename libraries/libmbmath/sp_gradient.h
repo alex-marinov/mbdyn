@@ -663,14 +663,14 @@ namespace sp_grad {
 
      void SpGradient::Cleanup() {
 	  SP_GRAD_ASSERT(bValid());
-	  
-	  --pData->iRefCnt;
 
-	  SP_GRAD_ASSERT(pData->iRefCnt >= 0);
+	  const index_type iRefCntCurr = --pData->iRefCnt;
+
+	  SP_GRAD_ASSERT(iRefCntCurr >= 0);
 
 	  if (pData->pOwner) {
 	       pData->pOwner->Detach(this);
-	  } else if (!pData->iRefCnt && pData != &oNullData) {
+	  } else if (!iRefCntCurr && pData != &oNullData) {
 	       std::free(pData);
 	  }	  
      }
