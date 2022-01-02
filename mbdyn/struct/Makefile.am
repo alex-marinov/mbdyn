@@ -155,9 +155,6 @@ $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_pl
 $(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.h \
 $(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.cc \
 \
-$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
-$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
-\
 $(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.h \
 $(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.cc
 endif
@@ -166,6 +163,9 @@ if USE_SPARSE_AUTODIFF
 nodist_libstruct_la_SOURCES += \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.cc \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.h \
+\
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
 \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
