@@ -152,9 +152,6 @@ nodist_libstruct_la_SOURCES += \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
 \
-$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.h \
-$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.cc \
-\
 $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
 $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
 \
@@ -166,6 +163,9 @@ if USE_SPARSE_AUTODIFF
 nodist_libstruct_la_SOURCES += \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.cc \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.h \
+\
+$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.h \
+$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.cc \
 \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
