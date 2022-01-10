@@ -216,11 +216,18 @@ public:
 #endif
 protected:
 #ifdef USE_AUTODIFF
-	template <typename ConstLaw>
-	static inline void UpdateViscoelastic(ConstLaw* pCl, const T& Eps, const T& EpsPrime);
+     template <typename ConstLaw>
+     static inline void UpdateViscoelastic(ConstLaw* pCl, const T& Eps, const T& EpsPrime);
 
-	template <typename ConstLaw>
-	static inline void UpdateElastic(ConstLaw* pCl, const T& Eps);
+     template <typename ConstLaw>
+     static inline void UpdateElastic(ConstLaw* pCl, const T& Eps);
+#endif
+#ifdef USE_SPARSE_AUTODIFF
+     template <typename ConstLaw>
+     static inline void UpdateViscoelasticSparse(ConstLaw* pCl, const T& Eps, const T& EpsPrime);
+
+     template <typename ConstLaw>
+     static inline void UpdateElasticSparse(ConstLaw* pCl, const T& Eps);
 #endif
 };
 
@@ -424,6 +431,81 @@ ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<sp_grad::SpGradient,
      }
 
      return FTmp;
+}
+
+template <class T, class Tder>
+template <typename ConstLaw>
+inline void ConstitutiveLaw<T, Tder>::UpdateViscoelasticSparse(ConstLaw* pCl, const T& Eps, const T& EpsPrime)
+{
+	using namespace sp_grad;
+	constexpr index_type N = ConstLawHelper<T>::iDim;
+	SpColVectorA<SpGradient, N> gEps, gEpsPrime, gF;
+
+	pCl->Epsilon = Eps;
+	pCl->EpsilonPrime = EpsPrime;
+
+	for (index_type i = 1; i <= N; ++i)
+	{
+             gEps(i).Reset(Eps(i), i, 1.);
+             gEpsPrime(i).Reset(EpsPrime(i), i + N, 1.);
+	}
+
+	pCl->UpdateViscoelasticTpl(gEps, gEpsPrime, gF);
+
+        for (index_type j = 1; j <= N; ++j) {
+             for (index_type i = 1; i <= N; ++i) {
+                  pCl->FDE(i, j) = pCl->FDEPrime(i, j) = 0.;
+             }
+        }
+        
+	for (index_type i = 1; i <= N; ++i) {
+		pCl->F(i) = gF(i).dGetValue();
+
+                for (const auto& oDer: gF(i)) {
+                     ASSERT(oDer.iDof >= 1);
+                     ASSERT(oDer.iDof <= 2 * N);
+                     
+                     if (oDer.iDof <= N) {
+                          pCl->FDE(i, oDer.iDof) += oDer.dDer;
+                     } else {
+                          pCl->FDEPrime(i, oDer.iDof - N) += oDer.dDer;
+                     }
+                }
+	}
+}
+
+template <class T, class Tder>
+template <typename ConstLaw>
+inline void ConstitutiveLaw<T, Tder>::UpdateElasticSparse(ConstLaw* pCl, const T& Eps)
+{
+	using namespace sp_grad;
+	constexpr index_type N = ConstLawHelper<T>::iDim;
+	SpColVectorA<SpGradient, N> gEps, gF;
+
+	pCl->Epsilon = Eps;
+
+	for (index_type i = 1; i <= N; ++i)
+	{
+             gEps(i).Reset(Eps(i), i, 1.);
+	}
+
+	pCl->UpdateElasticTpl(gEps, gF);
+
+        for (index_type j = 1; j <= N; ++j) {
+             for (index_type i = 1; i <= N; ++i) {                  
+                  pCl->FDE(i, j) = 0.;
+             }
+        }
+        
+	for (index_type i = 1; i <= N; ++i) {
+		pCl->F(i) = gF(i).dGetValue();
+
+                for (const auto& oDer: gF(i)) {
+                     ASSERT(oDer.iDof >= 1);
+                     ASSERT(oDer.iDof <= N);                  
+                     pCl->FDE(i, oDer.iDof) += oDer.dDer;
+                }
+	}     
 }
 #endif
 
