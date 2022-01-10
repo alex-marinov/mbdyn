@@ -44,12 +44,12 @@
 #include "module-switch_drive/module-switch_drive.h"
 #ifdef USE_AUTODIFF
 #include "module-ballbearing_contact/module-ballbearing_contact.h"
-#include "module-journal_bearing/module-journal_bearing.h"
 #include "module-uni_in_plane/module-uni_in_plane.h"
 #endif
 #ifdef USE_SPARSE_AUTODIFF
 #include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.h"
+#include "module-journal_bearing/module-journal_bearing.h"
 #include "module-triangular_contact/module-triangular_contact.h"
 #endif
 #include "module-cyclocopter/module-cyclocopter.h"
@@ -141,8 +141,6 @@ InitUDE(void)
 #ifdef USE_AUTODIFF
         b = ballbearing_contact_set();
         ASSERT(b != false);
-        b = journal_bearing_set();
-        ASSERT(b != false);
         b = uni_in_plane_set();
         ASSERT(b != false);
 #endif
@@ -151,6 +149,8 @@ InitUDE(void)
         ASSERT(b != false);        
 	b = hydrodynamic_plain_bearing2_set();
         ASSERT(b != false);
+        b = journal_bearing_set();
+        ASSERT(b != false);        
         b = triangular_contact_set();
         ASSERT(b != false);	
 #endif

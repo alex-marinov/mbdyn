@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2013) all rights reserved.
+        Copyright (C) 2013(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -93,12 +93,12 @@ begin: initial value;
 	max iterations: 100;
     method: ms, 0.9;
     derivatives tolerance: 1e-5;
-    derivatives max iterations: 100;
-	derivatives coefficient: 1e-6;
+    derivatives max iterations: 10;
+    derivatives coefficient: 1e-5;
     #output: residual;
     #output: solution;
     #output: jacobian;
-    #output: iterations;
+    output: iterations, solver condition number, stat, yes;
     linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
     nonlinear solver: line search, 
             abort at lambda min, no, 
@@ -108,6 +108,8 @@ begin: initial value;
             print convergence info, no,
             divergence check, yes, factor, 10.;
     #abort after: assembly;
+    threads: solver, 1;
+    threads: assembly, 1;
     #abort after: derivatives;
 end: initial value;
 
