@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2013) all rights reserved.
+        Copyright (C) 2011(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -119,8 +119,10 @@ begin: initial value;
     #output: residual;
     #output: jacobian;
 
-    linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
+    linear solver: umfpack, grad, colamd, scale, row max column max, always, max iterations, 10;
 
+    threads: assembly, 1;
+    threads: solver, 1;
 #    output: iterations;
 #    output: residual;
 end: initial value;
