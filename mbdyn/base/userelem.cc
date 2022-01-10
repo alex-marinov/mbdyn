@@ -44,6 +44,7 @@
 #include "module-switch_drive/module-switch_drive.h"
 
 #ifdef USE_AUTODIFF
+<<<<<<< HEAD
 #include "module-ballbearing_contact/module-ballbearing_contact.h"
 #endif // USE_AUTODIFF
 
@@ -51,6 +52,7 @@
 #include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.h"
 #include "module-journal_bearing/module-journal_bearing.h"
+#include "module-ballbearing_contact/module-ballbearing_contact.h"
 #include "module-uni_in_plane/module-uni_in_plane.h"
 #include "module-triangular_contact/module-triangular_contact.h"
 #endif // USE_SPARSE_AUTODIFF
@@ -144,13 +146,13 @@ InitUDE(void)
         b = switch_drive_set();
         ASSERT(b != false);
 #ifdef USE_AUTODIFF
-        b = ballbearing_contact_set();
-        ASSERT(b != false);
 #endif // USE_AUTODIFF
 #ifdef USE_SPARSE_AUTODIFF
         b = hydrodynamic_plain_bearing_set();
         ASSERT(b != false);        
 	b = hydrodynamic_plain_bearing2_set();
+        ASSERT(b != false);
+        b = ballbearing_contact_set();
         ASSERT(b != false);
         b = journal_bearing_set();
         ASSERT(b != false);
@@ -159,8 +161,10 @@ InitUDE(void)
         b = triangular_contact_set();
         ASSERT(b != false);	
 #endif // USE_SPARSE_AUTODIFF
+
 	b = mbdyn_cyclocopter_set();
 	ASSERT(b != false);
+
 #ifdef HAVE_CHARM
 	b = mbcharm_set();
 	ASSERT(b != false);

@@ -148,9 +148,7 @@ $(srcdir)/../../modules/module-switch_drive/module-switch_drive.cc \
 $(srcdir)/../../modules/module-switch_drive/module-switch_drive.h
 
 if USE_AUTODIFF
-nodist_libstruct_la_SOURCES += \
-$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
-$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc
+nodist_libstruct_la_SOURCES +=
 endif
 
 if USE_SPARSE_AUTODIFF
@@ -166,6 +164,9 @@ $(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.cc \
 \
 $(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.h \
 $(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.cc \
+\
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
 \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
