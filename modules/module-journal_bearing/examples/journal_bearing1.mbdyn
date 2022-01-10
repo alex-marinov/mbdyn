@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2013) all rights reserved.
+        Copyright (C) 2013(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -86,8 +86,9 @@ begin: initial value;
     #output: solution;
     #output: jacobian;
 
-    linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
-
+    linear solver: umfpack, grad, colamd, scale, row max column max, always, max iterations, 10;
+    threads: assembly, 1;
+    threads: solver, 1;
     #abort after: assembly;
     #abort after: derivatives;
 end: initial value;
