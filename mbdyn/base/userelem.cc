@@ -43,11 +43,6 @@
 #include "module-multi_step_drive/module-multi_step_drive.h"
 #include "module-switch_drive/module-switch_drive.h"
 
-#ifdef USE_AUTODIFF
-<<<<<<< HEAD
-#include "module-ballbearing_contact/module-ballbearing_contact.h"
-#endif // USE_AUTODIFF
-
 #ifdef USE_SPARSE_AUTODIFF
 #include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-hydrodynamic_plain_bearing2/module-hydrodynamic_plain_bearing2.h"
