@@ -248,7 +248,7 @@ public:
 		const doublereal SRSGamma, const doublereal SRSDelta, 
 		const SRSModel m_SRSModel)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
-	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), m_SRSModel(m_SRSModel),
+	m_SRSModel(m_SRSModel), Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), 
 	SRSf(0), SRSdfdx(0)
 #ifdef USE_NETCDFC
 	, Var_dKp(0), Var_dKd(0), Var_dReferenceLength(0), Var_dSRSf(0), Var_dSRSdfdx(0)
