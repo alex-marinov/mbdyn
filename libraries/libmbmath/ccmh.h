@@ -60,7 +60,7 @@ public:
 
 	/* used by MultiThreadDataManager to duplicate the storage array
 	 * while preserving the CC indices */
-        CompactSparseMatrixHandler *Copy(void) const;
+        virtual CompactSparseMatrixHandler *Copy(void) const override;
 
 public:
 	doublereal & operator()(integer i_row, integer i_col) {

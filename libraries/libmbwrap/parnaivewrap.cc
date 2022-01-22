@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -65,9 +65,9 @@
 /* ParNaiveSolver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-ParNaiveSolver::ParNaiveSolver(unsigned nt, const integer &size, 
-		const doublereal& dMP,
-		NaiveMatrixHandler *const a)
+ParNaiveSolver::ParNaiveSolver(unsigned nt, const integer &size,
+                const doublereal& dMP,
+                NaiveMatrixHandler *const a)
 : LinearSolver(0),
 iSize(size),
 dMinPiv(dMP),
@@ -77,38 +77,38 @@ A(a),
 nThreads(nt),
 thread_data(0)
 {
-	piv.resize(iSize);
-	fwd.resize(iSize);
-	todo.resize(iSize);
-	row_locks.resize(iSize + 2);
-	col_locks.resize(iSize, AO_TS_INITIALIZER);
+        piv.resize(iSize);
+        fwd.resize(iSize);
+        todo.resize(iSize);
+        row_locks.resize(iSize + 2);
+        col_locks.resize(iSize, AO_TS_INITIALIZER);
 
-	pthread_mutex_init(&thread_mutex, NULL);
-	pthread_cond_init(&thread_cond, NULL);
+        pthread_mutex_init(&thread_mutex, NULL);
+        pthread_cond_init(&thread_cond, NULL);
 
-	SAFENEWARR(ppril, integer *, iSize);
-	ppril[0] = 0;
-	SAFENEWARR(ppril[0], integer, iSize*iSize);
-	for (integer i = 1; i < iSize; i++) {
-		ppril[i] = ppril[i - 1] + iSize;
-	}
-	SAFENEWARR(pnril, integer, iSize);
+        SAFENEWARR(ppril, integer *, iSize);
+        ppril[0] = 0;
+        SAFENEWARR(ppril[0], integer, iSize*iSize);
+        for (integer i = 1; i < iSize; i++) {
+                ppril[i] = ppril[i - 1] + iSize;
+        }
+        SAFENEWARR(pnril, integer, iSize);
 #ifdef HAVE_MEMSET_H
-	memset(pnril, 0, sizeof(integer)*iSize);
+        memset(pnril, 0, sizeof(integer)*iSize);
 #else /* ! HAVE_MEMSET_H */
-	for (integer row = 0; row < iSize; row++) {
-		pnril[row] = 0;
-	}
-#endif /* ! HAVE_MEMSET_H */		
+        for (integer row = 0; row < iSize; row++) {
+                pnril[row] = 0;
+        }
+#endif /* ! HAVE_MEMSET_H */
 
 
-	SAFENEWARRNOFILL(thread_data, thread_data_t, nThreads);
+        SAFENEWARRNOFILL(thread_data, thread_data_t, nThreads);
 
         const Task2CPU& oCPUStateGlobal = Task2CPU::GetGlobalState();
-        
+
         if (static_cast<unsigned>(oCPUStateGlobal.iGetCount()) >= nThreads) {
              int iCPUIdx = oCPUStateGlobal.iGetFirstCPU();
-    
+
              for (unsigned i = 0; i < nThreads; ++i) {
                   thread_data[i].iCPUIndex = iCPUIdx;
                   iCPUIdx = oCPUStateGlobal.iGetNextCPU(iCPUIdx);
@@ -118,177 +118,188 @@ thread_data(0)
                   thread_data[i].iCPUIndex = -1;
              }
         }
-        
-	SetAffinity(thread_data[0]);
 
-	for (unsigned t = 0; t < nThreads; t++) {
-		thread_data[t].pSLUS = this;
-		thread_data[t].threadNumber = t;
-		thread_data[t].retval = 0;
+        SetAffinity(thread_data[0]);
 
-		sem_init(&thread_data[t].sem, 0, 0);
-		if (pthread_create(&thread_data[t].thread, NULL, thread_op, &thread_data[t]) != 0) {
-			silent_cerr("ParNaiveSolver: pthread_create() failed "
-					"for thread " << t
-					<< " of " << nThreads << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
+        for (unsigned t = 0; t < nThreads; t++) {
+                thread_data[t].pSLUS = this;
+                thread_data[t].threadNumber = t;
+                thread_data[t].retval = 0;
+
+                sem_init(&thread_data[t].sem, 0, 0);
+                if (pthread_create(&thread_data[t].thread, NULL, thread_op, &thread_data[t]) != 0) {
+                        silent_cerr("ParNaiveSolver: pthread_create() failed "
+                                        "for thread " << t
+                                        << " of " << nThreads << std::endl);
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
+        }
 }
 
 /* Distruttore */
 ParNaiveSolver::~ParNaiveSolver(void)
 {
-	
-	thread_operation = ParNaiveSolver::EXIT;
-	thread_count = nThreads;
 
-	for (unsigned i = 0; i < nThreads; i++) {
-		sem_post(&thread_data[i].sem);
-	}
+        thread_operation = ParNaiveSolver::EXIT;
+        thread_count = nThreads;
 
-	/* thread cleanup func? */
+        for (unsigned i = 0; i < nThreads; i++) {
+                sem_post(&thread_data[i].sem);
+        }
 
-	pthread_mutex_lock(&thread_mutex);
-	if (thread_count > 0) {
-		pthread_cond_wait(&thread_cond, &thread_mutex);
-	}
-	pthread_mutex_unlock(&thread_mutex);
+        /* thread cleanup func? */
 
-	for (unsigned i = 1; i < nThreads; i++) {
-		sem_destroy(&thread_data[i].sem);
-	}
+        pthread_mutex_lock(&thread_mutex);
+        if (thread_count > 0) {
+                pthread_cond_wait(&thread_cond, &thread_mutex);
+        }
+        pthread_mutex_unlock(&thread_mutex);
 
-	pthread_mutex_destroy(&thread_mutex);
-	pthread_cond_destroy(&thread_cond);
+        for (unsigned i = 0; i < nThreads; ++i) {
+             pthread_join(thread_data[i].thread, nullptr);
+             
+             DEBUGCERR("thread[" << i << "] returned\n");
+        }
 
-	if (ppril) {
-		if (ppril[0]) {
-			SAFEDELETEARR(ppril[0]);
-		}
-		SAFEDELETEARR(ppril);
-	}
-	if (pnril) {
-		SAFEDELETEARR(pnril);
-	}
+        for (unsigned i = 1; i < nThreads; i++) {
+                sem_destroy(&thread_data[i].sem);
+        }
 
-	/* other cleanup... */
+        pthread_mutex_destroy(&thread_mutex);
+        pthread_cond_destroy(&thread_cond);
+
+        if (ppril) {
+                if (ppril[0]) {
+                        SAFEDELETEARR(ppril[0]);
+                }
+                SAFEDELETEARR(ppril);
+        }
+        if (pnril) {
+                SAFEDELETEARR(pnril);
+        }
+
+        /* other cleanup... */
         SAFEDELETEARR(thread_data);
 }
 
 void *
 ParNaiveSolver::thread_op(void *arg)
 {
-	thread_data_t *td = (thread_data_t *)arg;
+        thread_data_t *td = (thread_data_t *)arg;
 
-	silent_cout("ParNaiveSolver: thread " << td->threadNumber
-			<< " [self=" << pthread_self()
-			<< ",pid=" << getpid() << "]"
-			<< " starting..." << std::endl);
+        silent_cout("ParNaiveSolver: thread " << td->threadNumber
+                        << " [self=" << pthread_self()
+                        << ",pid=" << getpid() << "]"
+                        << " starting..." << std::endl);
 
-	/* deal with signals ... */
-	sigset_t newset /* , oldset */ ;
-	sigemptyset(&newset);
-	sigaddset(&newset, SIGTERM);
-	sigaddset(&newset, SIGINT);
-	sigaddset(&newset, SIGHUP);
-	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
+        /* deal with signals ... */
+        sigset_t newset /* , oldset */ ;
+        sigemptyset(&newset);
+        sigaddset(&newset, SIGTERM);
+        sigaddset(&newset, SIGINT);
+        sigaddset(&newset, SIGHUP);
+        pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
 
-	SetAffinity(*td);
+        SetAffinity(*td);
 
-	bool bKeepGoing(true);
+        bool bKeepGoing(true);
 
-	while (bKeepGoing) {
-		sem_wait(&td->sem);
+        while (bKeepGoing) {
+                sem_wait(&td->sem);
 
-		switch (td->pSLUS->thread_operation) {
-		case ParNaiveSolver::FACTOR:
-			td->retval = pnaivfct(td->pSLUS->A->ppdRows,
-				td->pSLUS->A->iSize,
-				td->pSLUS->A->piNzr,
-				td->pSLUS->A->ppiRows,
-				td->pSLUS->A->piNzc,
-				td->pSLUS->A->ppiCols,
-				td->pSLUS->pnril,
-				td->pSLUS->ppril, 
-				td->pSLUS->A->ppnonzero,
-				&td->pSLUS->piv[0],
-				&td->pSLUS->todo[0],
-				td->pSLUS->dMinPiv,
-				&td->pSLUS->row_locks[0],
-				&td->pSLUS->col_locks[0],
-				td->threadNumber,
-				td->pSLUS->nThreads
-			);
+                switch (td->pSLUS->thread_operation) {
+                case ParNaiveSolver::FACTOR:
+                        td->retval = pnaivfct(td->pSLUS->A->ppdRows,
+                                td->pSLUS->A->iSize,
+                                td->pSLUS->A->piNzr,
+                                td->pSLUS->A->ppiRows,
+                                td->pSLUS->A->piNzc,
+                                td->pSLUS->A->ppiCols,
+                                td->pSLUS->pnril,
+                                td->pSLUS->ppril,
+                                td->pSLUS->A->ppnonzero,
+                                &td->pSLUS->piv[0],
+                                &td->pSLUS->todo[0],
+                                td->pSLUS->dMinPiv,
+                                &td->pSLUS->row_locks[0],
+                                &td->pSLUS->col_locks[0],
+                                td->threadNumber,
+                                td->pSLUS->nThreads
+                        );
 
-			if (td->retval) {
-				if (td->retval & NAIVE_ENULCOL) {
-					silent_cerr("NaiveSolver: NAIVE_ENULCOL("
-							<< (td->retval & ~NAIVE_ENULCOL) << ")" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
+                        if (td->retval) {
+                                if (td->retval & NAIVE_ENULCOL) {
+                                        silent_cerr("NaiveSolver: NAIVE_ENULCOL("
+                                                        << (td->retval & ~NAIVE_ENULCOL) << ")" << std::endl);
+                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                }
 
-				if (td->retval & NAIVE_ENOPIV) {
-					silent_cerr("NaiveSolver: NAIVE_ENOPIV("
-							<< (td->retval & ~NAIVE_ENOPIV) << ")" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
+                                if (td->retval & NAIVE_ENOPIV) {
+                                        silent_cerr("NaiveSolver: NAIVE_ENOPIV("
+                                                        << (td->retval & ~NAIVE_ENOPIV) << ")" << std::endl);
+                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                }
 
-				/* default */
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			break;
+                                /* default */
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                        }
+                        break;
 
-		case ParNaiveSolver::SOLVE:
-			pnaivslv(td->pSLUS->A->ppdRows,
-				td->pSLUS->A->iSize,
-				td->pSLUS->A->piNzc,
-				td->pSLUS->A->ppiCols,
-				td->pSLUS->LinearSolver::pdRhs,
-				&td->pSLUS->piv[0],
-				&td->pSLUS->fwd[0],
-				td->pSLUS->LinearSolver::pdSol,
-				&td->pSLUS->row_locks[0],
-				td->threadNumber,
-				td->pSLUS->nThreads
-			);
-			break;
+                case ParNaiveSolver::SOLVE:
+                        pnaivslv(td->pSLUS->A->ppdRows,
+                                td->pSLUS->A->iSize,
+                                td->pSLUS->A->piNzc,
+                                td->pSLUS->A->ppiCols,
+                                td->pSLUS->LinearSolver::pdRhs,
+                                &td->pSLUS->piv[0],
+                                &td->pSLUS->fwd[0],
+                                td->pSLUS->LinearSolver::pdSol,
+                                &td->pSLUS->row_locks[0],
+                                td->threadNumber,
+                                td->pSLUS->nThreads
+                        );
+                        break;
 
-		case ParNaiveSolver::EXIT:
-			bKeepGoing = false;
-			break;
+                case ParNaiveSolver::EXIT:
+                        bKeepGoing = false;
+                        break;
 
-		default:
-			silent_cerr("ParNaiveSolver: unhandled op"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                default:
+                        silent_cerr("ParNaiveSolver: unhandled op"
+                                        << std::endl);
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		td->pSLUS->EndOfOp();
-	}
+                td->pSLUS->EndOfOp();
+        }
 
-	pthread_exit(NULL);
+        DEBUGCERR("ParNaiveSolver: thread " << td->threadNumber
+                  << " [self=" << pthread_self()
+                  << ",pid=" << getpid() << "]"
+                  << " terminating ..." << std::endl);
+        
+        pthread_exit(NULL);
 }
 
 void
 ParNaiveSolver::EndOfOp(void)
 {
-	bool last;
+        bool last;
 
-	/* decrement the thread counter */
-	pthread_mutex_lock(&thread_mutex);
-	thread_count--;
-	last = (thread_count == 0);
+        /* decrement the thread counter */
+        pthread_mutex_lock(&thread_mutex);
+        thread_count--;
+        last = (thread_count == 0);
 
-	/* if last thread, signal to restart */
-	if (last) {
+        /* if last thread, signal to restart */
+        if (last) {
 #if 0
-		pthread_cond_broadcast(&thread_cond);
+                pthread_cond_broadcast(&thread_cond);
 #else
-		pthread_cond_signal(&thread_cond);
+                pthread_cond_signal(&thread_cond);
 #endif
-	}
-	pthread_mutex_unlock(&thread_mutex);
+        }
+        pthread_mutex_unlock(&thread_mutex);
 }
 
 void
@@ -298,9 +309,9 @@ ParNaiveSolver::SetAffinity(const thread_data_t& oThreadData)
           Task2CPU oCPUSet;
 
           pedantic_cerr("Setting affinity of thread " << oThreadData.threadNumber << " to CPU " << oThreadData.iCPUIndex << " ...\n");
-	  
+
           oCPUSet.SetCPU(oThreadData.iCPUIndex);
-	  
+
           if (!oCPUSet.bSetAffinity()) {
                silent_cerr("Failed to set affinity of thread " << oThreadData.threadNumber
                            << " to CPU " << oThreadData.iCPUIndex << "\n");
@@ -309,13 +320,13 @@ ParNaiveSolver::SetAffinity(const thread_data_t& oThreadData)
 }
 
 #ifdef DEBUG
-void 
+void
 ParNaiveSolver::IsValid(void) const
 {
-	// ASSERT(Aip != NULL);
-	// ASSERT(App != NULL);
-	// ASSERT(Axp != NULL);
-	// ASSERT(iN > 0);        
+        // ASSERT(Aip != NULL);
+        // ASSERT(App != NULL);
+        // ASSERT(Axp != NULL);
+        // ASSERT(iN > 0);
 }
 #endif /* DEBUG */
 
@@ -323,40 +334,40 @@ ParNaiveSolver::IsValid(void) const
 void
 ParNaiveSolver::Factor(void)
 {
-#ifdef DEBUG 
-	IsValid();
+#ifdef DEBUG
+        IsValid();
 #endif /* DEBUG */
 
-	// ASSERT(iNonZeroes > 0);
+        // ASSERT(iNonZeroes > 0);
 
-	thread_operation = ParNaiveSolver::FACTOR;
-	thread_count = nThreads;
+        thread_operation = ParNaiveSolver::FACTOR;
+        thread_count = nThreads;
 
-	for (int i = 0; i < iSize; i++) {
-			piv[i] = -1;
-			todo[i] = -1;
-			row_locks[i] = 0;
-			pnril[0] = 0;
-	}
+        for (int i = 0; i < iSize; i++) {
+                        piv[i] = -1;
+                        todo[i] = -1;
+                        row_locks[i] = 0;
+                        pnril[0] = 0;
+        }
 
-	/* NOTE: these are for pivot_lock and sync_lock */
-	/* FIXME: bottleneck? */
-	row_locks[iSize] = 0;
-	row_locks[iSize + 1] = 0;
+        /* NOTE: these are for pivot_lock and sync_lock */
+        /* FIXME: bottleneck? */
+        row_locks[iSize] = 0;
+        row_locks[iSize + 1] = 0;
 
-	/* NOTE: no need to reset col_locks because they're
-	 * always left equal to zero after use */
+        /* NOTE: no need to reset col_locks because they're
+         * always left equal to zero after use */
 
-	for (unsigned t = 0; t < nThreads; t++) {
-		thread_data[t].retval = 0;
-		sem_post(&thread_data[t].sem);
-	}
+        for (unsigned t = 0; t < nThreads; t++) {
+                thread_data[t].retval = 0;
+                sem_post(&thread_data[t].sem);
+        }
 
-	pthread_mutex_lock(&thread_mutex);
-	if (thread_count > 0) {
-		pthread_cond_wait(&thread_cond, &thread_mutex);
-	}
-	pthread_mutex_unlock(&thread_mutex);
+        pthread_mutex_lock(&thread_mutex);
+        if (thread_count > 0) {
+                pthread_cond_wait(&thread_cond, &thread_mutex);
+        }
+        pthread_mutex_unlock(&thread_mutex);
 
 }
 
@@ -365,38 +376,38 @@ void
 ParNaiveSolver::Solve(void) const
 {
 #ifdef DEBUG
-	IsValid();
+        IsValid();
 #endif /* DEBUG */
-	
-	if (bHasBeenReset) {
-      		const_cast<ParNaiveSolver *>(this)->Factor();
-      		bHasBeenReset = false;
-	}
 
-	for (int i = 0; i < iSize + 2; i++) {
-		row_locks[i] = 0;
-	}
+        if (bHasBeenReset) {
+                const_cast<ParNaiveSolver *>(this)->Factor();
+                bHasBeenReset = false;
+        }
 
-	thread_operation = ParNaiveSolver::SOLVE;
-	thread_count = nThreads;
-	
-	for (unsigned t = 0; t < nThreads; t++) {
-		thread_data[t].retval = 0;
-		sem_post(&thread_data[t].sem);
-	}
+        for (int i = 0; i < iSize + 2; i++) {
+                row_locks[i] = 0;
+        }
+
+        thread_operation = ParNaiveSolver::SOLVE;
+        thread_count = nThreads;
+
+        for (unsigned t = 0; t < nThreads; t++) {
+                thread_data[t].retval = 0;
+                sem_post(&thread_data[t].sem);
+        }
 
 
-	pthread_mutex_lock(&thread_mutex);
-	if (thread_count > 0) {
-		pthread_cond_wait(&thread_cond, &thread_mutex);
-	}
-	pthread_mutex_unlock(&thread_mutex);
+        pthread_mutex_lock(&thread_mutex);
+        if (thread_count > 0) {
+                pthread_cond_wait(&thread_cond, &thread_mutex);
+        }
+        pthread_mutex_unlock(&thread_mutex);
 }
 
 void
 ParNaiveSolver::SetMat(NaiveMatrixHandler *const a)
 {
-	A = a;
+        A = a;
 }
 
 /* ParNaiveSolver - end */
@@ -406,25 +417,25 @@ ParNaiveSolver::SetMat(NaiveMatrixHandler *const a)
 
 /* Costruttore */
 ParNaiveSparseSolutionManager::ParNaiveSparseSolutionManager(unsigned nt,
-		const integer Dim, const doublereal dMP)
+                const integer Dim, const doublereal dMP)
 : A(0),
 VH(Dim),
 XH(Dim)
 {
-   	ASSERT(Dim > 0);
-   	ASSERT((dMP >= 0.0) && (dMP <= 1.0));
+        ASSERT(Dim > 0);
+        ASSERT((dMP >= 0.0) && (dMP <= 1.0));
 
-	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
-   	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
-			       ParNaiveSolver,
-			       ParNaiveSolver(nt, Dim, dMP, A));
-   
-	pLS->pdSetResVec(VH.pdGetVec());
-	pLS->pdSetSolVec(XH.pdGetVec());
-	pLS->SetSolutionManager(this);
+        SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
+        SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS,
+                               ParNaiveSolver,
+                               ParNaiveSolver(nt, Dim, dMP, A));
+
+        pLS->pdSetResVec(VH.pdGetVec());
+        pLS->pdSetSolVec(XH.pdGetVec());
+        pLS->SetSolutionManager(this);
 
 #ifdef DEBUG
-   	IsValid();
+        IsValid();
 #endif /* DEBUG */
 }
 
@@ -433,34 +444,34 @@ XH(Dim)
 ParNaiveSparseSolutionManager::~ParNaiveSparseSolutionManager(void)
 {
 #ifdef DEBUG
-   	IsValid();
+        IsValid();
 #endif /* DEBUG */
-   
-   	/* Dealloca roba, ... */
-	if (A != 0) {
-		SAFEDELETE(A);
-		A = 0;
-	}
 
-   	/* ... tra cui i thread */
+        /* Dealloca roba, ... */
+        if (A != 0) {
+                SAFEDELETE(A);
+                A = 0;
+        }
+
+        /* ... tra cui i thread */
 }
 
 #ifdef DEBUG
 /* Test di validita' del manager */
-void 
+void
 ParNaiveSparseSolutionManager::IsValid(void) const
-{   
-   	// ASSERT(iMatSize > 0);
-   
+{
+        // ASSERT(iMatSize > 0);
+
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(VH.pdGetVec()));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(XH.pdGetVec()));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
+        ASSERT(defaultMemoryManager.fIsPointerToBlock(VH.pdGetVec()));
+        ASSERT(defaultMemoryManager.fIsPointerToBlock(XH.pdGetVec()));
+        ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
-   
-   	ASSERT((VH.IsValid(), 1));
-   	ASSERT((XH.IsValid(), 1));
-   	ASSERT((pLS->IsValid(), 1));
+
+        ASSERT((VH.IsValid(), 1));
+        ASSERT((XH.IsValid(), 1));
+        ASSERT((pLS->IsValid(), 1));
 }
 #endif /* DEBUG */
 
@@ -469,23 +480,23 @@ void
 ParNaiveSparseSolutionManager::MatrReset(void)
 {
 #ifdef DEBUG
-   	IsValid();
+        IsValid();
 #endif /* DEBUG */
 
-	pLS->Reset();
+        pLS->Reset();
 }
 
- 
+
 /* Risolve il problema */
 void
 ParNaiveSparseSolutionManager::Solve(void)
 {
 #ifdef DEBUG
-   	IsValid();
+        IsValid();
 #endif /* DEBUG */
 
 
-   	pLS->Solve();
+        pLS->Solve();
 
 }
 
@@ -493,16 +504,17 @@ ParNaiveSparseSolutionManager::Solve(void)
 MatrixHandler*
 ParNaiveSparseSolutionManager::pMatHdl(void) const
 {
-	return A;
+        return A;
 }
 
 VectorHandler*
 ParNaiveSparseSolutionManager::pResHdl(void) const
 {
 #ifdef DEBUG
-	VH.IsValid();
+        VH.IsValid();
+        A->IsValid();
 #endif /* DEBUG */
-	return &VH;
+        return &VH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
@@ -510,9 +522,10 @@ VectorHandler*
 ParNaiveSparseSolutionManager::pSolHdl(void) const
 {
 #ifdef DEBUG
-	XH.IsValid();
+        XH.IsValid();
+        A->IsValid();
 #endif /* DEBUG */
-	return &XH;
+        return &XH;
 }
 
 /* ParNaiveSparseSolutionManager - end */
@@ -525,72 +538,113 @@ extern "C" {
 }
 
 ParNaiveSparsePermSolutionManager::ParNaiveSparsePermSolutionManager(
-	unsigned nt,
-	const integer Dim,
-	const doublereal dMP)
+        unsigned nt,
+        const integer Dim,
+        const doublereal dMP)
 : ParNaiveSparseSolutionManager(nt, Dim, dMP),
 dMinPiv(dMP),
 ePermState(PERM_NO)
 {
-	perm.resize(Dim, 0);
-	invperm.resize(Dim, 0);
+        ASSERT(perm.size() == 0);
+        ASSERT(invperm.size() == 0);
 
-	SAFEDELETE(A);
-	A = 0;
-	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, perm, invperm));
+        perm.reserve(Dim);
 
-	dynamic_cast<ParNaiveSolver *>(pLS)->SetMat(A);
+        for (integer i = 0; i < Dim; ++i) {
+                perm.push_back(i);
+        }
 
-	MatrInitialize();
+        ASSERT(perm.size() == static_cast<size_t>(Dim));
+
+        invperm.reserve(Dim + 1); // Dim + 1 required by NaiveMatrixHandler::MakeCCStructure, avoid reallocation
+
+        for (integer i = 0; i < Dim; ++i) {
+                invperm.push_back(i);
+        }
+
+        invperm.push_back(-1);
+
+        ASSERT(invperm.size() == static_cast<size_t>(Dim + 1));
+
+        SAFEDELETE(A);
+        A = 0;
+        SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, perm, invperm));
+
+        dynamic_cast<ParNaiveSolver *>(pLS)->SetMat(A);
+
+        MatrInitialize();
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
-ParNaiveSparsePermSolutionManager::~ParNaiveSparsePermSolutionManager(void) 
+ParNaiveSparsePermSolutionManager::~ParNaiveSparsePermSolutionManager(void)
 {
-	NO_OP;
+        NO_OP;
 }
 
 void
 ParNaiveSparsePermSolutionManager::MatrReset(void)
 {
-	if (ePermState == PERM_INTERMEDIATE) {
-		ePermState = PERM_READY;
+#ifdef DEBUG
+        IsValid();
+#endif
+        if (ePermState == PERM_INTERMEDIATE) {
+                ePermState = PERM_READY;
 
-		pLS->pdSetResVec(VH.pdGetVec());
-		pLS->pdSetSolVec(XH.pdGetVec());
+                pLS->pdSetResVec(VH.pdGetVec());
+                pLS->pdSetSolVec(XH.pdGetVec());
 
-		pLS->SetSolutionManager(this);
-	}
+                pLS->SetSolutionManager(this);
+        }
 
-	pLS->Reset();
+        pLS->Reset();
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 void
 ParNaiveSparsePermSolutionManager::ComputePermutation(void)
 {
-	std::vector<integer> Ai;
-	A->MakeCCStructure(Ai, invperm);
-	doublereal knobs [COLAMD_KNOBS];
-	integer stats [COLAMD_STATS];
-	integer Alen = mbdyn_colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
-	Ai.resize(Alen);
-	mbdyn_colamd_set_defaults(knobs);
-	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
-		&(Ai[0]), &(invperm[0]), knobs, stats)) {
-		silent_cerr("colamd permutation failed" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	for (integer i = 0; i < A->iGetNumRows(); i++) {
-		perm[invperm[i]] = i;
-	}
-	ePermState = PERM_INTERMEDIATE;
+#ifdef DEBUG
+        IsValid();
+#endif
+        std::vector<integer> Ai;
+        A->MakeCCStructure(Ai, invperm);
+        doublereal knobs [COLAMD_KNOBS];
+        integer stats [COLAMD_STATS];
+        integer Alen = mbdyn_colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
+        Ai.resize(Alen);
+        mbdyn_colamd_set_defaults(knobs);
+        if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
+                &(Ai[0]), &(invperm[0]), knobs, stats)) {
+                silent_cerr("colamd permutation failed" << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+        for (integer i = 0; i < A->iGetNumRows(); i++) {
+                perm[invperm[i]] = i;
+        }
+        ePermState = PERM_INTERMEDIATE;
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 void
 ParNaiveSparsePermSolutionManager::BackPerm(void)
 {
-	for (integer i = 0; i < A->iGetNumCols(); i++) {
-		XH(invperm[i] + 1) = VH(i + 1);
-	}
+#ifdef DEBUG
+        IsValid();
+#endif
+        for (integer i = 0; i < A->iGetNumCols(); i++) {
+                XH(invperm[i] + 1) = VH(i + 1);
+        }
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 
@@ -598,35 +652,47 @@ ParNaiveSparsePermSolutionManager::BackPerm(void)
 void
 ParNaiveSparsePermSolutionManager::Solve(void)
 {
-	if (ePermState == PERM_NO) {
-		ComputePermutation();
+#ifdef DEBUG
+        IsValid();
+#endif
+        if (ePermState == PERM_NO) {
+                ComputePermutation();
 
-	} else {
-		pLS->pdSetSolVec(VH.pdGetVec());
-	}
+        } else {
+                pLS->pdSetSolVec(VH.pdGetVec());
+        }
 
-	pLS->Solve();
+        pLS->Solve();
 
-	if (ePermState == PERM_READY) {
-		BackPerm();
-		pLS->pdSetSolVec(XH.pdGetVec());
-	}
+        if (ePermState == PERM_READY) {
+                BackPerm();
+                pLS->pdSetSolVec(XH.pdGetVec());
+        }
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 /* Inizializzatore "speciale" */
 void
 ParNaiveSparsePermSolutionManager::MatrInitialize()
 {
-	ePermState = PERM_NO;
+#ifdef DEBUG
+        IsValid();
+#endif
+        ePermState = PERM_NO;
 
-	for (integer i = 0; i < A->iGetNumRows(); i++) {
-		perm[i] = i;
-		invperm[i] = i;
-	}
- 
-	MatrReset();
+        for (integer i = 0; i < A->iGetNumRows(); i++) {
+                perm[i] = i;
+                invperm[i] = i;
+        }
+
+        MatrReset();
+#ifdef DEBUG
+        IsValid();
+#endif
 }
-	
+
 /* ParParNaiveSparsePermSolutionManager - end */
 
 

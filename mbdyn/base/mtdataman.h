@@ -40,7 +40,10 @@
 
 #include "dataman.h"
 #include "spmh.h"
+
+#ifdef USE_NAIVE_MULTITHREAD
 #include "naivemh.h"
+#endif
 
 #ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
@@ -52,140 +55,139 @@ class Solver;
 
 class MultiThreadDataManager : public DataManager {
 protected:
-	// nThreads is now in DataManager
-	enum {
-		ASS_UNKNOWN = -1,
+        // nThreads is now in DataManager
+        enum {
+                ASS_UNKNOWN = -1,
 
-		ASS_CC,			/* use native column-compressed form */
-		ASS_NAIVE,		/* use native H-P sparse solver */
+                ASS_CC,			/* use native column-compressed form */
+#ifdef USE_NAIVE_MULTITHREAD
+                ASS_NAIVE,		/* use native H-P sparse solver */
+#endif
 #ifdef USE_SPARSE_AUTODIFF
-		ASS_GRAD,
+                ASS_GRAD,
 #endif
-		ASS_LAST
-	} AssMode;
+                ASS_DEFAULT,
+                ASS_LAST
+        } AssMode;
 
-	/* steps of CC computation */
-	enum {
-		CC_NO,
-		CC_FIRST,
-		CC_YES
-	} CCReady;
+        /* steps of CC computation */
+        enum {
+                CC_NO,
+                CC_FIRST,
+                CC_YES
+        } CCReady;
 
-	/* per-thread specific data */
-	struct ThreadData {
-		MultiThreadDataManager *pDM;
-		integer threadNumber;
-	        integer iCPUIndex;
-		pthread_t thread;
-		sem_t sem;
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
-	        mutable MT_VecIter<Node *> NodeIter;
+        /* per-thread specific data */
+        struct ThreadData {
+                MultiThreadDataManager *pDM;
+                integer threadNumber;
+                integer iCPUIndex;
+                pthread_t thread;
+                sem_t sem;
+                std::exception_ptr except;
+                mutable MT_VecIter<Elem *> ElemIter;
+
+                VariableSubMatrixHandler *pWorkMatA;	/* Working SubMatrix */
+                VariableSubMatrixHandler *pWorkMatB;
+                VariableSubMatrixHandler *pWorkMat;	/* same as pWorkMatA */
+                MySubVectorHandler *pWorkVec;
+
+                /* for CC assembly */
+                CompactSparseMatrixHandler* pJacHdl;
+#ifdef USE_NAIVE_MULTITHREAD
+                /* for Naive assembly */
+                NaiveMatrixHandler** ppNaiveJacHdl;
 #endif
-		mutable MT_VecIter<Elem *> ElemIter;
-	
-		VariableSubMatrixHandler *pWorkMatA;	/* Working SubMatrix */
-		VariableSubMatrixHandler *pWorkMatB;
-		VariableSubMatrixHandler *pWorkMat;	/* same as pWorkMatA */
-		MySubVectorHandler *pWorkVec;
-
-		/* for CC assembly */
-	        CompactSparseMatrixHandler* pJacHdl;
-
-		/* for Naive assembly */
-		NaiveMatrixHandler** ppNaiveJacHdl;
-
 #ifdef USE_SPARSE_AUTODIFF
-	        SpGradientSparseMatrixWrapper oGradJacHdl;
+                SpGradientSparseMatrixWrapper oGradJacHdl;
 #endif
-		AO_TS_t* lock;
+                AO_TS_t* lock;
 #ifdef MBDYN_X_MT_ASSRES
-		VectorHandler* pResHdl;
+                VectorHandler* pResHdl;
 #endif
-		VectorHandler* pAbsResHdl;
-		MatrixHandler* pMatA;
-		MatrixHandler* pMatB;
-		doublereal dCoef;
-	} *thread_data;
+                VectorHandler* pAbsResHdl;
+                MatrixHandler* pMatA;
+                MatrixHandler* pMatB;
+                doublereal dCoef;
+        } *thread_data;
 
-	enum DataManagerOp {
-		OP_UNKNOWN = -1,
+        enum DataManagerOp {
+                OP_UNKNOWN = -1,
 
-		OP_ASSJAC_CC,
-
-		OP_ASSJAC_NAIVE,
-		OP_SUM_NAIVE,
-#ifdef USE_SPARSE_AUTODIFF
-		OP_ASSJAC_GRAD,
-#endif
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(MBDYN_X_NODES_UPDATE_JAC_PARALLEL)
-		OP_NODES_UPDATE,
-#endif		
-		/* used only #ifdef MBDYN_X_MT_ASSRES */
-		OP_ASSRES,
-
-		/* not used yet */
-		OP_ASSMATS,
-		OP_BEFOREPREDICT,
-		OP_AFTERPREDICT,
-		OP_AFTERCONVERGENCE,
-		/* end of not used yet */
-
-		OP_EXIT,
-
-		LAST_OP
-	} op;
-
-	/* will be replaced by barriers ... */
-	unsigned thread_count;
-
-	/* this can be replaced by a barrier ... */
-	pthread_mutex_t	thread_mutex;
-	pthread_cond_t	thread_cond;
-
-	/* this is used to propagate ErrMatrixRebuild ... */
-	AO_TS_t	propagate_ErrMatrixRebuild;
-
-	void EndOfOp(void);
-
-	/* thread function */
-	static void *thread(void *arg);
-	static void thread_cleanup(ThreadData *arg);
-
-	/* starts the helper threads */
-	void ThreadSpawn(void);
-	void ThreadDestroy(void);
-
-	/* specialized assembly */     
-	virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
-	virtual void NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef);
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-        void NodesUpdateJac(doublereal dCoef);
+                OP_ASSJAC_CC,
+#ifdef USE_NAIVE_MULTITHREAD
+                OP_ASSJAC_NAIVE,
+                OP_SUM_NAIVE,
 #endif
 #ifdef USE_SPARSE_AUTODIFF
-        void GradAssJac(MatrixHandler& JacHdl, doublereal dCoef);
+                OP_ASSJAC_GRAD,
+#endif
+                /* used only #ifdef MBDYN_X_MT_ASSRES */
+                OP_ASSRES,
+
+                /* not used yet */
+                OP_ASSMATS,
+                OP_BEFOREPREDICT,
+                OP_AFTERPREDICT,
+                OP_AFTERCONVERGENCE,
+                /* end of not used yet */
+
+                OP_EXIT,
+
+                LAST_OP
+        } op;
+
+        /* will be replaced by barriers ... */
+        unsigned thread_count;
+
+        /* this can be replaced by a barrier ... */
+        pthread_mutex_t	thread_mutex;
+        pthread_cond_t	thread_cond;
+
+        /* this is used to propagate ErrMatrixRebuild ... */
+        AO_TS_t	propagate_ErrMatrixRebuild;
+
+        void EndOfOp(void);
+
+        /* thread function */
+        static void *thread(void *arg);
+        static void thread_cleanup(ThreadData *arg);
+
+        /* starts the helper threads */
+        void ThreadSpawn(void);
+        void ThreadDestroy(void);
+
+        /* specialized assembly */
+        virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
+#ifdef USE_NAIVE_MULTITHREAD
+        virtual void NaiveAssJac(NaiveMatrixHandler& JacHdl, doublereal dCoef);
+        virtual void NaiveAssJacInit(NaiveMatrixHandler& JacHdl, doublereal dCoef);
+#endif
+#ifdef USE_SPARSE_AUTODIFF
+        void GradAssJac(SpGradientSparseMatrixHandler& JacHdl, doublereal dCoef);
 #endif
         static void SetAffinity(const ThreadData& oThread);
 public:
-	/* costruttore - legge i dati e costruisce le relative strutture */
-	MultiThreadDataManager(MBDynParser& HP,
-			unsigned OF,
-			Solver* pS,
-			doublereal dInitialTime,
-			const char* sOutputFileName,
-			const char* sInputFileName,
-			bool bAbortAfterInput,
-			unsigned nt);
+        /* costruttore - legge i dati e costruisce le relative strutture */
+        MultiThreadDataManager(MBDynParser& HP,
+                        unsigned OF,
+                        Solver* pS,
+                        doublereal dInitialTime,
+                        const char* sOutputFileName,
+                        const char* sInputFileName,
+                        bool bAbortAfterInput,
+                        unsigned nt);
 
-	/* distruttore */
-	virtual ~MultiThreadDataManager(void);
+        /* distruttore */
+        virtual ~MultiThreadDataManager(void);
 
-	/* Assembla lo jacobiano */
-	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
+        /* Assembla lo jacobiano */
+        virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
 #ifdef MBDYN_X_MT_ASSRES
-	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0)
-		/*throw(ChangedEquationStructure)*/;
+        /* Assembla il residuo */
+        virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0)
+                /*throw(ChangedEquationStructure)*/;
 #endif /* MBDYN_X_MT_ASSRES */
 };
 
@@ -194,4 +196,3 @@ public:
 #endif /* USE_MULTITHREAD */
 
 #endif /* MTDATAMAN_H */
-

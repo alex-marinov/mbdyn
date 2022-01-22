@@ -5026,6 +5026,14 @@ Finally there are some miscellaneous points:
     # use 'dt' in the python peer's analysis as appropriate...
 \end{verbatim}
 
+    same thing, but now using Matlab:
+\begin{verbatim}
+    dt = 1.e-3;
+    setenv('MBDYNVARS', sprintf('real DT = %s', dt));
+    system('mbdyn -f input.mbd -o output > output.txt 2>&1 &');
+    # use 'dt' in the matlab peer's analysis as appropriate...
+\end{verbatim}
+
     \item Newlines and indentations are not meaningful. But good indentation
     habits can lead to better and more readable input files.
     

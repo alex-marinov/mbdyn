@@ -2415,5 +2415,14 @@ FullMatrixHandler::const_iterator::operator != (const FullMatrixHandler::const_i
 	return elem != op.elem;
 }
 
+FullMatrixHandler* FullMatrixHandler::Copy() const
+{
+     FullMatrixHandler* pMH = nullptr;
+
+     SAFENEWWITHCONSTRUCTOR(pMH, FullMatrixHandler, FullMatrixHandler(iGetNumRows(), iGetNumCols()));
+
+     return pMH;
+}
+
 /* FullMatrixHandler - end */
 

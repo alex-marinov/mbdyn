@@ -550,17 +550,18 @@ SpMapMatrixHandler::const_iterator::operator != (const SpMapMatrixHandler::const
 	return elem != op.elem;
 }
 
-std::ostream& SpMapMatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const
+void SpMapMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
 {
-    if (eFormat == MAT_PRINT_TRIPLET) {
-        for (auto i = begin(); i != end(); ++i) {
-                if (i->dCoef) { // Output only nonzero entries
-                        os << i->iRow + 1 << '\t' << i->iCol + 1 << '\t' << i->dCoef << '\n';
-                }
+        for (const auto& d: *this) {
+                func(d.iRow + 1, d.iCol + 1, d.dCoef);
         }
-        
-        return os;
-    } else {
-        return SparseMatrixHandler::Print(os, eFormat);
-    }
+}
+
+SpMapMatrixHandler* SpMapMatrixHandler::Copy() const
+{
+     SpMapMatrixHandler* pMH = nullptr;
+
+     SAFENEWWITHCONSTRUCTOR(pMH, SpMapMatrixHandler, SpMapMatrixHandler(iGetNumRows(), iGetNumCols()));
+
+     return pMH;
 }

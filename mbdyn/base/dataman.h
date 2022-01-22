@@ -449,6 +449,7 @@ public:
 			const MatrixHandler* pmMatB,
 			const unsigned uCurrEigSol,
 			const int iMatrixPrecision);
+     
 	void
 	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
 			const MatrixHandler* pmMatB,
@@ -504,7 +505,7 @@ public:
 
 	/* socket select stuff */
 #ifdef USE_SOCKET
-protected:
+protected:     
 	std::map<int, UseSocket *> SocketUsers;
 	time_t SocketUsersTimeout;
 
@@ -657,6 +658,11 @@ protected:
 			const std::string& sName,
 			int CurrType);
 
+#ifdef USE_NETCDF
+        void
+        OutputEigSparseMatrixNc(const MBDynNcVar& var,
+                                const MatrixHandler& mh);
+#endif
 public:
 	/* ricerca drives */
 	Drive* pFindDrive(Drive::Type Typ, unsigned int uL) const;

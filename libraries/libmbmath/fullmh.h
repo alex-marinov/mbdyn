@@ -598,6 +598,7 @@ public:
 		const FullMatrixHandler & source, 
 		integer source_start_row, integer source_end_row,
 		integer source_start_col, integer source_end_col);
+        virtual FullMatrixHandler* Copy() const override;
 };
 
 extern std::ostream&

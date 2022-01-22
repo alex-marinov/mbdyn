@@ -159,6 +159,10 @@ public:
 	 * Nota: le dimensioni devono essere compatibili.
 	 */
 	virtual MatrixHandler& SubFromT(MatrixHandler& MH) const = 0;
+
+        virtual SubMatrixHandler* Copy() const override;
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 };
 
 /* SubMatrixHandler - end */
@@ -1760,6 +1764,10 @@ MySubVectorHandler::PutRowIndex(integer iSubRow, integer iRow)
 #endif /* DEBUG */
 
 	piRowm1[iSubRow] = iRow;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 inline integer
@@ -1785,6 +1793,10 @@ MySubVectorHandler::PutItem(integer iSubRow, integer iRow,
 
 	piRowm1[iSubRow] = iRow;
 	pdVecm1[iSubRow] = dCoef;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 /* Operazioni esterne su SubMatrixHandler e su SubVectorHandler */

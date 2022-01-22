@@ -42,6 +42,7 @@
 #define MH_H
 
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -159,10 +160,16 @@ public:
 
         enum MatPrintFormat {
               MAT_PRINT_FULL,
-              MAT_PRINT_TRIPLET
+              MAT_PRINT_TRIPLET,
+              MAT_PRINT_SPCONVERT
         };
-                
+             
         virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat = MAT_PRINT_FULL) const;
+
+        typedef void EnumerateNzCallback(integer, integer, doublereal);
+                
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const;
+                
         /* Matrix Matrix product */
 protected:
 	virtual MatrixHandler&
@@ -219,7 +226,7 @@ public:
 	virtual doublereal ConditionNumber(enum Norm_t eNorm = NORM_1) const;
 	virtual doublereal Norm(enum Norm_t eNorm = NORM_1) const;
         virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale);
-     
+        virtual MatrixHandler* Copy() const=0;
 #ifdef USE_SPARSE_AUTODIFF
         virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem);
 #endif

@@ -157,6 +157,10 @@ public:
 	template <int N>
 	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
 #endif
+#ifdef USE_SPARSE_AUTODIFF
+        inline void dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
+        inline void dGetP(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
+#endif
 };
 
 /* DriveOwner - end */
@@ -613,6 +617,16 @@ inline void DriveOwner::dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) c
 #endif
 
 #ifdef USE_SPARSE_AUTODIFF
+inline void DriveOwner::dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const
+{
+	pDriveCaller->dGet(x, y);
+}
+
+inline void DriveOwner::dGetP(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const
+{
+	pDriveCaller->dGetP(x, y);
+}
+
 inline void DriveCaller::dGet(const sp_grad::SpGradient& gx, sp_grad::SpGradient& gy) const
 {
 	const doublereal x = gx.dGetValue();

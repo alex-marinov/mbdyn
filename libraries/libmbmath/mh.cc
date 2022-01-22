@@ -52,15 +52,15 @@
 
 MatrixHandler::~MatrixHandler(void)
 {
-	NO_OP;
+        NO_OP;
 }
 
 /* Ridimensiona ed inizializza. */
 void
 MatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 {
-	Resize(iNewRow, iNewCol);
-	Reset();
+        Resize(iNewRow, iNewCol);
+        Reset();
 }
 
 /* Impacchetta la matrice; restituisce il numero di elementi
@@ -68,25 +68,25 @@ MatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 integer
 MatrixHandler::PacMat(void)
 {
-	return 0L;
+        return 0L;
 }
 
 /* Overload di = */
 MatrixHandler&
 MatrixHandler::operator = (const MatrixHandler& MH)
 {
-	integer nr = MH.iGetNumRows();
-	integer nc = MH.iGetNumCols();
+        integer nr = MH.iGetNumRows();
+        integer nc = MH.iGetNumCols();
 
-	Resize(nr, nc);
+        Resize(nr, nc);
 
-	for (integer i = 1; i <= nr; i++) {
-		for (integer ii = 1; ii <= nc; ii++) {
-			this->operator()(i, ii) = MH(i, ii);
-		}
-	}
+        for (integer i = 1; i <= nr; i++) {
+                for (integer ii = 1; ii <= nc; ii++) {
+                        this->operator()(i, ii) = MH(i, ii);
+                }
+        }
 
-	return *this;
+        return *this;
 }
 
 
@@ -95,461 +95,477 @@ MatrixHandler::operator = (const MatrixHandler& MH)
 MatrixHandler&
 MatrixHandler::operator +=(const SubMatrixHandler& SubMH)
 {
-	return SubMH.AddTo(*this);
+        return SubMH.AddTo(*this);
 }
 
 /* Overload di -= usato per l'assemblaggio delle matrici */
 MatrixHandler&
 MatrixHandler::operator -=(const SubMatrixHandler& SubMH)
 {
-	return SubMH.SubFrom(*this);
+        return SubMH.SubFrom(*this);
 }
 
 /* Overload di += usato per l'assemblaggio delle matrici */
 MatrixHandler&
 MatrixHandler::operator +=(const VariableSubMatrixHandler& SubMH)
 {
-	return SubMH.AddTo(*this);
+        return SubMH.AddTo(*this);
 }
 
 /* Overload di -= usato per l'assemblaggio delle matrici */
 MatrixHandler&
 MatrixHandler::operator -=(const VariableSubMatrixHandler& SubMH)
 {
-	return SubMH.SubFrom(*this);
+        return SubMH.SubFrom(*this);
 }
 
 MatrixHandler&
 MatrixHandler::ScalarMul(const doublereal& d)
 {
-	integer nr = iGetNumRows();
-	integer nc = iGetNumCols();
+        integer nr = iGetNumRows();
+        integer nc = iGetNumCols();
 
-	for (integer i = 1; i <= nr; i++) {
-		for (integer j = 1; j <= nc; j++) {
-			this->operator()(i, j) *= d;
-		}
-	}
+        for (integer i = 1; i <= nr; i++) {
+                for (integer j = 1; j <= nc; j++) {
+                        this->operator()(i, j) *= d;
+                }
+        }
 
-	return *this;
+        return *this;
 }
 
 std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const
 {
-	integer nr = iGetNumRows();
-	integer nc = iGetNumCols();
+        switch (eFormat) {
+        case MAT_PRINT_FULL: {
+                const integer nr = iGetNumRows();
+                const integer nc = iGetNumCols();
+                for (integer i = 1; i <= nr; i++) {
+                        for (integer j = 1; j <= nc; j++) {
+                                os << std::setw(16) << (*this)(i, j) << ' ';
+                        }
+                        os << std::endl;
+                }
+        } break;
+        case MAT_PRINT_TRIPLET:
+        case MAT_PRINT_SPCONVERT: {
+                auto func = [&os] (integer iRow, integer iCol, doublereal dCoef) {
+                                 os << std::setw(10) << iRow << '\t'
+                                    << std::setw(10) << iCol << '\t'
+                                    << std::setw(16) << dCoef << '\n';
+                            };
+                EnumerateNz(func);
+        } break;
+        }
 
-	if (eFormat == MAT_PRINT_FULL) {
-		for (integer i = 1; i <= nr; i++) {
-			for (integer j = 1; j <= nc; j++) {
-				os << std::setw(16) << (*this)(i, j) << ' ';
-			}
-			os << std::endl;
-		}
-	} else if (eFormat == MAT_PRINT_TRIPLET) {
-		// Not very efficient but may be overwritten by any sparse matrix handler
-		for (integer i = 1; i <= nr; i++) {
-			for (integer j = 1; j <= nc; j++) {
-				doublereal Aij = (*this)(i, j);
+        return os;
+}
 
-				if (Aij) { // Output just nonzero entries of the full matrix
-					os << i << '\t' << j << '\t' << std::setw(16) << Aij << '\n';
-				}
-			}
-		}
-	}
+void MatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+        const integer nr = iGetNumRows();
+        const integer nc = iGetNumCols();
 
-	return os;
+        // Not very efficient but may be overwritten by any sparse matrix handler
+        for (integer i = 1; i <= nr; i++) {
+                for (integer j = 1; j <= nc; j++) {
+                        const doublereal Aij = (*this)(i, j);
+
+                        if (Aij) { // Process just nonzero entries of the full matrix
+                                func(i, j, Aij);
+                        }
+                }
+        }
 }
 
 /* Matrix Matrix product */
 MatrixHandler&
 MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
-			integer iCol, const doublereal& dCoef),
-		MatrixHandler& out, const MatrixHandler& in) const
+                        integer iCol, const doublereal& dCoef),
+                MatrixHandler& out, const MatrixHandler& in) const
 {
-	integer out_nc = out.iGetNumCols();
-	integer out_nr = out.iGetNumRows();
-	integer in_nr = in.iGetNumRows();
+        integer out_nc = out.iGetNumCols();
+        integer out_nr = out.iGetNumRows();
+        integer in_nr = in.iGetNumRows();
 
-	if (out_nr != iGetNumRows()
-		|| out_nc != in.iGetNumCols()
-		|| in_nr != iGetNumCols())
-	{
-		const char *strop;
+        if (out_nr != iGetNumRows()
+                || out_nc != in.iGetNumCols()
+                || in_nr != iGetNumCols())
+        {
+                const char *strop;
 
-		if (op == &MatrixHandler::IncCoef) {
-			strop = "+=";
-		} else if (op == &MatrixHandler::DecCoef) {
-			strop = "-=";
-		} else if (op == &MatrixHandler::PutCoef) {
-			strop = "=";
-		} else {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                if (op == &MatrixHandler::IncCoef) {
+                        strop = "+=";
+                } else if (op == &MatrixHandler::DecCoef) {
+                        strop = "-=";
+                } else if (op == &MatrixHandler::PutCoef) {
+                        strop = "=";
+                } else {
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		silent_cerr("MatrixHandler::MatMatMul_base: size mismatch "
-			"out(" << out_nr << ", " << out_nc << ") "
-			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ") "
-			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+                silent_cerr("MatrixHandler::MatMatMul_base: size mismatch "
+                        "out(" << out_nr << ", " << out_nc << ") "
+                        << strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ") "
+                        "* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+                        << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	for (integer c = 1; c <= out_nc; c++) {
-		for (integer r = 1; r <= out_nr; r++) {
-			doublereal d = 0.;
+        for (integer c = 1; c <= out_nc; c++) {
+                for (integer r = 1; r <= out_nr; r++) {
+                        doublereal d = 0.;
 
-			for (integer k = 1; k <= in_nr; k++) {
-				d += this->operator()(r, k)*in(k, c);
-			}
+                        for (integer k = 1; k <= in_nr; k++) {
+                                d += this->operator()(r, k)*in(k, c);
+                        }
 
-			(out.*op)(r, c, d);
-		}
-	}
+                        (out.*op)(r, c, d);
+                }
+        }
 
-	return out;
+        return out;
 }
 
 MatrixHandler&
 MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
-			integer iCol, const doublereal& dCoef),
-		MatrixHandler& out, const MatrixHandler& in) const
+                        integer iCol, const doublereal& dCoef),
+                MatrixHandler& out, const MatrixHandler& in) const
 {
-	integer out_nc = out.iGetNumCols();
-	integer out_nr = out.iGetNumRows();
-	integer in_nr = in.iGetNumRows();
+        integer out_nc = out.iGetNumCols();
+        integer out_nr = out.iGetNumRows();
+        integer in_nr = in.iGetNumRows();
 
-	if (out_nr != iGetNumCols()
-		|| out_nc != in.iGetNumCols()
-		|| in_nr != iGetNumRows())
-	{
-		const char *strop;
+        if (out_nr != iGetNumCols()
+                || out_nc != in.iGetNumCols()
+                || in_nr != iGetNumRows())
+        {
+                const char *strop;
 
-		if (op == &MatrixHandler::IncCoef) {
-			strop = "+=";
-		} else if (op == &MatrixHandler::DecCoef) {
-			strop = "-=";
-		} else if (op == &MatrixHandler::PutCoef) {
-			strop = "=";
-		} else {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                if (op == &MatrixHandler::IncCoef) {
+                        strop = "+=";
+                } else if (op == &MatrixHandler::DecCoef) {
+                        strop = "-=";
+                } else if (op == &MatrixHandler::PutCoef) {
+                        strop = "=";
+                } else {
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		silent_cerr("MatrixHandler::MatTMatMul_base: size mismatch "
-			"out(" << out_nr << ", " << out_nc << ") "
-			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
-			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+                silent_cerr("MatrixHandler::MatTMatMul_base: size mismatch "
+                        "out(" << out_nr << ", " << out_nc << ") "
+                        << strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
+                        "* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+                        << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	for (integer c = 1; c <= out_nc; c++) {
-		for (integer r = 1; r <= out_nr; r++) {
-			doublereal d = 0.;
+        for (integer c = 1; c <= out_nc; c++) {
+                for (integer r = 1; r <= out_nr; r++) {
+                        doublereal d = 0.;
 
-			for (integer k = 1; k <= in_nr; k++) {
-				d += this->operator()(k, r)*in(k, c);
-			}
+                        for (integer k = 1; k <= in_nr; k++) {
+                                d += this->operator()(k, r)*in(k, c);
+                        }
 
-			(out.*op)(r, c, d);
-		}
-	}
+                        (out.*op)(r, c, d);
+                }
+        }
 
-	return out;
+        return out;
 }
 
 MatrixHandler&
 MatrixHandler::MatMatMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	/* Put is implemented resetting out first, then passing IncCoef()
-	 * so that out-of-order assignments work */
-	out.Reset();
-	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
+        /* Put is implemented resetting out first, then passing IncCoef()
+         * so that out-of-order assignments work */
+        out.Reset();
+        return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler&
 MatrixHandler::MatTMatMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	/* Put is implemented resetting out first, then passing IncCoef()
-	 * so that out-of-order assignments work */
-	out.Reset();
-	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
+        /* Put is implemented resetting out first, then passing IncCoef()
+         * so that out-of-order assignments work */
+        out.Reset();
+        return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler&
 MatrixHandler::MatMatIncMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
+        return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler&
 MatrixHandler::MatTMatIncMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
+        return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler&
 MatrixHandler::MatMatDecMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	return MatMatMul_base(&MatrixHandler::DecCoef, out, in);
+        return MatMatMul_base(&MatrixHandler::DecCoef, out, in);
 }
 
 MatrixHandler&
 MatrixHandler::MatTMatDecMul(MatrixHandler& out, const MatrixHandler& in) const
 {
-	return MatTMatMul_base(&MatrixHandler::DecCoef, out, in);
+        return MatTMatMul_base(&MatrixHandler::DecCoef, out, in);
 }
 
 /* Matrix Vector product */
 VectorHandler&
 MatrixHandler::MatVecMul_base(
-	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
-	VectorHandler& out, const VectorHandler& in) const
+        void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+        VectorHandler& out, const VectorHandler& in) const
 {
-	integer nr = iGetNumRows();
-	integer nc = iGetNumCols();
+        integer nr = iGetNumRows();
+        integer nc = iGetNumCols();
 
-	if (out.iGetSize() != nr || in.iGetSize() != nc) {
-		silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
-			"out(" << out.iGetSize() << ", 1) "
-			"= this(" << nr << ", " << nc << ") "
-			"* in(" << in.iGetSize() << ", 1)" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+        if (out.iGetSize() != nr || in.iGetSize() != nc) {
+                silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
+                        "out(" << out.iGetSize() << ", 1) "
+                        "= this(" << nr << ", " << nc << ") "
+                        "* in(" << in.iGetSize() << ", 1)" << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	for (integer r = 1; r <= nr; r++) {
-		doublereal d = 0.;
+        for (integer r = 1; r <= nr; r++) {
+                doublereal d = 0.;
 
-		for (integer c = 1; c <= nc; c++) {
-			d += this->operator()(r, c)*in(c);
-		}
-		(out.*op)(r, d);
-	}
+                for (integer c = 1; c <= nc; c++) {
+                        d += this->operator()(r, c)*in(c);
+                }
+                (out.*op)(r, d);
+        }
 
-	return out;
+        return out;
 
 }
 
 VectorHandler&
 MatrixHandler::MatTVecMul_base(
-	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
-	VectorHandler& out, const VectorHandler& in) const
+        void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+        VectorHandler& out, const VectorHandler& in) const
 {
-	integer nr = iGetNumRows();
-	integer nc = iGetNumCols();
+        integer nr = iGetNumRows();
+        integer nc = iGetNumCols();
 
-	if (out.iGetSize() != nc || in.iGetSize() != nr) {
-		silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
-			"out(" << out.iGetSize() << ", 1) "
-			"= this(" << nr << ", " << nc << ")^T "
-			"* in(" << in.iGetSize() << ", 1)" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+        if (out.iGetSize() != nc || in.iGetSize() != nr) {
+                silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
+                        "out(" << out.iGetSize() << ", 1) "
+                        "= this(" << nr << ", " << nc << ")^T "
+                        "* in(" << in.iGetSize() << ", 1)" << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	for (integer r = 1; r <= nc; r++) {
-		doublereal d = 0.;
+        for (integer r = 1; r <= nc; r++) {
+                doublereal d = 0.;
 
-		for (integer c = 1; c <= nr; c++) {
-			d += this->operator()(c, r)*in(c);
-		}
-		(out.*op)(r, d);
-	}
+                for (integer c = 1; c <= nr; c++) {
+                        d += this->operator()(c, r)*in(c);
+                }
+                (out.*op)(r, d);
+        }
 
-	return out;
+        return out;
 }
 
 VectorHandler&
 MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	/* Put is implemented resetting out first, then passing IncCoef()
-	 * so that out-of-order assignments work */
-	out.Reset();
-	return MatVecMul_base(&VectorHandler::IncCoef, out, in);
+        /* Put is implemented resetting out first, then passing IncCoef()
+         * so that out-of-order assignments work */
+        out.Reset();
+        return MatVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	/* Put is implemented resetting out first, then passing IncCoef()
-	 * so that out-of-order assignments work */
-	out.Reset();
-	return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
+        /* Put is implemented resetting out first, then passing IncCoef()
+         * so that out-of-order assignments work */
+        out.Reset();
+        return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatVecMul_base(&VectorHandler::IncCoef, out, in);
+        return MatVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
+        return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatVecDecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatVecMul_base(&VectorHandler::DecCoef, out, in);
+        return MatVecMul_base(&VectorHandler::DecCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatTVecMul_base(&VectorHandler::DecCoef, out, in);
+        return MatTVecMul_base(&VectorHandler::DecCoef, out, in);
 }
 
 void
 MatrixHandler::IncCoef(integer ix, integer iy, const doublereal& inc) {
-	operator()(ix, iy) += inc;
+        operator()(ix, iy) += inc;
 }
 
 void
 MatrixHandler::DecCoef(integer ix, integer iy, const doublereal& inc) {
-	operator()(ix, iy) -= inc;
+        operator()(ix, iy) -= inc;
 }
 
 void
 MatrixHandler::PutCoef(integer ix, integer iy, const doublereal& val) {
-	operator()(ix, iy) = val;
+        operator()(ix, iy) = val;
 }
 
 const doublereal&
 MatrixHandler::dGetCoef(integer ix, integer iy) const {
-	return operator()(ix, iy);
+        return operator()(ix, iy);
 }
 
 #define HAVE_CONDITION_NUMBER ((defined(HAVE_DGETRF_) || defined(HAVE_DGETRF)) && (defined(HAVE_DGECON_) || defined(HAVE_DGECON)))
 
 namespace {
-	void LapackCopyMatrix(const MatrixHandler& MH, std::vector<doublereal>& A, integer& M, integer& N)
-	{
-		M = MH.iGetNumRows();
-		N = MH.iGetNumCols();
-		A.resize(M*N);
+        void LapackCopyMatrix(const MatrixHandler& MH, std::vector<doublereal>& A, integer& M, integer& N)
+        {
+                M = MH.iGetNumRows();
+                N = MH.iGetNumCols();
+                A.resize(M*N);
 
-		for (int i = 0; i < M; ++i) {
-			for (int j = 0; j < N; ++j) {
-				A[j * M + i] = MH(i + 1, j + 1);
-			}
-		}
-	}
+                for (int i = 0; i < M; ++i) {
+                        for (int j = 0; j < N; ++j) {
+                                A[j * M + i] = MH(i + 1, j + 1);
+                        }
+                }
+        }
 
-	doublereal LapackMatrixNorm(const std::vector<doublereal>& A, const integer M, const integer N, enum MatrixHandler::Norm_t eNorm)
-	{
-		doublereal norm = 0.;
+        doublereal LapackMatrixNorm(const std::vector<doublereal>& A, const integer M, const integer N, enum MatrixHandler::Norm_t eNorm)
+        {
+                doublereal norm = 0.;
 
-		switch (eNorm) {
-			case MatrixHandler::NORM_1:
-				for (int j = 0; j < N; ++j) {
-					doublereal csum = 0.;
+                switch (eNorm) {
+                        case MatrixHandler::NORM_1:
+                                for (int j = 0; j < N; ++j) {
+                                        doublereal csum = 0.;
 
-					for (int i = 0; i < M; ++i) {
-						csum += std::abs(A[j * M + i]);
-					}
+                                        for (int i = 0; i < M; ++i) {
+                                                csum += std::abs(A[j * M + i]);
+                                        }
 
-					if (csum > norm)
-						norm = csum;
-				}
-				break;
+                                        if (csum > norm)
+                                                norm = csum;
+                                }
+                                break;
 
-			case MatrixHandler::NORM_INF:
-				for (int i = 0; i < N; ++i) {
-					doublereal rsum = 0.;
+                        case MatrixHandler::NORM_INF:
+                                for (int i = 0; i < N; ++i) {
+                                        doublereal rsum = 0.;
 
-					for (int j = 0; j < M; ++j) {
-						rsum += std::abs(A[j * M + i]);
-					}
+                                        for (int j = 0; j < M; ++j) {
+                                                rsum += std::abs(A[j * M + i]);
+                                        }
 
-					if (rsum > norm)
-						norm = rsum;
-				}
-				break;
+                                        if (rsum > norm)
+                                                norm = rsum;
+                                }
+                                break;
 
-			default:
-				ASSERT(0);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                        default:
+                                ASSERT(0);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		return norm;
-	}
+                return norm;
+        }
 }
 
 doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 {
 #if HAVE_CONDITION_NUMBER
-	integer M;
-	integer N;
-	std::vector<doublereal> A;
+        integer M;
+        integer N;
+        std::vector<doublereal> A;
 
-	LapackCopyMatrix(*this, A, M, N);
+        LapackCopyMatrix(*this, A, M, N);
 
-	const doublereal ANORM = LapackMatrixNorm(A, M, N, eNorm);
+        const doublereal ANORM = LapackMatrixNorm(A, M, N, eNorm);
 
 #ifdef DEBUG
-	std::cerr << "ANORM=" << ANORM << std::endl;
-	std::cerr << "A=" << std::endl;
-	for (int i = 0; i < M; ++i) {
-		for (int j = 0; j < N; ++j) {
-			std::cerr << A[j * M + i] << '\t';
-		}
-		std::cerr << std::endl;
-	}
+        std::cerr << "ANORM=" << ANORM << std::endl;
+        std::cerr << "A=" << std::endl;
+        for (int i = 0; i < M; ++i) {
+                for (int j = 0; j < N; ++j) {
+                        std::cerr << A[j * M + i] << '\t';
+                }
+                std::cerr << std::endl;
+        }
 #endif // DEBUG
 
-	integer INFO = 0;
-	std::vector<integer> IPIV(std::min(M,N));
+        integer INFO = 0;
+        std::vector<integer> IPIV(std::min(M,N));
 
-	__FC_DECL__(dgetrf)(&M, &N, &A[0], &M, &IPIV[0], &INFO);
+        __FC_DECL__(dgetrf)(&M, &N, &A[0], &M, &IPIV[0], &INFO);
 
 #ifdef DEBUG
-	DEBUGCERR("dgetrf: INFO=" << INFO << std::endl); // should not fail because the Jacobian has already been factorised before
+        DEBUGCERR("dgetrf: INFO=" << INFO << std::endl); // should not fail because the Jacobian has already been factorised before
 #endif
 
-	std::vector<doublereal> WORK(4*N);
-	std::vector<integer> IWORK(N);
-	doublereal RCOND = 0.;
-	char norm;
+        std::vector<doublereal> WORK(4*N);
+        std::vector<integer> IWORK(N);
+        doublereal RCOND = 0.;
+        char norm;
 
-	switch (eNorm) {
-	case NORM_1:
-		norm = '1';
-		break;
-	case NORM_INF:
-		norm = 'I';
-		break;
-	default:
-		ASSERT(0);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+        switch (eNorm) {
+        case NORM_1:
+                norm = '1';
+                break;
+        case NORM_INF:
+                norm = 'I';
+                break;
+        default:
+                ASSERT(0);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	__FC_DECL__(dgecon)(&norm, &N, &A[0], &M, &ANORM, &RCOND, &WORK[0], &IWORK[0], &INFO);
+        __FC_DECL__(dgecon)(&norm, &N, &A[0], &M, &ANORM, &RCOND, &WORK[0], &IWORK[0], &INFO);
 
-	//ASSERT(INFO == 0); // should not fail
+        //ASSERT(INFO == 0); // should not fail
 
 #ifdef DEBUG
-	std::cerr << "RCOND=" << RCOND << std::endl;
+        std::cerr << "RCOND=" << RCOND << std::endl;
 #endif // DEBUG
 
-	return 1. / RCOND;
+        return 1. / RCOND;
 #else // ! HAVE_CONDITION_NUMBER
-	silent_cerr("Condition number is not available in this version of MBDyn" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        silent_cerr("Condition number is not available in this version of MBDyn" << std::endl);
+        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! HAVE_CONDITION_NUMBER
 }
 
 doublereal MatrixHandler::Norm(enum Norm_t eNorm)const
 {
-	integer M;
-	integer N;
-	std::vector<doublereal> A;
+        integer M;
+        integer N;
+        std::vector<doublereal> A;
 
-	LapackCopyMatrix(*this, A, M, N);
+        LapackCopyMatrix(*this, A, M, N);
 
-	return LapackMatrixNorm(A, M, N, eNorm);
+        return LapackMatrixNorm(A, M, N, eNorm);
 }
 
 void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
@@ -562,13 +578,13 @@ void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::v
      const bool bScaleCols = !oColScale.empty();
 
      for (integer j = 1; j <= iNumCols; ++j) {
-	  const doublereal dColScale = bScaleCols ? oColScale[j - 1] : 1.;
+          const doublereal dColScale = bScaleCols ? oColScale[j - 1] : 1.;
 
-	  for (integer i = 1; i <= iNumRows; ++i) {
-	       const doublereal dRowScale = bScaleRows ? oRowScale[i - 1] : 1.;
+          for (integer i = 1; i <= iNumRows; ++i) {
+               const doublereal dRowScale = bScaleRows ? oRowScale[i - 1] : 1.;
 
-	       (*this)(i, j) *= dColScale * dRowScale;
-	  }
+               (*this)(i, j) *= dColScale * dRowScale;
+          }
      }
 }
 
@@ -579,12 +595,12 @@ bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
      SP_GRAD_ASSERT(iRow <= iGetNumRows());
 
      for (const auto& oRec: oItem) {
-	  SP_GRAD_ASSERT(oRec.iDof >= 1);
-	  SP_GRAD_ASSERT(oRec.iDof <= iGetNumCols());
+          SP_GRAD_ASSERT(oRec.iDof >= 1);
+          SP_GRAD_ASSERT(oRec.iDof <= iGetNumCols());
 
-	  if (oRec.dDer) {
-	       (*this)(iRow, oRec.iDof) += oRec.dDer;
-	  }
+          if (oRec.dDer) {
+               (*this)(iRow, oRec.iDof) += oRec.dDer;
+          }
      }
 
      return true; // Note: not thread safe (need to duplicate matrix data for each thread)

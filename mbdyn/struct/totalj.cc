@@ -3383,8 +3383,8 @@ TotalPinJoint::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
                 WDelta = RchT * W1 - ThetaDrv.Get();
         }
 
-        SpColVector<T, 3> FTmp = Rch * F;
-        SpColVector<T, 3> MTmp = Rchr * M;
+        SpColVector<T, 3> FTmp = -Rch * F;
+        SpColVector<T, 3> MTmp = -Rchr * M;
 
         WorkVec.AddItem(iNode1FirstMomIndex + 1, FTmp);
         WorkVec.AddItem(iNode1FirstMomIndex + 4, SpColVector<T, 3>(MTmp + Cross(fn, FTmp)));

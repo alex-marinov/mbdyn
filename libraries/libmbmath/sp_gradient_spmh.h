@@ -132,12 +132,13 @@ public:
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
-     std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
+     virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
      virtual integer Nz() const override;
 
+     virtual SpGradientSparseMatrixHandler* Copy() const override;
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -310,10 +311,12 @@ public:
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
-     std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
-
+     virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
+     
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
+     virtual SpGradientSparseMatrixWrapper* Copy() const override;
+     
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,

@@ -134,16 +134,12 @@ public:
 	  }
      }
 
-     virtual std::ostream& Print(std::ostream& os, MatPrintFormat) const {
-	  for (const auto& i: *this) {
-	       if (i.dCoef) { // Output only nonzero entries
-		    os << i.iRow + 1 << '\t' << i.iCol + 1 << '\t' << i.dCoef << '\n';
-	       }
-	  }
-
-	  return os;
+     virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override {
+          for (const auto& d: *this) {
+               func(d.iRow + 1, d.iCol + 1, d.dCoef);
+          }
      }
-
+     
      class const_iterator {
 	  friend class CSCMatrixHandlerTpl;
 	  const CSCMatrixHandlerTpl& A;
@@ -240,6 +236,9 @@ public:
 	  return const_iterator(*this, NZ, NCols - 1);
      }
 
+     virtual CSCMatrixHandlerTpl* Copy() const override {
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     }     
 protected:
      virtual VectorHandler&
      MatVecMul_base(void (VectorHandler::*op)(integer iRow,

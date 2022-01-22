@@ -680,7 +680,6 @@ DataManager::OutputEigOpen(const std::string& postfix)
 {
 	if (!OutHdl.IsOpen(OutputHandler::EIGENANALYSIS)) {
 		OutHdl.Open(OutputHandler::EIGENANALYSIS, postfix);
-		ASSERT(OutHdl.IsOpen(OutputHandler::EIGENANALYSIS));
 	}
 }
 
