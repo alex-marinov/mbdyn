@@ -168,7 +168,6 @@ public:
 	};
 	inline void IncCurrentStep(void) {
 		currentStep++;
-		ncStart1[0] = this->GetCurrentStep();
 #if defined(USE_NETCDF)
 		ncStart1[0] = ncStart1x3[0] = ncStart1x3x3[0] = this->GetCurrentStep();
 #endif  /* USE_NETCDF */
