@@ -1071,10 +1071,14 @@ namespace {
                                           unsigned uNodeMask,
                                           std::unique_ptr<DriveCaller>&& pTemp);
           virtual ~FluidStateBoundaryCond();
-          virtual doublereal dGetPressure(doublereal h=0.) const=0;
-          virtual doublereal dGetPressureDerTime(doublereal h=0., doublereal dh_dt=0.) const=0;
-          virtual doublereal dGetDensity(doublereal h=0.) const=0;
-          virtual doublereal dGetDensityDerTime(doublereal h=0., doublereal dh_dt=0.) const=0;
+          virtual void GetPressure(doublereal& p, const doublereal& h) const=0;
+          virtual void GetPressure(SpGradient& p, const SpGradient& h) const=0;
+          virtual void GetPressureDerTime(doublereal& dp_dt, const doublereal& h, const doublereal& dh_dt) const=0;
+          virtual void GetPressureDerTime(SpGradient& dp_dt, const SpGradient& h, const SpGradient& dh_dt) const=0;
+          virtual void GetDensity(doublereal& rho, const doublereal& h) const=0;
+          virtual void GetDensity(SpGradient& rho, const SpGradient& h) const=0;
+          virtual void GetDensityDerTime(doublereal& drho_dt, const doublereal& h, const doublereal& dh_dt) const=0;
+          virtual void GetDensityDerTime(SpGradient& drho_dt, const SpGradient& h, const SpGradient& dh_dt) const=0;
           inline doublereal dGetTemperature() const;
           inline doublereal dGetTemperatureDerTime() const;
           virtual void Update();
@@ -1109,10 +1113,14 @@ namespace {
                                       std::unique_ptr<DriveCaller>&& pPressDens,
                                       std::unique_ptr<DriveCaller>&& pTemp);
           virtual ~FluidStateFunction();
-          virtual doublereal dGetPressure(doublereal h) const;
-          virtual doublereal dGetPressureDerTime(doublereal h, doublereal dh_dt) const;
-          virtual doublereal dGetDensity(doublereal h) const;
-          virtual doublereal dGetDensityDerTime(doublereal h, doublereal dh_dt) const;
+          virtual void GetPressure(doublereal& p, const doublereal& h) const override;
+          virtual void GetPressure(SpGradient& p, const SpGradient& h) const override;
+          virtual void GetPressureDerTime(doublereal& dp_dt, const doublereal& h, const doublereal& dh_dt) const override;
+          virtual void GetPressureDerTime(SpGradient& dp_dt, const SpGradient& h, const SpGradient& dh_dt) const override;
+          virtual void GetDensity(doublereal& rho, const doublereal& h) const override;
+          virtual void GetDensity(SpGradient& rho, const SpGradient& h) const override;
+          virtual void GetDensityDerTime(doublereal& drho_dt, const doublereal& h, const doublereal& dh_dt) const override;
+          virtual void GetDensityDerTime(SpGradient& drho_dt, const SpGradient& h, const SpGradient& dh_dt) const override;
           virtual void Update();
 
      private:
@@ -1132,13 +1140,27 @@ namespace {
                                         std::unique_ptr<DriveCaller>&& pFillRatio,
                                         std::unique_ptr<DriveCaller>&& pTemp);
           virtual ~FillingRatioFunction();
-          virtual doublereal dGetPressure(doublereal h) const;
-          virtual doublereal dGetPressureDerTime(doublereal h, doublereal dh_dt) const;
-          virtual doublereal dGetDensity(doublereal h) const;
-          virtual doublereal dGetDensityDerTime(doublereal h, doublereal dh_dt) const;
+
+          virtual void GetPressure(doublereal& p, const doublereal& h) const override;
+          virtual void GetPressure(SpGradient& p, const SpGradient& h) const override;
+          virtual void GetPressureDerTime(doublereal& dp_dt, const doublereal& h, const doublereal& dh_dt) const override;
+          virtual void GetPressureDerTime(SpGradient& dp_dt, const SpGradient& h, const SpGradient& dh_dt) const override;
+          virtual void GetDensity(doublereal& rho, const doublereal& h) const override;
+          virtual void GetDensity(SpGradient& rho, const SpGradient& h) const override;
+          virtual void GetDensityDerTime(doublereal& drho_dt, const doublereal& h, const doublereal& dh_dt) const override;
+          virtual void GetDensityDerTime(SpGradient& drho_dt, const SpGradient& h, const SpGradient& dh_dt) const override;
           virtual void Update();
 
      private:
+          template <typename G>
+          void GetPressureTpl(G& p, const G& h) const;
+          template <typename G>
+          void GetPressureDerTimeTpl(G& dp_dt, const G& h, const G& dh_dt) const;
+          template <typename G>
+          void GetDensityTpl(G& rho, const G& h) const;
+          template <typename G>
+          void GetDensityDerTimeTpl(G& drho_dt, const G& h, const G& dh_dt) const;
+
           std::unique_ptr<DriveCaller> pFillRatioDrv;
           doublereal h0;
           doublereal dh0_dt;
@@ -1572,9 +1594,6 @@ namespace {
           virtual void GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const=0;
           virtual void GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const=0;
           virtual void GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const=0;
-          virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const=0;
-          virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond)=0;
-          doublereal dGetClearance(const FluidStateBoundaryCond* pBoundCond, doublereal* dh_dt=nullptr) const;
           virtual bool bGetPrivateData(HydroRootBase::PrivateDataType eType, doublereal& dPrivData) const;
           virtual void Output(std::ostream& os, unsigned uOutputFlags) const;
 
@@ -1651,8 +1670,6 @@ namespace {
           virtual void GetVelocity(SpColVector<SpGradient, 2>& U1, SpColVector<SpGradient, 2>& U2) const;
           virtual void GetHydraulicVelocity(SpColVector<doublereal, 2>& U) const;
           virtual void GetHydraulicVelocity(SpColVector<SpGradient, 2>& U) const;
-          virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const;
-          virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond);
 
      private:
           HydroNode* pMasterNode;
@@ -1672,12 +1689,6 @@ namespace {
                  const VectorHandler& XPrimeCurr,
                  doublereal dCoef,
                  SpFunctionCall func);
-
-          virtual const FluidStateBoundaryCond* pGetMovingPressBoundCond() const;
-          virtual void SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond);
-
-     private:
-          const FluidStateBoundaryCond* pMovingBoundCond;
      };
 
      class HydroUpdatedNode: public HydroMasterNode {
@@ -1842,7 +1853,10 @@ namespace {
           virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const;
 
      private:
-          inline const FluidStateBoundaryCond* pGetBoundCond() const;
+          template <typename G>
+          inline void GetPressureTpl(G& p) const;
+          template <typename G>
+          inline void GetPressureDerTimeTpl(G& dp_dt) const;
           const FluidStateBoundaryCond* pBoundaryCond;
      };
 
@@ -2012,8 +2026,15 @@ namespace {
           virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const;
           virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const;
 
-          inline const FluidStateBoundaryCond* pGetFluidBoundCond() const;
      private:
+          template <typename G>
+          inline void GetPressureTpl(G& p) const;
+          template <typename G>
+          inline void GetPressureDerTimeTpl(G& dp_dt) const;
+          template <typename G>
+          inline void GetDensityTpl(G& rho) const;
+          template <typename G>
+          inline void GetDensityDerTimeTpl(G& drho_dt) const;
           const FluidStateBoundaryCond* pBoundaryCond;
      };
 
@@ -2230,16 +2251,6 @@ namespace {
           virtual enum LubricationGroove::Type
           ReadLubricationGrooveType(MBDynParser& HP) const=0;
 
-          inline const FluidStateBoundaryCond* pGetMovingPressBoundCond(const HydroNode* pNode) const {
-               return pNode->pGetMovingPressBoundCond();
-          }
-
-          virtual void AddMovingLubrGroove(LubricationGroove* pGroove);
-          virtual void ReserveMovingLubrGrooves(size_t n);
-
-          const LubricationGroove*
-          pFindMovingLubricationGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType) const;
-
           virtual doublereal dGetReferenceClearance() const=0;
 
           virtual bool
@@ -2269,11 +2280,6 @@ namespace {
                                      T* dhn_dt) const;
 
           HydroRootElement* pParent;
-
-          typedef std::vector<LubricationGroove*> LubrGrooveVectorType;
-          typedef LubrGrooveVectorType::const_iterator ConstLubrGrooveIterator;
-
-          LubrGrooveVectorType rgMovingGrooves;
      };
 
      class RigidBodyBearing: public BearingGeometry {
@@ -3857,7 +3863,6 @@ namespace {
           void SetThermalModel(const HydroFluid* pFluid);
           void GenerateBoundaryConditions();
           void GenerateComplianceModel();
-          void GenerateMovingLubricationGrooves();
           template <typename T>
           void GetPressureBoundCondTpl(const SpColVector<doublereal, 2>& x, T& p, doublereal dCoef, SpFunctionCall func) const;
 
@@ -8227,30 +8232,6 @@ namespace {
           pGetFluid()->GetViscosity(rho, T, eta);
      }
 
-     doublereal HydroNode::dGetClearance(const FluidStateBoundaryCond* const pBoundCond, doublereal* const dh_dt) const
-     {
-          doublereal h;
-
-          if (pBoundCond->bNeedClearance()) {
-               GetClearance(h);
-
-               if (dh_dt) {
-                    GetClearanceDerTime(*dh_dt);
-               }
-
-               pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, dh_dt, dh_dt);
-          } else {
-               h = 0.;
-
-               if (dh_dt) {
-                    *dh_dt = 0.;
-               }
-          }
-
-          return h;
-     }
-
-
      bool
      HydroNode::bGetPrivateData(HydroRootBase::PrivateDataType eType,
                                 doublereal& dPrivData) const
@@ -8575,16 +8556,6 @@ namespace {
           pMasterNode->GetHydraulicVelocity(U);
      }
 
-     const FluidStateBoundaryCond* HydroSlaveNode::pGetMovingPressBoundCond() const
-     {
-          return pMasterNode->pGetMovingPressBoundCond();
-     }
-
-     void HydroSlaveNode::SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond)
-     {
-          pMasterNode->SetMovingPressBoundCond(pBoundCond);
-     }
-
      index_type HydroSlaveNode::iGetComplianceIndex() const
      {
           return pMasterNode->iGetComplianceIndex();
@@ -8594,8 +8565,7 @@ namespace {
                                       const SpColVector<doublereal, 2>& x,
                                       HydroMesh* pMesh,
                                       integer iNodeFlags)
-          :HydroNode(iNodeNo, x, pMesh, iNodeFlags | MASTER_NODE),
-           pMovingBoundCond(nullptr)
+          :HydroNode(iNodeNo, x, pMesh, iNodeFlags | MASTER_NODE)
      {
 
      }
@@ -8610,17 +8580,6 @@ namespace {
                                   doublereal dCoef,
                                   SpFunctionCall func)
      {
-          pMovingBoundCond = nullptr;
-     }
-
-     const FluidStateBoundaryCond* HydroMasterNode::pGetMovingPressBoundCond() const
-     {
-          return pMovingBoundCond;
-     }
-
-     void HydroMasterNode::SetMovingPressBoundCond(const FluidStateBoundaryCond* pBoundCond)
-     {
-          pMovingBoundCond = pBoundCond;
      }
 
      HydroUpdatedNode::HydroUpdatedNode(integer iNodeNo,
@@ -9051,36 +9010,42 @@ namespace {
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     void HydroPassiveNode::GetPressure(doublereal& p, doublereal) const
+     void HydroPassiveNode::GetPressure(doublereal& p, doublereal dCoef) const
      {
-          p = pGetBoundCond()->dGetPressure();
+          GetPressureTpl(p);
      }
 
      void HydroPassiveNode::GetPressure(SpGradient& p, doublereal dCoef) const
      {
-          p.ResizeReset(pGetBoundCond()->dGetPressure(), 0);
+          GetPressureTpl(p);
      }
 
      void HydroPassiveNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
      {
-          dp_dt = pGetBoundCond()->dGetPressureDerTime();
+          GetPressureDerTimeTpl(dp_dt);
      }
 
      void HydroPassiveNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
      {
-          dp_dt.ResizeReset(pGetBoundCond()->dGetPressureDerTime(), 0);
+          GetPressureDerTimeTpl(dp_dt);
      }
 
-     const FluidStateBoundaryCond*
-     HydroPassiveNode::pGetBoundCond() const
+     template <typename G>
+     void HydroPassiveNode::GetPressureTpl(G& p) const
      {
-          const FluidStateBoundaryCond* pBound = pGetMovingPressBoundCond();
+          G h;
+          GetClearance(h);
+          pBoundaryCond->GetPressure(p, h);
+     }
 
-          if (!pBound) {
-               pBound = pBoundaryCond;
-          }
+     template <typename G>
+     void HydroPassiveNode::GetPressureDerTimeTpl(G& dp_dt) const
+     {
+          G h, dh_dt;
 
-          return pBound;
+          GetClearance(h);
+          GetClearanceDerTime(dh_dt);
+          pBoundaryCond->GetPressureDerTime(dp_dt, h, dh_dt);
      }
 
      HydroIncompressibleNode::HydroIncompressibleNode(integer iNodeNo,
@@ -9717,77 +9682,80 @@ namespace {
 
      void HydroPassiveComprNode::GetPressure(doublereal& p, doublereal) const
      {
-          const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
-          const doublereal h = dGetClearance(pBound);
-          p = pBound->dGetPressure(h);
+          GetPressureTpl(p);
      }
 
      void HydroPassiveComprNode::GetPressure(SpGradient& p, doublereal dCoef) const
      {
-          doublereal ps;
-
-          GetPressure(ps);
-          p.ResizeReset(ps, 0);
+          GetPressureTpl(p);
      }
 
      void HydroPassiveComprNode::GetPressureDerTime(doublereal& dp_dt, doublereal) const
      {
-          const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
-          doublereal h, dh_dt;
-
-          h = dGetClearance(pBound, &dh_dt);
-          dp_dt = pBound->dGetPressureDerTime(h, dh_dt);
+          GetPressureDerTimeTpl(dp_dt);
      }
 
      void HydroPassiveComprNode::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
      {
-          doublereal dps_dt;
-
-          GetPressureDerTime(dps_dt);
-          dp_dt.ResizeReset(dps_dt, 0);
+          GetPressureDerTimeTpl(dp_dt);
      }
 
      void HydroPassiveComprNode::GetDensity(doublereal& rho, doublereal) const
      {
-          const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
-          const doublereal h = dGetClearance(pBound);
-          rho = pBound->dGetDensity(h);
+          GetDensityTpl(rho);
      }
 
      void HydroPassiveComprNode::GetDensity(SpGradient& rho, doublereal) const
      {
-          doublereal rhos;
-
-          GetDensity(rhos);
-          rho.ResizeReset(rhos, 0);
+          GetDensityTpl(rho);
      }
 
      void HydroPassiveComprNode::GetDensityDerTime(doublereal& drho_dt, doublereal) const
      {
-          const FluidStateBoundaryCond* const pBound = pGetFluidBoundCond();
-          doublereal dh_dt;
-          const doublereal h = dGetClearance(pBound, &dh_dt);
-
-          drho_dt = pBound->dGetDensityDerTime(h, dh_dt);
+          GetDensityDerTimeTpl(drho_dt);
      }
 
      void HydroPassiveComprNode::GetDensityDerTime(SpGradient& drho_dt, doublereal) const
      {
-          doublereal drhos_dt;
-
-          GetDensityDerTime(drhos_dt);
-          drho_dt.ResizeReset(drhos_dt, 0);
+          GetDensityDerTimeTpl(drho_dt);
      }
 
-     const FluidStateBoundaryCond* HydroPassiveComprNode::pGetFluidBoundCond() const
+     template <typename G>
+     void HydroPassiveComprNode::GetPressureTpl(G& p) const
      {
-          const FluidStateBoundaryCond* pBound = pGetMovingPressBoundCond();
+          G h;
 
-          if (pBound == nullptr) {
-               pBound = pBoundaryCond;
-          }
+          GetClearance(h);
+          pBoundaryCond->GetPressure(p, h);
+     }
 
-          return pBound;
+     template <typename G>
+     void HydroPassiveComprNode::GetPressureDerTimeTpl(G& dp_dt) const
+     {
+          G h, dh_dt;
+
+          GetClearance(h);
+          GetClearanceDerTime(dh_dt);
+          pBoundaryCond->GetPressureDerTime(dp_dt, h, dh_dt);
+     }
+
+     template <typename G>
+     void HydroPassiveComprNode::GetDensityTpl(G& p) const
+     {
+          G h;
+
+          GetClearance(h);
+          pBoundaryCond->GetDensity(p, h);
+     }
+
+     template <typename G>
+     void HydroPassiveComprNode::GetDensityDerTimeTpl(G& dp_dt) const
+     {
+          G h, dh_dt;
+
+          GetClearance(h);
+          GetClearanceDerTime(dh_dt);
+          pBoundaryCond->GetDensityDerTime(dp_dt, h, dh_dt);
      }
 
      HydroComprOutletNode::HydroComprOutletNode(integer iNodeNo,
@@ -13153,30 +13121,6 @@ namespace {
           }
      }
 
-     void BearingGeometry::AddMovingLubrGroove(LubricationGroove* pGroove)
-     {
-          HYDRO_ASSERT(rgMovingGrooves.size() < rgMovingGrooves.capacity());
-
-          rgMovingGrooves.push_back(pGroove);
-     }
-
-     void BearingGeometry::ReserveMovingLubrGrooves(size_t n)
-     {
-          rgMovingGrooves.reserve(n);
-     }
-
-     const LubricationGroove* BearingGeometry::pFindMovingLubricationGroove(const SpColVector<doublereal, 2>& x, Node2D::NodeType eNodeType) const
-     {
-          for (auto i = rgMovingGrooves.begin(); i != rgMovingGrooves.end(); ++i) {
-               if ((*i)->pGetGeometry()->bPointIsInside(x) &&
-                   (*i)->pGetBoundaryCond()->bIncludeNode(eNodeType)) {
-                    return (*i);
-               }
-          }
-
-          return nullptr;
-     }
-
      doublereal BearingGeometry::dGetNodeDistance2D(const Node2D* pNode1, const Node2D* pNode2, index_type iDirection) const
      {
           const SpColVector<doublereal, 2>& x1 = pNode1->GetPosition2D();
@@ -13817,18 +13761,6 @@ namespace {
                SpGradient::ResizeReset(dDeltay2_dz2, 0., 0);
           }
 
-          const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(x2.GetValue(), pNode->GetNodePhysics());
-
-#if HYDRO_DEBUG > 1
-          if (pMovingGroove) {
-               HYDRO_TRACE("node(" << pNode->iGetNodeNumber() + 1
-                           << ") affected by moving boundary condition at x2("
-                           << x2.GetValue() << ")\n");
-          }
-#endif
-
-          pNode->SetMovingPressBoundCond(pMovingGroove ? pMovingGroove->pGetBoundaryCond() : nullptr);
-
           T w, dw_dt;
 
           pNode->GetRadialDeformation(w, dw_dt, dCoef, func);
@@ -14204,7 +14136,11 @@ namespace {
           if (HP.IsKeyWord("at" "shaft")) {
                return LubricationGroove::FIXED;
           } else if (HP.IsKeyWord("at" "bearing")) {
-               return LubricationGroove::MOVING;
+               silent_cerr("hydrodynamic plain bearing2("
+                           << pGetParent()->GetLabel()
+                           << "): keyword \"at bearing\" is not implemented at line "
+                           << HP.GetLineData() << std::endl);
+               throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
           } else {
                silent_cerr("hydrodynamic plain bearing2("
                            << pGetParent()->GetLabel()
@@ -14473,7 +14409,11 @@ namespace {
      CylindricalMeshAtBearing::ReadLubricationGrooveType(MBDynParser& HP) const
      {
           if (HP.IsKeyWord("at" "shaft")) {
-               return LubricationGroove::MOVING;
+               silent_cerr("hydrodynamic plain bearing2("
+                           << pGetParent()->GetLabel()
+                           << "): keyword \"at shaft\" not implemented at line "
+                           << HP.GetLineData() << std::endl);
+               throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
           } else if (HP.IsKeyWord("at" "bearing")) {
                return LubricationGroove::FIXED;
           } else {
@@ -14698,17 +14638,6 @@ namespace {
                pPocket1->GetHeightDerX(x1, dDeltay1_dx1);
                pPocket1->GetHeightDerZ(x1, dDeltay1_dz1);
           }
-
-          const LubricationGroove* const pMovingGroove = rParent.pFindMovingLubricationGroove(x1.GetValue(), pNode->GetNodePhysics());
-
-#if HYDRO_DEBUG > 1
-          if (pMovingGroove) {
-               HYDRO_TRACE("node(" << pNode->iGetNodeNumber() + 1
-                           << ") affected by moving boundary condition at x1("
-                           << x1.GetValue() << ")\n");
-          }
-#endif
-          pNode->SetMovingPressBoundCond(pMovingGroove ? pMovingGroove->pGetBoundaryCond() : nullptr);
 
           T w, dw_dt;
 
@@ -15787,61 +15716,37 @@ namespace {
                                          SpFunctionCall func)
      {
           const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
-          const FluidStateBoundaryCond* const pBoundaryCond = pGeometry->pGetMovingPressBoundCond(rgHydroNodes[iNodeCenter]);
-
           const integer iFirstIndex = rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func);
 
           const doublereal dEquationScale = pGetMesh()->pGetParent()->dGetScale(HydroRootElement::SCALE_REYNOLDS_EQU) / dCoef;
 
-          if (pBoundaryCond == nullptr) {
-               T h, dh_dt, rho, drho_dt;
+          T h, dh_dt, rho, drho_dt;
 
-               std::array<T, iNumFluxNodes> mdot;
+          std::array<T, iNumFluxNodes> mdot;
 
-               for (index_type i = 0; i < iNumFluxNodes; ++i) {
-                    rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
-               }
-
-               rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
-               rgHydroNodes[iNodeCenter]->GetClearance(h);
-               rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
-               pGeometry->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
-
-               if (func & SpFunctionCall::REGULAR_FLAG) {
-                    rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
-               } else {
-                    SpGradient::ResizeReset(drho_dt, 0., 0);
-               }
-
-               const T Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
-                                        + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
-                                        + (drho_dt * h + rho * dh_dt))
-                                       * dEquationScale);
-
-               CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
-
-               WorkVec.AddItem(iFirstIndex, Re);
-          } else {
-               const doublereal ppre = pBoundaryCond->dGetPressure();
-
-               T pcenter{};
-
-               rgHydroNodes[iNodeCenter]->GetPressure(pcenter, dCoef);
-
-               const T f = EvalUnique((pcenter - ppre) * dEquationScale);
-
-               HYDRO_TRACE("node=" << rgHydroNodes[iNodeCenter]->iGetNodeNumber() + 1
-                           << ":" << rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func)
-                           << ":" << rgHydroNodes[iNodeCenter]->iGetFirstDofIndex(func) << std::endl);
-               HYDRO_TRACE("ppre=" << ppre << std::endl);
-               HYDRO_TRACE("p=" << pcenter << std::endl);
-               HYDRO_TRACE("scale=" << dEquationScale << std::endl);
-               HYDRO_TRACE("f(imposed pressure)=" << f << std::endl);
-
-               CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex);
-
-               WorkVec.AddItem(iFirstIndex, f);
+          for (index_type i = 0; i < iNumFluxNodes; ++i) {
+               rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
           }
+
+          rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+          rgHydroNodes[iNodeCenter]->GetClearance(h);
+          rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
+          pGeometry->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
+
+          if (func & SpFunctionCall::REGULAR_FLAG) {
+               rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
+          } else {
+               SpGradient::ResizeReset(drho_dt, 0., 0);
+          }
+
+          const T Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
+                                   + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
+                                   + (drho_dt * h + rho * dh_dt))
+                                  * dEquationScale);
+
+          CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
+
+          WorkVec.AddItem(iFirstIndex, Re);
      }
 
      LinFD5CouplingElem::LinFD5CouplingElem(HydroMesh* pMesh)
@@ -16462,88 +16367,64 @@ namespace {
                                               const SpGradientVectorHandler<G>& XCurr,
                                               SpFunctionCall func)
      {
-          const BearingGeometry* const pGeometry = pGetMesh()->pGetGeometry();
-          const FluidStateBoundaryCond* const pBoundaryCond = pGeometry->pGetMovingPressBoundCond(rgHydroNodes[iNodeCenter]);
-
           const integer iFirstIndex = rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func);
 
           const HydroRootElement* const pParent = pGetMesh()->pGetParent();
           const doublereal dEquationScale = pParent->dGetScale(HydroRootElement::SCALE_REYNOLDS_EQU);
 
-          if (pBoundaryCond == nullptr) {
-               G rho, drho_dt, h, dh_dt;
-               std::array<G, iNumFluxNodes> mdot, w;
+          G rho, drho_dt, h, dh_dt;
+          std::array<G, iNumFluxNodes> mdot, w;
 
-               for (index_type i = 0; i < iNumFluxNodes; ++i) {
-                    if (typeid(G) == typeid(doublereal)) {
-                         rgFluxNodes[i]->GetVelocityAvg(w[i]);
-                    }
-                    rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
+          for (index_type i = 0; i < iNumFluxNodes; ++i) {
+               if (std::is_same<G, doublereal>::value) {
+                    rgFluxNodes[i]->GetVelocityAvg(w[i]);
                }
+               rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
+          }
 
-               rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
-               rgHydroNodes[iNodeCenter]->GetClearance(h);
-               rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
-               pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
+          rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+          rgHydroNodes[iNodeCenter]->GetClearance(h);
+          rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
+          pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
 
-               if (func & SpFunctionCall::REGULAR_FLAG) {
-                    rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
-               } else {
-                    SpGradient::ResizeReset(drho_dt, 0., 0);
-               }
-
-               const G Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
-                                        + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
-                                        + (drho_dt * h + rho * dh_dt)) * dEquationScale);
-
-               SetMaxTimeStep(w);
-
-               CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
-
-               WorkVec.AddItem(iFirstIndex, Re);
-
-               if (func & SpFunctionCall::REGULAR_FLAG) {
-                    G f, pc{pGetFluid()->dGetRefPressure()};
-
-                    if (rgHydroNodes[iNodeCenter]->GetCavitationState() == HydroFluid::FULL_FILM_REGION) {
-                         G T, rhoc;
-
-                         rgHydroNodes[iNodeCenter]->GetTemperature(T, dCoef);
-
-                         pGetFluid()->GetDensity(pc, T, rhoc); // Assume that pc is the cavitation pressure
-
-                         f = EvalUnique((rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
-                    } else {
-                         G p;
-
-                         rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
-
-                         f = EvalUnique((p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
-                    }
-
-                    CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex + 1);
-
-                    WorkVec.AddItem(iFirstIndex + 1, f);
-               }
+          if (func & SpFunctionCall::REGULAR_FLAG) {
+               rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
           } else {
-               const doublereal h = rgHydroNodes[iNodeCenter]->dGetClearance(pBoundaryCond);
-               const doublereal rho_pre = pBoundaryCond->dGetDensity(h);
-               const doublereal p_pre = pBoundaryCond->dGetPressure(h);
+               SpGradient::ResizeReset(drho_dt, 0., 0);
+          }
 
-               G rho, p;
+          const G Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
+                                   + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
+                                   + (drho_dt * h + rho * dh_dt)) * dEquationScale);
 
-               rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
-               rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
+          SetMaxTimeStep(w);
 
-               CHECK_NUM_COLS_WORK_SPACE(this, func, p, iFirstIndex);
+          CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
 
-               WorkVec.AddItem(iFirstIndex, EvalUnique((p - p_pre) * dEquationScale));
+          WorkVec.AddItem(iFirstIndex, Re);
 
-               if (func & SpFunctionCall::REGULAR_FLAG) {
-                    CHECK_NUM_COLS_WORK_SPACE(this, func, rho, iFirstIndex + 1);
+          if (func & SpFunctionCall::REGULAR_FLAG) {
+               G f, pc{pGetFluid()->dGetRefPressure()};
 
-                    WorkVec.AddItem(iFirstIndex + 1, EvalUnique((rho - rho_pre) * dEquationScale));
+               if (rgHydroNodes[iNodeCenter]->GetCavitationState() == HydroFluid::FULL_FILM_REGION) {
+                    G T, rhoc;
+
+                    rgHydroNodes[iNodeCenter]->GetTemperature(T, dCoef);
+
+                    pGetFluid()->GetDensity(pc, T, rhoc); // Assume that pc is the cavitation pressure
+
+                    f = EvalUnique((rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
+               } else {
+                    G p;
+
+                    rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
+
+                    f = EvalUnique((p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
                }
+
+               CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex + 1);
+
+               WorkVec.AddItem(iFirstIndex + 1, f);
           }
      }
 
@@ -17607,13 +17488,7 @@ namespace {
           SpColVectorA<doublereal, iNumNodes, 1> etae;
           std::array<index_type, iNumNodes> rgActiveNodes;
 
-          struct MovingBoundCond {
-               const FluidStateBoundaryCond* pMovingBound;
-               index_type iNodeIdx;
-          };
-
-          std::array<MovingBoundCond, iNumNodes> rgMovingBound;
-          index_type iNumActiveNodes = 0, iNumMovingBound = 0;
+          index_type iNumActiveNodes = 0;
 
           for (index_type i = 1; i <= iNumNodes; ++i) {
                rgNodes[i - 1]->GetPressure(pe(i), dCoef);
@@ -17631,15 +17506,7 @@ namespace {
                rgNodes[i - 1]->GetViscosity(etae(i));
 
                if (rgNodes[i - 1]->bIsNodeType(HydroNode::ACTIVE_NODE)) {
-                    const FluidStateBoundaryCond* const pMovingBoundCond = pGeometry->pGetMovingPressBoundCond(rgNodes[i - 1]);
-
-                    if (!pMovingBoundCond) {
-                         rgActiveNodes[iNumActiveNodes++] = i - 1;
-                    } else {
-                         rgMovingBound[iNumMovingBound].pMovingBound = pMovingBoundCond;
-                         rgMovingBound[iNumMovingBound].iNodeIdx = i - 1;
-                         ++iNumMovingBound;
-                    }
+                    rgActiveNodes[iNumActiveNodes++] = i - 1;
                }
           }
 
@@ -17685,16 +17552,6 @@ namespace {
 
                     WorkVec.AddItem(rgNodes[iNodeIdx]->iGetFirstEquationIndex(func), fe(iNodeIdx + 1));
                }
-          }
-
-          for (index_type i = 0; i < iNumMovingBound; ++i) {
-               const index_type iNodeIdx = rgMovingBound[i].iNodeIdx;
-               const doublereal ppre = rgMovingBound[i].pMovingBound->dGetPressure();
-               const T f = EvalUnique((pe(iNodeIdx + 1) - ppre) * dEquationScale);
-
-               CHECK_NUM_COLS_WORK_SPACE(this, func, f, rgNodes[iNodeIdx]->iGetFirstEquationIndex(func));
-
-               WorkVec.AddItem(rgNodes[iNodeIdx]->iGetFirstEquationIndex(func), f);
           }
      }
 
@@ -18879,24 +18736,44 @@ namespace {
 
      }
 
-     doublereal FluidStateFunction::dGetPressure(doublereal) const
+     void FluidStateFunction::GetPressure(doublereal& p_o, const doublereal&) const
      {
-          return p;
+          p_o = p;
      }
 
-     doublereal FluidStateFunction::dGetPressureDerTime(doublereal, doublereal) const
+     void FluidStateFunction::GetPressure(SpGradient& p_o, const SpGradient&) const
      {
-          return dp_dt;
+          p_o.ResizeReset(p, 0);
      }
 
-     doublereal FluidStateFunction::dGetDensity(doublereal) const
+     void FluidStateFunction::GetPressureDerTime(doublereal& dp_o_dt, const doublereal&, const doublereal&) const
      {
-          return rho;
+          dp_o_dt = dp_dt;
      }
 
-     doublereal FluidStateFunction::dGetDensityDerTime(doublereal, doublereal) const
+     void FluidStateFunction::GetPressureDerTime(SpGradient& dp_o_dt, const SpGradient&, const SpGradient&) const
      {
-          return drho_dt;
+          dp_o_dt.ResizeReset(dp_dt, 0);
+     }
+
+     void FluidStateFunction::GetDensity(doublereal& rho_o, const doublereal&) const
+     {
+          rho_o = rho;
+     }
+
+     void FluidStateFunction::GetDensity(SpGradient& rho_o, const SpGradient&) const
+     {
+          rho_o.ResizeReset(rho, 0);
+     }
+
+     void FluidStateFunction::GetDensityDerTime(doublereal& drho_o_dt, const doublereal&, const doublereal&) const
+     {
+          drho_o_dt = drho_dt;
+     }
+
+     void FluidStateFunction::GetDensityDerTime(SpGradient& drho_o_dt, const SpGradient&, const SpGradient&) const
+     {
+          drho_o_dt.ResizeReset(drho_dt, 0);
      }
 
      FluidStateFunction::~FluidStateFunction()
@@ -18968,52 +18845,44 @@ namespace {
 
      }
 
-     doublereal FillingRatioFunction::dGetPressure(doublereal h) const
+     void FillingRatioFunction::GetPressure(doublereal& p_o, const doublereal& h) const
      {
-          const doublereal rho = dGetDensity(h);
-          const doublereal T = dGetTemperature();
-          doublereal p;
-
-          pGetFluid()->GetPressure(rho, T, p);
-
-          return p;
+          GetPressureTpl(p_o, h);
      }
 
-     doublereal FillingRatioFunction::dGetPressureDerTime(doublereal h, doublereal dh_dt) const
+     void FillingRatioFunction::GetPressure(SpGradient& p_o, const SpGradient& h) const
      {
-          doublereal p, dp_drho, dp_dT;
-          const doublereal T = dGetTemperature();
-          const doublereal dT_dt = dGetTemperatureDerTime();
-
-          pGetFluid()->GetPressure(rho, T, p, &dp_drho, &dp_dT);
-
-          return dp_drho * drho_dt + dp_dT * dT_dt;
+          GetPressureTpl(p_o, h);
      }
 
-     doublereal FillingRatioFunction::dGetDensity(doublereal h) const
+     void FillingRatioFunction::GetPressureDerTime(doublereal& p_o, const doublereal& h, const doublereal& dh_dt) const
      {
-          doublereal alpha = h0 / h;
-
-          if (alpha > 1.) {
-               alpha = 1.;
-          }
-
-          return alpha * rho;
+          GetPressureDerTimeTpl(p_o, h, dh_dt);
      }
 
-     doublereal FillingRatioFunction::dGetDensityDerTime(doublereal h, doublereal dh_dt) const
+     void FillingRatioFunction::GetPressureDerTime(SpGradient& p_o, const SpGradient& h, const SpGradient& dh_dt) const
      {
-          doublereal alpha = h0 / h;
-          doublereal dalpha_dt;
+          GetPressureDerTimeTpl(p_o, h, dh_dt);
+     }
 
-          if (alpha > 1.) {
-               alpha = 1.;
-               dalpha_dt = 0.;
-          } else {
-               dalpha_dt = dh0_dt / h - h0 / (h * h) * dh_dt;
-          }
+     void FillingRatioFunction::GetDensity(doublereal& rho_o, const doublereal& h) const
+     {
+          GetDensityTpl(rho_o, h);
+     }
 
-          return dalpha_dt * rho + alpha * drho_dt;
+     void FillingRatioFunction::GetDensity(SpGradient& rho_o, const SpGradient& h) const
+     {
+          GetDensityTpl(rho_o, h);
+     }
+
+     void FillingRatioFunction::GetDensityDerTime(doublereal& drho_o_dt, const doublereal& h, const doublereal& dh_dt) const
+     {
+          GetDensityDerTimeTpl(drho_o_dt, h, dh_dt);
+     }
+
+     void FillingRatioFunction::GetDensityDerTime(SpGradient& drho_o_dt, const SpGradient& h, const SpGradient& dh_dt) const
+     {
+          GetDensityDerTimeTpl(drho_o_dt, h, dh_dt);
      }
 
      void FillingRatioFunction::Update()
@@ -19034,6 +18903,60 @@ namespace {
           pGetFluid()->GetDensity(p, T, rho, nullptr, &drho_dT);
 
           drho_dt = drho_dT * dT_dt;
+     }
+
+     template <typename G>
+     void FillingRatioFunction::GetPressureTpl(G& p_o, const G& h) const
+     {
+          const G T_o{dGetTemperature()};
+          G rho_o;
+
+          GetDensityTpl(rho_o, h);
+          pGetFluid()->GetPressure(rho_o, T_o, p_o);
+     }
+
+     template <typename G>
+     void FillingRatioFunction::GetPressureDerTimeTpl(G& dp_o_dt, const G& h, const G& dh_dt) const
+     {
+          const G T_o{dGetTemperature()};
+          const doublereal dT_o_dt{dGetTemperatureDerTime()};
+
+          G rho_o, drho_o_dt, p_o, dp_o_drho, dp_o_dT;
+
+          GetDensityTpl(rho_o, h);
+          GetDensityDerTimeTpl(drho_o_dt, h, dh_dt);
+
+          pGetFluid()->GetPressure(rho_o, T_o, p_o, &dp_o_drho, &dp_o_dT);
+
+          dp_o_dt = dp_o_drho * drho_o_dt + dp_o_dT * dT_o_dt;
+     }
+
+     template <typename G>
+     void FillingRatioFunction::GetDensityTpl(G& rho_o, const G& h) const
+     {
+          G alpha = h0 / h;
+
+          if (alpha > 1.) {
+               SpGradient::ResizeReset(alpha, 1., 0);
+          }
+
+          rho_o = alpha * rho;
+     }
+
+     template <typename G>
+     void FillingRatioFunction::GetDensityDerTimeTpl(G& drho_o_dt, const G& h, const G& dh_dt) const
+     {
+          G alpha = h0 / h;
+          G dalpha_dt;
+
+          if (alpha > 1.) {
+               SpGradient::ResizeReset(alpha, 1., 0);
+               SpGradient::ResizeReset(dalpha_dt, 0., 0);
+          } else {
+               dalpha_dt = dh0_dt / h - h0 / (h * h) * dh_dt;
+          }
+
+          drho_o_dt = dalpha_dt * rho + alpha * drho_dt;
      }
 
      PressureCouplingCond::PressureCouplingCond(integer iLabel, std::unique_ptr<Geometry2D>&& pGeometry)
@@ -19705,25 +19628,6 @@ namespace {
           rgBoundaryCond.clear();
      }
 
-     void HydroMesh::GenerateMovingLubricationGrooves()
-     {
-          size_t iNumMovingLubrGrooves = 0;
-
-          for (auto i = rgGrooves.begin(); i != rgGrooves.end(); ++i) {
-               if ((*i)->GetType() == LubricationGroove::MOVING) {
-                    ++iNumMovingLubrGrooves;
-               }
-          }
-
-          pGeometry->ReserveMovingLubrGrooves(iNumMovingLubrGrooves);
-
-          for (auto i = rgGrooves.begin(); i != rgGrooves.end(); ++i) {
-               if ((*i)->GetType() == LubricationGroove::MOVING) {
-                    pGeometry->AddMovingLubrGroove(i->get());
-               }
-          }
-     }
-
      template <typename T>
      void HydroMesh::GetPressureBoundCondTpl(const SpColVector<doublereal, 2>& x, T& p, const doublereal dCoef, const SpFunctionCall func) const
      {
@@ -19749,7 +19653,9 @@ namespace {
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
 
-               SpGradient::ResizeReset(p, pBoundaryCond->dGetPressure(), 0); // FIXME: assuming h == 0
+               T h{0.}; // FIXME: assuming h == 0
+
+               pBoundaryCond->GetPressure(p, h);
           }
 
           pGetParent()->pGetFluid()->Cavitation(p);
@@ -20266,7 +20172,6 @@ namespace {
           const bool bInitAssThermal = pGetParent()->bInitialAssembly(HydroRootElement::INIT_ASS_THERMAL);
 
           GenerateBoundaryConditions();
-          GenerateMovingLubricationGrooves();
 
           // active pressure nodes
           for (integer i = 1; i <= M - 1; ++i) {
@@ -21120,7 +21025,6 @@ namespace {
           HYDRO_ASSERT(z.iGetNumRows() & 1);
 
           GenerateBoundaryConditions();
-          GenerateMovingLubricationGrooves();
 
           std::unique_ptr<HydroNode> pNode;
 
