@@ -5247,6 +5247,7 @@ Solver::AllocateNonlinearSolver()
             case LinSol::UMFPACK_SOLVER:
             case LinSol::KLU_SOLVER:
             case LinSol::PASTIX_SOLVER:
+            case LinSol::PARDISO_SOLVER:
                 break;
                 
             default:
@@ -5256,7 +5257,7 @@ Solver::AllocateNonlinearSolver()
                                   << "\" not supported by modified line search\n");
                 }
                 
-                bTrueNewtonRaphson = true;
+                LineSearch.iIterationsBeforeAssembly = 0;
             }
             
             if (bTrueNewtonRaphson) {
