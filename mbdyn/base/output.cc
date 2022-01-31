@@ -551,7 +551,11 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 {
 #ifdef USE_NETCDF
 	if (out == NETCDF && !IsOpen(out)) {
-		return NetCDFOpen(out, netCDF::NcFile::nc4);
+		// FIXME: we should use the default format, or any selected by the user;
+		// but wait a minute: can this actually happen?
+		// return NetCDFOpen(out, netCDF::NcFile::nc4);
+		return NetCDFOpen(out, netCDF::NcFile::classic);
+
 	} else
 #endif /* USE_NETCDF */
 	{

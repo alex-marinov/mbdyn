@@ -1011,7 +1011,7 @@ EndOfUse:
 					}
 #ifndef USE_NETCDF
 					silent_cerr("\"netcdf\" ignored; please rebuild with NetCDF output enabled"
-						<< std::endl);
+						" at line " << HP.GetLineData() << std::endl);
 #endif /* ! USE_NETCDF */
 
 				} else {
@@ -1485,6 +1485,7 @@ EndOfUse:
 #endif // USE_NETCDF
 
 	if (bOutput(RES_NETCDF)) {
+		// FIXME: replace with a single call that sets NetCDF for all types that support it
 		OutHdl.SetNetCDF(OutputHandler::NETCDF);
 		OutHdl.SetNetCDF(OutputHandler::STRNODES);
 		OutHdl.SetNetCDF(OutputHandler::INERTIA);

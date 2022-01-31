@@ -415,7 +415,9 @@ where
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{file_format} ::= \{ \kw{classic} | \kw{classic64} | \kw{nc4} | \kw{nc4classic} \}
 \end{Verbatim}
-allows to choose the preferrend file format, with \kw{nc4} the default.
+allows one to choose the preferred file format, with \kw{nc4} the default\footnote{%
+Currently, the default has been brought back to \kw{classic}, since using \kw{nc4} results in much slower analyses.
+}.
 The optional \kw{sync} keyword forces syncing of the
 output file after each time step; this allows to monitor the results of an ongoing simulation, 
 at the expense of a slightly increased I/O time.
