@@ -408,7 +408,8 @@ the experimental support for NetCDF output, which eventually
 will replace the current textual output:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \bnt{file_format} ] [ , \kw{sync} ] [ , \kw{no text} ] ;
+    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \bnt{file_format} ]
+        [ , [ \kw{no} ] \kw{sync} ] [ , [ \kw{no} ] \kw{text} ] ;
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -420,9 +421,9 @@ Currently, the default has been brought back to \kw{classic}, since using \kw{nc
 }.
 The optional \kw{sync} keyword forces syncing of the
 output file after each time step; this allows to monitor the results of an ongoing simulation, 
-at the expense of a slightly increased I/O time.
+at the expense of a slightly increased I/O time (\kw{no sync} is also provided, in case the default changes).
 If the optional keyword \kw{no text} is present,
-standard output in ASCII form is disabled.
+standard output in ASCII form is disabled (\kw{text} is also provided, in case the default changes).
 
 \subsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
 This statement is used to select the default format for orientation output.

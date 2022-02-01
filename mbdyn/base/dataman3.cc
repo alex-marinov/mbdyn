@@ -1004,6 +1004,16 @@ EndOfUse:
 						bNetCDFsync = true;
 #endif // USE_NETCDF
 					}
+					if (HP.IsKeyWord("no" "sync")) {
+#ifdef USE_NETCDF
+						bNetCDFsync = false;
+#endif // USE_NETCDF
+					}
+					if (HP.IsKeyWord("text")) {
+#ifdef USE_NETCDF
+						bNetCDFnoText = false;
+#endif // USE_NETCDF
+					}
 					if (HP.IsKeyWord("no" "text")) {
 #ifdef USE_NETCDF
 						bNetCDFnoText = true;
