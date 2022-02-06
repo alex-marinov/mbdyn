@@ -59,10 +59,6 @@ ThetaRef(Zero3),
 ThetaCurr(Zero3),
 M(Zero3),
 bFirstRes(false)
-#ifdef USE_NETCDFC
-,
-Var_Phi(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -651,4 +647,33 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+DriveHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 6
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::rad;
+		break;
+	case 4:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 5:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	case 6:
+		dimension = OutputHandler::Dimensions::AngularVelocity;
+		break;
+	}
+
+	return dimension;
+}
 /* DriveHingeJoint - end */

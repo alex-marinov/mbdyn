@@ -58,6 +58,17 @@ See the directives \kw{use} in Section~\ref{sec:CONTROLDATA:USE}
 and \kw{initial stiffness} in Section~\ref{sec:CONTROLDATA:INITIALSTIFFNESS}
 for more details on performing appropriate initial joint assembly.
 
+\subsection{Initial Assembly of Deformable and Force Elements}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{initial assembly of deformable and force elements} ;
+\end{Verbatim}
+%\end{verbatim}
+This directive enables the initial assembly of deformable and force elements.
+Previous MBDyn versions used to assemble them by default, while they should not 
+really cotribute to the intitial assembly.
+As a backward-incompatible change they do no more contribute to the initial assembly,
+but the previous behavior can be recovered back with this flag.
 
 
 \subsection{Use}\label{sec:CONTROLDATA:USE}
@@ -397,16 +408,27 @@ the experimental support for NetCDF output, which eventually
 will replace the current textual output:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \kw{sync} ] [ , \kw{no text} ] ;
+    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \bnt{file_format} ]
+        [ , [ \kw{no} ] \kw{sync} ] [ , [ \kw{no} ] \kw{text} ] ;
 \end{Verbatim}
 %\end{verbatim}
+where
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{file_format} ::= \{ \kw{classic} | \kw{classic64} | \kw{nc4} | \kw{nc4classic} \}
+\end{Verbatim}
+allows one to choose the preferred file format, with \kw{nc4} the default\footnote{%
+Currently, the default has been brought back to \kw{classic}, since using \kw{nc4} results in much slower analyses.
+}.
+The optional \kw{sync} keyword forces syncing of the
+output file after each time step; this allows to monitor the results of an ongoing simulation, 
+at the expense of a slightly increased I/O time (\kw{no sync} is also provided, in case the default changes).
 If the optional keyword \kw{no text} is present,
-standard output in ASCII form is disabled.
+standard output in ASCII form is disabled (\kw{text} is also provided, in case the default changes).
 
 \subsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
 This statement is used to select the default format for orientation output.
-For historical reasons, MBDyn always used the 123 form of Euler angles
-(also known as Cardano angles).
+For historical reasons, MBDyn always used the `123' form of Euler angles
+(also known as Tait-Bryan or Cardano angles).
 This statement allows to enable different formats:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -423,20 +445,22 @@ This statement allows to enable different formats:
 where
 \begin{itemize}
 \item \kw{euler123} is the historical representation by means 
-	of three angles that represent three consecutive rotations
+	of three angles, in degrees, that represent three consecutive rotations
 	about axes 1, 2 and 3 respectively, always applied to the axis
-	as it results from the previous rotation;
-\item \kw{euler313} is similar to \kw{euler123}, but the rotations
+	as it results from the previous rotation (also known as Tait-Bryan or Cardano angles);
+\item \kw{euler313} is similar to \kw{euler123}, but the rotations, in degrees,
 are about axes 3, 1 and 3 in the given sequence.
 This is the usual form for Euler angles.
-\item \kw{euler321} is similar to \kw{euler123}, but the rotations
+\item \kw{euler321} is similar to \kw{euler123}, but the rotations, in degrees,
 are about axes 3, 2 and 1 in the given sequence.
 \item \kw{orientation vector} is the vector whose direction indicates
 	the axis of the rotation that produces the orientation,
-	and whose modulus indicates the magnitude of that rotation;
-\item \kw{orientation matrix} indicates the orientation matrix itself.
+	and whose modulus indicates the magnitude of that rotation, in radian;
+\item \kw{orientation matrix} yields the orientation matrix itself.
+	\emph{Note: this selection implies that the number of columns required for the output
+	in textual format changes from 3 to 9.}
 \end{itemize}
-The default remains \kw{euler123}.
+The default remains \kw{euler123}, in degrees.
 
 Note: this change implies that by default the selected way will be used
 to represent orientations in input and output.
@@ -458,7 +482,7 @@ This statement is used to select the default output of built-in aerodynamic elem
 
     \bnt{custom_output_flag} ::=
         \{ \kw{position}
-            | \kw{orientation} [ , \bnt{orientation_description} ]
+            | \kw{orientation} [ , \kw{orientation description} , \bnt{orientation_type} ]
             | \kw{velocity}
             | \kw{angular velocity}
             | \kw{configuration} # ::= \kw{position}, \kw{orientation}, \kw{velocity}, \kw{angular velocity}
@@ -466,8 +490,6 @@ This statement is used to select the default output of built-in aerodynamic elem
             | \kw{moment}
             | \kw{forces}        # ::= \kw{force}, \kw{moment}
             | \kw{all} \}         # equivalent to all the above
-
-    \bnt{orientation_description} ::= \kw{orientation description} , \bnt{orientation_type}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{orientation\_type} is defined
@@ -494,7 +516,7 @@ This statement is used to select the default output of beam elements.
 
     \bnt{custom_output_flag} ::=
         \{ \kw{position}
-            | \kw{orientation} [ , \bnt{orientation_description} ]
+            | \kw{orientation} [ , \kw{orientation description} , \bnt{orientation_type} ]
             | \kw{configuration}        # ::= \kw{position}, \kw{orientation}
             | \kw{force}
             | \kw{moment}
@@ -506,9 +528,6 @@ This statement is used to select the default output of beam elements.
             | \kw{angular strain rate}
             | \kw{strain rates}         # ::= \kw{linear strain rate}, \kw{angular strain rate}
             | \kw{all} \}                # equivalent to all the above
-
-    \bnt{orientation_description} ::= \kw{orientation description} ,
-        \bnt{orientation_type}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{orientation\_type} is defined

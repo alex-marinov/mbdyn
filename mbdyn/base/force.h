@@ -94,6 +94,11 @@ public:
 	virtual ~Force(void) { 
 		NO_OP; 
 	};
+
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
          
 	/* Tipo dell'elemento (usato per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const { 

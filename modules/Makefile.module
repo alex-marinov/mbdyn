@@ -63,7 +63,7 @@ lib$(MBDYN_MODULE).la: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).lo
 
 install: lib$(MBDYN_MODULE).la
 	if test -f $<; then \
-		$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $< $(LIBEXEC_DIR)/$< ; \
+		$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $< $(DESTDIR)$(LIBEXEC_DIR)/$< ; \
 	fi
 
 clean:

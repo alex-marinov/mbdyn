@@ -11,6 +11,18 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- get rid of legacy NetCDF 3; require NetCDF > 4.3 with c++ wrappers (Marco Morandini)
+		- new "relnorm" and "sepnorm" residual checks (GSOC 2021, Satyam Kumar and Marco Morandini)
+		- refactor and improve output units (Marco Morandini)
+		- increase Naive solver's default pivot factor from 1E-8 to 1E-5 (Marco Morandini)
+		- remove Meschach (Marco Morandini)
+		- added Watson, Pardiso, QR and SPQR wrappers (Reinard Resch)
+		- add matrix free line search (Reinard Resch)
+		- add automatic differentiation capabilities to many elements,
+		  including modal joint, total joint and total pin joint, 
+		  elastic and viscoelastic beams (Reinard Resch)
+		- new implementation of the automatic differentiation;
+		  enable with --enable-sparse-autodiff (Reinard Resch)
 		- added fully coupled piezolectric beam (Marco Morandini & Wenguo Zhu)
 		- the new handling of math expressions and
 		  "string" drive caller (With the contribution

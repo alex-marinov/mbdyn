@@ -192,6 +192,9 @@ public:
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr);
 
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
 };
 
 /* ViscousBody - end */

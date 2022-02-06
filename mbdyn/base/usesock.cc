@@ -583,29 +583,47 @@ UseLocalSocket::UseLocalSocket_int(void)
 {
 	ASSERT(!path.empty());
 
-	socklen = sizeof(addr);
+	socklen = (offsetof(struct sockaddr_un, sun_path) + path.size() + 1);
 
 	if (create) {
-		int		save_errno;
+		int save_errno;
+		int rc;
 
-		sock = mbdyn_make_named_socket_type(0, path.c_str(), socket_type, 1, &save_errno);
+		rc = mbdyn_make_named_socket_type(&sock, 0, path.c_str(), socket_type, 1, &save_errno);
 
-		if (sock == -1) {
+		if (rc == -1) {
 			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseLocalSocket(" << path << "): "
+      			silent_cerr("UseLocalSocket(\"" << path << "\"): "
 				"socket() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   		} else if (sock == -2) {
+   		} else if (rc == -2) {
 			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseLocalSocket(" << path << "): "
+      			silent_cerr("UseLocalSocket(\"" << path << "\"): "
 				"bind() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+   		} else if (rc < 0) {
+			const char	*err_msg = strerror(save_errno);
+
+			if (save_errno == ENAMETOOLONG) {
+      				silent_cerr("UseLocalSocket(\"" << path << "\"): "
+					"mbdyn_make_named_socket_type() failed, likely allowable size "
+					"of LOCAL socket path was exceeded (" << (sizeof(addr.sun_path) - 1) << " chars on this platform)"
+					<< std::endl);
+
+			} else {
+      				silent_cerr("UseLocalSocket(\"" << path << "\"): "
+					"mbdyn_make_named_socket_type() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+			}
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 
@@ -614,7 +632,7 @@ UseLocalSocket::UseLocalSocket_int(void)
 				save_errno = errno;
 				const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("UseLocalSocket(" << path << "): "
+      				silent_cerr("UseLocalSocket(\"" << path << "\"): "
 					"listen() failed "
 					"(" << save_errno << ": " << err_msg << ")"
 					<< std::endl);
@@ -658,7 +676,7 @@ UseLocalSocket::Connect(void)
 	addr.sun_family = AF_UNIX;
 	if (path.size() >= sizeof(addr.sun_path)) {
 		silent_cerr("UseSocket(): path=\"" << path << "\" exceeds allowable size "
-			"of LOCAL socket path (" << sizeof(addr.sun_path) << ")" << std::endl);
+			"of LOCAL socket path (" << (sizeof(addr.sun_path) - 1) << " chars on this platform)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	memcpy(addr.sun_path, path.c_str(), path.size() + 1); // terminating '\0'

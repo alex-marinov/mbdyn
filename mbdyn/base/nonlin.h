@@ -48,6 +48,8 @@
 #include <iomanip>
 #include <chrono>
 #include <cfloat>
+#include <map>
+#include <set>
 #include <vector>
 
 /*
@@ -79,6 +81,8 @@ public:
 		NONE,
 		NORM,
 		MINMAX,
+		RELNORM,
+		SEPNORM,
 
 		LASTNONLINEARSOLVERTEST
 	};
@@ -106,6 +110,12 @@ public:
 
 	/* scales a single value */
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+
+	/* returns pointer to global vector for absolute residual*/
+	virtual VectorHandler* GetAbsRes() { return 0;}
+
+	/* returns pointer to map of dimension and corresponding equations */
+	virtual std::map<OutputHandler::Dimensions, std::set<integer>>* GetDimMap() { return 0; };
 };
 
 class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
@@ -129,6 +139,47 @@ public:
 			const doublereal& dResNew) const;
 	virtual doublereal TestPost(const doublereal& dRes) const;
 };
+
+class NonlinearSolverTestRelNorm : virtual public NonlinearSolverTest {
+public:
+	MyVectorHandler AbsRes;
+	virtual VectorHandler* GetAbsRes();
+		virtual Type GetType() const;
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual doublereal TestPost(const doublereal& dRes) const;
+
+	/* loops over Res and AbsRes */
+	virtual doublereal MakeTest(Solver *pS, const integer& Size,
+			const VectorHandler& Vec, bool bResidual = false,
+			doublereal dScaleAlgEqu = 1., doublereal* pTestDiff=0);
+};
+
+class NonlinearSolverTestSepNorm : virtual public NonlinearSolverTest {
+public:
+	/* Indices for corresponding dimensions */
+	std::map<OutputHandler::Dimensions, std::set<integer>> MapOfDimensionIndices;
+	virtual std::map<OutputHandler::Dimensions, std::set<integer>>* GetDimMap();
+
+	/* Vector of the absolute values */
+	MyVectorHandler AbsRes;
+	virtual VectorHandler* GetAbsRes();
+
+	virtual Type GetType() const;
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual doublereal TestPost(const doublereal& dRes) const;
+
+	/* loops over Res components seperately */
+	virtual doublereal MakeTest(Solver *pS, const integer& Size,
+			const VectorHandler& Vec, bool bResidual = false,
+			doublereal dScaleAlgEqu = 1., doublereal* pTestDiff=0);
+};
+
 
 class NonlinearSolverTestMinMax : virtual public NonlinearSolverTest {
 public:
@@ -154,6 +205,26 @@ class NonlinearSolverTestScaleNorm : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestNorm {
 public:
         virtual Type GetType() const;
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+};
+
+class NonlinearSolverTestScaleRelNorm : virtual public NonlinearSolverTestScale,
+	virtual public NonlinearSolverTestNorm {
+public:
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+};
+
+class NonlinearSolverTestScaleSepNorm : virtual public NonlinearSolverTestScale,
+	virtual public NonlinearSolverTestSepNorm {
+public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,

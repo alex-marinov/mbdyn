@@ -51,7 +51,12 @@ protected:
 		NO_OP;
 	};
 #endif /* DEBUG */
-
+                
+        template <typename idx_type>
+        idx_type MakeCompressedRowFormTpl(doublereal *const Ax,
+                                          idx_type *const Ai,
+                                          idx_type *const Ap,
+                                          int offset = 0) const;
 public:
 
 	struct SparseMatrixElement_base {
@@ -293,6 +298,8 @@ public:
         virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 
         virtual integer Nz() const override;
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 };
 
 #endif /* SPMH_H */

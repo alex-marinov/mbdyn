@@ -263,20 +263,29 @@ int WSAGetLastError()
 }
 
 int
-mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
+mbdyn_make_named_socket(SOCKET* sock, struct sockaddr_un *name, const char *path,
 	int dobind, int *perrno)
 {
-	return mbdyn_make_named_socket_type(name, path, MBDYN_DEFAULT_SOCKET_TYPE, dobind, perrno);
+	return mbdyn_make_named_socket_type(sock, name, path, MBDYN_DEFAULT_SOCKET_TYPE, dobind, perrno);
 }
 
 int
-mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
+mbdyn_make_named_socket_type(SOCKET *sock, struct sockaddr_un *name, const char *path,
 	int socket_type, int dobind, int *perrno)
 {
-   	int sock = -1;
-
    	struct sockaddr_un tmpname = { 0 };
 	socklen_t size;
+	size_t pathlen;
+
+   	*sock = INVALID_SOCKET;
+
+	pathlen = strlen(path);
+	if (pathlen >= sizeof(tmpname.sun_path)) {
+		if (perrno) {
+			*perrno = ENAMETOOLONG;
+		}
+		return -3;
+	}
 
 	if (name == NULL) {
 		name = &tmpname;
@@ -287,8 +296,8 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 	}
 
    	/* Create the socket. */
-   	sock = socket(PF_LOCAL, socket_type, 0);
-   	if (sock < 0) {
+   	*sock = socket(PF_LOCAL, socket_type, 0);
+   	if (*sock < 0) {
 		if (perrno) {
 			*perrno = errno;
 		}
@@ -297,25 +306,31 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 
    	/* Give the socket a name. */
    	name->sun_family = AF_LOCAL;
+	// sizeof(name->sun_path)-1 because otherwise name->sun_path would not be null-terminated
+	// for path longer than sizeof(name->sun_path)
    	strncpy(name->sun_path, path, sizeof(name->sun_path)-1);
 #ifdef HAVE_OFFSETOF
-	size = (offsetof(struct sockaddr_un, sun_path)
-			+ strlen(name->sun_path) + 1);
+	size = (offsetof(struct sockaddr_un, sun_path) + pathlen + 1);
 #else /* HAVE_OFFSETOF */
-	size = sizeof(struct sockaddr_un);
+	/* NOTE: not robust
+	size = sizeof(struct sockaddr_un) + pathlen + 1 - sizeof(name->sun_path);
+	*/
+	/* perhaps this is better: */
+	size = (void *)&tmpname.sun_path - (void *)&tmpname + pathlen + 1;
 #endif /* !HAVE_OFFSETOF */
 
    	if (dobind) {
-		int rc = bind(sock, (struct sockaddr *)name, size);
+		int rc = bind(*sock, (struct sockaddr *)name, size);
 		if (rc < 0) {
 			if (perrno) {
 				*perrno = errno;
 			}
+
       			return -2;
 		}
    	}
 
-   	return sock;
+   	return 0;
 }
 #endif /* _WIN32 */
 

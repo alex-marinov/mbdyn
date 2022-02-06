@@ -50,6 +50,8 @@ class InLineJoint : virtual public Elem, public Joint {
 #ifdef USE_NETCDF
    MBDynNcVar Var_FF;
    MBDynNcVar Var_fc; 
+   MBDynNcVar Var_v; 
+   MBDynNcVar Var_displ;
 #endif // USE_NETCDF
 
    /* friction related data */
@@ -57,6 +59,8 @@ class InLineJoint : virtual public Elem, public Joint {
    BasicFriction *const fc;
    const doublereal preF;
    doublereal F3;
+   doublereal v;
+   doublereal displ;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
@@ -138,6 +142,14 @@ class InLineJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* InLineJoint - end */
@@ -233,6 +245,14 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* InLineWithOffsetJoint - end */

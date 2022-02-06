@@ -133,6 +133,8 @@ namespace sp_grad {
 
 	  return os;
      }
+
+     std::ostream& operator<<(std::ostream& os, const SpGradient& g);
 #endif
 }
 #endif

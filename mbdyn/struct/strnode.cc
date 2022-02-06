@@ -117,14 +117,6 @@ VCurr(V0),
 XPPCurr(Zero3),
 XPPPrev(Zero3),
 pRefNode(pRN),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_X(0),
-Var_Phi(0),
-Var_XP(0),
-Var_Omega(0),
-Var_XPP(0),
-Var_OmegaP(0),
-#endif /* USE_NETCDFC */
 od(od),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
@@ -1073,9 +1065,32 @@ StructDispNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-/* StructNode - end */
+const OutputHandler::Dimensions
+StructDispNode::GetEquationDimension(integer index) const {
 
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
+	switch (index)
+		{
+			case 1:
+				dimension = OutputHandler::Dimensions::Force;
+				break;
+			case 2:
+				dimension = OutputHandler::Dimensions::Force;
+				break;
+			case 3:
+				dimension = OutputHandler::Dimensions::Force;
+				break;
+		}
+
+	return dimension;
+}
+
+const OrientationDescription&
+StructDispNode::GetOrientationDescription(void) const
+{
+	return od;
+}
 
 /* StructDispNode - end */
 
@@ -1406,6 +1421,35 @@ DynamicStructDispNode::SetOutputFlag(flag f)
 		ComputeAccelerations(true);
 	}
 	ToBeOutput::SetOutputFlag(f);
+}
+
+const OutputHandler::Dimensions
+DynamicStructDispNode::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+	}
+
+	return dimension;
 }
 
 /* DynamicStructDispNode - end */
@@ -1804,6 +1848,8 @@ StructNode::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
+			std::string glocal("global");
+
 			// node
 			const char *type;
 			switch (GetStructNodeType()) {
@@ -1819,14 +1865,30 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				type = "modal";
 				break;
 
-			case DUMMY:
+			case DUMMY: {
 				type = "dummy";
+				const DummyStructNode *pDSN = dynamic_cast<const DummyStructNode *>(this);
+				ASSERT(pDSN != 0);
+				if (pDSN == 0) {
+					silent_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
+						"not a dummy node!" << std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				switch (pDSN->GetDummyType()) {
+				case DummyStructNode::RELATIVEFRAME:
+				case DummyStructNode::PIVOTRELATIVEFRAME:
+					glocal = "relative";
+					break;
+				default:
+					NO_OP;
+				}
 				break;
+			}
 
 			default:
-				pedantic_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
-					"warning, unknown node type?" << std::endl);
-				type = "unknown";
+				silent_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
+					"unknown node type!" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 
@@ -1840,27 +1902,27 @@ StructNode::OutputPrepare(OutputHandler &OH)
 
 			Var_X = OH.CreateVar<Vec3>(name + "X",
 				OutputHandler::Dimensions::Length,
-				"global position vector (X, Y, Z)");
+				glocal + " position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
 			Var_XP = OH.CreateVar<Vec3>(name + "XP",
 				OutputHandler::Dimensions::Velocity,
-				"global velocity vector (v_X, v_Y, v_Z)");
+				glocal + " velocity vector (v_X, v_Y, v_Z)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
 				OutputHandler::Dimensions::AngularVelocity,
-				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
+				glocal + " angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
 				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
 					OutputHandler::Dimensions::Acceleration,
-					"global acceleration vector (a_X, a_Y, a_Z)");
+					glocal + " acceleration vector (a_X, a_Y, a_Z)");
 
 				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
 					OutputHandler::Dimensions::AngularAcceleration,
-					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
+					glocal + " angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
 #endif // USE_NETCDF
@@ -1926,8 +1988,9 @@ StructNode::Output(OutputHandler& OH) const
 				/* impossible */
 				break;
 			}
-				OH.WriteNcVar(Var_XP, VCurr);
-				OH.WriteNcVar(Var_Omega, WCurr);
+
+			OH.WriteNcVar(Var_XP, VCurr);
+			OH.WriteNcVar(Var_Omega, WCurr);
 				
 			if (bOutputAccels) {
 					OH.WriteNcVar(Var_XPP, XPPCurr);
@@ -2981,6 +3044,10 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 6 + idx;
 	}
 
+	if (strncmp(s, "phi", len) == 0) {
+		return 46 + idx;
+	}
+
 	if (strncmp(s, "XP", len) == 0) {
 		return 9 + idx;
 	}
@@ -3152,9 +3219,48 @@ StructNode::dGetPrivData(unsigned int i) const
 	case 46:
 		ASSERT(bComputeAccelerations() == true);
 		return RCurr.GetVec(i - 43)*WPCurr;
+
+	case 47:
+	case 48:
+	case 49: {
+		/* TODO */
+		Vec3 Phi(RotManip::VecRot(RCurr));
+		return RCurr.GetVec(i - 46)*Phi;
+	}
+
 	}
 
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const OutputHandler::Dimensions
+StructNode::GetEquationDimension(integer index) const {
+	
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Force;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Force;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Force;
+		break;
+	case 4:
+		dimension = OutputHandler::Dimensions::Moment;
+		break;
+	case 5:
+		dimension = OutputHandler::Dimensions::Moment;
+		break;
+	case 6:
+		dimension = OutputHandler::Dimensions::Moment;
+		break;
+	}
+
+	return dimension;
 }
 
 /* StructNode - end */
@@ -3502,6 +3608,55 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	}
 }
 
+const OutputHandler::Dimensions
+DynamicStructNode::GetEquationDimension(integer index) const {
+
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Momentum;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::MomentaMoment;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 8:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 9:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 10:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+		case 11:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+		case 12:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+
+	}
+
+	return dimension;
+}
+
 /* DynamicStructNode - end */
 
 
@@ -3750,11 +3905,72 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 }
 
 void
+ModalNode::DerivativesUpdate(const VectorHandler& X,
+                             const VectorHandler& XP)
+{
+     StructNode::DerivativesUpdate(X, XP);
+
+     integer iFirstIndex = iGetFirstIndex();
+
+     /* Update needed also during the derivatives phase */
+     XPPCurr = Vec3(XP, iFirstIndex + 7);
+     WPCurr = Vec3(XP, iFirstIndex + 10);     
+}
+
+void
 ModalNode::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	// override DynamicStructNode's function
 	NO_OP;
+}
+
+const OutputHandler::Dimensions
+ModalNode::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 8:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 9:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 10:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+		case 11:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+		case 12:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+
+	}
+
+	return dimension;
 }
 
 /* ModalNode - end */
@@ -4309,6 +4525,8 @@ ReadStructNode(DataManager* pDM,
 	if (CurrType == DUMMY) {
 		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
+		od = pNode->GetOrientationDescription();
+
 		DummyType = KeyWords(HP.GetWord());
 		switch (DummyType) {
 		case OFFSET: {
@@ -4316,7 +4534,7 @@ ReadStructNode(DataManager* pDM,
 			Vec3 f(HP.GetPosRel(RF));
 			Mat3x3 R(HP.GetRotRel(RF));
 
-			od = ReadOptionalOrientationDescription(pDM, HP);
+			od = ReadOptionalOrientationDescription(pDM, HP, od);
 
 			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 			SAFENEWWITHCONSTRUCTOR(pNd,
@@ -4338,9 +4556,9 @@ ReadStructNode(DataManager* pDM,
 			Mat3x3 Rh(Eye3);
 			if (HP.IsKeyWord("orientation")) {
 				Rh = HP.GetRotRel(RF);
-
-				od = ReadOptionalOrientationDescription(pDM, HP);
 			}
+
+			od = ReadOptionalOrientationDescription(pDM, HP, od);
 
 			const StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);
@@ -4388,49 +4606,69 @@ ReadStructNode(DataManager* pDM,
 			bDisp = true;
 		}
 
-		/* posizione (vettore di 3 elementi) */
-		if (!HP.IsKeyWord("position")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-		Vec3 X0(HP.GetPosAbs(::AbsRefFrame));
-		DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
-
-		/* sistema di riferimento (trucco dei due vettori) */
+		Vec3 X0;
 		Mat3x3 R0;
-		if (!bDisp) {
-			if (!HP.IsKeyWord("orientation")) {
-				pedantic_cerr("StructNode(" << uLabel << "): "
-					"missing keyword \"orientation\" at line "
-					<< HP.GetLineData() << std::endl);
-			}
-			R0 = HP.GetRotAbs(::AbsRefFrame);
-
-			od = ReadOptionalOrientationDescription(pDM, HP);
-
-			DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
-		}
-
-		/* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
-		 * di usare "null" per porli uguali a zero) */
-		if (!HP.IsKeyWord("velocity")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"velocity\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-		Vec3 XPrime0(HP.GetVelAbs(::AbsRefFrame, X0));
-		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
-
+		Vec3 XPrime0;
 		Vec3 Omega0;
-		if (!bDisp) {
-			if (!HP.IsKeyWord("angular" "velocity")) {
+
+		if (HP.IsKeyWord("at" "reference")) {
+			ReferenceFrame rf;
+			HP.GetRefByLabel(rf);
+
+			X0 = rf.GetX();
+			XPrime0 = rf.GetV();
+
+			if (!bDisp) {
+				od = ReadOptionalOrientationDescription(pDM, HP);
+
+				R0 = rf.GetR();
+				Omega0 = rf.GetW();
+			}
+
+		} else {
+
+			/* posizione (vettore di 3 elementi) */
+			if (!HP.IsKeyWord("position")) {
 				pedantic_cerr("StructNode(" << uLabel << "): "
-					"missing keyword \"angular velocity\" at line "
+					"missing keyword \"position\" at line "
 					<< HP.GetLineData() << std::endl);
 			}
-			Omega0 = HP.GetOmeAbs(::AbsRefFrame);
-			DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
+			X0 = HP.GetPosAbs(::AbsRefFrame);
+			DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
+
+			/* sistema di riferimento (trucco dei due vettori) */
+			if (!bDisp) {
+				if (!HP.IsKeyWord("orientation")) {
+					pedantic_cerr("StructNode(" << uLabel << "): "
+						"missing keyword \"orientation\" at line "
+						<< HP.GetLineData() << std::endl);
+				}
+				R0 = HP.GetRotAbs(::AbsRefFrame);
+
+				od = ReadOptionalOrientationDescription(pDM, HP);
+
+				DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
+			}
+
+			/* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
+			 * di usare "null" per porli uguali a zero) */
+			if (!HP.IsKeyWord("velocity")) {
+				pedantic_cerr("StructNode(" << uLabel << "): "
+					"missing keyword \"velocity\" at line "
+					<< HP.GetLineData() << std::endl);
+			}
+			XPrime0 = HP.GetVelAbs(::AbsRefFrame, X0);
+			DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
+
+			if (!bDisp) {
+				if (!HP.IsKeyWord("angular" "velocity")) {
+					pedantic_cerr("StructNode(" << uLabel << "): "
+						"missing keyword \"angular velocity\" at line "
+						<< HP.GetLineData() << std::endl);
+				}
+				Omega0 = HP.GetOmeAbs(::AbsRefFrame);
+				DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
+			}
 		}
 
 		const StructNode *pRefNode = 0;

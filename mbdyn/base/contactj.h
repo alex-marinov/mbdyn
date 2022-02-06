@@ -256,6 +256,35 @@ class ContactJoint : virtual public Elem, public Joint {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const {
+      // DOF == 1
+      OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	   switch (index)
+	   {
+		   case 1:
+			   dimension = OutputHandler::Dimensions::Length;
+			   break;
+	   }
+
+	return dimension;
+   };
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const {
+
+           int iIndex = iGetFirstIndex();
+
+            out
+               << prefix << iIndex + 1 << ": " 
+               << "contact joint compenetration" << std::endl;
+            
+            return out;
+   }
 };
 
 /* ContactJoint - end */

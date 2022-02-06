@@ -49,11 +49,6 @@ Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode(pN), Dir(TmpDir), 
 dF(0.)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_dv(0),
-Var_v(0)
-#endif // USE_NETCDFC
 {
    NO_OP;
 }
@@ -285,6 +280,39 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+const OutputHandler::Dimensions
+LinearVelocityJoint::GetEquationDimension(integer index) const {
+	// DOF == 6
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+LinearVelocityJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"velocity error" << std::endl;
+
+	return out;
+}
 /* LinearVelocity - end */
 
 
@@ -302,11 +330,6 @@ Joint(uL, pDO, fOut),
 DriveOwner(pDC), 
 pNode(pN), Dir(TmpDir), 
 dM(0.)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_dOmega(0),
-Var_w(0)
-#endif // USE_NETCDFC
 {
    NO_OP;
 }
@@ -549,4 +572,37 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+const OutputHandler::Dimensions
+AngularVelocityJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+AngularVelocityJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"angular velocity error" << std::endl;
+
+	return out;
+}
 /* AngularVelocity - end */

@@ -43,7 +43,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		::solver[LinSol::HARWELL_SOLVER].s_name,
 		::solver[LinSol::LAPACK_SOLVER].s_name,
-		::solver[LinSol::MESCHACH_SOLVER].s_name,
 		::solver[LinSol::NAIVE_SOLVER].s_name,
 		::solver[LinSol::SUPERLU_SOLVER].s_name,
 		::solver[LinSol::TAUCS_SOLVER].s_name,
@@ -51,10 +50,13 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
+                ::solver[LinSol::PARDISO_SOLVER].s_name,
+                ::solver[LinSol::PARDISO_64_SOLVER].s_name,
                 ::solver[LinSol::PASTIX_SOLVER].s_name,
                 ::solver[LinSol::QR_SOLVER].s_name,
                 ::solver[LinSol::SPQR_SOLVER].s_name,
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
+		::solver[LinSol::WATSON_SOLVER].s_name,
 		NULL
 	};
 
@@ -62,7 +64,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		EMPTY,
 		HARWELL,
 		LAPACK,
-		MESCHACH,
 		NAIVE,
 		SUPERLU,
 		TAUCS,
@@ -70,10 +71,13 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		UMFPACK3,
 		KLU,
 		Y12,
+                PARDISO,
+                PARDISO_64,
                 PASTIX,
                 QR,
                 SPQR,
 		STRUMPACK,
+		WATSON,
 		
 		LASTKEYWORD
 	};
@@ -112,16 +116,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 #ifdef USE_LAPACK
 		bGotIt = true;
 #endif /* USE_LAPACK */
-		break;
-
-	case MESCHACH:
-		cs.SetSolver(LinSol::MESCHACH_SOLVER);
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using meschach sparse LU solver"
-				<< std::endl);
-#ifdef USE_MESCHACH
-		bGotIt = true;
-#endif /* USE_MESCHACH */
 		break;
 
 	case NAIVE:
@@ -191,7 +185,27 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		bGotIt = true;
 #endif /* USE_Y12 */
 		break;
+        case PARDISO:
+                cs.SetSolver(LinSol::PARDISO_SOLVER);
 
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using pardiso sparse LU solver" << std::endl);
+#ifdef USE_PARDISO
+                bGotIt = true;
+#endif /* USE_PARDISO */
+                break;
+
+        case PARDISO_64:
+                cs.SetSolver(LinSol::PARDISO_64_SOLVER);
+
+                DEBUGLCOUT(MYDEBUG_INPUT,
+                           "Using pardiso_64 sparse LU solver" << std::endl);
+#ifdef USE_PARDISO
+                bGotIt = true;
+#endif /* USE_PARDISO */
+                break;
+
+                
 	case PASTIX:
 		cs.SetSolver(LinSol::PASTIX_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -223,7 +237,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	     bGotIt = true;
 #endif
 	     break;
-                
+	case WATSON:
+	     cs.SetSolver(LinSol::WATSON_SOLVER);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Using Watson solver\n");
+#ifdef USE_WSMP
+	     bGotIt = true;
+#endif
+	     break;
+	     
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

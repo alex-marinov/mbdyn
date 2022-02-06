@@ -97,6 +97,7 @@ private:
 
 protected:
      VectorHandler*     pRes;
+     VectorHandler*     pAbsRes;
      VectorHandler*     pSol;
      MyVectorHandler p;
      MyVectorHandler g;

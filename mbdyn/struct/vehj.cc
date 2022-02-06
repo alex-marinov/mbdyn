@@ -59,10 +59,6 @@ pNode2(pN2),
 tilde_R1h(tilde_R1h),
 tilde_R2h(tilde_R2h),
 od(od),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-Var_Omega(0),
-#endif // USE_NETCDFC
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -566,6 +562,12 @@ DeformableHingeJoint::dGetPrivDataInv(unsigned int i) const
 		/* fall back to regular one */
 		return DeformableHingeJoint::dGetPrivData(i);
 	}
+}
+
+const OutputHandler::Dimensions
+DeformableHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
 }
 
 /* DeformableHingeJoint - end */

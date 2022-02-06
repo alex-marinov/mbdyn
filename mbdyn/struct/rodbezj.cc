@@ -74,14 +74,6 @@ dEpsilon(0.),
 dEpsilonPrime(0.),
 iIntOrd(iIntOrder),
 iIntSeg(iIntSegments)
-#ifdef USE_NETCDFC
-,
-Var_F2(0),
-Var_l(0),
-Var_l2(0),
-Var_l1(0),
-Var_v(0)
-#endif // USE_NETCDFC
 {
 	/* Check initial data consistency */
 	ASSERT(pN1 != NULL);
@@ -951,6 +943,12 @@ RodBezier::dGetPrivData(unsigned int i) const
 	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
 
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
+}
+
+const OutputHandler::Dimensions
+RodBezier::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
 }
 
 /* RodBezier - end */

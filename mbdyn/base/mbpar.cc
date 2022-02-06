@@ -1275,6 +1275,20 @@ MBDynParser::ModuleLoad_int(void)
 #endif // ! USE_RUNTIME_LOADING
 }
 
+void
+MBDynParser::GetRefByLabel(ReferenceFrame& rf)
+{
+	unsigned int uLabel((unsigned int)GetInt());
+	RFType::const_iterator i = RF.find(uLabel);
+	if (i == RF.end()) {
+		silent_cerr("reference " << uLabel << " is undefined at line " 
+			<< GetLineData() << std::endl);
+		throw MBDynParser::ErrReferenceUndefined(MBDYN_EXCEPT_ARGS);
+	}
+
+	rf = *(i->second);
+}
+
 MBDynParser::Frame 
 MBDynParser::GetRef(ReferenceFrame& rf)
 {

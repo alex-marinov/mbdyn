@@ -128,6 +128,13 @@ class LinearVelocityJoint
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* LinearVelocityJoint - end */
@@ -224,8 +231,15 @@ class AngularVelocityJoint
      connectedNodes[0] = pNode;
    };
    /* ************************************************ */ 
-};
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
+};
 /* AngularVelocityJoint - end */
 
 #endif

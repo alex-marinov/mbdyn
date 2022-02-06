@@ -509,17 +509,18 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
 
 /* Assemblaggio del residuo */
 void
-DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) 
+DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec);
+	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec, pAbsResHdl);
 }
 
 void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec)
+		SubVectorHandler& WorkVec,
+		VectorHandler*const pAbsResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -530,9 +531,11 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 			try {
 				ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
+				if (pAbsResHdl) WorkVec.AddAbsValuesTo(*pAbsResHdl);
 			}
 			catch(Elem::ChangedEquationStructure& e) {
 				ResHdl += WorkVec;
+				if (pAbsResHdl) WorkVec.AddAbsValuesTo(*pAbsResHdl);
 				ChangedEqStructure = true;
 			}
 			catch (ErrDivideByZero& e) {
@@ -552,6 +555,42 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 	}
 	if (ChangedEqStructure) {
 		throw ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+void
+DataManager::SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) {
+	Elem* pTmpEl = NULL;
+
+	if (ElemIter.bGetFirst(pTmpEl)){
+		do {
+
+			ElemWithDofs*  dof_pTmpEl = dynamic_cast<ElemWithDofs*> (pTmpEl);
+
+			if (dof_pTmpEl != 0) {
+
+				integer first_index = dof_pTmpEl->iGetFirstIndex();
+
+				/* set the indices value to corresponding dimensions */
+				for (unsigned int i = 1; i <= dof_pTmpEl->iGetNumDof(); i++) {
+					(*pDimMap)[dof_pTmpEl->GetEquationDimension(i)].insert(first_index + i);
+				}
+
+			}
+			
+		} while (ElemIter.bGetNext(pTmpEl));
+	}
+}
+
+void
+DataManager::SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
+		integer first_index = Nodes[i]->iGetFirstIndex();
+
+		/* set the indices value to corresponding dimensions */
+		for (unsigned int j = 1; j <= Nodes[i]->iGetNumDof(); j++) {
+			(*pDimMap)[Nodes[i]->GetEquationDimension(j)].insert(first_index + j);
+		}
 	}
 }
 
@@ -576,15 +615,9 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 			MBDynNcVar VarLabels = OH.CreateVar(std::string("elem.") + ElemData[et].ShortDesc, MbNcInt, attrs, dim);
 			ElemContainerType::const_iterator p = ElemData[et].ElemContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumElems); i++, p++) {
-#if defined(USE_NETCDFC)
-				VarLabels->set_cur(i);
-				const long l = p->second->GetLabel();
-				VarLabels->put(&l, 1);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				const std::vector<size_t> ncStartPos(1,i);
 				const long l = p->second->GetLabel();
 				VarLabels.putVar(ncStartPos, &l);
-#endif  /* USE_NETCDF4 */
 			}
 		}
 	}

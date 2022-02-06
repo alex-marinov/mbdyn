@@ -72,7 +72,7 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 	strncpy(User, u, sizeof(User));
 	User[STRLENOF(User)] = '\0';
 
-	char *tmp = 0;
+	const char *tmp = 0;
 	if (strncmp(c, "{CRYPT}", STRLENOF("{CRYPT}")) == 0) {
 		tmp = &c[STRLENOF("{CRYPT}")];
 
@@ -532,7 +532,8 @@ ReadAuthMethod(const DataManager* /* pDM */ , MBDynParser& HP)
 		SAFENEWWITHCONSTRUCTOR(pAuth,
 				PasswordAuth,
 				PasswordAuth(user.c_str(), cred.c_str(), salt_format.c_str()));
-		memset(cred.c_str(), '\0', cred.size());
+		//memset(cred.c_str(), '\0', cred.size());
+		std::fill_n(cred.begin(), cred.size(), '\0');
 
 		break;
 #else /* !HAVE_CRYPT */

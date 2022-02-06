@@ -43,17 +43,19 @@ public:
 		EMPTY_SOLVER = 0,
 		HARWELL_SOLVER,
 		LAPACK_SOLVER,
-		MESCHACH_SOLVER,
 		NAIVE_SOLVER,
 		SUPERLU_SOLVER,
 		TAUCS_SOLVER,
                 UMFPACK_SOLVER,
                 KLU_SOLVER,
 		Y12_SOLVER,
+                PARDISO_SOLVER,
+                PARDISO_64_SOLVER,
                 PASTIX_SOLVER,
                 QR_SOLVER,
                 SPQR_SOLVER,
 		STRUMPACK_SOLVER,
+		WATSON_SOLVER,
 		LAST_SOLVER
 	};
 

@@ -74,7 +74,7 @@ public:
 
 	virtual ~ThirdOrderIntegrator(void);
 
-	virtual void Residual(VectorHandler* pRes) const;
+	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const;
 
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	

@@ -346,10 +346,10 @@ s2s_t::prepare(void)
 
 		this->buf = this->path;
 
-		this->sock = mbdyn_make_named_socket_type(&this->addr.ms_addr.ms_addr_local,
+		int serr = mbdyn_make_named_socket_type(&this->sock, &this->addr.ms_addr.ms_addr_local,
 			this->path, this->addr.ms_type, this->create, &save_errno);
 		
-		if (this->sock == -1) {
+		if (serr == -1) {
 			const char	*err_msg = strerror(save_errno);
 
 			silent_cerr("socket(" << this->buf << ") failed "
@@ -357,10 +357,18 @@ s2s_t::prepare(void)
 				<< std::endl);
       			throw;
 
- 	  	} else if (this->sock == -2) {
+ 	  	} else if (serr == -2) {
 			const char	*err_msg = strerror(save_errno);
 
 	      		silent_cerr("bind(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+	      		throw;
+
+		} else if (serr < 0) {
+			const char	*err_msg = strerror(save_errno);
+
+	      		silent_cerr("mbdyn_make_named_socket_type(" << this->buf << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 	      		throw;

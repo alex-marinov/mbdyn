@@ -36,6 +36,7 @@
 
 #include <ac/f2c.h>
 #include <myassert.h>
+#include "output.h"
 
 extern const char* psDofOwnerNames[];   
 
@@ -135,6 +136,12 @@ class DofOwnerOwner {
 	 * assembly could be implicitly or explicitly skipped
 	 */
 	virtual void SetInitialValue(VectorHandler& X);
+
+   /* method to return the dimension of components 
+    * can be made pure virtual in future
+   */
+   const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const=0;
+
 };
 
 #endif /* DOFOWN_H */

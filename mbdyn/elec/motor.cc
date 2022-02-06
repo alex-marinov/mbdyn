@@ -425,3 +425,31 @@ doublereal Motor::dGetPrivData(unsigned int iIndex) const
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
+
+const OutputHandler::Dimensions 
+Motor::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Motor::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"motor voltage" << std::endl;
+
+	return out;
+}

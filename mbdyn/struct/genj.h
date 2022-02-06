@@ -37,6 +37,7 @@
 
 #include "joint.h"
 #include "drive.h"
+#include "output.h"
 
 #ifndef MBDYN_X_DISTANCE_JOINT
 /* DistanceJoint - begin */
@@ -134,6 +135,13 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* DistanceJoint - end */
@@ -241,6 +249,13 @@ virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* DistanceJointWithOffset - end */
@@ -377,6 +392,9 @@ class ClampJoint : virtual public Elem, public Joint {
      connectedNodes[0] = pNode;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+   const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* ClampJoint - end */

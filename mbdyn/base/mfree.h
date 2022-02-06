@@ -60,6 +60,7 @@ public:
 protected:
 	Preconditioner* pPM;
 	VectorHandler* 	pRes;
+	VectorHandler* pAbsRes;
 	doublereal IterTol;
 	integer MaxLinIt;
 	doublereal Tau;

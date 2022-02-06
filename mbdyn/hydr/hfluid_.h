@@ -242,15 +242,15 @@ class LinearCompressibleTHydraulicFluid
 				     const doublereal& dViscosity = 0.)
      : LinearCompressibleHydraulicFluid(Label, dDensity, dBeta, dPres0, dViscosity, dTemp0),
    dAlpha(dAlpha),
-   dDensityDTemp(0.) {
-      (doublereal&)dDensityDTemp = -dDensity*dAlpha;
+   dDensityDTemp(-dDensity*dAlpha) {
+      NO_OP;
    };
    
    LinearCompressibleTHydraulicFluid(const LinearCompressibleTHydraulicFluid& HF)
      : LinearCompressibleHydraulicFluid(HF),
    dAlpha(HF.dAlpha),
-      dDensityDTemp(0.) {
-      (doublereal&)dDensityDTemp = -dDensity*dAlpha;
+      dDensityDTemp(-dDensity*dAlpha) {
+      NO_OP;
    };
    
    ~LinearCompressibleTHydraulicFluid() {

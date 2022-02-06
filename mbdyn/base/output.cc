@@ -125,18 +125,20 @@ const std::unordered_map<const OutputHandler::Dimensions, const std::string> Dim
 	{ OutputHandler::Dimensions::Charge , std::string("Charge") },
 	{ OutputHandler::Dimensions::Frequency , std::string("Frequency") },
 	{ OutputHandler::Dimensions::deg , std::string("deg") },
-	{ OutputHandler::Dimensions::rad , std::string("rad") }
+	{ OutputHandler::Dimensions::rad , std::string("rad") },
+
+	/* added later for GetEquationDimension method of DofOwnerOwner class */
+
+	{ OutputHandler::Dimensions::MassFlow, std::string("Mass flow")},
+	{ OutputHandler::Dimensions::Jerk , std::string("Jerk") },
+	{ OutputHandler::Dimensions::VoltageDerivative , std::string("Voltage derivative") },
+	{ OutputHandler::Dimensions::UnknownDimension , std::string("Unknown dimension") }
 });
 
 /* Costruttore senza inizializzazione */
 OutputHandler::OutputHandler(void)
 : FileName(NULL),
 #ifdef USE_NETCDF
-#if defined(USE_NETCDFC)
-m_DimTime(0),
-m_DimV1(0),
-m_DimV3(0),
-#endif  /* USE_NETCDFC */ // only want to call default constructors if using legacy netcdf
 m_pBinFile(0),
 #endif /* USE_NETCDF */
 iCurrWidth(iDefaultWidth),
@@ -144,16 +146,13 @@ iCurrPrecision(iDefaultPrecision),
 nCurrRestartFile(0)
 #ifdef USE_NETCDF
 ,
-ncStart1(1,0)  // must initialize vectors otherwise can't assign
-#if defined(USE_NETCDF4)
-,
+ncStart1(1,0),  // must initialize vectors otherwise can't assign
 ncCount1(1,1),
 ncStart1x3(2,0),
 ncCount1x3(2,1),
 ncStart1x3x3(3,0),
 ncCount1x3x3(3,1)
-#endif  /* USE_NETCDF4 */
-#endif /* USE_NETCDF */
+#endif  /* USE_NETCDF */
 {
 	OutputHandler_int();
 }
@@ -162,26 +161,19 @@ ncCount1x3x3(3,1)
 OutputHandler::OutputHandler(const char* sFName, int iExtNum)
 : FileName(sFName, iExtNum),
 #ifdef USE_NETCDF
-#if defined(USE_NETCDFC)
-m_DimTime(0),
-m_DimV1(0),
-m_DimV3(0),
-#endif  /* USE_NETCDFC */
 m_pBinFile(0),
 #endif /* USE_NETCDF */
 iCurrWidth(iDefaultWidth),
 iCurrPrecision(iDefaultPrecision),
 nCurrRestartFile(0)
 #ifdef USE_NETCDF
-,ncStart1(1,0)  // must initialize vectors otherwise can't assign
-#if defined(USE_NETCDF4)
-,ncCount1(1,1),
+,ncStart1(1,0),  // must initialize vectors otherwise can't assign
+ncCount1(1,1),
 ncStart1x3(2,0),
 ncCount1x3(2,1),
 ncStart1x3x3(3,0),
 ncCount1x3x3(3,1)
-#endif  /* USE_NETCDF4 */
-#endif /* USE_NETCDF */
+#endif  /* USE_NETCDF */
 {
 	OutputHandler_int();
 	Init(sFName, iExtNum);
@@ -289,6 +281,13 @@ void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>&
 		Units[Dimensions::Current];
 	Units[Dimensions::deg] = "deg";
 	Units[Dimensions::rad] = "rad";
+	Units[Dimensions::MassFlow] = Units[Dimensions::Mass] + " " + 
+		Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::Jerk] = Units[Dimensions::Mass] + " " +
+        Units[Dimensions::Time] + "^-3";
+	Units[Dimensions::VoltageDerivative] = Units[Dimensions::Voltage] + " " +
+        Units[Dimensions::Time] + "^-1";
+	Units[Dimensions::UnknownDimension] = "UnknownDimension";
 };
 
 void OutputHandler::SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units) {
@@ -509,10 +508,10 @@ OutputHandler::OutputHandler_int(void)
 	OutData[NETCDF].pof = 0;
 
 	currentStep = 0;
-#if defined(USE_NETCDF4)
+#if defined(USE_NETCDF)
 	ncCount1x3[1] = ncCount1x3x3[1] = 3;
 	ncCount1x3x3[2] = 3;
-#endif  /* USE_NETCDF4 */
+#endif  /* USE_NETCDF */
 }
 
 /* Inizializzazione */
@@ -547,29 +546,15 @@ OutputHandler::~OutputHandler(void)
 }
 
 /* Aggiungere qui le funzioni che aprono i singoli stream */
-bool
+void
 OutputHandler::Open(const OutputHandler::OutFiles out)
 {
 #ifdef USE_NETCDF
 	if (out == NETCDF && !IsOpen(out)) {
-#if defined(USE_NETCDFC)
-		m_pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
-		m_pBinFile->set_fill(NcFile::Fill);
-
-         	if (!m_pBinFile->is_valid()) {
-			silent_cerr("NetCDF file is invalid" << std::endl);
-			throw ErrFile(MBDYN_EXCEPT_ARGS);
-		}
-#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
-		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, netCDF::NcFile::classic); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
-		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
-		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
-#endif /* USE_NETCDF4 */
-
-		// Let's define some dimensions which could be useful
-		m_DimTime = CreateDim("time");
-		m_DimV1 = CreateDim("Vec1", 1);
-		m_DimV3 = CreateDim("Vec3", 3);
+		// FIXME: we should use the default format, or any selected by the user;
+		// but wait a minute: can this actually happen?
+		// return NetCDFOpen(out, netCDF::NcFile::nc4);
+		return NetCDFOpen(out, netCDF::NcFile::classic);
 
 	} else
 #endif /* USE_NETCDF */
@@ -599,13 +584,32 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 			}
 		}
 
-		return true;
+		return;
 	}
 
-	return false;
+	return;
 }
 
-bool
+#ifdef USE_NETCDF
+void
+OutputHandler::NetCDFOpen(const OutputHandler::OutFiles out, const netCDF::NcFile::FileFormat NetCDF_Format)
+{
+	if (!IsOpen(out)) {
+		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, NetCDF_Format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
+		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
+		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
+
+		// Let's define some dimensions which could be useful
+		m_DimTime = CreateDim("time");
+		m_DimV1 = CreateDim("Vec1", 1);
+		m_DimV3 = CreateDim("Vec3", 3);
+	}
+
+	return;
+}
+#endif /* USE_NETCDF */
+
+void
 OutputHandler::Open(const int out, const std::string& postfix)
 {
 	if (UseText(out) && !IsOpen(out)) {
@@ -644,10 +648,10 @@ OutputHandler::Open(const int out, const std::string& postfix)
 			OutData[out].pof->setf(std::ios::scientific);
 		}
 
-		return true;
+		return;
 	}
 
-	return false;
+	return;
 }
 
 bool
@@ -664,11 +668,7 @@ OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
 {
 #ifdef USE_NETCDF
 	if (out == NETCDF) {
-#if defined(USE_NETCDFC)
-		return m_pBinFile == 0 ? false : m_pBinFile->is_valid();
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 		return m_pBinFile == 0 ? false : !m_pBinFile->isNull();
-#endif  /* USE_NETCDF4 */
 	}
 #endif /* USE_NETCDF */
 
@@ -816,7 +816,7 @@ OutputHandler::Close(const OutputHandler::OutFiles out)
 	return true;
 }
 
-bool
+void
 OutputHandler::OutputOpen(void)
 {
 	return Open(OUTPUT);
@@ -889,14 +889,14 @@ OutputHandler::RestartOpen(bool openResXSol)
 	return true;
 }
 
-bool
+void
 OutputHandler::PartitionOpen(void)
 {
 	ASSERT(!IsOpen(PARTITION));
 	return Open(PARTITION);
 }
 
-bool
+void
 OutputHandler::LogOpen(void)
 {
 	ASSERT(!IsOpen(LOG));
@@ -955,30 +955,11 @@ OutputHandler::CreateDim(const std::string& name, integer size)
 
 	MBDynNcDim dim;
 	if (size == -1) {
-#if defined(USE_NETCDFC)
-		dim = m_pBinFile->add_dim(name.c_str());
-
-	} else {
-		dim = m_pBinFile->add_dim(name.c_str(), size);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 		dim = m_pBinFile->addDim(name);  // .c_str is useless here
 	} else {
 		dim = m_pBinFile->addDim(name, size);
-#endif  /* USE_NETCDF4 */
 	}
 
-#if defined(USE_NETCDFC)
-	if (dim == 0) {
-		std::ostringstream os;
-		os << "OutputHandler::CreateDim(\"" << name << "\"";
-		if (size > -1) {
-			os << ", " << size;
-		}
-		os << "): unable to add dimension";
-		silent_cerr(os.str() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-#endif  /* USE_NETCDFC */
 	return dim;
 }
 
@@ -987,11 +968,7 @@ OutputHandler::GetDim(const std::string& name) const
 {
 	ASSERT(m_pBinFile != 0);
 
-#if defined(USE_NETCDFC)
-	return m_pBinFile->get_dim(name.c_str());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 	return m_pBinFile->getDim(name);
-#endif  /* USE_NETCDF4 */
 }
 
 
@@ -1000,83 +977,6 @@ OutputHandler::GetDim(const std::string& name) const
 /// and regardless of its type, and this without requiring a if condition
 /// or further testing of the NcVar, which if done at every timestep
 /// would slow down the execution
-#if defined(USE_NETCDFC)
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar) {
-	Var_Var->put_rec(pGetVar.pGetMat(), (long) ncStart1[0]);
-}
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar,
-		const size_t& ncStart) 
-{
-	Var_Var->put_rec(pGetVar.pGetMat(), std::vector<long>(1,ncStart)[0]);
-}
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar) {
-	Var_Var->put_rec(pGetVar.pGetVec(), (long) ncStart1[0]);
-}
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar,
-		const size_t& ncStart) 
-{
-	Var_Var->put_rec(pGetVar.pGetVec(), std::vector<long>(1,ncStart)[0]);
-}
-template <class Tvar>
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar) {
-	Var_Var->put_rec(&pGetVar, (long) ncStart1[0]);
-}
-template <class Tvar, class Tstart>
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar,
-		const Tstart& ncStart) 
-{
-	Var_Var->put_rec(&pGetVar, ncStart);
-}
-template <class Tvar>
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar,
-		const std::vector<size_t>& ncStart, 
-		const std::vector<size_t>& ncCount)
-{
-	switch (ncStart.size()) {
-		case 1:
-		{
-			Var_Var->set_cur(ncStart[0]);
-			Var_Var->put(&pGetVar, ncCount[0]);
-		}
-		break;
-		case 2:
-			Var_Var->set_cur(ncStart[0], ncStart[1]);
-			Var_Var->put(&pGetVar, ncCount[0], ncCount[1]);
-		{
-		}
-		break;
-		case 3:
-			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2]);
-			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2]);
-		{
-		}
-		break;
-		case 4:
-			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2], ncStart[3]);
-			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2], ncCount[3]);
-		{
-		}
-		break;
-		case 5:
-			Var_Var->set_cur(ncStart[0], ncStart[1], ncStart[2], ncStart[3], ncStart[4]);
-			Var_Var->put(&pGetVar, ncCount[0], ncCount[1], ncCount[2], ncCount[3], ncCount[4]);
-		{
-		}
-		break;
-		default:
-		{
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 void
 OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar) {
 	Var_Var.putVar(ncStart1x3x3, ncCount1x3x3, pGetVar.pGetMat());
@@ -1121,7 +1021,7 @@ OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar,
 {
 	Var_Var.putVar(ncStart, count, &pGetVar);
 }
-#endif  /* USE_NETCDF4 */
+
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&);
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&);
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&);
@@ -1140,25 +1040,10 @@ OutputHandler::CreateVar(const std::string& name, const MBDynNcType& type,
 {
 	MBDynNcVar var;
 
-#if defined(USE_NETCDFC)
-	var = m_pBinFile->add_var(name.c_str(), type, dims.size(), const_cast<const NcDim **>(&dims[0]));
-	if (var == 0) {
-		silent_cerr("OutputHandler::CreateVar(\"" << name << "\") failed" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); ++i) {
-		if (!var->add_att(i->attr.c_str(), i->val.c_str())) {
-			silent_cerr("OutputHandler::CreateVar(\"" << name << "\"): "
-				"add_att(\"" << i->attr << "\", \"" << i->val << "\") failed" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 	var = m_pBinFile->addVar(name, type, dims);
 	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); ++i) {
 		var.putAtt(i->attr, i->val);
 	}
-#endif  /* USE_NETCDF4 */
 
 	return var;
 }

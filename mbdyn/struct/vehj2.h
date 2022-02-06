@@ -98,6 +98,11 @@ public:
 
 	/* Distruttore */
 	virtual ~DeformableDispJoint(void);
+    
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
 
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {
@@ -170,6 +175,9 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DeformableDispJoint - end */

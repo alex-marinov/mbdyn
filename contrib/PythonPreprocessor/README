@@ -37,7 +37,7 @@ You should study the examples to have a better idea of how to use this tool.
 
 Usage:
 
-python MBDynPreprocess.py input_fine_name
+python MBDynPreprocess.py input_file_name
 
 (i.e. python MBDynPreprocess.py CrankPanel_v2.mbd )
 

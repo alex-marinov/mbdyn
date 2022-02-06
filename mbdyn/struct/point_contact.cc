@@ -323,3 +323,9 @@ PointSurfaceContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 						
 }
+
+const OutputHandler::Dimensions
+PointSurfaceContact::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}

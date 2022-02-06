@@ -95,14 +95,6 @@ GammaInv(Eye3),
 F1(Zero3), C1(Zero3), C2(Zero3),
 Sh_c(sh),
 fc(f)
-#ifdef USE_NETCDFC
-,
-Var_dTheta(0),
-Var_Theta(0),
-Var_vrel(0),
-Var_fc(0),
-Var_MFR(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -413,7 +405,7 @@ ScrewJoint::DescribeEq(std::ostream& out,
 
 	return out;
 
-}
+} 
 
 void //TODO
 ScrewJoint::DescribeEq(std::vector<std::string>& desc,
@@ -1029,6 +1021,18 @@ ScrewJoint::InitialAssRes(SubVectorHandler& WorkVec,
 // 	WorkVec.Sub(15 + 1, ThetaPrime);
 
 	return WorkVec;
+}
+
+const OutputHandler::Dimensions
+ScrewJoint::GetEquationDimension(integer index) const {
+	// DOF is variable 
+	if (fc && fc->iGetNumDof() > 0) {
+		unsigned int i = index;
+		if (i >= 2 && i <= fc->iGetNumDof()) {
+			return fc->GetEquationDimension(index - 1);
+		}
+	}
+	return OutputHandler::Dimensions::UnknownDimension;
 }
 
 /* ScrewJoint - end */

@@ -32,6 +32,31 @@
 #ifndef TASK2CPU_H
 #define TASK2CPU_H
 
-extern int mbdyn_task2cpu(int cpu);
+#include "mbconfig.h"
+#include "ac/pthread.h"
+
+class Task2CPU {
+public:     
+     Task2CPU();
+     ~Task2CPU();
+
+     void SetCPU(int iCPU);
+     void ClearCPU(int iCPU);
+     int iGetCPU(int iCPU) const;
+     int iGetCount() const;
+     int iGetFirstCPU() const;
+     int iGetNextCPU(int iCPU) const;
+     static int iGetMaxSize();
+     bool bSetAffinity() const;
+     bool bGetAffinity();
+     static const Task2CPU& GetGlobalState();
+     static void SetGlobalState(const Task2CPU& oState);
+     
+private:     
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     cpu_set_t oCPUSet;
+#endif
+     static Task2CPU oGlobalState;
+};
 
 #endif /* TASK2CPU_H */

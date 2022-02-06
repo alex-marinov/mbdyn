@@ -57,12 +57,6 @@ v(Zero3),
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_v(0),
-Var_dElle(0),
-Var_dEllePrime(0)
-#endif // USE_NETCDFC
 {
 	/* Verifica di consistenza dei dati iniziali */
 	ASSERT(pNode1 != 0);
@@ -519,6 +513,12 @@ Rod::dGetPrivData(unsigned int i) const
 	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
 
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
+}
+
+const OutputHandler::Dimensions
+Rod::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
 }
 
 /* Rod - end */

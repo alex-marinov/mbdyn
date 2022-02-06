@@ -57,11 +57,6 @@ tilde_Rh(tilde_Rh),
 od(od),
 tilde_kPrime(Zero6),
 bFirstRes(false)
-#ifdef USE_NETCDFC
-,
-Var_v(0),
-Var_omega(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -540,5 +535,10 @@ ViscousBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+const OutputHandler::Dimensions
+ViscousBody::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* ViscousBody - end */
 

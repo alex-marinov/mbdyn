@@ -53,11 +53,6 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
 M(Zero3), dTheta(0.), dPhi(0.), 
 od(od)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_Theta(0),
-Var_Phi(0)
-#endif // USE_NETFCDF
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -509,6 +504,49 @@ GimbalRotationJoint::dGetPrivData(unsigned int i) const
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const OutputHandler::Dimensions
+GimbalRotationJoint::GetEquationDimension(integer index) const {
+	// DOF == 5
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::Moment;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+GimbalRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"relative orientation matrices constraint" << std::endl
+
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": " <<
+			"moment transformation" << std::endl;
+
+	return out;
 }
 
 /* GimbalRotationJoint - end */

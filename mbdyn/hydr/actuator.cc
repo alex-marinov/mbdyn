@@ -492,5 +492,36 @@ void Actuator::SetValue(DataManager *pDM,
    XP.PutCoef(iIndex+2, dpP2);
 }
 
+const OutputHandler::Dimensions 
+Actuator::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Pressure;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Actuator::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": " <<
+			"actuator pressure balance" << std::endl;
+
+	return out;
+}
+
 /* Actuator - end */
 

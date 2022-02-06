@@ -188,7 +188,7 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 		Vr -= VTmp;
 	}
 
-	/* velocità nel riferimento nodale aerodinamico */
+	/* velocitï¿½ nel riferimento nodale aerodinamico */
 	VTmp = RR.MulTV(Vr);
 	doublereal nV = std::abs(VTmp(1));
 	/* doublereal CV=Chord/(2*nV); */
@@ -296,7 +296,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 
 		// q
 		pq->Put(1, RR.MulTV(X0) - P0);
-		pq->Put(4, RotManip::VecRot(RR.MulMT(R0))); // nota: wrappa; se serve si può eliminare
+		pq->Put(4, RotManip::VecRot(RR.MulMT(R0))); // nota: wrappa; se serve si puï¿½ eliminare
 
 		// dot{q}
 		const Vec3& V0(pModalNode->GetVCurr());
@@ -767,7 +767,25 @@ ReadAerodynamicModal(DataManager* pDM,
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-
 	return pEl;
 } /* End of DataManager::ReadAerodynamicModal() */
 
+const OutputHandler::Dimensions 
+AerodynamicModal::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+AerodynamicModal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 <<  "->" << iIndex + NAeroStates + NGust*2 << ": " <<
+			"aerodynamic modal state equations" << std::endl;
+
+	return out;
+}

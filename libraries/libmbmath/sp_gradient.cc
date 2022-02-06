@@ -174,8 +174,39 @@ namespace sp_grad {
 
      void SpGradient::PrintDeriv(std::ostream& os, doublereal dCoef) const {
 	  for (const auto& d: *this) {
-	       os << d.iDof << ':' << d.dDer << " * " << dCoef << ' ';
+               const doublereal dDer = d.dDer * dCoef;
+
+               if (dDer) {
+                    os << d.iDof << ':' << dDer << ' ';
+               }
 	  }
      }
+
+     std::ostream& operator<<(std::ostream& os, const SpGradient& g) {
+          SpGradient gTmp{g};
+          
+          gTmp.Sort();
+          
+	  os << "f=(";
+	  gTmp.PrintValue(os);
+          os << ")";
+          
+          bool bPrintDer = false;
+
+          for (const auto& d: gTmp) {
+               if (d.dDer) {
+                    bPrintDer = true;
+                    break;
+               }
+          }
+
+          if (bPrintDer) {
+               os << " df=(";
+               gTmp.PrintDeriv(os, 1.);
+               os << ")";
+          }
+          
+	  return os;
+     }     
 #endif
 }

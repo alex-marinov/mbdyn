@@ -334,6 +334,7 @@ mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port)
 int
 mbc_unix_init(mbc_t *mbc, const char *path)
 {
+	int rc;
 	struct sockaddr_un addr = { 0 };
 
 	if (path == NULL) {
@@ -341,9 +342,11 @@ mbc_unix_init(mbc_t *mbc, const char *path)
 		return -1;
 	}
 
-	mbc->sock = mbdyn_make_named_socket(&addr, path, 0, NULL);
-
-	return mbc_init(mbc, (struct sockaddr *)&addr, sizeof(addr));
+	rc = mbdyn_make_named_socket(&mbc->sock, &addr, path, 0, NULL);
+	if (rc == 0) {
+		rc = mbc_init(mbc, (struct sockaddr *)&addr, sizeof(addr));
+	}
+	return rc;
 }
 #endif /* _WIN32 */
 

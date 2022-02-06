@@ -86,6 +86,11 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 		Restmp.Resize(n);
 		EqIsAlgebraic.resize(n);
 		EqIsDifferential.resize(n);
+		std::vector<Dof> * mutablepDofs = const_cast<std::vector<Dof> *>(pDofs);
+		mutablepDofs->resize(pDofs->size()*2);
+		for (int iCntm1 = n/2, iCntm2 = 0; iCntm1 < n; iCntm1++, iCntm2++) {
+			(*mutablepDofs)[iCntm1] = (*pDofs)[iCntm2];
+		}
 	   	DataManager::DofIterator_const CurrDof = pDofs->begin();
 		for (int iCntm1 = 0; iCntm1 < n;
 			iCntm1++, ++CurrDof)
@@ -155,6 +160,7 @@ void ThirdOrderIntegrator::RealPredictDof(const int DCount,
 		const DofOrder::Order Order,
 		const VectorHandler* const pSol) const {
 	integer iNumDofs = pDM->iGetNumDofs();
+	
 	//simple copy of predicted state
 	pXPrimeCurr->PutCoef(DCount+iNumDofs,
 		pXPrimeCurr->operator()(DCount));
@@ -228,7 +234,7 @@ ThirdOrderIntegrator::Predict(void)
 	return;
 };
 
-void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
+void ThirdOrderIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
 {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Residual");
 	ASSERT(pDM != NULL);
@@ -245,7 +251,7 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssRes(res, 1.);
-	
+
 	/* dT */
 	pDM->SetTime(pDM->dGetTime() - theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);

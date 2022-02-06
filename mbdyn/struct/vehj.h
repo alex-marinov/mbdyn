@@ -115,6 +115,11 @@ public:
 	virtual Joint::Type GetJointType(void) const {
 		return Joint::DEFORMABLEHINGE;
 	};
+    
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -168,6 +173,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DeformableHingeJoint - end */

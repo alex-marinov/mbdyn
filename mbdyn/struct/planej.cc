@@ -62,12 +62,6 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars... TODO: try to remove
-Var_Phi(0),
-Var_Omega(0),
-Var_MFR(0),
-Var_fc(0),
-#endif // USE_NETCDFC
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
@@ -837,6 +831,9 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Indici del vincolo */
    for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);
    }
 
    /* Aggiorna i dati propri */
@@ -1517,6 +1514,40 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+const OutputHandler::Dimensions
+PlaneHingeJoint::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+         break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+         break;
+	}
+
+	if (fc) {
+      index -= NumSelfDof;
+		integer iFCDofs = fc->iGetNumDof();
+		if (iFCDofs > 0) {
+			/* TODO */
+         /* not sure how to handle this part currently */
+		}
+	}
+
+	return dimension;
+}
 /* PlaneHingeJoint - end */
 
 
@@ -1534,10 +1565,6 @@ pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), M(Zero3),
 NTheta(0), dTheta(0.),
 dThetaWrapped(0.),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-Var_Omega(0),
-#endif // USE_NETCDFC
 od(od)
 {
    NO_OP;
@@ -2499,6 +2526,24 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+const OutputHandler::Dimensions
+PlaneRotationJoint::GetEquationDimension(integer index) const {
+	
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
 /* PlaneRotationJoint - end */
 
 
@@ -2527,12 +2572,6 @@ DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-Var_Omega(0),
-Var_MFR(0),
-Var_fc(0),
-#endif // USE_NETCDFC
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
 {
@@ -3952,6 +3991,36 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+const OutputHandler::Dimensions
+AxialRotationJoint::GetEquationDimension(integer index) const {
+	
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+	}
+
+	return dimension;
+}
+
 /* AxialRotationJoint - end */
 
 
@@ -4462,7 +4531,10 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 5; iCnt++) {
-      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);   
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt); 
+
+       /* initial testing for get equation dimension  */
+      GetEquationDimension(iCnt);  
    }
    
    F = Vec3(XCurr, iFirstReactionIndex+1);
@@ -4874,6 +4946,32 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    silent_cerr("PlanePinJoint(" << GetLabel() << "): "
 	   "illegal private data " << i << std::endl);
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const OutputHandler::Dimensions
+PlanePinJoint::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+         break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+         break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+         break;
+	}
+
+	return dimension;
 }
 
 /* PlanePinJoint - end */

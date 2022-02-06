@@ -186,6 +186,34 @@ GenelClamp::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelClamp::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+GenelClamp::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"genel clamp imposed voltage error" << std::endl;
+
+	return out;
+}
+
 /* GenelClamp - end */
 
 
@@ -365,6 +393,34 @@ GenelDistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) cons
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelDistance::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Voltage;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+GenelDistance::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"genel distance imposed voltage difference" << std::endl;
+
+	return out;
+}
+
 /* GenelDistance - end */
 
 
@@ -509,6 +565,21 @@ GenelSpring::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const 
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpring::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+GenelSpring::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* GenelSpring - end */
 
 
@@ -651,6 +722,21 @@ doublereal GenelSpringSupport::dGetPrivData(unsigned int i) const
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpringSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+GenelSpringSupport::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* GenelSpringSupport - end */
 
 
@@ -770,6 +856,21 @@ GenelCrossSpringSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelCrossSpringSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+GenelCrossSpringSupport::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* GenelCrossSpringSupport - end */
 
 
@@ -891,6 +992,21 @@ GenelCrossSpringDamperSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelCrossSpringDamperSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+GenelCrossSpringDamperSupport::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* GenelCrossSpringDamperSupport - end */
 
 
@@ -1006,6 +1122,21 @@ GenelSpringDamperSupport::GetConnectedNodes(
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelSpringDamperSupport::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+GenelSpringDamperSupport::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* GenelSpringDamperSupport - end */
 
 
@@ -1132,5 +1263,32 @@ GenelMass::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 }
 /* ************************************************ */
 
+const OutputHandler::Dimensions 
+GenelMass::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::VoltageDerivative;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+GenelMass::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"genel mass voltage derivative" << std::endl;
+
+	return out;
+}
 /* GenelMass - end */
 

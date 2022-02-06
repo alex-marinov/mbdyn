@@ -49,16 +49,6 @@
 #include <unordered_map>
 
 #if defined(USE_NETCDF)
-#if defined(USE_NETCDFC)
-#include <netcdfcpp.h>
-typedef const NcDim * MBDynNcDim;
-typedef NcVar * MBDynNcVar;
-typedef NcFile MBDynNcFile;
-typedef NcType MBDynNcType;
-#define MBDynNcInt ncLong
-#define MBDynNcDouble ncDouble
-#define MBDynNcChar ncChar
-#elif defined(USE_NETCDF4)
 #include <netcdf>
 typedef netCDF::NcDim MBDynNcDim; // not const because cannot be if not a pointer (in this case)
 typedef netCDF::NcVar MBDynNcVar;
@@ -67,7 +57,6 @@ typedef netCDF::NcType MBDynNcType;
 #define MBDynNcInt netCDF::NcType::nc_INT /**< replaces long in netcdf4 */
 #define MBDynNcDouble netCDF::NcType::nc_DOUBLE
 #define MBDynNcChar netCDF::NcType::nc_CHAR
-#endif
 #define MbNcInt MBDynNcType(MBDynNcInt) /**< creates a NcType object for a int, makes the notation simpler */
 #define MbNcDouble MBDynNcType(MBDynNcDouble) /**< creates a NcType object for a double, makes the notation simpler */
 #define MbNcChar MBDynNcType(MBDynNcChar) /**< makes the notation simpler */
@@ -161,7 +150,13 @@ public:
 		Charge,
 		Frequency,
 		deg,
-		rad
+		rad,
+
+		/* added for GetEquationDimension method of DofOwnerOwner class */
+		MassFlow,
+		Jerk,
+		VoltageDerivative,
+		UnknownDimension
 	};
 
 private:
@@ -173,11 +168,9 @@ public:
 	};
 	inline void IncCurrentStep(void) {
 		currentStep++;
-#if defined(USE_NETCDFC)
-		ncStart1[0] = this->GetCurrentStep();
-#elif defined(USE_NETCDF4)
+#if defined(USE_NETCDF)
 		ncStart1[0] = ncStart1x3[0] = ncStart1x3x3[0] = this->GetCurrentStep();
-#endif  /* USE_NETCDF4 */
+#endif  /* USE_NETCDF */
 	};
        	inline long GetCurrentStep(void) const {
 		return currentStep;
@@ -277,10 +270,13 @@ public:
 	void ReadOutputUnits(MBDynParser& HP);
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
-	bool Open(const OutputHandler::OutFiles out);
+	void Open(const OutputHandler::OutFiles out);
+#ifdef USE_NETCDF
+	void NetCDFOpen(const OutputHandler::OutFiles out, const netCDF::NcFile::FileFormat NetCDF_Format);
+#endif
 
 	/* Overload for eigenanalysis text output */
-	bool Open(const int out, const std::string& postfix);
+	void Open(const int out, const std::string& postfix);
 	bool IsOpen(const OutputHandler::OutFiles out) const;
 	bool UseDefaultPrecision(const OutputHandler::OutFiles out) const;
 	bool UseScientific(const OutputHandler::OutFiles out) const;
@@ -297,11 +293,11 @@ public:
 
 	bool Close(const OutputHandler::OutFiles out);
 
-	bool OutputOpen(void);
+	void OutputOpen(void);
 	bool RestartOpen(bool openResXSol = false);
 
-	bool PartitionOpen(void);
-	bool LogOpen(void);
+	void PartitionOpen(void);
+	void LogOpen(void);
 
 	/* Aggiungere qui le funzioni che ritornano gli stream desiderati */
 	inline std::ostream& Get(const OutputHandler::OutFiles f);
@@ -370,13 +366,12 @@ public:
 	inline MBDynNcDim DimV3(void) const;
 
 	std::vector<size_t> ncStart1;
-#if defined(USE_NETCDF4)
+
 	std::vector<size_t> ncCount1;	
 	std::vector<size_t> ncStart1x3;
 	std::vector<size_t> ncCount1x3;
 	std::vector<size_t> ncStart1x3x3;
 	std::vector<size_t> ncCount1x3x3;
-#endif  /* USE_NETCDF4 */
 
 	MBDynNcVar
 	CreateVar(const std::string& name, const MBDynNcType& type,
@@ -402,19 +397,11 @@ public:
 	void
 	WriteNcVar(const MBDynNcVar&, const Tvar&, const Tstart&);
 
-#if defined(USE_NETCDFC)
-	template <class Tvar>
-	void
-	WriteNcVar(const MBDynNcVar&, const Tvar&, 
-			const std::vector<size_t>&, 
-			const std::vector<size_t>& = std::vector<size_t>(1,1));
-#elif defined(USE_NETCDF4) // !USE_NETCDFC
 	template <class Tvar, class Tstart>
 	void
 	WriteNcVar(const MBDynNcVar&, const Tvar&, 
 			const std::vector<Tstart>&, 
 			const std::vector<size_t>& = std::vector<size_t>(1,1));
-#endif // USE_NETCDF4
 	
 	MBDynNcVar
 	CreateVar(const std::string& name, const std::string& type);

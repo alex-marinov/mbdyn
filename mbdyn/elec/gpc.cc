@@ -686,96 +686,6 @@ GPC_LAPACK_pinv::Inv(integer ndima, integer nrowa,
 /* GPC_LAPACK_pinv - end */
 
 
-#ifdef USE_MESCHACH
-
-/* GPC_Meschach_QRinv - begin */
-GPC_Meschach_QRinv::GPC_Meschach_QRinv(integer m, integer n)
-: m(m), 
-n(n), 
-A(MNULL), 
-diag(VNULL), 
-x(VNULL), 
-b(VNULL), 
-pivot(PNULL)
-{
-   	ASSERT(m > 0);
-   	ASSERT(n > 0);
-	
-   	if ((A = m_get(m, n)) == MNULL) {
-      		silent_cerr("A = m_get(" << m << ',' << n << ") failed" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-	
-   	if ((diag = v_get(std::min(m, n))) == VNULL) {
-      		silent_cerr("diag = v_get(" << std::min(m, n) << ") failed" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-	
-   	if ((x = v_get(n)) == VNULL) {
-      		silent_cerr("x = v_get(" << n << ") failed" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-	
-   	if ((b = v_get(m)) == VNULL) {
-      		silent_cerr("b = v_get(" << m << ") failed" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-	
-   	if ((pivot = px_get(n)) == PNULL) {
-      		silent_cerr("pivot = px_get(" << n << ") failed" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-}
-
-GPC_Meschach_QRinv::~GPC_Meschach_QRinv(void)
-{
-   	PX_FREE(pivot);
-   	V_FREE(b);
-   	V_FREE(x);
-   	V_FREE(diag);
-   	M_FREE(A);
-}
-
-integer 
-GPC_Meschach_QRinv::Inv(integer ndima, integer nrowa, 
-			integer ncola, doublereal* a)
-{
-   	ASSERT(nrowa == m);
-   	ASSERT(ncola == n);
-   	ASSERT(ndima >= m);
-   	ASSERT(a != NULL);
-   
-   	/* copia a in A */
-   	for (int j = n; j-- > 0; ) {
-      		doublereal* p = a+ndima*j;
-		
-      		for (int i = m; i-- > 0; ) {
-	 		A->me[i][j] = p[i];
-      		}
-   	}
-   
-   	QRCPfactor(A, diag, pivot);
-   
-   	/* puo' essere ottimizzata con accesso diretto alla fattorizzata */
-   	for (int j = m; j-- > 0; ) {
-      		v_zero(b);
-      		b->ve[j] = 1.;
-      		QRCPsolve(A, diag, pivot, b, x);
-      		doublereal* p = a+j;
-		
-      		for (int i = n; i-- > 0; ) {
-	 		p[i*m] = x->ve[i];
-      		}
-   	}
-   
-   	return 0;
-}
- 
-/* GPC_Meschach_QRinv - end */
-
-#endif /* USE_MESCHACH */
- 
-
 /* GPCDesigner - begin */
 
 GPCDesigner::GPCDesigner(integer iNumOut, integer iNumIn, 
@@ -854,19 +764,12 @@ iTmpCols(iNumInputs*(iContrStep-0)),
 f_armax(f),
 pInv(NULL)
 {
-#if !defined(USE_MESCHACH) && !defined(USE_LAPACK)
-#error "need LAPACK or Meschach for pseudo-inversion"
-#endif /* !USE_MESCHACH && !USE_LAPACK */
+#if !defined(USE_LAPACK)
+#error "need LAPACK for pseudo-inversion"
+#endif /* !USE_LAPACK */
    	switch (1) {		/* FIXME: mettere un flag */
-#ifdef USE_MESCHACH
-    	case 1:
-      		SAFENEWWITHCONSTRUCTOR(pInv, 
-			     	       GPC_Meschach_QRinv, 
-				       GPC_Meschach_QRinv(iTmpRows, iTmpCols));
-      		break;
-#endif /* USE_MESCHACH */
 #ifdef USE_LAPACK
-    	case 2:
+    	case 1:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 			     	       GPC_LAPACK_pinv, 
 				       GPC_LAPACK_pinv(iTmpRows, iTmpCols));
@@ -1034,19 +937,12 @@ pInv(NULL)
    	ASSERT(pW != NULL);
    	ASSERT(pDC != NULL);
    
-#if !defined(USE_MESCHACH) && !defined(USE_LAPACK)
-#error "need LAPACK or Meschach for pseudoinverse"
-#endif /* !USE_MESCHACH && !USE_LAPACK */
+#if !defined(USE_LAPACK)
+#error "need LAPACK for pseudoinverse"
+#endif /* !USE_LAPACK */
    	switch (1) { 		/* FIXME: mettere un flag */
-#ifdef USE_MESCHACH
-    	case 1:
-      		SAFENEWWITHCONSTRUCTOR(pInv, 
-			     	       GPC_Meschach_QRinv, 
-				       GPC_Meschach_QRinv(iTmpCols, iTmpCols));
-		break;
-#endif /* USE_MESCHACH */
 #ifdef USE_LAPACK
-    	case 2:
+    	case 1:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 				       GPC_LAPACK_pinv, 
 				       GPC_LAPACK_pinv(iTmpCols, iTmpCols));

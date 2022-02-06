@@ -369,6 +369,33 @@ void InPlaneJoint::SetInitialValue(VectorHandler& /* X */ )
    NO_OP;
 }
 
+const OutputHandler::Dimensions
+InPlaneJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+InPlaneJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
+}
 /* InPlaneJoint - end */
 
 
@@ -769,6 +796,34 @@ InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 void InPlaneWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ )
 { 
    NO_OP;
+}
+
+const OutputHandler::Dimensions
+InPlaneWithOffsetJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+InPlaneWithOffsetJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"distance constraints" << std::endl;
+
+	return out;
 }
 
 /* InPlaneWithOffsetJoint - end */

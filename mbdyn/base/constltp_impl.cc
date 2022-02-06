@@ -973,7 +973,12 @@ struct LTVViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 			SP = HP.Get(SP);
 		}
 
-		DriveCaller *pdcp = HP.GetDriveCaller();
+		DriveCaller *pdcp;
+		if (HP.IsKeyWord("same")) {
+			pdcp = pdc->pCopy();
+		} else {
+			pdcp = HP.GetDriveCaller();
+		}
 
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());

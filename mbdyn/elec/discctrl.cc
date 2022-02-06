@@ -959,5 +959,11 @@ DiscreteControlElem::GetConnectedNodes(
 	}
 }
 
+const OutputHandler::Dimensions 
+DiscreteControlElem::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
 /* DiscreteControlElem - end */
 

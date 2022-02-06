@@ -113,18 +113,6 @@ public:
 				      int offset = 0) const override;
 
      virtual
-     int32_t MakeCompressedRowForm(doublereal *const Ax,
-				   int32_t *const Ai,
-				   int32_t *const Ap,
-				   int offset = 0) const override;
-
-     virtual
-     int64_t MakeCompressedRowForm(doublereal *const Ax,
-				   int64_t *const Ai,
-				   int64_t *const Ap,
-				   int offset = 0) const override;
-
-     virtual
      int32_t MakeIndexForm(doublereal *const Ax,
 			   int32_t *const Arow, int32_t *const Acol,
 			   int32_t *const AcolSt,
@@ -144,12 +132,13 @@ public:
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
-     std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
+     virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
      virtual integer Nz() const override;
 
+     virtual SpGradientSparseMatrixHandler* Copy() const override;
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -176,12 +165,6 @@ private:
 					  idx_type *const Ai,
 					  idx_type *const Ap,
 					  int offset) const;
-
-     template <typename idx_type>
-     idx_type MakeCompressedRowFormTpl(doublereal *const Ax,
-				       idx_type *const Ai,
-				       idx_type *const Ap,
-				       int offset) const;
 
      template <typename idx_type>
      idx_type MakeIndexFormTpl(doublereal *const Ax,
@@ -328,10 +311,12 @@ public:
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
-     std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const override;
-
+     virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
+     
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
 
+     virtual SpGradientSparseMatrixWrapper* Copy() const override;
+     
 protected:
      virtual MatrixHandler&
      MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,

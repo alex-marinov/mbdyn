@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2019) all rights reserved.
+        Copyright (C) 2011(-2021) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -39,6 +39,7 @@
 */
 
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include <iostream>
 
 #ifdef USE_OCTAVE
 
@@ -124,8 +125,12 @@ private:
 
 public:
         static OctaveInterface* CreateInterface(const DataManager* pDM, MBDynParser* pHP);
+        void AddRef() {
+                ++iRefCount;
+                TRACE("octave info: increase reference count to:" << iRefCount << "\n");                                
+        }
         void Destroy();
-        static OctaveInterface* GetInterface(void) { return pOctaveInterface; };
+        static OctaveInterface* GetInterface(void);
         void UpdateOctaveVariables(void);
         void UpdateMBDynVariables(void);
         const DataManager* GetDataManager(void) const{ return pDM; }
@@ -181,7 +186,7 @@ private:
         inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows);
         template<typename T>
         inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows, int cols);
-  static void exit(int);
+        static void exit(int);
 
 private:
 #if OCTAVE_MAJOR_VERSION >= 5
@@ -207,7 +212,7 @@ class MBDynInterface : public octave_object {
 public:
         // An instance of this class might be created directly from within octave
         // In this case pInterface must be defined
-        explicit MBDynInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
+        explicit MBDynInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), bool bAddRef = true);
         virtual ~MBDynInterface(void);
         virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
 protected:
@@ -224,6 +229,7 @@ protected:
 
 private:
         OctaveInterface* const pInterface;
+        const bool bAddRef;
 };
 
 class ConstVectorHandlerInterface : public MBDynInterface {
@@ -409,7 +415,7 @@ class DataManagerInterface : public MBDynInterface {
 public:
         // An instance of this class might be created directly from within octave
         // In this case pInterface must be defined
-        explicit DataManagerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const DataManager* pDM = 0);
+        explicit DataManagerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const DataManager* pDM = 0, bool bAddRef = true);
         virtual ~DataManagerInterface();
         virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
         inline const DataManager* GetDataManager(void)const;
@@ -442,7 +448,7 @@ class MBDynParserInterface : public MBDynInterface {
 public:
         // An instance of this class might be created directly from within octave
         // In this case pInterface must be defined
-        explicit MBDynParserInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), MBDynParser* pHP=0);
+        explicit MBDynParserInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), MBDynParser* pHP=0, bool bAddRef=true);
         virtual ~MBDynParserInterface();
         virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
         MBDynParser* Get()const{ return pHP; }
@@ -600,6 +606,7 @@ class OctaveConstitutiveLawBase
 {
 public:
         explicit inline OctaveConstitutiveLawBase(const std::string& strClass, OctaveInterface* pInterface, int iFlags);
+        virtual ~OctaveConstitutiveLawBase();
         inline bool bHaveMethod(const std::string& strName) const;
         OctaveInterface* GetInterface()const{ return pInterface; }
         const std::string& GetClass()const{ return strClass; }
@@ -833,13 +840,15 @@ bool OctaveInterface::bHaveADPackage = false;
 OctaveInterface::OctaveInterface(const DataManager* pDM, MBDynParser* pHP)
 : bFirstCall(true),
 bEmbedFileDirty(false),
-octDM(new DataManagerInterface(this, pDM)),
-octHP(new MBDynParserInterface(this, pHP)),
+octDM(new DataManagerInterface(this, pDM, false)),
+octHP(new MBDynParserInterface(this, pHP, false)),
 pDM(pDM),
 pHP(pHP)
 {
         TRACE("constructor");
 
+        ASSERT(iRefCount == 0);
+        
         ASSERT(pDM != 0);
         ASSERT(pHP != 0);
         ASSERT(pOctaveInterface == 0);
@@ -893,11 +902,12 @@ pHP(pHP)
         feval("page_screen_output", octave_value(false), 0); // turn off pager
 #endif
 
+#if OCTAVE_MAJOR_VERSION < 6
         if ((error_state != 0)) {
                 silent_cerr("warning: page_screen_output failed" << std::endl);
                 error_state = 0; // ignore error
         }
-
+#endif
 
         LoadADPackage();
 }
@@ -912,19 +922,19 @@ OctaveInterface::~OctaveInterface(void)
         TRACE("destructor");
 
         ASSERT(this == pOctaveInterface);
+
 #if !(OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION > 4)
-  octave_exit = &OctaveInterface::exit;
+        octave_exit = &OctaveInterface::exit;
+#elif OCTAVE_MAJOR_VERSION < 5
+#if defined(HAVE_DO_OCTAVE_ATEXIT)
+        do_octave_atexit();
+#elif defined(HAVE_CLEAN_UP_AND_EXIT)
+        clean_up_and_exit(0, true);
+#endif        
+#elif OCTAVE_MAJOR_VERSION >= 6
+        interpreter.shutdown();
 #endif
 
-#if OCTAVE_MAJOR_VERSION < 5
-#if defined(HAVE_DO_OCTAVE_ATEXIT)
-  do_octave_atexit();
-#elif defined(HAVE_CLEAN_UP_AND_EXIT)
-  clean_up_and_exit(0, true);
-#else
-#warning "do_octave_atexit() and clean_up_and_exit() are not defined"
-#endif
-#endif
         pOctaveInterface = 0;
 }
 
@@ -944,11 +954,13 @@ OctaveInterface::LoadADPackage(void)
 
         bHaveADPackage = true; // Use finite differences in var/mbdyn_derivative.m if AD is not available
 
+#if OCTAVE_MAJOR_VERSION < 6
         if ((error_state != 0)) {
             silent_cerr("warning: octave package for automatic forward differentiation is not available" << std::endl);
             error_state = 0; // ignore error
             bHaveADPackage = false;
         }
+#endif
 #endif
         return bHaveADPackage;
 }
@@ -956,13 +968,13 @@ OctaveInterface::LoadADPackage(void)
 OctaveInterface *
 OctaveInterface::CreateInterface(const DataManager* pDM, MBDynParser* pHP)
 {
-        ++iRefCount;
-
-        if (pOctaveInterface) {
-                return pOctaveInterface;
+        if (!pOctaveInterface) {
+                pOctaveInterface = new OctaveInterface(pDM, pHP);
         }
-
-        return new OctaveInterface(pDM, pHP);
+        
+        pOctaveInterface->AddRef();
+        
+        return pOctaveInterface;
 }
 
 void
@@ -971,8 +983,15 @@ OctaveInterface::Destroy(void)
         ASSERT(iRefCount >= 1);
 
         if (0 == --iRefCount) {
+                TRACE("octave info: Octave interface is released\n"); 
                 delete this;
         }
+        
+        TRACE("octave info: Octave remaining count:" << iRefCount << "\n");        
+}
+
+OctaveInterface* OctaveInterface::GetInterface(void) {
+        return pOctaveInterface;
 }
 
 void
@@ -995,7 +1014,9 @@ OctaveInterface::UpdateOctaveVariables(void)
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 
-#if OCTAVE_MAJOR_VERSION >= 5
+#if OCTAVE_MAJOR_VERSION >= 6
+                interpreter.global_assign(mbName, octValue);
+#elif OCTAVE_MAJOR_VERSION >= 5
                 interpreter.get_symbol_table().global_assign(mbName, octValue);
 #else
                 set_global_value(mbName, octValue);
@@ -1020,7 +1041,9 @@ OctaveInterface::UpdateMBDynVariables(void)
 
                 const std::string& mbName(it->first);
 
-#if OCTAVE_MAJOR_VERSION >= 5
+#if OCTAVE_MAJOR_VERSION >= 6
+                const octave_value octValue(interpreter.global_varval(mbName));                
+#elif OCTAVE_MAJOR_VERSION >= 5
                 const octave_value octValue(interpreter.get_symbol_table().global_varval(mbName));
 #else
                 const octave_value octValue(get_global_value(mbName));
@@ -1050,7 +1073,11 @@ OctaveInterface::AddOctaveSearchPath(const std::string& path)
 #else
         feval("addpath", octave_value(path));
 #endif
+#if OCTAVE_MAJOR_VERSION < 6
         return error_state == 0;
+#else
+        return true;
+#endif
 }
 
 bool
@@ -1316,12 +1343,13 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
             feval("pkg", args, 0);
 #endif
 
+#if OCTAVE_MAJOR_VERSION < 6
             if ((error_state != 0)) {
                 silent_cerr("warning: octave package mbdyn_util_oct has not been installed" << std::endl);
 
                 error_state = 0;
             }
-
+#endif
             // octave .m files by default are installed here
             if (!AddOctaveSearchPath(OCTAVEPATH)) {
                     silent_cerr("OctaveInterface error: addpath(\"" << OCTAVEPATH << "\") failed" << std::endl);
@@ -1351,10 +1379,11 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 #else
                                 feval("source", octave_value(pFile->first));
 #endif
+#if OCTAVE_MAJOR_VERSION < 6
                                 if (error_state) {
                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                 }
-
+#endif
                                 pFile->second = true;
                         }
                 }
@@ -1370,19 +1399,20 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
                 silent_cerr("module-octave: Octave interpreter exited with status "
                             << err.exit_status() << std::endl);
                 throw NoErr(MBDYN_EXCEPT_ARGS);
-        } catch (const octave::execution_exception& err) {
+        } catch (const std::exception& err) {
+                silent_cerr("Exception in Octave function \"" << func << "\": " << err.what() << "\n");
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 #else
         octave_value_list ans = feval(func, args, nargout);
 #endif
-
+#if OCTAVE_MAJOR_VERSION < 6
         if (error_state) {
                 // An error message has been displayed by octave
                 // There is no need to output further error information
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
-
+#endif
         if (flags & OPTIONAL_OUTPUT_ARGS) {
                 if (ans.length() > nargout) {
                                 silent_cerr("octave error: function \"" << func << "\" returned " << ans.length() << " output parameters\n"
@@ -1577,16 +1607,24 @@ octave_value_list OctaveInterface::MakeArgList(doublereal dVar, const octave_val
         return fargs;
 }
 
-MBDynInterface::MBDynInterface(OctaveInterface* pInterface)
-: pInterface(pInterface)
+MBDynInterface::MBDynInterface(OctaveInterface* pInterface, bool bAddRef)
+: pInterface(pInterface), bAddRef(bAddRef)
 {
         TRACE("constructor");
         ASSERT(pInterface != 0);
+        
+        if (bAddRef) {
+                pInterface->AddRef(); // Avoid invalid memory access in octave-6.2.1
+        }
 }
 
 MBDynInterface::~MBDynInterface(void)
 {
         TRACE("destructor");
+        
+        if (bAddRef) {
+                pInterface->Destroy(); // Avoid invalid memory access in octave-6.2.1
+        }
 }
 
 void
@@ -1680,9 +1718,11 @@ octave_value ConstVectorHandlerInterface::operator()(const octave_value_list& id
 
                 const int32NDArray iRow(idx(0).int32_array_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                 if (error_state) {
                         return octave_value();
                 }
+#endif
 
                 X.resize(iRow.numel());
 
@@ -1927,7 +1967,7 @@ METHOD_DEFINE(VectorHandlerInterface, PutVec, args, nargout)
 
         const ColumnVector X(args(1).column_vector_value());
 
-        ASSERT(X.length() == iRow.length());
+        ASSERT(X.numel() == iRow.numel());
 
         const int32_t iSize = pX->iGetSize();
 
@@ -1982,10 +2022,12 @@ METHOD_DEFINE(OStreamInterface, printf, args, nargout)
         const octave_value_list ans = feval(strsprintf, args, 1);
 #endif
 
+#if OCTAVE_MAJOR_VERSION < 6
         if (error_state) {
                 return octave_value();
         }
-
+#endif
+        
         if (!(ans.length() >= 1 && ans(0).is_string())) { // sprintf returns more than one output argument
                 error("ostream: %s failed", strsprintf.c_str());
                 return octave_value();
@@ -2841,8 +2883,8 @@ END_METHOD_TABLE()
 DEFINE_OCTAVE_ALLOCATOR(StructNodeInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(StructNodeInterface, "StructNode", "StructNode");
 
-DataManagerInterface::DataManagerInterface(OctaveInterface* pInterface, const DataManager* pDM)
-        :MBDynInterface(pInterface),
+DataManagerInterface::DataManagerInterface(OctaveInterface* pInterface, const DataManager* pDM, bool bAddRef)
+        :MBDynInterface(pInterface, bAddRef),
          pDM(pDM)
 {
         TRACE("constructor");
@@ -3235,8 +3277,8 @@ MBDynParserInterface::mbStringDelims[6] = {
                 { HighParser::DEFAULTDELIM,		"DEFAULTDELIM" }
 };
 
-MBDynParserInterface::MBDynParserInterface(OctaveInterface* pInterface, MBDynParser* pHP)
-        :MBDynInterface(pInterface),
+MBDynParserInterface::MBDynParserInterface(OctaveInterface* pInterface, MBDynParser* pHP, bool bAddRef)
+        :MBDynInterface(pInterface, bAddRef),
          pHP(pHP)
 {
         if (!pHP) {
@@ -3940,11 +3982,19 @@ OctaveDriveCaller::OctaveDriveCaller(const std::string& strFunc, OctaveInterface
         TRACE("constructor");
         TRACE("strFunc=" << strFunc);
         TRACE("iFlags=" <<  iFlags);
+        
+        if (pInterface) {
+                pInterface->AddRef();
+        }
 }
 
 OctaveDriveCaller::~OctaveDriveCaller(void)
 {
         TRACE("destructor");
+
+        if (pInterface) {
+                pInterface->Destroy();
+        }
 }
 
 DriveCaller *
@@ -4006,12 +4056,20 @@ OctaveTplDriveCaller<T>::OctaveTplDriveCaller(const std::string& strFunction, Oc
          args(args)
 {
         TRACE("constructor");
+
+        if (pInterface) {
+                pInterface->AddRef();
+        }
 };
 
 template <class T>
 OctaveTplDriveCaller<T>::~OctaveTplDriveCaller(void)
 {
         TRACE("destructor");
+        
+        if (pInterface) {
+                pInterface->Destroy();
+        }
 };
 
 
@@ -4169,7 +4227,12 @@ OctaveConstitutiveLawBase::OctaveConstitutiveLawBase(const std::string& strClass
                   pInterface(pInterface),
                   iFlags(iFlags)
 {
+        pInterface->AddRef();
+}
 
+OctaveConstitutiveLawBase::~OctaveConstitutiveLawBase()
+{
+        pInterface->Destroy();
 }
 
 bool OctaveConstitutiveLawBase::bHaveMethod(const std::string& strName) const
@@ -4402,9 +4465,11 @@ OctaveBaseDCR::~OctaveBaseDCR()
 
 void OctaveBaseDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)const
 {
-        if (pInterface == 0) {
-           pInterface = OctaveInterface::CreateInterface(pDM, &HP);
+        if (pInterface) {
+                pInterface->Destroy();
         }
+        
+        pInterface = OctaveInterface::CreateInterface(pDM, &HP);
 
         strFunction = HP.GetStringWithDelims(HighParser::DOUBLEQUOTE);
 
@@ -4474,7 +4539,7 @@ OctaveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
         OctaveFunctionDCR::Read(pDM, HP, bDeferred);
 
         return new OctaveDriveCaller(GetFunction(), GetInterface(), GetFlags(), GetArgs());
-};
+};        
 
 DriveCaller *
 DerivativeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
@@ -5780,8 +5845,7 @@ mbdyn_octave_set(void)
                 return false;
         }
 #else
-        pedantic_cerr("warning: MBDyn has been configured without octave support\n"
-                                  "warning: module-octave is not available in this version of MBDyn" << std::endl);
+        #error "Trying to build module_octave, but MBDyn was not configured with --enable-octave"
 #endif
 
         // Return true also if USE_OCTAVE is not enabled

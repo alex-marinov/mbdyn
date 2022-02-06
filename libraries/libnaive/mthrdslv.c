@@ -70,7 +70,7 @@ typedef double doublereal;
 
 #define BIGINT   (1 << 30)
 
-#define MINPIV   1.0e-8
+#define MINPIV   1.0e-5
 
 int
 naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,

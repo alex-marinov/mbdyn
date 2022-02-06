@@ -128,7 +128,15 @@ class  Accumulator : virtual public Elem, public HydraulicElem {
      connectedNodes.resize(1);
      connectedNodes[0] = pNode1;
    };
-  /* ************************************************ */ 	 
+  /* ************************************************ */ 	
+
+  /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const; 
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Accumulator - end */
@@ -200,6 +208,14 @@ class Tank : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Tank - end */

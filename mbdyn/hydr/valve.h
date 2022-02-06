@@ -107,6 +107,14 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
      connectedNodes[3] = pNode4;
    };
    /* ************************************************ */ 	
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 /* Control_valve - end */
@@ -215,7 +223,15 @@ public:
 		connectedNodes[2] = pNode[N3];
 		connectedNodes[3] = pNode[N4];
 	};
-	/* ************************************************ */ 	
+	/* ************************************************ */ 
+
+  /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;	
+
+  /* describes the dimension of components of equation */
+  virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* Control_valve2 - end */
@@ -315,6 +331,14 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
      connectedNodes[3] = pNode4;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+  virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* Dynamic_control_valve - end */
@@ -421,6 +445,14 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
      connectedNodes[5] = pNode6;
   };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+  virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* Pressure_flow_control_valve - end */
@@ -505,6 +537,14 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+  /* describes the dimension of components of equation */
+  virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 
 };
 
@@ -593,7 +633,15 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
      connectedNodes[1] = pNode2;
      connectedNodes[2] = pNode3;
    };
-  /* ************************************************ */ 	 
+  /* ************************************************ */ 	
+
+  /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const; 
+
+  /* describes the dimension of components of equation */
+  virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 /* Flow_valve - end */

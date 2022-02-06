@@ -730,7 +730,7 @@ DataManager::InitialJointAssembly(void)
 					e != ElemData[iCnt1].ElemContainer.end(); ++e)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(e->second);
-					if (pEl == 0) {
+					if (pEl == 0 || (bNotDeformableInitial && pEl->bIsDeformable())) {
 						/* Ignore elements
 						 * not subjected
 						 * to initial assembly */
@@ -881,7 +881,7 @@ DataManager::InitialJointAssembly(void)
 					++p)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
-					if (pEl == 0) {
+					if (pEl == 0 || (bNotDeformableInitial && pEl->bIsDeformable())) {
 						/* Ignore elements
 						 * not subjected
 						 * to initial assembly */
@@ -1139,7 +1139,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Elementi (con iteratore): */
 		pEl = IAIter.GetFirst();
-		while (pEl != NULL) {
+		while (pEl != NULL && !(bNotDeformableInitial && pEl->bIsDeformable())) {
 			try {
 				*pResHdl += pEl->InitialAssRes(WorkVec, X);
 			}
@@ -1299,7 +1299,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo degli elementi */
 		pEl = IAIter.GetFirst();
-		while (pEl != NULL) {
+		while (pEl != NULL && !(bNotDeformableInitial && pEl->bIsDeformable())) {
 			*pMatHdl += pEl->InitialAssJac(WorkMat, X);
 			pEl = IAIter.GetNext();
 		}
@@ -1494,7 +1494,7 @@ DataManager::OutputPrepare(void)
 #ifdef USE_NETCDF
 	/* Set up NetCDF stuff if required */
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutHdl.Open(OutputHandler::NETCDF);
+		OutHdl.NetCDFOpen(OutputHandler::NETCDF, NetCDF_Format);
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
 		Var_Step = OutHdl.CreateVar<integer>("run.step", 
@@ -1635,10 +1635,6 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
 
-#if defined(USE_NETCDFC)
-		Var_Eig_dAplus->put(MatB.pdGetMat(), nrows, ncols);
-		Var_Eig_dAminus->put(MatA.pdGetMat(), nrows, ncols);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 		std::vector<size_t> ncStartPos, ncCount;
 		ncStartPos.push_back(0); // implicit cast here ok?
 		ncStartPos.push_back(0); // implicit cast here ok?
@@ -1646,7 +1642,6 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 		ncCount.push_back(ncols);
 		Var_Eig_dAplus.putVar(MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
 		Var_Eig_dAminus.putVar(MatA.pdGetMat());
-#endif  /* USE_NETCDF4 */
 
 	}
 #endif /* USE_NETCDF */
@@ -1705,8 +1700,6 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 	const unsigned uCurrEigSol,
 	const int iMatrixPrecision)
 {
-	const SpMapMatrixHandler& MatB = dynamic_cast<const SpMapMatrixHandler &>(*pMatB);
-	const SpMapMatrixHandler& MatA = dynamic_cast<const SpMapMatrixHandler &>(*pMatA);
 
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
@@ -1722,13 +1715,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 			<< "% F/xPrime + dCoef *F/x" << std::endl
 			<< "Aplus" << " = [";
 
-		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-			}
-		}
+                pMatB->Print(out, MatrixHandler::MAT_PRINT_SPCONVERT);
 
 		out << "];" << std::endl
 			<< "Aplus = spconvert(Aplus);" << std::endl;
@@ -1737,14 +1724,8 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 			<< "% F/xPrime - dCoef *F/x" << std::endl
 			<< "Aminus" << " = [";
 
-		for (SpMapMatrixHandler::const_iterator i = MatA.begin();
-				i != MatA.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-			}
-		}
-
+                pMatA->Print(out, MatrixHandler::MAT_PRINT_SPCONVERT);
+                
 		out << "];" << std::endl
 			<< "Aminus = spconvert(Aminus);" << std::endl;
 	}
@@ -1762,32 +1743,28 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
 			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
-		size_t iCnt = 0;
-		Vec3 v;
-		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
-				iCnt++;
-			}
-		}
-
-		iCnt = 0;
-		for (SpMapMatrixHandler::const_iterator j = MatA.begin();
-				j != MatA.end(); ++j)
-		{
-			if (j->dCoef != 0.) {
-				v = Vec3(j->iRow + 1, j->iCol + 1, j->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
-				iCnt++;
-			}
-		}
-
+                OutputEigSparseMatrixNc(Var_Eig_dAplus, *pMatB);
+                OutputEigSparseMatrixNc(Var_Eig_dAminus, *pMatA);           
 	}
-#endif
+#endif /* USE_NETCDF */
 }
+
+#ifdef USE_NETCDF
+void DataManager::OutputEigSparseMatrixNc(const MBDynNcVar& var, const MatrixHandler& mh)
+{
+     ASSERT(OutHdl.UseNetCDF(OutputHandler::NETCDF));
+     
+     size_t iCnt = 0;
+     
+     auto func = [this, &iCnt, &var] (integer iRow, integer iCol, doublereal dCoef) {
+                      Vec3 v(iRow, iCol, dCoef);
+                      OutHdl.WriteNcVar(var, v, iCnt);
+                      ++iCnt;
+                 };
+
+     mh.EnumerateNz(func);
+}
+#endif
 
 void
 DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
@@ -1876,7 +1853,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		}
 
 	}
-#endif
+#endif /* USE_NETCDF */
 }
 
 void

@@ -49,6 +49,7 @@
 #include "output.h"
 
 #include <cmath>
+#include <algorithm>
 #include <limits>
 #include <unistd.h>
 
@@ -244,6 +245,185 @@ NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 
 /* NonlinearSolverTestNorm - end */
 
+/* NonlinearSolverTestRelNorm - begin */
+
+VectorHandler*
+NonlinearSolverTestRelNorm::GetAbsRes() {
+	return &AbsRes;
+}
+
+NonlinearSolverTest::Type NonlinearSolverTestRelNorm::GetType() const
+{
+     return RELNORM;
+}
+
+doublereal
+NonlinearSolverTestRelNorm::MakeTest(Solver *pS, const integer &Size, 
+		const VectorHandler& Vec, bool bResidual, doublereal dScaleAlgEqu,
+		doublereal* pTestDiff)
+{
+   	DEBUGCOUTFNAME("NonlinearSolverTestRelNorm::MakeTest");
+
+   	/* get norm for absolute residual vector */
+	doublereal abs_res_test = NonlinearSolverTest::MakeTest(pS, Size, AbsRes, bResidual, dScaleAlgEqu, pTestDiff);
+
+	/* get norm for residual vector */
+	doublereal res_test = NonlinearSolverTest::MakeTest(pS, Size, Vec, bResidual, dScaleAlgEqu, pTestDiff);
+
+	if (abs_res_test == 0) {
+		return 0.;
+	}
+
+	return res_test/abs_res_test;
+}
+
+
+void
+NonlinearSolverTestRelNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestRelNorm::TestMerge(doublereal& dResCurr,
+		const doublereal& dResNew) const
+{
+	dResCurr += dResNew;
+}
+
+doublereal
+NonlinearSolverTestRelNorm::TestPost(const doublereal& dRes) const
+{
+	/* va qui perche' non posso fare sqrt() su !isfinite() */
+	if (!std::isfinite(dRes)) {
+		throw NonlinearSolver::ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+
+	return sqrt(dRes);
+}
+
+/* NonlinearSolverTestNorm - end */
+
+/* NonlinearSolverTestSepNorm */
+VectorHandler*
+NonlinearSolverTestSepNorm::GetAbsRes() {
+	return &AbsRes;
+}
+
+std::map<OutputHandler::Dimensions, std::set<integer>>* 
+NonlinearSolverTestSepNorm::GetDimMap() { 
+	return &MapOfDimensionIndices; 
+};
+
+NonlinearSolverTest::Type NonlinearSolverTestSepNorm::GetType() const
+{
+     return SEPNORM;
+}
+
+doublereal
+NonlinearSolverTestSepNorm::MakeTest(Solver *pS, const integer &Size, 
+		const VectorHandler& Vec, bool bResidual, doublereal dScaleAlgEqu,
+		doublereal* pTestDiff)
+{
+
+	std::vector<doublereal> testsVector;
+	std::vector<doublereal> testDiffsVector;
+	std::vector<doublereal> abs_dTestVector;
+	std::vector<doublereal> dTestVector;
+
+   	for (auto it = MapOfDimensionIndices.begin(); it != MapOfDimensionIndices.end(); ++it) {
+
+		doublereal dTest = 0.;
+		doublereal abs_dTest = 0.;
+
+		doublereal pTestDiff_temp = 0.;
+		doublereal abs_pTestDiff_temp = 0.;
+
+
+		const DataManager* const pDM = pS->pGetDataManager();
+		for (auto i = (*it).second.begin(); i != (*it).second.end(); ++i) {
+
+			const DofOrder::Order order = pDM->GetEqType(*i);
+ 	  		const doublereal dCoef = order == DofOrder::DIFFERENTIAL ? 1. : dScaleAlgEqu;
+
+			TestOne(dTest, Vec, *i, dCoef);
+			TestOne(abs_dTest, AbsRes, *i, dCoef);
+
+			if (pTestDiff && order == DofOrder::DIFFERENTIAL) {
+				TestOne(pTestDiff_temp, Vec, *i, dCoef);
+				TestOne(abs_pTestDiff_temp, AbsRes, *i, dCoef);
+			}
+
+		}
+
+		if (pTestDiff) {
+			pTestDiff_temp = TestPost(pTestDiff_temp);
+			abs_pTestDiff_temp = TestPost(abs_pTestDiff_temp);
+
+			testDiffsVector.push_back(pTestDiff_temp/abs_pTestDiff_temp);
+		}
+
+		dTest = TestPost(dTest);
+		dTestVector.push_back(dTest);
+		abs_dTest = TestPost(abs_dTest);
+		abs_dTestVector.push_back(abs_dTest);
+	}
+
+	doublereal abs_dTest_max = *max_element(abs_dTestVector.begin(), abs_dTestVector.end());
+
+	doublereal eps1, eps2;
+	eps1 = 1E-1;
+	eps2 = 1E-5;
+
+	for ( std::vector<double>::size_type i = 0; i < dTestVector.size(); i++) {
+		doublereal dTest = dTestVector[i];
+		doublereal abs_dTest = abs_dTestVector[i];
+
+		if ((abs_dTest != 0) && !((dTest/abs_dTest > eps1) && (abs_dTest < eps2 * abs_dTest_max))) {
+			testsVector.push_back(dTest/abs_dTest);
+		} else {
+			testsVector.push_back(0.);
+		}
+	}
+
+	*pTestDiff = *max_element(testDiffsVector.begin(), testDiffsVector.end());
+
+	/* returning the maximum error */
+	return *max_element(testsVector.begin(), testsVector.end());;
+}
+
+void
+NonlinearSolverTestSepNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestSepNorm::TestMerge(doublereal& dResCurr,
+		const doublereal& dResNew) const
+{
+	dResCurr += dResNew;
+}
+
+doublereal
+NonlinearSolverTestSepNorm::TestPost(const doublereal& dRes) const
+{
+	/* va qui perche' non posso fare sqrt() su !isfinite() */
+	if (!std::isfinite(dRes)) {
+		throw NonlinearSolver::ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+
+	return sqrt(dRes);
+}
+
+/* NonlinearSolverTestSepNorm - end */
+
 /* NonlinearSolverTestMinMax */
 
 NonlinearSolverTest::Type NonlinearSolverTestMinMax::GetType() const
@@ -333,6 +513,58 @@ NonlinearSolverTestScaleNorm::dScaleCoef(const integer& iIndex) const
 }
 
 /* NonlinearSolverTestScaleNorm - end */
+
+/* NonlinearSolverTestScaleRelNorm - begin */
+
+void
+NonlinearSolverTestScaleRelNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestScaleRelNorm::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
+{
+	NonlinearSolverTestNorm::TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestScaleRelNorm::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleNorm - end */
+
+/* NonlinearSolverTestScaleSepNorm - begin */
+
+void
+NonlinearSolverTestScaleSepNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestScaleSepNorm::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
+{
+	NonlinearSolverTestSepNorm::TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestScaleSepNorm::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleSepNorm - end */
 
 /* NonlinearSolverTestScaleMinMax - begin */
 

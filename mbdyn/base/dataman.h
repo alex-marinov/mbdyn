@@ -114,6 +114,7 @@ protected:
 
 	/* Parametri usati durante l'assemblaggio iniziale */
 	bool bInitialJointAssemblyToBeDone;
+	bool bNotDeformableInitial;
 	bool bSkipInitialJointAssembly;
 	bool bOutputFrames;
 	bool bOutputAccels;
@@ -201,6 +202,7 @@ protected:
 #ifdef USE_NETCDF
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 	/* NetCDF stuff */
+	netCDF::NcFile::FileFormat NetCDF_Format;
 	bool bNetCDFsync;
 	bool bNetCDFnoText;
 	MBDynNcVar Var_Step;
@@ -350,7 +352,11 @@ public:
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0);
+
+	/* sets the dimesnions of the equation components */
+	virtual void SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
+	virtual void SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
 
 	// inverse dynamics
 	/* Constraints residual, switch iOrder*/
@@ -378,7 +384,8 @@ protected:
 			VariableSubMatrixHandler& WorkMatB);
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
-			SubVectorHandler& WorkVec);
+			SubVectorHandler& WorkVec,
+			VectorHandler*const pAbsResHdl = 0);
 
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
@@ -442,6 +449,7 @@ public:
 			const MatrixHandler* pmMatB,
 			const unsigned uCurrEigSol,
 			const int iMatrixPrecision);
+     
 	void
 	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
 			const MatrixHandler* pmMatB,
@@ -498,7 +506,7 @@ public:
 
 	/* socket select stuff */
 #ifdef USE_SOCKET
-protected:
+protected:     
 	std::map<int, UseSocket *> SocketUsers;
 	time_t SocketUsersTimeout;
 
@@ -651,6 +659,11 @@ protected:
 			const std::string& sName,
 			int CurrType);
 
+#ifdef USE_NETCDF
+        void
+        OutputEigSparseMatrixNc(const MBDynNcVar& var,
+                                const MatrixHandler& mh);
+#endif
 public:
 	/* ricerca drives */
 	Drive* pFindDrive(Drive::Type Typ, unsigned int uL) const;
@@ -1122,6 +1135,6 @@ extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);
 
 extern OrientationDescription
-ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP);
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP, OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION);
 
 #endif /* DATAMAN_H */

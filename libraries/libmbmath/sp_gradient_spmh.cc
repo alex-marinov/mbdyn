@@ -189,7 +189,15 @@ SpGradientSparseMatrixHandler::MatTVecMul_base(
 const doublereal&
 SpGradientSparseMatrixHandler::operator()(integer iRow, integer iCol) const
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     for (const auto& oDer: oRows[iRow - 1]) {
+          if (oDer.iDof == iCol) {
+               return oDer.dDer;
+          }
+     }
+
+     static constexpr doublereal dZero = 0.;
+     
+     return dZero;
 }
 
 doublereal&
@@ -310,46 +318,6 @@ int64_t SpGradientSparseMatrixHandler::MakeCompressedColumnForm(doublereal *cons
 								int offset) const
 {
      return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
-}
-
-template <typename idx_type>
-idx_type SpGradientSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const Ax,
-								 idx_type *const Ai,
-								 idx_type *const Ap,
-								 int offset) const
-{
-     idx_type iPtr = 0;
-     size_t iRow;
-
-     for (iRow = 0; iRow < oRows.size(); ++iRow) {
-	  Ap[iRow] = iPtr + offset;
-
-	  for (const auto& oItem: oRows[iRow]) {
-	       Ai[iPtr] = oItem.iDof + offset - 1;
-	       Ax[iPtr] = oItem.dDer;
-	       ++iPtr;
-	  }
-     }
-
-     Ap[iRow] = iPtr + offset;
-
-     return iPtr;
-}
-
-int32_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
-							     int32_t *const Ai,
-							     int32_t *const Ap,
-							     int offset) const
-{
-     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
-}
-
-int64_t SpGradientSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
-							     int64_t *const Ai,
-							     int64_t *const Ap,
-							     int offset) const
-{
-     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
 }
 
 bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
@@ -555,15 +523,22 @@ integer SpGradientSparseMatrixHandler::Nz() const {
      return NZ;
 }
 
-std::ostream& SpGradientSparseMatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const
+void SpGradientSparseMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
 {
      for (integer iRow = 1; iRow <= iGetNumRows(); ++iRow) {
 	  for (const auto& oDer: oRows[iRow - 1]) {
-	       os << iRow << '\t' << oDer.iDof << '\t' << std::setw(16) << oDer.dDer << '\n';
+	       func(iRow, oDer.iDof, oDer.dDer);
 	  }
      }
+}
 
-     return os;
+SpGradientSparseMatrixHandler* SpGradientSparseMatrixHandler::Copy() const
+{
+     SpGradientSparseMatrixHandler* pMH = nullptr;
+
+     SAFENEWWITHCONSTRUCTOR(pMH, SpGradientSparseMatrixHandler, SpGradientSparseMatrixHandler(iGetNumRows(), iGetNumCols()));
+
+     return pMH;
 }
 
 #ifdef USE_MULTITHREAD
@@ -635,12 +610,17 @@ bool SpGradientSparseMatrixWrapper::AddItem(integer iRow, const sp_grad::SpGradi
      return pMH->SpGradientSparseMatrixHandler::AddItem(iRow, oItem);
 }
 
-std::ostream& SpGradientSparseMatrixWrapper::Print(std::ostream& os, MatPrintFormat eFormat) const
+void SpGradientSparseMatrixWrapper::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+     pMH->EnumerateNz(func);
+}
+
+doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
-doublereal SpGradientSparseMatrixWrapper::Norm(Norm_t eNorm) const
+SpGradientSparseMatrixWrapper* SpGradientSparseMatrixWrapper::Copy() const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }

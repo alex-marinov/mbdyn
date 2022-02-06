@@ -322,6 +322,21 @@ void Control_valve::Output(OutputHandler& OH) const
    }   
 }
 
+const OutputHandler::Dimensions 
+Control_valve::GetEquationDimension(integer index) const {
+   // DOF == 0
+   return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+Control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
 /* Control_valve - end */
 
 
@@ -618,6 +633,26 @@ Control_valve2::SetValue(DataManager *pDM,
 		X.PutCoef(iFirstIndex+i, 
 			Cd*A[i]*copysign(sqrt(2.*density*fabs(dp[i])), dp[i]));
 	}
+}
+
+const OutputHandler::Dimensions 
+Control_valve2::GetEquationDimension(integer index) const {
+   // DOF == LAST_Q = 6
+   
+   return OutputHandler::Dimensions::Force;
+}
+
+std::ostream&
+Control_valve2::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + LAST_Q << ": " <<
+			"control valve 2 force balance" << std::endl;
+
+	return out;
 }
 
 /* Control_valve2 - end */
@@ -1063,6 +1098,40 @@ Dynamic_control_valve::SetValue(DataManager *pDM,
    XP.PutCoef(i+1, 0.);
    XP.PutCoef(i+2, 0.);
 }
+
+const OutputHandler::Dimensions 
+Dynamic_control_valve::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Dynamic_control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"dynamic control valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "dynamic control valve velocity" << std::endl;
+
+	return out;
+}
  
 /* Dynamic_control_valve - end */
 
@@ -1487,7 +1556,40 @@ Pressure_flow_control_valve::SetValue(DataManager *pDM,
    XP.PutCoef(i+1, 0.);
    XP.PutCoef(i+2, 0.);
 }
- 
+
+const OutputHandler::Dimensions 
+Pressure_flow_control_valve::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Pressure_flow_control_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"pressure flow valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "pressure flow valve velocity" << std::endl;
+
+	return out;
+}
 /* Pressure_flow_control_valve - end */
 
 
@@ -1843,11 +1945,43 @@ void Pressure_valve::SetValue(DataManager *pDM,
    XP.PutCoef(i+2, 0.);
 }
 
-/* Pressure_valve - end */
-					
+const OutputHandler::Dimensions 
+Pressure_valve::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
 
-				  
- /* Flow_valve - begin */
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Pressure_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"pressure valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "pressure valve velocity" << std::endl;
+
+	return out;
+}
+
+/* Pressure_valve - end */
+									  
+/* Flow_valve - begin */
 
 Flow_valve:: Flow_valve(unsigned int uL, const DofOwner* pDO,
 			HydraulicFluid* hf,
@@ -2305,4 +2439,37 @@ void Flow_valve::SetValue(DataManager *pDM,
    XP.PutCoef(i+2, 0.);  
 }
 
+const OutputHandler::Dimensions 
+Flow_valve::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Flow_valve::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"flow valve force balance" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+         "flow valve velocity" << std::endl;
+
+	return out;
+}
 /* Flow_valve - end */

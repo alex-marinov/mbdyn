@@ -224,11 +224,17 @@ UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
 	for (int iCnt = 1; iCnt <= 4; iCnt++) {
 		WorkVec.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Aggiorna i dati propri */
@@ -626,6 +632,45 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+UniversalHingeJoint::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+     	case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+UniversalHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"relative position constraints" << std::endl
+      
+      << prefix << iIndex + 4 << ": " <<
+			"relative rotation constraint iCnt" << std::endl;
+
+	return out;
+}
 /* UniversalHingeJoint - end */
 
 
@@ -643,9 +688,6 @@ UniversalRotationJoint::UniversalRotationJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_Phi(0),
-#endif // USE_NETCDFC
 R1h(R1hTmp), R2h(R2hTmp), dM(0.), od(od)
 {
 	NO_OP;
@@ -776,6 +818,9 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
@@ -1139,6 +1184,33 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+UniversalRotationJoint::GetEquationDimension(integer index) const {
+	// DOF == 1
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+UniversalRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+      << prefix << iIndex + 1 << ": " <<
+			"relative rotation constraint iCnt" << std::endl;
+
+	return out;
+}
 /* UniversalRotationJoint - end */
 
 
@@ -1283,11 +1355,17 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	/* Indici del vincolo */
 	for (int iCnt = 1; iCnt <= 4; iCnt++) {
 		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+
+		/* testing for dimension of component */
+		GetEquationDimension(iCnt);
 	}
 
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
@@ -1583,4 +1661,43 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+UniversalPinJoint::GetEquationDimension(integer index) const {
+	// DOF == 4
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+UniversalPinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": " <<
+			"position constraints" << std::endl
+      
+      << prefix << iIndex + 4 << ": " <<
+			"rotation constraint iCnt" << std::endl;
+
+	return out;
+}
 /* UniversalPinJoint - end */

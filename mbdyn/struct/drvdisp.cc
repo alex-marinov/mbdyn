@@ -57,10 +57,6 @@ RRef(Eye3),
 f2Ref(Zero3),
 dRef(Zero3),
 F(Zero3)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_d(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -697,6 +693,27 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
+
+const OutputHandler::Dimensions
+DriveDisplacementJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	}
+
+	return dimension;
+}
 					   
 /* DriveDisplacementJoint - end */
 
@@ -717,10 +734,6 @@ pNode(pN), f(f), x(x),
 fRef(Zero3),
 dRef(Zero3),
 F(Zero3)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_d(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -1271,6 +1284,27 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(15 + 1, PhiPrime);
 
 	return WorkVec;
+}
+
+const OutputHandler::Dimensions
+DriveDisplacementPinJoint::GetEquationDimension(integer index) const {
+	// DOF == 3
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+	case 1:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 2:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	case 3:
+		dimension = OutputHandler::Dimensions::Length;
+		break;
+	}
+
+	return dimension;
 }
 					   
 /* DriveDisplacementPinJoint - end */

@@ -80,7 +80,7 @@ c_spost(cs), c_vel(cv), c_acc(ca)
       s_min_gas = stroke*pow(press0/press_max, 1./Kappa);
    }
    
-   s_max = .999*stroke-s_min_gas;  /* ho messo 0.999 perchè se uso un accumulatore senza gas avrei un termine che va a +infinito */    
+   s_max = .999*stroke-s_min_gas;  /* ho messo 0.999 perchï¿½ se uso un accumulatore senza gas avrei un termine che va a +infinito */    
    ratio2 = area*area/(area_pipe*area_pipe); /* rapporto (area accumulatore/area tubo)^2 */
 }
 
@@ -389,6 +389,40 @@ Accumulator::SetValue(DataManager *pDM,
    XP.PutCoef(i+2, 0.);  
 }
 
+const OutputHandler::Dimensions 
+Accumulator::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Accumulator::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"accumulator force balance" << std::endl
+
+      << prefix << iIndex + 2 << ": " <<
+         "accumulator velocity" << std::endl;
+
+
+	return out;
+}
 /* Accumulator - end */
 
 
@@ -679,6 +713,34 @@ Tank::SetValue(DataManager *pDM,
 {
    integer i = iGetFirstIndex();
    X.PutCoef(i+1, level);
+}
+
+const OutputHandler::Dimensions 
+Tank::GetEquationDimension(integer index) const {
+   // DOF == 1
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Tank::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 7 << ": " <<
+			"tank filling velocity" << std::endl;
+
+	return out;
 }
 
 /* Tank - end */

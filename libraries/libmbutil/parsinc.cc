@@ -301,22 +301,25 @@ IncludeParser::Include_int()
 				<< save_errno 
 				<< " (" << strerror(save_errno) << ")" 
 				<< std::endl);
-      			throw ErrFile(MBDYN_EXCEPT_ARGS);
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!S_ISREG(s.st_mode)) {
 			silent_cerr("File <" << sfname << "> "
 				"at line " << GetLineData() << ": "
 				"not a regular file?" << std::endl);
-      			throw ErrFile(MBDYN_EXCEPT_ARGS);
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!(s.st_mode & S_IRUSR)) {
 			silent_cerr("File <" << sfname << "> "
 				"at line " << GetLineData() << ": "
 				"no read permissions?" << std::endl);
-      			throw ErrFile(MBDYN_EXCEPT_ARGS);
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
+	} else {
+		silent_cerr("File name expected at line " << GetLineData() << std::endl);
+		throw ErrFile(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::ifstream *pf_old = pf;
@@ -652,17 +655,13 @@ resolve_filename(const char *filename_in)
    	}
 
 error_return:;
-	if (filename != NULL) {
+	if (filename != NULL) {		
 		if (res == NULL) {
-			if (filename != filename_in) {
-				res = filename;
-			} else {
-				SAFESTRDUP(res, filename_in);
-			}
-		} else {
-			if (filename != filename_in) {
-				SAFEDELETEARR(filename);
-			}
+			SAFESTRDUP(res, filename);
+		}
+
+		if (!(filename >=  filename_in && filename <= filename_in + strlen(filename_in))) {
+			SAFEDELETEARR(filename);
 		}
 	}
 

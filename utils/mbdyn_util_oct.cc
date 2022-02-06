@@ -30,7 +30,7 @@
  */
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2019) all rights reserved.
+        Copyright (C) 2011(-2021) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -38,7 +38,7 @@
         in the GNU Public License version 2.1
 */
 
-// FIXME: this is a dirty trick needed to compile
+// FIXME: workaround for conflicting real type
 #define real mbdyn_real_type
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 
@@ -47,303 +47,301 @@
 #include <Rot.hh>
 #undef real
 
-#define BOUNDS_CHECKING
-
 #include <octave/oct.h>
 
 DEFUN_DLD(rotation_matrix_to_rotation_vector,args,nargout,"[phi] = rotation_matrix_to_rotation_vector(R)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
-	if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
-	{
-        error("R must be a 3x3xN matrix!");
-		return retval;
-	}
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
+    {
+	error("R must be a 3x3xN matrix!");
+	return retval;
+    }
 
     const NDArray R_oct = args(0).array_value();
     const octave_idx_type N = R_oct.ndims() >= 3 ? R_oct.dim3() : 1;
     Matrix phi_oct(3, N);
 
-	Mat3x3 R;
+    Mat3x3 R;
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R(i + 1, j + 1) = R_oct(i, j, k);
+	    for ( int j = 0; j < 3; ++j )
+		R(i + 1, j + 1) = R_oct.xelem(i, j, k);
 
 	Vec3 phi(RotManip::VecRot(R));
 
 	for ( int i = 0; i < 3; ++i )
-            phi_oct(i, k) = phi(i + 1);
+	    phi_oct.xelem(i, k) = phi(i + 1);
     }
 
-	retval.append(octave_value(phi_oct));
+    retval.append(octave_value(phi_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(rotation_vector_to_rotation_matrix,args,nargout,"[R] = rotation_vector_to_rotation_matrix(phi)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
     if ( !args(0).is_matrix_type() || args(0).rows() != 3 )
-	{
-		error("Phi must be a 3x1 matrix!");
-		return retval;
-	}
+    {
+	error("Phi must be a 3x1 matrix!");
+	return retval;
+    }
 
-	Vec3 phi;
+    Vec3 phi;
     const Matrix phi_oct = args(0).matrix_value();
     const octave_idx_type N = phi_oct.columns();
     NDArray R_oct(dim_vector(3, 3, N));
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-            phi(i + 1) = phi_oct(i, k);
+	    phi(i + 1) = phi_oct.xelem(i, k);
 
 	Mat3x3 R(RotManip::Rot(phi));
 
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R_oct(i, j, k) = R(i + 1, j + 1);
+	    for ( int j = 0; j < 3; ++j )
+		R_oct.xelem(i, j, k) = R(i + 1, j + 1);
     }
 
-	retval.append(octave_value(R_oct));
+    retval.append(octave_value(R_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(rotation_matrix_to_euler123,args,nargout,"[phi] = rotation_matrix_to_euler123(R)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
-	if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
-	{
-		error("R must be a 3x3 matrix!");
-		return retval;
-	}
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
+    {
+	error("R must be a 3x3 matrix!");
+	return retval;
+    }
 
     const NDArray R_oct = args(0).array_value();
     const octave_idx_type N = R_oct.ndims() >= 3 ? R_oct.dim3() : 1;
     Matrix phi_oct(3, N);        
-	Mat3x3 R;
+    Mat3x3 R;
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R(i + 1, j + 1) = R_oct(i, j, k);
+	    for ( int j = 0; j < 3; ++j )
+		R(i + 1, j + 1) = R_oct.xelem(i, j, k);
 
 	Vec3 phi(MatR2EulerAngles123(R));
 
 	for ( int i = 0; i < 3; ++i )
-            phi_oct(i, k) = phi(i + 1);
+	    phi_oct.xelem(i, k) = phi(i + 1);
     }
 
-	retval.append(octave_value(phi_oct));
+    retval.append(octave_value(phi_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(euler123_to_rotation_matrix,args,nargout,"[R] = euler123_to_rotation_matrix(phi)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
     if ( !args(0).is_matrix_type() || args(0).rows() != 3)
-	{
-		error("Phi must be a 3x1 matrix!");
-		return retval;
-	}
+    {
+	error("Phi must be a 3x1 matrix!");
+	return retval;
+    }
 
-	Vec3 phi;
+    Vec3 phi;
     const Matrix phi_oct = args(0).matrix_value();
     const octave_idx_type N = phi_oct.columns();
     NDArray R_oct(dim_vector(3, 3, N));
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-            phi(i + 1) = phi_oct(i, k);
+	    phi(i + 1) = phi_oct.xelem(i, k);
 
 	const Mat3x3 R(EulerAngles123_2MatR(phi));
 
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R_oct(i, j, k) = R(i + 1, j + 1);
+	    for ( int j = 0; j < 3; ++j )
+		R_oct.xelem(i, j, k) = R(i + 1, j + 1);
     }
 
-	retval.append(octave_value(R_oct));
+    retval.append(octave_value(R_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(rotation_matrix_to_euler313,args,nargout,"[phi] = rotation_matrix_to_euler313(R)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
-	if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
-	{
-		error("R must be a 3x3 matrix!");
-		return retval;
-	}
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
+    {
+	error("R must be a 3x3 matrix!");
+	return retval;
+    }
 
     const NDArray R_oct = args(0).array_value();
     const octave_idx_type N = R_oct.ndims() >= 3 ? R_oct.dim3() : 1;
     Matrix phi_oct(3, N);        
-	Mat3x3 R;
+    Mat3x3 R;
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R(i + 1, j + 1) = R_oct(i, j, k);
+	    for ( int j = 0; j < 3; ++j )
+		R(i + 1, j + 1) = R_oct.xelem(i, j, k);
 
 	Vec3 phi(MatR2EulerAngles313(R));
 
 	for ( int i = 0; i < 3; ++i )
-            phi_oct(i, k) = phi(i + 1);
+	    phi_oct.xelem(i, k) = phi(i + 1);
     }
 
-	retval.append(octave_value(phi_oct));
+    retval.append(octave_value(phi_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(euler313_to_rotation_matrix,args,nargout,"[R] = euler313_to_rotation_matrix(phi)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
     if ( !args(0).is_matrix_type() || args(0).rows() != 3)
-	{
-		error("Phi must be a 3x1 matrix!");
-		return retval;
-	}
+    {
+	error("Phi must be a 3x1 matrix!");
+	return retval;
+    }
 
-	Vec3 phi;
+    Vec3 phi;
     const Matrix phi_oct = args(0).matrix_value();
     const octave_idx_type N = phi_oct.columns();
     NDArray R_oct(dim_vector(3,3, N));
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-            phi(i + 1) = phi_oct(i, k);
+	    phi(i + 1) = phi_oct.xelem(i, k);
 
 	const Mat3x3 R(EulerAngles313_2MatR(phi));
 
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R_oct(i, j, k) = R(i + 1, j + 1);
+	    for ( int j = 0; j < 3; ++j )
+		R_oct.xelem(i, j, k) = R(i + 1, j + 1);
     }
 
-	retval.append(octave_value(R_oct));
+    retval.append(octave_value(R_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(rotation_matrix_to_euler321,args,nargout,"[phi] = rotation_matrix_to_euler321(R)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
-	if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
-	{
-		error("R must be a 3x3 matrix!");
-		return retval;
-	}
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
+    {
+	error("R must be a 3x3 matrix!");
+	return retval;
+    }
 
     const NDArray R_oct = args(0).array_value();
     const octave_idx_type N = R_oct.ndims() >= 3 ? R_oct.dim3() : 1;
     Matrix phi_oct(3, N);
-	Mat3x3 R;
+    Mat3x3 R;
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R(i + 1, j + 1) = R_oct(i, j, k);
+	    for ( int j = 0; j < 3; ++j )
+		R(i + 1, j + 1) = R_oct.xelem(i, j, k);
 
 	Vec3 phi(MatR2EulerAngles321(R));
 
 	for ( int i = 0; i < 3; ++i )
-            phi_oct(i, k) = phi(i + 1);
+	    phi_oct.xelem(i, k) = phi(i + 1);
     }
 
-	retval.append(octave_value(phi_oct));
+    retval.append(octave_value(phi_oct));
 
-	return retval;
+    return retval;
 }
 
 DEFUN_DLD(euler321_to_rotation_matrix,args,nargout,"[R] = euler321_to_rotation_matrix(phi)\n")
 {
-	octave_value_list retval;
+    octave_value_list retval;
 
-	int nargin = args.length();
+    int nargin = args.length();
 
-	if ( nargin < 1 )
-	{
-		print_usage();
-		return retval;
-	}
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
 
     if ( !args(0).is_matrix_type() || args(0).rows() != 3 )
-	{
-		error("Phi must be a 3x1 matrix!");
-		return retval;
-	}
+    {
+	error("Phi must be a 3x1 matrix!");
+	return retval;
+    }
 
-	Vec3 phi;
+    Vec3 phi;
     const Matrix phi_oct = args(0).matrix_value();
     const octave_idx_type N = phi_oct.columns();
     
@@ -351,18 +349,18 @@ DEFUN_DLD(euler321_to_rotation_matrix,args,nargout,"[R] = euler321_to_rotation_m
 
     for (octave_idx_type k = 0; k < N; ++k) {
 	for ( int i = 0; i < 3; ++i )
-            phi(i + 1) = phi_oct(i, k);
+	    phi(i + 1) = phi_oct.xelem(i, k);
 
 	const Mat3x3 R(EulerAngles321_2MatR(phi));
 
 	for ( int i = 0; i < 3; ++i )
-		for ( int j = 0; j < 3; ++j )
-                R_oct(i, j, k) = R(i + 1, j + 1);
+	    for ( int j = 0; j < 3; ++j )
+		R_oct.xelem(i, j, k) = R(i + 1, j + 1);
     }
 
-	retval.append(octave_value(R_oct));
+    retval.append(octave_value(R_oct));
 
-	return retval;
+    return retval;
 }
 
 /*

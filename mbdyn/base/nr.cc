@@ -58,7 +58,7 @@ NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
 		const integer IterBfAss,
 		const NonlinearSolverOptions& options)
-: NonlinearSolver(options), pRes(NULL),
+: NonlinearSolver(options), pRes(NULL),pAbsRes(NULL),
 pSol(NULL),
 bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
@@ -111,6 +111,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
                 
 	while (true) {
 		pRes = pSM->pResHdl();
+		pAbsRes = pGetResTest()->GetAbsRes();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
 
@@ -119,9 +120,13 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #endif /* USE_EXTERNAL */
 
 		pRes->Reset();
+		if (pAbsRes) {
+			pAbsRes->Reset();
+		}
+
 		bool forceJacobian(false);
 		try {
-	      		pNLP->Residual(pRes);
+	      		pNLP->Residual(pRes, pAbsRes);
 		}
 		catch (SolutionDataManager::ChangedEquationStructure& e) {
 			if (bHonorJacRequest) {

@@ -45,7 +45,6 @@
 #include "linsol.h"
 #include "fullmh.h"
 #include "harwrap.h"
-#include "mschwrap.h"
 
 #include "intg.h"
 

@@ -73,14 +73,6 @@ tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 od(od),
 tilde_k(Zero6), tilde_kPrime(Zero6),
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_tilde_d(0),
-Var_tilde_dPrime(0),
-Var_d(0),
-Var_dPrime(0),
-Var_Phi(0),
-Var_Omega(0),
-#endif // USE_NETCDFC
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -141,7 +133,7 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 				OutputHandler::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
-#endif
+#endif // USE_NETCDF
 	}
 }
 
@@ -806,6 +798,11 @@ DeformableJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+DeformableJoint::GetEquationDimension(integer index) const {
+	// DOF == 0
+	return OutputHandler::Dimensions::UnknownDimension;
+}
 /* DeformableJoint - end */
 
 

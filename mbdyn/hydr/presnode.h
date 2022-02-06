@@ -31,7 +31,7 @@
 
 /* 
  * Copyright 1999-2000 Lamberto Puggelli <puggelli@tiscalinet.it>
- * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano 
  */
 
 #ifndef PRESNODE_H
@@ -58,6 +58,34 @@ class PressureNode : public ScalarAlgebraicNode {
    void Output(OutputHandler& OH) const {
       ScalarAlgebraicNode::Output(OH.PresNodes());
    };
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const {
+      OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	   switch (index)
+	   {
+		   case 1:
+			   dimension = OutputHandler::Dimensions::MassFlow;
+			   break;
+	   }
+
+	   return dimension;
+   }
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const {
+
+      integer iIndex = iGetFirstIndex();
+
+      out
+         << prefix << iIndex + 1 << ": " <<
+         "mass flow balance" << std::endl;
+
+      return out;
+   }
 };
 
 #endif /* PRESNODE_H */

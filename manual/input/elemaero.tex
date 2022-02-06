@@ -57,7 +57,7 @@ The input format is:
         [ , \kw{jacobian} , \{ \kw{yes} | \kw{no} | \bnt{bool} \} ]
         [ , \bnt{custom_output} ]
 
-    \bnt{extra_arglist} ::= \{ \kw{std} | \kw{gauss} | \kw{node} \}
+    \bnt{extra_arglist} ::= \{ \kw{std} | \kw{Gauss} | \kw{node} \}
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -145,10 +145,10 @@ This means that the aerodynamic beam offsets refer to the position
 of the beam's nodes, and have nothing to do with offsets related
 to the structural beam element.
 
-The \htybkw{Shape}{1D} entities are used to compute the physical chord,
-aerodynamic center, velocity measurement point (the point where the
-kinematic boundary conditions are evaluated) and twist, in radians, as functions
-of the dimensionless abscissa along the span.
+The \htybkw{Shape}{1D} entities are used to compute the physical chord (\nt{surface\_chord}, dimensional; must be non-negative),
+aerodynamic center (\nt{surface\_aerodynamic\_center}, dimensional, positive when forward of the reference line), velocity measurement point
+(\nt{surface\_b\_c\_point}, the point where the kinematic boundary conditions are evaluated, positive when backwards?)
+and twist (\nt{surface\_twist}, positive when nose up), in radians, as functions of the dimensionless abscissa along the span.
 
 The optional \kw{tip loss} keyword allows the user to define an additional shape,
 \nt{tip\_loss},
@@ -236,7 +236,7 @@ unsteady correction of 2D lift and moment coefficients.
 It is experimental.
 
 The \nt{extra\_arglist} allows to define the style of the output.
-The \kw{std} style (the default), the \kw{gauss} and the \kw{node}
+The \kw{std} style (the default), the \kw{Gauss} and the \kw{node}
 styles are illustrated in the output section.
 
 
@@ -245,7 +245,7 @@ Aerodynamic elements, both bodies and beams, write their output with file
 extension \texttt{.aer}; for each time step the required elements are output.
 In any case the label of the element is output first.
 Three different formats are available: \kw{std} (the default),
-\kw{gauss} and \kw{node}.
+\kw{Gauss} and \kw{node}.
 
 \begin{itemize}
 \item[\kw{std}] (or Coefficients at Gauss points):
@@ -287,7 +287,7 @@ When \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements are considered,
 the output is repeated on the same line for each node
 the element is connected to.
 
-\item[\kw{gauss}] (or Forces at Gauss points):
+\item[\kw{Gauss}] (or Forces at Gauss points):
 the output consists in the forces and moments
 per unit length at each Gauss integration point; the format is:
 \begin{itemize}
@@ -1240,7 +1240,7 @@ The syntax is:
         [ , \bnt{option} [ , ... ] ]
 
     \bnt{option} ::=
-        \{ \kw{ground} , \bnt{<ground_node}
+        \{ \kw{ground} , \bnt{ground_node}
             | \kw{initial value} , \bnt{const_vel} , \bnt{cosine_vel} , \bnt{sine_vel}
             | \kw{max iterations} , \bnt{max_iterations}
             | \kw{tolerance} , \bnt{tolerance}

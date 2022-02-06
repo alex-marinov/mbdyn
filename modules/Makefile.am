@@ -95,16 +95,18 @@ all__:
 			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
 			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$isrc in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrca/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrc/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
-			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=$$isrca ) ; \
+			( cd $$i && $(MAKE) OCTAVE_INCLUDE="$(OCTAVE_INCLUDE)" \
+					    OCTAVE_LIBS="$(OCTAVE_LIBS)" \
+					    MBDYN_MODULE_SRCDIR=$$isrca ) ; \
 			rm -f $$i/Makefile ; \
 		done \
 	fi
 
 install: all__
-	$(mkinstalldirs) $(libexecdir)
+	$(mkinstalldirs) $(DESTDIR)$(libexecdir)
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
 			echo "Installing $$i ..."; \
@@ -114,7 +116,7 @@ install: all__
 			case $$isrc in /*) isrca=$$isrc ;; *) isrca=../$$isrc ;; esac ; \
 			for fsrc in $$isrc/*.{h,c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrca/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.h|\*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f && test -f $$isrc/$$f ; then ( cd $$i && ln -sf $$isrca/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) install ) ; \

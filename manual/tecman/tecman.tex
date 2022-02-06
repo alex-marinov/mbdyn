@@ -370,7 +370,65 @@ This means that nodes have a \texttt{CommWgts} equal to the number
 of \dofs, while elements have a weight equal
 to any internal \dofs\ they possess.
 
+\section{Convergence check}
+MDByn needs to solve a set of nonlinear equations
+\begin{equation}
+\T f(\T x)=\T 0,
+\end{equation}
+where $\T{f}$ is the so-called residual vector.
+The standard \kw{norm} convergence check is based on the
+norm 
+\begin{equation}
+f = \sqrt{\T{f}^T\T{f}}
+\end{equation}
+of vector $\T{f}$. While this often works in practice it has two shortcoming:
+\begin{enumerate}
+\item one doesn not know the generalized forces magnitude of the model, that is, a residual norm equal to
+ 1 can be perfectly fine if the order of magnitude of the generalized forces transmitted by the structure
+ is of 1E6, while is not ok if the order of magnitude is 10;
+\item different components of vector $\T{f}$ do have different physical dimensions, and it
+makes no sense to sum them together.
+\end{enumerate}
+The \kw{relnorm} test is designed to solve the first shorcoming. 
+In addition to assembing the residual component $f_i$ as
+\begin{equation}
+f_{i}=\sum_{e=1}^{\text{elements of the model}}f_{i(e)}(\T x),
+\end{equation}
+also the absolute values of the different contribution from the
+elements are assembled into a new vector $\tilde{\T{f}}$ with components
+\begin{equation}
+\tilde{f}_{i} = \sum_{e=1}^{\text{elements of the model}}|f_{i(e)}(\T x)|.
+\end{equation}
+The convergence test is then performed over
+\begin{equation}
+f = \frac{\displaystyle \sqrt{\T{f}^T\T{f}}}{\displaystyle\sqrt{\tilde{\T{f}}^T\tilde{\T{f}}}}
+\end{equation}
+so that the residual is automatically scaled with respect to the generalized force magnitude
+appearing in the model.
 
+The \kw{sepnorm} test tries to solve both issues. Beside assembling the additional vector $\tilde{\T{f}}$,
+just like the \kw{relnorm} test, it partitions the equations into $N$ independent set $\T{f}_{[j]}$ and
+$\tilde{\T{f}}_{[j]}$, with $j\in[1,N]$, one foreach physical dimension apperaring in the residual vector, 
+so that every components $\T{f}_{i[j]}$ of the subvector $\T{f}_{[j]}$ has the same physical dimension. 
+The relative residual test is then computed independently for each set
+\begin{equation}
+f_{[j]} = \frac{\displaystyle \sqrt{\T{f}_{[j]}^T\T{f}_{[j]}}}
+	{\displaystyle\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}}}
+\end{equation}
+and the test returns the worst $f_{[j]}$, $\max_j(f_{[j]})$.
+
+In order to identify the set of equations that are inactive (for which either 
+$\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}}=0$ or $f_{[j]}\approx 1$ because
+the norms are very small and comes mostly from numerical errors),
+\begin{enumerate}
+\item $f_{[j]}=0$ if $\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}}=0$\\
+AND
+\item $f_{[j]}=0$ if $\sqrt{\T{f}_{[j]}^T\T{f}_{[j]}}/\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}} >
+\epsilon_1$ and $\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}} < \epsilon_2 *
+\max_j\left(\sqrt{\tilde{\T{f}}_{[j]}^T\tilde{\T{f}}_{[j]}}\right)$
+\end{enumerate}
+where the coefficients $\epsilon_1$ and $\epsilon_2$ are hard coded, $\epsilon_1=1.E-1$ and $\epsilon_2=1.E-5$.
+One could consider, in the future, to allow reading them from the input file.
 \chapter{Orientation Handling}
 The orientation of structural nodes is handled by storing the orientation
 matrix of each node, and updating it during prediction and correction 

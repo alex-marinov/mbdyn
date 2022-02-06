@@ -4,7 +4,7 @@ dnl
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl
-dnl Copyright (C) 1996-2017
+dnl Copyright (C) 1996-2021
 dnl
 dnl Pierangelo Masarati     <masarati@aero.polimi.it>
 dnl Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -110,7 +110,7 @@ dnl Determine host platform
 dnl             we try not to use this for much
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 dnl We use autoconf features new to 2.13.
 dnl aclocal.m4 should be built using aclocal from automake 1.4
@@ -202,12 +202,16 @@ OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
 OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver],no,[auto yes no force])dnl
 OL_ARG_ENABLE(mbc,[  --enable-mbc            enable MBC - multibody communication library],yes)dnl
-OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto,[auto yes no legacy netcdf4])dnl
+OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF4 based binary output],auto,[auto yes no])dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
+OL_ARG_ENABLE(octave_utils,[  --enable-octave-utils   enable Octave utility functions],no)dnl
 AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile],[
 	ol_with_mkoctfile_exec="$withval"
 ],[ol_with_mkoctfile_exec=mkoctfile])
+AC_ARG_WITH(octave-cli,[ --with-octave-cli=exec-path Octave command line interpreter],[
+        ol_with_octave_cli_exec="$withval"
+],[ol_with_octave_cli_exec=""])
 OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
 OL_ARG_ENABLE(sparse_autodiff, [  --enable-sparse_autodiff                enable automatic differentiation based on sparse algorithms],no)dnl
@@ -236,7 +240,7 @@ OL_ARG_WITH(blas,[
 AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
-AC_ARG_WITH(openblas,[  --with-openblas=lib(s)      with OpenBLAS implementation],[
+AC_ARG_WITH(openblas,[  --with-openblas=lib(s)  with OpenBLAS implementation],[
 	ol_with_openblas_lib="$withval"
 ],[ol_with_openblas_lib=])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
@@ -245,13 +249,13 @@ OL_ARG_WITH(y12,[
        optional linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
-OL_ARG_WITH(klu,[  --with-klu          with KLU math library],auto,[auto yes no])
+OL_ARG_WITH(klu,[  --with-klu              with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
-OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-harwell              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
-OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
-OL_ARG_WITH(pastix,[  --with-pastix             with Pastix math library],no,[auto yes no])
+OL_ARG_WITH(wsmp,[  --with-wsmp             with IBM Watson library],no,[auto yes no])
+OL_ARG_WITH(pardiso,[  --with-pardiso          with Intel MKL Pardiso library],no,[auto yes no])
+OL_ARG_WITH(pastix,[  --with-pastix           with Pastix math library],no,[auto yes no])
 with_suitesparseqr_default=auto
 OL_ARG_WITH(qrupdate,[  --with-qrupdate         with QRUPDATE library],$with_suitesparseqr_default,[auto yes no])
 OL_ARG_WITH(suitesparseqr,[  --with-suitesparseqr    with SuiteSparseQR library],$with_suitesparseqr_default,[auto yes no])
@@ -269,7 +273,8 @@ OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],no,[auto 
 
 dnl module with's
 AC_ARG_WITH(module,[
-  --with-module=<list>    build listed modules (see modules/)
+  --with-module=<list>    build listed modules (stripping 'module-' from the 
+                          module's folder name, see modules/)
 ],[
 	ol_arg=
 	for ol_val in $withval ; do
@@ -317,12 +322,13 @@ AC_FC_LIBRARY_LDFLAGS
 AC_PROG_F77
 have_fc_f77=no
 if test "x$FC" = "x" ; then
-	if test "x$F77" = "x" ; then
-		AC_MSG_ERROR([Need a working Fortran compiler])
+	if test "x$F77" != "x" ; then
+dnl		AC_MSG_ERROR([Need a working Fortran compiler])
+dnl	else
+		AC_F77_LIBRARY_LDFLAGS
+		LIBS="$LIBS $F77LIBS"
+		have_fc_f77=yes
 	fi
-	AC_F77_LIBRARY_LDFLAGS
-	LIBS="$LIBS $F77LIBS"
-	have_fc_f77=yes
 else
 	F77="$FC"
 	F77LIBS="$FCLIBS"
@@ -393,8 +399,8 @@ KLU_LIBS=
 BLAS_LIBS=
 THREAD_LIBS=
 ATOMIC_OPS_LIBS=
-MESCHACH_LIBS=
 SUPERLU_LIBS=
+PARDISO_LIBS=
 WSMP_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -417,6 +423,7 @@ PYTHON_NUMPY_HEADERS=
 OCTAVE_LIBS=
 OCTAVE_INCLUDE=
 OCTAVE_MKOCTFILE=
+OCTAVE_CLI=
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
@@ -582,157 +589,68 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Enable NetCDF binary output (Classic/legacy or netcdf4)
+dnl Enable NetCDF binary output (netcdf4)
 dnl
 
 if test "$ol_enable_netcdf" != no ; then
 	have_netcdf4=no
 	have_libnetcdf4=no
-	have_netcdfc=no
-	have_libnetcdfc=no
 	AC_LANG_CPLUSPLUS
-	if test "$ol_enable_netcdf" != legacy ; then
 dnl checks for netcdf header file (for netcdf4 c++):
-		AC_CHECK_HEADER(netcdf,[have_netcdf4=yes],[have_netcdf4=no])
-		AC_LANG_C
-		if test $have_netcdf4 = "yes" ; then
-			AC_DEFINE(USE_NETCDF4,1,[must include <netcdf> to use NetCDF4 C++ support])
-			save_LIBS="$LIBS"
-			try_NETCDF_LIBS="-lnetcdf_c++4 -lnetcdf"
-			LIBS="$try_NETCDF_LIBS $LIBS"
-			AC_LANG_CPLUSPLUS
-			AC_TRY_LINK([
+	AC_CHECK_HEADER(netcdf,[have_netcdf4=yes],[have_netcdf4=no])
+	AC_LANG_C
+	if test $have_netcdf4 = "yes" ; then
+		AC_DEFINE(USE_NETCDF,1,[must include <netcdf> to use NetCDF4 C++ support])
+		save_LIBS="$LIBS"
+		try_NETCDF_LIBS="-lnetcdf_c++4 -lnetcdf"
+		LIBS="$try_NETCDF_LIBS $LIBS"
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
 	#include <netcdf>
-				],[
-		/* test for netcdf */
-		netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
-				],[
-					have_libnetcdf4=yes
-					NETCDF_LIBS="$try_NETCDF_LIBS"
-				],[
-				  try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
-			      LIBS="$try_NETCDF_LIBS $save_LIBS"
-				  AC_TRY_LINK([
+			],[
+	/* test for netcdf */
+	netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
+			],[
+				have_libnetcdf4=yes
+				NETCDF_LIBS="$try_NETCDF_LIBS"
+			],[
+			  try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
+		      LIBS="$try_NETCDF_LIBS $save_LIBS"
+			  AC_TRY_LINK([
 	#include <netcdf>
-				  ],[
-		/* test for netcdf */
-		netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
-				  ],[
-					have_libnetcdf4=yes
-					NETCDF_LIBS="$try_NETCDF_LIBS"
-				  ])
-				])
-			AC_TRY_LINK([
+			  ],[
+	/* test for netcdf */
+	netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
+			  ],[
+				have_libnetcdf4=yes
+				NETCDF_LIBS="$try_NETCDF_LIBS"
+			  ])
+			])
+		AC_TRY_LINK([
 	#include <netcdf>
-				],[
-		/* test for netcdf sync */
-		netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
-		nc.sync(); // test for sync option (comes in later version, >=4.3.0)
-		nc.close(); // test for close (appears in 4.3.0)
-				],[
+			],[
+	/* test for netcdf sync */
+	netCDF::NcFile nc("foobar", netCDF::NcFile::replace); // Create and leave in define mode
+	nc.sync(); // test for sync option (comes in later version, >=4.3.0)
+	nc.close(); // test for close (appears in 4.3.0)
+			],[
 
-				], [
-					have_libnetcdf4=no
-					AC_MSG_WARN([netcdf-cxx4 version too old, either link version 4.3.0 or more recent
-					 or otherwise use the legacy version with the --enable-netcdf command
-					 falling back to checking for legacy netcdf version ])
-				])
+			], [
+				have_libnetcdf4=no
+				AC_MSG_WARN([netcdf-cxx4 version too old, link version 4.3.0 or more recent])
+			])
 			AC_LANG_C
 			LIBS="$save_LIBS"
 		fi
-	fi
-	if test "$ol_enable_netcdf" != netcdf4 ; then
-		if test $have_libnetcdf4 = no ; then
-			AC_LANG_CPLUSPLUS
-			AC_CHECK_HEADER(netcdfcpp.h,[have_netcdfcpp_h=yes],[have_netcdfcpp_h=no])
-			AC_LANG_C
-			if test $have_netcdfcpp_h = "yes" ; then
-				AC_DEFINE(HAVE_NETCDFCPP_H,1,[must include <netcdfcpp.h> to use NetCDF C++ support])
-				save_LIBS="$LIBS"
-				try_NETCDF_LIBS="-lnetcdf_c++ -lnetcdf"
-				LIBS="$try_NETCDF_LIBS $LIBS"
-				AC_LANG_CPLUSPLUS
-				AC_TRY_LINK([
-		#include <netcdfcpp.h>
-					],[
-			/* test for netcdf */
-			NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
-					],[
-						have_libnetcdfc=yes
-						NETCDF_LIBS="$try_NETCDF_LIBS"
-					])
-				AC_LANG_C
-				LIBS="$save_LIBS"
-			else
-				dnl apparently, NetCDF 4 only needs header <netcdf.h>
-				dnl and thus does not provide <netcdfcpp.h> any longer
-				AC_LANG_CPLUSPLUS
-				AC_CHECK_HEADER(netcdf.h,[have_netcdf_h=yes],[have_netcdf_h=no])
-				AC_LANG_C
-				if test $have_netcdf_h = "yes" ; then
-					AC_DEFINE(HAVE_NETCDF_H,1,[<netcdf.h> suffices to use NetCDF C++ support])
-					save_LIBS="$LIBS"
-					try_NETCDF_LIBS="-lnetcdf_c++4 -lnetcdf"
-					LIBS="$try_NETCDF_LIBS $LIBS"
-					AC_LANG_CPLUSPLUS
-					AC_TRY_LINK([
-		#include <netcdf.h>
-						],[
-				/* test for netcdf */
-				NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
-						],[
-							have_libnetcdfc=yes
-							NETCDF_LIBS="$try_NETCDF_LIBS"
-						],[
-						try_NETCDF_LIBS="-lnetcdf-cxx4 -lnetcdf"
-					    LIBS="$try_NETCDF_LIBS $save_LIBS"
-                        AC_TRY_LINK([
-		#include <netcdf.h>
-						  ],[
-				/* test for netcdf */
-				NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
-						  ],[
-							have_libnetcdfc=yes
-							NETCDF_LIBS="$try_NETCDF_LIBS"
-						  ],[
-							have_libnetcdfc=no
-						  ])
-						])
-					AC_LANG_C
-					LIBS="$save_LIBS"
-				fi
-			fi
-		fi
-	fi
-	if test $have_libnetcdfc = yes ; then
-		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF based output])
-		AC_DEFINE(USE_NETCDFC,1,[define this to enable classic/legacy NetCDF based output])
-		AC_MSG_NOTICE([Enabling netcdf classic/legacy output capabilities])
-	elif test $ol_enable_netcdf != auto ; then
-		if test "$ol_enable_netcdf" = legacy ; then
-			AC_MSG_ERROR([User requested netcdf classic/legacy but cannot be enabled, see messages above.])
-		else
-			AC_MSG_WARN([Not using classic/legacy netcdf])
-		fi
-	fi
 
 	if test $have_libnetcdf4 = yes ; then
-		AC_DEFINE(USE_NETCDF4,1,[define this to enable NetCDF4 based output])
-		AC_DEFINE(USE_NETCDF,1,[also define this to enable NetCDF4 based output])
+		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF4 based output])
 		AC_MSG_NOTICE([Enabling netcdf4 output capabilities])
 	elif test $ol_enable_netcdf != auto ; then
-		if test "$ol_enable_netcdf" = netcdf4 ; then
+		if test "$ol_enable_netcdf" = yes ; then
 			AC_MSG_ERROR([User requested netcdf4 but cannot be enabled, see messages above.])
 		else
 			AC_MSG_WARN([Not using netcdf4])
-		fi
-	fi
-
-	if test "$have_libnetcdf4" != yes ; then
-		if test "$have_libnetcdfc" != yes ; then
-			if test $ol_enable_netcdf != auto ; then
-				AC_MSG_ERROR([Could not locate neither netcdf4 nor netcdf classic/legacy headers or improper installation or versions installed.])
-			fi
 		fi
 	fi
 
@@ -796,7 +714,11 @@ dnl
 dnl Enable Octave support <http://www.octave.org/>
 dnl
 use_octave=no
-if test "$ol_enable_octave" != no ; then
+use_octave_utils=no
+if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
+        if ! test -z "${ol_with_octave_cli_exec}"; then
+           OCTAVE_CLI="${ol_with_octave_cli_exec}"
+        fi
 	have_mkoctfile=no
       	AC_MSG_CHECKING(for mkoctfile)
    	$ol_with_mkoctfile_exec --help > /dev/null 2>&1
@@ -806,10 +728,19 @@ if test "$ol_enable_octave" != no ; then
 		have_mkoctfile=yes
 	   	OCTAVE_MKOCTFILE=$ol_with_mkoctfile_exec
 		dnl On Windows systems the output from mkoctfile contains backslashes which cause build failures!
-	   	try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS` `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/\\\\/\//g'` -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`"
-	   	try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/\\\\/\//g'`"
-       	   	export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/\\\\/\//g'`:${LD_LIBRARY_PATH}"
-    else
+                try_OCTAVE_LIBS="`$ol_with_mkoctfile_exec -p OCTAVE_LIBS`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} `$ol_with_mkoctfile_exec -p LDFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} -L`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_LIBS="${try_OCTAVE_LIBS} -Wl,-rpath=`$ol_with_mkoctfile_exec -p OCTLIBDIR | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                try_OCTAVE_INCLUDE="`$ol_with_mkoctfile_exec -p INCFLAGS | sed 's/-IC\:/-I\/c/g;s/-LC\:/-L\/c/g;s/\\\\/\//g'`"
+                export LD_LIBRARY_PATH="`$ol_with_mkoctfile_exec -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+                OCTAVE_EXEC_HOME=`${OCTAVE_MKOCTFILE} -p OCTAVE_EXEC_HOME | sed 's/C\:/\/c/g;s/\\\\/\//g'`
+                if test -z "${OCTAVE_CLI}"; then
+                   if test -d "${OCTAVE_EXEC_HOME}" && test -f "${OCTAVE_EXEC_HOME}/bin/octave-cli"; then
+                      OCTAVE_CLI="${OCTAVE_EXEC_HOME}/bin/octave-cli"
+                   fi
+                fi
+        else
 		AC_MSG_RESULT([no])
     	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
     	try_OCTAVE_INCLUDE=
@@ -825,6 +756,9 @@ if test "$ol_enable_octave" != no ; then
 	AC_CHECK_HEADER(octave/toplev.h,[have_octave_toplev_h=yes],[have_octave_toplev_h=no],[
 #include <octave/oct.h>
 		])
+	AC_CHECK_HEADER(octave/interpreter.h,[have_octave_interpreter_h=yes],[have_octave_interpreter_h=no],[
+#include <octave/oct.h>
+		])
 	AC_CHECK_HEADER(octave/octave.h,[have_octave_octave_h=yes],[have_octave_octave_h=no],[
 #include <octave/oct.h>
 		])
@@ -832,6 +766,9 @@ if test "$ol_enable_octave" != no ; then
 	AC_LANG_C
 
 	link_octave="no"
+        have_clean_up_and_exit="no"
+        have_do_octave_atexit="no"
+        
 	if test "$have_octave_oct_h" = "yes" \
 		-a "$have_octave_parse_h" = "yes" \
 		-a "$have_octave_toplev_h" = "yes" \
@@ -877,6 +814,35 @@ if test "$ol_enable_octave" != no ; then
 		OCTAVE_LIBS="$try_LIBS"
 	fi
 
+	if test "$have_octave_oct_h" = "yes" \
+		-a "$have_octave_parse_h" = "yes" \
+		-a "$have_octave_interpreter_h" = "yes" \
+		-a "$have_octave_octave_h" = "yes" \
+		-a "$have_mkoctfile" = "yes" ; \
+	then
+		OCTAVE_INCLUDE="$try_OCTAVE_INCLUDE"
+		save_CPPFLAGS="$CPPFLAGS"
+		save_LIBS="$LIBS"
+		try_LIBS="$try_OCTAVE_LIBS"
+		LIBS="$try_LIBS $LIBS"
+		CPPFLAGS="$CPPFLAGS $OCTAVE_INCLUDE"
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
+#include <octave/oct.h>
+#include <octave/parse.h>
+#include <octave/interpreter.h>
+#include <octave/octave.h>
+			],[
+                        octave::interpreter interpreter;
+                        int status = interpreter.execute();
+                        octave_value_list out = octave::feval ("cos", octave_value(0.), 1);
+			],[link_octave="yes"])
+		AC_LANG_C
+		LIBS="$save_LIBS"
+		CPPFLAGS="$save_CPPFLAGS"
+		OCTAVE_LIBS="$try_LIBS"                        
+	fi
+
 	if test "$link_octave" = yes ; then
 		if test "$have_do_octave_atexit" = yes; then
 			AC_DEFINE(HAVE_DO_OCTAVE_ATEXIT, 1, [define if do_octave_atexit can be used])
@@ -891,6 +857,16 @@ if test "$ol_enable_octave" != no ; then
 			AC_MSG_ERROR([octave support not available])
 		fi
 	fi
+
+	if test "$have_octave_oct_h" = "yes" -a "$have_mkoctfile" = "yes"; then
+	        use_octave_utils="yes"
+	else
+	        AC_MSG_ERROR([octave utils support not available])
+	fi
+
+        if test -z "${OCTAVE_CLI}"; then
+           OCTAVE_CLI=octave-cli
+        fi
 fi
 
 if test "$ol_enable_autodiff" != no || test "$ol_enable_sparse_autodiff" != no; then
@@ -1790,19 +1766,6 @@ if test "$ol_link_multithread" = "yes" -o "$ol_link_multithread_naive" = "yes" ;
 fi
 
 
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for /dev/TASK2CPU
-dnl
-AC_MSG_CHECKING([for /dev/TASK2CPU])
-if test -e "/dev/TASK2CPU" ; then
-	AC_DEFINE(HAVE_TASK2CPU,1,[define if /dev/TASK2CPU is available])
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for BOOST
@@ -2661,47 +2624,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for Meschach
-dnl
-ol_link_meschach=no
-if test $ol_with_meschach != no ; then
-	AC_CHECK_HEADERS(meschach/sparse2.h)
-
-	if test "$ac_cv_header_meschach_sparse2_h" = "yes" ; then
-
-		AC_MSG_CHECKING([for meschach library])
-		try_meschach_LIBS="-lmeschach"
-		save_LIBS=$LIBS
-		LIBS="$LIBS $try_meschach_LIBS"
-		AC_TRY_LINK([
-#include <meschach/sparse2.h>
-],[
-	SPMAT* mat;
-	mat = sp_get(10, 20, 10);
-		],[have_meschach=yes],[have_meschach=no])
-		LIBS=$save_LIBS
-
-		if test $have_meschach != no ; then
-			MESCHACH_LIBS=$try_meschach_LIBS
-			AC_DEFINE(USE_MESCHACH,1,[define if you want to use Meschach])
-			ol_link_meschach=yes
-			AC_MSG_RESULT([yes])
-		else
-			AC_MSG_RESULT([no])
-		fi
-	fi
-
-	if test $ol_link_meschach = no ; then
-		if test $ol_with_meschach != auto ; then
-			AC_MSG_ERROR([Could not locate Meschach])
-		else
-			AC_MSG_WARN([Meschach not supported])
-		fi
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for SuperLU
 dnl
 ol_link_superlu=no
@@ -2766,18 +2688,50 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for Watson wsmp
+dnl Check for Intel MKL Pardiso
+dnl
+ol_link_pardiso=no
+if test $ol_with_pardiso != no ; then
+        AC_CHECK_HEADER(mkl/mkl_pardiso.h, [have_mkl_pardiso_h=yes], [have_mkl_pardiso_h=no])
+        AC_CHECK_HEADER(mkl/mkl_service.h, [have_mkl_service_h=yes], [have_mkl_service_h=no])
+        
+        if test "$have_mkl_pardiso_h" = "yes" ; then
+	        try_PARDISO_LIBS="-lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -lm -lgomp"
+	        AC_CHECK_LIB(mkl_gf_lp64, pardiso_, [have_mkl_pardiso_lib=yes], [have_mkl_pardiso_lib=no], [$try_PARDISO_LIBS])
+                AC_CHECK_LIB(mkl_gf_lp64, pardiso_64_, [have_mkl_pardiso_64_lib=yes], [have_mkl_pardiso_64_lib=no], [$try_PARDISO_LIBS])
+                AC_CHECK_LIB(mkl_gf_lp64, mkl_set_num_threads_local, [have_mkl_set_num_threads_local=yes], [have_mkl_set_num_threads_local=no], [$try_PARDISO_LIBS])
+                
+	        if test "$have_mkl_pardiso_lib" = "yes" -a "$have_mkl_pardiso_64_lib" = "yes"; then
+		        AC_DEFINE(USE_PARDISO, 1, [define to use Intel MKL Pardiso library])
+                        ol_link_pardiso=yes
+		        PARDISO_LIBS="$try_PARDISO_LIBS"
+	        else
+                        if test "$ol_with_pardiso" = "yes" ; then
+			   AC_MSG_ERROR([Intel MKL pardiso library not available])
+		        fi
+	        fi
+
+                if test "$have_mkl_service_h" = "yes" -a "$have_mkl_set_num_threads_local" = "yes" ; then
+                   AC_DEFINE(USE_MKL_SET_NUM_THREADS_LOCAL,1,[define to use mkl_set_num_threads_local])
+                fi
+        fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for IBM Watson wsmp
 dnl
 ol_link_wsmp=no
 if test $ol_with_wsmp != no ; then
-	try_wsmp_LIBS="-lwsmp"
-	AC_CHECK_LIB(wsmp,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
+	try_wsmp_LIBS="-lwsmp64"
+	AC_CHECK_LIB(wsmp64,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
 	if test "$have_wsmp" = "yes" ; then
-		AC_DEFINE(HAVE_WSMP,1,[define to use Watson wsmp library])
+		AC_DEFINE(USE_WSMP,1,[define to use IBM Watson wsmp library])
+                ol_link_wsmp=yes
 		WSMP_LIBS="$try_wsmp_LIBS"
 	else
 		if test "$ol_with_wsmp" = "yes" ; then
-			AC_MSG_ERROR([wsmp library not available])
+			AC_MSG_ERROR([IBM Watson wsmp library not available])
 		fi
 	fi
 fi
@@ -3455,7 +3409,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks id DeadBeat can be built
 dnl
-if test $ol_link_lapack != no -o $ol_link_meschach != no ; then
+if test $ol_link_lapack != no ; then
 	AC_DEFINE(USE_DBC,1,[define if you want to use GPC/DeadBeat control])
 else
 	dnl Required for GPC/Deadbeat (should be able to work it 'round...)
@@ -3645,6 +3599,7 @@ AC_SUBST(UMFPACK_LIBS)
 AC_SUBST(KLU_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
+AC_SUBST(PARDISO_LIBS)
 AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(PASTIX_INC)
@@ -3652,7 +3607,6 @@ AC_SUBST(PASTIX_LIBS)
 AC_SUBST(QRUPDATE_LIBS)
 AC_SUBST(SUITESPARSEQR_LIBS)
 AC_SUBST(STRUMPACK_LIBS)
-AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
 AC_SUBST(TAUCS_LIBS)
@@ -3671,6 +3625,7 @@ AC_SUBST(PYTHON_NUMPY_HEADERS)
 AC_SUBST(OCTAVE_LIBS)
 AC_SUBST(OCTAVE_INCLUDE)
 AC_SUBST(OCTAVE_MKOCTFILE)
+AC_SUBST(OCTAVE_CLI)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 AC_SUBST(wl)
@@ -3690,8 +3645,9 @@ AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
 AM_CONDITIONAL(NEW_METIS_INTERFACE,[test "$new_metis_interface" = yes])
-AM_CONDITIONAL(USE_NETCDF4,[test "$have_libnetcdf4" = yes])
+AM_CONDITIONAL(USE_NETCDF,[test "$have_libnetcdf4" = yes])
 AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
+AM_CONDITIONAL(USE_OCTAVE_UTILS,[test "$use_octave_utils" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
@@ -3706,6 +3662,8 @@ AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(USE_FORTRAN,[test "$have_fc_f77" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 AM_CONDITIONAL(BUILD_AEROD2_F,[test "$have_fc_f77" = yes])
+
+AM_CONDITIONAL(HAVE_FORTRAN,[test "$have_fc_f77" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
 AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])

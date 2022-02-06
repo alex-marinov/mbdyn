@@ -656,3 +656,47 @@ ReadMembrane4EAS(DataManager* pDM,
 	return pEl;
 }
 
+const OutputHandler::Dimensions 
+Membrane4EAS::GetEquationDimension(integer index) const {
+	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+Membrane4EAS::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 7 << ": "
+			"force balance" << std::endl;
+
+	return out;
+}

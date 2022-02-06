@@ -150,6 +150,34 @@ ScalarNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Update(X, XP);
 }
 
+const OutputHandler::Dimensions 
+ScalarNode::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::UnknownDimension;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+ScalarNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"scalar node equation" << std::endl;
+
+	return out;
+}
+
 /* ScalarNode - end */
 
 
@@ -343,6 +371,34 @@ ScalarDifferentialNode::dGetPrivData(unsigned int i) const
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const OutputHandler::Dimensions 
+ScalarDifferentialNode::GetEquationDimension(integer index) const {
+   // DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::UnknownDimension;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+ScalarDifferentialNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"scalar differential node equation" << std::endl;
+
+	return out;
 }
 
 /* ScalarDifferentialNode - end */

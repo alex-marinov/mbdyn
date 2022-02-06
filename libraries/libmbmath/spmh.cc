@@ -49,6 +49,61 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 	NO_OP;
 }
 
+template <typename idx_type>
+idx_type SparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const Ax,
+                                                       idx_type *const Ai,
+                                                       idx_type *const Ap,
+                                                       int offset) const
+{
+     std::vector<doublereal> AxTmp;
+     std::vector<idx_type> AiTmp, ApTmp;
+     
+     MakeCompressedColumnForm(AxTmp, AiTmp, ApTmp, offset);
+
+     std::vector<idx_type> iNumRowItems(NRows, 0);
+
+     for (idx_type iCol = 0; iCol < NCols; ++iCol) {
+          for (idx_type iItem = ApTmp[iCol]; iItem < ApTmp[iCol + 1]; ++iItem) {
+               ++iNumRowItems[AiTmp[iItem - offset] - offset];
+          }
+     }
+
+     idx_type iPtr = offset;
+     
+     for (idx_type iRow = 0; iRow < NRows; ++iRow) {
+          Ap[iRow] = iPtr;
+          iPtr += iNumRowItems[iRow];
+     }
+
+     Ap[NRows] = iPtr;
+
+     std::fill(iNumRowItems.begin(), iNumRowItems.end(), 0);
+
+     for (idx_type iCol = 0; iCol < NCols; ++iCol) {
+          for (idx_type iItem = ApTmp[iCol]; iItem < ApTmp[iCol + 1]; ++iItem) {
+               idx_type iRow = AiTmp[iItem - offset] - offset;
+               idx_type iSlot = Ap[iRow] - offset + iNumRowItems[iRow]++;
+               Ai[iSlot] = iCol + offset;
+               Ax[iSlot] = AxTmp[iItem - offset];
+          }
+     }
+
+#ifdef DEBUG
+     for (idx_type iRow = 0; iRow < NRows; ++iRow) {
+          ASSERT(Ap[iRow] >= offset);
+          ASSERT(Ap[iRow + 1] <= iPtr);
+          ASSERT(Ap[iRow + 1] >= Ap[iRow]);
+          
+          for (idx_type iItem = Ap[iRow] + 1; iItem < Ap[iRow + 1]; ++iItem) {
+               ASSERT(iItem >= offset);
+               ASSERT(iItem < iPtr);
+               ASSERT(Ai[iItem - offset] > Ai[iItem - offset - 1]);
+          }
+     }
+#endif
+     return iPtr - offset;
+}
+
 int32_t SparseMatrixHandler::MakeCompressedColumnForm(doublereal* Ax,
 						      int32_t* Ai,
 						      int32_t* Ap,
@@ -96,7 +151,7 @@ int32_t SparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
 						   int32_t *const Ap,
 						   int offset) const
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
 }
 
 int32_t SparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>& Ax,
@@ -116,7 +171,7 @@ int64_t SparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
 						   int64_t *const Ap,
 						   int offset) const
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
 }
 
 int64_t SparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>& Ax,
@@ -466,6 +521,14 @@ template <int off, typename idx_type>
 void CompactSparseMatrixHandler_tpl<off, idx_type>::Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale)
 {
      this->IteratorScale(*this, oRowScale, oColScale);
+}
+
+template <int off, typename idx_type>
+void CompactSparseMatrixHandler_tpl<off, idx_type>::EnumerateNz(const std::function<EnumerateNzCallback>& func) const
+{
+     for (const auto& d: *this) {
+          func(d.iRow + 1, d.iCol + 1, d.dCoef);
+     }
 }
 
 template class CompactSparseMatrixHandler_tpl<0, int32_t>;

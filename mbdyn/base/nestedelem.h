@@ -251,6 +251,9 @@ public:
 	virtual const DofOwner* pGetDofOwner(void) const;
 	virtual integer iGetFirstIndex(void) const;
 	virtual void SetInitialValue(VectorHandler& X);
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 #endif // NESTEDELEM_H

@@ -45,6 +45,14 @@ class ThermalCapacitance : virtual public Thermal {
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
    /* ************************************************ */
+
+   /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+   /* describes the dimension of components of equation */
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		   const char *prefix = "",
+		   bool bInitial = false) const;
 };
 
 #endif  /* THERMALCAPACITANCE_H */

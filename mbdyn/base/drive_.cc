@@ -239,9 +239,10 @@ MultDriveCaller::pCopy(void) const
 std::ostream&
 MultDriveCaller::Restart(std::ostream& out) const
 {
-	return out << "mult, ",
-		DO1.pGetDriveCaller()->Restart(out) << ", ";
-		DO2.pGetDriveCaller()->Restart(out);
+     out << "mult, ";
+     DO1.pGetDriveCaller()->Restart(out) << ", ";
+     DO2.pGetDriveCaller()->Restart(out);
+     return out;
 }
 
 /* MultDriveCaller - end */
@@ -417,6 +418,46 @@ StepDriveCaller::Restart(std::ostream& out) const
 }
 
 /* StepDriveCaller - end */
+
+
+/* Step5DriveCaller - begin */
+
+Step5DriveCaller::Step5DriveCaller(const DriveHandler* pDH,
+	doublereal t0, doublereal h0, doublereal t1, doublereal h1)
+: DriveCaller(pDH),
+dStepTime0(t0), dStepTime1(t1), dFinalValue(h1), dInitialValue(h0)
+{
+	NO_OP;
+}
+
+Step5DriveCaller::~Step5DriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+Step5DriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		Step5DriveCaller,
+		Step5DriveCaller(pDrvHdl, dStepTime0, dInitialValue, dStepTime1, dFinalValue));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+Step5DriveCaller::Restart(std::ostream& out) const
+{
+	return out
+		<< " step5, " << dStepTime0
+		<< ", " << dInitialValue
+		<< ", " << dStepTime1
+		<< ", " << dFinalValue;
+}
+
+/* Step5DriveCaller - end */
 
 
 /* DoubleStepDriveCaller - begin */
@@ -1797,6 +1838,52 @@ StepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct Step5DCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+Step5DCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "step5");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	doublereal dStepTime0 = HP.GetReal();
+	DEBUGCOUT("Initial time: " << dStepTime0 << std::endl);
+
+	doublereal dInitialValue = HP.GetReal();
+	DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
+
+	doublereal dStepTime1;
+	try {
+		dStepTime1 = HP.GetReal(dStepTime0, HighParser::range_gt<doublereal>(dStepTime0));
+	} catch (HighParser::ErrValueOutOfRange<doublereal>& e) {
+		silent_cerr("error: invalid final time " << e.Get() << " (must be greater than initial time " << dStepTime0 << " " << e.what() << " at line " << HP.GetLineData() << std::endl);
+		throw e;
+	}
+	DEBUGCOUT("Final time: " << dStepTime1 << std::endl);
+
+	doublereal dFinalValue = HP.GetReal();
+	DEBUGCOUT("Final Value: " << dFinalValue << std::endl);
+
+	if (dFinalValue == dInitialValue) {
+		silent_cerr("Step5: warning, final value " << dFinalValue << " at time " << dStepTime1 << " identical to initial value at time " << dStepTime0 << " at line " << HP.GetLineData() << std::endl);
+	}
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		Step5DriveCaller,
+		Step5DriveCaller(pDrvHdl, dStepTime0, dInitialValue, dStepTime1, dFinalValue));
+
+	return pDC;
+}
+
 struct DoubleStepDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -2004,11 +2091,21 @@ SineCosineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, boo
 	doublereal dInitialTime = HP.GetReal();
 	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
 
-	doublereal dOmega = HP.GetReal(1.);
+	doublereal dOmega;
+	try {
+		dOmega = HP.GetReal(1., HighParser::range_gt<doublereal>(0));
+	} catch (HighParser::ErrValueOutOfRange<doublereal>& e) {
+		silent_cerr("error: invalid frequency " << e.Get() << " (must be positive " << e.what() << " at line " << HP.GetLineData() << std::endl);
+		throw e;
+	}
 	DEBUGCOUT("Omega: " << dOmega << std::endl);
 
 	doublereal dAmplitude = HP.GetReal();
 	DEBUGCOUT("Amplitude: " << dAmplitude << std::endl);
+	if (dAmplitude == 0.) {
+		const char *sc = bSine ? "sine" : "cosine";
+		silent_cerr("warning, amplitude == 0 in " << sc << " drive caller at line " << HP.GetLineData() << std::endl);
+	}
 
 	integer iNumCycles;
 	if (HP.IsKeyWord("forever")) {
@@ -3184,6 +3281,7 @@ InitDriveCallerData(void)
 	SetDriveCallerData("sample" "and" "hold", new SHDCR);
 	SetDriveCallerData("sine", new SineDCR);
 	SetDriveCallerData("step", new StepDCR);
+	SetDriveCallerData("step5", new Step5DCR);
 	SetDriveCallerData("string", new StringDCR);
 	SetDriveCallerData("tanh", new TanhDCR);
 	SetDriveCallerData("time", new TimeDCR);

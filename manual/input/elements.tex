@@ -2810,6 +2810,77 @@ and \kw{derivative}.
 The initialization of the derivative only makes sense when the filter
 is in descriptor form.
 
+\paragraph{Example.} \
+To model the same 2nd order Butterworth filter of Eq.~(\ref{eq:scalar-filter}), namely
+\begin{equation}
+	H\plbr{s} = \frac{
+		1
+	}{
+		\plbr{\cfrac{s}{\omega_c}}^2
+		+ \sqrt{2}\plbr{\cfrac{s}{\omega_c}}
+		+ 1
+	}
+\end{equation}
+i.e.
+\begin{subequations}
+\begin{align}
+	\cubr{\cvvect{
+		\dot{x}_1
+		\\
+		\dot{x}_2
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		0 & 1
+		\\
+		-\omega_c^2 & -\sqrt{2} \omega_c
+	}}
+	\cubr{\cvvect{
+		x_1
+		\\
+		x_2
+	}}
+	+
+	\sqbr{\cvvect{
+		0
+		\\
+		1
+	}}
+	u
+	\\
+	y
+	&=
+	\sqbr{\matr{cc}{
+		\omega_c^2 & 0
+	}}
+	\cubr{\cvvect{
+		x_1
+		\\
+		x_2
+	}}
+	\label{eq:scalar-filter-ss}
+\end{align}
+\end{subequations}
+use
+\begin{verbatim}
+    set: real OMEGA_C = 1.*2*pi;                    # filter at 1Hz
+    genel: 1, state space SISO,
+        100, abstract, algebraic,                   # output node
+        drive, sine, 0., 2.*pi, 1., forever, 0.,    # input drive
+        2,
+        matrix A,
+            0., 1.,
+            -(OMEGA_C^2), -sqrt(2.)*OMEGA_C,
+        matrix B,
+            0.,
+            1.,
+        matrix C,
+            0, 1., 
+        gain, OMEGA_C^2,
+        balance, yes;
+\end{verbatim}
+Note that in \verb1-(OMEGA_C^2)1 the brackets are necessary because the unary minus takes precedence over the power operator.
+
 
 
 \subsection{Special Rotorcraft \textsc{Genel} Elements}
@@ -3221,7 +3292,7 @@ at the sides of the valve body and participate in the force balance.
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} ,
         \bnt{pipe_diameter} ,
-        \bnt{orifice_area} ,
+        \bnt{orifice_area} , # diaphragm area
         [ \kw{area} , \bnt{pipe_area} , ] # defaults to (\bnt{pipe_diameter}/2)^2*pi
         [ \kw{reynolds} , \bnt{critical_reynolds_number} , ] # defaults to 10
         \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
@@ -3647,7 +3718,7 @@ As a result, torque is transmitted about axis 1 of both nodes.
 The relative position is constrained as well.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano hinge}
+    \bnt{joint_type} ::= \kw{Cardano hinge}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
@@ -3661,8 +3732,8 @@ The relative position is constrained as well.
 The joint is shown in Figure~\ref{fig:el:joint:CARDANO} where the origins and orientations of \nt{node\_1} and \nt{node\_2} are given by axes 1, 2, 3 and 1$^\prime$, 2$^\prime$, 3$^\prime$, respectively. The central, constrained, axes 3 and 2$^\prime$ are obtained after having applied \nt{relative\_offset} and \nt{relative\_orientation\_matrix} transformations to \nt{node\_1} and \nt{node\_2}, respectively.
 \begin{figure}
 \centering
-\includegraphics[width=.5\textwidth]{cardano}
-\caption{Cardano hinge \textcolor{red}{[Warning: the reference system 1', 2', 3' on the left is incorrect; the correct axes are labeled according to the reference system on the right]}.}
+\includegraphics[width=.5\textwidth]{Cardano}
+\caption{Cardano hinge.}
 \label{fig:el:joint:CARDANO}
 \end{figure}
 Note: this joint does not represent a constant velocity joint,
@@ -3672,7 +3743,7 @@ velocity about axis 1 for the other node.
 The constant velocity joint is implemented by the \kw{gimbal joint}
 (Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
 of a sequence of two
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 joints with the hinges in reversed order, assembled
 in a manner that the deflection is split half and half
 between the two joints.
@@ -3684,7 +3755,7 @@ The absolute position is also constrained.
 See above for details about the formulation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano pin}
+    \bnt{joint_type} ::= \kw{Cardano pin}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_label} ,
@@ -3695,7 +3766,7 @@ See above for details about the formulation.
 \end{Verbatim}
 %\end{verbatim}
 \emph{Note: this is equivalent to a
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 when one node is grounded.
 }
 
@@ -3704,10 +3775,10 @@ when one node is grounded.
 This joint implements a ``Cardano'' joint, which is made of a sequence
 of two revolute hinges orthogonal to each other.
 The relative position is not constrained.
-See the \kw{cardano hinge} for more details.
+See the \kw{Cardano hinge} for more details.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano rotation}
+    \bnt{joint_type} ::= \kw{Cardano rotation}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
@@ -3718,11 +3789,11 @@ See the \kw{cardano hinge} for more details.
 %\end{verbatim}
 
 \emph{Note: this is equivalent to a
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 without position constraint.
 Or, in other words, a 
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
-is made of a \kw{cardano rotation} on top of a 
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+is made of a \kw{Cardano rotation} on top of a 
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}.
 }
 
@@ -3773,10 +3844,10 @@ instead.
 
 \subsection{Deformable Axial Joint}
 \label{sec:EL:JOINT:DEFORMABLEAXIAL}
-This joint implements a configuration dependent moment that is exchanged
+This joint implements a configuration (i.e.\ relative motion) dependent moment that is exchanged
 between two nodes about an axis rigidly attached to the first node.
-It is intended to be used in conjunction with another joint that
-constrains the relative rotation between the two nodes about the other axes,
+It is intended to be used in conjunction with another joint (for example a \kw{revolute hinge} or a \kw{total joint})
+that constrains the relative rotation between the two nodes about the other axes,
 although no check is in place.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3792,6 +3863,8 @@ although no check is in place.
         (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
+The relative rotation is assumed to take place about axis 3 in the local reference frame of the joint,
+as defined by \nt{relative\_orientation\_matrix\_1}.
 
 \subsubsection{Private Data}
 The following data are available:
@@ -3987,12 +4060,13 @@ changes during the analysis.
             [ , \kw{position} , (\hty{Vec3}) \bnt{relative_position_2} ]
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         (\htybkw{ConstitutiveLaw}{3D}) \bnt{const_law}
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
 \noindent
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 Note: a variant of this element has been developed,
 which refers the material reference frame to an orientation 
 that is intermediate between those of the two nodes.
@@ -4113,11 +4187,11 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
             \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         (\htybkw{ConstitutiveLaw}{6D}) \bnt{const_law}
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 \subsubsection{Private Data}
 The following data are available:
@@ -4401,10 +4475,10 @@ this joint, in conjunction with a
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
 joint, should be used to implement an ideal tiltrotor gimbal
 instead of a
-\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+\hyperref{\kw{Cardano rotation}}{\kw{Cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
 See the technical manual and \cite{GIMBAL-2008} for details.
 It is equivalent to a series of two Cardano's joints
-(the \hyperref{\kw{cardano hinge}}{\kw{cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
+(the \hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
 rotated 90 degrees apart, each accounting for half the relative rotation
 between axis 3 of each side of the joint.
 %\begin{verbatim}
@@ -4416,11 +4490,12 @@ between axis 3 of each side of the joint.
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
-        [ , \kw{orientation description} ,
-            \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
-                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+        [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 This joint allows nodes 1 and 2 to rotate about relative axes 1 and 2.
 
 \subsubsection{Output}
@@ -4578,7 +4653,9 @@ The output occurs in the \texttt{.jnt} file, according to default joint output
 for the first 13 columns; and if friction is present:
 \begin{itemize}
 \item column 14: the friction force along the line of the joint (applied in negative and positive directions for nodes 1 and 2, respectively);
-\item subsequent columns: any friction model specific data (quite possibly the friction coefficient).
+\item column 15: the friction coefficient;
+\item column 16: the relative sliding velocity;
+\item column 17: the relative sliding displacement.
 \end{itemize}
 
 
@@ -6068,21 +6145,21 @@ TODO
 \subsection{Universal hinge}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
 Deprecated in favour of the
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}.
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}.
 
 
 
 \subsection{Universal pin}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_PIN}
 Deprecated in favour of the
-\hyperref{\kw{cardano pin}}{\kw{cardano pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_PIN}.
+\hyperref{\kw{Cardano pin}}{\kw{Cardano pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_PIN}.
 
 
 
 \subsection{Universal rotation}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}
 Deprecated in favour of the
-\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+\hyperref{\kw{Cardano rotation}}{\kw{Cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
 
 \subsection{Viscous body}
 \label{sec:EL:STRUCT:JOINT:VISCOUS_BODY}
@@ -6137,7 +6214,7 @@ problems.
 
     <normal_arglist> ::= <type> , <data>
 
-    <type> ::= { tikhonov | dynamic }
+    <type> ::= { Tikhonov | dynamic }
 
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
@@ -6148,7 +6225,7 @@ problems.
 
     \bnt{normal_arglist} ::= \bnt{type} [ , \bnt{data} ]
 
-    \bnt{type} ::= \kw{tikhonov}
+    \bnt{type} ::= \kw{Tikhonov}
 
     \bnt{data} ::= \{ \bnt{coef} | \kw{list} , \bnt{coef_1} [ , ... ] \}
 \end{Verbatim}
@@ -6164,7 +6241,7 @@ If the keyword \kw{list} is used, the coefficients for each internal state
 are expected; the number of coefficients is determined by the joint.
 
 \subsection{Tikhonov}
-The \kw{tikhonov} joint regularization type consists in modifying
+The \kw{Tikhonov} joint regularization type consists in modifying
 a constraint, expressed by an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
 and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 \begin{align}

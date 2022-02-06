@@ -162,6 +162,8 @@ public:
 	typedef std::map<unsigned, const ReferenceFrame *> RFType;
 	const RFType& GetReferenceFrameContainer(void) const;
 
+	void GetRefByLabel(ReferenceFrame& rf);
+
 protected:
 	RFType RF;
 

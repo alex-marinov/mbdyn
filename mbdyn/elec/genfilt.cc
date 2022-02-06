@@ -408,6 +408,25 @@ GenelStateSpaceSISO::GetConnectedNodes(
 	}
 }
 
+const OutputHandler::Dimensions 
+GenelStateSpaceSISO::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	
+	return OutputHandler::Dimensions::VoltageDerivative;
+}
+
+std::ostream&
+GenelStateSpaceSISO::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + iNumDofs << ": " <<
+			"genel SISO state deivative" << std::endl;
+
+	return out;
+}
 /* GenelStateSpaceSISO - end */
 
 
@@ -854,6 +873,25 @@ GenelStateSpaceMIMO::GetConnectedNodes(
 			connectedNodes[i++] = ndp->pNode;
 		}
 	}
+}
+
+const OutputHandler::Dimensions 
+GenelStateSpaceMIMO::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::VoltageDerivative;
+}
+
+std::ostream&
+GenelStateSpaceMIMO::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + iNumDofs << ": " <<
+			"genel MIMO state deivative" << std::endl;
+
+	return out;
 }
 
 /* GenelStateSpaceMIMO - end */

@@ -260,5 +260,21 @@ SwashPlate::SetInitialValue(VectorHandler& /* X */ )
 	NO_OP;
 }
 
+const OutputHandler::Dimensions 
+SwashPlate::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+SwashPlate::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
+
 /* SwashPlate - end */
 

@@ -159,6 +159,10 @@ public:
 	 * Nota: le dimensioni devono essere compatibili.
 	 */
 	virtual MatrixHandler& SubFromT(MatrixHandler& MH) const = 0;
+
+        virtual SubMatrixHandler* Copy() const override;
+
+        virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 };
 
 /* SubMatrixHandler - end */
@@ -191,6 +195,7 @@ protected:
 	integer iVecSize;
 	/* Puntatore al vettore di incidenza delle righe.
 	 * Nota: coincide con il puntatore al vettore di incidenza */
+	integer* piRow;
 	integer* piRowm1;
 	/* Puntatore al vettore di incidenza delle colonne */
 	integer* piColm1;
@@ -770,11 +775,11 @@ private:
 	integer iNumItems;
 	/* Puntatore all'array degli indici di riga.
 	 * Coincide con il puntatore all'array degli inidici, che e' unico */
-	integer* piRowm1;
+	integer* piRow, *piRowm1;
 	/* Puntatore all'array degli indici di colonna */
 	integer* piColm1;
 	/* Puntatore all'array dei coefficienti */
-	doublereal* pdMatm1;
+	doublereal* pdMat, *pdMatm1;
 
 private:
 	SparseSubMatrixHandler(const SparseSubMatrixHandler&);
@@ -1559,6 +1564,11 @@ public:
 	 * Si somma ad un vettore con metodi generici
 	 */
 	virtual VectorHandler& AddTo(VectorHandler& VH) const = 0;
+
+	/*
+	 * Si somma in valore assoluto ad un vettore con metodi generici
+	 */
+	virtual VectorHandler& AddAbsValuesTo(VectorHandler& VH) const = 0;
 };
 
 /*
@@ -1576,7 +1586,7 @@ protected:
 	 * Usato per rendere piu' efficiente l'accesso,
 	 * dato che gli indici sono a base 1, in stile FORTRAN
 	 */
-	integer* piRowm1;
+	integer* piRow, *piRowm1;
 
 private:
 	MySubVectorHandler(const MySubVectorHandler&);
@@ -1732,6 +1742,16 @@ public:
 	 * Si somma ad un MyVectorHandler
 	 */
 	virtual VectorHandler& AddTo(MyVectorHandler& VH) const;
+
+	/*
+	 * Si somma in valore assoluto ad un vettore con metodi generici
+	 */
+	virtual VectorHandler& AddAbsValuesTo(VectorHandler& VH) const;
+
+	/*
+	 * Si somma in valore assoluto ad un MyVectorHandler
+	 */
+	virtual VectorHandler& AddAbsValuesTo(MyVectorHandler& VH) const;
 };
 
 inline void
@@ -1744,6 +1764,10 @@ MySubVectorHandler::PutRowIndex(integer iSubRow, integer iRow)
 #endif /* DEBUG */
 
 	piRowm1[iSubRow] = iRow;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 inline integer
@@ -1769,6 +1793,10 @@ MySubVectorHandler::PutItem(integer iSubRow, integer iRow,
 
 	piRowm1[iSubRow] = iRow;
 	pdVecm1[iSubRow] = dCoef;
+
+#ifdef DEBUG
+        IsValid();
+#endif
 }
 
 /* Operazioni esterne su SubMatrixHandler e su SubVectorHandler */

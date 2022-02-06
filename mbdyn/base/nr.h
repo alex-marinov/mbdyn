@@ -42,10 +42,12 @@
 
 #include <vector>
 #include "nonlin.h"
+#include "output.h"
 
 class NewtonRaphsonSolver : public NonlinearSolver
 {
 	VectorHandler* 	pRes;
+	VectorHandler* pAbsRes;
 	VectorHandler* 	pSol;
 	bool bTrueNewtonRaphson;
 	integer IterationBeforeAssembly;

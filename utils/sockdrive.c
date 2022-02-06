@@ -223,10 +223,10 @@ main(int argc, char *argv[])
 		fprintf(stderr, "local sockets not supported on Windows\n");
 		exit(EXIT_FAILURE);
 #else
-		sock = mbdyn_make_named_socket(0, path, 0, NULL);
+		(void)mbdyn_make_named_socket(&sock, 0, path, 0, NULL);
 #endif /* _WIN32 */
 	} else {
-		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
+		(void)mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 	}
 	if (sock == INVALID_SOCKET) {
 		fprintf(stderr, "socket initialization error\n");

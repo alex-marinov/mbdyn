@@ -62,13 +62,6 @@ pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr), 
 brakeForce(pdc) 
-#ifdef USE_NETCDFC
-,
-Var_Phi(0),
-Var_Omega(0),
-Var_fc(0),
-Var_Fb(0)
-#endif // USE_NTECDFC
 /* ,
 isForce(isforce), Dir(dir) */
 {
@@ -585,6 +578,36 @@ doublereal Brake::dGetPrivData(unsigned int i) const
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
+
+const OutputHandler::Dimensions
+Brake::GetEquationDimension(integer index) const {
+	// DOF is unknown
+   if (fc && fc->iGetNumDof() > 0) {
+      unsigned int i = index;
+      if ( i >= NumSelfDof + 1 && i <= NumSelfDof + fc->iGetNumDof()) {
+         return fc->GetEquationDimension(index - NumSelfDof);
+      }
+   }
+
+   return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+Brake::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+   int iIndex = iGetFirstIndex();
+
+   // TODO
+   if (fc && fc->iGetNumDof() > 0) {
+      out
+         << prefix << iIndex + NumSelfDof + 1 << "->" << iIndex + NumSelfDof + fc->iGetNumDof() << ": friction equation(s)" << std::endl
+         << "        ", fc->DescribeEq(out, prefix, bInitial);
+   }
+
+	return out;
+}
+
 
 /* Brake - end */
 

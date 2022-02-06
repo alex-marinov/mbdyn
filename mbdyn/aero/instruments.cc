@@ -368,6 +368,22 @@ AircraftInstruments::GetConnectedNodes(std::vector<const Node *>& connectedNodes
 	connectedNodes[0] = pNode;
 }
 
+const OutputHandler::Dimensions 
+AircraftInstruments::GetEquationDimension(integer index) const {
+	// DOF is unknown
+	return OutputHandler::Dimensions::UnknownDimension;
+}
+
+std::ostream&
+AircraftInstruments::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	out
+		<< "It does not have any DOF" << std::endl;
+
+	return out;
+}
+
 Elem *
 ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)

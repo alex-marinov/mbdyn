@@ -36,6 +36,7 @@
 #include "matvec3.h"
 #include "rbk.h"
 #include "invdyn.h"
+#include "output.h"
 
 #ifdef USE_AUTODIFF
 #include "gradient.h"
@@ -248,6 +249,8 @@ public:
 	/* Output del nodo strutturale (da mettere a punto) */
 	virtual void Output(OutputHandler& OH) const;
 
+	virtual const OrientationDescription& GetOrientationDescription(void) const;
+
 #if 0
 	/* Output della soluzione perturbata (modi ...) */
 	virtual void Output(OutputHandler& OH,
@@ -304,6 +307,9 @@ public:
 	/* Returns the current value of a private data
 	 * with 0 < i <= iGetNumPrivData() */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* test code for getting dimension of components */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -650,6 +656,9 @@ public:
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual bool ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));
+
+	/* for getting dimension of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
 };
 
 inline void
@@ -749,7 +758,6 @@ StaticStructDispNode::iGetFirstMomentumIndex(void) const
 {
 	return DofOwnerOwner::iGetFirstIndex();
 }
-
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 inline integer
 StaticStructDispNode::iGetInitialFirstIndexPrime() const
@@ -1079,6 +1087,9 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* test code for getting dimension of components */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 }; /* End class StructNode */
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -1641,6 +1652,9 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
+
+	/* to get dimensions of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
@@ -1807,6 +1821,9 @@ public:
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
 
+	virtual void DerivativesUpdate(const VectorHandler& X,
+                                       const VectorHandler& XP);
+     
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
 
@@ -1844,6 +1861,10 @@ public:
 	inline void
 	GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
+
+	/* to get dimension of equations */
+	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
+
 };
 
 

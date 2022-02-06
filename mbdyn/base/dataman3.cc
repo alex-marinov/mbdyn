@@ -115,6 +115,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		"loadable" "path",
 
 		"skip" "initial" "joint" "assembly",
+		"initial" "assembly" "of" "deformable" "and" "force" "elements",
 		"use",
 		"in" "assembly",
 		"initial" "stiffness",
@@ -207,6 +208,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		LOADABLEPATH,
 
 		SKIPINITIALJOINTASSEMBLY,
+		INITIALASSEMBLYOFDEFORMABLEANDFORCEELEMENTS,
 		USE,
 		INASSEMBLY,
 		INITIALSTIFFNESS,
@@ -585,6 +587,11 @@ DataManager::ReadControl(MBDynParser& HP,
 		case SKIPINITIALJOINTASSEMBLY: {
 			bSkipInitialJointAssembly = true;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Skipping initial joint assembly" << std::endl);
+		} break;
+
+		case INITIALASSEMBLYOFDEFORMABLEANDFORCEELEMENTS: {
+			bNotDeformableInitial = false;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Enabling initial joint assembly of deformable elements and of forces" << std::endl);
 		} break;
 
 		/* Uso di diversi tipi di elementi nell'assemblaggio iniziale */
@@ -975,9 +982,36 @@ EndOfUse:
 
 				} else if (HP.IsKeyWord("netcdf")) {
 					ResMode |= RES_NETCDF;
+					if (HP.IsKeyWord("classic")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::classic;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("classic64")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::classic64;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("nc4")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::nc4;
+#endif // USE_NETCDF
+					} else if (HP.IsKeyWord("nc4classic")) {
+#ifdef USE_NETCDF
+						NetCDF_Format = netCDF::NcFile::nc4classic;
+#endif // USE_NETCDF
+					}
 					if (HP.IsKeyWord("sync")) {
 #ifdef USE_NETCDF
 						bNetCDFsync = true;
+#endif // USE_NETCDF
+					}
+					if (HP.IsKeyWord("no" "sync")) {
+#ifdef USE_NETCDF
+						bNetCDFsync = false;
+#endif // USE_NETCDF
+					}
+					if (HP.IsKeyWord("text")) {
+#ifdef USE_NETCDF
+						bNetCDFnoText = false;
 #endif // USE_NETCDF
 					}
 					if (HP.IsKeyWord("no" "text")) {
@@ -987,7 +1021,7 @@ EndOfUse:
 					}
 #ifndef USE_NETCDF
 					silent_cerr("\"netcdf\" ignored; please rebuild with NetCDF output enabled"
-						<< std::endl);
+						" at line " << HP.GetLineData() << std::endl);
 #endif /* ! USE_NETCDF */
 
 				} else {
@@ -1461,6 +1495,7 @@ EndOfUse:
 #endif // USE_NETCDF
 
 	if (bOutput(RES_NETCDF)) {
+		// FIXME: replace with a single call that sets NetCDF for all types that support it
 		OutHdl.SetNetCDF(OutputHandler::NETCDF);
 		OutHdl.SetNetCDF(OutputHandler::STRNODES);
 		OutHdl.SetNetCDF(OutputHandler::INERTIA);
@@ -2537,22 +2572,26 @@ ReadOrientationDescription(MBDynParser& HP)
 }
 
 OrientationDescription
-ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP)
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP, OrientationDescription od /* = UNKNOWN_ORIENTATION_DESCRIPTION */ )
 {
-	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
+	OrientationDescription dod = od;
 
 	if (HP.IsKeyWord("orientation" "description")) {
+		// override existing
 		dod = ReadOrientationDescription(HP);
 
-	} else if (pDM != 0) {
-		/* get a sane default */
-		dod = pDM->GetOrientationDescription();
+	} else if (od == UNKNOWN_ORIENTATION_DESCRIPTION) {
+		if (pDM != 0) {
+			// get model-wide default
+			dod = pDM->GetOrientationDescription();
 
-	} else {
-		dod = EULER_123;
-		silent_cerr("Warning, data manager not defined yet, "
-			"using default orientation (\"euler 123\") "
-			"at line " << HP.GetLineData() << std::endl);
+		} else {
+			// use legacy default
+			dod = EULER_123;
+			silent_cerr("Warning, data manager not defined yet, "
+				"using default orientation (\"euler 123\") "
+				"at line " << HP.GetLineData() << std::endl);
+		}
 	}
 
 	return dod;

@@ -928,23 +928,33 @@ results from the cross product of the third and the first vector.
 Examples:
 \begin{verbatim}
     1, 1.,0.,0., 2, 0.,1.,0.
-    1, (real ALPHA = pi/6.; cos(ALPHA)), sin(ALPHA), 0.,
+\end{verbatim}
+Equivalent to the identity matrix, i.e.\ no rotation 
+occurs with respect to the initial reference frame: direction 1
+in the final reference frame is parallel to \texttt{1.,0.,0.}, which represents
+direction 1 in the initial reference frame, while direction 2 in the final reference frame
+is parallel to \texttt{0.,1.,0.}, which represents direction 2
+in the initial reference frame.
+\begin{verbatim}
+    1, cos(pi/6.), sin(pi/6.), 0.,
         3, 0.,0.,1.
 \end{verbatim}
-The first example represents the identity matrix, i.e.\ no rotation 
-occurs with respect to the global reference frame: direction 1
-in the local frame is parallel to \texttt{1.,0.,0.}, which represents
-direction 1 in the global frame, while direction 2 in the local frame
-is parallel to \texttt{0.,1.,0.}, which represents direction 2
-in the global frame.
-
-The second example describes a rotation of $ \pi/6 $ radian about
-global direction 3: direction 1 in the local frame results from 
-composing \kw{cos}\texttt{(pi/6.)} in global direction 1
+Rotation of $ \pi/6 $ radian about
+initial direction 3: direction 1 in the final reference frame results from 
+composing \kw{cos}\texttt{(pi/6.)} in initial direction 1
 and \kw{sin}\texttt{(pi/6.)}
-in global direction 2, while direction 3 in the local frame remains
-parallel to \texttt{0.,0.,1.}, which represents direction 3 in the global
-frame.
+in initial direction 2, while direction 3 in the final reference frame remains
+parallel to \texttt{0.,0.,1.}, which represents direction 3 in the initial reference frame.
+\begin{verbatim}
+    2, 0., cos(ALPHA), sin(ALPHA),
+        1, 1.,0.,0.
+\end{verbatim}
+Rotation of \texttt{ALPHA} (assuming the variable \texttt{ALPHA} was previously defined) about
+initial direction 1: direction 2 in the final reference frame results from 
+composing \kw{cos}\texttt{(ALPHA)} in initial direction 2
+and \kw{sin}\texttt{(ALPHA)}
+in initial direction 2, while direction 3 in the final reference frame remains
+parallel to \texttt{0.,0.,1.}, which represents direction 3 in the initial reference frame.
 
 \item a variant of the above, which may be useful when only one
 direction really matters, is illustrated in the example below:
@@ -971,12 +981,19 @@ frame.
 \item a complete orientation matrix: keyword \kw{matr}
 followed by the nine, row-oriented, coefficients, namely
 $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
-\emph{Note: no orthogonality check is performed; be sure an orthogonal
+Example:
+\begin{verbatim}
+    matr,
+        r11, r12, r13,
+        r21, r22, r23,
+        r31, r32, r33
+\end{verbatim}
+\emph{Note: orthogonality is not enforced; in case, only a warning is issued; be sure an orthogonal
 matrix, within the desired tolerance, is input}.
 
 \item Euler angles: keyword \kw{euler}, followed by the three
 values, as output by structural nodes.
-The keywords \kw{euler123}, \kw{euler313} and \kw{euler321}
+The keywords \kw{euler123} (same as \kw{euler}, also known as Tait-Bryan or Cardano angles), \kw{euler313} and \kw{euler321}
 allow to use orientations in the sequence specified by the keyword.
 \begin{Verbatim}[commandchars=\\\{\}]
     \{ \kw{euler} | \kw{euler123} | \kw{euler313} | \kw{euler321} \} ,
@@ -2057,6 +2074,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{scalar function} & $\surd$ & depends on underlying scalar function \\
 \kw{sine} & $\surd$ & \\
 \kw{step} & $\surd$ & \\
+\kw{step5} & $\surd$ & \\
 \kw{string} & $\surd$ & \\ %
 \kw{tanh} & $\surd$ & \\
 \kw{time} & $\surd$ & \\
@@ -2856,7 +2874,7 @@ The function
 %\end{verbatim}
 Generates pseudo-random numbers using the \texttt{rand(3)} call
 of the C standard library.
-Numbers are uniformly distributed in the interval
+Numbers are \emph{uniformly distributed} in the interval
 $[\nt{mean\_value} - \nt{amplitude\_value}, \nt{mean\_value} + \nt{amplitude\_value})$.
 
 The first optional entry, \nt{steps\_to\_hold\_value},
@@ -3008,6 +3026,40 @@ The function
 			& \nt{initial\_time} \le t
 	}}
 \end{align}
+
+\subsection{Step5 drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{step5} ,
+        \bnt{initial_time} , 
+        \bnt{initial_value} ,
+        \bnt{final_time} ,
+        \bnt{final_value}
+\end{Verbatim}    
+%\end{verbatim}    
+The function
+\begin{align}
+	f\plbr{t} &= 
+	\lcubr{\matr{ll}{
+		\nt{initial\_value} % \nonumber \\ &
+			& t \le \nt{initial\_time} \\
+		\\
+		\nt{initial\_value} + A \xi^3 \plbr{10 - 15 \xi + 6 \xi^2}
+			& \nt{initial\_time} < t < \nt{final\_time}
+		\\
+		\nt{final\_value}
+			& \nt{final\_time} \le t \\
+	}}
+	\\
+	A &= \nt{final\_value} - \nt{initial\_value}
+	\nonumber \\
+	\xi &= \cfrac{t - \nt{initial\_time}}{\nt{final\_time} - \nt{initial\_time}}
+	\nonumber 
+\end{align}
+i.e.\ a continuous 5th order polynomial approximation of a step of amplitude $A = \nt{final\_value} - \nt{initial\_value}$
+and finite duration $\nt{final\_time} - \nt{initial\_time}$,
+starting at time \nt{initial\_time} with value \nt{initial\_value} and ending at time \nt{final\_time} with value \nt{final\_value},
+with continuous 1st- and 2nd-order derivatives.
 
 \subsection{String drive}
 %\begin{verbatim}
@@ -3968,7 +4020,7 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
         (\hty{DriveCaller}) \bnt{stiffness_scale} ,
         \{ (\ty{DerivativeOfEntity}) \bnt{viscosity}
             | \kw{proportional} , (\ty{real}) \bnt{factor} \} ,
-        (\hty{DriveCaller}) \bnt{viscosity_scale}
+        \{ \kw{same} | (\hty{DriveCaller}) \bnt{viscosity_scale} \}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
@@ -3980,6 +4032,7 @@ by the respective scale factors,
 \end{align}
 If \kw{proportional} is given, then
 $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
+The keyword \kw{same} uses for the drive caller \nt{viscosity\_scale} the same drive caller \nt{stiffness\_scale} defined for the elastic portion of the constitutive law.
 
 \paragraph{Example.}
 \begin{verbatim}
@@ -4579,7 +4632,7 @@ No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
 This constitutive law wrapper transforms a 1D constitutive law into a corresponding 3D constitutive law that acts about an axis that is fixed in the relative reference of the first node.  It is intended to be used with \kw{deformable hinge} joints that act between nodes constrained by a \kw{revolute hinge} joint, and thus are only allowed relative rotation about one axis.
 The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{specific_const_law} ::= \kw{axial wrap} ,
+    \bnt{specific_const_law} ::= \kw{axial wrapper} ,
         (\hty{Vec3})\bnt{dir} ,
         (\htmlref{\ty{ConstitutiveLaw}\be{\kw{doublereal}, \kw{doublereal}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
@@ -4703,7 +4756,7 @@ with the related \nt{fluid\_properties}, are:
 
     \bnt{property} ::=
         \{ \kw{density} , \bnt{density}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{pressure} , \bnt{pressure}
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
@@ -4720,7 +4773,7 @@ with the related \nt{fluid\_properties}, are:
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -4744,7 +4797,7 @@ is computed as
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
                 \bnt{alpha} , \bnt{ref_temperature}
-            | \kw{viscosity} , \bnt{viscosity} \}
+            | \kw{viscosity} , \bnt{viscosity} \} # dynamic viscosity
 \end{Verbatim}
 %\end{verbatim}
 
@@ -4759,7 +4812,7 @@ is computed as
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -4796,7 +4849,7 @@ are hardcoded in SI units; the syntax will change}
     \bnt{property} ::=
         \{ \kw{density} , \bnt{ref_density} ,
                 \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
-            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{viscosity} , \bnt{viscosity} # dynamic viscosity
             | \kw{temperature} , \bnt{temperature} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -4971,6 +5024,14 @@ Finally there are some miscellaneous points:
     os.environ['MBDYNVARS'] = 'real DT = ' + str(dt) + ';';
     os.system('mbdyn -f input.mbd -o output > output.txt 2>&1 &');
     # use 'dt' in the python peer's analysis as appropriate...
+\end{verbatim}
+
+    same thing, but now using Matlab:
+\begin{verbatim}
+    dt = 1.e-3;
+    setenv('MBDYNVARS', sprintf('real DT = %s', dt));
+    system('mbdyn -f input.mbd -o output > output.txt 2>&1 &');
+    # use 'dt' in the matlab peer's analysis as appropriate...
 \end{verbatim}
 
     \item Newlines and indentations are not meaningful. But good indentation

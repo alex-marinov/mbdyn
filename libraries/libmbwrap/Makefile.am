@@ -18,8 +18,6 @@ lapackwrap.cc \
 lapackwrap.h \
 linsol.cc \
 linsol.h \
-mschwrap.cc \
-mschwrap.h \
 naivewrap.cc \
 naivewrap.h \
 parnaivewrap.cc \
@@ -30,6 +28,8 @@ superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
+pardisowrap.h \
+pardisowrap.cc \
 pastixwrap.cc \
 pastixwrap.h \
 taucswrap.cc \
@@ -63,10 +63,10 @@ libmbwrap_la_LIBADD = \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @KLU_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
+@PARDISO_LIBS@ \
 @WSMP_LIBS@ \
 @PASTIX_LIBS@ \
 @QRUPDATE_LIBS@ \
@@ -91,7 +91,6 @@ wraptest_SOURCES = wraptest.cc
 wraptest_LDADD = \
 libmbwrap.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -106,7 +105,6 @@ cctest_SOURCES = cctest.cc
 cctest_LDADD = \
 libmbwrap.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @Y12_LIBS@ \
@@ -121,7 +119,6 @@ libmbwrap.la \
 @ARPACK_LIBS@ \
 @LAPACK_LIBS@ \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @Y12_LIBS@ \

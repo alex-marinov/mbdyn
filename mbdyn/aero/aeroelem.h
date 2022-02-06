@@ -33,6 +33,7 @@
 #define AEROELEM_H
 
 /* Elementi aerodinamici bidimensionali */
+/* 2D aerodynamic elements */
 
 #include "aerodyn.h"
 #include "rotor.h"
@@ -133,12 +134,25 @@ public:
  * la velocita' in funzione di qualche modello di velocita' indotta
  * ed al quale fornisce le forze generate per il calcolo della trazione totale
  * ecc.
+ *
+ * Single-node aerodynamic element. 
+ * Physically, it represents a quadrilateral surface, associated to a node, from 
+ * which it received the motion and to which it transmits forces.
+ * Furthermore, it can be associated to a rotor element that modifies the velocity
+ * according to some induced velocity model and to which it returns the generated
+ * forces, for the computation of the total thrust, etc...
  */
 
 /* Lo modifico in modo che possieda un driver relativo allo svergolamento,
  * che consenta di inserire un contributo di svergolamento costante su
  * tutta l'apertura dell'elemento in modo da consentire la modellazione di
- * una superficie mobile equivalente */
+ * una superficie mobile equivalente 
+ *
+ * The element is modified so that a twist drive can be associated with it,
+ * in order to add contribution to the twist which is constant along the span,
+ * thus allowing to model an equivalent control surface
+ *
+ */
 
 template <unsigned iNN>
 class Aerodynamic2DElem :
@@ -153,13 +167,13 @@ protected:
 	InducedVelocity* pIndVel;
 	bool bPassiveInducedVelocity;
 
-	const ShapeOwner Chord;		/* corda */
-	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */
-	const ShapeOwner VelocityPoint;	/* punto di app. b.c. (3/4) */
-	const ShapeOwner Twist;		/* svergolamento */
+	const ShapeOwner Chord;		/* corda / chord*/
+	const ShapeOwner ForcePoint;	/* punto di app. della forza / force application point (1/4 c) */
+	const ShapeOwner VelocityPoint;	/* punto di app. b.c. / boundary conditions application point (3/4 c) */
+	const ShapeOwner Twist;		/* svergolamento / twist*/
 	const ShapeOwner TipLoss;	/* tip loss model */
 
-	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
+	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss / iterator over Gauss points*/
 	std::vector<outa_t> OUTA;
 
 	// used for Jacobian with internal states
@@ -171,6 +185,11 @@ protected:
 	 * overload della funzione di ToBeOutput();
 	 * serve per allocare il vettore dei dati di output se il flag
 	 * viene settato dopo la costruzione
+	 *
+	 * overload of the ToBeOutput(); method
+	 * to allocate the output data vector in case the flag is set
+	 * after construction
+	 *
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
 #ifdef USE_NETCDF
@@ -197,6 +216,7 @@ public:
 	virtual ~Aerodynamic2DElem(void);
 
 	/* Tipo dell'elemento (usato per debug ecc.) */
+	/* Element type (useful for debug, etc...) */
 	virtual Elem::Type GetElemType(void) const {
 		return Elem::AERODYNAMIC;
 	};
@@ -223,19 +243,23 @@ public:
 			const VectorHandler& XP);
 
 	/* Dimensioni del workspace */
+	/* Workspace dimensions */
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* Numero di GDL iniziali */
+	/* Initial DOF number */
 	virtual unsigned int iGetInitialNumDof(void) const {
 		return 0;
 	};
 
 	/* Dimensioni del workspace */
+	/* Initial workspace dimensions */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* assemblaggio jacobiano */
+	/* jacobian matrix assembly */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */);
@@ -244,6 +268,9 @@ public:
 		return pIndVel;
 	};
 	/* ************************************************ */
+
+	/* return s the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Aerodynamic2DElem - end */
@@ -257,16 +284,25 @@ class AerodynamicBody :
 {
 protected:
 	const StructNode* pNode;
+	
+	/* Offset del punto di riferimento */
+	/* Reference point offset */
+	const Vec3 f;	
+	/* Semiapertura del rettangoloide */
+	/* Half-span of the quadrilateral */
+	doublereal dHalfSpan;
+	/* Rotaz. del sistema aerodinamico al nodo */
+	/* Rotation matrix from the aerodynamic system to the nodes' */
+	const Mat3x3 Ra;
+	/* Terza colonna della matrice Ra */
+	/* Third column of Ra matrix*/
+	const Vec3 Ra3;		
 
-	const Vec3 f;		/* Offset del punto di riferimento */
-	doublereal dHalfSpan;	/* Semiapertura del rettangoloide */
-	const Mat3x3 Ra;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Vec3 Ra3;		/* Terza colonna della matrice Ra */
-
-	Vec3 F;			/* Forza */
-	Vec3 M;			/* Momento */
+	Vec3 F;			/* Force */
+	Vec3 M;			/* Moment */
 
 	/* Assemblaggio residuo */
+	/* Residual assembly */
 	void AssVec(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
@@ -289,9 +325,11 @@ public:
 	virtual ~AerodynamicBody(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
+	/* Writes the element contributiion to the restart file */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* assemblaggio jacobiano */
+	/* Jacobian matrix assembly */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 	       doublereal  dCoef,
@@ -299,6 +337,7 @@ public:
 	       const VectorHandler& /* XPrimeCurr */ );
 
 	/* assemblaggio residuo */
+	/* residual vector assembly */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 	       doublereal dCoef,
@@ -308,23 +347,33 @@ public:
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
+	 *
+	 * it is assumed that each elemen type knows, through the 
+	 * OutputHandler, where to write its output 
 	 */
 	virtual void Output(OutputHandler& OH) const;
 
 	/* assemblaggio residuo */
+	/* residual vector assembly for initial assembly */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr);
 
 	/* Tipo di elemento aerodinamico */
+	/* Aerodynamic element type */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
 		return AerodynamicElem::AERODYNAMICBODY;
 	};
 
 	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* *******FOR PARALLEL SOLVER******* */
 	/*
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 *
+	 * Gives the type and the label of the nodes that are connected to the
+	 * element: useful for the assembly of the connectivity matrix
+	 *
 	 */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
@@ -350,24 +399,29 @@ protected:
 	const Beam* pBeam;
 	const StructNode* pNode[3];
 
-	const Vec3 f1;		/* Offset del punto di riferimento */
-	const Vec3 f2;		/* Offset del punto di riferimento */
-	const Vec3 f3;		/* Offset del punto di riferimento */
-	const Mat3x3 Ra1;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Mat3x3 Ra2;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Mat3x3 Ra3;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Vec3 Ra1_3;	/* Terza colonna della matrice Ra */
-	const Vec3 Ra2_3;	/* Terza colonna della matrice Ra */
-	const Vec3 Ra3_3;	/* Terza colonna della matrice Ra */
+	const Vec3 f1;		/* Reference point offset */
+	const Vec3 f2;		/* Reference point offset */
+	const Vec3 f3;		/* Reference point offset */
+	const Mat3x3 Ra1;	/* Rotation matrix from aerodynamics RF to node */
+	const Mat3x3 Ra2;	/* Rotation matrix from aerodynamics RF to node */
+	const Mat3x3 Ra3;	/* Rotation matrix from aerodynamic RF to node */
+	const Vec3 Ra1_3;	/* Third column of Ra matrix */
+	const Vec3 Ra2_3;	/* Third column of Ra matrix */
+	const Vec3 Ra3_3;	/* Third column of Ra matrix */
 
 	/*
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
+	 *
+	 * Note: they are in distinct vectors so that they can eventually be 
+	 * output easily
+	 *
 	 */
-	Vec3 F[LASTNODE];	/* Forza */
-	Vec3 M[LASTNODE];	/* Momento */
+	Vec3 F[LASTNODE];	/* Force */
+	Vec3 M[LASTNODE];	/* Moment */
 
 	/* Assemblaggio residuo */
+	/* Residual vector assembly */
 	void AssVec(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
@@ -394,9 +448,11 @@ public:
 	virtual ~AerodynamicBeam(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
+	/* Writes the element contributiion to the restart file */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* assemblaggio jacobiano */
+	/* Jacobian matrix assembly... */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 	       doublereal  dCoef  ,
@@ -404,6 +460,7 @@ public:
 	       const VectorHandler& /* XPrimeCurr */ );
 
 	/* assemblaggio residuo */
+	/* Residual vector assembly */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 	       doublereal dCoef,
@@ -411,6 +468,7 @@ public:
 	       const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
+	/* Residual vector assembly for initial assembly */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr);
@@ -418,18 +476,27 @@ public:
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
+	 *
+	 * it is assumed that each elemen type knows, through the 
+	 * OutputHandler, where to write its output 
 	 */
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Tipo di elemento aerodinamico */
+	/* Type of aerodynamic element */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
 		return AerodynamicElem::AERODYNAMICBEAM;
 	};
 
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* *******FOR PARALLEL SOLVER******* */
 	/*
-	 *******PER IL SOLUTORE PARALLELO********
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 *
+	 * Gives the type and the label of the nodes that are connected to the
+	 * element: useful for the assembly of the connectivity matrix
+	 *
 	 */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
@@ -456,21 +523,26 @@ protected:
 	const Beam2* pBeam;
 	const StructNode* pNode[2];
 
-	const Vec3 f1;		/* Offset del punto di riferimento */
-	const Vec3 f2;		/* Offset del punto di riferimento */
-	const Mat3x3 Ra1;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Mat3x3 Ra2;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Vec3 Ra1_3;	/* Terza colonna della matrice Ra */
-	const Vec3 Ra2_3;	/* Terza colonna della matrice Ra */
+	const Vec3 f1;		/* Reference point offset */
+	const Vec3 f2;		/* Reference point offset */
+	const Mat3x3 Ra1;	/* Rotation matrix from aerodynamics RF to node */
+	const Mat3x3 Ra2;	/* Rotation matrix from aerodynamics RF to node */
+	const Vec3 Ra1_3;	/* Third column of Ra matrix */
+	const Vec3 Ra2_3;	/* Third column of Ra matrix */
 
 	/*
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
+	 *
+	 * Note: they are in distinct vectors so that they can eventually be 
+	 * output easily
+	 *
 	 */
-	Vec3 F[LASTNODE];	/* Forza */
-	Vec3 M[LASTNODE];	/* Momento */
+	Vec3 F[LASTNODE];	/* Force */
+	Vec3 M[LASTNODE];	/* Moment */
 
 	/* Assemblaggio residuo */
+	/* Residual vector assembly */
 	void AssVec(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
@@ -495,9 +567,11 @@ public:
 	virtual ~AerodynamicBeam2(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
+	/* Writes the element contributiion to the restart file */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* assemblaggio jacobiano */
+	/* Jacobian matrix assembly... */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 	       doublereal /* dCoef */ ,
@@ -505,6 +579,7 @@ public:
 	       const VectorHandler& /* XPrimeCurr */ );
 
 	/* assemblaggio residuo */
+	/* Residual vector assembly */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 	       doublereal dCoef,
@@ -512,6 +587,7 @@ public:
 	       const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
+	/* Residual vector assembly for initial assembly */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr);
@@ -519,18 +595,27 @@ public:
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
+	 *
+	 * it is assumed that each elemen type knows, through the 
+	 * OutputHandler, where to write its output 
 	 */
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Tipo di elemento aerodinamico */
+	/* Type of aerodynamic element */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
 		return AerodynamicElem::AERODYNAMICBEAM;
 	};
 
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* *******FOR PARALLEL SOLVER******* */
 	/*
-	 *******PER IL SOLUTORE PARALLELO********
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 *
+	 * Gives the type and the label of the nodes that are connected to the
+	 * element: useful for the assembly of the connectivity matrix
+	 *
 	 */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {

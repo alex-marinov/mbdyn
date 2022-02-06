@@ -127,19 +127,17 @@ The syntax of the 6 degrees of freedom rigid-body motion structural node is
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
         [ \kw{position} , ]         (\hty{Vec3})              \bnt{absolute_position} ,
         [ \kw{orientation} , ]      (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
-            [ \kw{orientation description} , \bnt{orientation_description} , ]
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
         [ \kw{velocity} , ]         (\hty{Vec3})              \bnt{absolute_velocity} ,
         [ \kw{angular velocity} , ] (\hty{Vec3})              \bnt{absolute_angular_velocity}
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness}
           , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
-
-    \bnt{orientation_description} ::=
-        \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
-             | \kw{orientation vector} | \kw{orientation matrix} \}
 \end{Verbatim}
 %\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 The syntax of the 3 degrees of freedom point mass motion structural node is
 %\begin{verbatim}
@@ -152,6 +150,32 @@ The syntax of the 3 degrees of freedom point mass motion structural node is
           , (\ty{real}) \bnt{velocity_initial_stiffness} ]
 \end{Verbatim}
 %\end{verbatim}
+
+When a node's initial configuration is coincident with that of a single reference, instead of the \kw{position}, \kw{orientation}, \kw{velocity}, and \kw{angular velocity} one can respectively use
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
+        \kw{at reference} , \bnt{reference_label}
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness}
+          , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
+\end{Verbatim}
+%\end{verbatim}
+or
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
+        \kw{at reference} , \bnt{reference_label}
+        [ , \kw{assembly}
+          , (\ty{real}) \bnt{position_initial_stiffness}
+          , (\ty{real}) \bnt{velocity_initial_stiffness} ]
+\end{Verbatim}
+%\end{verbatim}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 
 The stiffness parameters and the \nt{omega\_rotates?} flag
 override the default values optionally set by the \kw{initial stiffness}
@@ -223,7 +247,7 @@ The following types are available:
     \bnt{dummy_node_data} ::=
         (\hty{Vec3})              \bnt{relative_offset} ,
         (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix}
-            [ , \kw{orientation description} , \bnt{orientation_description} ]
+            [ , \kw{orientation description} , \bnt{orientation_type} ]
 \end{Verbatim}
 %\end{verbatim}
     It outputs the configuration of a point offset from the base node.
@@ -236,7 +260,7 @@ The following types are available:
     \bnt{dummy_node_data} ::= \bnt{reference_node_label}
         [ , \kw{position} , (\hty{Vec3}) \bnt{reference_offset} ]
         [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{reference_orientation_matrix} ]
-            [ \kw{orientation description} , \bnt{orientation_description} , ]
+            [ \kw{orientation description} , \bnt{orientation_type} , ]
         [ , \kw{pivot node} , \bnt{pivot_node_label}
             [ , \kw{position} , (\hty{Vec3}) \bnt{pivot_offset} ]
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{pivot_orientation_matrix} ] ]
@@ -252,6 +276,8 @@ The following types are available:
     of the pivot node, optionally offset by \nt{pivot\_offset}
     and with optional relative orientation \nt{pivot\_orientation\_matrix}.
 \end{itemize}
+The \nt{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
 
 \paragraph{Example.} \
 \begin{verbatim}
@@ -303,21 +329,28 @@ by definition, in the relative frame.
 
 There exist two variants of this output.
 The output of the orientation can be modified by requesting
-either the three components of the Euler vector,
+the three Euler angles, in 3 formats, the three components of the Euler vector,
 or the nine components of the orientation matrix.
 
+When the Euler angles are requested, columns 5 to 7 contain
+them, in degrees, according to the requested output format:
+by default, the `123' sequence is used (which results in the so-called Tait-Bryan or Cardano angles);
+the `313' and `321' sequences are supported as well.
+
 When the Euler vector is requested, columns 5 to 7 contain
-its components.
+its components.  Recall that the Euler vector's direction represents the rotation axis,
+whereas its norm represents the magnitude, in radian.
+
 Beware that it is not possible to discriminate between
-the original output and this format without knowing
+the flavours of Euler angles and the Euler vector without knowing
 what output type was requested.
 
 When the orientation matrix is requested, columns 5 to 13
 contains the elements of the matrix, written row-wise,
 that is: $r_{11}$, $r_{12}$, $r_{13}$, $r_{21}$, \ldots, $r_{33}$.
-Note that in this case the total column count, if accelerations
-are not requested, corresponds to that of a structural node
-with optional accelerations, so it might be hard to discriminate
+Note that in this case the total column count changes and, if accelerations
+are not requested, it corresponds to that of a structural node
+with optional accelerations, so it might be hard to discriminate in this case
 as well.
 
 This ambiguity is resolved when results are output in NetCDF format.
@@ -413,6 +446,9 @@ The following data are available:
 \item \kw{"omegaP[1]"} angular acceleration in direction 1, in the reference frame of the node
 \item \kw{"omegaP[2]"} angular acceleration in direction 2, in the reference frame of the node
 \item \kw{"omegaP[3]"} angular acceleration in direction 3, in the reference frame of the node
+\item \kw{"phi[1]"} orientation vector in direction 1, in the reference frame of the node
+\item \kw{"phi[2]"} orientation vector in direction 2, in the reference frame of the node
+\item \kw{"phi[3]"} orientation vector in direction 3, in the reference frame of the node
 \end{enumerate}
 
 Note: Euler parameters actually do not take into account 

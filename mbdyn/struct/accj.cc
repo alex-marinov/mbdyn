@@ -50,10 +50,6 @@ DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
 dF(0.)
-#ifdef USE_NETCDFC   // Netcdf4 has non-pointer variables...
-,
-Var_a(0)
-#endif // USE_NETCDFC
 {
    ASSERT(pNode != NULL);
    ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());
@@ -285,6 +281,39 @@ LinearAccelerationJoint::dGetPrivData(unsigned int i) const
    }
 }
 
+const OutputHandler::Dimensions
+LinearAccelerationJoint::GetEquationDimension(integer index) const {
+	// DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Velocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Acceleration;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+LinearAccelerationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"velocity component along prescribed direction" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+			"acceleration value error" << std::endl;
+
+	return out;
+}
 /* LinearAccelerationJoint - end */
 
 
@@ -303,10 +332,6 @@ DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
 dM(0.)
-#ifdef USE_NETCDFC
-,
-Var_wP(0)
-#endif // USE_NETCDFC
 {
    ASSERT(pNode != NULL);
    ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());
@@ -540,6 +565,40 @@ AngularAccelerationJoint::dGetPrivData(unsigned int i) const
     default:
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
+}
+
+const OutputHandler::Dimensions
+AngularAccelerationJoint::GetEquationDimension(integer index) const {
+	// DOF == 2
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::AngularVelocity;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::AngularAcceleration;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+AngularAccelerationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"angular velocity component along prescribed direction" << std::endl
+      
+      << prefix << iIndex + 2 << ": " <<
+			"angular acceleration" << std::endl;
+
+	return out;
 }
 
 /* AngularAccelerationJoint - end */

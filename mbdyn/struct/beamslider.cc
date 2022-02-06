@@ -86,12 +86,6 @@ F(Zero3), M(Zero3),
 sRef(0.), s(0.),
 dL(dl),
 x(Zero3), l(Zero3)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_Beam(0),
-Var_sRef(0),
-Var_l(0)
-#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(nBeams > 0);
@@ -779,5 +773,62 @@ BeamSliderJoint::InitialAssRes(
 	return WorkVec;
 }
 
+const OutputHandler::Dimensions
+BeamSliderJoint::GetEquationDimension(integer index) const {
+	// DOF is unknown
+   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+	switch (index)
+	{
+		case 1:
+			dimension = OutputHandler::Dimensions::Force;
+			break;
+		case 2:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 3:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 4:
+			dimension = OutputHandler::Dimensions::Length;
+			break;
+		case 5:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 6:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+		case 7:
+			dimension = OutputHandler::Dimensions::rad;
+			break;
+	}
+
+	return dimension;
+}
+
+std::ostream&
+BeamSliderJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << ": " <<
+			"reaction force component tangent to the beam" << std::endl
+		<< prefix << iIndex + 2 << "->" << iIndex + 4 << ": "
+			"contact position along the beam" << std::endl;
+
+		if (iType == BeamSliderJoint::Type::CLASSIC) {
+			out
+				<< prefix << iIndex + 5 << "->" << iIndex + 6 << ": "
+				"orientation constraints" << std::endl;
+		}
+		if (iType == BeamSliderJoint::Type::SPLINE) {
+			out
+				<< prefix << iIndex + 5 << "->" << iIndex + 7 << ": "
+				"orientation constraints" << std::endl;
+		}
+
+	return out;
+}
 /* BeamSliderJoint - end */
 

@@ -31,94 +31,128 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include "ac/pthread.h"
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#ifdef HAVE_TASK2CPU
-#include <sys/ioctl.h>
-#endif // HAVE_TASK2CPU
-#include <iostream>
-
-#ifdef USE_PTHREAD_SETAFFINITY_NP
-#include <sched.h>
-#endif
-
 #include "myassert.h"
+#include "task2cpu.h"
 
-static bool		mbdyn_task2cpu_disabled = false;
-#ifdef HAVE_THREADS
-static pthread_mutex_t	mbdyn_task2cpu_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif /* HAVE_THREADS */
+Task2CPU Task2CPU::oGlobalState;
 
-int
-mbdyn_task2cpu(int cpu)
+Task2CPU::Task2CPU()
 {
-	int		fd = -1;
-
-#ifdef HAVE_THREADS
-	pthread_mutex_lock(&::mbdyn_task2cpu_mutex);
-#endif /* HAVE_THREADS */
-	if (!::mbdyn_task2cpu_disabled) {
-#ifdef HAVE_TASK2CPU
-		fd = open("/dev/TASK2CPU", O_RDWR);
-		if (fd != -1) {
-			ioctl(fd, 0, cpu);
-			close(fd);
-
-		} else {
-			int save_errno = errno;
-			char *err_msg = strerror(save_errno);
-
-			silent_cerr("Error opening /dev/TASK2CPU ("
-					<< save_errno << ": " << err_msg << ";"
-				       " ignored)" << std::endl);
-			::mbdyn_task2cpu_disabled = true;
-		}
-#elif defined(USE_PTHREAD_SETAFFINITY_NP)
-		cpu_set_t cpuset;
-		CPU_ZERO(&cpuset);
-		CPU_SET(cpu, &cpuset);
-
-		const pthread_t thread = pthread_self();
-
-		int s = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
-
-		if (0 != s) {
-			silent_cerr("warning: pthread_setaffinity_np failed with status " << s << std::endl);
-			goto failed;
-		}
-
-#ifdef DEBUG
-		s = pthread_getaffinity_np(thread, sizeof(cpuset), &cpuset);
-
-		if (0 != s) {
-			DEBUGCERR("warning: pthread_getaffinity_np failed with status " << s << std::endl);
-			goto failed;
-		}
-
-		for (int i = 0; i < CPU_SETSIZE; ++i) {
-			if (CPU_ISSET(i, &cpuset)) {
-				DEBUGCERR("thread " << cpu + 1 << " running at CPU " << i << std::endl);
-			}
-		}
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     CPU_ZERO(&oCPUSet);
 #endif
-		fd = 1; // return 0
-
-	failed:
-		if (fd == -1) {
-			::mbdyn_task2cpu_disabled = true;
-		}
-#else  /* ! HAVE_TASK2CPU */
-		silent_cerr("/dev/TASK2CPU or pthread_getaffinity_np are not available" << std::endl);
-		::mbdyn_task2cpu_disabled = true;
-#endif /* ! HAVE_TASK2CPU */
-	}
-#ifdef HAVE_THREADS
-	pthread_mutex_unlock(&::mbdyn_task2cpu_mutex);
-#endif /* HAVE_THREADS */
-
-	return (fd == -1);
 }
+
+Task2CPU::~Task2CPU()
+{
+}
+
+int Task2CPU::iGetCPU(int iCPU) const
+{
+     ASSERT(iCPU >= 0);
+     ASSERT(iCPU < iGetMaxSize());
+     
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     return CPU_ISSET(iCPU, &oCPUSet);
+#else
+     return 0;
+#endif
+}
+
+void Task2CPU::SetCPU(int iCPU)
+{
+     ASSERT(iCPU >= 0);
+     ASSERT(iCPU < iGetMaxSize());
+     
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     CPU_SET(iCPU, &oCPUSet);
+#endif
+}
+
+void Task2CPU::ClearCPU(int iCPU)
+{
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     CPU_CLR(iCPU, &oCPUSet);
+#endif
+}
+
+int Task2CPU::iGetFirstCPU() const
+{
+     int iCPU;
+     
+     for (iCPU = 0; iCPU < iGetMaxSize(); ++iCPU) {
+	  if (iGetCPU(iCPU)) {
+	       break;
+	  }
+     }
+
+     ASSERT(iCPU >= 0);
+     ASSERT(iCPU <= iGetMaxSize());
+
+     return iCPU;
+}
+
+int Task2CPU::iGetNextCPU(int iCPU) const
+{
+     ASSERT(iCPU >= 0);
+     ASSERT(iCPU < iGetMaxSize());
+     
+     for ( ++iCPU; iCPU < iGetMaxSize(); ++iCPU) {
+	  if (iGetCPU(iCPU)) {
+	       break;
+	  }
+     }
+
+     ASSERT(iCPU >= 0);
+     ASSERT(iCPU <= iGetMaxSize());
+     
+     return iCPU;
+}
+
+int Task2CPU::iGetCount() const
+{
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     return CPU_COUNT(&oCPUSet);
+#else
+     return 0;
+#endif
+}
+
+int Task2CPU::iGetMaxSize()
+{
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+     return CPU_SETSIZE;
+#else
+     return 0;
+#endif
+}
+
+bool Task2CPU::bGetAffinity()
+{
+#ifdef USE_PTHREAD_SETAFFINITY_NP     
+     return 0 == pthread_getaffinity_np(pthread_self(), sizeof(oCPUSet), &oCPUSet);
+#else
+     return false;
+#endif
+}
+
+bool Task2CPU::bSetAffinity() const
+{
+#ifdef USE_PTHREAD_SETAFFINITY_NP     
+     return 0 == pthread_setaffinity_np(pthread_self(), sizeof(oCPUSet), &oCPUSet);
+#else
+     return false;
+#endif
+}
+
+const Task2CPU& Task2CPU::GetGlobalState()
+{
+     return oGlobalState;
+}
+
+void Task2CPU::SetGlobalState(const Task2CPU& oState)
+{
+     oGlobalState = oState;
+}
+
 

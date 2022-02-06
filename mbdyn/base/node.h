@@ -74,7 +74,7 @@ extern const char* psReadControlNodes[];
  */
 extern const char* psReadNodesNodes[];
 
-/* Node - begin */
+/* Node - begin */ 
 
 class Node : public WithLabel, public SimulationEntity,
 public DofOwnerOwner, public ToBeOutput
@@ -292,6 +292,14 @@ public:
     inline void GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;    
     inline void GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
+
+	 /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+	/* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 #ifdef USE_AUTODIFF
@@ -457,6 +465,14 @@ public:
      inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
      inline void GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
+
+	 /* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+
+	/* describes the dimension of components of equation */
+    virtual std::ostream& DescribeEq(std::ostream& out,
+		  const char *prefix = "",
+		  bool bInitial = false) const;
 };
 
 inline const doublereal&

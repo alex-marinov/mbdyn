@@ -78,7 +78,7 @@
 #include "solman.h"
 #include "readlinsol.h"
 #include "ls.h"
-#include "naivewrap.h"
+#include "naivemh.h"
 #include "Rot.hh"
 #include "cleanup.h"
 #include "drive_.h"
@@ -161,7 +161,11 @@ extern "C" void
 mbdyn_modify_last_iteration_handler(int signum)
 {
 	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
+#ifdef USE_MULTITHREAD
+     	signal(signum, mbdyn_modify_last_iteration_handler);
+#else
 	signal(signum, mbdyn_really_exit_handler);
+#endif
 }
 
 extern "C" void
@@ -690,6 +694,14 @@ Solver::Prepare(void)
 			SAFENEW(pResTestScale, NonlinearSolverTestScaleMinMax);
 			break;
 
+		case NonlinearSolverTest::RELNORM:
+			SAFENEW(pResTestScale, NonlinearSolverTestScaleRelNorm);
+			break;
+
+		case NonlinearSolverTest::SEPNORM:
+			SAFENEW(pResTestScale, NonlinearSolverTestScaleSepNorm);
+			break;
+
 		default:
 			ASSERT(0);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -713,6 +725,14 @@ Solver::Prepare(void)
 
 		case NonlinearSolverTest::MINMAX:
 			SAFENEW(pResTest, NonlinearSolverTestMinMax);
+			break;
+
+		case NonlinearSolverTest::RELNORM:
+			SAFENEW(pResTest, NonlinearSolverTestRelNorm);
+			break;
+
+		case NonlinearSolverTest::SEPNORM:
+			SAFENEW(pResTest, NonlinearSolverTestSepNorm);
 			break;
 
 		default:
@@ -742,6 +762,12 @@ Solver::Prepare(void)
 
 	/* registers tests in nonlinear solver */
 	pNLS->SetTest(pResTest, pSolTest);
+
+	/* set the dimension and indices map */
+	if (pNLS->pGetResTest()->GetDimMap() != 0) {
+		pDM->SetElemDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+		pDM->SetNodeDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+	}
 
 	/*
 	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager
@@ -867,6 +893,16 @@ Solver::Prepare(void)
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
 
+	if (pNLS->pGetResTest()->GetAbsRes() != 0) {
+		pNLS->pGetResTest()->GetAbsRes()->Resize(pSM->pResHdl()->iGetSize());
+	}
+
+	/* set the dimension and indices map */
+	if (pNLS->pGetResTest()->GetDimMap() != 0) {
+		pDM->SetElemDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+		pDM->SetNodeDimensionIndices(pNLS->pGetResTest()->GetDimMap());
+	}
+	
 	/* Derivative steps */
 	pCurrStepIntegrator = pDerivativeSteps;
 	try {
@@ -3676,6 +3712,10 @@ Solver::ReadData(MBDynParser& HP)
 						ResTest = NonlinearSolverTest::NORM;
 					} else if (HP.IsKeyWord("minmax")) {
 						ResTest = NonlinearSolverTest::MINMAX;
+					} else if (HP.IsKeyWord("relnorm")) {
+						ResTest = NonlinearSolverTest::RELNORM;
+					} else if (HP.IsKeyWord("sepnorm")) {
+						ResTest = NonlinearSolverTest::SEPNORM;
 					} else if (HP.IsKeyWord("none")) {
 						ResTest = NonlinearSolverTest::NONE;
 					} else {
@@ -5912,10 +5952,6 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	DataManager *pDM, Solver::EigenAnalysis *pEA,
 	bool bNewLine, const unsigned uCurr)
 {
-	NaiveSparsePermSolutionManager<Colamd_ordering>& sm
-		= dynamic_cast<NaiveSparsePermSolutionManager<Colamd_ordering> &>(*pSM);
-	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
-
 	// shift
 	doublereal SIGMAR = 0.;
 	doublereal SIGMAI = 0.;
@@ -5940,7 +5976,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	IDO = 0;
 	BMAT = "I";
-	N = MatA.iGetNumRows();
+	N = pMatA->iGetNumRows();
 	WHICH = "SM";
 	NEV = pEA->arpack.iNEV;
 	if (NEV > N) {
@@ -6027,11 +6063,11 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		 */
 
 
-		MatA.MatVecMul(*sm.pResHdl(), X);
-		sm.Solve();
-		*sm.pSolHdl() -= X;
+		pMatA->MatVecMul(*pSM->pResHdl(), X);
+		pSM->Solve();
+		*pSM->pSolHdl() -= X;
 
-		Y = *sm.pSolHdl();
+		Y = *pSM->pSolHdl();
 
 		static const int CNT = 100;
 		cnt++;
@@ -6346,7 +6382,7 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
-			pDM->OutputGeometry(pEA->iResultsPrecision);
+			pDM->OutputEigGeometry(uCurr, pEA->iResultsPrecision);
 		}
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
@@ -6403,8 +6439,8 @@ Solver::Eig(bool bNewLine)
 	DEBUGCOUT("Solver::Eig(): performing eigenanalysis" << std::endl);
 
 	integer iSize = iNumDofs;
-
-	SolutionManager *pSM = 0;
+	
+        SolutionManager *pSM = 0;
 	MatrixHandler *pMatA = 0;
 	MatrixHandler *pMatB = 0;
 
@@ -6415,11 +6451,19 @@ Solver::Eig(bool bNewLine)
 			FullMatrixHandler(iSize));
 
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_USE_ARPACK) {
-		SAFENEWWITHCONSTRUCTOR(pSM, NaiveSparsePermSolutionManager<Colamd_ordering>,
-			NaiveSparsePermSolutionManager<Colamd_ordering>(iSize));
-		SAFENEWWITHCONSTRUCTOR(pMatA, NaiveMatrixHandler,
-			NaiveMatrixHandler(iSize));
+                const integer iStates = pRegularSteps->GetIntegratorNumUnknownStates();
+                const integer iWorkSpaceSize = CurrLinearSolver.iGetWorkSpaceSize();
+                integer iLWS = iWorkSpaceSize;
+                integer iNLD = iNumDofs*iStates;
+                
+                if (bParallel) {
+                        iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
+                        iNLD = iNumLocDofs*iStates;
+                }
+
+                pSM = AllocateSolman(iNLD, iLWS);                
 		pMatB = pSM->pMatHdl();
+                pMatA = pMatB->Copy();
 
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_USE_JDQZ) {
 		SAFENEWWITHCONSTRUCTOR(pMatA, NaiveMatrixHandler,
@@ -6439,15 +6483,30 @@ Solver::Eig(bool bNewLine)
 		SAFENEWWITHCONSTRUCTOR(pMatB, FullMatrixHandler,
 			FullMatrixHandler(iSize));
 	}
-
-	pMatA->Reset();
-	pMatB->Reset();
-
+        
 	// Matrices assembly (see eig.ps)
-	doublereal h = EigAn.dParam;
-	pDM->AssJac(*pMatA, -h/2.);
-	pDM->AssJac(*pMatB, h/2.);
+	const doublereal h = EigAn.dParam;
 
+        /* 
+	 * Call AssRes before AssJac in order to be sure that all 
+	 * the elements have updated the internal data
+	 */
+        {
+             MyVectorHandler Res(iNumDofs);
+             
+             pDM->Update();
+             Res.Reset();
+             pDM->AssRes(Res, -h/2.);
+             pMatA->Reset();
+             pDM->AssJac(*pMatA, -h/2.);
+             
+             pDM->Update();
+             Res.Reset();
+             pDM->AssRes(Res, h/2.);
+             pMatB->Reset();
+             pDM->AssJac(*pMatB, h/2.);
+        }
+        
 #ifdef DEBUG
 	DEBUGCOUT(std::endl
 		<< "Matrix A:" << std::endl << *pMatA << std::endl
@@ -6480,14 +6539,10 @@ Solver::Eig(bool bNewLine)
 		}
 	}
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
-		pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
+                pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 	}
 	else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
-		if (dynamic_cast<const NaiveMatrixHandler *>(pMatB)) {
-			pDM->OutputEigNaiveMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
-		} else {
-			pDM->OutputEigSparseMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
-		}
+                pDM->OutputEigSparseMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 	}
 
 	switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {

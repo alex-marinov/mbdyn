@@ -125,7 +125,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -146,7 +145,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -167,7 +165,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -188,7 +185,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -209,7 +205,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -238,7 +233,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
@@ -264,7 +258,6 @@ libmbmath.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
-@MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \

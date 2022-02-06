@@ -200,7 +200,7 @@ strategy is defined using the \kw{strategy} statement.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{tolerance} : \{ \kw{null} | \bnt{residual_tolerance} \}
-            [ , \kw{test} , \{ \kw{none} | \kw{norm} | \kw{minmax} \} [ , \kw{scale} ] ]
+            [ , \kw{test} , \{ \kw{none} | \kw{norm} | \kw{minmax} | \kw{relnorm} | \kw{sepnorm} \} [ , \kw{scale} ] ]
         [ , \{ \kw{null} | \bnt{solution_tolerance} \} 
             [ , \kw{test} , \{ \kw{none} | \kw{norm} | \kw{minmax} \} ] ] ;
 \end{Verbatim}
@@ -211,11 +211,42 @@ disables the residual testing, disabling the computation
 of the test on the residual.
 The \kw{test} mechanism is used to select what kind of test must
 be performed; currently, only \kw{norm} (the default) 
-and \kw{minmax} are supported.
+and \kw{minmax} are supported for the \bnt{solution\_tolerance}, with
+the additional \kw{relnorm} and \kw{sepnorm} making sense only for the residual.
+
 The special value \kw{none} means that the test is not actually 
 computed; it is the default when the test is disabled by setting
 the tolerance to zero, or by using the keyword \kw{null};
 however, it can be restored to any mechanism for output purposes.
+
+The \kw{relnorm} test can be useful when the magnitude of the
+generalized forces involved in the model is unknown or is known to vary
+considerably during the simulation, thus one does not know what value 
+of tolerance may make sense for the problem at hand.
+In this case \kw{relnorm} allows to compute a reference scale, so that the
+converge test will be mostly unaffected by problem-dependent variables, 
+like the system of units chosen for the simulation. 
+The automatic scaling comes with a small run time penalty, because two global vectors
+needs to be assembled instead of one whenever the model residual is computed.\\
+Actually, assuming $\T{f}(\T{x}) = \T{0}$ to be the nonlinear problem at hand, 
+the residual test is modified from the default
+\begin{equation}
+  \sqrt{\T{f}^{T}\T{f}} < \text{\nt{residual\_tolerance}} 
+\end{equation}
+to
+\begin{equation}
+  \dfrac{\sqrt{\T{f}^{T}\T{f}}}{\sqrt{\tilde{\T{f}}^{T}\tilde{\T{f}}}}
+  < \text{\nt{residual\_tolerance}}
+\end{equation}
+where $\tilde{\T{f}}$ is the vector in which the absolute values of all the contributions
+from the elements are assembled.\\
+The \kw{sepnorm} test is a generalization of \kw{relnorm}: the residual check is performed 
+independently for each set of equations with the same physical dimension, and the
+corresponding residual norm
+is automatically scaled. The worst residual among all the different sets of equations is returned.
+See the tecman for an exhaustive explanation of both approaches.
+A meaningful tolerance for both \kw{relnorm} and \kw{sepnorm} is generally in the range [1.E-6, 1.E-4].
+
 The optional parameter \kw{scale} is used to enable the scaling
 of the residual before performing the test; default scale factors 
 can be set for each type of degree of freedom owner, as seen for the control data item of Section~\ref{sec:CONTROLDATA:DEFAULTSCALE}; some
@@ -242,6 +273,11 @@ Currently, no scaling is allowed in the solution test.
     tolerance: 1.e-6, 1.e-9;
     # residual test with computation of solution norm
     tolerance: 1.e-6, null, test, norm;
+    # residual test relative to the magnitude of the norm vector
+    tolerance: 1.e-6, test, relnorm;
+    # residual test relative to the magnitude of the norm vector, computed on
+    # consistent physical domains
+    tolerance: 1.e-6, test, sepnorm;
 \end{verbatim}
 
 \subsubsection{Max Iterations}
@@ -410,7 +446,7 @@ Currently available nonlinear solvers are:
 \paragraph{Newton-Raphson.}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_name} ::= \kw{newton raphson}
+    \bnt{nonlinear_solver_name} ::= \kw{Newton Raphson}
 
     \bnt{nonlinear_solver_data} ::=
         [ \{ \kw{true}
@@ -457,7 +493,7 @@ This nonlinear solver is well tested.
         [ , \kw{divergence check} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{divergence_check} \}
             [ , \kw{factor} , \bnt{factor} ] ]
         [ , \kw{algorithm} , \{ \kw{cubic} | \kw{factor} \} ]
-        [ , \kw{scale newton step} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{scale\_newton\_step} \}
+        [ , \kw{scale Newton step} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{scale\_Newton\_step} \}
             [ , \kw{min scale} , \bnt{min_scale} ] ]
         [ , \kw{print convergence info} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{print_convergence_info} \} ]
         [ , \kw{verbose} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{verbose} \} ]
@@ -574,7 +610,7 @@ By specifying smaller values for $\nt{max\_step\_size}$ one can force the solver
 Like for other nonlinear solvers, the convergence can be printed to the standard output by means of a \kw{output}:~\kw{iterations} statement in the initial value section. Moreover this solver prints also the line search history if \kw{print~convergence~info},~\kw{yes} was specified. This could be helpful in order to decide whether to increase or decrease $\nt{lambda\_min}$ or the maximum number of iterations. If one wants detailed information about the decisions of the solver, \kw{verbose}, \kw{yes} should be specified.
 
 \subparagraph{General notes}
-If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
+If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~Newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
 
 \subparagraph{Matrix free line search variant}
 A matrix free variant of the line search algorithm is based on the Broyden~Fletcher~Goldfarb~Shanno
@@ -915,8 +951,8 @@ usually output.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{linear solver} :
-            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} | \kw{pastix}
-                    | \kw{qr} | \kw{spqr}\}
+            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} 
+                    | \kw{pardiso} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr}\}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
         [ , \{ \kw{colamd} | \kw{mmdata} | \kw{amd} | \kw{given} | \kw{metis} \} ]
         [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
@@ -1070,7 +1106,8 @@ the matrix fills up.
 
 \paragraph{Other.}
 Historically, MBDyn supported the \kw{meschach} and \kw{harwell} solvers.
-They are now deprecated and undocumented.
+\kw{Meschach} has been removed, while \kw{harwell}
+is now deprecated and undocumented.
 Other linear solvers may be supported for experimental reasons
 (for example, \kw{taucs}, \kw{watson});
 however, they are not documented as they are not intended for general use.
@@ -1184,6 +1221,7 @@ summarizes how each linear solver deals with pivoting policies.
 %	Meschach	&         &         &         &           &         & $\surd$ &         \\
 	SuperLU		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 	TAUCS		& ?       & ?       & ?       & ?         & ?       & ?       & $\surd$ \\
+	Pardiso		& $\surd$ &         &         & $\surd$   &         &         &	        \\
 	Watson		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 	Pastix		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         &         &	        \\
 	QR		&         &         &         &           &         &         &	        \\
@@ -1234,7 +1272,7 @@ summarizes how each linear solver deals with pivoting policies.
 	\multicolumn{1}{c}{\textbf{\emph{Default}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 \hline\hline
-	Naive		& 1.0$\rightarrow$0.0		& 1.e$-8$	& \\
+	Naive		& 1.0$\rightarrow$0.0		& 1.e$-5$	& \\
 	Umfpack 	& 0.0$\rightarrow$1.0 		& 0.1 		& \\
 	KLU 		& 0.0$\rightarrow$1.0 		& 0.1 		& \\
 	Y12m 		& boolean: none=0.0, full=1.0	& full		& \\

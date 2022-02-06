@@ -40,7 +40,6 @@
 #include "ccmh.h"
 #include "dirccmh.h"
 #include "harwrap.h"
-#include "mschwrap.h"
 #include "y12wrap.h"
 #include "umfpackwrap.h"
 #include "kluwrap.h"
@@ -50,10 +49,11 @@
 #include "taucswrap.h"
 #include "naivewrap.h"
 #include "parnaivewrap.h"
+#include "pardisowrap.h"
 #include "pastixwrap.h"
 #include "qrwrap.h"
 #include "strumpackwrap.h"
-
+#include "wsmpwrap.h"
 #include "linsol.h"
 
 /* solver data */
@@ -73,11 +73,6 @@ const LinSol::solver_t solver[] = {
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE,
 		-1., -1. },
-	{ "Meschach", NULL,
-		LinSol::MESCHACH_SOLVER,
-		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE,
-		-1., -1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE |
@@ -94,7 +89,7 @@ const LinSol::solver_t solver[] = {
 #endif /* USE_NAIVE_MULTITHREAD */
 			0,
 		LinSol::SOLVER_FLAGS_NONE,
-		1.e-8, -1. },
+		1.e-5, -1. },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD |
@@ -142,6 +137,26 @@ const LinSol::solver_t solver[] = {
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		-1., -1. },
+        { "Pardiso", NULL,
+		LinSol::PARDISO_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+#ifdef USE_SPARSE_AUTODIFF
+	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
+#endif	  
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+		1e-13, -1. },
+        { "Pardiso_64", NULL,
+		LinSol::PARDISO_64_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+#ifdef USE_SPARSE_AUTODIFF
+	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
+#endif	  
+	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+		1e-13, -1. },
         { "Pastix", NULL,
 		LinSol::PASTIX_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
@@ -191,6 +206,20 @@ const LinSol::solver_t solver[] = {
 	        LinSol::SOLVER_FLAGS_ALLOWS_COMPRESSION_HODLR,
                 LinSol::SOLVER_FLAGS_ALLOWS_MAP,
                 -1., -1. },	
+	{ "Watson", NULL,
+	  LinSol::WATSON_SOLVER,
+	  LinSol::SOLVER_FLAGS_ALLOWS_MAP |
+	  LinSol::SOLVER_FLAGS_ALLOWS_CC |
+	  LinSol::SOLVER_FLAGS_ALLOWS_DIR |
+#ifdef USE_SPARSE_AUTODIFF
+	  LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
+#endif	  
+#ifdef WSMP_SOLVER_ENABLE_MULTITHREAD_FACTOR // Disable by default because valgrind reports a race condition in WSMP Version 20.05.20
+	  LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT | 
+#endif
+	  LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+	  LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+	  -1., -1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -292,11 +321,12 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		return true;
 #endif /* USE_HARWELL */
 
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		currSolver = t;
-		return true;
-#endif /* USE_MESCHACH */
+        case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
+#ifdef USE_PARDISO
+             currSolver = t;
+             return true;
+#endif
         case LinSol::PASTIX_SOLVER:
 #ifdef USE_PASTIX
                 currSolver = t;
@@ -312,6 +342,11 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif
 #ifdef USE_STRUMPACK
 	case LinSol::STRUMPACK_SOLVER:
+	     currSolver = t;
+	     return true;
+#endif
+#ifdef USE_WSMP
+	case LinSol::WATSON_SOLVER:
 	     currSolver = t;
 	     return true;
 #endif
@@ -510,8 +545,11 @@ LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 	case LinSol::NAIVE_SOLVER:
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::KLU_SOLVER:
+        case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
+	case LinSol::WATSON_SOLVER:
 		scale = s;
 		break;
 
@@ -533,8 +571,11 @@ LinSol::SetMaxIterations(integer iMaxIterations)
 {
 	switch (currSolver) {
 	case LinSol::UMFPACK_SOLVER:
+        case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
         case LinSol::PASTIX_SOLVER:
 	case LinSol::STRUMPACK_SOLVER:
+	case LinSol::WATSON_SOLVER:
 		iMaxIter = iMaxIterations;
 		break;
 
@@ -549,6 +590,8 @@ bool LinSol::SetVerbose(integer iVerb)
 {
      switch (currSolver) {
      case LinSol::UMFPACK_SOLVER:
+     case LinSol::PARDISO_SOLVER:
+     case LinSol::PARDISO_64_SOLVER:
      case LinSol::PASTIX_SOLVER:
      case LinSol::STRUMPACK_SOLVER:
 	  iVerbose = iVerb;
@@ -678,19 +721,6 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable superlu solver" << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_SUPERLU */
-
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseSolutionManager,
-			MeschachSparseSolutionManager(iNLD, iLWS,
-				dPivotFactor));
-		break;
-#else /* !USE_MESCHACH */
-		silent_cerr("Configure with --with-meschach "
-			"to enable Meschach solver" << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* !USE_MESCHACH */
 
 	case LinSol::LAPACK_SOLVER:
 #ifdef USE_LAPACK
@@ -826,7 +856,48 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable KLU solver" << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_KLU */
-
+        case LinSol::PARDISO_SOLVER:
+        case LinSol::PARDISO_64_SOLVER:
+#ifdef USE_PARDISO
+                {
+#ifdef USE_SPARSE_AUTODIFF
+                        typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT> PARDISO_SM_GRAD;
+                        typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, long long> PARDISO_64_SM_GRAD;
+#endif
+                        typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISO_SM_MAP;
+                        typedef PardisoSolutionManager<SpMapMatrixHandler, long long> PARDISO_64_SM_MAP;
+                        
+                        switch (type) {
+#ifdef USE_SPARSE_AUTODIFF
+                        case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
+                                if (currSolver == LinSol::PARDISO_64_SOLVER) {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_64_SM_GRAD,
+                                                               PARDISO_64_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_SM_GRAD,
+                                                               PARDISO_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                }
+                        } break;
+#endif
+                        default:
+                                if (currSolver == LinSol::PARDISO_64_SOLVER) {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_64_SM_MAP,
+                                                               PARDISO_64_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                                               PARDISO_SM_MAP,
+                                                               PARDISO_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                }
+                        }
+		} break;
+#else /* !USE_PARDISO */
+      		silent_cerr("Configure with --with-pardiso "
+                            "to enable Pardiso solver" << std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif /* !USE_PARDISO */
 	case LinSol::PASTIX_SOLVER: 
 #ifdef USE_PASTIX
 		{
@@ -887,6 +958,33 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					 StrumpackSolutionManager<SpMapMatrixHandler>,
 					 StrumpackSolutionManager<SpMapMatrixHandler>(iNLD, nThreads, iMaxIter, scale, solverFlags, iVerbose));
 		  break;
+	     }
+	     break;
+#endif
+#ifdef USE_WSMP
+	case LinSol::WATSON_SOLVER:
+	     switch (type) {
+	     case LinSol::SOLVER_FLAGS_ALLOWS_CC:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseCCSolutionManager<CColMatrixHandler<0> >,
+					 WsmpSparseCCSolutionManager<CColMatrixHandler<0> >(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+	     case LinSol::SOLVER_FLAGS_ALLOWS_DIR:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >,
+					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+#ifdef USE_SPARSE_AUTODIFF
+	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>,
+					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
+		  break;
+#endif
+	     default:
+		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					 WsmpSparseSolutionManager<SpMapMatrixHandler>,
+					 WsmpSparseSolutionManager<SpMapMatrixHandler>(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
 	     }
 	     break;
 #endif

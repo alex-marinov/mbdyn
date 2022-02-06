@@ -165,17 +165,6 @@ ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 CenterOfMass(elements),
 flags(0), X0(x0), R0(r0)
-#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-,
-Var_dMass(0),
-Var_X_cm(0),
-Var_V_cm(0),
-Var_Omega_cm(0),
-Var_DX(0),
-Var_dx(0),
-Var_Jp(0),
-Var_Phip(0)
-#endif // USE_NETCDFC
 {
 	this->PutName(sN);
 
@@ -278,7 +267,7 @@ Inertia::Restart(std::ostream& out) const
 void
 Inertia::Output(OutputHandler& OH) const
 {
-	if ((fToBeOutput() & Inertia::OUTPUT_ALWAYS)  && (!silent_output)) {
+	if ((bToBeOutput() & Inertia::OUTPUT_ALWAYS)  && (!silent_output)) {
 		if (OH.UseText(OutputHandler::INERTIA)) {
 			Output_int(std::cout);
 		}
@@ -307,16 +296,18 @@ Inertia::Output(OutputHandler& OH) const
 void
 Inertia::OutputPrepare_int(OutputHandler &OH, std::string& name)
 {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-	std::ostringstream os;
-	os << "elem.inertia." << GetLabel();
-	(void)OH.CreateVar(os.str(), "inertia");
+		std::ostringstream os;
+		os << "elem.inertia." << GetLabel();
+		(void)OH.CreateVar(os.str(), "inertia");
 
-	os << ".";
-	name = os.str();
+		os << ".";
+		name = os.str();
 #endif // USE_NETCDF
+	}
 }
 
 void

@@ -120,6 +120,11 @@ public:
 	virtual Joint::Type GetJointType(void) const {
 		return Joint::DEFORMABLEJOINT;
 	};
+    
+	/* Deformable element */
+	virtual bool bIsDeformable() const {
+		return true;
+	};
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -205,6 +210,9 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+	/* returns the dimension of the component */
+	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* DeformableJoint - end */
