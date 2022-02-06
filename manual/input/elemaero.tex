@@ -57,7 +57,7 @@ The input format is:
         [ , \kw{jacobian} , \{ \kw{yes} | \kw{no} | \bnt{bool} \} ]
         [ , \bnt{custom_output} ]
 
-    \bnt{extra_arglist} ::= \{ \kw{std} | \kw{gauss} | \kw{node} \}
+    \bnt{extra_arglist} ::= \{ \kw{std} | \kw{Gauss} | \kw{node} \}
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -236,7 +236,7 @@ unsteady correction of 2D lift and moment coefficients.
 It is experimental.
 
 The \nt{extra\_arglist} allows to define the style of the output.
-The \kw{std} style (the default), the \kw{gauss} and the \kw{node}
+The \kw{std} style (the default), the \kw{Gauss} and the \kw{node}
 styles are illustrated in the output section.
 
 
@@ -245,7 +245,7 @@ Aerodynamic elements, both bodies and beams, write their output with file
 extension \texttt{.aer}; for each time step the required elements are output.
 In any case the label of the element is output first.
 Three different formats are available: \kw{std} (the default),
-\kw{gauss} and \kw{node}.
+\kw{Gauss} and \kw{node}.
 
 \begin{itemize}
 \item[\kw{std}] (or Coefficients at Gauss points):
@@ -287,7 +287,7 @@ When \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements are considered,
 the output is repeated on the same line for each node
 the element is connected to.
 
-\item[\kw{gauss}] (or Forces at Gauss points):
+\item[\kw{Gauss}] (or Forces at Gauss points):
 the output consists in the forces and moments
 per unit length at each Gauss integration point; the format is:
 \begin{itemize}
