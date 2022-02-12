@@ -1008,6 +1008,10 @@ namespace {
                  doublereal dCoef,
                  SpFunctionCall func)=0;
 
+          virtual void BeforePredict(VectorHandler& X,
+                                     VectorHandler& XP,
+                                     VectorHandler& XPrev,
+                                     VectorHandler& XPPrev) const;
           virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
           virtual void DofUpdate(VectorHandler& X, VectorHandler& XP);
           virtual void AfterConvergence(const VectorHandler& X,
@@ -1917,8 +1921,12 @@ namespace {
                  doublereal dCoef,
                  SpFunctionCall func);
 
+          virtual void BeforePredict(VectorHandler& X,
+                                     VectorHandler& XP,
+                                     VectorHandler& XPrev,
+                                     VectorHandler& XPPrev) const override;
           virtual void
-          AfterPredict(VectorHandler& X, VectorHandler& XP);
+          AfterPredict(VectorHandler& X, VectorHandler& XP) override;
 
           virtual void
           DofUpdate(VectorHandler& X, VectorHandler& XP);
@@ -4802,6 +4810,10 @@ namespace {
                         const VectorHandler& XCurr);
           SubVectorHandler&
           InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+          virtual void BeforePredict(VectorHandler& X,
+                                     VectorHandler& XP,
+                                     VectorHandler& XPrev,
+                                     VectorHandler& XPPrev) const override;
           virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
           virtual void Update(const VectorHandler& XCurr,
                               const VectorHandler& XPrimeCurr);
@@ -5982,6 +5994,16 @@ namespace {
           }
 
           return WorkVec;
+     }
+
+     void HydroRootElement::BeforePredict(VectorHandler& X,
+                                          VectorHandler& XP,
+                                          VectorHandler& XPrev,
+                                          VectorHandler& XPPrev) const
+     {
+          for (auto i = rgNodes.cbegin(); i != rgNodes.cend(); ++i) {
+               (*i)->BeforePredict(X, XP, XPrev, XPPrev);
+          }
      }
 
      void HydroRootElement::AfterPredict(VectorHandler& X, VectorHandler& XP)
@@ -7432,6 +7454,13 @@ namespace {
      integer Node2D::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
      {
           return 0;
+     }
+
+     void Node2D::BeforePredict(VectorHandler& X,
+                                VectorHandler& XP,
+                                VectorHandler& XPrev,
+                                VectorHandler& XPPrev) const
+     {
      }
 
      void Node2D::AfterPredict(VectorHandler& X, VectorHandler& XP)
@@ -9453,6 +9482,25 @@ namespace {
           }
 
           HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
+     }
+
+     void HydroActiveComprNode::BeforePredict(VectorHandler& X,
+                                              VectorHandler& XP,
+                                              VectorHandler& XPrev,
+                                              VectorHandler& XPPrev) const
+     {
+          const integer iDof = oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 1 : 0;
+          const integer iIndex = iGetFirstDofIndex(eCurrFunc) + iDof;
+
+          HYDRO_ASSERT(iDof >= 0);
+          HYDRO_ASSERT(iDof < iNumDofMax);
+          HYDRO_ASSERT(iIndex > 0);
+          HYDRO_ASSERT(iIndex <= X.iGetSize());
+
+          HYDRO_ASSERT(oCurrState.Theta[iDof] == (iDof == 0 ? 0. : 1.));
+
+          X(iIndex) = XPrev(iIndex) = oCurrState.Theta[iDof] / s[iDof];
+          XP(iIndex) = XPPrev(iIndex) = oCurrState.dTheta_dt[iDof] / s[iDof];
      }
 
      void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
