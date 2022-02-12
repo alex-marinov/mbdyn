@@ -92,15 +92,20 @@ skip_again:;
 			return -1;
 
 		} else if (cIn == '*') {
+			// ok, it's a comment
 			for (cIn = In.get(); !In.eof(); cIn = In.get()) {
 				if (cIn == '*') {
 end_of_comment:;
-					cIn = In.get();
-					if (In.eof()) {
-						return -1;
-					}
-					if (cIn == '/') {
-						goto skip_again;
+					// there may be more than just one '*'
+					// before the end of a comment...
+					while (cIn == '*') {
+						cIn = In.get();
+						if (In.eof()) {
+							return -1;
+						}
+						if (cIn == '/') {
+							goto skip_again;
+						}
 					}
 
 				} else if (cIn == '/') {

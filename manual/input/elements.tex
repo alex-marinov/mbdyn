@@ -3718,7 +3718,7 @@ As a result, torque is transmitted about axis 1 of both nodes.
 The relative position is constrained as well.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano hinge}
+    \bnt{joint_type} ::= \kw{Cardano hinge}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
@@ -3732,7 +3732,7 @@ The relative position is constrained as well.
 The joint is shown in Figure~\ref{fig:el:joint:CARDANO} where the origins and orientations of \nt{node\_1} and \nt{node\_2} are given by axes 1, 2, 3 and 1$^\prime$, 2$^\prime$, 3$^\prime$, respectively. The central, constrained, axes 3 and 2$^\prime$ are obtained after having applied \nt{relative\_offset} and \nt{relative\_orientation\_matrix} transformations to \nt{node\_1} and \nt{node\_2}, respectively.
 \begin{figure}
 \centering
-\includegraphics[width=.5\textwidth]{cardano}
+\includegraphics[width=.5\textwidth]{Cardano}
 \caption{Cardano hinge.}
 \label{fig:el:joint:CARDANO}
 \end{figure}
@@ -3743,7 +3743,7 @@ velocity about axis 1 for the other node.
 The constant velocity joint is implemented by the \kw{gimbal joint}
 (Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
 of a sequence of two
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 joints with the hinges in reversed order, assembled
 in a manner that the deflection is split half and half
 between the two joints.
@@ -3755,7 +3755,7 @@ The absolute position is also constrained.
 See above for details about the formulation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano pin}
+    \bnt{joint_type} ::= \kw{Cardano pin}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_label} ,
@@ -3766,7 +3766,7 @@ See above for details about the formulation.
 \end{Verbatim}
 %\end{verbatim}
 \emph{Note: this is equivalent to a
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 when one node is grounded.
 }
 
@@ -3775,10 +3775,10 @@ when one node is grounded.
 This joint implements a ``Cardano'' joint, which is made of a sequence
 of two revolute hinges orthogonal to each other.
 The relative position is not constrained.
-See the \kw{cardano hinge} for more details.
+See the \kw{Cardano hinge} for more details.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{joint_type} ::= \kw{cardano rotation}
+    \bnt{joint_type} ::= \kw{Cardano rotation}
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
@@ -3789,11 +3789,11 @@ See the \kw{cardano hinge} for more details.
 %\end{verbatim}
 
 \emph{Note: this is equivalent to a
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
 without position constraint.
 Or, in other words, a 
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
-is made of a \kw{cardano rotation} on top of a 
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+is made of a \kw{Cardano rotation} on top of a 
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}.
 }
 
@@ -4475,10 +4475,10 @@ this joint, in conjunction with a
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
 joint, should be used to implement an ideal tiltrotor gimbal
 instead of a
-\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+\hyperref{\kw{Cardano rotation}}{\kw{Cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
 See the technical manual and \cite{GIMBAL-2008} for details.
 It is equivalent to a series of two Cardano's joints
-(the \hyperref{\kw{cardano hinge}}{\kw{cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
+(the \hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
 rotated 90 degrees apart, each accounting for half the relative rotation
 between axis 3 of each side of the joint.
 %\begin{verbatim}
@@ -6145,21 +6145,21 @@ TODO
 \subsection{Universal hinge}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
 Deprecated in favour of the
-\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}.
+\hyperref{\kw{Cardano hinge}}{\kw{Cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}.
 
 
 
 \subsection{Universal pin}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_PIN}
 Deprecated in favour of the
-\hyperref{\kw{cardano pin}}{\kw{cardano pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_PIN}.
+\hyperref{\kw{Cardano pin}}{\kw{Cardano pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_PIN}.
 
 
 
 \subsection{Universal rotation}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}
 Deprecated in favour of the
-\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+\hyperref{\kw{Cardano rotation}}{\kw{Cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
 
 \subsection{Viscous body}
 \label{sec:EL:STRUCT:JOINT:VISCOUS_BODY}
@@ -6214,7 +6214,7 @@ problems.
 
     <normal_arglist> ::= <type> , <data>
 
-    <type> ::= { tikhonov | dynamic }
+    <type> ::= { Tikhonov | dynamic }
 
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
@@ -6225,7 +6225,7 @@ problems.
 
     \bnt{normal_arglist} ::= \bnt{type} [ , \bnt{data} ]
 
-    \bnt{type} ::= \kw{tikhonov}
+    \bnt{type} ::= \kw{Tikhonov}
 
     \bnt{data} ::= \{ \bnt{coef} | \kw{list} , \bnt{coef_1} [ , ... ] \}
 \end{Verbatim}
@@ -6241,7 +6241,7 @@ If the keyword \kw{list} is used, the coefficients for each internal state
 are expected; the number of coefficients is determined by the joint.
 
 \subsection{Tikhonov}
-The \kw{tikhonov} joint regularization type consists in modifying
+The \kw{Tikhonov} joint regularization type consists in modifying
 a constraint, expressed by an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
 and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 \begin{align}
