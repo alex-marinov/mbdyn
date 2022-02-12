@@ -148,7 +148,8 @@ pFDJacMeter(0),
 ResMode(RES_TEXT),
 #ifdef USE_NETCDF
 // NetCDF stuff
-NetCDF_Format(netCDF::NcFile::nc4),
+// NetCDF_Format(netCDF::NcFile::nc4), // 10 times slower than classic!
+NetCDF_Format(netCDF::NcFile::classic),
 bNetCDFsync(false),
 bNetCDFnoText(false),
 #endif // USE_NETCDF

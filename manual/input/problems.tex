@@ -441,7 +441,7 @@ Currently available nonlinear solvers are:
 \paragraph{Newton-Raphson.}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_name} ::= \kw{newton raphson}
+    \bnt{nonlinear_solver_name} ::= \kw{Newton Raphson}
 
     \bnt{nonlinear_solver_data} ::=
         [ \{ \kw{true}
@@ -488,7 +488,7 @@ This nonlinear solver is well tested.
         [ , \kw{divergence check} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{divergence_check} \}
             [ , \kw{factor} , \bnt{factor} ] ]
         [ , \kw{algorithm} , \{ \kw{cubic} | \kw{factor} \} ]
-        [ , \kw{scale newton step} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{scale\_newton\_step} \}
+        [ , \kw{scale Newton step} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{scale\_Newton\_step} \}
             [ , \kw{min scale} , \bnt{min_scale} ] ]
         [ , \kw{print convergence info} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{print_convergence_info} \} ]
         [ , \kw{verbose} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{verbose} \} ]
@@ -605,7 +605,7 @@ By specifying smaller values for $\nt{max\_step\_size}$ one can force the solver
 Like for other nonlinear solvers, the convergence can be printed to the standard output by means of a \kw{output}:~\kw{iterations} statement in the initial value section. Moreover this solver prints also the line search history if \kw{print~convergence~info},~\kw{yes} was specified. This could be helpful in order to decide whether to increase or decrease $\nt{lambda\_min}$ or the maximum number of iterations. If one wants detailed information about the decisions of the solver, \kw{verbose}, \kw{yes} should be specified.
 
 \subparagraph{General notes}
-If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
+If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~Newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
 
 \subparagraph{Matrix free line search variant}
 A matrix free variant of the line search algorithm is based on the Broyden~Fletcher~Goldfarb~Shanno
