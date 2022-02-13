@@ -9442,6 +9442,10 @@ namespace {
                oCurrState.dTheta_dt[1] = 0.;
           }
 
+          if (oCurrState.Theta[1] < 0.) {
+               oCurrState.dTheta_dt[1] = oCurrState.Theta[1] = 0.;
+          }
+
           for (index_type i = 0; i < iNumDofMax; ++i) {
                const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
 
