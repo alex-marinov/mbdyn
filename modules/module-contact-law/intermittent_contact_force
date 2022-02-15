@@ -1,0 +1,142 @@
+# Intermittent_contact_1d.mbd
+
+#-----------------------------------------------------------------------------
+# [Data Block]
+
+begin: data;
+   problem: initial value;
+end: data;
+
+#-----------------------------------------------------------------------------
+# [Problem Block]
+
+begin: initial value;
+   initial time:   0.;
+   final time:     0.1;
+   time step:      1.e-4;
+   max iterations: 20;
+   tolerance:      1.e-7;
+end: initial value;
+
+#-----------------------------------------------------------------------------
+# [Control Data Block]
+
+begin: control data;
+#   use: rigid bodies, gravity, in assembly;
+#   output frequency: 10;
+   structural nodes: 2;
+   rigid bodies:     1;
+   joints:           1;
+   forces:           2;
+   gravity;
+end: control data;
+
+#-----------------------------------------------------------------------------
+# Global Variables
+set: real M  = 0.3;     # Mass
+set: real H  = -0.01;   # Gap Height
+# set: real K_c = 1.e6;  # Contact Stiffness
+set: real K_c = 1.e7;  # Contact Stiffness
+set: real E_c = 1.2;    # Contact Exponent
+set: real C_c = 10.;    # Contact Damping Constant
+set: real D_c = 0.0001; # Maximum Contact Penetration Depth
+
+#-----------------------------------------------------------------------------
+# Node Labels
+set: integer Node_Mass     = 1;
+set: integer Node_Ground   = 2;
+
+# Body Labels
+set: integer Body_Mass = 10;
+
+# Joint Labels
+set: integer Joint_Fixed_to_Ground = 20;
+
+# Force Labels
+set: integer Force_Contact_below = 30;
+set: integer Force_Contact_up = 31;
+
+#-----------------------------------------------------------------------------
+# Scalar Functions 
+scalar function: "cubic_step",
+   cubicspline, do not extrapolate,
+      -0.03, 0.00,
+      -0.02, 0.00,
+      -0.01, 0.00,
+       0.00, 0.00,
+       1.00, 1.00,
+       1.01, 1.00,
+       1.02, 1.00,
+       1.03, 1.00;
+
+#-----------------------------------------------------------------------------
+# [Nodes Block]
+
+begin: nodes;
+      
+   structural: Node_Mass, dynamic,
+      0., 0., 0.5*H,  # absolute position
+      eye,              # absolute orientation
+      0., 0., -1.,      # absolute velocity
+      null;              # absolute angular velocity
+      
+   structural: Node_Ground, static,
+      null,   # absolute position
+      eye,   # absolute orientation
+      null,   # absolute velocity
+      null;   # absolute angular velocity
+      
+end: nodes;
+
+#-----------------------------------------------------------------------------
+# Plugin Variables
+set: [node, D_z, Node_Mass, structural, string="X[3]"];     # position in global direction 3
+set: [node, V_z, Node_Mass, structural, string="XP[3]"];    # velocity in global direction 3
+
+#-----------------------------------------------------------------------------
+# [Elements Block]
+
+begin: elements;
+
+   #-----------------------------------------------------------------------------
+   # Bodies
+   body: Body_Mass, Node_Mass,
+      M,       # mass
+      null,    # relative center of mass
+      eye;    # inertia matrix
+
+   #-----------------------------------------------------------------------------
+   # Joints      
+   joint: Joint_Fixed_to_Ground,
+      clamp,
+         Node_Ground,
+            null,    # absolute position
+            eye;    # absolute orientation
+   
+   #-----------------------------------------------------------------------------
+   # Forces       
+   force: Force_Contact_below,
+      absolute,
+         Node_Mass,                                                
+            position, null,       # relative arm
+         single, 0., 0., 1.,
+            string, "max(0,K_c*sign(H-D_z)*abs(H-D_z)^E_c-C_c*V_z*model::sf::cubic_step((H-D_z)/D_c))";     # force value
+            # string, "max(0,K_c*sign(H-D_z)*abs(H-D_z)^E_c-C_c*V_z*step(H-D_z))";     # force value
+
+   force: Force_Contact_up,
+      absolute,
+         Node_Mass,                                                
+            position, null,       # relative arm
+         single, 0., 0., -1.,
+            string, "max(0,K_c*sign(D_z)*abs(D_z)^E_c+C_c*V_z*model::sf::cubic_step(D_z/D_c))";     # force value
+            # string, "max(0,K_c*sign(D_z)*abs(D_z)^E_c+C_c*V_z*step(D_z))";     # force value
+
+   #-----------------------------------------------------------------------------
+   # Gravity                        
+   gravity: uniform, 0., 0., -1., const, 9.81;
+   
+end: elements;
+
+#-----------------------------------------------------------------------------
+
+# vim:ft=mbd
