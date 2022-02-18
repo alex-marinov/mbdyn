@@ -585,7 +585,7 @@ LineSearchFull::LineSearch(const doublereal dMaxStep,
           Residual(fCurr, iIterCnt);
 
           if (iLineSearchIter == 0) {
-               dLambdaMax = GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX);
+               dLambdaMax = std::max(dLambdaMinCurr, GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX));
 
                ASSERT(dLambdaMax <= 1.);
                ASSERT(dLambdaMax >= 0.);
@@ -609,7 +609,7 @@ LineSearchFull::LineSearch(const doublereal dMaxStep,
 
           OutputLineSearch(iIterCnt, iLineSearchIter, fCurr / fPrev, dErr, dLambda, dSlope);
 
-          if (bResTestFinite) {
+          if (bResTestFinite && dLambda <= dLambdaMax) {
                pS->CheckTimeStepLimit(dErr, dErrDiff);
 
                if (fCurr <= fPrev + dAlphaFull * dLambda * dSlope) {
@@ -971,7 +971,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                     Residual(fCurr, iIterCnt);
 
                     if (iLineSearchIter == 0) {
-                         dLambdaMax = GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX);
+                         dLambdaMax = std::max(dLambdaMinCurr, GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX));
 
                          ASSERT(dLambdaMax <= 1.);
                          ASSERT(dLambdaMax >= 0.);
@@ -999,7 +999,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
 
                     OutputLineSearch(iIterCnt, iLineSearchIter, fCurr / fPrev, dErr, dLambda, dSlope);
 
-                    if (bResConverged && bSolConverged) {
+                    if (bResConverged && bSolConverged && dLambda <= dLambdaMax) {
                          break;
                     }
 
@@ -1014,31 +1014,33 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
                     TRACE_VAR(dAlphaCurr);
                     TRACE("dAlphaCurr * dLambda * dSlope + fPrev=" << dAlphaCurr * dLambda * dSlope + fPrev << "\n");
 
-                    if (bResTestFinite && fCurr < dAlphaCurr * dLambda * dSlope + fPrev) {
-                         TRACE("Sufficient decrease in f: backtrack\n");
-                         break;
-                    } else {
-                         bDivergence = true;
+                    if (dLambda <= dLambdaMax) {
+                         if (bResTestFinite && fCurr < dAlphaCurr * dLambda * dSlope + fPrev) {
+                              TRACE("Sufficient decrease in f: backtrack\n");
+                              break;
+                         } else {
+                              bDivergence = true;
 
-                         if (!bRebuildJac) {
-                              if (uFlags & VERBOSE_MODE) {
-                                   silent_cerr("line search warning: Divergent solution detected!\n");
+                              if (!bRebuildJac) {
+                                   if (uFlags & VERBOSE_MODE) {
+                                        silent_cerr("line search warning: Divergent solution detected!\n");
+                                   }
+
+                                   iRebuildJac = 0;
+
+                                   for (integer i = 1; i <= Size; ++i) {
+                                        (*pSol)(i) = -dLambda * p(i);
+                                   }
+
+                                   pNLP->Update(pSol);
+                                   bUpdateResidual = true;
+                                   break;
                               }
+                         }
 
-                              iRebuildJac = 0;
-
-                              for (integer i = 1; i <= Size; ++i) {
-                                   (*pSol)(i) = -dLambda * p(i);
-                              }
-
-                              pNLP->Update(pSol);
-                              bUpdateResidual = true;
+                         if (dLambda <= dLambdaMinCurr) {
                               break;
                          }
-                    }
-
-                    if (dLambda <= dLambdaMinCurr) {
-                         break;
                     }
 
                     if (iLineSearchIter >= iMaxIterations) {
@@ -1344,7 +1346,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
                     Residual(fCurr, iIterCnt);
 
                     if (iLineSearchIter == 0) {
-                         dLambdaMax = GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX);
+                         dLambdaMax = std::max(dLambdaMinCurr, GetNonlinearSolverHint(LINESEARCH_LAMBDA_MAX));
                     }
 
                     ++iLineSearchIter;
@@ -1366,37 +1368,39 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
 
                     OutputLineSearch(iIterCnt, iLineSearchIter, fCurr / fPrev, dErr, dLambda, dSlope);
 
-                    if (bResConverged && bSolConverged) {
-                         break;
-                    }
-
-                    if (bResTestFinite && fCurr < dAlphaCurr * dLambda * dSlope + fPrev) {
-                         TRACE("Sufficient decrease in f: backtrack\n");
-                         break;
-                    }
-
-                    if (dLambda <= dLambdaMinCurr) {
-                         bDivergence = dErr / dErrPrev > dDivergenceCheck;
-
-                         if (bDivergence && !bRebuildJac) {
-                              if (uFlags & VERBOSE_MODE) {
-                                   silent_cerr("line search warning: Divergent solution detected!\n");
-                              }
-
-                              iRebuildJac = 0;
-
-                              pSol->ScalarMul(p, -dLambda);
-
-                              pNLP->Update(pSol);
-                              bUpdateResidual = true;
-                         } else if (!bRebuildJac && sqrt(fCurr / fPrev) > dUpdateRatio) {
-                              if (uFlags & VERBOSE_MODE) {
-                                   silent_cerr("line search warning: Jacobian update forced because rate of convergence is too slow!\n");
-                              }
-                              iRebuildJac = 0;
+                    if (dLambda <= dLambdaMax) {
+                         if (bResConverged && bSolConverged) {
+                              break;
                          }
 
-                         break;
+                         if (bResTestFinite && fCurr < dAlphaCurr * dLambda * dSlope + fPrev) {
+                              TRACE("Sufficient decrease in f: backtrack\n");
+                              break;
+                         }
+
+                         if (dLambda <= dLambdaMinCurr) {
+                              bDivergence = dErr / dErrPrev > dDivergenceCheck;
+
+                              if (bDivergence && !bRebuildJac) {
+                                   if (uFlags & VERBOSE_MODE) {
+                                        silent_cerr("line search warning: Divergent solution detected!\n");
+                                   }
+
+                                   iRebuildJac = 0;
+
+                                   pSol->ScalarMul(p, -dLambda);
+
+                                   pNLP->Update(pSol);
+                                   bUpdateResidual = true;
+                              } else if (!bRebuildJac && sqrt(fCurr / fPrev) > dUpdateRatio) {
+                                   if (uFlags & VERBOSE_MODE) {
+                                        silent_cerr("line search warning: Jacobian update forced because rate of convergence is too slow!\n");
+                                   }
+                                   iRebuildJac = 0;
+                              }
+
+                              break;
+                         }
                     }
 
                     if (iLineSearchIter >= iMaxIterations) {
