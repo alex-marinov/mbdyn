@@ -9442,10 +9442,6 @@ namespace {
                oCurrState.dTheta_dt[1] = 0.;
           }
 
-          if (oCurrState.Theta[1] < 0.) {
-               oCurrState.dTheta_dt[1] = oCurrState.Theta[1] = 0.;
-          }
-
           for (index_type i = 0; i < iNumDofMax; ++i) {
                const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
 
@@ -9494,24 +9490,34 @@ namespace {
                                               VectorHandler& XPPrev) const
      {
           const integer iDof = oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 1 : 0;
-          const integer iIndex = iGetFirstDofIndex(eCurrFunc) + iDof;
+          const integer iIndex = iGetFirstDofIndex(eCurrFunc);
 
           HYDRO_ASSERT(iDof >= 0);
           HYDRO_ASSERT(iDof < iNumDofMax);
-          HYDRO_ASSERT(iIndex > 0);
-          HYDRO_ASSERT(iIndex <= X.iGetSize());
+          HYDRO_ASSERT(iIndex + iDof > 0);
+          HYDRO_ASSERT(iIndex + iDof <= X.iGetSize());
 
           HYDRO_ASSERT(oCurrState.Theta[iDof] == (iDof == 0 ? 0. : 1.));
 
-          X(iIndex) = XPrev(iIndex) = oCurrState.Theta[iDof] / s[iDof];
-          XP(iIndex) = XPPrev(iIndex) = oCurrState.dTheta_dt[iDof] / s[iDof];
+          X(iIndex + iDof) = XPrev(iIndex + iDof) = oCurrState.Theta[iDof] / s[iDof];
+          XP(iIndex + iDof) = XPPrev(iIndex + iDof) = oCurrState.dTheta_dt[iDof] / s[iDof];
+
+          // if (X(iIndex + 1) < 0.) {
+          //      X(iIndex + 1) = XPrev(iIndex + 1) = XP(iIndex + 1) = XPPrev(iIndex + 1) = 0.;
+          // }
      }
 
      void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
-     {
+     {          
           UpdateTheta(X, XP);
           UpdateCavitationState();
           ResolveCavitationState(X, XP);
+
+          // const integer iIndex = iGetFirstDofIndex(eCurrFunc);
+          
+          // if (X(iIndex + 1) < 0.) {
+          //      X(iIndex + 1) = XP(iIndex + 1) = 0.;
+          // }
      }
 
      void HydroActiveComprNode::DofUpdate(VectorHandler& X, VectorHandler& XP)
@@ -9519,6 +9525,7 @@ namespace {
           const State oPrevState = oCurrState;
 
           UpdateTheta(X, XP);
+          UpdateCavitationState();
 
           HydroRootElement* const pParent = pGetMesh()->pGetParent();
           const integer iIter = pParent->GetNonlinearSolverHint(NonlinearSolver::LINESEARCH_ITERATION_CURR);
@@ -9529,11 +9536,23 @@ namespace {
                oIncState = oCurrState;
                oRefState = oPrevState;
 
-               static const doublereal Thetax[iNumDofMax] = {0., 1.};
-
+               // Take a Newton step in a way that the transition occures just before or just after the cavitation state is changed.
+               // dLamEps defines the difference the threshold.
+               static constexpr doublereal dLamEps = sqrt(std::numeric_limits<doublereal>::epsilon()); 
+               static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
+               static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
+               
                if (oCurrState.eCavitationState != oPrevState.eCavitationState) {
                     const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
-                    doublereal dLambdaLimit = (Thetax[i] - oPrevState.Theta[i]) / (oCurrState.Theta[i] - oPrevState.Theta[i]);
+                    doublereal dLambdaLimit = 1.;
+                    
+                    for (index_type j = 0; j < 2; ++j) {
+                         const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (oCurrState.Theta[i] - oPrevState.Theta[i]);
+                         
+                         if (dLambdaj > 0.) {
+                              dLambdaLimit = std::min(dLambdaLimit, rgLambdaFactor[i][j] * dLambdaj);
+                         }
+                    }
 
                     if (dLambdaLimit > 0 && dLambdaLimit < 1) {
                          pedantic_cout("hydrodynamic plain bearing2("
@@ -9543,7 +9562,6 @@ namespace {
                                        << " to " << oCurrState.Theta[i]
                                        << " at t=" << oCurrState.t
                                        << " lambda=" << dLambdaLimit << std::endl);
-                         dLambdaLimit *= (1. + sqrt(std::numeric_limits<doublereal>::epsilon())); // Make sure that state will not jump back
                          pParent->SetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_MAX, dLambdaLimit);
                     }
                }
@@ -9556,7 +9574,6 @@ namespace {
                }
           }
 
-          UpdateCavitationState();
           ResolveCavitationState(X, XP);
      }
 
