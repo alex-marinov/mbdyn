@@ -284,6 +284,16 @@ KeyTable::Find(const char* sToFind) const
 	return -1;
 }
 
+const char* KeyTable::pGetDescription(integer iIndex) const
+{
+#ifdef DEBUG
+     for (integer i = 0; i < iIndex; ++i) {
+          ASSERT(sKeyWords[i]);
+     }
+#endif             
+     return sKeyWords[iIndex];
+}
+
 /* KeyTable - end */
 
 

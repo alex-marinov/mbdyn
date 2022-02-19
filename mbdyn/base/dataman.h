@@ -879,10 +879,28 @@ public:
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
 
-	virtual const std::string& GetDofDescription(int i) const;
-	virtual const std::string& GetEqDescription(int i) const;
-	virtual DofOrder::Order GetDofType(int i) const;
-	virtual DofOrder::Order GetEqType(int i) const;
+	virtual const std::string& GetDofDescription(int iDof) const;
+	virtual const std::string& GetEqDescription(int iDof) const;
+	virtual DofOrder::Order GetDofType(int iDof) const;
+	virtual DofOrder::Order GetEqType(int iDof) const;
+     
+        SolverBase::StepIntegratorType GetStepIntegrator(int iDof) const {
+             ASSERT(iDof > 0 && iDof <= iTotDofs);
+        
+             return Dofs[iDof - 1].StepIntegrator;
+        }
+     
+        doublereal dGetStepIntegratorCoef(int iDof) const {
+             ASSERT(iDof > 0 && iDof <= iTotDofs);
+             
+             return Dofs[iDof - 1].dCoef;
+        }
+     
+        void SetStepIntegratorCoef(int iDof, doublereal dCoef) {
+             ASSERT(iDof > 0 && iDof <= iTotDofs);
+
+             Dofs[iDof - 1].dCoef = dCoef;
+        }
 };
 
 // if bActive is true, the cast only succeeds when driven element is active

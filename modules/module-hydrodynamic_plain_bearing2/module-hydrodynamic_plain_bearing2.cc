@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2013(-2021) all rights reserved.
+  Copyright (C) 2013(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -1250,6 +1250,7 @@ namespace {
           virtual unsigned int iGetInitialNumDof(void) const=0;
           virtual DofOrder::Order GetDofType(unsigned int i) const=0;
           virtual DofOrder::Order GetEqType(unsigned int i) const=0;
+          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
           virtual std::ostream&
           DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const=0;
 
@@ -1948,9 +1949,10 @@ namespace {
           virtual unsigned int iGetInitialNumDof(void) const;
           virtual unsigned int iGetNumDof(void) const;
 
-          virtual DofOrder::Order GetDofType(unsigned int i) const;
-          virtual DofOrder::Order GetEqType(unsigned int i) const;
-
+          virtual DofOrder::Order GetDofType(unsigned int i) const override;
+          virtual DofOrder::Order GetEqType(unsigned int i) const override;
+          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
+          
           virtual std::ostream&
           DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
 
@@ -4777,48 +4779,49 @@ namespace {
           HydroRootElement(unsigned uLabel, const DofOwner *pDO,
                            DataManager* pDM, MBDynParser& HP);
           virtual ~HydroRootElement(void);
-          virtual void Output(OutputHandler& OH) const;
-          virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-          virtual unsigned int iGetNumDof(void) const;
-          virtual DofOrder::Order GetDofType(unsigned int i) const;
-          virtual DofOrder::Order GetEqType(unsigned int i) const;
-          virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
-          virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
+          virtual void Output(OutputHandler& OH) const override;
+          virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
+          virtual unsigned int iGetNumDof(void) const override;
+          virtual DofOrder::Order GetDofType(unsigned int i) const override;
+          virtual DofOrder::Order GetEqType(unsigned int i) const override;
+          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
+          virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
+          virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
           VariableSubMatrixHandler&
           AssJac(VariableSubMatrixHandler& WorkMat,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
-                 const VectorHandler& XPrimeCurr);
+                 const VectorHandler& XPrimeCurr) override;
           SubVectorHandler&
           AssRes(SubVectorHandler& WorkVec,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
-                 const VectorHandler& XPrimeCurr);
-          unsigned int iGetNumPrivData(void) const;
-          virtual unsigned int iGetPrivDataIdx(const char *s) const;
-          virtual doublereal dGetPrivData(unsigned int i) const;
-          int GetNumConnectedNodes(void) const;
-          void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+                 const VectorHandler& XPrimeCurr) override;
+          unsigned int iGetNumPrivData(void) const override;
+          virtual unsigned int iGetPrivDataIdx(const char *s) const override;
+          virtual doublereal dGetPrivData(unsigned int i) const override;
+          int GetNumConnectedNodes(void) const override;
+          void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const override;
           void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
-                        SimulationEntity::Hints *ph);
-          std::ostream& Restart(std::ostream& out) const;
-          virtual unsigned int iGetInitialNumDof(void) const;
+                        SimulationEntity::Hints *ph) override;
+          std::ostream& Restart(std::ostream& out) const override;
+          virtual unsigned int iGetInitialNumDof(void) const override;
           virtual void
-          InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+          InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
           VariableSubMatrixHandler&
           InitialAssJac(VariableSubMatrixHandler& WorkMat,
-                        const VectorHandler& XCurr);
+                        const VectorHandler& XCurr) override;
           SubVectorHandler&
-          InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+          InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr) override;
           virtual void BeforePredict(VectorHandler& X,
                                      VectorHandler& XP,
                                      VectorHandler& XPrev,
                                      VectorHandler& XPPrev) const override;
-          virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+          virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) override;
           virtual void Update(const VectorHandler& XCurr,
-                              const VectorHandler& XPrimeCurr);
+                              const VectorHandler& XPrimeCurr) override;
           virtual void AfterConvergence(const VectorHandler& X,
-                                        const VectorHandler& XP);
+                                        const VectorHandler& XP) override;
           inline doublereal dGetTime() const;
           inline void AddNode(std::unique_ptr<Node2D>&& pNode);
           inline void AddElement(std::unique_ptr<HydroElement>&& pElement);
@@ -4847,9 +4850,10 @@ namespace {
                return (uInitAssFlags & eDomain) != 0u;
           }
           unsigned uGetOutputFlags() const { return uOutputFlags; }
-#if HYDRO_DEBUG > 0
-          const DataManager* pGetDataManager() const { return pDM; }
-#endif
+          doublereal dGetStepIntegratorCoef(int iDof) const {
+               return pDM->dGetStepIntegratorCoef(iDof);
+          }
+
      private:
           typedef std::vector<std::unique_ptr<Node2D> > NodeContainer;
           typedef std::map<integer, HydroDofOwner*, std::less<integer> > DofOwnerMap;
@@ -5581,6 +5585,14 @@ namespace {
           return pDO->GetEqType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
      }
 
+     SolverBase::StepIntegratorType HydroRootElement::GetStepIntegrator(unsigned int i) const
+     {
+          ++i; // we are using one based indices
+          const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
+          HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
+          return pDO->GetStepIntegrator(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));          
+     }
+     
      const HydroDofOwner* HydroRootElement::pFindDofOwner(unsigned int i, sp_grad::SpFunctionCall eFunc) const
      {
           const DofOwnerMap& oDofOwnerMap = (eFunc & SpFunctionCall::REGULAR_FLAG)
@@ -7374,6 +7386,11 @@ namespace {
 
      }
 
+     SolverBase::StepIntegratorType HydroDofOwner::GetStepIntegrator(unsigned int i) const
+     {
+          return SolverBase::INT_DEFAULT;
+     }
+     
      integer HydroDofOwner::iGetOffsetIndex(sp_grad::SpFunctionCall eFunc) const
      {
           return rgOffsetIndex[iFuncCallToIndex(eFunc)];
@@ -9310,19 +9327,19 @@ namespace {
           }
      }
 
-     void HydroActiveComprNode::GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoef) const
+     void HydroActiveComprNode::GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal) const
      {
           HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
-
-          HYDRO_ASSERT(dCoef == 1. || eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG);
 
           const index_type iNumDofInit = iGetInitialNumDof();
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
                if (eCurrFunc == SpFunctionCall::REGULAR_FLAG || i < iNumDofInit) {
-                    HYDRO_ASSERT(eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG || dCoef == 1.);
 
                     const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+                    const doublereal dCoef = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
+
+                    HYDRO_ASSERT(eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG || dCoef == 1.);
 
                     Theta[i].Reset(oCurrState.Theta[i], iDofIndex, -dCoef * s[i]);
                } else {
@@ -9676,6 +9693,21 @@ namespace {
           }
      }
 
+     SolverBase::StepIntegratorType HydroActiveComprNode::GetStepIntegrator(unsigned int i) const
+     {
+          HYDRO_ASSERT(i >= 0);
+          HYDRO_ASSERT(i < iNumDofMax);
+
+          switch (i) {
+          case 0:
+               return SolverBase::INT_DEFAULT;
+          case 1:
+               return SolverBase::INT_IMPLICITEULER;
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+     
      std::ostream&
      HydroActiveComprNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
      {

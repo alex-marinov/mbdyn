@@ -1945,7 +1945,8 @@ Solver::ReadData(MBDynParser& HP)
 			"bdf",
 			"thirdorder",
 			"implicit" "euler",
-
+                        "hybrid",
+                
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
 		"derivatives" "max" "iterations",
@@ -2055,7 +2056,8 @@ Solver::ReadData(MBDynParser& HP)
 		BDF,
 		THIRDORDER,
 		IMPLICITEULER,
-
+                HYBRID,
+                
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
 		DERIVATIVESMAXITERATIONS,
@@ -2128,7 +2130,8 @@ Solver::ReadData(MBDynParser& HP)
 
 	bool bMethod(false);
 	bool bDummyStepsMethod(false);
-
+        StepIntegratorType eHybridDefaultIntRegular(INT_MS2);
+        
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
 	 */
@@ -2520,7 +2523,47 @@ Solver::ReadData(MBDynParser& HP)
 			case IMPLICITEULER:
 				RegularType = INT_IMPLICITEULER;
 				break;
+                        case HYBRID: {
+                                const KeyWords KMethod = KeyWords(HP.GetWord());
+                                
+                                switch (KMethod) {
+                                case IMPLICITEULER:
+                                        eHybridDefaultIntRegular = INT_IMPLICITEULER;
+                                        break;
+                                        
+                                case CRANKNICOLSON:
+                                        eHybridDefaultIntRegular = INT_CRANKNICOLSON;
+                                        break;
+                                        
+                                case MS:
+                                        eHybridDefaultIntRegular = INT_MS2;
+                                        break;
+                                        
+                                case HOPE:
+                                        eHybridDefaultIntRegular = INT_HOPE;
+                                        break;
+                                        
+                                default:
+                                        silent_cerr("Default method \"" << K.pGetDescription(KMethod)
+                                                    << "\" not implemented for hybrid integrator at line "
+                                                    << HP.GetLineData() << std::endl);
+                                        throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                }
 
+                                if (HP.IsArg()) {
+                                        pRhoRegular = HP.GetDriveCaller(true);
+                                } else {
+                                        pRhoRegular = new NullDriveCaller;
+                                }
+
+				if (HP.IsArg()) {
+					pRhoAlgebraicRegular = HP.GetDriveCaller(true);
+				} else {
+					pRhoAlgebraicRegular = pRhoRegular->pCopy();
+				}
+
+                                RegularType = INT_HYBRID;
+                        } break;
 			default:
 				silent_cerr("Unknown integration method at line "
 					<< HP.GetLineData() << std::endl);
@@ -3915,7 +3958,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						dSolutionTol, iDummyStepsMaxIterations,
 						bModResTest));
 			break;
-
 		default:
 			silent_cerr("unknown dummy steps integration method"
 				<< std::endl);
@@ -3992,6 +4034,18 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					bModResTest));
 		break;
 
+	case INT_HYBRID:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+                                       HybridStepIntegrator,
+                                       HybridStepIntegrator(eHybridDefaultIntRegular,
+                                                            dTol,
+                                                            dSolutionTol,
+                                                            iMaxIterations,
+                                                            pRhoRegular,
+                                                            pRhoAlgebraicRegular,
+                                                            bModResTest));
+		break;
+                
 	default:
 		silent_cerr("Unknown integration method" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
