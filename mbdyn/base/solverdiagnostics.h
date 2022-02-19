@@ -32,10 +32,11 @@
 #ifndef SOLVERDIAGNOSTICS_H
 #define SOLVERDIAGNOSTICS_H
 
+#include "solverbase.h"
 #include "drive.h"
 #include "mh.h"
 
-class SolverDiagnostics {
+class SolverDiagnostics: public SolverBase {
 protected:
  	unsigned OutputFlags;
 	DriveCaller *pOutputMeter;

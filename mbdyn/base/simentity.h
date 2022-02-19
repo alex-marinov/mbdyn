@@ -43,7 +43,7 @@
 #include "drive.h"
 #include "hint.h"
 #include "invdyn.h"
-
+#include "solverbase.h"
 /* SimulationEntity - begin */
 
 /*
@@ -142,6 +142,8 @@ public:
 	{ return DofOrder::DIFFERENTIAL; }
 #endif
 	;
+
+        virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
 
 	/* Metodi legati all'integrazione */
 	

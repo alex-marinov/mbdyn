@@ -191,6 +191,7 @@ public:
 	KeyTable(HighParser& hp, const char* const sTable[]);   
 	virtual ~KeyTable(void);
 	int Find(const char* sToFind) const;
+        const char* pGetDescription(integer iIndex) const;
 };
 
 /* KeyTable - end */

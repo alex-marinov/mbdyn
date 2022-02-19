@@ -59,6 +59,11 @@ SimulationEntity::bIsValidIndex(unsigned int i) const
 	return false;
 }
 
+SolverBase::StepIntegratorType SimulationEntity::GetStepIntegrator(unsigned int i) const
+{
+     return SolverBase::INT_DEFAULT;
+}
+
 void 
 SimulationEntity::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,

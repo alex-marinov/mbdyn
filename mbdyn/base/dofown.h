@@ -37,6 +37,7 @@
 #include <ac/f2c.h>
 #include <myassert.h>
 #include "output.h"
+#include "solverbase.h"
 
 extern const char* psDofOwnerNames[];   
 
@@ -61,6 +62,9 @@ struct Dof {
    integer iIndex;
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
+   // Data used for the HybridStepIntegrator
+   SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
+   doublereal dCoef; // current db0Differential of the step integrator for this degree of freedom
    std::string Description;
    std::string EqDescription;
 };

@@ -484,6 +484,21 @@ DataManager::DofOwnerInit(void)
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 				pDf[iCnt].Order = (*i)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*i)->GetEqType(iCnt);
+                                pDf[iCnt].StepIntegrator = (*i)->GetStepIntegrator(iCnt);
+
+                                switch (pDf[iCnt].StepIntegrator) {
+                                case SolverBase::INT_DEFAULT:
+                                case SolverBase::INT_IMPLICITEULER:
+                                case SolverBase::INT_CRANKNICOLSON:
+                                case SolverBase::INT_MS2:
+                                case SolverBase::INT_HOPE:
+                                     break;
+                                default:
+                                     silent_cerr("Step integrator " << pDf[iCnt].StepIntegrator
+                                                 << " requested for Dof " << pDf[iCnt].iIndex
+                                                 << " :" << pDf[iCnt].Description << " is not implemented\n");
+                                     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                }
 			}
 		}
 	}
@@ -587,6 +602,21 @@ DataManager::DofOwnerInit(void)
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
+                                        pDf[iCnt].StepIntegrator = pEWD->GetStepIntegrator(iCnt);
+                                        
+                                        switch (pDf[iCnt].StepIntegrator) {
+                                        case SolverBase::INT_DEFAULT:
+                                        case SolverBase::INT_IMPLICITEULER:
+                                        case SolverBase::INT_CRANKNICOLSON:
+                                        case SolverBase::INT_MS2:
+                                        case SolverBase::INT_HOPE:
+                                             break;
+                                        default:
+                                             silent_cerr("Step integrator " << pDf[iCnt].StepIntegrator
+                                                         << " requested for Dof " << pDf[iCnt].iIndex
+                                                         << " :" << pDf[iCnt].Description << " is not implemented\n");
+                                             throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                        }                                        
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
