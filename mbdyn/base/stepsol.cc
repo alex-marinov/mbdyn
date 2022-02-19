@@ -244,6 +244,15 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& 
         }
 }
 
+void ImplicitStepIntegrator::UpdateCoef(doublereal dCoef)
+{
+     const integer iNumDofs = pDofs->size();
+
+     for (integer iDof = 1; iDof <= iNumDofs; ++iDof) {
+          pDM->SetStepIntegratorCoef(iDof, dCoef);
+     }
+}
+
 DerivativeSolver::DerivativeSolver(const doublereal Tl,
                 const doublereal dSolTl,
                 const doublereal dC,
@@ -304,15 +313,17 @@ DerivativeSolver::Advance(Solver* pS,
                         try {
                                 Err = 0.;
                                 SolErr = 0.;
-
+                                
+                                UpdateCoef(dCoef);
+                                
                                 pS->pGetNonlinearSolver()->Solve(this,
-                                        pS,
+                                                                 pS,
                                                                  MaxIterFact * MaxIters,
-                                        dTol,
-                                        EffIter,
-                                        Err,
-                                        dSolTol,
-                                        SolErr);
+                                                                 dTol,
+                                                                 EffIter,
+                                                                 Err,
+                                                                 dSolTol,
+                                                                 SolErr);
                                 bConverged = true;
                         } catch (NonlinearSolver::NoConvergence& e) {
                                 if (bLastChance) {
@@ -569,15 +580,6 @@ doublereal StepNIntegrator::TestScale(const NonlinearSolverTest *pTest, doublere
 
         return dDiffEqu;
 }
-
-void StepNIntegrator::UpdateCoef()
-{
-     const integer iNumDofs = pDofs->size();
-
-     for (integer iDof = 1; iDof <= iNumDofs; ++iDof) {
-          pDM->SetStepIntegratorCoef(iDof, db0Differential);
-     }
-}
 /* StepNIntegrator - end */
 
 
@@ -676,7 +678,7 @@ Step1Integrator::Advance(Solver* pS,
 
         /* predizione */
         SetCoef(TStep, dAph, StType);
-        UpdateCoef();
+        UpdateCoef(db0Differential);
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
         pDM->AfterPredict();
@@ -830,7 +832,7 @@ Step2Integrator::Advance(Solver* pS,
         SetSolution(qX, qXPrime, pX, pXPrime);
         /* predizione */
         SetCoef(TStep, dAph, StType);
-        UpdateCoef();
+        UpdateCoef(db0Differential);
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
         pDM->AfterPredict();
