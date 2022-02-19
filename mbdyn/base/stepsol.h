@@ -164,6 +164,9 @@ protected:
         VectorHandler *pXCurr;
         VectorHandler *pXPrimeCurr;
         bool bModResTest;
+     
+        virtual void UpdateCoef(doublereal dCoef);                
+
 public:
         ImplicitStepIntegrator(const integer MaxIt,
                         const doublereal dT,
@@ -265,8 +268,6 @@ public:
                     std::deque<MyVectorHandler*>& qXPrime,
                     MyVectorHandler* pX,
                     MyVectorHandler* pXPrime) = 0;                
-protected:                
-        virtual void UpdateCoef();                
 };
 
 /* classe di base per gli integratori del second'ordine */
@@ -722,8 +723,9 @@ public:
         void Predict(void);
 
         void SetCoef(doublereal dT,
-                             doublereal dAlpha,
-                             enum StepChange NewStep);
+                     doublereal dAlpha,
+                     enum StepChange NewStep);
+     
         void UpdateCoef();
 private:
         inline void UpdateLoop(void (StepNIntegrator::*pUpdate)(const int DCount,
