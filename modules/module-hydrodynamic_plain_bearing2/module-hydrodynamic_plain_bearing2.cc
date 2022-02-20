@@ -1909,7 +1909,8 @@ namespace {
                                const SpColVector<doublereal, 2>& x,
                                HydroMesh* pParent,
                                ContactModel* pContactModel,
-                               std::unique_ptr<FrictionModel>&& pFrictionModel);
+                               std::unique_ptr<FrictionModel>&& pFrictionModel,
+                               SolverBase::StepIntegratorType eStepInteg);
           virtual ~HydroActiveComprNode();
 
           virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
@@ -2006,10 +2007,11 @@ namespace {
           };
 
           State oRefState, oIncState; // Updated at the first iteration after Solve
-          State oCurrState; // Updated in each iteration
+          std::array<State, 3> rgState; // Updated in each iteration
 
           std::array<doublereal, iNumDofMax> s;
           SpFunctionCall eCurrFunc;
+          const SolverBase::StepIntegratorType eStepInteg;
      };
 
      class HydroPassiveComprNode: public HydroCompressibleNode {
@@ -3931,6 +3933,7 @@ namespace {
           enum ElementType {
                CENT_DIFF_5
           } eElemType;
+          SolverBase::StepIntegratorType eStepInteg;
      };
 
      class QuadFeIso9Mesh: public HydroMesh {
@@ -9282,30 +9285,32 @@ namespace {
                                                 const SpColVector<doublereal, 2>& x,
                                                 HydroMesh* pParent,
                                                 ContactModel* pContactModel,
-                                                std::unique_ptr<FrictionModel>&& pFrictionModel)
+                                                std::unique_ptr<FrictionModel>&& pFrictionModel,
+                                                SolverBase::StepIntegratorType eStepInteg)
           :HydroCompressibleNode(iNodeNo,
                                  x,
                                  pParent,
                                  pContactModel,
                                  std::move(pFrictionModel),
                                  ACTIVE_NODE),
-           eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
+           eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
+           eStepInteg(eStepInteg)
      {
           std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
                HydroRootElement::SCALE_PRESSURE_DOF,
                HydroRootElement::SCALE_THETA_DOF
           };
 
-          oCurrState.t = pGetMesh()->pGetParent()->dGetTime();
-          oCurrState.eCavitationState = HydroFluid::FULL_FILM_REGION;
+          rgState[0].t = pGetMesh()->pGetParent()->dGetTime();
+          rgState[0].eCavitationState = HydroFluid::FULL_FILM_REGION;
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
-               oCurrState.Theta[i] = pGetFluid()->GetTheta0(i);
-               oCurrState.dTheta_dt[i] = 0.;
+               rgState[0].Theta[i] = pGetFluid()->GetTheta0(i);
+               rgState[0].dTheta_dt[i] = 0.;
                s[i] = pParent->pGetParent()->dGetScale(rgScale[i]);
           }
 
-          oRefState = oIncState  = oCurrState;
+          oRefState = oIncState = rgState[1] = rgState[2] = rgState[0];
 
           UpdateState(oState);
      }
@@ -9317,13 +9322,13 @@ namespace {
 
      HydroFluid::CavitationState HydroActiveComprNode::GetCavitationState() const
      {
-          return oCurrState.eCavitationState;
+          return rgState[0].eCavitationState;
      }
 
      void HydroActiveComprNode::GetTheta(std::array<doublereal, iNumDofMax>& Theta, doublereal) const
      {
           for (index_type i = 0; i < iNumDofMax; ++i) {
-               Theta[i] = oCurrState.Theta[i];
+               Theta[i] = rgState[0].Theta[i];
           }
      }
 
@@ -9341,10 +9346,10 @@ namespace {
 
                     HYDRO_ASSERT(eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG || dCoef == 1.);
 
-                    Theta[i].Reset(oCurrState.Theta[i], iDofIndex, -dCoef * s[i]);
+                    Theta[i].Reset(rgState[0].Theta[i], iDofIndex, -dCoef * s[i]);
                } else {
                     // Attention: Do not reference iGetFirstDofIndex(eCurrFunc) + i because it is invalid here!
-                    Theta[i].ResizeReset(oCurrState.Theta[i], 0);
+                    Theta[i].ResizeReset(rgState[0].Theta[i], 0);
                }
           }
      }
@@ -9352,7 +9357,7 @@ namespace {
      void HydroActiveComprNode::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal) const
      {
           for (index_type i = 0; i < iNumDofMax; ++i) {
-               dTheta_dt[i] = oCurrState.dTheta_dt[i];
+               dTheta_dt[i] = rgState[0].dTheta_dt[i];
           }
      }
 
@@ -9362,9 +9367,9 @@ namespace {
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
                if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
-                    dTheta_dt[i].Reset(oCurrState.dTheta_dt[i], iGetFirstDofIndex(eCurrFunc) + i, -s[i]);
+                    dTheta_dt[i].Reset(rgState[0].dTheta_dt[i], iGetFirstDofIndex(eCurrFunc) + i, -s[i]);
                } else {
-                    dTheta_dt[i].ResizeReset(oCurrState.dTheta_dt[i], 0);
+                    dTheta_dt[i].ResizeReset(rgState[0].dTheta_dt[i], 0);
                }
           }
      }
@@ -9421,7 +9426,7 @@ namespace {
 
      void HydroActiveComprNode::UpdateTheta(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
      {
-          oCurrState.t = pGetMesh()->pGetParent()->dGetTime();
+          rgState[0].t = pGetMesh()->pGetParent()->dGetTime();
 
           HYDRO_ASSERT(iGetOffsetIndex(eCurrFunc) > 0);
 
@@ -9431,32 +9436,76 @@ namespace {
                HYDRO_ASSERT(iIndex > 0);
                HYDRO_ASSERT(iIndex <= XCurr.iGetSize());
 
-               oCurrState.Theta[i] = s[i] * XCurr(iIndex);
-               oCurrState.dTheta_dt[i] = s[i] * XPrimeCurr(iIndex);
+               rgState[0].Theta[i] = s[i] * XCurr(iIndex);
+               rgState[0].dTheta_dt[i] = s[i] * XPrimeCurr(iIndex);
           }
      }
 
      void HydroActiveComprNode::UpdateCavitationState()
      {
-          if (oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION) {
-               if (oCurrState.Theta[0] < 0.) {
-                    oCurrState.eCavitationState = HydroFluid::CAVITATION_REGION;
+          if (rgState[0].eCavitationState == HydroFluid::FULL_FILM_REGION) {
+               if (rgState[0].Theta[0] < 0.) {
+                    rgState[0].eCavitationState = HydroFluid::CAVITATION_REGION;
                }
           } else {
-               if (oCurrState.Theta[1] > 1.) {
-                    oCurrState.eCavitationState = HydroFluid::FULL_FILM_REGION;
+               if (rgState[0].Theta[1] > 1.) {
+                    rgState[0].eCavitationState = HydroFluid::FULL_FILM_REGION;
                }
           }
      }
 
      void HydroActiveComprNode::ResolveCavitationState(VectorHandler& X, VectorHandler& XP)
      {
-          if (oCurrState.eCavitationState == HydroFluid::CAVITATION_REGION) {
-               oCurrState.Theta[0] = 0.;
-               oCurrState.dTheta_dt[0] = 0.;
+          if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
+               rgState[0].Theta[0] = 0.;
+               rgState[0].dTheta_dt[0] = 0.;
           } else {
-               oCurrState.Theta[1] = 1.;
-               oCurrState.dTheta_dt[1] = 0.;
+               rgState[0].Theta[1] = 1.;
+               rgState[0].dTheta_dt[1] = 0.;
+          }
+
+          if (rgState[0].Theta[1] < 0.) {
+               rgState[0].Theta[1] = 0.;
+               
+               const doublereal dt1 = rgState[0].t - rgState[1].t;
+                              
+               if (dt1 != 0.) {
+#ifdef DEBUG
+                    static constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
+#endif                    
+                    switch (eStepInteg) {
+                    case SolverBase::INT_IMPLICITEULER:
+                         rgState[0].dTheta_dt[1] = (rgState[0].Theta[1] - rgState[1].Theta[1]) / dt1;
+                         break;
+                    case SolverBase::INT_CRANKNICOLSON:
+                         crank_nicolson_integrator:
+                         rgState[0].dTheta_dt[1] = 2. / dt1 * (rgState[0].Theta[1] - rgState[1].Theta[1]) - rgState[1].dTheta_dt[1];
+                         
+                         HYDRO_ASSERT(std::fabs(0.5 * dt1 * (rgState[0].dTheta_dt[1] + rgState[1].dTheta_dt[1]) + rgState[1].Theta[1] - rgState[0].Theta[1]) < dTol);
+                         break;
+                    case SolverBase::INT_MS2:
+                    case SolverBase::INT_HOPE:
+                    case SolverBase::INT_DEFAULT: {
+                         const doublereal dt2 = rgState[0].t - rgState[2].t;
+
+                         if (dt2 == dt1) {
+                              goto crank_nicolson_integrator;
+                         }
+                    
+                         const doublereal c = (rgState[1].Theta[1] - rgState[0].Theta[1] - dt1 / dt2 * (rgState[2].Theta[1] - rgState[0].Theta[1])) / (dt1 * (dt1 - dt2));
+                         const doublereal b = (rgState[2].Theta[1] - rgState[0].Theta[1]) / dt2 - c * dt2;
+                         
+                         rgState[0].dTheta_dt[1] = b;
+                         
+                         HYDRO_ASSERT(std::fabs(rgState[0].Theta[1] + b * dt1 + c * dt1 * dt1 - rgState[1].Theta[1]) < dTol);
+                         HYDRO_ASSERT(std::fabs(rgState[0].Theta[1] + b * dt2 + c * dt2 * dt2 - rgState[2].Theta[1]) < dTol);
+                    } break;
+                    default:
+                         throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                    }
+               } else {
+                    rgState[0].dTheta_dt[1] = 0.;
+               }
           }
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
@@ -9465,8 +9514,8 @@ namespace {
                HYDRO_ASSERT(iIndex > 0);
                HYDRO_ASSERT(iIndex <= X.iGetSize());
 
-               X.PutCoef(iIndex, oCurrState.Theta[i] / s[i]);
-               XP.PutCoef(iIndex, oCurrState.dTheta_dt[i] / s[i]);
+               X.PutCoef(iIndex, rgState[0].Theta[i] / s[i]);
+               XP.PutCoef(iIndex, rgState[0].dTheta_dt[i] / s[i]);
           }
      }
 
@@ -9477,8 +9526,8 @@ namespace {
                                   SpFunctionCall func)
      {
           if (func & SpFunctionCall::INITIAL_ASS_FLAG) {
-               oCurrState.Theta[0] = s[0] * XCurr(iGetFirstDofIndex(func));
-               HYDRO_ASSERT(std::isfinite(oCurrState.Theta[0]));
+               rgState[0].Theta[0] = s[0] * XCurr(iGetFirstDofIndex(func));
+               HYDRO_ASSERT(std::isfinite(rgState[0].Theta[0]));
           }
 
           HYDRO_ASSERT(eCurrFunc == (func & sp_grad::STATE_MASK));
@@ -9506,7 +9555,7 @@ namespace {
                                               VectorHandler& XPrev,
                                               VectorHandler& XPPrev) const
      {
-          const integer iDof = oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 1 : 0;
+          const integer iDof = rgState[0].eCavitationState == HydroFluid::FULL_FILM_REGION ? 1 : 0;
           const integer iIndex = iGetFirstDofIndex(eCurrFunc);
 
           HYDRO_ASSERT(iDof >= 0);
@@ -9514,14 +9563,10 @@ namespace {
           HYDRO_ASSERT(iIndex + iDof > 0);
           HYDRO_ASSERT(iIndex + iDof <= X.iGetSize());
 
-          HYDRO_ASSERT(oCurrState.Theta[iDof] == (iDof == 0 ? 0. : 1.));
+          HYDRO_ASSERT(rgState[0].Theta[iDof] == (iDof == 0 ? 0. : 1.));
 
-          X(iIndex + iDof) = XPrev(iIndex + iDof) = oCurrState.Theta[iDof] / s[iDof];
-          XP(iIndex + iDof) = XPPrev(iIndex + iDof) = oCurrState.dTheta_dt[iDof] / s[iDof];
-
-          // if (X(iIndex + 1) < 0.) {
-          //      X(iIndex + 1) = XPrev(iIndex + 1) = XP(iIndex + 1) = XPPrev(iIndex + 1) = 0.;
-          // }
+          X(iIndex + iDof) = XPrev(iIndex + iDof) = rgState[0].Theta[iDof] / s[iDof];
+          XP(iIndex + iDof) = XPPrev(iIndex + iDof) = rgState[0].dTheta_dt[iDof] / s[iDof];
      }
 
      void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
@@ -9529,17 +9574,11 @@ namespace {
           UpdateTheta(X, XP);
           UpdateCavitationState();
           ResolveCavitationState(X, XP);
-
-          // const integer iIndex = iGetFirstDofIndex(eCurrFunc);
-          
-          // if (X(iIndex + 1) < 0.) {
-          //      X(iIndex + 1) = XP(iIndex + 1) = 0.;
-          // }
      }
 
      void HydroActiveComprNode::DofUpdate(VectorHandler& X, VectorHandler& XP)
      {
-          const State oPrevState = oCurrState;
+          const State oPrevState = rgState[0];
 
           UpdateTheta(X, XP);
           UpdateCavitationState();
@@ -9550,7 +9589,7 @@ namespace {
           if (iIter == 0) {
                HYDRO_ASSERT(pParent->GetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_CURR) == 1.);
 
-               oIncState = oCurrState;
+               oIncState = rgState[0];
                oRefState = oPrevState;
 
                // Take a Newton step in a way that the transition occures just before or just after the cavitation state is changed.
@@ -9559,12 +9598,12 @@ namespace {
                static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
                static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
                
-               if (oCurrState.eCavitationState != oPrevState.eCavitationState) {
+               if (rgState[0].eCavitationState != oPrevState.eCavitationState) {
                     const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
                     doublereal dLambdaLimit = 1.;
                     
                     for (index_type j = 0; j < 2; ++j) {
-                         const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (oCurrState.Theta[i] - oPrevState.Theta[i]);
+                         const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (rgState[0].Theta[i] - oPrevState.Theta[i]);
                          
                          if (dLambdaj > 0.) {
                               dLambdaLimit = std::min(dLambdaLimit, rgLambdaFactor[i][j] * dLambdaj);
@@ -9576,8 +9615,8 @@ namespace {
                                        << pGetMesh()->pGetParent()->GetLabel()
                                        << "): fluid state Theta[" << i << "] of node " << iGetNodeNumber() + 1
                                        << " changed from " << oPrevState.Theta[i]
-                                       << " to " << oCurrState.Theta[i]
-                                       << " at t=" << oCurrState.t
+                                       << " to " << rgState[0].Theta[i]
+                                       << " at t=" << rgState[0].t
                                        << " lambda=" << dLambdaLimit << std::endl);
                          pParent->SetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_MAX, dLambdaLimit);
                     }
@@ -9586,8 +9625,8 @@ namespace {
                const doublereal dLambda = pParent->GetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_CURR);
 
                for (index_type i = 0; i < iNumDofMax; ++i) {
-                    oCurrState.Theta[i] = oRefState.Theta[i] + (oIncState.Theta[i] - oRefState.Theta[i]) * dLambda;
-                    oCurrState.dTheta_dt[i] = oRefState.dTheta_dt[i] + (oIncState.dTheta_dt[i] - oRefState.dTheta_dt[i]) * dLambda;
+                    rgState[0].Theta[i] = oRefState.Theta[i] + (oIncState.Theta[i] - oRefState.Theta[i]) * dLambda;
+                    rgState[0].dTheta_dt[i] = oRefState.dTheta_dt[i] + (oIncState.dTheta_dt[i] - oRefState.dTheta_dt[i]) * dLambda;
                }
           }
 
@@ -9596,12 +9635,15 @@ namespace {
 
      void HydroActiveComprNode::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
      {
+          for (index_type i = 1; i >= 0; --i) {
+               rgState[i + 1] = rgState[i];
+          }
      }
 
      void HydroActiveComprNode::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
      {
           HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
-          HYDRO_ASSERT(oCurrState.eCavitationState == HydroFluid::FULL_FILM_REGION);
+          HYDRO_ASSERT(rgState[0].eCavitationState == HydroFluid::FULL_FILM_REGION);
 
           eCurrFunc = SpFunctionCall::REGULAR_FLAG;
           UpdateCavitationState();
@@ -9702,7 +9744,7 @@ namespace {
           case 0:
                return SolverBase::INT_DEFAULT;
           case 1:
-               return SolverBase::INT_IMPLICITEULER;
+               return eStepInteg;
           default:
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
           }
@@ -19884,7 +19926,8 @@ namespace {
           :HydroMesh(pParent),
            M(0),
            N(0),
-           eElemType(CENT_DIFF_5)
+           eElemType(CENT_DIFF_5),
+           eStepInteg(SolverBase::INT_CRANKNICOLSON)
      {
      }
 
@@ -19901,6 +19944,26 @@ namespace {
                     silent_cerr("hydrodynamic plain bearing2("
                                 << pGetParent()->GetLabel()
                                 << "): keywords \"central difference 5\" expected at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
+          }
+
+          if (HP.IsKeyWord("cavitation" "step" "integrator")) {
+               if (HP.IsKeyWord("default")) {
+                    eStepInteg = SolverBase::INT_DEFAULT;
+               } else if (HP.IsKeyWord("ms")) {
+                    eStepInteg = SolverBase::INT_MS2;
+               } else if (HP.IsKeyWord("hope")) {
+                    eStepInteg = SolverBase::INT_HOPE;
+               } else if (HP.IsKeyWord("implicit" "euler")) {
+                    eStepInteg = SolverBase::INT_IMPLICITEULER;
+               } else if (HP.IsKeyWord("crank" "nicolson")) {
+                    eStepInteg = SolverBase::INT_CRANKNICOLSON;
+               } else {
+                    silent_cerr("hydrodynamic plain bearing2("
+                                << pGetParent()->GetLabel()
+                                << "): keywords \"ms\", \"hope\", \"implicit euler\" or \"crank nicolson\" expected at line "
                                 << HP.GetLineData() << std::endl);
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
@@ -20302,7 +20365,8 @@ namespace {
                                                                    x,
                                                                    this,
                                                                    pContact.get(),
-                                                                   std::move(pFrictionNode)));
+                                                                   std::move(pFrictionNode),
+                                                                   eStepInteg));
                          }
                     } else if (pCoupling != nullptr) {
                          if (pGroove != nullptr) {
