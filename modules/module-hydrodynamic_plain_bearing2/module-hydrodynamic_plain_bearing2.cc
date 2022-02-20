@@ -1905,12 +1905,14 @@ namespace {
 
      class HydroActiveComprNode: public HydroCompressibleNode, public HydroDofOwner {
      public:
+          static constexpr index_type iNumDofMax = 2;
+
           HydroActiveComprNode(integer iNodeNo,
                                const SpColVector<doublereal, 2>& x,
                                HydroMesh* pParent,
                                ContactModel* pContactModel,
                                std::unique_ptr<FrictionModel>&& pFrictionModel,
-                               SolverBase::StepIntegratorType eStepInteg);
+                               const std::array<SolverBase::StepIntegratorType,iNumDofMax>& rgStepInteg);
           virtual ~HydroActiveComprNode();
 
           virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
@@ -1953,14 +1955,12 @@ namespace {
           virtual DofOrder::Order GetDofType(unsigned int i) const override;
           virtual DofOrder::Order GetEqType(unsigned int i) const override;
           virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
-          
+
           virtual std::ostream&
           DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
 
           virtual std::ostream&
           DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
-
-          static const index_type iNumDofMax = 2;
 
      private:
           inline void UpdateTheta(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr);
@@ -2011,7 +2011,7 @@ namespace {
 
           std::array<doublereal, iNumDofMax> s;
           SpFunctionCall eCurrFunc;
-          const SolverBase::StepIntegratorType eStepInteg;
+          const std::array<SolverBase::StepIntegratorType, iNumDofMax> rgStepInteg;
      };
 
      class HydroPassiveComprNode: public HydroCompressibleNode {
@@ -3933,7 +3933,8 @@ namespace {
           enum ElementType {
                CENT_DIFF_5
           } eElemType;
-          SolverBase::StepIntegratorType eStepInteg;
+
+          std::array<SolverBase::StepIntegratorType, HydroActiveComprNode::iNumDofMax> rgStepInteg;
      };
 
      class QuadFeIso9Mesh: public HydroMesh {
@@ -5593,9 +5594,9 @@ namespace {
           ++i; // we are using one based indices
           const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
           HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
-          return pDO->GetStepIntegrator(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));          
+          return pDO->GetStepIntegrator(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
      }
-     
+
      const HydroDofOwner* HydroRootElement::pFindDofOwner(unsigned int i, sp_grad::SpFunctionCall eFunc) const
      {
           const DofOwnerMap& oDofOwnerMap = (eFunc & SpFunctionCall::REGULAR_FLAG)
@@ -7393,7 +7394,7 @@ namespace {
      {
           return SolverBase::INT_DEFAULT;
      }
-     
+
      integer HydroDofOwner::iGetOffsetIndex(sp_grad::SpFunctionCall eFunc) const
      {
           return rgOffsetIndex[iFuncCallToIndex(eFunc)];
@@ -9286,7 +9287,7 @@ namespace {
                                                 HydroMesh* pParent,
                                                 ContactModel* pContactModel,
                                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                                SolverBase::StepIntegratorType eStepInteg)
+                                                const std::array<SolverBase::StepIntegratorType, iNumDofMax>& rgStepInteg)
           :HydroCompressibleNode(iNodeNo,
                                  x,
                                  pParent,
@@ -9294,7 +9295,7 @@ namespace {
                                  std::move(pFrictionModel),
                                  ACTIVE_NODE),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
-           eStepInteg(eStepInteg)
+           rgStepInteg(rgStepInteg)
      {
           std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
                HydroRootElement::SCALE_PRESSURE_DOF,
@@ -9466,21 +9467,21 @@ namespace {
 
           if (rgState[0].Theta[1] < 0.) {
                rgState[0].Theta[1] = 0.;
-               
+
                const doublereal dt1 = rgState[0].t - rgState[1].t;
-                              
+
                if (dt1 != 0.) {
 #ifdef DEBUG
                     static constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
-#endif                    
-                    switch (eStepInteg) {
+#endif
+                    switch (rgStepInteg[1]) {
                     case SolverBase::INT_IMPLICITEULER:
                          rgState[0].dTheta_dt[1] = (rgState[0].Theta[1] - rgState[1].Theta[1]) / dt1;
                          break;
                     case SolverBase::INT_CRANKNICOLSON:
                          crank_nicolson_integrator:
                          rgState[0].dTheta_dt[1] = 2. / dt1 * (rgState[0].Theta[1] - rgState[1].Theta[1]) - rgState[1].dTheta_dt[1];
-                         
+
                          HYDRO_ASSERT(std::fabs(0.5 * dt1 * (rgState[0].dTheta_dt[1] + rgState[1].dTheta_dt[1]) + rgState[1].Theta[1] - rgState[0].Theta[1]) < dTol);
                          break;
                     case SolverBase::INT_MS2:
@@ -9491,12 +9492,12 @@ namespace {
                          if (dt2 == dt1) {
                               goto crank_nicolson_integrator;
                          }
-                    
+
                          const doublereal c = (rgState[1].Theta[1] - rgState[0].Theta[1] - dt1 / dt2 * (rgState[2].Theta[1] - rgState[0].Theta[1])) / (dt1 * (dt1 - dt2));
                          const doublereal b = (rgState[2].Theta[1] - rgState[0].Theta[1]) / dt2 - c * dt2;
-                         
+
                          rgState[0].dTheta_dt[1] = b;
-                         
+
                          HYDRO_ASSERT(std::fabs(rgState[0].Theta[1] + b * dt1 + c * dt1 * dt1 - rgState[1].Theta[1]) < dTol);
                          HYDRO_ASSERT(std::fabs(rgState[0].Theta[1] + b * dt2 + c * dt2 * dt2 - rgState[2].Theta[1]) < dTol);
                     } break;
@@ -9570,7 +9571,7 @@ namespace {
      }
 
      void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
-     {          
+     {
           UpdateTheta(X, XP);
           UpdateCavitationState();
           ResolveCavitationState(X, XP);
@@ -9594,17 +9595,17 @@ namespace {
 
                // Take a Newton step in a way that the transition occures just before or just after the cavitation state is changed.
                // dLamEps defines the difference the threshold.
-               static constexpr doublereal dLamEps = sqrt(std::numeric_limits<doublereal>::epsilon()); 
+               static constexpr doublereal dLamEps = sqrt(std::numeric_limits<doublereal>::epsilon());
                static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
                static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
-               
+
                if (rgState[0].eCavitationState != oPrevState.eCavitationState) {
                     const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
                     doublereal dLambdaLimit = 1.;
-                    
+
                     for (index_type j = 0; j < 2; ++j) {
                          const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (rgState[0].Theta[i] - oPrevState.Theta[i]);
-                         
+
                          if (dLambdaj > 0.) {
                               dLambdaLimit = std::min(dLambdaLimit, rgLambdaFactor[i][j] * dLambdaj);
                          }
@@ -9742,14 +9743,13 @@ namespace {
 
           switch (i) {
           case 0:
-               return SolverBase::INT_DEFAULT;
           case 1:
-               return eStepInteg;
+               return rgStepInteg[i];
           default:
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
           }
      }
-     
+
      std::ostream&
      HydroActiveComprNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
      {
@@ -19927,7 +19927,7 @@ namespace {
            M(0),
            N(0),
            eElemType(CENT_DIFF_5),
-           eStepInteg(SolverBase::INT_CRANKNICOLSON)
+           rgStepInteg{SolverBase::INT_DEFAULT, SolverBase::INT_CRANKNICOLSON}
      {
      }
 
@@ -19949,23 +19949,27 @@ namespace {
                }
           }
 
-          if (HP.IsKeyWord("cavitation" "step" "integrator")) {
-               if (HP.IsKeyWord("default")) {
-                    eStepInteg = SolverBase::INT_DEFAULT;
-               } else if (HP.IsKeyWord("ms")) {
-                    eStepInteg = SolverBase::INT_MS2;
-               } else if (HP.IsKeyWord("hope")) {
-                    eStepInteg = SolverBase::INT_HOPE;
-               } else if (HP.IsKeyWord("implicit" "euler")) {
-                    eStepInteg = SolverBase::INT_IMPLICITEULER;
-               } else if (HP.IsKeyWord("crank" "nicolson")) {
-                    eStepInteg = SolverBase::INT_CRANKNICOLSON;
-               } else {
-                    silent_cerr("hydrodynamic plain bearing2("
-                                << pGetParent()->GetLabel()
-                                << "): keywords \"ms\", \"hope\", \"implicit euler\" or \"crank nicolson\" expected at line "
-                                << HP.GetLineData() << std::endl);
-                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          static constexpr char rgStepIntegName[][25] = {{"pressure" "step" "integrator"},{"density" "step" "integrator"}};
+
+          for (index_type i = 0; i < HydroActiveComprNode::iNumDofMax; ++i) {
+               if (HP.IsKeyWord(rgStepIntegName[i])) {
+                    if (HP.IsKeyWord("default")) {
+                         rgStepInteg[i] = SolverBase::INT_DEFAULT;
+                    } else if (HP.IsKeyWord("ms")) {
+                         rgStepInteg[i] = SolverBase::INT_MS2;
+                    } else if (HP.IsKeyWord("hope")) {
+                         rgStepInteg[i] = SolverBase::INT_HOPE;
+                    } else if (HP.IsKeyWord("implicit" "euler")) {
+                         rgStepInteg[i] = SolverBase::INT_IMPLICITEULER;
+                    } else if (HP.IsKeyWord("crank" "nicolson")) {
+                         rgStepInteg[i] = SolverBase::INT_CRANKNICOLSON;
+                    } else {
+                         silent_cerr("hydrodynamic plain bearing2("
+                                     << pGetParent()->GetLabel()
+                                     << "): keywords \"default\", \"ms\", \"hope\", \"implicit euler\" or \"crank nicolson\" expected at line "
+                                     << HP.GetLineData() << std::endl);
+                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                    }
                }
           }
 
@@ -20366,7 +20370,7 @@ namespace {
                                                                    this,
                                                                    pContact.get(),
                                                                    std::move(pFrictionNode),
-                                                                   eStepInteg));
+                                                                   rgStepInteg));
                          }
                     } else if (pCoupling != nullptr) {
                          if (pGroove != nullptr) {
