@@ -1912,7 +1912,8 @@ namespace {
                                HydroMesh* pParent,
                                ContactModel* pContactModel,
                                std::unique_ptr<FrictionModel>&& pFrictionModel,
-                               const std::array<SolverBase::StepIntegratorType,iNumDofMax>& rgStepInteg);
+                               const std::array<SolverBase::StepIntegratorType,iNumDofMax>& rgStepInteg,
+                               bool bLineSearchControl);
           virtual ~HydroActiveComprNode();
 
           virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const;
@@ -2012,6 +2013,7 @@ namespace {
           std::array<doublereal, iNumDofMax> s;
           SpFunctionCall eCurrFunc;
           const std::array<SolverBase::StepIntegratorType, iNumDofMax> rgStepInteg;
+          const bool bLineSearchControl;
      };
 
      class HydroPassiveComprNode: public HydroCompressibleNode {
@@ -3935,6 +3937,7 @@ namespace {
           } eElemType;
 
           std::array<SolverBase::StepIntegratorType, HydroActiveComprNode::iNumDofMax> rgStepInteg;
+          bool bLineSearchControl;
      };
 
      class QuadFeIso9Mesh: public HydroMesh {
@@ -9287,7 +9290,8 @@ namespace {
                                                 HydroMesh* pParent,
                                                 ContactModel* pContactModel,
                                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                                const std::array<SolverBase::StepIntegratorType, iNumDofMax>& rgStepInteg)
+                                                const std::array<SolverBase::StepIntegratorType, iNumDofMax>& rgStepInteg,
+                                                bool bLineSearchControl)
           :HydroCompressibleNode(iNodeNo,
                                  x,
                                  pParent,
@@ -9295,7 +9299,8 @@ namespace {
                                  std::move(pFrictionModel),
                                  ACTIVE_NODE),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
-           rgStepInteg(rgStepInteg)
+           rgStepInteg(rgStepInteg),
+           bLineSearchControl(bLineSearchControl)
      {
           std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
                HydroRootElement::SCALE_PRESSURE_DOF,
@@ -9593,33 +9598,36 @@ namespace {
                oIncState = rgState[0];
                oRefState = oPrevState;
 
-               // Take a Newton step in a way that the transition occures just before or just after the cavitation state is changed.
-               // dLamEps defines the difference the threshold.
-               static constexpr doublereal dLamEps = sqrt(std::numeric_limits<doublereal>::epsilon());
-               static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
-               static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
+               if (bLineSearchControl) {
+                    // Take a Newton step in a way that the transition occures just before or just after the cavitation state is changed.
+                    // dLamEps defines the difference the threshold.
+                    static constexpr doublereal dLamEps = sqrt(std::numeric_limits<doublereal>::epsilon());
+                    static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
+                    static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
+                    static constexpr doublereal dLambdaMin = 1e-3;
+                    
+                    if (rgState[0].eCavitationState != oPrevState.eCavitationState) {
+                         const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
+                         doublereal dLambdaLimit = 1.;
 
-               if (rgState[0].eCavitationState != oPrevState.eCavitationState) {
-                    const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
-                    doublereal dLambdaLimit = 1.;
+                         for (index_type j = 0; j < 2; ++j) {
+                              const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (rgState[0].Theta[i] - oPrevState.Theta[i]);
 
-                    for (index_type j = 0; j < 2; ++j) {
-                         const doublereal dLambdaj = (rgThetaLimit[i][j] - oPrevState.Theta[i]) / (rgState[0].Theta[i] - oPrevState.Theta[i]);
-
-                         if (dLambdaj > 0.) {
-                              dLambdaLimit = std::min(dLambdaLimit, rgLambdaFactor[i][j] * dLambdaj);
+                              if (dLambdaj > 0.) {
+                                   dLambdaLimit = std::min(dLambdaLimit, rgLambdaFactor[i][j] * dLambdaj);
+                              }
                          }
-                    }
 
-                    if (dLambdaLimit > 0 && dLambdaLimit < 1) {
-                         pedantic_cout("hydrodynamic plain bearing2("
-                                       << pGetMesh()->pGetParent()->GetLabel()
-                                       << "): fluid state Theta[" << i << "] of node " << iGetNodeNumber() + 1
-                                       << " changed from " << oPrevState.Theta[i]
-                                       << " to " << rgState[0].Theta[i]
-                                       << " at t=" << rgState[0].t
-                                       << " lambda=" << dLambdaLimit << std::endl);
-                         pParent->SetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_MAX, dLambdaLimit);
+                         if (dLambdaLimit > 0 && dLambdaLimit < 1) {
+                              pedantic_cout("hydrodynamic plain bearing2("
+                                            << pGetMesh()->pGetParent()->GetLabel()
+                                            << "): fluid state Theta[" << i << "] of node " << iGetNodeNumber() + 1
+                                            << " changed from " << oPrevState.Theta[i]
+                                            << " to " << rgState[0].Theta[i]
+                                            << " at t=" << rgState[0].t
+                                            << " lambda=" << dLambdaLimit << std::endl);
+                              pParent->SetNonlinearSolverHint(NonlinearSolver::LINESEARCH_LAMBDA_MAX, std::max(dLambdaMin, dLambdaLimit));
+                         }
                     }
                }
           } else {
@@ -19927,7 +19935,8 @@ namespace {
            M(0),
            N(0),
            eElemType(CENT_DIFF_5),
-           rgStepInteg{SolverBase::INT_DEFAULT, SolverBase::INT_CRANKNICOLSON}
+           rgStepInteg{SolverBase::INT_IMPLICITEULER, SolverBase::INT_CRANKNICOLSON},
+           bLineSearchControl(false)
      {
      }
 
@@ -19971,6 +19980,10 @@ namespace {
                          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                     }
                }
+          }
+
+          if (HP.IsKeyWord("line" "search" "control")) {
+               bLineSearchControl = HP.GetYesNoOrBool();
           }
 
           ParseGeometry(pDM, HP);
@@ -20370,7 +20383,8 @@ namespace {
                                                                    this,
                                                                    pContact.get(),
                                                                    std::move(pFrictionNode),
-                                                                   rgStepInteg));
+                                                                   rgStepInteg,
+                                                                   bLineSearchControl));
                          }
                     } else if (pCoupling != nullptr) {
                          if (pGroove != nullptr) {
