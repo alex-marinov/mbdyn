@@ -266,14 +266,14 @@ protected:
 
    	/* Parametri per il metodo */
 	StepIntegratorType RegularType, DummyType;
-
+   	FakeStepIntegrator oFakeStepIntegrator; // needed for hybrid step integrator only
    	StepIntegrator* pDerivativeSteps;
    	StepIntegrator* pFirstDummyStep;
 	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
    	StepIntegrator* pRegularSteps;
 	StepIntegrator* pCurrStepIntegrator;
-
+     
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
 	DriveCaller* pRhoDummy;

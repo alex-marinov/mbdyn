@@ -9338,26 +9338,29 @@ namespace {
           }
      }
 
-     void HydroActiveComprNode::GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal) const
+     void HydroActiveComprNode::GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoefDef) const
      {
           HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
 
-          const index_type iNumDofInit = iGetInitialNumDof();
-
-          for (index_type i = 0; i < iNumDofMax; ++i) {
-               if (eCurrFunc == SpFunctionCall::REGULAR_FLAG || i < iNumDofInit) {
-
+          switch (eCurrFunc)
+          {
+          case SpFunctionCall::REGULAR_FLAG:
+               for (index_type i = 0; i < iNumDofMax; ++i) {
                     const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
                     const doublereal dCoef = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
-
-                    HYDRO_ASSERT(eCurrFunc != SpFunctionCall::INITIAL_ASS_FLAG || dCoef == 1.);
-
                     Theta[i].Reset(rgState[0].Theta[i], iDofIndex, -dCoef * s[i]);
-               } else {
-                    // Attention: Do not reference iGetFirstDofIndex(eCurrFunc) + i because it is invalid here!
-                    Theta[i].ResizeReset(rgState[0].Theta[i], 0);
-               }
-          }
+               }               
+               break;
+          case SpFunctionCall::INITIAL_ASS_FLAG: {
+               HYDRO_ASSERT(dCoefDef == 1.);
+
+               const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc);
+               Theta[0].Reset(rgState[0].Theta[0], iDofIndex, -s[0]);
+               Theta[1].ResizeReset(rgState[0].Theta[1], 0);
+          } break;
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }          
      }
 
      void HydroActiveComprNode::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal) const
@@ -16581,7 +16584,8 @@ namespace {
 
      void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const
      {
-          doublereal wx = 0., wz = 0.;
+          // Do not cause SIGFPE if wx and wz are exactly zero.
+          doublereal wx = std::numeric_limits<doublereal>::min(), wz = std::numeric_limits<doublereal>::min();
 
           static const index_type rgNodeIdxFlx[2] = {iNodeFlxWest, iNodeFlxEast};
           static const index_type rgNodeIdxFlz[2] = {iNodeFlzSouth, iNodeFlzNorth};
@@ -16700,7 +16704,8 @@ namespace {
 
      void LinFD5ThermalElem::SetMaxTimeStep(const std::array<doublereal, 2>& wxi, const std::array<doublereal, 2>& wzi) const
      {
-          doublereal wx = 0., wz = 0.;
+          // Do not cause SIGFPE if wx and wz are exactly zero.
+          doublereal wx = std::numeric_limits<doublereal>::min(), wz = std::numeric_limits<doublereal>::min();
 
           for (index_type i = 0; i < 2; ++i) {
                wx = std::max(wx, std::abs(wxi[i]));

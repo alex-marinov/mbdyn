@@ -316,12 +316,13 @@ dDummyStepsRatio(::dDefaultDummyStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
 RegularType(INT_UNKNOWN),
 DummyType(INT_UNKNOWN),
+oFakeStepIntegrator(1.),
 pDerivativeSteps(0),
 pFirstDummyStep(0),
 pDummySteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
-pCurrStepIntegrator(0),
+pCurrStepIntegrator(&oFakeStepIntegrator),
 pRhoRegular(0),
 pRhoAlgebraicRegular(0),
 pRhoDummy(0),
@@ -444,6 +445,7 @@ Solver::Prepare(void)
 
 	} else
 #endif // USE_SCHUR
+             
 	{
 		/* chiama il gestore dei dati generali della simulazione */
 #ifdef USE_MULTITHREAD
@@ -858,7 +860,7 @@ Solver::Prepare(void)
 		pDM->SetElemDimensionIndices(pNLS->pGetResTest()->GetDimMap());
 		pDM->SetNodeDimensionIndices(pNLS->pGetResTest()->GetDimMap());
 	}
-	
+
 	/* Derivative steps */
 	pCurrStepIntegrator = pDerivativeSteps;
 	try {
@@ -3878,7 +3880,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 		DummyType = INT_MS2;
 	}
-
+        
 	/* costruzione dello step solver derivative */
 	SAFENEWWITHCONSTRUCTOR(pDerivativeSteps,
 			DerivativeSolver,
@@ -5068,17 +5070,24 @@ Solver::Eig(bool bNewLine)
         {
              MyVectorHandler Res(iNumDofs);
              
+             StepIntegrator* const pPrevStepInt = pCurrStepIntegrator;
+             pCurrStepIntegrator = &oFakeStepIntegrator; // Needed for hybrid step integrator only
+             
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(-h/2.);
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
              
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(h/2.);
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
+
+             pCurrStepIntegrator = pPrevStepInt;
         }
         
 #ifdef DEBUG

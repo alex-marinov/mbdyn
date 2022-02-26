@@ -151,6 +151,34 @@ public:
                         doublereal& SolErr) = 0;
 };
 
+// Needed for elements using the hybrid step integrator interface
+// which relies on StepIntegrator::dGetCoef also during initial assembly and for the eigensolver
+class FakeStepIntegrator: public StepIntegrator {
+public:
+       explicit FakeStepIntegrator(doublereal dCoef);
+                
+       virtual doublereal dGetCoef(unsigned int iDof) const override;
+
+       void SetCoef(doublereal dCoefCurr) {
+               dCoef = dCoefCurr;
+       }
+
+       virtual doublereal
+       Advance(Solver* pS,
+               const doublereal TStep,
+               const doublereal dAlph,
+               const StepChange StType,
+               std::deque<MyVectorHandler*>& qX,
+               std::deque<MyVectorHandler*>& qXPrime,
+               MyVectorHandler*const pX,
+               MyVectorHandler*const pXPrime,
+               integer& EffIter,
+               doublereal& Err,
+               doublereal& SolErr) override;
+private:
+      doublereal dCoef;
+};
+        
 class ImplicitStepIntegrator:
         public StepIntegrator,
         public NonlinearProblem

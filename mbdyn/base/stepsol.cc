@@ -118,6 +118,33 @@ StepIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
         NO_OP;
 }
 
+FakeStepIntegrator::FakeStepIntegrator(doublereal dCoef)
+     :StepIntegrator(-1, dCoef, -1., 1, 1),
+      dCoef(dCoef)
+{
+}
+                
+doublereal FakeStepIntegrator::dGetCoef(unsigned int iDof) const
+{
+     return dCoef;
+}
+                
+doublereal
+FakeStepIntegrator::Advance(Solver* pS,
+               const doublereal TStep,
+               const doublereal dAlph,
+               const StepChange StType,
+               std::deque<MyVectorHandler*>& qX,
+               std::deque<MyVectorHandler*>& qXPrime,
+               MyVectorHandler*const pX,
+               MyVectorHandler*const pXPrime,
+               integer& EffIter,
+               doublereal& Err,
+               doublereal& SolErr)
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 #include "stepsol.hc"
 
 ImplicitStepIntegrator::ImplicitStepIntegrator(const integer MaxIt,
