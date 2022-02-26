@@ -4857,7 +4857,7 @@ namespace {
                return (uInitAssFlags & eDomain) != 0u;
           }
           unsigned uGetOutputFlags() const { return uOutputFlags; }
-          doublereal dGetStepIntegratorCoef(int iDof) const {
+          doublereal dGetStepIntegratorCoef(unsigned int iDof) const {
                return pDM->dGetStepIntegratorCoef(iDof);
           }
 

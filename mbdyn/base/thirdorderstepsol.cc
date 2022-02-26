@@ -68,6 +68,11 @@ ThirdOrderIntegrator::~ThirdOrderIntegrator(){
 	NO_OP;
 };
 
+doublereal ThirdOrderIntegrator::dGetCoef(unsigned int) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 doublereal
 ThirdOrderIntegrator::Advance(Solver* pS, 
 		const doublereal TStep, 

@@ -64,7 +64,6 @@ struct Dof {
    DofOrder::Order EqOrder;
    // Data used for the HybridStepIntegrator
    SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
-   doublereal dCoef; // current db0Differential of the step integrator for this degree of freedom
    std::string Description;
    std::string EqDescription;
 };

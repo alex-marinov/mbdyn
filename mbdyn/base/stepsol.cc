@@ -244,15 +244,6 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& 
         }
 }
 
-void ImplicitStepIntegrator::UpdateCoef(doublereal dCoef)
-{
-     const integer iNumDofs = pDofs->size();
-
-     for (integer iDof = 1; iDof <= iNumDofs; ++iDof) {
-          pDM->SetStepIntegratorCoef(iDof, dCoef);
-     }
-}
-
 DerivativeSolver::DerivativeSolver(const doublereal Tl,
                 const doublereal dSolTl,
                 const doublereal dC,
@@ -271,6 +262,11 @@ dFactorCoef(dFactorCoef)
 DerivativeSolver::~DerivativeSolver(void)
 {
         NO_OP;
+}
+
+doublereal DerivativeSolver::dGetCoef(unsigned int) const
+{
+     return dCoef;
 }
 
 doublereal
@@ -313,9 +309,6 @@ DerivativeSolver::Advance(Solver* pS,
                         try {
                                 Err = 0.;
                                 SolErr = 0.;
-                                
-                                UpdateCoef(dCoef);
-                                
                                 pS->pGetNonlinearSolver()->Solve(this,
                                                                  pS,
                                                                  MaxIterFact * MaxIters,
@@ -580,6 +573,20 @@ doublereal StepNIntegrator::TestScale(const NonlinearSolverTest *pTest, doublere
 
         return dDiffEqu;
 }
+
+doublereal StepNIntegrator::dGetCoef(unsigned int iDof) const {
+     ASSERT(iDof > 0);
+     ASSERT(iDof <= pDofs->size());
+     
+     switch ((*pDofs)[iDof - 1].Order) {
+     case DofOrder::DIFFERENTIAL:
+          return db0Differential;
+     case DofOrder::ALGEBRAIC:
+          return db0Algebraic;
+     default:
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
 /* StepNIntegrator - end */
 
 
@@ -678,7 +685,6 @@ Step1Integrator::Advance(Solver* pS,
 
         /* predizione */
         SetCoef(TStep, dAph, StType);
-        UpdateCoef(db0Differential);
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
         pDM->AfterPredict();
@@ -832,7 +838,6 @@ Step2Integrator::Advance(Solver* pS,
         SetSolution(qX, qXPrime, pX, pXPrime);
         /* predizione */
         SetCoef(TStep, dAph, StType);
-        UpdateCoef(db0Differential);
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
         pDM->AfterPredict();
@@ -938,6 +943,20 @@ void HybridStepIntegrator::SetDriveHandler(const DriveHandler* pDH)
      }
 }
 
+doublereal HybridStepIntegrator::dGetCoef(unsigned int iDof) const
+{
+     ASSERT(iDof > 0);
+     ASSERT(iDof <= pDofs->size());
+
+     const SolverBase::StepIntegratorType eInteg = (*pDofs)[iDof - 1].StepIntegrator;
+
+     ASSERT(eInteg >= 0);
+     ASSERT(eInteg < SolverBase::INT_COUNT);
+     ASSERT(rgInteg[eInteg] != nullptr);
+
+     return rgInteg[eInteg]->dGetCoef(iDof);
+}
+
 doublereal
 HybridStepIntegrator::Advance(Solver* pS,
                               const doublereal TStep,
@@ -960,7 +979,6 @@ HybridStepIntegrator::Advance(Solver* pS,
         }
         
         SetCoef(TStep, dAph, StType);
-        UpdateCoef();
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
         pDM->AfterPredict();
@@ -1023,22 +1041,6 @@ void HybridStepIntegrator::SetCoef(doublereal dT,
 {
      for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
           rgInteg[i]->SetCoef(dT, dAlpha, NewStep);
-     }
-}
-
-void HybridStepIntegrator::UpdateCoef()
-{
-     DataManager::DofIterator_const CurrDof = pDofs->begin();
-     const integer iNumDofs = pDofs->size();
-
-     for (integer iDof = 1; iDof <= iNumDofs; ++iDof, ++CurrDof) {
-          SolverBase::StepIntegratorType eInteg = CurrDof->StepIntegrator;
-
-          ASSERT(eInteg >= 0);
-          ASSERT(eInteg < SolverBase::INT_COUNT);
-          ASSERT(rgInteg[eInteg] != nullptr);
-
-          pDM->SetStepIntegratorCoef(iDof, rgInteg[eInteg]->db0Differential);
      }
 }
 
@@ -1733,6 +1735,11 @@ bool
 InverseDynamicsStepSolver::bJacobian(void) const
 {
         return m_bJacobian;
+}
+
+doublereal InverseDynamicsStepSolver::dGetCoef(unsigned int) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
 doublereal

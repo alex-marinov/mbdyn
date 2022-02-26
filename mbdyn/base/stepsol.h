@@ -135,6 +135,8 @@ public:
 
         virtual void SetDriveHandler(const DriveHandler* pDH);
 
+        virtual doublereal dGetCoef(unsigned int iDof) const=0;
+                
         virtual doublereal
         Advance(Solver* pS,
                         const doublereal TStep,
@@ -164,7 +166,6 @@ protected:
         VectorHandler *pXCurr;
         VectorHandler *pXPrimeCurr;
         bool bModResTest;
-        virtual void UpdateCoef(doublereal dCoef);                
 
 public:
         ImplicitStepIntegrator(const integer MaxIt,
@@ -205,6 +206,8 @@ public:
 
         ~DerivativeSolver(void);
 
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+                
         doublereal
         Advance(Solver* pS,
                         const doublereal TStep,
@@ -262,6 +265,9 @@ public:
         virtual void SetCoef(doublereal dT,
                              doublereal dAlpha,
                              enum StepChange NewStep) = 0;
+
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+                
         virtual void
         SetSolution(std::deque<MyVectorHandler*>& qX,
                     std::deque<MyVectorHandler*>& qXPrime,
@@ -699,6 +705,8 @@ public:
 
         virtual void
         SetDriveHandler(const DriveHandler* pDH) override;
+
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
                 
         virtual doublereal
         Advance(Solver* pS,
@@ -724,8 +732,6 @@ public:
         void SetCoef(doublereal dT,
                      doublereal dAlpha,
                      enum StepChange NewStep);
-     
-        void UpdateCoef();
 private:
         inline void UpdateLoop(void (StepNIntegrator::*pUpdate)(const int DCount,
                                                                 const DofOrder::Order Order,
@@ -800,6 +806,8 @@ public:
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         };
 
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+                
         /* Real Advancer */
         virtual doublereal
         Advance(InverseSolver* pS,

@@ -890,17 +890,7 @@ public:
              return Dofs[iDof - 1].StepIntegrator;
         }
      
-        doublereal dGetStepIntegratorCoef(int iDof) const {
-             ASSERT(iDof > 0 && iDof <= iTotDofs);
-             
-             return Dofs[iDof - 1].dCoef;
-        }
-     
-        void SetStepIntegratorCoef(int iDof, doublereal dCoef) {
-             ASSERT(iDof > 0 && iDof <= iTotDofs);
-
-             Dofs[iDof - 1].dCoef = dCoef;
-        }
+        doublereal dGetStepIntegratorCoef(unsigned int iDof) const;
 };
 
 // if bActive is true, the cast only succeeds when driven element is active

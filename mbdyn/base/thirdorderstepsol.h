@@ -82,7 +82,8 @@ public:
 
 	/* scale factor for tests */
 //	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
-
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+     
 	virtual doublereal
 	Advance(Solver* pS, 
 			const doublereal TStep, 

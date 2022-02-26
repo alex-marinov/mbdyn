@@ -485,7 +485,6 @@ DataManager::DofOwnerInit(void)
 				pDf[iCnt].Order = (*i)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*i)->GetEqType(iCnt);
                                 pDf[iCnt].StepIntegrator = (*i)->GetStepIntegrator(iCnt);
-                                pDf[iCnt].dCoef = 1.;
 
                                 switch (pDf[iCnt].StepIntegrator) {
                                 case SolverBase::INT_DEFAULT:
@@ -604,7 +603,6 @@ DataManager::DofOwnerInit(void)
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
                                         pDf[iCnt].StepIntegrator = pEWD->GetStepIntegrator(iCnt);
-                                        pDf[iCnt].dCoef = 1.;
                                         
                                         switch (pDf[iCnt].StepIntegrator) {
                                         case SolverBase::INT_DEFAULT:
@@ -2819,6 +2817,12 @@ DataManager::SetBufOutRaw(unsigned uL, integer n, const doublereal *p)
 	}
 
 	pBSE->SetBufRaw(n, p);
+}
+
+doublereal DataManager::dGetStepIntegratorCoef(unsigned int iDof) const {
+     ASSERT(iDof > 0 && iDof <= Dofs.size());
+     
+     return GetSolver()->pGetStepIntegrator()->dGetCoef(iDof);
 }
 
 /* DataManager - end */
