@@ -1290,7 +1290,8 @@ namespace {
                             const SpColVector<doublereal, 2>& x,
                             HydroMesh* pParent,
                             doublereal T0,
-                            bool bDoInitAss);
+                            bool bDoInitAss,
+                            SolverBase::StepIntegratorType eStepInteg);
           virtual ~ThermalActiveNode();
 
           virtual void GetTemperature(doublereal& T, doublereal=0.) const;
@@ -1312,7 +1313,7 @@ namespace {
           virtual unsigned int iGetInitialNumDof(void) const;
           virtual DofOrder::Order GetDofType(unsigned int i) const;
           virtual DofOrder::Order GetEqType(unsigned int i) const;
-
+          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
           virtual std::ostream&
           DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
 
@@ -1324,6 +1325,7 @@ namespace {
           doublereal T, dT_dt;
           const doublereal s;
           const bool bDoInitAss;
+          const SolverBase::StepIntegratorType eStepInteg;
      };
 
      class ThermalCoupledNode: public ThermoHydrNode {
@@ -1360,7 +1362,8 @@ namespace {
                            const SpColVector<doublereal, 2>& x,
                            HydroMesh* pParent,
                            ThermalNode* pExtThermNode,
-                           bool bDoInitAss);
+                           bool bDoInitAss,
+                           SolverBase::StepIntegratorType eStepInteg);
 
           virtual ~ThermalInletNode();
 
@@ -1912,7 +1915,8 @@ namespace {
                                HydroMesh* pParent,
                                ContactModel* pContactModel,
                                std::unique_ptr<FrictionModel>&& pFrictionModel,
-                               const std::array<SolverBase::StepIntegratorType,iNumDofMax>& rgStepInteg,
+                               SolverBase::StepIntegratorType eIntegPressure,
+                               SolverBase::StepIntegratorType eIntegDensity,
                                bool bLineSearchControl);
           virtual ~HydroActiveComprNode();
 
@@ -3936,7 +3940,14 @@ namespace {
                CENT_DIFF_5
           } eElemType;
 
-          std::array<SolverBase::StepIntegratorType, HydroActiveComprNode::iNumDofMax> rgStepInteg;
+          enum StepIntegratorIndex {
+               INT_PRESSURE,
+               INT_DENSITY,
+               INT_TEMPERATURE,
+               INT_COUNT
+          };
+          
+          std::array<SolverBase::StepIntegratorType, INT_COUNT> rgStepInteg;
           bool bLineSearchControl;
      };
 
@@ -7533,13 +7544,15 @@ namespace {
                                           const SpColVector<doublereal, 2>& x,
                                           HydroMesh* pParent,
                                           doublereal T0,
-                                          bool bDoInitAss)
+                                          bool bDoInitAss,
+                                          SolverBase::StepIntegratorType eStepInteg)
           :ThermoHydrNode(iNodeNo, x, pParent, ACTIVE_NODE | MASTER_NODE),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
            T(T0),
            dT_dt(0.),
            s(pParent->pGetParent()->dGetScale(HydroRootElement::SCALE_TEMPERATURE_DOF)),
-           bDoInitAss(bDoInitAss)
+           bDoInitAss(bDoInitAss),
+           eStepInteg(eStepInteg)
      {
      }
 
@@ -7555,7 +7568,9 @@ namespace {
      void ThermalActiveNode::GetTemperature(SpGradient& T, doublereal dCoef) const
      {
           if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
-               T.Reset(this->T, iGetFirstDofIndex(eCurrFunc), -dCoef * s);
+               const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc);
+               dCoef = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
+               T.Reset(this->T, iDofIndex, -dCoef * s);
           } else {
                T.ResizeReset(this->T, 0);
           }
@@ -7656,6 +7671,11 @@ namespace {
           return GetDofType(i);
      }
 
+     SolverBase::StepIntegratorType ThermalActiveNode::GetStepIntegrator(unsigned int) const
+     {
+          return eStepInteg;
+     }
+     
      std::ostream&
      ThermalActiveNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
      {
@@ -7757,8 +7777,9 @@ namespace {
                                         const SpColVector<doublereal, 2>& x,
                                         HydroMesh* pParent,
                                         ThermalNode* pExtThermNode,
-                                        bool bDoInitAss)
-          :ThermalActiveNode(iNodeNo, x, pParent, pExtThermNode->dGetX(), bDoInitAss),
+                                        bool bDoInitAss,
+                                        SolverBase::StepIntegratorType eStepInteg)
+          :ThermalActiveNode(iNodeNo, x, pParent, pExtThermNode->dGetX(), bDoInitAss, eStepInteg),
            oInletNode(iNodeNo, x, pParent, pExtThermNode)
      {
 
@@ -9290,7 +9311,8 @@ namespace {
                                                 HydroMesh* pParent,
                                                 ContactModel* pContactModel,
                                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                                const std::array<SolverBase::StepIntegratorType, iNumDofMax>& rgStepInteg,
+                                                SolverBase::StepIntegratorType eIntegPressure,
+                                                SolverBase::StepIntegratorType eIntegDensity,
                                                 bool bLineSearchControl)
           :HydroCompressibleNode(iNodeNo,
                                  x,
@@ -9299,7 +9321,7 @@ namespace {
                                  std::move(pFrictionModel),
                                  ACTIVE_NODE),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
-           rgStepInteg(rgStepInteg),
+           rgStepInteg{eIntegPressure, eIntegDensity},
            bLineSearchControl(bLineSearchControl)
      {
           std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
@@ -19940,7 +19962,7 @@ namespace {
            M(0),
            N(0),
            eElemType(CENT_DIFF_5),
-           rgStepInteg{SolverBase::INT_IMPLICITEULER, SolverBase::INT_CRANKNICOLSON},
+           rgStepInteg{SolverBase::INT_IMPLICITEULER, SolverBase::INT_CRANKNICOLSON, SolverBase::INT_CRANKNICOLSON},
            bLineSearchControl(false)
      {
      }
@@ -19963,9 +19985,11 @@ namespace {
                }
           }
 
-          static constexpr char rgStepIntegName[][25] = {{"pressure" "step" "integrator"},{"density" "step" "integrator"}};
+          static constexpr char rgStepIntegName[INT_COUNT][26] = {{"pressure" "step" "integrator"},
+                                                                  {"density" "step" "integrator"},
+                                                                  {"temperature" "step" "integrator"}};
 
-          for (index_type i = 0; i < HydroActiveComprNode::iNumDofMax; ++i) {
+          for (index_type i = 0; i < INT_COUNT; ++i) {
                if (HP.IsKeyWord(rgStepIntegName[i])) {
                     if (HP.IsKeyWord("default")) {
                          rgStepInteg[i] = SolverBase::INT_DEFAULT;
@@ -20388,7 +20412,8 @@ namespace {
                                                                    this,
                                                                    pContact.get(),
                                                                    std::move(pFrictionNode),
-                                                                   rgStepInteg,
+                                                                   rgStepInteg[INT_PRESSURE],
+                                                                   rgStepInteg[INT_DENSITY],
                                                                    bLineSearchControl));
                          }
                     } else if (pCoupling != nullptr) {
@@ -20608,7 +20633,8 @@ namespace {
                                                                 x,
                                                                 this,
                                                                 T0,
-                                                                bInitAssThermal));
+                                                                bInitAssThermal,
+                                                                rgStepInteg[INT_TEMPERATURE]));
                          } else if (pCoupling != nullptr) {
                               HYDRO_ASSERT(pCoupling->pGetThermalNode() != nullptr);
 
@@ -20616,7 +20642,8 @@ namespace {
                                                                x,
                                                                this,
                                                                pCoupling->pGetThermalNode(),
-                                                               bInitAssThermal));
+                                                               bInitAssThermal,
+                                                               rgStepInteg[INT_TEMPERATURE]));
                          } else {
                               pNode.reset(new ThermalPassiveNode(iNodeIndex,
                                                                  x,
