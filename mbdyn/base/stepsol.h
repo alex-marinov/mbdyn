@@ -62,7 +62,6 @@
 #include <cfloat>
 #include <cmath>
 #include <deque>
-#include <memory>
 
 /* per il debugging */
 #include "myassert.h"
@@ -136,7 +135,7 @@ public:
         virtual void SetDriveHandler(const DriveHandler* pDH);
 
         virtual doublereal dGetCoef(unsigned int iDof) const=0;
-                
+
         virtual doublereal
         Advance(Solver* pS,
                         const doublereal TStep,
@@ -156,7 +155,7 @@ public:
 class FakeStepIntegrator: public StepIntegrator {
 public:
        explicit FakeStepIntegrator(doublereal dCoef);
-                
+
        virtual doublereal dGetCoef(unsigned int iDof) const override;
 
        void SetCoef(doublereal dCoefCurr) {
@@ -178,7 +177,7 @@ public:
 private:
       doublereal dCoef;
 };
-        
+
 class ImplicitStepIntegrator:
         public StepIntegrator,
         public NonlinearProblem
@@ -235,7 +234,7 @@ public:
         ~DerivativeSolver(void);
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-                
+
         doublereal
         Advance(Solver* pS,
                         const doublereal TStep,
@@ -295,12 +294,12 @@ public:
                              enum StepChange NewStep) = 0;
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-                
+
         virtual void
         SetSolution(std::deque<MyVectorHandler*>& qX,
                     std::deque<MyVectorHandler*>& qXPrime,
                     MyVectorHandler* pX,
-                    MyVectorHandler* pXPrime) = 0;                
+                    MyVectorHandler* pXPrime) = 0;
 };
 
 /* classe di base per gli integratori del second'ordine */
@@ -331,7 +330,7 @@ public:
                         integer& EffIter,
                         doublereal& Err,
                         doublereal& SolErr);
-                
+
         virtual void
         SetSolution(std::deque<MyVectorHandler*>& qX,
                     std::deque<MyVectorHandler*>& qXPrime,
@@ -500,7 +499,7 @@ public:
                         integer& EffIter,
                         doublereal& Err,
                         doublereal& SolErr);
-                
+
         virtual void
         SetSolution(std::deque<MyVectorHandler*>& qX,
                     std::deque<MyVectorHandler*>& qXPrime,
@@ -715,6 +714,10 @@ protected:
 
 /* Hope - end */
 
+// The hybrid step integrator allows elements to choose different integration methods for each degree of freedom.
+// Simulation entities using this integrator must overwrite SimulationEntity::GetStepIntegrator.
+// In that case it is required to call DataManager::dGetStepIntegratorCoef in order to obtain the correct value for dCoef.
+
 class HybridStepIntegrator: public ImplicitStepIntegrator
 {
 public:
@@ -735,7 +738,7 @@ public:
         SetDriveHandler(const DriveHandler* pDH) override;
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-                
+
         virtual doublereal
         Advance(Solver* pS,
                 const doublereal TStep,
@@ -771,9 +774,9 @@ private:
         ImplicitEulerIntegrator oImplicitEulerIntegrator;
         CrankNicolsonIntegrator oCrankNicolsonIntegrator;
         MultistepSolver oMultistepSolver;
-        HopeSolver oHopeSolver;                
+        HopeSolver oHopeSolver;
 };
-        
+
 /* InverseDynamics - Begin*/
 
 class InverseDynamicsStepSolver:
@@ -835,7 +838,7 @@ public:
         };
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-                
+
         /* Real Advancer */
         virtual doublereal
         Advance(InverseSolver* pS,

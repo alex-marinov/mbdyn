@@ -3946,7 +3946,7 @@ namespace {
                INT_TEMPERATURE,
                INT_COUNT
           };
-          
+
           std::array<SolverBase::StepIntegratorType, INT_COUNT> rgStepInteg;
           bool bLineSearchControl;
      };
@@ -7675,7 +7675,7 @@ namespace {
      {
           return eStepInteg;
      }
-     
+
      std::ostream&
      ThermalActiveNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
      {
@@ -9371,7 +9371,7 @@ namespace {
                     const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
                     const doublereal dCoef = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
                     Theta[i].Reset(rgState[0].Theta[i], iDofIndex, -dCoef * s[i]);
-               }               
+               }
                break;
           case SpFunctionCall::INITIAL_ASS_FLAG: {
                HYDRO_ASSERT(dCoefDef == 1.);
@@ -9382,7 +9382,7 @@ namespace {
           } break;
           default:
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-          }          
+          }
      }
 
      void HydroActiveComprNode::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal) const
@@ -9630,7 +9630,7 @@ namespace {
                     static constexpr doublereal rgThetaLimit[iNumDofMax][2] = {{0., std::numeric_limits<doublereal>::max()}, {0., 1.}};
                     static constexpr doublereal rgLambdaFactor[iNumDofMax][2] = {{1. + dLamEps, 0.}, {1. - dLamEps, 1. + dLamEps}};
                     static constexpr doublereal dLambdaMin = 1e-3;
-                    
+
                     if (rgState[0].eCavitationState != oPrevState.eCavitationState) {
                          const index_type i = oPrevState.eCavitationState == HydroFluid::FULL_FILM_REGION ? 0 : 1;
                          doublereal dLambdaLimit = 1.;

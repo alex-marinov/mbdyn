@@ -123,12 +123,12 @@ FakeStepIntegrator::FakeStepIntegrator(doublereal dCoef)
       dCoef(dCoef)
 {
 }
-                
+
 doublereal FakeStepIntegrator::dGetCoef(unsigned int iDof) const
 {
      return dCoef;
 }
-                
+
 doublereal
 FakeStepIntegrator::Advance(Solver* pS,
                const doublereal TStep,
@@ -142,7 +142,9 @@ FakeStepIntegrator::Advance(Solver* pS,
                doublereal& Err,
                doublereal& SolErr)
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     ASSERT(0);
+
+     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 #include "stepsol.hc"
@@ -604,7 +606,7 @@ doublereal StepNIntegrator::TestScale(const NonlinearSolverTest *pTest, doublere
 doublereal StepNIntegrator::dGetCoef(unsigned int iDof) const {
      ASSERT(iDof > 0);
      ASSERT(iDof <= pDofs->size());
-     
+
      switch ((*pDofs)[iDof - 1].Order) {
      case DofOrder::DIFFERENTIAL:
           return db0Differential;
@@ -637,7 +639,7 @@ Step1Integrator::~Step1Integrator(void)
 
 void
 Step1Integrator::SetSolution(std::deque<MyVectorHandler*>& qX,
-                             std::deque<MyVectorHandler*>& qXPrime,         
+                             std::deque<MyVectorHandler*>& qXPrime,
                              MyVectorHandler* pX,
                              MyVectorHandler* pXPrime)
 {
@@ -645,7 +647,7 @@ Step1Integrator::SetSolution(std::deque<MyVectorHandler*>& qX,
         pXPrev  = qX[0];
 
         pXPrimeCurr  = pXPrime;
-        pXPrimePrev  = qXPrime[0];     
+        pXPrimePrev  = qXPrime[0];
 }
 
 /* predizione valida per tutti i metodi del second'ordine
@@ -835,7 +837,7 @@ Step2Integrator::Predict(void)
 
 void
 Step2Integrator::SetSolution(std::deque<MyVectorHandler*>& qX,
-                             std::deque<MyVectorHandler*>& qXPrime,         
+                             std::deque<MyVectorHandler*>& qXPrime,
                              MyVectorHandler* pX,
                              MyVectorHandler* pXPrime)
 {
@@ -845,7 +847,7 @@ Step2Integrator::SetSolution(std::deque<MyVectorHandler*>& qX,
 
         pXPrimeCurr  = pXPrime;
         pXPrimePrev  = qXPrime[0];
-        pXPrimePrev2 = qXPrime[1];        
+        pXPrimePrev2 = qXPrime[1];
 }
 
 doublereal
@@ -955,8 +957,7 @@ HybridStepIntegrator::~HybridStepIntegrator()
 
 void HybridStepIntegrator::SetDataManager(DataManager* pDataMan)
 {
-     pDM = pDataMan;
-     pDofs = &pDM->GetDofs();
+     ImplicitStepIntegrator::SetDataManager(pDataMan);
      
      for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
           rgInteg[i]->SetDataManager(pDataMan);
@@ -965,6 +966,8 @@ void HybridStepIntegrator::SetDataManager(DataManager* pDataMan)
 
 void HybridStepIntegrator::SetDriveHandler(const DriveHandler* pDH)
 {
+     ImplicitStepIntegrator::SetDriveHandler(pDH);
+     
      for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
           rgInteg[i]->SetDriveHandler(pDH);
      }
@@ -997,14 +1000,14 @@ HybridStepIntegrator::Advance(Solver* pS,
                               doublereal& SolErr)
 {
         ASSERT(pDM != NULL);
-        
+
         pXCurr = pX;
         pXPrimeCurr = pXPrime;
-        
+
         for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
              rgInteg[i]->SetSolution(qX, qXPrime, pX, pXPrime);
         }
-        
+
         SetCoef(TStep, dAph, StType);
         Predict();
         pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
