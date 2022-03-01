@@ -66,7 +66,7 @@ void ReportMatScale(const char* title, bool fOK, const MatrixScaleBase& matScale
 template<typename T>
 void ScaleMatrix(const char* title, MatrixScale<T>& matScale, T& mh, const VectorHandler& x, const VectorHandler& b, bool bTrans = false)
 {
-     constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.5);
+     const doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.5);
 
      MyVectorHandler xo(mh.iGetNumCols()), xs(mh.iGetNumCols());
      MyVectorHandler bo(mh.iGetNumRows()), bs(mh.iGetNumRows());

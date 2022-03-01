@@ -243,7 +243,6 @@ public:
 		const SRSModel m_SRSModel)
 	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
 	m_SRSModel(m_SRSModel), Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta),
-	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength), SRSGamma(SRSGamma), SRSDelta(SRSDelta), m_SRSModel(m_SRSModel),
 	SRSf(0), SRSdfdx(0)
 	{
 		NO_OP;

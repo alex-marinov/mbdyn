@@ -608,7 +608,7 @@ namespace sp_grad_test {
                SpMatrix<doublereal, 3, 3> Lsp1 = bsp * Transpose(bsp);
                SpMatrix<doublereal, SpMatrixSize::DYNAMIC, SpMatrixSize::DYNAMIC> Lsp2 = bspn * Transpose(bspn);
 
-               constexpr doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+               const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
                sp_grad_assert_equal(nx.dGetValue(), 1.0, dTol);
 
@@ -1006,7 +1006,7 @@ namespace sp_grad_test {
           doublereal e = randval(gen), fVal;
           index_type unz = 0, vnz = 0, wnz = 0;
           index_type fnz = 0, f2nz = 0, funz = 0, f2unz = 0, fcnz = 0;
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
           vector<doublereal> ud, vd, wd, fd, work;
           duration<long long, ratio<1L, 1000000000L> > sp_grad_time(0), sp_grad_compr_time(0), sp_grad2_time(0), c_full_time(0);
 
@@ -1270,7 +1270,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           vector<TA> A;
           vector<TB> B;
@@ -1495,7 +1495,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<TA,TX>::Type TB;
           vector<TA> A;
@@ -1854,7 +1854,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TD;
 
@@ -2018,7 +2018,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TD;
 
@@ -2208,7 +2208,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<TA, TB>::Type TC;
 #ifdef USE_AUTODIFF
@@ -2477,7 +2477,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TD;
 
@@ -2647,7 +2647,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<typename util::ResultType<TA, TB>::Type, TC>::Type TD;
 
@@ -2926,7 +2926,7 @@ namespace sp_grad_test {
 
                sp_grad_time += high_resolution_clock::now() - start;
 
-               constexpr doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+               const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
                sp_grad_assert_equal(q1, q2, dTol);
                sp_grad_assert_equal(q1, q3, dTol);
@@ -3028,7 +3028,7 @@ namespace sp_grad_test {
 
           gen.seed(0);
 
-          constexpr doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
+          const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           SpMatrix<T, 3, 3> R(3, 3, inumnz), R2(3, 3, inumnz);
           SpColVector<T, 3> Phi(3, inumnz), Phi2(3, inumnz);
@@ -3071,7 +3071,7 @@ namespace sp_grad_test {
           const integer iNumRows = imatrows;
           const integer iNumCols = imatcols;
 
-          constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
+          const doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
 
           uniform_int_distribution<index_type> randdof(1, iNumCols);
 
