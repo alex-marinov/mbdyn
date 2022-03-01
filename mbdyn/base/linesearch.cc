@@ -1217,7 +1217,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
 
 			 bool bSkip = true;
 
-			 constexpr auto EPS = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
+			 const auto EPS = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
 
 			 for (integer i = 1; i <= Size; ++i) {
 			      if (fabs(w(i)) >= EPS * (fabs(FCurr(i)) + fabs(FPrev(i)))) {
