@@ -41,7 +41,9 @@ wsmpwrap.h \
 qrwrap.h \
 qrwrap.cc \
 strumpackwrap.h \
-strumpackwrap.cc
+strumpackwrap.cc \
+aztecoowrap.h \
+aztecoowrap.cc
 
 if USE_CHACO
 libmbwrap_la_SOURCES += \

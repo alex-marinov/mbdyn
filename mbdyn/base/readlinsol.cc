@@ -57,6 +57,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 ::solver[LinSol::SPQR_SOLVER].s_name,
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		::solver[LinSol::WATSON_SOLVER].s_name,
+                ::solver[LinSol::AZTECOO_SOLVER].s_name,
 		NULL
 	};
 
@@ -78,7 +79,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 SPQR,
 		STRUMPACK,
 		WATSON,
-		
+		AZTECOO,
 		LASTKEYWORD
 	};
 
@@ -244,7 +245,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	     bGotIt = true;
 #endif
 	     break;
-	     
+        case AZTECOO:
+             cs.SetSolver(LinSol::AZTECOO_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using AztecOO solver\n");
+#ifdef USE_TRILINOS
+             bGotIt = true;
+#endif
+             break;
+             
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -757,6 +765,12 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			}
 	}
 
+        if (HP.IsKeyWord("tolerance")) {
+             if (!cs.SetTolerance(HP.GetReal())) {
+                  silent_cerr("Warning: refinement tolerance is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << "\n");
+             }
+        }
+        
 	if (HP.IsKeyWord("max" "iterations")) {
 		if (!cs.SetMaxIterations(HP.GetInt())) {
 			silent_cerr("Warning: iterative refinement is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);

@@ -42,8 +42,6 @@
 /* FullMatrixHandler - begin */
 
 class FullMatrixHandler : public MatrixHandler {
-	friend std::ostream&
-	operator << (std::ostream& out, const FullMatrixHandler& m);
 	friend std::ostream& Write(std::ostream& out,
 		const FullMatrixHandler& m,
 		const char* s, const char* s2);
@@ -600,9 +598,6 @@ public:
 		integer source_start_col, integer source_end_col);
         virtual FullMatrixHandler* Copy() const override;
 };
-
-extern std::ostream&
-operator << (std::ostream& out, const FullMatrixHandler& m);
 
 extern std::ostream& Write(std::ostream& out,
 	const FullMatrixHandler& m,

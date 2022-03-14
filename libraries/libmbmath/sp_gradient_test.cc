@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2020(-2020) all rights reserved.
+  Copyright (C) 2020(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -68,6 +68,13 @@
 #include "sp_gradient_op.h"
 #include "sp_matvecass.h"
 #include "sp_gradient_spmh.h"
+
+#ifdef USE_TRILINOS
+#undef HAVE_BLAS
+#include "epetravh.h"
+#include "epetraspmh.h"
+#include <Epetra_SerialComm.h>
+#endif
 
 #ifdef USE_AUTODIFF
 #include "gradient.h"
@@ -3083,7 +3090,12 @@ namespace sp_grad_test {
           SpGradientSparseMatrixHandler oSpMatHd(iNumRows, iNumCols);
           FullMatrixHandler oFullMatHd(iNumRows, iNumCols);
           MyVectorHandler X(iNumCols), Y(iNumRows), Z1(iNumRows), W1(iNumCols), Z2(iNumRows), W2(iNumCols);
-
+#ifdef USE_TRILINOS
+          Epetra_SerialComm Comm;
+          EpetraVectorHandler Xep(iNumCols, Comm), Yep(iNumRows, Comm), Zep(iNumRows, Comm), Wep(iNumCols, Comm);
+          EpetraSparseMatrixHandler oEpMatHd(iNumRows, iNumCols, 5 * inumnz, Comm);
+#endif
+          
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
                integer k = randadd(gen);
 
@@ -3102,10 +3114,16 @@ namespace sp_grad_test {
 
                for (integer j = 1; j <= iNumCols; ++j) {
                     sp_grad_rand_gen(X(j), randnz, randdof, randval, gen);
+#ifdef USE_TRILINOS
+                    Xep(j) = X(j);
+#endif
                }
 
                for (integer i = 1; i <= iNumRows; ++i) {
                     sp_grad_rand_gen(Y(i), randnz, randdof, randval, gen);
+#ifdef USE_TRILINOS
+                    Yep(i) = Y(i);
+#endif
                }
 
                for (index_type i = 1; i <= X1.iGetNumRows(); ++i) {
@@ -3133,18 +3151,20 @@ namespace sp_grad_test {
 
                oSpMatHd.Reset();
                oFullMatHd.Reset();
-
+#ifdef USE_TRILINOS
+               oEpMatHd.Reset();
+#endif
                for (integer i = 0; i < k; ++i) {
                     oSpMatHd += oSubMat1;
                     oFullMatHd += oSubMat1;
+#ifdef USE_TRILINOS
+                    oEpMatHd += oSubMat1;
+#endif
                     oSpMatHd += oSubMat2;
                     oFullMatHd += oSubMat2;
-               }
-
-               for (index_type j = 1; j <= oFullMatHd.iGetNumCols(); ++j) {
-                    for (index_type i = 1; i <= oFullMatHd.iGetNumRows(); ++i) {
-                         sp_grad_assert_equal(oFullMatHd(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
-                    }
+#ifdef USE_TRILINOS
+                    oEpMatHd += oSubMat2;
+#endif
                }
 
                std::vector<integer> Ai, Ap;
@@ -3152,6 +3172,36 @@ namespace sp_grad_test {
 
                oSpMatHd.MakeCompressedColumnForm(Ax, Ai, Ap, 1);
 
+               const auto& oSpMatHdConst = oSpMatHd; // FIXME: operator() is not defined for non constant matrix
+
+#ifdef USE_TRILINOS
+               std::vector<integer> Aepi, Aepp;
+               std::vector<doublereal> Aepx;
+               
+               oEpMatHd.MakeCompressedColumnForm(Aepx, Aepi, Aepp, 1);
+
+               const auto& oEpMatHdConst = oEpMatHd; // FIXME: operator() is not defined for non constant matrix
+#endif
+               
+               for (index_type j = 1; j <= oFullMatHd.iGetNumCols(); ++j) {
+                    for (index_type i = 1; i <= oFullMatHd.iGetNumRows(); ++i) {
+                         sp_grad_assert_equal(oFullMatHd(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
+                         sp_grad_assert_equal(oSpMatHdConst(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
+#ifdef USE_TRILINOS
+                         sp_grad_assert_equal(oEpMatHdConst(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
+#endif
+                    }
+               }               
+#ifdef USE_TRILINOS
+               for (size_t i = 0; i < Ax.size(); ++i) {
+                    sp_grad_assert_equal(Aepx[i], Ax[i], dTol);
+                    assert(Ai[i] == Aepi[i]);
+               }
+
+               for (size_t i = 0; i < Ap.size(); ++i) {
+                    assert(Ap[i] == Aepp[i]);
+               }
+#endif               
                const CColMatrixHandler<1> oMatCC1(Ax, Ai, Ap);
 
                for (index_type j = 1; j <= oMatCC1.iGetNumCols(); ++j) {
@@ -3172,29 +3222,52 @@ namespace sp_grad_test {
                     }
                }
 
-               Z1.Reset();
+#ifdef USE_TRILINOS
+               const CColMatrixHandler<1> oMatCCep1(Aepx, Aepi, Aepp);
+
+               for (index_type j = 1; j <= oMatCCep1.iGetNumCols(); ++j) {
+                    // FIXME: CColMatrixHandler always assumes a square matrix
+                    for (index_type i = 1; i <= std::min(A.iGetNumRows(), oMatCCep1.iGetNumRows()); ++i) {
+                         sp_grad_assert_equal(oMatCCep1(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
+                    }
+               }
+#endif           
                oSpMatHd.MatVecMul(Z1, X);
 
-               Z2.Reset();
                oFullMatHd.MatVecMul(Z2, X);
 
-               W1.Reset();
-               oSpMatHd.MatTVecDecMul(W1, Y);
+#ifdef USE_TRILINOS
+               oEpMatHd.MatVecMul(Zep, Xep);
+#endif
+               oSpMatHd.MatTVecMul(W1, Y);
 
-               W2.Reset();
-               oFullMatHd.MatTVecDecMul(W2, Y);
-
+               oFullMatHd.MatTVecMul(W2, Y);
+               
+#ifdef USE_TRILINOS
+               oEpMatHd.MatTVecMul(Wep, Yep);
+#endif
                for (integer i = 1; i <= iNumRows; ++i) {
-                    sp_grad_assert_equal(Z1(i), Z2(i), dTol);
+                    sp_grad_assert_equal(Z1(i), Z2(i), dTol * Z2.Norm());
+#ifdef USE_TRILINOS
+                    sp_grad_assert_equal(Zep(i), Z2(i), dTol * Z2.Norm());
+#endif
                }
 
                for (integer j = 1; j <= iNumCols; ++j) {
-                    sp_grad_assert_equal(W1(j), W2(j), dTol);
+                    sp_grad_assert_equal(W1(j), W2(j), dTol * W2.Norm());
+#ifdef USE_TRILINOS
+                    sp_grad_assert_equal(Wep(j), W2(j), dTol * W2.Norm());
+#endif
                }
           }
 
+          std::cout.precision(4);
+          std::cout.setf(std::ios::fixed | std::ios::dec);
           std::cout << "gradient matrix handler:\n" << oSpMatHd << std::endl;
           std::cout << "full matrix handler:\n" << oFullMatHd << std::endl;
+#ifdef USE_TRILINOS
+          std::cout << "epetra matrix handler:\n" << oEpMatHd << std::endl;
+#endif
      }
 
 }
@@ -3212,7 +3285,7 @@ int main(int argc, char* argv[])
           const index_type inumnz = argc > 2 ? atoi(argv[2]) : 100;
           const index_type inumdof = argc > 3 ? atoi(argv[3]) : 200;
           const index_type imatrows = argc > 4 ? atoi(argv[4]) : 10;
-          const index_type imatcols = argc > 5 ? atoi(argv[5]) : 8;
+          const index_type imatcols = argc > 5 ? atoi(argv[5]) : 10;
           const index_type imatcolsb = argc > 6 ? atoi(argv[6]) : 5;
           const index_type imatcolsc = argc > 7 ? atoi(argv[7]) : 7;
 

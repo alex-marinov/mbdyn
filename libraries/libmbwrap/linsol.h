@@ -56,6 +56,7 @@ public:
                 SPQR_SOLVER,
 		STRUMPACK_SOLVER,
 		WATSON_SOLVER,
+                AZTECOO_SOLVER,
 		LAST_SOLVER
 	};
 
@@ -179,7 +180,7 @@ protected:
 	 *  Umfpack
 	 */
 	integer iMaxIter;
-
+        doublereal dTolRes;
         integer iVerbose;
 public:
 	static SolverType defaultSolver;
@@ -213,6 +214,7 @@ public:
         bool SetLowRankCompressTol(const doublereal& d);
 	bool SetLowRankCompressMinRatio(const doublereal& d);
 	bool SetMaxIterations(integer iMaxIter);
+        bool SetTolerance(doublereal dToleranceRes);
         bool SetVerbose(integer iVerb);
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;

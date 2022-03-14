@@ -59,7 +59,11 @@ submat.cc \
 submat.h \
 tpls.h \
 vh.cc \
-vh.h
+vh.h \
+epetravh.h \
+epetravh.cc \
+epetraspmh.h \
+epetraspmh.cc
 
 if USE_AUTODIFF
 libmbmath_la_SOURCES += \
