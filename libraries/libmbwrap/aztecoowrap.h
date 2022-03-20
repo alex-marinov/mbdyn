@@ -42,46 +42,14 @@
 #define ___AZTEC_OO_SOLUTION_MANAGER_H__INCLUDED__
 
 #ifdef USE_TRILINOS
+
 #include "solman.h"
-#undef HAVE_BLAS // FIXME: mbconfig.h should not be included from solman.h
-#undef HAVE_BOOL
-#include "epetravh.h"
-#include "epetraspmh.h"
-#include <Epetra_SerialComm.h>
-#include <Epetra_LinearProblem.h>
-#include <AztecOO.h>
 
-class AztecOOSolutionManager: public SolutionManager {
-public:
-     AztecOOSolutionManager(integer Dim, integer iMaxIter, doublereal dTol, integer iVerbose);
-
-     virtual ~AztecOOSolutionManager(void);
-
-#ifdef DEBUG
-     virtual void IsValid(void) const override;
-#endif
-
-     virtual void MatrReset(void) override;
-
-     virtual void Solve(void) override;
-
-     virtual MatrixHandler* pMatHdl(void) const override;
-
-     virtual VectorHandler* pResHdl(void) const override;
-
-     virtual VectorHandler* pSolHdl(void) const override;
-
-     virtual bool bGetConditionNumber(doublereal& dCond) const override;
-     
-private:
-     Epetra_SerialComm Comm;
-     mutable EpetraVectorHandler x, b;
-     mutable EpetraSparseMatrixHandler A;
-     Epetra_LinearProblem problem;
-     AztecOO solver;
-     const integer iMaxIter;
-     const doublereal dTol;
-};
-
+SolutionManager*
+pAllocateAztecOOSolutionManager(integer iNLD,
+                                integer iMaxIter,
+                                doublereal dTolRes,
+                                integer iVerbose,
+                                unsigned uPrecondFlag);
 #endif
 #endif

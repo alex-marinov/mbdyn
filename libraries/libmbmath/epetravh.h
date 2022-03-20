@@ -109,10 +109,9 @@ public:
 
      virtual doublereal InnerProd(const VectorHandler& VH) const;
 
-     operator Epetra_Vector*() { return &oEPV; }
-     operator const Epetra_Vector*() const { return &oEPV; }
+     const Epetra_Vector* pGetEpetraVector() const { return &oEPV; }
+     Epetra_Vector* pGetEpetraVector() { return &oEPV; }
 private:
-     Epetra_Map oMap;
      Epetra_Vector oEPV;
 };
 

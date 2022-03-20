@@ -100,33 +100,7 @@ void EpetraSparseMatrixHandler::Reset()
      IsValid();
 #endif
      
-     if (oEPM.Filled()) {
-          integer* rowptr;
-          integer* colind;
-          doublereal* values;
-
-          ExtractCrsDataPointers(rowptr, colind, values);
-          
-          std::vector<integer> rowSize;
-
-          rowSize.reserve(NRows);
-
-          for (integer i = 0; i < NRows; ++i) {
-               rowSize.push_back(rowptr[i + 1] - rowptr[i]);
-          }
-
-          Epetra_Map oMapRows(NRows, 1, oComm);
-          Epetra_Map oMapCols(NCols, 1, oComm);
-          
-          oCscT = CSCMatrixHandlerTpl<doublereal, integer, 0>();
-
-          oEPM.~Epetra_CrsMatrix();
-          new (&oEPM) Epetra_CrsMatrix(::Copy, oMapRows, oMapCols, &rowSize.front());
-     } else {
-          oEPM.PutScalar(0.);
-     }
-     
-     ASSERT(!oEPM.Filled());
+     oEPM.PutScalar(0.);
 
 #ifdef DEBUG
      IsValid();
@@ -149,7 +123,7 @@ EpetraSparseMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRo
      return GetTransposedCSC().MatVecMul_base(op, out, in);
 }
 
-void EpetraSparseMatrixHandler::FillComplete() const
+integer EpetraSparseMatrixHandler::PacMat()
 {
 #ifdef DEBUG
      IsValid();
@@ -169,6 +143,8 @@ void EpetraSparseMatrixHandler::FillComplete() const
 #ifdef DEBUG
      IsValid();
 #endif
+
+     return Nz();
 }
 
 EpetraSparseMatrixHandler::const_iterator EpetraSparseMatrixHandler::begin() const {
@@ -340,7 +316,7 @@ int32_t EpetraSparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublere
                                                             std::vector<int32_t>& Ap,
                                                             int offset) const
 {
-     FillComplete(); // FillComplete must be called before Nz()
+     PacMat(); // must be called before Nz()
 
      Ai.resize(Nz());
      Ax.resize(Nz());
@@ -355,7 +331,7 @@ int64_t EpetraSparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublere
                                                             std::vector<int64_t>& Ap,
                                                             int offset) const
 {
-     FillComplete(); // FillComplete must be called before Nz()
+     PacMat(); // must be called before Nz()
 
      Ai.resize(Nz());
      Ax.resize(Nz());
@@ -421,7 +397,7 @@ int32_t EpetraSparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>
                                                          std::vector<int32_t>& Ap,
                                                          int offset) const
 {
-     FillComplete(); // Must be called before Nz()
+     PacMat(); // Must be called before Nz()
 
      Ai.resize(Nz());
      Ax.resize(Nz());
@@ -435,7 +411,7 @@ int64_t EpetraSparseMatrixHandler::MakeCompressedRowForm(std::vector<doublereal>
                                                          std::vector<int64_t>& Ap,
                                                          int offset) const
 {
-     FillComplete(); // Must be called before Nz()
+     PacMat(); // Must be called before Nz()
 
      Ai.resize(Nz());
      Ax.resize(Nz());
@@ -561,7 +537,7 @@ void EpetraSparseMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallb
 #ifdef DEBUG
      IsValid();
 #endif
-     FillComplete();
+     PacMat();
      
      integer* rowptr;
      integer* colind;

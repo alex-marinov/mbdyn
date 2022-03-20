@@ -416,7 +416,7 @@ main(int argc, char* argv[])
 #ifdef USE_TRILINOS
                std::vector<doublereal> Axepc0, Axepc1, Axepr0, Axepr1;
                std::vector<integer> Aiepc0, Apepc0, Aiepc1, Apepc1, Aiepr0, Apepr0, Aiepr1, Apepr1;
-               epmh.FillComplete();
+               epmh.PacMat();
                epmh.MakeCompressedColumnForm(Axepc0, Aiepc0, Apepc0, 0);
                epmh.MakeCompressedColumnForm(Axepc1, Aiepc1, Apepc1, 1);
                epmh.MakeCompressedRowForm(Axepr0, Aiepr0, Apepr0, 0);

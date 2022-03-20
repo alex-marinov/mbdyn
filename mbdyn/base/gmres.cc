@@ -60,7 +60,7 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		const NonlinearSolverOptions& options)
+		const NonlinearSolverTestOptions& options)
 : MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, options),
 v(NULL),
 s(MaxLinIt + 1), cs(MaxLinIt + 1), sn(MaxLinIt + 1)

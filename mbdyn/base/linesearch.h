@@ -5,8 +5,8 @@
  *
  * Copyright (C) 1996-2017
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -31,19 +31,19 @@
 
  /*
   * Portions Copyright (C) 2003-2017
-  * Giuseppe Quaranta	<quaranta@aero.polimi.it>
+  * Giuseppe Quaranta   <quaranta@aero.polimi.it>
   *
   * classi che implementano la risoluzione del sistema nonlineare
   */
 
  /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-	Copyright (C) 2011(-2020) all rights reserved.
+        Copyright (C) 2011(-2020) all rights reserved.
 
-	The copyright of this code is transferred
-	to Pierangelo Masarati and Paolo Mantegazza
-	for use in the software MBDyn as described
-	in the GNU Public License version 2.1
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
   */
 
 /*
@@ -58,8 +58,28 @@
 #include "nonlin.h"
 #include "vh.h"
 
-struct LineSearchParameters
+struct LineSearchParameters: CommonNonlinearSolverParam
 {
+     enum SolverFlags {
+          // 0x1 to 0xF is reserved for common flags
+          ZERO_GRADIENT_CONTINUE      = 0x0010,
+          DIVERGENCE_CHECK            = 0x0020,
+          ALGORITHM_CUBIC             = 0x0040,
+          ALGORITHM_FACTOR            = 0x0080,
+          SCALE_NEWTON_STEP           = 0x0100,
+          RELATIVE_LAMBDA_MIN         = 0x0200,
+          ABORT_AT_LAMBDA_MIN         = 0x0400,
+          NON_NEGATIVE_SLOPE_CONTINUE = 0x0800,
+          ALGORITHM = ALGORITHM_CUBIC | ALGORITHM_FACTOR,
+          DEFAULT_FLAGS = DIVERGENCE_CHECK |
+                          ALGORITHM_CUBIC |
+                          RELATIVE_LAMBDA_MIN |
+                          SCALE_NEWTON_STEP |
+                          ABORT_AT_LAMBDA_MIN
+     };
+
+     LineSearchParameters();
+
      doublereal dTolX;
      doublereal dTolMin;
      integer iMaxIterations;
@@ -70,23 +90,8 @@ struct LineSearchParameters
      doublereal dLambdaFactMin;
      doublereal dDivergenceCheck;
      doublereal dMinStepScale;
-     enum { ZERO_GRADIENT_CONTINUE         = 0x001,
-            DIVERGENCE_CHECK                       = 0x002,
-            ALGORITHM_CUBIC                        = 0x004,
-            ALGORITHM_FACTOR                       = 0x008,
-            PRINT_CONVERGENCE_INFO         = 0x010,
-            SCALE_NEWTON_STEP              = 0x020,
-            RELATIVE_LAMBDA_MIN            = 0x040,
-            ABORT_AT_LAMBDA_MIN            = 0x080,
-            VERBOSE_MODE                                   = 0x100,
-            NON_NEGATIVE_SLOPE_CONTINUE = 0x200,
-            ALGORITHM = ALGORITHM_CUBIC | ALGORITHM_FACTOR };
-     unsigned uFlags;
-     integer iIterationsBeforeAssembly;
-     bool bKeepJac;
      doublereal dTimeStepTol;
      doublereal dUpdateRatio;
-     LineSearchParameters();
 };
 
 class LineSearchSolver: public NonlinearSolver, protected LineSearchParameters
@@ -162,7 +167,7 @@ public:
      };
 
      LineSearchSolver(DataManager* pDM,
-                      const NonlinearSolverOptions& options,
+                      const NonlinearSolverTestOptions& options,
                       const struct LineSearchParameters& param);
      ~LineSearchSolver(void);
 
@@ -196,7 +201,7 @@ class LineSearchFull: public LineSearchSolver
 {
 public:
      LineSearchFull(DataManager* pDM,
-                    const NonlinearSolverOptions& options,
+                    const NonlinearSolverTestOptions& options,
                     const struct LineSearchParameters& param);
      ~LineSearchFull(void);
 
@@ -220,7 +225,7 @@ private:
 
 public:
      LineSearchModified(DataManager* pDM,
-                        const NonlinearSolverOptions& options,
+                        const NonlinearSolverTestOptions& options,
                         const struct LineSearchParameters& param);
      ~LineSearchModified(void);
 
@@ -242,7 +247,7 @@ private:
 
 public:
      LineSearchBFGS(DataManager* pDM,
-                    const NonlinearSolverOptions& options,
+                    const NonlinearSolverTestOptions& options,
                     const struct LineSearchParameters& param);
      ~LineSearchBFGS(void);
 

@@ -86,7 +86,8 @@
 #define TRACE_FLAG(varname, flag) TRACE(#varname "&" #flag "=" << ((varname) & (flag)) << '\n')
 
 LineSearchParameters::LineSearchParameters(void)
-     : dTolX(1e-7),
+     :CommonNonlinearSolverParam(DEFAULT_FLAGS, 0, false),
+       dTolX(1e-7),
        dTolMin(1e-8),
        iMaxIterations(200),
        dMaxStep(100.),
@@ -96,13 +97,6 @@ LineSearchParameters::LineSearchParameters(void)
        dLambdaFactMin(1e-1),
        dDivergenceCheck(1.),
        dMinStepScale(1e-3),
-       uFlags(DIVERGENCE_CHECK
-	      | ALGORITHM_CUBIC
-	      | RELATIVE_LAMBDA_MIN
-	      | SCALE_NEWTON_STEP
-	      | ABORT_AT_LAMBDA_MIN),
-       iIterationsBeforeAssembly(0),
-       bKeepJac(false),
        dTimeStepTol(0.1),
        dUpdateRatio(0.05)
 {
@@ -110,7 +104,7 @@ LineSearchParameters::LineSearchParameters(void)
 }
 
 LineSearchSolver::LineSearchSolver(DataManager* pDM,
-				   const NonlinearSolverOptions& options,
+				   const NonlinearSolverTestOptions& options,
 				   const struct LineSearchParameters& param)
      : NonlinearSolver(options),
        LineSearchParameters(param),
@@ -534,7 +528,7 @@ LineSearchSolver::Jacobian()
 }
 
 LineSearchFull::LineSearchFull(DataManager* pDM,
-			       const NonlinearSolverOptions& options,
+			       const NonlinearSolverTestOptions& options,
 			       const struct LineSearchParameters& param)
      :LineSearchSolver(pDM, options, param)
 {
@@ -773,7 +767,7 @@ LineSearchFull::Solve(const NonlinearProblem *pNonLinProblem,
 }
 
 LineSearchModified::LineSearchModified(DataManager* pDM,
-				       const NonlinearSolverOptions& options,
+				       const NonlinearSolverTestOptions& options,
 				       const struct LineSearchParameters& param)
      :LineSearchSolver(pDM, options, param),
       dTimePrev(pDM->dGetTime()), dTimeStepPrev(0.)
@@ -803,7 +797,7 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
      dSolErr = 0.;
      dErr = 0.;
 
-     if (!bKeepJac) {
+     if (!bKeepJacAcrossSteps) {
 	  iRebuildJac = 0;
      }
 
@@ -1094,7 +1088,7 @@ exit_success:
 }
 
 LineSearchBFGS::LineSearchBFGS(DataManager* pDM,
-			       const NonlinearSolverOptions& options,
+			       const NonlinearSolverTestOptions& options,
 			       const struct LineSearchParameters& param)
      :LineSearchSolver(pDM, options, param)
 
@@ -1136,7 +1130,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
      dSolErr = 0.;
      dErr = 0.;
 
-     if (!bKeepJac) {
+     if (!bKeepJacAcrossSteps) {
 	  iRebuildJac = 0;
      }
 
@@ -1281,7 +1275,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
 	       if (bResConverged && bSolConverged) {
 		    // Use our current solution to update the Jacobian for the next step
 		    // unless the Jacobian will be rebuild anyway
-		    if (!bKeepJac || iRebuildJac <= 0) {
+		    if (!bKeepJacAcrossSteps || iRebuildJac <= 0) {
 			 pNLP->Update(pSol);
 			 goto exit_success;
 		    }
@@ -1414,7 +1408,7 @@ void LineSearchBFGS::Solve(const NonlinearProblem *pNLP,
 	       if (bResConverged && bSolConverged) {
 		    // Use our current solution to update the Jacobian
 		    // unless it will be rebuild anyway
-		    if (!bKeepJac || iRebuildJac <= 0) {
+		    if (!bKeepJacAcrossSteps || iRebuildJac <= 0) {
 			 goto exit_success;
 		    }
 	       } else {

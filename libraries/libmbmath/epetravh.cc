@@ -7,7 +7,7 @@
 #include "epetravh.h"
 
 EpetraVectorHandler::EpetraVectorHandler(integer iSize, const Epetra_Comm& oComm)
-     :oMap(iSize, 1, oComm), oEPV(oMap, true)
+     :oEPV(Epetra_Map(iSize, 1, oComm), true)
 {
 }
 
@@ -58,7 +58,7 @@ void EpetraVectorHandler::Resize(integer iNewSize)
      Epetra_Map oNewMap(iNewSize, 1, oEPV.Comm());
      Epetra_Vector oNewEPV(oNewMap, false);
 
-     integer iSizeCopy = std::min(iNewSize, iGetSize());
+     const integer iSizeCopy = std::min(iNewSize, iGetSize());
 
      for (integer i = 0; i < iSizeCopy; ++i) {
           oNewEPV[i] = oEPV[i];
@@ -68,7 +68,6 @@ void EpetraVectorHandler::Resize(integer iNewSize)
           oNewEPV[i] = 0.;
      }
 
-     oMap = oNewMap;
      oEPV = oNewEPV;
 
 #ifdef DEBUG
@@ -82,7 +81,7 @@ void EpetraVectorHandler::ResizeReset(integer iNewSize)
      IsValid();
 #endif
 
-     oMap = Epetra_Map(iNewSize, 1, oEPV.Comm());
+     Epetra_Map oMap(iNewSize, 1, oEPV.Comm());
      oEPV = Epetra_Vector(oMap, true);
 
 #ifdef DEBUG

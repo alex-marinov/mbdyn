@@ -178,7 +178,7 @@ main(void)
                 << spgmh << std::endl;
 
 #ifdef USE_TRILINOS
-        epmh.FillComplete(); // Call before using operator()
+        epmh.PacMat(); // Call before using operator()
         
         std::cout << "matrix in Epetra sparse form: " << std::endl
                   << epmh << std::endl;

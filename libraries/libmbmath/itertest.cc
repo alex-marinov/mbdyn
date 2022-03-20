@@ -119,7 +119,7 @@ main(void)
         std::cout << "matrix in sparse gradient form: " << std::endl
                   << spgmh << std::endl;
 #ifdef USE_TRILINOS
-        epmh.FillComplete();
+        epmh.PacMat();
 
         std::cout << "matrix in Epetra sparse form:\n"
                   << epmh << std::endl;

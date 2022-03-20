@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2020(-2020) all rights reserved.
+  Copyright (C) 2020(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -134,10 +134,9 @@ template <typename MatrixHandlerType>
 StrumpackSolutionManager<MatrixHandlerType>::StrumpackSolutionManager(integer Dim,
 								      integer iNumThreads,
 								      integer iNumIter,
-								      const ScaleOpt& scale,
 								      unsigned uSolverFlags,
 								      integer iVerbose)
-     :A(Dim, Dim), x(Dim), b(Dim), pMatScale(nullptr), scale(scale)
+     :A(Dim, Dim), x(Dim), b(Dim)
 {
      SAFENEWWITHCONSTRUCTOR(pLS,
 			    StrumpackSolver,
@@ -150,9 +149,6 @@ StrumpackSolutionManager<MatrixHandlerType>::StrumpackSolutionManager(integer Di
 template <typename MatrixHandlerType>
 StrumpackSolutionManager<MatrixHandlerType>::~StrumpackSolutionManager(void)
 {
-     if (pMatScale) {
-	  SAFEDELETE(pMatScale);
-     }
 }
 
 #ifdef DEBUG
@@ -180,13 +176,9 @@ void StrumpackSolutionManager<MatrixHandlerType>::Solve(void)
 {
      std::vector<integer>* pDummy = nullptr;
 
-     ScaleMatrixAndRightHandSide(A);
-     
      pLS->MakeCompactForm(A, Ax, Ai, *pDummy, Ap);
      
      pLS->Solve();
-
-     ScaleSolution();
 }
 
 template <typename MatrixHandlerType>
@@ -211,53 +203,6 @@ template <typename MatrixHandlerType>
 StrumpackSolver* StrumpackSolutionManager<MatrixHandlerType>::pGetSolver() const
 {
      return static_cast<StrumpackSolver*>(pLS);
-}
-
-template <typename MatrixHandlerType>
-template <typename MH>
-void StrumpackSolutionManager<MatrixHandlerType>::ScaleMatrixAndRightHandSide(MH& mh)
-{
-    if (scale.when != SCALEW_NEVER) {
-        MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
-
-        if (pLS->bReset()) {
-            if (!rMatScale.bGetInitialized()
-                || scale.when == SolutionManager::SCALEW_ALWAYS) {
-                // (re)compute
-                rMatScale.ComputeScaleFactors(mh);
-            }
-            // in any case scale matrix and right-hand-side
-            rMatScale.ScaleMatrix(mh);
-
-            if (silent_err) {
-                rMatScale.Report(std::cerr);
-            }
-        }
-
-        rMatScale.ScaleRightHandSide(b);
-    }
-}
-
-template <typename MatrixHandlerType>
-template <typename MH>
-MatrixScale<MH>& StrumpackSolutionManager<MatrixHandlerType>::GetMatrixScale()
-{
-    if (pMatScale == nullptr) {
-        pMatScale = MatrixScale<MH>::Allocate(scale);
-    }
-
-    // Will throw std::bad_cast if the type does not match
-    return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
-}
-
-template <typename MatrixHandlerType>
-void StrumpackSolutionManager<MatrixHandlerType>::ScaleSolution(void)
-{
-    if (scale.when != SCALEW_NEVER) {
-        ASSERT(pMatScale != nullptr);
-
-        pMatScale->ScaleSolution(x);
-    }
 }
 
 template class StrumpackSolutionManager<SpMapMatrixHandler>;

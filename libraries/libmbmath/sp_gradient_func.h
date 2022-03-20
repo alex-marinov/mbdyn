@@ -47,7 +47,7 @@
 
 namespace sp_grad {
      struct SpGradAssignNoUpdateU {
-     	  static constexpr void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
+     	  static void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
 	       // u* = f(u, v)
 	       // f(u, v) = {u + v, u - v}
 	       // df/du == 1
@@ -56,7 +56,7 @@ namespace sp_grad {
      };
 
      struct SpGradAssignUpdateU {
-	  static constexpr void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
+	  static void update_u(doublereal df_du, SpDerivRec* pFirstU, SpDerivRec* pLastU) {
 	       // u* = f(u, v)
 	       // f(u, v) = {u * v, u / v}
 	       // u*' = df/du * u' + df/dv * v'

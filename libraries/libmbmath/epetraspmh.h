@@ -143,7 +143,7 @@ public:
 
      virtual EpetraSparseMatrixHandler* Copy() const override;
 
-     void FillComplete() const;
+     virtual integer PacMat() override;
 
      class const_iterator {
           friend class EpetraSparseMatrixHandler;
@@ -256,11 +256,11 @@ public:
      const_iterator begin() const;
      const_iterator end() const;
 
-     operator const Epetra_CrsMatrix*() const {
+     const Epetra_CrsMatrix* pGetEpetraCrsMatrix() const {
           return &oEPM;
      }
 
-     operator Epetra_CrsMatrix*() {
+     Epetra_CrsMatrix* pGetEpetraCrsMatrix() {
           return &oEPM;
      }
 protected:
@@ -287,6 +287,10 @@ private:
                                           idx_type *const Ai,
                                           idx_type *const Ap,
                                           int offset) const;
+     
+     inline integer PacMat() const {
+          return const_cast<EpetraSparseMatrixHandler*>(this)->PacMat();
+     }
      
      const Epetra_Comm& oComm;
      mutable Epetra_CrsMatrix oEPM;

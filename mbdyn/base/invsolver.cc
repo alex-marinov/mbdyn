@@ -1459,15 +1459,15 @@ InverseSolver::ReadData(MBDynParser& HP)
 			case MODIFIED:
 				bTrueNewtonRaphson = 0;
 				if (HP.IsArg()) {
-					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
+					oLineSearchParam.iIterationsBeforeAssembly = HP.GetInt();
 				} else {
-					LineSearch.iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
+					oLineSearchParam.iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
 						"matrix will be assembled "
 						"at most after "
-						<< LineSearch.iIterationsBeforeAssembly
+						<< oLineSearchParam.iIterationsBeforeAssembly
 						<< " iterations" << std::endl);
 				break;
 
@@ -1478,7 +1478,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			/* no break: fall-thru to next case */
 			case NR_TRUE:
 				bTrueNewtonRaphson = 1;
-				LineSearch.iIterationsBeforeAssembly = 0;
+				oLineSearchParam.iIterationsBeforeAssembly = 0;
 				break;
 			}
 			break;
@@ -1548,19 +1548,19 @@ InverseSolver::ReadData(MBDynParser& HP)
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
 				bTrueNewtonRaphson = true;
-				LineSearch.bKeepJac = false;
-				LineSearch.iIterationsBeforeAssembly = 0;
+				oLineSearchParam.bKeepJacAcrossSteps = false;
+				oLineSearchParam.iIterationsBeforeAssembly = 0;
 
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
-					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
+					oLineSearchParam.iIterationsBeforeAssembly = HP.GetInt();
 
 					if (HP.IsKeyWord("keep" "jacobian")) {
 						pedantic_cout("Use of deprecated \"keep jacobian\" at line " << HP.GetLineData() << std::endl);
-						LineSearch.bKeepJac = true;
+						oLineSearchParam.bKeepJacAcrossSteps = true;
 
 					} else if (HP.IsKeyWord("keep" "jacobian" "matrix")) {
-						LineSearch.bKeepJac = true;
+						oLineSearchParam.bKeepJacAcrossSteps = true;
 					}
 
 					DEBUGLCOUT(MYDEBUG_INPUT, "modified "
@@ -1569,7 +1569,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 							"matrix will be "
 							"assembled at most "
 							"after "
-							<< LineSearch.iIterationsBeforeAssembly
+							<< oLineSearchParam.iIterationsBeforeAssembly
 							<< " iterations"
 							<< std::endl);
 					if (HP.IsKeyWord("honor" "element" "requests")) {

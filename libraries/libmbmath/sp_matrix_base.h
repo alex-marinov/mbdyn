@@ -161,7 +161,7 @@ namespace sp_grad {
           struct MatrixDataSizeHelper<SpMatrixSize::DYNAMIC> {
                static_assert(SpMatrixSize::DYNAMIC < 0);
 
-               static constexpr index_type iGetSizeStatic(index_type iSize) {
+               static index_type iGetSizeStatic(index_type iSize) {
                     SP_GRAD_ASSERT(iSize >= 0);
                     return iSize;
                }
@@ -982,7 +982,7 @@ namespace sp_grad {
 
           static_assert(ExprType::eMatOpType == SpMatOpType::MATRIX, "Operand must be a matrix! A scalar cannot be transposed!");
 
-          constexpr explicit SpSubMatDynExpr(const Expr& u, index_type iRowStart, index_type iRowStep, index_type iNumRows, index_type iColStart, index_type iColStep, index_type iNumCols) noexcept
+          explicit SpSubMatDynExpr(const Expr& u, index_type iRowStart, index_type iRowStep, index_type iNumRows, index_type iColStart, index_type iColStep, index_type iNumCols) noexcept
                :u(u),
                 iRowStart(iRowStart),
                 iRowStep(iRowStep),
@@ -1402,7 +1402,7 @@ namespace sp_grad {
           static_assert(iRowStart + (iNumRows - 1) * iRowStep <= ExprType::iNumRowsStatic);
           static_assert(ExprType::eMatOpType == SpMatOpType::MATRIX, "Operand must be a matrix! A scalar cannot be transposed!");
 
-          constexpr explicit SpSubMatStatRowExpr(const Expr& u, index_type iColStart, index_type iColStep, index_type iNumCols) noexcept
+          explicit SpSubMatStatRowExpr(const Expr& u, index_type iColStart, index_type iColStep, index_type iNumCols) noexcept
                :u(u),
                 iColStart(iColStart),
                 iColStep(iColStep),

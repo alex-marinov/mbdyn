@@ -53,10 +53,11 @@ begin: initial value;
 	derivatives max iterations: 200;
 	derivatives coefficient: 1e-6;
         linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
-        nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+        #nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+        nonlinear solver: nox, modified, 1, keep jacobian,print convergence info, 0;
         threads: assembly, 1;
         threads: solver, 1;
-        output: iterations;
+        #output: iterations;
 end: initial value;
 
 begin: control data;

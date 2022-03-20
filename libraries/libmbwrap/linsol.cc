@@ -225,7 +225,8 @@ const LinSol::solver_t solver[] = {
 	  -1., -1. },
         {"AztecOO", NULL,
          LinSol::AZTECOO_SOLVER,
-         0, 0,
+         LinSol::SOLVER_FLAGS_PRECOND_MASK,
+         LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK,
          -1, -1},
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
@@ -558,10 +559,7 @@ LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 	case LinSol::NAIVE_SOLVER:
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::KLU_SOLVER:
-        case LinSol::PARDISO_SOLVER:
-        case LinSol::PARDISO_64_SOLVER:
         case LinSol::PASTIX_SOLVER:
-	case LinSol::STRUMPACK_SOLVER:
 	case LinSol::WATSON_SOLVER:
 		scale = s;
 		break;
@@ -596,21 +594,21 @@ LinSol::SetMaxIterations(integer iMaxIterations)
 	default:
 		return false;
 	}
-
+        
 	return true;
 }
 
 bool LinSol::SetTolerance(doublereal dToleranceRes)
 {
-     switch (currSolver) {
-     case LinSol::AZTECOO_SOLVER:
-          dTolRes = dToleranceRes;
-          break;
-     default:
-          return false;
-     }
+        switch (currSolver) {
+        case LinSol::AZTECOO_SOLVER:
+                dTolRes = dToleranceRes;
+                break;
+        default:
+                return false;
+        }
 
-     return true;               
+        return true;               
 }
 
 bool LinSol::SetVerbose(integer iVerb)
@@ -901,11 +899,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
                                 if (currSolver == LinSol::PARDISO_64_SOLVER) {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                                PARDISO_64_SM_GRAD,
-                                                               PARDISO_64_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                                               PARDISO_64_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, iVerbose));
                                 } else {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                                PARDISO_SM_GRAD,
-                                                               PARDISO_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                                               PARDISO_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, iVerbose));
                                 }
                         } break;
 #endif
@@ -913,11 +911,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
                                 if (currSolver == LinSol::PARDISO_64_SOLVER) {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                                PARDISO_64_SM_MAP,
-                                                               PARDISO_64_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                                               PARDISO_64_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, iVerbose));
                                 } else {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                                PARDISO_SM_MAP,
-                                                               PARDISO_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, scale, iVerbose));
+                                                               PARDISO_SM_MAP(iNLD, dPivotFactor, nThreads, iMaxIter, iVerbose));
                                 }
                         }
 		} break;
@@ -978,13 +976,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>,
-					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>(iNLD, nThreads, iMaxIter, scale, solverFlags, iVerbose));
+					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>(iNLD, nThreads, iMaxIter, solverFlags, iVerbose));
 		  break;
 #endif
 	     default:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 StrumpackSolutionManager<SpMapMatrixHandler>,
-					 StrumpackSolutionManager<SpMapMatrixHandler>(iNLD, nThreads, iMaxIter, scale, solverFlags, iVerbose));
+					 StrumpackSolutionManager<SpMapMatrixHandler>(iNLD, nThreads, iMaxIter, solverFlags, iVerbose));
 		  break;
 	     }
 	     break;
@@ -1018,9 +1016,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #endif
 #ifdef USE_TRILINOS
         case LinSol::AZTECOO_SOLVER:
-             SAFENEWWITHCONSTRUCTOR(pCurrSM,
-                                    AztecOOSolutionManager,
-                                    AztecOOSolutionManager(iNLD, iMaxIter, dTolRes, iVerbose));
+             pCurrSM = pAllocateAztecOOSolutionManager(iNLD, iMaxIter, dTolRes, iVerbose, solverFlags);
              break;
 #endif
 	case LinSol::NAIVE_SOLVER:

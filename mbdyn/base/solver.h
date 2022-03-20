@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <cfloat>
 #include <cmath>
+#include <deque>
 #include <limits>
 
 class Solver;
@@ -59,11 +60,13 @@ class Solver;
 #include "dataman.h"
 #include "schurdataman.h"
 #include "schsolman.h"
-#include <deque>
 #include "linsol.h"
 #include "stepsol.h"
 #include "nonlin.h"
 #include "linesearch.h"
+#ifdef USE_TRILINOS
+#include "noxsolver.h"
+#endif
 #include "mfree.h"
 #include "cstring"
 #include "precond.h"
@@ -75,7 +78,7 @@ extern "C" int mbdyn_stop_at_end_of_time_step(void);
 extern "C" void mbdyn_set_stop_at_end_of_iteration(void);
 extern "C" void mbdyn_set_stop_at_end_of_time_step(void);
 
-class Solver : public SolverDiagnostics, protected NonlinearSolverOptions {
+class Solver : public SolverDiagnostics, protected NonlinearSolverTestOptions {
 public:
  	class ErrGeneric : public MBDynErrBase {
   	public:
@@ -308,8 +311,10 @@ protected:
 	integer iIterativeMaxSteps;
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
-	struct LineSearchParameters LineSearch;
-
+	LineSearchParameters oLineSearchParam;
+#ifdef USE_TRILINOS
+        NoxSolverParameters oNoxSolverParam;
+#endif
 /* FOR PARALLEL SOLVERS */
 	bool bParallel;
 	SchurDataManager *pSDM;

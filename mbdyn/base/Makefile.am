@@ -87,6 +87,8 @@ j2p.cc \
 j2p.h \
 linesearch.h \
 linesearch.cc \
+noxsolver.h \
+noxsolver.cc \
 loadable.cc \
 loadable.h \
 mbpar.cc \
