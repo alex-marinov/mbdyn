@@ -508,8 +508,6 @@ NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
 #include "boost/config.hpp"
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/properties.hpp"
-#include "boost/graph/bandwidth.hpp"
-#include <boost/graph/wavefront.hpp>
 
 #ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
 #include "boost/graph/cuthill_mckee_ordering.hpp"
@@ -549,17 +547,10 @@ NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
                                 boost::property<
                                         boost::vertex_degree_t,
                                         integer
-//                                      ,
-//                                      boost::property<
-//                                              boost::vertex_priority_t,
-//                                              double
-//                                      >
                                 >
                         >
                 > Graph;
         typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef boost::graph_traits<Graph>::vertices_size_type size_type;
-
 
         Graph G(A->iGetNumRows());
         for (int col=0; col<A->iGetNumCols(); col++) {
@@ -575,12 +566,6 @@ NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
 
         std::vector<Vertex> inv_perm(num_vertices(G));
         boost::cuthill_mckee_ordering(G, inv_perm.rbegin());
-#if 0
-        boost::sloan_ordering(G, inv_perm.rbegin(),
-                boost::get(boost::vertex_color, G),
-                boost::make_degree_map(G),
-                boost::get(boost::vertex_priority, G));
-#endif
 
         for (integer i = 0; i < A->iGetNumRows(); i++) {
                 invperm[i] = inv_perm[i];
@@ -623,8 +608,6 @@ NaiveSparsePermSolutionManager<sloan_ordering>::ComputePermutation(void)
                         >
                 > Graph;
         typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef boost::graph_traits<Graph>::vertices_size_type size_type;
-
 
         Graph G(A->iGetNumRows());
         for (int col=0; col<A->iGetNumCols(); col++) {
@@ -684,8 +667,6 @@ NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
                         >
                 > Graph;
         typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef boost::graph_traits<Graph>::vertices_size_type size_type;
-
 
         Graph G(A->iGetNumRows());
         for (int col=0; col<A->iGetNumCols(); col++) {
@@ -727,8 +708,6 @@ NaiveSparsePermSolutionManager<md_ordering>::ComputePermutation(void)
                         boost::directedS
                 > Graph;
         typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef boost::graph_traits<Graph>::vertices_size_type size_type;
-
 
         Graph G(A->iGetNumRows());
         for (int col=0; col<A->iGetNumCols(); col++) {
