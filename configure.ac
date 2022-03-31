@@ -230,7 +230,7 @@ dnl ol_with_chaco=no
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rt,[  --with-rt               with POSIX realtime support],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
-OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
+OL_ARG_WITH(boost,[  --with-boost            with BOOST support],auto,[auto yes no])
 OL_ARG_WITH(ann,[  --with-ann              with ANN support],no,[auto yes no])
 OL_ARG_WITH(bullet,[  --with-bullet           with bullet support],no,[auto yes no])
 OL_ARG_WITH(blas,[
@@ -1781,9 +1781,8 @@ if test $ol_with_boost != no ; then
 		AC_CHECK_HEADERS(boost/graph/king_ordering.hpp)
 		AC_CHECK_HEADERS(boost/graph/sloan_ordering.hpp)
 		AC_CHECK_HEADERS(boost/graph/properties.hpp)
-		AC_CHECK_HEADERS(boost/graph/bandwidth.hpp)
-		AC_CHECK_HEADERS(boost/graph/wavefront.hpp)
 		AC_CHECK_HEADERS(boost/graph/minimum_degree_ordering.hpp)
+		AC_CHECK_HEADERS(boost/json/src.hpp)
 	else
 		if test $ol_with_boost != auto ; then
 			AC_MSG_ERROR([BOOST library headers not available])
