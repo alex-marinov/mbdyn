@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+        Copyright (C) 2020(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -488,18 +488,6 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(bValid());
      }
 
-     // void SpGradient::ResizeReset(SpGradient& g, doublereal dVal, index_type iSize) {
-     //      g.ResizeReset(dVal, iSize);
-     // }
-
-     // void SpGradient::ResizeReset(doublereal& g, doublereal dVal, index_type) {
-     // 	  g = dVal;
-     // }
-
-     // void SpGradient::ResizeReset(GpGradProd& g, doublereal dVal, index_type) {
-     //      g.Reset(dVal, 0.);
-     // }
-     
      void SpGradient::Scale(doublereal dRowScale, const std::vector<doublereal>& oColScale) {
 	  UniqueOwner();
 
@@ -581,13 +569,6 @@ namespace sp_grad {
 	  }
      }
 
-     // void SpGradient::InsertDof(const SpGradient& g, SpGradExpDofMap& oDofMap) {
-     //      g.InsertDof(oDofMap);
-     // }
-
-     // void SpGradient::InsertDof(doublereal, SpGradExpDofMap&) {
-     // }
-
      void SpGradient::AddDeriv(SpGradient& g, const doublereal dCoef, const SpGradExpDofMap& oDofMap) const {
 	  SP_GRAD_ASSERT(g.bValid());
 	  SP_GRAD_ASSERT(oDofMap.bValid());
@@ -609,10 +590,6 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(g.bValid());
 	  SP_GRAD_ASSERT(oDofMap.bValid());
      }
-
-     // void SpGradient::AddDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef, const SpGradExpDofMap& oDofMap) {
-     //      f.AddDeriv(g, dCoef, oDofMap);
-     // }
 
      const SpDerivRec* SpGradient::begin() const {
 	  return pData->rgDer;
@@ -740,54 +717,6 @@ namespace sp_grad {
      void SpGradient::UniqueOwner() {
 	  Allocate(pData->iSizeRes, pData->iSizeCurr, pData->uFlags);
      }
-
-     // template <typename Expr>
-     // constexpr doublereal
-     // SpGradient::dGetValue(const SpGradBase<Expr>& a) {
-     //      return a.dGetValue();
-     // }
-
-     // constexpr doublereal
-     // SpGradient::dGetValue(doublereal a) {
-     //      return a;
-     // }
-
-     // template <typename Expr>
-     // constexpr index_type
-     // SpGradient::iGetSize(const SpGradBase<Expr>& a) {
-     //      return a.iGetSize();
-     // }
-
-     // constexpr index_type
-     // SpGradient::iGetSize(doublereal a) {
-     //      return 0;
-     // }
-
-     // void SpGradient::InsertDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef) {
-     //      f.InsertDeriv(g, dCoef);
-     // }
-
-     // void SpGradient::Sort(doublereal) {
-     // }
-
-     // void SpGradient::Sort(SpGradient& g) {
-     //      g.Sort();
-     // }
-
-     // void SpGradient::GetDofStat(const SpGradient& g, SpGradDofStat& s) {
-     //      g.GetDofStat(s);
-     // }
-
-     // void SpGradient::GetDofStat(doublereal, SpGradDofStat&) {
-     // }
-
-     // doublereal SpGradient::dGetDeriv(const SpGradient&g, index_type iDof) {
-     //      return g.dGetDeriv(iDof);
-     // }
-
-     // constexpr doublereal SpGradient::dGetDeriv(doublereal, index_type) {
-     //      return 0.;
-     // }
 
      constexpr size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
 	  return offsetof(SpDerivData, rgDer[iSizeRes]);

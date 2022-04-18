@@ -9624,8 +9624,6 @@ namespace {
                               doublereal dCoef,
                               SpFunctionCall func)
      {
-          //HydroMasterNode::Update(XCurr, XPrimeCurr, dCoef, func);
-
           switch (func) {
           case SpFunctionCall::REGULAR_RES:
           case SpFunctionCall::INITIAL_ASS_RES:
