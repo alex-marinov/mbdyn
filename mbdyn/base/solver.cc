@@ -3670,8 +3670,9 @@ Solver::ReadData(MBDynParser& HP)
                                         NO_OP;
                                 }
                                 break;
-#ifdef USE_TRILINOS
+
                         case NonlinearSolver::NOX:
+#ifdef USE_TRILINOS
                                 bTrueNewtonRaphson = true;
                                 oNoxSolverParam.bKeepJacAcrossSteps = false;
                                 oNoxSolverParam.iIterationsBeforeAssembly = 0;
@@ -3721,7 +3722,7 @@ Solver::ReadData(MBDynParser& HP)
                                                 oNoxSolverParam.dWrmsAbsTol = HP.GetReal();
                                         } else if (HP.IsKeyWord("linear" "solver")) {
                                                 oNoxSolverParam.uFlags &= ~NoxSolverParameters::LINEAR_SOLVER_MASK;
-                                             
+
                                                 if (HP.IsKeyWord("gmres")) {
                                                         oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_GMRES;
                                                 } else if (HP.IsKeyWord("cg")) {
@@ -3770,7 +3771,7 @@ Solver::ReadData(MBDynParser& HP)
                                                 }
                                         } else if (HP.IsKeyWord("algorithm")) {
                                                 oNoxSolverParam.uFlags &= ~NoxSolverParameters::ALGORITHM_MASK;
-                                                
+
                                                 if (HP.IsKeyWord("line" "search" "based")) {
                                                         oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_LINESEARCH_BASED;
                                                 } else if (HP.IsKeyWord("trust" "region" "based")) {
@@ -3803,7 +3804,7 @@ Solver::ReadData(MBDynParser& HP)
                                                 }
                                         } else if (HP.IsKeyWord("recovery" "step" "type")) {
                                                 oNoxSolverParam.uFlags &= ~NoxSolverParameters::RECOVERY_STEP_TYPE_MASK;
-                                                
+
                                                 if (HP.IsKeyWord("constant")) {
                                                         oNoxSolverParam.uFlags |= NoxSolverParameters::RECOVERY_STEP_TYPE_CONST;
                                                 } else if (HP.IsKeyWord("last" "computed" "step")) {
@@ -3856,7 +3857,7 @@ Solver::ReadData(MBDynParser& HP)
                                                 } else {
                                                         silent_cerr("keywords \"backtrack\", \"polynomial\" or \"more thuente\" expected at line "
                                                                     << HP.GetLineData() << std::endl);
-                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);                                                  
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
                                         } else if (HP.IsKeyWord("line" "search" "max" "iterations")) {
                                                 oNoxSolverParam.iMaxIterLineSearch = HP.GetInt();
@@ -3901,7 +3902,7 @@ Solver::ReadData(MBDynParser& HP)
                                     (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
                                         silent_cerr("warning: jacobian operator \"newton krylov\" cannot be used with direction \"steepest descent\"\n");
                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
-                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;                                     
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;
                                 }
 
                                 if ((oNoxSolverParam.uFlags & (NoxSolverParameters::DIRECTION_STEEPEST_DESCENT | NoxSolverParameters::DIRECTION_NONLINEAR_CG)) != 0 &&
@@ -3922,7 +3923,7 @@ Solver::ReadData(MBDynParser& HP)
                                     (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
                                         silent_cerr("warning: direction \"broyden\" cannot be used with jacobian operator \"newton krylov\"\n");
                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
-                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;                                     
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;
                                 }
 
                                 if (oNoxSolverParam.uFlags & NoxSolverParameters::USE_PRECOND_AS_SOLVER) {
@@ -3930,12 +3931,17 @@ Solver::ReadData(MBDynParser& HP)
                                                 silent_cerr("warning: cannot use option \"modified\" "
                                                             "if \"use preconditioner as solver\" is enabled\n");
                                         }
-                                        
+
                                         oNoxSolverParam.bKeepJacAcrossSteps = false;
                                         oNoxSolverParam.iIterationsBeforeAssembly = 0;
                                 }
-                                break;
+#else
+                                silent_cerr("nox solver is not available!\n"
+                                            "configure with --with-trilinos in order to use nox!\n");
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
+                                break;
+
                         case NonlinearSolver::MATRIXFREE:
                                 switch (KeyWords(HP.GetWord())) {
                                 case DEFAULT:
