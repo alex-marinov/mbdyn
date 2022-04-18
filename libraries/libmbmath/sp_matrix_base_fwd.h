@@ -257,7 +257,9 @@ namespace sp_grad {
      template <typename VALUE, typename DERIVED>
      class SpMatElemExprBase
      {
-	  static_assert(std::is_same<VALUE, doublereal>::value || std::is_same<VALUE, SpGradient>::value);
+	  static_assert(std::is_same<VALUE, doublereal>::value ||
+                        std::is_same<VALUE, SpGradient>::value ||
+                        std::is_same<VALUE, GpGradProd>::value);
 	  
      protected:
 	  constexpr SpMatElemExprBase() noexcept {}

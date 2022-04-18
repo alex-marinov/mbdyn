@@ -537,6 +537,8 @@ public:
 #ifdef USE_SPARSE_AUTODIFF
 	inline void dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
 	inline void dGetP(const sp_grad::SpGradient& gx, sp_grad::SpGradient& gyP) const;
+	inline void dGet(const sp_grad::GpGradProd& x, sp_grad::GpGradProd& y) const;     
+     	inline void dGetP(const sp_grad::GpGradProd& gx, sp_grad::GpGradProd& gyP) const;
 #endif
      
 	/* this is about drives that are differentiable */
@@ -639,8 +641,22 @@ inline void DriveCaller::dGet(const sp_grad::SpGradient& gx, sp_grad::SpGradient
 
 inline void DriveCaller::dGetP(const sp_grad::SpGradient& gx, sp_grad::SpGradient& gyP) const
 {
-     gyP.ResizeReset(dGetP(gx.dGetValue()), 0); // FIXME: There is no GetXPP needed for the gradient of yP
-}	
+     gyP.ResizeReset(dGetP(gx.dGetValue()), 0); // FIXME: There is no dGetPP needed for the gradient of yP
+}
+
+inline void DriveCaller::dGet(const sp_grad::GpGradProd& gx, sp_grad::GpGradProd& gy) const
+{
+	const doublereal x = gx.dGetValue();
+	const doublereal y = dGet(x);
+	const doublereal dy_dx = dGetP(x);
+
+	gy.Reset(y, dy_dx * gx.dGetDeriv());
+}
+
+inline void DriveCaller::dGetP(const sp_grad::GpGradProd& gx, sp_grad::GpGradProd& gyP) const
+{
+     gyP.Reset(dGetP(gx.dGetValue()), 0.); // FIXME: There is no dGetPP needed for the gradient of yP
+}
 #endif
 	
 /* DriveCaller - end */

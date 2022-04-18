@@ -112,6 +112,15 @@ begin: initial value;
 	max iterations: 10;
 	tolerance: 1e-6;
     method: implicit euler;
+
+    nonlinear solver: nox,
+    modified, 100,
+    newton krylov perturbation, 1e-2,
+    jacobian operator, newton,
+    linear solver tolerance, 1e-10,
+    linear solver max iterations, 100,
+    krylov subspace size, 100;
+    
     #nonlinear solver: line search, abort at lambda min, no, divergence check, no, verbose, yes;
     derivatives tolerance: 1e-5;
     derivatives max iterations: 20;

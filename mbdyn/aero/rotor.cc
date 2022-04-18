@@ -289,7 +289,7 @@ Rotor::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
 				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
-				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
+				OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
 				OH.WriteNcVar(Var_dUMean, dUMean);
 				OH.WriteNcVar(Var_dVelocity, dVelocity);
 				OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
@@ -686,7 +686,7 @@ NoRotor::Init(const StructNode* pCraft,
 			pBlockLenght[i] = 1;
 		}
 		for (int i = 0; i < 3; i++) {
-			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i]));
+                        pDispl[i] = MPI::Get_address(const_cast<doublereal*>(&(Res.Pole().pGetVec()[i])));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 			MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
@@ -864,7 +864,7 @@ UniformRotor::Init(const StructNode* pCraft,
 		}
 		pDispl[3] = MPI::Get_address(&dUMeanPrev);
 		for (int i = 4; i <= 6; i++) {
-			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-4]));
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(&(Res.Pole().pGetVec()[i-4])));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)));
@@ -1153,10 +1153,10 @@ GlauertRotor::Init(const StructNode* pCraft,
 		pDispl[6] = MPI::Get_address(&dChi);
 		pDispl[7] = MPI::Get_address(&dPsi0);
 		for (int i = 8; i <= 10; i++) {
-			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-8]));
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(&(Res.Pole().pGetVec()[i-8])));
 		}
 		for (int i = 11; i < 20; i++) {
-			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-11]));
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(&(RRotTranspose.pGetMat()[i-11])));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
@@ -1432,7 +1432,7 @@ ManglerRotor::Init(const StructNode* pCraft,
 		pDispl[4] = MPI::Get_address(&dSinAlphad);
 		pDispl[5] = MPI::Get_address(&dPsi0);
 		for (int i = 6; i <= 8; i++) {
-			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-6]));
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(&(Res.Pole().pGetVec()[i-6])));
 		}
 		for (int i = 9; i < 18; i++) {
 			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-9]));
@@ -1726,10 +1726,10 @@ DynamicInflowRotor::Init(const StructNode* pCraft,
 		pDispl[6] = MPI::Get_address(&dOmega);
 		pDispl[7] = MPI::Get_address(&dPsi0);
 		for (int i = 8; i <= 10; i++) {
-			pDispl[i] = MPI::Get_address(Res.Pole().pGetVec()+i-8);
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(Res.Pole().pGetVec()+i-8));
 		}
 		for (int i = 11; i < 20; i++) {
-			pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(RRotTranspose.pGetMat()+i-11));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
@@ -1802,7 +1802,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 					OH.WriteNcVar(Var_dPsi0, dPsi0);
 					OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
 					OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
-					OH.WriteNcVar(Var_dConst, dConst);
+					OH.WriteNcVar(Var_dVConst, dVConst);
 					OH.WriteNcVar(Var_dVSine, dVSine);
 					OH.WriteNcVar(Var_dVCosine, dVCosine);
 				}
@@ -1843,7 +1843,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
 				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
-				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
+				OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
 				OH.WriteNcVar(Var_dUMean, dUMean);
 				OH.WriteNcVar(Var_dVelocity, dVelocity);
 				OH.WriteNcVar(Var_dAlpha, atan2(dSinAlphad, dCosAlphad));
@@ -1853,7 +1853,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 				OH.WriteNcVar(Var_dPsi0, dPsi0);
 				OH.WriteNcVar(Var_bUMeanRefConverged, (int)bUMeanRefConverged);
 				OH.WriteNcVar(Var_iCurrIter, (int)iCurrIter);
-				OH.WriteNcVar(Var_dConst, dConst);
+				OH.WriteNcVar(Var_dVConst, dVConst);
 				OH.WriteNcVar(Var_dVSine, dVSine);
 				OH.WriteNcVar(Var_dVCosine, dVCosine);
 			}
@@ -2332,10 +2332,10 @@ PetersHeRotor::Init(const StructNode* pCraft,
 		pDispl[6] = MPI::Get_address(&dOmega);
 		pDispl[7] = MPI::Get_address(&dPsi0);
 		for (int i = 8; i <= 10; i++) {
-			pDispl[i] = MPI::Get_address(Res.Pole().pGetVec()+i-8);
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(Res.Pole().pGetVec()+i-8));
 		}
 		for (int i = 11; i < 20; i++) {
-			pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);
+			pDispl[i] = MPI::Get_address(const_cast<doublereal*>(RRotTranspose.pGetMat()+i-11));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));

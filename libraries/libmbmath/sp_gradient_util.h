@@ -90,6 +90,23 @@ namespace sp_grad {
 
                template <typename AITER, typename BITER>
                static void
+               MapEval(GpGradProd& g,
+                       AITER pAFirst,
+                       AITER pALast,
+                       index_type iAOffset,
+                       BITER pBFirst,
+                       BITER pBLast,
+                       index_type iBOffset) {
+                    g.MapInnerProduct(pAFirst,
+                                      pALast,
+                                      iAOffset,
+                                      pBFirst,
+                                      pBLast,
+                                      iBOffset);
+               }
+               
+               template <typename AITER, typename BITER>
+               static void
                MapEval(SpGradient& g,
                        AITER pAFirst,
                        AITER pALast,
@@ -122,6 +139,23 @@ namespace sp_grad {
                                    pBFirst,
                                    pBLast,
                                    iBOffset);
+               }
+
+               template <typename AITER, typename BITER>
+               static void
+               Eval(GpGradProd& g,
+                    AITER pAFirst,
+                    AITER pALast,
+                    index_type iAOffset,
+                    BITER pBFirst,
+                    BITER pBLast,
+                    index_type iBOffset) {
+                    g.MapInnerProduct(pAFirst,
+                                      pALast,
+                                      iAOffset,
+                                      pBFirst,
+                                      pBLast,
+                                      iBOffset);
                }
           };
 

@@ -106,14 +106,14 @@ namespace sp_grad {
      class SpDerivData;
      class SpGradExpDofMap;
      class SpGradient;
+     class GpGradProd;
 
      template <typename ValueType>
      class SpMatrixData;
 
      namespace util {
 	  template <typename T1, typename T2>
-	  struct ResultType {
-	  };
+	  struct ResultType;
 
 	  template <>
 	  struct ResultType<doublereal, doublereal> {
@@ -126,10 +126,21 @@ namespace sp_grad {
 	  };
 
 	  template <>
+	  struct ResultType<GpGradProd, GpGradProd> {
+	       typedef GpGradProd Type;
+	  };
+          
+	  template <>
 	  struct ResultType<SpGradient, doublereal>: ResultType<SpGradient, SpGradient> {};
 
 	  template <>
 	  struct ResultType<doublereal, SpGradient>: ResultType<SpGradient, SpGradient> {};
+
+          template <>
+          struct ResultType<GpGradProd, doublereal>: ResultType<GpGradProd, GpGradProd> {};
+
+          template <>
+          struct ResultType<doublereal, GpGradProd>: ResultType<GpGradProd, GpGradProd> {};
      }
 
      struct SpDerivRec {
@@ -307,6 +318,33 @@ namespace sp_grad {
 	       static inline void AssignOper(SpGradient& g, const SpGradBase<Expr>& f);
 	  };
      }
+
+     class GpGradProd;
+     
+     template <typename DERIVED>
+     class GpGradProdBase: public SpGradCommon {
+     protected:
+          constexpr GpGradProdBase() noexcept {}
+          ~GpGradProdBase() noexcept {}
+          
+     public:
+	  static constexpr ExprEvalFlags eExprEvalFlags = ExprEvalDuplicate;
+          
+          constexpr doublereal dGetValue() const {
+               return pGetRep()->dGetValue();
+          }
+
+          constexpr doublereal dGetDeriv() const {
+               return pGetRep()->dGetDeriv();
+          }
+
+          static constexpr bool bIsScalarConst = DERIVED::bIsScalarConst;
+          
+     private:
+          constexpr const DERIVED* pGetRep() const {
+               return static_cast<const DERIVED*>(this);
+          }
+     };
 }
 
 #endif

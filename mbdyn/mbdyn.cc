@@ -1064,6 +1064,11 @@ main(int argc, char* argv[])
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = MBFILE_UNKNOWN;
 	mbp.bNonlinCPUTime = false;
+#ifdef USE_MPI
+        mbp.using_mpi = true;
+#else
+        mbp.using_mpi = false;
+#endif
 	atexit(mbdyn_cleanup_destroy);
 
 #ifdef USE_SOCKET
@@ -1449,7 +1454,7 @@ endofcycle:
 			 * quale e' il master in modo da far calcolare la soluzione
 			 * solo su di esso
 			 */
-			MyRank = MBDynComm.Get_rank();
+			int MyRank = MBDynComm.Get_rank();
 			/* chiama il gestore dei dati generali della simulazione */
 
 			/*
@@ -1462,7 +1467,7 @@ endofcycle:
 
 			char buf[STRLENOF(".") + iRankLength + 1];
 			snprintf(buf, sizeof(buf), ".%.*d", iRankLength, MyRank);
-			sOutputFileName += buf;
+			const_cast<std::string&>(sOutputFileName) += buf;
 		}
 	}
 #endif /* USE_MPI */

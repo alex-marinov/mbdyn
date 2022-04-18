@@ -631,7 +631,11 @@ bool LinSol::SetVerbose(integer iVerb)
 }
 
 SolutionManager *const
-LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
+LinSol::GetSolutionManager(integer iNLD,
+#ifdef USE_MPI
+                           MPI::Intracomm& oComm,
+#endif
+                           integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
 	const unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
@@ -1016,7 +1020,15 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #endif
 #ifdef USE_TRILINOS
         case LinSol::AZTECOO_SOLVER:
-             pCurrSM = pAllocateAztecOOSolutionManager(iNLD, iMaxIter, dTolRes, iVerbose, solverFlags);
+             pCurrSM = pAllocateAztecOOSolutionManager(
+#ifdef USE_MPI
+                  oComm,
+#endif
+                  iNLD,
+                  iMaxIter,
+                  dTolRes,
+                  iVerbose,
+                  solverFlags);
              break;
 #endif
 	case LinSol::NAIVE_SOLVER:

@@ -70,6 +70,13 @@ public:
             doublereal dCoef,
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& Jac,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;     
      template <typename T>
      inline void
      AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -702,6 +709,24 @@ HydrodynamicPlainBearing::AssJac(VariableSubMatrixHandler& WorkMat,
      return WorkMat;
 }
 
+void
+HydrodynamicPlainBearing::AssJac(VectorHandler& Jac,
+                                 const VectorHandler& Y,
+                                 doublereal dCoef,
+                                 const VectorHandler& XCurr,
+                                 const VectorHandler& XPrimeCurr,
+                                 VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          Jac,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
 
 SubVectorHandler&
 HydrodynamicPlainBearing::AssRes(SubVectorHandler& WorkVec,
@@ -1137,7 +1162,7 @@ void HydrodynamicPlainBearing::Bearing2D::SommerfeldNumbers(const T& eps,
      if (fabs(eps) < 1e-6) {
 /*     avoid division infinite by infinite in case of zero relative eccentricity */
 /*     use analytical limit of abs_MR for eps going to zero */
-          sp_grad::SpGradient::ResizeReset(mu, std::numeric_limits<doublereal>::max(), 0);
+          sp_grad::SpGradientTraits<T>::ResizeReset(mu, std::numeric_limits<doublereal>::max(), 0);
      } else {
 /*     friction coefficient according to Butenschoen */
 /* Computing 2nd power */
@@ -1276,7 +1301,7 @@ void HydrodynamicPlainBearing::Bearing2D::UpdateBearingForce(OutputData<T>& oOut
 /*     time derivative of angle of minimum clearance */
      if (abs_e__ == 0.) {
 /*     avoid division by zero */
-          sp_grad::SpGradient::ResizeReset(delta_dot__, 0., 0);
+          sp_grad::SpGradientTraits<T>::ResizeReset(delta_dot__, 0., 0);
      } else {
 /* Computing 2nd power */
 /* Computing 2nd power */
@@ -1313,10 +1338,10 @@ void HydrodynamicPlainBearing::Bearing2D::UpdateBearingForce(OutputData<T>& oOut
 /*     sum of force for rotation and force for displacement */
      oOutput.F2_R2(1) = abs_fd__ * cos(alpha) + abs_fv__ * cos(oOutput.delta);
      oOutput.F2_R2(2) = abs_fd__ * sin(alpha) + abs_fv__ * sin(oOutput.delta);
-     sp_grad::SpGradient::ResizeReset(oOutput.F2_R2(3), 0., 0);
+     sp_grad::SpGradientTraits<T>::ResizeReset(oOutput.F2_R2(3), 0., 0);
 
-     sp_grad::SpGradient::ResizeReset(oOutput.M2_R2(1), 0., 0);
-     sp_grad::SpGradient::ResizeReset(oOutput.M2_R2(2), 0., 0);
+     sp_grad::SpGradientTraits<T>::ResizeReset(oOutput.M2_R2(1), 0., 0);
+     sp_grad::SpGradientTraits<T>::ResizeReset(oOutput.M2_R2(2), 0., 0);
      oOutput.M2_R2(3) = abs_mr__;
 
 } /* BearingForce */

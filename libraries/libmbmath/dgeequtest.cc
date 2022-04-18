@@ -47,11 +47,12 @@
 #ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
 #include "cscmhtpl.h"
+#endif
+
 #ifdef USE_TRILINOS
 #undef HAVE_BLAS
 #include "epetraspmh.h"
 #include <Epetra_SerialComm.h>
-#endif
 #endif
 
 static doublereal mat[5][5] = {
@@ -352,12 +353,12 @@ main(int argc, char* argv[])
 
 #ifdef USE_SPARSE_AUTODIFF
                SpGradientSparseMatrixHandler spgmh(5, 5);
+#endif
+
 #ifdef USE_TRILINOS
                Epetra_SerialComm oComm;
                EpetraSparseMatrixHandler epmh(5, 5, 5, oComm);
 #endif
-#endif
-
                nm.Reset();
                npm.Reset();
                fm.Reset();

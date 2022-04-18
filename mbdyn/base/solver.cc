@@ -319,12 +319,13 @@ dDummyStepsRatio(::dDefaultDummyStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
 RegularType(INT_UNKNOWN),
 DummyType(INT_UNKNOWN),
+oFakeStepIntegrator(1.),
 pDerivativeSteps(0),
 pFirstDummyStep(0),
 pDummySteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
-pCurrStepIntegrator(0),
+pCurrStepIntegrator(&oFakeStepIntegrator),
 pRhoRegular(0),
 pRhoAlgebraicRegular(0),
 pRhoDummy(0),
@@ -450,6 +451,7 @@ Solver::Prepare(void)
 
         } else
 #endif // USE_SCHUR
+
         {
                 /* chiama il gestore dei dati generali della simulazione */
 #ifdef USE_MULTITHREAD
@@ -1409,7 +1411,11 @@ bool
 Solver::Advance(void)
 {
         DEBUGCOUTFNAME("Solver::Advance");
-
+        
+#ifdef USE_MPI
+	int mpi_finalize = 0;
+#endif /* USE_MPI */
+        
         // consistency check
         if (eStatus != SOLVER_STATUS_STARTED) {
                 silent_cerr("Started() must be called first" << std::endl);
@@ -1951,6 +1957,7 @@ Solver::ReadData(MBDynParser& HP)
                         "bdf",
                         "thirdorder",
                         "implicit" "euler",
+                        "hybrid",
 
                 "derivatives" "coefficient",
                 "derivatives" "tolerance",
@@ -2062,6 +2069,7 @@ Solver::ReadData(MBDynParser& HP)
                 BDF,
                 THIRDORDER,
                 IMPLICITEULER,
+                HYBRID,
 
                 DERIVATIVESCOEFFICIENT,
                 DERIVATIVESTOLERANCE,
@@ -2136,6 +2144,7 @@ Solver::ReadData(MBDynParser& HP)
 
         bool bMethod(false);
         bool bDummyStepsMethod(false);
+        StepIntegratorType eHybridDefaultIntRegular(INT_MS2);
 
         /* dati letti qui ma da passare alle classi
          *	StepIntegration e NonlinearSolver
@@ -2154,6 +2163,7 @@ Solver::ReadData(MBDynParser& HP)
         /* Dati del passo iniziale di calcolo delle derivate */
 
         doublereal dDerivativesTol = ::dDefaultTol;
+        doublereal dDerivativesSolTol = 0.;
         integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
         integer iDerivativesCoefMaxIter = 0;
         doublereal dDerivativesCoefFactor = 10.;
@@ -2528,7 +2538,47 @@ Solver::ReadData(MBDynParser& HP)
                         case IMPLICITEULER:
                                 RegularType = INT_IMPLICITEULER;
                                 break;
+                        case HYBRID: {
+                                const KeyWords KMethod = KeyWords(HP.GetWord());
 
+                                switch (KMethod) {
+                                case IMPLICITEULER:
+                                        eHybridDefaultIntRegular = INT_IMPLICITEULER;
+                                        break;
+
+                                case CRANKNICOLSON:
+                                        eHybridDefaultIntRegular = INT_CRANKNICOLSON;
+                                        break;
+
+                                case MS:
+                                        eHybridDefaultIntRegular = INT_MS2;
+                                        break;
+
+                                case HOPE:
+                                        eHybridDefaultIntRegular = INT_HOPE;
+                                        break;
+
+                                default:
+                                        silent_cerr("Default method \"" << K.pGetDescription(KMethod)
+                                                    << "\" not implemented for hybrid integrator at line "
+                                                    << HP.GetLineData() << std::endl);
+                                        throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                }
+
+                                if (HP.IsArg()) {
+                                        pRhoRegular = HP.GetDriveCaller(true);
+                                } else {
+                                        pRhoRegular = new NullDriveCaller;
+                                }
+
+                                if (HP.IsArg()) {
+                                        pRhoAlgebraicRegular = HP.GetDriveCaller(true);
+                                } else {
+                                        pRhoAlgebraicRegular = pRhoRegular->pCopy();
+                                }
+
+                                RegularType = INT_HYBRID;
+                        } break;
                         default:
                                 silent_cerr("Unknown integration method at line "
                                         << HP.GetLineData() << std::endl);
@@ -2780,6 +2830,12 @@ Solver::ReadData(MBDynParser& HP)
                                         "Derivatives tolerance = "
                                         << dDerivativesTol
                                         << std::endl);
+                        
+                        if (HP.IsArg()) {
+                                dDerivativesSolTol = HP.GetReal();
+                        }
+                        DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives solution tolerance = "
+                                   << dDerivativesSolTol << "\n");
                         break;
                 }
 
@@ -3593,7 +3649,7 @@ Solver::ReadData(MBDynParser& HP)
                                                     oLineSearchParam.dUpdateRatio = HP.GetReal();
 
                                                     if (oLineSearchParam.dUpdateRatio <= 0) {
-                                                        silent_cerr("update ratio must be a value larger than zero at line "
+                                                        silent_cerr("update ratio must be a value greater than zero at line "
                                                                     << HP.GetLineData()
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3647,22 +3703,59 @@ Solver::ReadData(MBDynParser& HP)
                                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::VERBOSE_MODE;
                                                 }
                                         } else if (HP.IsKeyWord("newton" "krylov" "perturbation")) {
+#ifndef USE_SPARSE_AUTODIFF
                                                 oNoxSolverParam.dNewtonKrylovPerturbation = HP.GetReal();
 
                                                 if (oNoxSolverParam.dNewtonKrylovPerturbation <= 0.) {
-                                                        silent_cerr("newton krylov perturbation must be a value larger than zero at line "
+                                                        silent_cerr("newton krylov perturbation must be a value greater than zero at line "
                                                                     << HP.GetLineData()
-                                                                    << std::endl);
+                                                                    << "\n");
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+#else
+                                                pedantic_cerr("parameter \"newton krylov perturbation\" is ignored at line " << HP.GetLineData() << "\n");
+#endif
                                         } else if (HP.IsKeyWord("weighted" "rms" "relative" "tolerance")) {
                                                 oNoxSolverParam.dWrmsRelTol = HP.GetReal();
                                         } else if (HP.IsKeyWord("weighted" "rms" "absolute" "tolerance")) {
                                                 oNoxSolverParam.dWrmsAbsTol = HP.GetReal();
+                                        } else if (HP.IsKeyWord("linear" "solver")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::LINEAR_SOLVER_MASK;
+                                             
+                                                if (HP.IsKeyWord("gmres")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_GMRES;
+                                                } else if (HP.IsKeyWord("cg")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_CG;
+                                                } else if (HP.IsKeyWord("cgs")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_CGS;
+                                                } else if (HP.IsKeyWord("tfqmr")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_TFQMR;
+                                                } else if (HP.IsKeyWord("bicgstab")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINEAR_SOLVER_BICGSTAB;
+                                                } else {
+                                                        silent_cerr("keywords \"gmres\", \"cg\", \"cgs\", \"tfqmr\" or \"bicgstab\" expected "
+                                                                    << HP.GetLineData()
+                                                                    << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
                                         } else if (HP.IsKeyWord("linear" "solver" "tolerance")) {
                                                 oNoxSolverParam.dTolLinSol = HP.GetReal();
                                         } else if (HP.IsKeyWord("linear" "solver" "max" "iterations")) {
                                                 oNoxSolverParam.iMaxIterLinSol = HP.GetInt();
+                                        } else if (HP.IsKeyWord("krylov" "subspace" "size")) {
+                                                oNoxSolverParam.iKrylovSubSpaceSize = HP.GetInt();
+
+                                                if (oNoxSolverParam.iKrylovSubSpaceSize < 1) {
+                                                        silent_cerr("krylov subspace size must be greater than zero at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("use" "preconditioner" "as" "solver")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::USE_PRECOND_AS_SOLVER;
+                                                } else {
+                                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::USE_PRECOND_AS_SOLVER;
+                                                }
                                         } else if (HP.IsKeyWord("jacobian" "operator")) {
                                                 oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
                                                 if (HP.IsKeyWord("newton" "krylov")) {
@@ -3692,46 +3785,154 @@ Solver::ReadData(MBDynParser& HP)
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+                                        } else if (HP.IsKeyWord("minimum" "step")) {
+                                                oNoxSolverParam.dMinStep = HP.GetReal();
+
+                                                if (oNoxSolverParam.dMinStep <= 0.) {
+                                                        silent_cerr("minimum step must be greater than zero at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("recovery" "step")) {
+                                                oNoxSolverParam.dRecoveryStep = HP.GetReal();
+
+                                                if (oNoxSolverParam.dRecoveryStep <= 0.) {
+                                                        silent_cerr("\"recovery step\" must be greater than zero at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("recovery" "step" "type")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::RECOVERY_STEP_TYPE_MASK;
+                                                
+                                                if (HP.IsKeyWord("constant")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::RECOVERY_STEP_TYPE_CONST;
+                                                } else if (HP.IsKeyWord("last" "computed" "step")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::RECOVERY_STEP_TYPE_LAST_STEP;
+                                                } else {
+                                                        silent_cerr("keywords \"constant\" or \"last computed step\" expected at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("direction")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::DIRECTION_MASK;
+
+                                                if (HP.IsKeyWord("newton")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_NEWTON;
+                                                } else if (HP.IsKeyWord("steepest" "descent")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_STEEPEST_DESCENT;
+                                                } else if (HP.IsKeyWord("nonlinear" "cg")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_NONLINEAR_CG;
+                                                } else if (HP.IsKeyWord("broyden")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_BROYDEN;
+                                                } else {
+                                                        silent_cerr("keywords \"newton\", \"steepest descent\", "
+                                                                    "\"nonlinear cg\" or \"broyden\" expected at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("forcing" "term")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::FORCING_TERM_MASK;
+
+                                                if (HP.IsKeyWord("constant")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::FORCING_TERM_CONSTANT;
+                                                } else if (HP.IsKeyWord("type" "1")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::FORCING_TERM_TYPE1;
+                                                } else if (HP.IsKeyWord("type" "2")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::FORCING_TERM_TYPE2;
+                                                } else {
+                                                        silent_cerr("keywords \"constant\", \"type 1\" or \"type 2\" expected at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("line" "search" "method")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::LINESEARCH_MASK;
+
+                                                if (HP.IsKeyWord("backtrack")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINESEARCH_BACKTRACK;
+                                                } else if (HP.IsKeyWord("polynomial")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINESEARCH_POLYNOMIAL;
+                                                } else if (HP.IsKeyWord("more" "thuente")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::LINESEARCH_MORE_THUENTE;
+                                                } else {
+                                                        silent_cerr("keywords \"backtrack\", \"polynomial\" or \"more thuente\" expected at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);                                                  
+                                                }
+                                        } else if (HP.IsKeyWord("line" "search" "max" "iterations")) {
+                                                oNoxSolverParam.iMaxIterLineSearch = HP.GetInt();
+
+                                                if (oNoxSolverParam.iMaxIterLineSearch < 1) {
+                                                        silent_cerr("\"line search max iterations\" must be greater than or equal to one at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
                                         } else {
-                                                silent_cerr("Keywords \"print convergence info\", \"verbose\", "
-                                                            "\"jacobian operator\", "
+                                                silent_cerr("Keywords \"print convergence info\", "
+                                                            "\"verbose\", "
                                                             "\"newton krylov perturbation\", "
-                                                            "\"linear solver max iterations\", "
+                                                            "\"algorithm\", "
+                                                            "\"jacobian operator\", "
+                                                            "\"direction\", "
+                                                            "\"linear solver\", "
                                                             "\"linear solver tolerance\", "
+                                                            "\"linear solver max iterations\", "
+                                                            "\"krylov subspace size\", "
+                                                            "\"forcing term\", "
+                                                            "\"line search method\", "
+                                                            "\"line search max iterations\", "
+                                                            "\"minimum step\", "
+                                                            "\"recovery step\", "
+                                                            "\"recovery step type\", "
                                                             "\"weighted rms relative tolerance\" or "
                                                             "\"weighted rms absolute tolerance\" expected at line "
                                                             << HP.GetLineData() << std::endl);
                                                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
-
-                                        if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
-                                            (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
-                                             silent_cerr("warning: jacobian operator \"newton krylov\" can be used only for the line search based algorithm\n");
-                                             oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
-                                             oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;
-                                        }
                                 }
 
-                                switch (CurrLinearSolver.GetSolver()) {
-                                case LinSol::UMFPACK_SOLVER:
-                                case LinSol::KLU_SOLVER:
-                                case LinSol::Y12_SOLVER:
-                                case LinSol::PARDISO_SOLVER:
-                                case LinSol::PARDISO_64_SOLVER:
-                                case LinSol::PASTIX_SOLVER:
-                                case LinSol::SPQR_SOLVER:
-                                case LinSol::STRUMPACK_SOLVER:
-                                case LinSol::AZTECOO_SOLVER:
-                                        break;
-                                default:
-                                        if (oNoxSolverParam.iIterationsBeforeAssembly <= 0) {
-                                                silent_cerr("nonlinear solver \"nox\" cannot "
-                                                            "be used with linear solver \""
-                                                            << CurrLinearSolver.GetSolverName()
-                                                            << "\" unless the \"modified\" option is used at line "
-                                                            << HP.GetLineData() << "\n");
-                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
+                                        silent_cerr("warning: jacobian operator \"newton krylov\" can be used only for the line search based algorithm\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;
+                                }
+
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::DIRECTION_STEEPEST_DESCENT) != 0 &&
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
+                                        silent_cerr("warning: jacobian operator \"newton krylov\" cannot be used with direction \"steepest descent\"\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;                                     
+                                }
+
+                                if ((oNoxSolverParam.uFlags & (NoxSolverParameters::DIRECTION_STEEPEST_DESCENT | NoxSolverParameters::DIRECTION_NONLINEAR_CG)) != 0 &&
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_TENSOR_BASED) != 0) {
+                                        silent_cerr("warning: directions \"steepest descent\" and \"nonlinear cg\" are not valid for algorithm \"tensor based\"\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::DIRECTION_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_NEWTON;
+                                }
+
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::DIRECTION_BROYDEN) != 0) {
+                                        silent_cerr("warning: direction \"broyden\" is valid for algorithm \"line search based\" only\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::ALGORITHM_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_LINESEARCH_BASED;
+                                }
+
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::DIRECTION_BROYDEN) != 0 &&
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
+                                        silent_cerr("warning: direction \"broyden\" cannot be used with jacobian operator \"newton krylov\"\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;                                     
+                                }
+
+                                if (oNoxSolverParam.uFlags & NoxSolverParameters::USE_PRECOND_AS_SOLVER) {
+                                        if (oNoxSolverParam.iIterationsBeforeAssembly > 0) {
+                                                silent_cerr("warning: cannot use option \"modified\" "
+                                                            "if \"use preconditioner as solver\" is enabled\n");
                                         }
+                                        
+                                        oNoxSolverParam.bKeepJacAcrossSteps = false;
+                                        oNoxSolverParam.iIterationsBeforeAssembly = 0;
                                 }
                                 break;
 #endif
@@ -3972,7 +4173,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
         SAFENEWWITHCONSTRUCTOR(pDerivativeSteps,
                         DerivativeSolver,
                         DerivativeSolver(dDerivativesTol,
-                                dSolutionTol,
+                                dDerivativesSolTol,
                                 dInitialTimeStep*dDerivativesCoef,
                                 iDerivativesMaxIterations,
                                 bModResTest,
@@ -4122,6 +4323,18 @@ EndOfCycle: /* esce dal ciclo di lettura */
                                         dSolutionTol,
                                         iMaxIterations,
                                         bModResTest));
+                break;
+
+        case INT_HYBRID:
+                SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+                                       HybridStepIntegrator,
+                                       HybridStepIntegrator(eHybridDefaultIntRegular,
+                                                            dTol,
+                                                            dSolutionTol,
+                                                            iMaxIterations,
+                                                            pRhoRegular,
+                                                            pRhoAlgebraicRegular,
+                                                            bModResTest));
                 break;
 
         default:
@@ -5146,17 +5359,24 @@ Solver::Eig(bool bNewLine)
         {
              MyVectorHandler Res(iNumDofs);
 
+             StepIntegrator* const pPrevStepInt = pCurrStepIntegrator;
+             pCurrStepIntegrator = &oFakeStepIntegrator; // Needed for hybrid step integrator only
+
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(-h/2.);
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
 
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(h/2.);
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
+
+             pCurrStepIntegrator = pPrevStepInt;
         }
 
 #ifdef DEBUG
@@ -5254,7 +5474,11 @@ doublereal Solver::dGetInitialMaxTimeStep() const
 SolutionManager *const
 Solver::AllocateSolman(integer iNLD, integer iLWS)
 {
-        SolutionManager *pCurrSM = CurrLinearSolver.GetSolutionManager(iNLD, iLWS);
+        SolutionManager *pCurrSM = CurrLinearSolver.GetSolutionManager(iNLD,
+#ifdef USE_MPI
+                                                                       MBDynComm,
+#endif
+                                                                       iLWS);
 
         /* special extra parameters if required */
         switch (CurrLinearSolver.GetSolver()) {
@@ -5291,10 +5515,9 @@ Solver::AllocateSchurSolman(integer iStates)
 {
         SolutionManager *pSSM(0);
 
-#ifdef USE_MPI
+#ifdef USE_SCHUR
         switch (CurrIntSolver.GetSolver()) {
         case LinSol::LAPACK_SOLVER:
-        case LinSol::MESCHACH_SOLVER:
         case LinSol::NAIVE_SOLVER:
         case LinSol::UMFPACK_SOLVER:
         case LinSol::Y12_SOLVER:
@@ -5315,10 +5538,10 @@ Solver::AllocateSchurSolman(integer iStates)
                                 pIntDofs, iNumIntDofs,
                                 pLocalSM, CurrIntSolver));
 
-#else /* !USE_MPI */
+#else
         silent_cerr("Configure --with-mpi to enable Schur solver" << std::endl);
         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* !USE_MPI */
+#endif
 
         return pSSM;
 };
@@ -5379,6 +5602,7 @@ Solver::AllocateNonlinearSolver()
             case LinSol::UMFPACK_SOLVER:
             case LinSol::KLU_SOLVER:
             case LinSol::PASTIX_SOLVER:
+            case LinSol::PARDISO_SOLVER:
                 break;
 
             default:
@@ -5422,6 +5646,27 @@ Solver::AllocateNonlinearSolver()
                 break;
 #ifdef USE_TRILINOS
         case NonlinearSolver::NOX:
+                switch (CurrLinearSolver.GetSolver()) {
+                case LinSol::UMFPACK_SOLVER:
+                case LinSol::KLU_SOLVER:
+                case LinSol::Y12_SOLVER:
+                case LinSol::PARDISO_SOLVER:
+                case LinSol::PARDISO_64_SOLVER:
+                case LinSol::PASTIX_SOLVER:
+                case LinSol::SPQR_SOLVER:
+                case LinSol::STRUMPACK_SOLVER:
+                case LinSol::AZTECOO_SOLVER:
+                        break;
+                default:
+                        if (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON) {
+                                silent_cerr("nonlinear solver \"nox\" cannot "
+                                            "be used with linear solver \""
+                                            << CurrLinearSolver.GetSolverName()
+                                            << "\" unless the \"newton krylov\" option is used!\n");
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                        }
+                }
+                
                 pNLS = pAllocateNoxNonlinearSolver(*this, oNoxSolverParam);
                 break;
 #endif

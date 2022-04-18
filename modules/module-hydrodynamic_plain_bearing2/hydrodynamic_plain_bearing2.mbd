@@ -46,18 +46,30 @@ begin: initial value;
 	time step: (5.66893e-05);
 
 	max iterations: 100;
-	tolerance: 1e-6, test, minmax;
+	tolerance: 1e-6, test, norm, 1e-6, test, norm;
         method: ms, 0.6;
 	enforce constraint equations: constraint violations;
-	derivatives tolerance: 1e-3;
+	derivatives tolerance: 1e-2;
 	derivatives max iterations: 200;
 	derivatives coefficient: 1e-6;
-        linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
-        #nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
-        nonlinear solver: nox, modified, 1, keep jacobian,print convergence info, 0;
+        linear solver: umfpack, grad;
+        
+        nonlinear solver: nox,
+        modified, 20,
+        jacobian operator, newton,
+        algorithm, line search based,
+        linesearch method, backtrack,
+        direction, broyden,
+        forcing term, type 2,
+        print convergence info, no,
+        verbose, yes,
+        minimum step, 1e-12,
+        linear solver tolerance, 1e-12,
+        linear solver max iterations, 1000;
+                 
         threads: assembly, 1;
         threads: solver, 1;
-        #output: iterations;
+        output: iterations;
 end: initial value;
 
 begin: control data;

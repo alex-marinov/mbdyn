@@ -150,6 +150,14 @@ private:
 		       const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R2) {}
 
      inline void
+     UpdateStrNodeData(StrNodeData& oNode,
+		       const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& d1tot,
+		       const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R1tot,
+		       const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& F,
+		       const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& M,
+		       const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R2) {}
+     
+     inline void
      UpdateModalNode(const sp_grad::SpColVector<doublereal, 3>& x,
 		     const sp_grad::SpMatrix<doublereal, 3, 3>& R);
 
@@ -157,6 +165,10 @@ private:
      UpdateModalNode(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& x,
 		     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R) {}
 
+     inline void
+     UpdateModalNode(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& x,
+		     const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R) {}
+     
      inline void
      UpdateState(const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& a,
 		 const sp_grad::SpColVector<doublereal, sp_grad::SpMatrixSize::DYNAMIC>& aP,
@@ -170,6 +182,12 @@ private:
 		 const sp_grad::SpColVector<sp_grad::SpGradient, sp_grad::SpMatrixSize::DYNAMIC>&) { }
 
      inline void
+     UpdateState(const sp_grad::SpColVector<sp_grad::GpGradProd, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::GpGradProd, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::GpGradProd, sp_grad::SpMatrixSize::DYNAMIC>&,
+		 const sp_grad::SpColVector<sp_grad::GpGradProd, sp_grad::SpMatrixSize::DYNAMIC>&) { }
+     
+     inline void
      UpdateInvariants(const sp_grad::SpColVector<doublereal, 3>& Inv3jaj,
 		      const sp_grad::SpMatrix<doublereal, 3, 3>& Inv8jaj,
 		      const sp_grad::SpMatrix<doublereal, 3, 3>& Inv9jkajak);
@@ -178,6 +196,11 @@ private:
      UpdateInvariants(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& Inv3jaj,
 		      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& Inv8jaj,
 		      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& Inv9jkajak) {}
+
+     inline void
+     UpdateInvariants(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& Inv3jaj,
+		      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& Inv8jaj,
+		      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& Inv9jkajak) {}
 #endif
 
 protected:
@@ -351,6 +374,17 @@ public:
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
+
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void
+        AssJac(VectorHandler& Jac,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
+
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 			const VectorHandler& XCurr, 

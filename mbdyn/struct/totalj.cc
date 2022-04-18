@@ -344,7 +344,7 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == static_cast<unsigned>(ndof));
+		//ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": dof(" << i + 1 << ")";
@@ -545,7 +545,7 @@ TotalJoint::DescribeEq(std::vector<std::string>& desc,
 			}
 		}
 
-		ASSERT(cnt == static_cast<unsigned>(ndof));
+		//ASSERT(cnt == static_cast<unsigned>(ndof));
 
 	} else {
 		os << ": equation(" << i + 1 << ")";
@@ -1058,6 +1058,27 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void
+TotalJoint::AssJac(VectorHandler& Jac,
+                   const VectorHandler& Y,
+                   doublereal dCoef,
+                   const VectorHandler& XCurr,
+                   const VectorHandler& XPrimeCurr,
+                   VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          Jac,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);     
+}
+#endif
+
 /* Assemblaggio residuo */
 SubVectorHandler&
 TotalJoint::AssRes(SubVectorHandler& WorkVec,
@@ -1348,6 +1369,11 @@ TotalJoint::UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&
 }
 
 void
+TotalJoint::UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
+{
+}
+
+void
 TotalJoint::UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr)
 {
         for (sp_grad::index_type i = 1; i <= FCurr.iGetNumRows(); ++i) {
@@ -1361,6 +1387,11 @@ TotalJoint::UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
 }
 
 void
+TotalJoint::UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
+{
+}
+
+void
 TotalJoint::UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr)
 {
         for (sp_grad::index_type i = 1; i <= MCurr.iGetNumRows(); ++i) {
@@ -1370,6 +1401,11 @@ TotalJoint::UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr)
         
 void
 TotalJoint::UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
+{
+}
+
+void
+TotalJoint::UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
 {
 }
 #endif
@@ -3162,6 +3198,27 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void
+TotalPinJoint::AssJac(VectorHandler& Jac,
+                      const VectorHandler& Y,
+                      doublereal dCoef,
+                      const VectorHandler& XCurr,
+                      const VectorHandler& XPrimeCurr,
+                      VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          Jac,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);     
+}
+#endif
+
 /* Assemblaggio residuo */
 SubVectorHandler&
 TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
@@ -3424,6 +3481,11 @@ TotalPinJoint::UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 
 }
 
 void
+TotalPinJoint::UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
+{
+}
+
+void
 TotalPinJoint::UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr)
 {
         for (sp_grad::index_type i = 1; i <= FCurr.iGetNumRows(); ++i) {
@@ -3437,6 +3499,11 @@ TotalPinJoint::UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
 }
 
 void
+TotalPinJoint::UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
+{
+}
+
+void
 TotalPinJoint::UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr)
 {
         for (sp_grad::index_type i = 1; i <= MCurr.iGetNumRows(); ++i) {
@@ -3446,6 +3513,11 @@ TotalPinJoint::UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr)
         
 void
 TotalPinJoint::UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&)
+{
+}
+
+void
+TotalPinJoint::UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&)
 {
 }
 #endif

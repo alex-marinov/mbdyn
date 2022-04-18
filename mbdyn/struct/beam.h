@@ -249,6 +249,15 @@ protected:
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc);
 
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& AzLoc);
+        
     virtual void
     AddInternalForces(sp_grad::SpColVector<doublereal, 6>& AzLoc, unsigned int iSez) {
         NO_OP;
@@ -259,6 +268,11 @@ protected:
         NO_OP;
     }
 
+    virtual void
+    AddInternalForces(sp_grad::SpColVector<sp_grad::GpGradProd, 6>& AzLoc, unsigned int iSez) {
+        NO_OP;
+    }
+        
      template <typename T>
      inline void
      AssReactionForce(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -431,6 +445,16 @@ protected:
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF                
+        virtual void
+        AssJac(VectorHandler& Jac,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif     
+     
     /* assemblaggio matrici per autovalori */
     void
     AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -578,6 +602,19 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& DefPrimeLoc,
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& Az,
                  const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc);
+
+     inline void
+     UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3>, NUMSEZ>& R,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& p,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& g,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& gPrime,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& Omega,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& L,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& LPrime,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefPrimeLoc,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& Az,
+                 const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& AzLoc);
 #endif
   public:
     /* Costruttore normale */
@@ -671,6 +708,14 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
             doublereal dCoef,
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
+
+     virtual void
+     AssJac(VectorHandler& Jac,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;
 #endif
      
     virtual doublereal dGetPrivData(unsigned int i) const;

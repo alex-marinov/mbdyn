@@ -66,7 +66,7 @@ using namespace sp_grad;
 
 class JournalBearing: virtual public Elem, public UserDefinedElem
 {
-        public:
+public:
         JournalBearing(unsigned uLabel, const DofOwner *pDO,
                        DataManager* pDM, MBDynParser& HP);
         virtual ~JournalBearing(void);
@@ -80,11 +80,18 @@ class JournalBearing: virtual public Elem, public UserDefinedElem
         virtual doublereal dGetPrivData(unsigned int i) const;
         virtual void Output(OutputHandler& OH) const;
         virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-        VariableSubMatrixHandler&
+        virtual VariableSubMatrixHandler&
         AssJac(VariableSubMatrixHandler& WorkMat,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr);
+        virtual void
+        AssJac(VectorHandler& Jac,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
         SubVectorHandler&
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
@@ -116,11 +123,13 @@ class JournalBearing: virtual public Elem, public UserDefinedElem
                       const SpGradientVectorHandler<T>& XCurr,
                       enum SpFunctionCall func);
 
-        private:
+private:
         inline void SaveLambda(const sp_grad::SpColVector<doublereal, 2>& lambda);
         inline void SaveLambda(const sp_grad::SpColVector<sp_grad::SpGradient, 2>&) {}
+        inline void SaveLambda(const sp_grad::SpColVector<sp_grad::GpGradProd, 2>&) {}
         inline void SaveFriction(doublereal omega, doublereal mf);
         inline void SaveFriction(const sp_grad::SpGradient&, const sp_grad::SpGradient&) {}
+        inline void SaveFriction(const sp_grad::GpGradProd&, const sp_grad::GpGradProd&) {}
 
         StructNode* pNode1;
         SpColVectorA<doublereal, 3> o1;
@@ -547,6 +556,24 @@ JournalBearing::AssJac(VariableSubMatrixHandler& WorkMat,
         return WorkMat;
 }
 
+void
+JournalBearing::AssJac(VectorHandler& Jac,
+                       const VectorHandler& Y,
+                       doublereal dCoef,
+                       const VectorHandler& XCurr,
+                       const VectorHandler& XPrimeCurr,
+                       VariableSubMatrixHandler& WorkMat)
+{
+        using namespace sp_grad;
+     
+        SpGradientAssVec<GpGradProd>::AssJac(this,
+                                             Jac,
+                                             Y,
+                                             dCoef,
+                                             XCurr,
+                                             XPrimeCurr,
+                                             SpFunctionCall::REGULAR_JAC);
+}
 
 SubVectorHandler&
 JournalBearing::AssRes(SubVectorHandler& WorkVec,
@@ -621,7 +648,7 @@ JournalBearing::AssRes(SpGradientAssVec<T>& WorkVec,
                         if (v != 0.) {
                                 g = muc + (mus - muc) * exp(-pow(fabs(v / vs), a));
                         } else  {
-                                SpGradient::ResizeReset(g, mus, 0);
+                             SpGradientTraits<T>::ResizeReset(g, mus, 0);
                         }
 
                         const T f = v - sigma0 * fabs(v) / g * z - zP;

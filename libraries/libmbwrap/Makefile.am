@@ -78,6 +78,7 @@ libmbwrap_la_LIBADD = \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
+@TRILINOS_LIBS@ \
 @LIBS@ \
 @FCLIBS@
 

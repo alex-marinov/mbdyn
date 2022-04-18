@@ -540,6 +540,10 @@ InverseSolver::Advance(void)
 {
 	DEBUGCOUTFNAME("InverseSolver::Advance");
 
+#ifdef USE_MPI
+	int mpi_finalize = 0;
+#endif /* USE_MPI */
+        
 	// consistency check
 	if (eStatus != SOLVER_STATUS_STARTED) {
 		silent_cerr("Started() must be called first" << std::endl);

@@ -35,6 +35,9 @@
 #define LINEARSOLVER_H
 
 #include "solman.h"
+#ifdef USE_MPI
+#include "mbcomm.h"
+#endif
 /* Integrator - begin */
 
 class LinSol {
@@ -228,7 +231,11 @@ public:
         integer iGetMaxIterations() const { return iMaxIter; }
         bool SetVerbose(integer iVerb);
 	SolutionManager *const
-	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
+	GetSolutionManager(integer iNLD,
+#ifdef USE_MPI
+                           MPI::Intracomm& oComm,
+#endif
+                           integer iLWS = 0) const;
 };
 
 extern const LinSol::solver_t solver[];

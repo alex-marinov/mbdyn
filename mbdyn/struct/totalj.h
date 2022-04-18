@@ -196,6 +196,16 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF                
+       virtual void
+       AssJac(VectorHandler& Jac,
+              const VectorHandler& Y,
+              doublereal dCoef,
+              const VectorHandler& XCurr,
+              const VectorHandler& XPrimeCurr,
+              VariableSubMatrixHandler& WorkMat) override;
+#endif
+
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -210,18 +220,24 @@ public:
               const sp_grad::SpGradientVectorHandler<T>& XCurr,
               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
               sp_grad::SpFunctionCall func);
-       void
+       inline void
        UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDelta);
-       void
+       inline void
        UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& ThetaDelta);
-       void
+       inline void
+       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& ThetaDelta);                
+       inline void
        UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr);
-       void
+       inline void
        UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       void
+       inline void
+       UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);                
+       inline void
        UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr);
-       void
-       UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
+       inline void
+       UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);                
+       inline void
+       UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);
 #endif
      
 	/* inverse dynamics capable element */
@@ -438,6 +454,16 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF                
+        virtual void
+        AssJac(VectorHandler& Jac,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
+                
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -452,18 +478,24 @@ public:
               const sp_grad::SpGradientVectorHandler<T>& XCurr,
               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
               sp_grad::SpFunctionCall func);
-       void
+       inline void
        UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDelta);
-       void
+       inline void
        UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& ThetaDelta);
-       void
+       inline void
+       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& ThetaDelta);                
+       inline void
        UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr);
-       void
+       inline void
        UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       void
+       inline void
+       UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);                
+       inline void
        UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr);
-       void
+       inline void
        UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
+       inline void
+       UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);
 #endif
      
 	/* inverse dynamics capable element */

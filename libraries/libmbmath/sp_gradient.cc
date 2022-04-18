@@ -207,6 +207,11 @@ namespace sp_grad {
           }
           
 	  return os;
-     }     
+     }
+
+     std::ostream& operator<<(std::ostream& os, const GpGradProd& g)
+     {
+          return os << "f=(" << g.dGetValue() << ") df=(" << g.dGetDeriv() << ")";
+     }
 #endif
 }

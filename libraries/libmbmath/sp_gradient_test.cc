@@ -130,7 +130,7 @@ namespace sp_grad_test {
 
           return u.iGetSize();
      }
-
+     
      template <typename RAND_NZ_T, typename RAND_DOF_T, typename RAND_VAL_T, typename GEN_T>
      index_type sp_grad_rand_gen(doublereal& u, RAND_NZ_T& randnz, RAND_DOF_T& randdof, RAND_VAL_T& randval, GEN_T& gen) {
           u = randval(gen);
@@ -218,7 +218,8 @@ namespace sp_grad_test {
                SpMatrix<SpGradient, 2, 3> A2x3gf2 = Transpose(SubMatrix<3, 2>(Transpose(A6x7gf), 3, 2, 2, 4));
                SpMatrix<doublereal, SpMatrixSize::DYNAMIC, 3> A2x3f3 = Transpose(SubMatrix<3, 2, 3>(Transpose(A6x7f2), 2, 4, 2));
                SpMatrix<SpGradient, SpMatrixSize::DYNAMIC, 3> A2x3gf3 = Transpose(SubMatrix<3, 2, 3>(Transpose(A6x7gf2), 2, 4, 2));
-                  
+               SpMatrix<SpGradient, 3, 3> CrossX8a(MatCrossVec(X8a, 5.));
+               
                sp_grad_assert_equal(A2x3(1, 1), A6x7(2, 3), 0.);
                sp_grad_assert_equal(A2x3(1, 2), A6x7(2, 5), 0.);
                sp_grad_assert_equal(A2x3(1, 3), A6x7(2, 7), 0.);
@@ -902,6 +903,182 @@ namespace sp_grad_test {
 
      }
 
+     template <typename T>
+     SpColVector<T, 2> func_grad_prod0(const SpColVector<T, 2>& X) {
+          return SpColVector<T, 2>{sin(2. * X(1) - X(2) * 3.) * exp(X(1) / X(2)) + sqrt(X(1)), 4. * cos(X(1) * X(2)) * pow(X(1), X(2))};
+     }
+     
+     void test0gp()
+     {
+          using namespace sp_grad;
+
+          constexpr index_type N = 2;
+          
+          SpColVector<doublereal, N> X{0.5, 0.3}, Y{-0.7, 0.1};
+          SpColVectorA<GpGradProd, N> Xg;
+
+          for (index_type i = 1; i <= N; ++i) {
+               Xg(i).Reset(X(i), Y(i));
+          }
+
+          SpColVectorA<doublereal, N> F = func_grad_prod0(X);
+          
+          SpColVectorA<GpGradProd, N> Fg = func_grad_prod0(Xg);
+
+          const doublereal dF1_dX1 = 2. * cos(2. * X(1) - 3. * X(2)) * exp(X(1) / X(2)) + sin(2 * X(1) - X(2) * 3) * exp(X(1) / X(2)) / X(2) + 1. / (2. * sqrt(X(1)));
+          const doublereal dF1_dX2 = -3. * cos(2. * X(1) - 3. * X(2)) * exp(X(1) / X(2)) - sin(2. * X(1) - X(2) * 3.) * exp(X(1) / X(2)) * X(1) / (X(2) * X(2));
+          const doublereal dF2_dX1 = -4. * sin(X(1) * X(2)) * X(2) * pow(X(1), X(2)) + 4. * cos(X(1) * X(2)) * X(2) * pow(X(1), X(2) - 1.);
+          const doublereal dF2_dX2 = -4. * sin(X(1) * X(2)) * X(1) * pow(X(1), X(2)) + 4. * cos(X(1) * X(2)) * pow(X(1), X(2)) * log(X(1));
+          
+          SpMatrixA<doublereal, N, N> J = {dF1_dX1, dF2_dX1, dF1_dX2, dF2_dX2};
+
+          SpColVector<doublereal, N> JY = J * Y;
+
+          const doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
+          
+          for (index_type i = 1; i <= N; ++i) {
+               sp_grad_assert_equal(Fg(i).dGetValue(), F(i), dTol);
+               sp_grad_assert_equal(Fg(i).dGetDeriv(), JY(i), dTol);
+          }
+
+          SpColVector<GpGradProd, N> Ag = J * Fg;
+          SpColVector<GpGradProd, N> ATg = Transpose(J) * Fg;
+          SpColVector<doublereal, N> A = J * F;
+          SpColVector<doublereal, N> AT = Transpose(J) * F;
+          SpColVectorA<doublereal, N> Fd;
+
+          for (index_type i = 1; i <= N; ++i) {
+               Fd(i) = Fg(i).dGetDeriv();
+          }
+
+          SpColVector<doublereal, N> Ad = J * Fd;
+          SpColVector<doublereal, N> ATd = Transpose(J) * Fd;
+
+          SpMatrix<GpGradProd, N, N> FFTg= (Inv(J) * Fg * Transpose(J * Fg) * Transpose(J) + 3. * Fg * Transpose(Fg)) / 2.5 * (Ag(1) + Ag(2));
+          SpMatrix<GpGradProd, N, N> FFTTg= Transpose(Inv(J) * Fg * Transpose(J * Fg) * Transpose(J) + 3. * Fg * Transpose(Fg)) / 2.5 * (Ag(1) + Ag(2));
+          SpMatrix<doublereal, N, N> FFT = (Inv(J) * F * Transpose(J * F) * Transpose(J) + 3. * F * Transpose(F)) / 2.5 * (A(1) + A(2));
+          SpMatrix<doublereal, N, N> FFTd = (Inv(J) * (F * Transpose(J * Fd) + Fd * Transpose(J * F)) * Transpose(J) + 3. * (Fd * Transpose(F) + F * Transpose(Fd))) / 2.5 * (A(1) + A(2))
+                                          + (Inv(J) * F * Transpose(J * F) * Transpose(J) + 3. * F * Transpose(F)) / 2.5 * (Ad(1) + Ad(2));
+
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+          
+          FFTg *= 0.75;
+          FFTTg *= 0.75;
+          FFT *= 0.75;
+          FFTd *= 0.75;
+
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+          
+          FFTg /= 11.5;
+          FFTTg /= 11.5;
+          FFT /= 11.5;
+          FFTd /= 11.5;
+
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+          
+          FFTg *= Dot(Ag, Ag);
+          FFTTg *= Dot(Ag, Ag);
+          FFTd = 2. * FFT * Dot(Ad, A) + FFTd * Dot(A, A);
+          FFT *= Dot(A, A);
+
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+          
+          FFTg /= Dot(ATg, ATg);
+          FFTTg /= Dot(ATg, ATg);
+          FFTd = FFTd / Dot(AT, AT) - FFT / pow(Dot(AT, AT), 2) * 2. * Dot(ATd, AT);
+          FFT /= Dot(AT, AT);
+
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+
+          FFTg *= ATg(1) + ATg(2);
+          FFTTg *= ATg(1) + ATg(2);
+          FFTd = FFT * (ATd(1) + ATd(2)) + FFTd * (AT(1) + AT(2));
+          FFT *= AT(1) + AT(2);
+          
+          for (index_type i = 1; i <= N; ++i) {
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+          
+          FFTg /= ATg(1) + ATg(2);
+          FFTTg /= ATg(1) + ATg(2);
+          FFTd = -FFT / pow(AT(1) + AT(2), 2) * (ATd(1) + ATd(2)) + FFTd / (AT(1) + AT(2));
+          FFT /= AT(1) + AT(2);
+          
+          std::vector<doublereal> a(N);
+          std::vector<GpGradProd> b(N);
+          std::vector<GpGradProd> c(N);
+          
+          for (index_type i = 0; i < N; ++i) {
+               a[i] = (i + 1) / 5.;
+               b[i].Reset(3. / (i + 1), 10. / (i + 1));
+               c[i].Reset((i + 1.) / 4., (i + 1) / 2.);
+          }
+          
+          GpGradProd adotb, bdotc;
+          
+          adotb.MapInnerProduct(a.begin(), a.end(), 1L, b.begin(), b.end(), 1L);
+          bdotc.MapInnerProduct(b.begin(), b.end(), 1L, c.begin(), c.end(), 1L);
+          
+          sp_grad_assert_equal(adotb.dGetValue(), 3. / 5. * N, dTol);
+          sp_grad_assert_equal(adotb.dGetDeriv(), 10. / 5. * N, dTol);
+          sp_grad_assert_equal(bdotc.dGetValue(), 3. / 4. * N, dTol);
+          sp_grad_assert_equal(bdotc.dGetDeriv(), (10. / 4. + 3. / 2.) * N, dTol);
+
+          for (index_type i = 1; i <= N; ++i) {
+               sp_grad_assert_equal(Ag(i).dGetValue(), A(i), dTol);
+               sp_grad_assert_equal(Ag(i).dGetDeriv(), Ad(i), dTol);
+               sp_grad_assert_equal(ATg(i).dGetValue(), AT(i), dTol);
+               sp_grad_assert_equal(ATg(i).dGetDeriv(), ATd(i), dTol);
+
+               for (index_type j = 1; j <= N; ++j) {
+                    sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTg(i, j).dGetDeriv(), FFTd(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetValue(), FFT(i, j), dTol);
+                    sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
+               }
+          }
+     }
+     
      void test1()
      {
           using namespace std;
@@ -986,7 +1163,7 @@ namespace sp_grad_test {
                     << "|" << endl;
           }
      }
-
+     
      void test2(index_type inumloops, index_type inumnz, index_type inumdof)
      {
           using namespace std;
@@ -1294,7 +1471,9 @@ namespace sp_grad_test {
                sp_grad3_time(0),
                c_full_time(0);
 
-          typename util::ResultType<TA, TB>::Type f, f2, f3;
+          typedef typename util::ResultType<TA, TB>::Type ScalarType;
+          typedef SpGradientTraits<ScalarType> TypeTraits;
+          ScalarType f, f2, f3;
 
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
                for (auto& a:A) {
@@ -1311,11 +1490,11 @@ namespace sp_grad_test {
 
                sp_grad_time += high_resolution_clock::now() - sp_grad_start;
 
-               funz += SpGradient::iGetSize(f);
+               funz += TypeTraits::iGetSize(f);
 
-               SpGradient::Sort(f);
+               TypeTraits::Sort(f);
 
-               fnz += SpGradient::iGetSize(f);
+               fnz += TypeTraits::iGetSize(f);
 
                auto sp_grad2_start = high_resolution_clock::now();
 
@@ -1323,11 +1502,11 @@ namespace sp_grad_test {
 
                sp_grad2_time += high_resolution_clock::now() - sp_grad2_start;
 
-               f2unz += SpGradient::iGetSize(f2);
+               f2unz += TypeTraits::iGetSize(f2);
 
-               SpGradient::Sort(f2);
+               TypeTraits::Sort(f2);
 
-               f2nz += SpGradient::iGetSize(f2);
+               f2nz += TypeTraits::iGetSize(f2);
 
                auto sp_grad3_start = high_resolution_clock::now();
 
@@ -1335,20 +1514,20 @@ namespace sp_grad_test {
 
                sp_grad3_time += high_resolution_clock::now() - sp_grad3_start;
 
-               f3unz += SpGradient::iGetSize(f3);
+               f3unz += TypeTraits::iGetSize(f3);
 
-               SpGradient::Sort(f3);
+               TypeTraits::Sort(f3);
 
-               f3nz += SpGradient::iGetSize(f3);
+               f3nz += TypeTraits::iGetSize(f3);
 
                SpGradDofStat s;
 
                for (const auto& a: A) {
-                    SpGradient::GetDofStat(a, s);
+                    SpGradientTraits<TA>::GetDofStat(a, s);
                }
 
                for (const auto& b: B) {
-                    SpGradient::GetDofStat(b, s);
+                    SpGradientTraits<TB>::GetDofStat(b, s);
                }
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
@@ -1359,12 +1538,12 @@ namespace sp_grad_test {
                fd.resize(nbdirs);
 
                for (index_type i = 0; i < imatsize; ++i) {
-                    Av[i] = SpGradient::dGetValue(A[i]);
-                    Bv[i] = SpGradient::dGetValue(B[i]);
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A[i]);
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B[i]);
 
                     for (index_type j = 1; j <= s.iMaxDof; ++j) {
-                         Ad[i + (j - 1) * imatsize] = SpGradient::dGetDeriv(A[i], j);
-                         Bd[i + (j - 1) * imatsize] = SpGradient::dGetDeriv(B[i], j);
+                         Ad[i + (j - 1) * imatsize] = SpGradientTraits<TA>::dGetDeriv(A[i], j);
+                         Bd[i + (j - 1) * imatsize] = SpGradientTraits<TB>::dGetDeriv(B[i], j);
                     }
                }
 
@@ -1381,24 +1560,24 @@ namespace sp_grad_test {
 
                c_full_time += high_resolution_clock::now() - c_full_start;
 
-               assert(fabs(SpGradient::dGetValue(f) - fVal) < dTol * max(1., fabs(fVal)));
-               assert(fabs(SpGradient::dGetValue(f2) - fVal) < dTol * max(1., fabs(fVal)));
-               assert(fabs(SpGradient::dGetValue(f3) - fVal) < dTol * max(1., fabs(fVal)));
+               assert(fabs(TypeTraits::dGetValue(f) - fVal) < dTol * max(1., fabs(fVal)));
+               assert(fabs(TypeTraits::dGetValue(f2) - fVal) < dTol * max(1., fabs(fVal)));
+               assert(fabs(TypeTraits::dGetValue(f3) - fVal) < dTol * max(1., fabs(fVal)));
 
                for (index_type i = 1; i <= s.iMaxDof; ++i) {
-                    assert(fabs(fd[i - 1] - SpGradient::dGetDeriv(f, i)) < dTol * max(1.0, fabs(fd[i - 1])));
+                    assert(fabs(fd[i - 1] - TypeTraits::dGetDeriv(f, i)) < dTol * max(1.0, fabs(fd[i - 1])));
                }
 
-               assert(fabs(SpGradient::dGetValue(f2) - fVal) < dTol * max(1., fabs(fVal)));
+               assert(fabs(TypeTraits::dGetValue(f2) - fVal) < dTol * max(1., fabs(fVal)));
 
                for (index_type i = 1; i <= s.iMaxDof; ++i) {
-                    assert(fabs(fd[i - 1] - SpGradient::dGetDeriv(f2, i)) < dTol * max(1.0, fabs(fd[i - 1])));
+                    assert(fabs(fd[i - 1] - TypeTraits::dGetDeriv(f2, i)) < dTol * max(1.0, fabs(fd[i - 1])));
                }
 
-               assert(fabs(SpGradient::dGetValue(f3) - fVal) < dTol * max(1., fabs(fVal)));
+               assert(fabs(TypeTraits::dGetValue(f3) - fVal) < dTol * max(1., fabs(fVal)));
 
                for (index_type i = 1; i <= s.iMaxDof; ++i) {
-                    assert(fabs(fd[i - 1] - SpGradient::dGetDeriv(f3, i)) < dTol * max(1.0, fabs(fd[i - 1])));
+                    assert(fabs(fd[i - 1] - TypeTraits::dGetDeriv(f3, i)) < dTol * max(1.0, fabs(fd[i - 1])));
                }
           }
 
@@ -1546,12 +1725,12 @@ namespace sp_grad_test {
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    anz += SpGradient::iGetSize(ai);
+                    anz += SpGradientTraits<TA>::iGetSize(ai);
                }
 
                for (auto& xi: x) {
                     sp_grad_rand_gen(xi, randnz, randdof, randval, gen);
-                    xnz += SpGradient::iGetSize(xi);
+                    xnz += SpGradientTraits<TX>::iGetSize(xi);
                }
 #ifdef USE_AUTODIFF
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
@@ -1569,7 +1748,7 @@ namespace sp_grad_test {
                sp_grad4_time += high_resolution_clock::now() - sp_grad4_start;
 
                for (const auto& b4i: b4) {
-                    b4nz += SpGradient::iGetSize(b4i);
+                    b4nz += SpGradientTraits<TB>::iGetSize(b4i);
                }
 
                auto sp_grad4m_start = high_resolution_clock::now();
@@ -1597,21 +1776,21 @@ namespace sp_grad_test {
                sp_grad4s_time += high_resolution_clock::now() - sp_grad4s_start;
 #endif
                for (const auto& b5i: b5) {
-                    b5unz += SpGradient::iGetSize(b5i);
+                    b5unz += SpGradientTraits<TB>::iGetSize(b5i);
                }
 
                for (auto& b5i: b5) {
-                    SpGradient::Sort(b5i);
+                    SpGradientTraits<TB>::Sort(b5i);
                }
 
                for (const auto& b5i: b5) {
-                    b5nz += SpGradient::iGetSize(b5i);
+                    b5nz += SpGradientTraits<TB>::iGetSize(b5i);
                }
 
                SpGradDofStat s;
 
                for (const auto& xi: x) {
-                    SpGradient::GetDofStat(xi, s);
+                    SpGradientTraits<TX>::GetDofStat(xi, s);
                }
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
@@ -1621,18 +1800,18 @@ namespace sp_grad_test {
                bd.resize(nbdirs * imatrows);
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Av[i] = SpGradient::dGetValue(A[i]);
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A[i]);
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(A[i], j);
+                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TA>::dGetDeriv(A[i], j);
                     }
                }
 
                for (index_type i = 0; i < imatcols; ++i) {
-                    xv[i] = SpGradient::dGetValue(x[i]);
+                    xv[i] = SpGradientTraits<TX>::dGetValue(x[i]);
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         xd[i + (j - 1) * imatcols] = SpGradient::dGetDeriv(x[i], j);
+                         xd[i + (j - 1) * imatcols] = SpGradientTraits<TX>::dGetDeriv(x[i], j);
                     }
                }
 
@@ -1652,10 +1831,10 @@ namespace sp_grad_test {
 
                for (index_type i = 0; i < imatrows; ++i) {
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient::dGetDeriv(b4[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
-                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient::dGetDeriv(b5[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
-                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient::dGetDeriv(b6[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
-                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient::dGetDeriv(b7[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
+                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b4[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
+                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b5[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
+                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b6[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
+                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b7[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
 #ifdef USE_AUTODIFF
                          assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient2SliceGradient<TB>::dGetDerivativeGlobal(bs[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
 #endif
@@ -1663,10 +1842,10 @@ namespace sp_grad_test {
                }
 
                for (index_type i = 0; i < imatrows; ++i) {
-                    assert(fabs(bv[i] - SpGradient::dGetValue(b4[i])) / max(1., fabs(bv[i])) < dTol);
-                    assert(fabs(bv[i] - SpGradient::dGetValue(b5[i])) / max(1., fabs(bv[i])) < dTol);
-                    assert(fabs(bv[i] - SpGradient::dGetValue(b6[i])) / max(1., fabs(bv[i])) < dTol);
-                    assert(fabs(bv[i] - SpGradient::dGetValue(b7[i])) / max(1., fabs(bv[i])) < dTol);
+                    assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b4[i])) / max(1., fabs(bv[i])) < dTol);
+                    assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b5[i])) / max(1., fabs(bv[i])) < dTol);
+                    assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b6[i])) / max(1., fabs(bv[i])) < dTol);
+                    assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b7[i])) / max(1., fabs(bv[i])) < dTol);
 #ifdef USE_AUTODIFF
                     assert(fabs(bv[i] - grad::dGetValue(bs[i])) / max(1., fabs(bv[i])) < dTol);
 #endif
@@ -1887,17 +2066,17 @@ namespace sp_grad_test {
 
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ai, s);
+                    SpGradientTraits<TA>::GetDofStat(ai, s);
                }
 
                for (auto& bi: B) {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(bi, s);
+                    SpGradientTraits<TB>::GetDofStat(bi, s);
                }
 
                for (auto& ci: C) {
                     sp_grad_rand_gen(ci, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ci, s);
+                    SpGradientTraits<TC>::GetDofStat(ci, s);
                }
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
@@ -1908,26 +2087,26 @@ namespace sp_grad_test {
                Dd.resize(imatrows * imatcols * nbdirs);
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Av[i] = SpGradient::dGetValue(A.GetElem(i + 1));
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A.GetElem(i + 1));
 
                     for (index_type j = 1; j <= s.iMaxDof; ++j) {
-                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(A.GetElem(i + 1), j);
+                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Bv[i] = SpGradient::dGetValue(B.GetElem(i + 1));
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B.GetElem(i + 1));
 
                     for (index_type j = 1; j <= s.iMaxDof; ++j) {
-                         Bd[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(B.GetElem(i + 1), j);
+                         Bd[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Cv[i] = SpGradient::dGetValue(C.GetElem(i + 1));
+                    Cv[i] = SpGradientTraits<TC>::dGetValue(C.GetElem(i + 1));
 
                     for (index_type j = 1; j <= s.iMaxDof; ++j) {
-                         Cd[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(C.GetElem(i + 1), j);
+                         Cd[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TC>::dGetDeriv(C.GetElem(i + 1), j);
                     }
                }
 
@@ -1960,10 +2139,10 @@ namespace sp_grad_test {
 
                for (index_type j = 1; j <= imatcols; ++j) {
                     for (index_type i = 1; i <= imatrows; ++i) {
-                         const doublereal aij = SpGradient::dGetValue(A.GetElem(i, j));
-                         const doublereal bij = SpGradient::dGetValue(B.GetElem(i, j));
-                         const doublereal cij = SpGradient::dGetValue(C.GetElem(i, j));
-                         const doublereal dijr1 = SpGradient::dGetValue(D.GetElem(i, j));
+                         const doublereal aij = SpGradientTraits<TA>::dGetValue(A.GetElem(i, j));
+                         const doublereal bij = SpGradientTraits<TB>::dGetValue(B.GetElem(i, j));
+                         const doublereal cij = SpGradientTraits<TC>::dGetValue(C.GetElem(i, j));
+                         const doublereal dijr1 = SpGradientTraits<TD>::dGetValue(D.GetElem(i, j));
                          const doublereal dijr2 = Dv[(j - 1) * imatrows + i - 1];
                          const doublereal dij = -aij / 3. + (bij * 5. - cij / 4.) * 1.5;
 
@@ -1971,10 +2150,10 @@ namespace sp_grad_test {
                          assert(fabs(dij - dijr2) / std::max(1., fabs(dij)) < dTol);
 
                          for (index_type k = s.iMinDof; k <= s.iMaxDof; ++k) {
-                              const doublereal daij = SpGradient::dGetDeriv(A.GetElem(i, j), k);
-                              const doublereal dbij = SpGradient::dGetDeriv(B.GetElem(i, j), k);
-                              const doublereal dcij = SpGradient::dGetDeriv(C.GetElem(i, j), k);
-                              const doublereal ddijr1 = SpGradient::dGetDeriv(D.GetElem(i, j), k);
+                              const doublereal daij = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i, j), k);
+                              const doublereal dbij = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i, j), k);
+                              const doublereal dcij = SpGradientTraits<TC>::dGetDeriv(C.GetElem(i, j), k);
+                              const doublereal ddijr1 = SpGradientTraits<TD>::dGetDeriv(D.GetElem(i, j), k);
                               const doublereal ddijr2 = Dd[((j - 1) * imatrows + (i - 1) + (k - 1) * imatrows * imatcols)];
                               const doublereal ddij = -daij / 3. + (dbij * 5. - dcij / 4.) * 1.5;
 
@@ -2055,19 +2234,19 @@ namespace sp_grad_test {
 
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ai, s);
+                    SpGradientTraits<TA>::GetDofStat(ai, s);
                }
 
                for (auto& bi: B) {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(bi, s);
+                    SpGradientTraits<TB>::GetDofStat(bi, s);
                }
 
                B_T = Transpose(B);
 
                sp_grad_rand_gen(C, randnz, randdof, randval, gen);
 
-               SpGradient::GetDofStat(C, s);
+               SpGradientTraits<TC>::GetDofStat(C, s);
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
 
@@ -2077,26 +2256,26 @@ namespace sp_grad_test {
                Dd.resize(imatrows * imatcols * nbdirs);
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Av[i] = SpGradient::dGetValue(A.GetElem(i + 1));
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(A.GetElem(i + 1), j);
+                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Bv[i] = SpGradient::dGetValue(B.GetElem(i + 1));
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Bd[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(B.GetElem(i + 1), j);
+                         Bd[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i + 1), j);
                     }
                }
 
 
-               Cv = SpGradient::dGetValue(C);
+               Cv = SpGradientTraits<TC>::dGetValue(C);
 
                for (index_type j = 1; j <= nbdirs; ++j) {
-                    Cd[j - 1] = SpGradient::dGetDeriv(C, j);
+                    Cd[j - 1] = SpGradientTraits<TC>::dGetDeriv(C, j);
                }
 
                auto start = high_resolution_clock::now();
@@ -2140,11 +2319,11 @@ namespace sp_grad_test {
 
                for (index_type j = 1; j <= imatcols; ++j) {
                     for (index_type i = 1; i <= imatrows; ++i) {
-                         const doublereal dij1 = SpGradient::dGetValue(D.GetElem(i, j));
+                         const doublereal dij1 = SpGradientTraits<TD>::dGetValue(D.GetElem(i, j));
                          const doublereal dij2 = Dv[(j - 1) * imatrows + i - 1];
-                         const doublereal dij3 = SpGradient::dGetValue(D_T.GetElem(j, i));
-                         const doublereal dij4 = SpGradient::dGetValue(Da.GetElem(i, j));
-                         const doublereal dij5 = SpGradient::dGetValue(Db.GetElem(i, j));
+                         const doublereal dij3 = SpGradientTraits<TD>::dGetValue(D_T.GetElem(j, i));
+                         const doublereal dij4 = SpGradientTraits<TD>::dGetValue(Da.GetElem(i, j));
+                         const doublereal dij5 = SpGradientTraits<TD>::dGetValue(Db.GetElem(i, j));
 
                          assert(fabs(dij1 - dij2) / std::max(1., fabs(dij2)) < dTol);
                          assert(fabs(dij3 - dij2) / std::max(1., fabs(dij2)) < dTol);
@@ -2152,11 +2331,11 @@ namespace sp_grad_test {
                          assert(fabs(dij5 - dij2) / std::max(1., fabs(dij2)) < dTol);
 
                          for (index_type k = 1; k <= nbdirs; ++k) {
-                              const doublereal ddij1 = SpGradient::dGetDeriv(D.GetElem(i, j), k);
+                              const doublereal ddij1 = SpGradientTraits<TD>::dGetDeriv(D.GetElem(i, j), k);
                               const doublereal ddij2 = Dd[((j - 1) * imatrows + (i - 1) + (k - 1) * imatrows * imatcols)];
-                              const doublereal ddij3 = SpGradient::dGetDeriv(D_T.GetElem(j, i), k);
-                              const doublereal ddij4 = SpGradient::dGetDeriv(Da.GetElem(i, j), k);
-                              const doublereal ddij5 = SpGradient::dGetDeriv(Db.GetElem(i, j), k);
+                              const doublereal ddij3 = SpGradientTraits<TD>::dGetDeriv(D_T.GetElem(j, i), k);
+                              const doublereal ddij4 = SpGradientTraits<TD>::dGetDeriv(Da.GetElem(i, j), k);
+                              const doublereal ddij5 = SpGradientTraits<TD>::dGetDeriv(Db.GetElem(i, j), k);
                               assert(fabs(ddij1 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
                               assert(fabs(ddij3 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
                               assert(fabs(ddij4 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
@@ -2266,12 +2445,12 @@ namespace sp_grad_test {
 
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ai, s);
+                    SpGradientTraits<TA>::GetDofStat(ai, s);
                }
 
                for (auto& bi: B) {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(bi, s);
+                    SpGradientTraits<TB>::GetDofStat(bi, s);
                }
 #ifdef USE_AUTODIFF
                for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
@@ -2293,18 +2472,18 @@ namespace sp_grad_test {
                Cd.resize(iamatrows * ibmatcols * nbdirs);
 
                for (index_type i = 0; i < iamatrows * iamatcols; ++i) {
-                    Av[i] = SpGradient::dGetValue(A.GetElem(i + 1));
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Ad[i + (j - 1) * iamatcols * iamatrows] = SpGradient::dGetDeriv(A.GetElem(i + 1), j);
+                         Ad[i + (j - 1) * iamatcols * iamatrows] = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < iamatcols * ibmatcols; ++i) {
-                    Bv[i] = SpGradient::dGetValue(B.GetElem(i + 1));
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Bd[i + (j - 1) * iamatcols * ibmatcols] = SpGradient::dGetDeriv(B.GetElem(i + 1), j);
+                         Bd[i + (j - 1) * iamatcols * ibmatcols] = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i + 1), j);
                     }
                }
 
@@ -2361,20 +2540,20 @@ namespace sp_grad_test {
 #endif
                for (index_type j = 1; j <= ibmatcols; ++j) {
                     for (index_type i = 1; i <= iamatrows; ++i) {
-                         const doublereal cij1 = SpGradient::dGetValue(C.GetElem(i, j));
+                         const doublereal cij1 = SpGradientTraits<TC>::dGetValue(C.GetElem(i, j));
                          const doublereal cij2 = Cv[(j - 1) * iamatrows + i - 1];
-                         const doublereal cij3 = SpGradient::dGetValue(C_T.GetElem(i, j));
-                         const doublereal cij4 = SpGradient::dGetValue(C_TA.GetElem(i, j));
+                         const doublereal cij3 = SpGradientTraits<TC>::dGetValue(C_T.GetElem(i, j));
+                         const doublereal cij4 = SpGradientTraits<TC>::dGetValue(C_TA.GetElem(i, j));
 
                          assert(fabs(cij1 - cij2) / std::max(1., fabs(cij2)) < dTol);
                          assert(fabs(cij3 - cij2) / std::max(1., fabs(cij2)) < dTol);
                          assert(fabs(cij4 - cij2) / std::max(1., fabs(cij2)) < dTol);
 
                          for (index_type k = 1; k <= nbdirs; ++k) {
-                              const doublereal dcij1 = SpGradient::dGetDeriv(C.GetElem(i, j), k);
+                              const doublereal dcij1 = SpGradientTraits<TC>::dGetDeriv(C.GetElem(i, j), k);
                               const doublereal dcij2 = Cd[((j - 1) * iamatrows + (i - 1) + (k - 1) * iamatrows * ibmatcols)];
-                              const doublereal dcij3 = SpGradient::dGetDeriv(C_T.GetElem(i, j), k);
-                              const doublereal dcij4 = SpGradient::dGetDeriv(C_TA.GetElem(i, j), k);
+                              const doublereal dcij3 = SpGradientTraits<TC>::dGetDeriv(C_T.GetElem(i, j), k);
+                              const doublereal dcij4 = SpGradientTraits<TC>::dGetDeriv(C_TA.GetElem(i, j), k);
 
                               assert(fabs(dcij1 - dcij2) / std::max(1., fabs(dcij2)) < dTol);
                               assert(fabs(dcij3 - dcij2) / std::max(1., fabs(dcij2)) < dTol);
@@ -2511,17 +2690,17 @@ namespace sp_grad_test {
 
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ai, s);
+                    SpGradientTraits<TA>::GetDofStat(ai, s);
                }
 
                for (auto& bi: B) {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(bi, s);
+                    SpGradientTraits<TB>::GetDofStat(bi, s);
                }
 
                for (auto& ci: C) {
                     sp_grad_rand_gen(ci, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ci, s);
+                    SpGradientTraits<TC>::GetDofStat(ci, s);
                }
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
@@ -2534,26 +2713,26 @@ namespace sp_grad_test {
                Tmp2d.resize(imatrows * imatcols * nbdirs);
 
                for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    Av[i] = SpGradient::dGetValue(A.GetElem(i + 1));
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradient::dGetDeriv(A.GetElem(i + 1), j);
+                         Ad[i + (j - 1) * imatcols * imatrows] = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatcols * imatcols; ++i) {
-                    Bv[i] = SpGradient::dGetValue(B.GetElem(i + 1));
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Bd[i + (j - 1) * imatcols * imatcols] = SpGradient::dGetDeriv(B.GetElem(i + 1), j);
+                         Bd[i + (j - 1) * imatcols * imatcols] = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatcols * imatcols; ++i) {
-                    Cv[i] = SpGradient::dGetValue(C.GetElem(i + 1));
+                    Cv[i] = SpGradientTraits<TC>::dGetValue(C.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Cd[i + (j - 1) * imatcols * imatcols] = SpGradient::dGetDeriv(C.GetElem(i + 1), j);
+                         Cd[i + (j - 1) * imatcols * imatcols] = SpGradientTraits<TC>::dGetDeriv(C.GetElem(i + 1), j);
                     }
                }
 
@@ -2590,17 +2769,17 @@ namespace sp_grad_test {
 
                for (index_type j = 1; j <= imatcols; ++j) {
                     for (index_type i = 1; i <= imatrows; ++i) {
-                         const doublereal dij1 = SpGradient::dGetValue(D.GetElem(i, j));
+                         const doublereal dij1 = SpGradientTraits<TD>::dGetValue(D.GetElem(i, j));
                          const doublereal dij2 = Dv[(j - 1) * imatrows + i - 1];
-                         const doublereal dij3 = SpGradient::dGetValue(D_T.GetElem(i, j));
+                         const doublereal dij3 = SpGradientTraits<TD>::dGetValue(D_T.GetElem(i, j));
 
                          assert(fabs(dij1 - dij2) / std::max(1., fabs(dij2)) < dTol);
                          assert(fabs(dij3 - dij2) / std::max(1., fabs(dij2)) < dTol);
 
                          for (index_type k = 1; k <= nbdirs; ++k) {
-                              const doublereal ddij1 = SpGradient::dGetDeriv(D.GetElem(i, j), k);
+                              const doublereal ddij1 = SpGradientTraits<TD>::dGetDeriv(D.GetElem(i, j), k);
                               const doublereal ddij2 = Dd[((j - 1) * imatrows + (i - 1) + (k - 1) * imatrows * imatcols)];
-                              const doublereal ddij3 = SpGradient::dGetDeriv(D_T.GetElem(i, j), k);
+                              const doublereal ddij3 = SpGradientTraits<TD>::dGetDeriv(D_T.GetElem(i, j), k);
                               assert(fabs(ddij1 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
                               assert(fabs(ddij3 - ddij2) / std::max(1., fabs(ddij2)) < dTol);
                          }
@@ -2682,17 +2861,17 @@ namespace sp_grad_test {
 
                for (auto& ai: A) {
                     sp_grad_rand_gen(ai, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ai, s);
+                    SpGradientTraits<TA>::GetDofStat(ai, s);
                }
 
                for (auto& bi: B) {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(bi, s);
+                    SpGradientTraits<TB>::GetDofStat(bi, s);
                }
 
                for (auto& ci: C) {
                     sp_grad_rand_gen(ci, randnz, randdof, randval, gen);
-                    SpGradient::GetDofStat(ci, s);
+                    SpGradientTraits<TC>::GetDofStat(ci, s);
                }
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
@@ -2704,26 +2883,26 @@ namespace sp_grad_test {
                Tmp1d.resize(imatrowsa * imatcolsb * nbdirs);
 
                for (index_type i = 0; i < imatrowsa * imatcolsa; ++i) {
-                    Av[i] = SpGradient::dGetValue(A.GetElem(i + 1));
+                    Av[i] = SpGradientTraits<TA>::dGetValue(A.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Ad[i + (j - 1) * imatcolsa * imatrowsa] = SpGradient::dGetDeriv(A.GetElem(i + 1), j);
+                         Ad[i + (j - 1) * imatcolsa * imatrowsa] = SpGradientTraits<TA>::dGetDeriv(A.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatcolsa * imatcolsb; ++i) {
-                    Bv[i] = SpGradient::dGetValue(B.GetElem(i + 1));
+                    Bv[i] = SpGradientTraits<TB>::dGetValue(B.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Bd[i + (j - 1) * imatcolsa * imatcolsb] = SpGradient::dGetDeriv(B.GetElem(i + 1), j);
+                         Bd[i + (j - 1) * imatcolsa * imatcolsb] = SpGradientTraits<TB>::dGetDeriv(B.GetElem(i + 1), j);
                     }
                }
 
                for (index_type i = 0; i < imatcolsb * imatcolsc; ++i) {
-                    Cv[i] = SpGradient::dGetValue(C.GetElem(i + 1));
+                    Cv[i] = SpGradientTraits<TC>::dGetValue(C.GetElem(i + 1));
 
                     for (index_type j = 1; j <= nbdirs; ++j) {
-                         Cd[i + (j - 1) * imatcolsb * imatcolsc] = SpGradient::dGetDeriv(C.GetElem(i + 1), j);
+                         Cd[i + (j - 1) * imatcolsb * imatcolsc] = SpGradientTraits<TC>::dGetDeriv(C.GetElem(i + 1), j);
                     }
                }
 
@@ -2767,9 +2946,9 @@ namespace sp_grad_test {
 
                for (index_type j = 1; j <= imatcolsc; ++j) {
                     for (index_type i = 1; i <= imatrowsa; ++i) {
-                         const doublereal dija = SpGradient::dGetValue(Da.GetElem(j, i));
-                         const doublereal dijb = SpGradient::dGetValue(Db.GetElem(j, i));
-                         const doublereal dijc = SpGradient::dGetValue(Dc.GetElem(j, i));
+                         const doublereal dija = SpGradientTraits<TD>::dGetValue(Da.GetElem(j, i));
+                         const doublereal dijb = SpGradientTraits<TD>::dGetValue(Db.GetElem(j, i));
+                         const doublereal dijc = SpGradientTraits<TD>::dGetValue(Dc.GetElem(j, i));
                          const doublereal dij2 = Dv[(j - 1) * imatrowsa + i - 1];
 
                          assert(fabs(dija - dij2) / std::max(1., fabs(dij2)) < dTol);
@@ -2777,9 +2956,9 @@ namespace sp_grad_test {
                          assert(fabs(dijc - dij2) / std::max(1., fabs(dij2)) < dTol);
 
                          for (index_type k = 1; k <= nbdirs; ++k) {
-                              const doublereal ddija = SpGradient::dGetDeriv(Da.GetElem(j, i), k);
-                              const doublereal ddijb = SpGradient::dGetDeriv(Db.GetElem(j, i), k);
-                              const doublereal ddijc = SpGradient::dGetDeriv(Dc.GetElem(j, i), k);
+                              const doublereal ddija = SpGradientTraits<TD>::dGetDeriv(Da.GetElem(j, i), k);
+                              const doublereal ddijb = SpGradientTraits<TD>::dGetDeriv(Db.GetElem(j, i), k);
+                              const doublereal ddijc = SpGradientTraits<TD>::dGetDeriv(Dc.GetElem(j, i), k);
                               const doublereal ddij2 = Dd[((j - 1) * imatrowsa + (i - 1) + (k - 1) * imatrowsa * imatcolsc)];
                               assert(fabs(ddija - ddij2) / std::max(1., fabs(ddij2)) < dTol);
                               assert(fabs(ddijb - ddij2) / std::max(1., fabs(ddij2)) < dTol);
@@ -2938,7 +3117,7 @@ namespace sp_grad_test {
                sp_grad_assert_equal(q1, q2, dTol);
                sp_grad_assert_equal(q1, q3, dTol);
 
-               assert(SpGradient::dGetValue(q1) >= 0.);
+               assert(SpGradientTraits<T>::dGetValue(q1) >= 0.);
 
                for (index_type i = 1; i <= 3; ++i) {
                     for (index_type j = 1; j <= 2; ++j) {
@@ -3295,7 +3474,10 @@ int main(int argc, char* argv[])
 #define SP_GRAD_RUN_TEST(number)                        \
           (dtest == dall_tests || dtest == (number))
 
-          if (SP_GRAD_RUN_TEST(0.1)) test0(inumloops, inumnz, inumdof);
+          if (SP_GRAD_RUN_TEST(0.1)) {
+               test0(inumloops, inumnz, inumdof);
+               test0gp();
+          }
           if (SP_GRAD_RUN_TEST(1.1)) test1();
           if (SP_GRAD_RUN_TEST(2.1)) test2(inumloops, inumnz, inumdof);
           if (SP_GRAD_RUN_TEST(3.1)) test3<SpGradient, SpGradient>(inumloops, inumnz, inumdof, imatrows);

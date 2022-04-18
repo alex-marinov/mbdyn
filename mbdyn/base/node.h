@@ -221,6 +221,9 @@ public:
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         virtual void UpdateJac(doublereal dCoef);
 #endif
+#ifdef USE_SPARSE_AUTODIFF
+     virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef);
+#endif
 };
 
 Node::Type str2nodetype(const char *const s);
@@ -291,6 +294,7 @@ public:
 #ifdef USE_SPARSE_AUTODIFF
     inline void GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;    
     inline void GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+    inline void GetX(sp_grad::GpGradProd& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;     
 #endif
 
 	 /* returns the dimension of the component */
@@ -300,6 +304,13 @@ public:
     virtual std::ostream& DescribeEq(std::ostream& out,
 		  const char *prefix = "",
 		  bool bInitial = false) const;
+#if defined(USE_SPARSE_AUTODIFF)
+     virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
+#endif
+protected:
+#ifdef USE_SPARSE_AUTODIFF
+     doublereal XY;
+#endif
 };
 
 #ifdef USE_AUTODIFF
@@ -334,6 +345,12 @@ inline void ScalarNode::GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad:
 {
      const doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
      dX.Reset(dGetX(), iGetFirstColIndex() + 1, dDeriv);
+}
+
+inline void ScalarNode::GetX(sp_grad::GpGradProd& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     const doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
+     dX.Reset(dGetX(), XY * dDeriv);
 }
 #endif
 
@@ -464,6 +481,7 @@ public:
 #ifdef USE_SPARSE_AUTODIFF
      inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
      inline void GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+     inline void GetXPrime(sp_grad::GpGradProd& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
 
 	 /* returns the dimension of the component */
@@ -518,6 +536,11 @@ inline void ScalarDifferentialNode::GetXPrime(doublereal& dXPrime, doublereal dC
 inline void ScalarDifferentialNode::GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      dXPrime.Reset(dGetXPrime(), iGetFirstColIndex() + 1, -1.);
+}
+
+inline void ScalarDifferentialNode::GetXPrime(sp_grad::GpGradProd& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     dXPrime.Reset(dGetXPrime(), -XY);
 }
 #endif
 

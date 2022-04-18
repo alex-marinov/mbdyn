@@ -58,14 +58,54 @@ struct NoxSolverParameters: public CommonNonlinearSolverParam {
           ALGORITHM_MASK = ALGORITHM_LINESEARCH_BASED |
           ALGORITHM_TRUST_REGION_BASED |
           ALGORITHM_INEXACT_TRUST_REGION_BASED |
-          ALGORITHM_TENSOR_BASED
+          ALGORITHM_TENSOR_BASED,
+          DIRECTION_NEWTON = 0x400,
+          DIRECTION_STEEPEST_DESCENT = 0x800,
+          DIRECTION_NONLINEAR_CG = 0x1000,
+          DIRECTION_BROYDEN = 0x2000,
+          DIRECTION_MASK = DIRECTION_NEWTON |
+          DIRECTION_STEEPEST_DESCENT |
+          DIRECTION_BROYDEN,
+          FORCING_TERM_CONSTANT =  0x4000,
+          FORCING_TERM_TYPE1    =  0x8000,
+          FORCING_TERM_TYPE2    = 0x10000,
+          FORCING_TERM_MASK = FORCING_TERM_CONSTANT |
+          FORCING_TERM_TYPE1 |
+          FORCING_TERM_TYPE2,
+          LINESEARCH_BACKTRACK    = 0x20000,
+          LINESEARCH_POLYNOMIAL   = 0x40000,
+          LINESEARCH_MORE_THUENTE = 0x80000,
+          LINESEARCH_MASK = LINESEARCH_BACKTRACK |
+          LINESEARCH_POLYNOMIAL |
+          LINESEARCH_MORE_THUENTE,
+          LINEAR_SOLVER_GMRES    = 0x100000,
+          LINEAR_SOLVER_CG       = 0x200000,
+          LINEAR_SOLVER_CGS      = 0x400000,
+          LINEAR_SOLVER_TFQMR    = 0x800000,
+          LINEAR_SOLVER_BICGSTAB = 0x1000000,
+          LINEAR_SOLVER_MASK = LINEAR_SOLVER_GMRES |
+          LINEAR_SOLVER_CG |
+          LINEAR_SOLVER_CGS |
+          LINEAR_SOLVER_TFQMR |
+          LINEAR_SOLVER_BICGSTAB,
+          RECOVERY_STEP_TYPE_CONST     = 0x2000000,
+          RECOVERY_STEP_TYPE_LAST_STEP = 0x4000000,
+          RECOVERY_STEP_TYPE_MASK = RECOVERY_STEP_TYPE_CONST |
+          RECOVERY_STEP_TYPE_LAST_STEP,
+          USE_PRECOND_AS_SOLVER = 0x8000000
      };
-     
+
+#ifndef USE_SPARSE_AUTODIFF
      doublereal dNewtonKrylovPerturbation;
+#endif
      doublereal dWrmsRelTol;
      doublereal dWrmsAbsTol;
      doublereal dTolLinSol;
+     doublereal dMinStep;
+     doublereal dRecoveryStep;
      integer iMaxIterLinSol;
+     integer iKrylovSubSpaceSize;
+     integer iMaxIterLineSearch;
 };
 
 NonlinearSolver*

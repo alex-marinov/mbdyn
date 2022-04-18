@@ -98,6 +98,28 @@ namespace sp_grad {
           const VectorHandler& vh;
      };
 
+     template <>
+     class SpGradientVectorHandler<GpGradProd> {
+     public:
+          SpGradientVectorHandler(const VectorHandler& X, const VectorHandler& Y)
+               :X(X), Y(Y) {
+          }
+
+          void dGetCoef(integer iRow, GpGradProd& gVal, doublereal dCoef) const {
+               gVal.Reset(X.dGetCoef(iRow), -dCoef * Y.dGetCoef(iRow));
+          }
+
+          template <index_type N_rows>
+          void GetVec(integer iRow, SpColVector<GpGradProd, N_rows>& v, doublereal dCoef)  const {
+               for (integer i = 0; i < v.iGetNumRows(); ++i) {
+                    v(i + 1).Reset(X.dGetCoef(i + iRow), -dCoef * Y.dGetCoef(iRow + i));
+               }
+          }
+     private:
+          const VectorHandler& X;
+          const VectorHandler& Y;
+     };
+     
      class SpGradientAssVecBase {
      public:
           enum SpAssMode { RESET, APPEND };
@@ -109,7 +131,7 @@ namespace sp_grad {
      template <>
      class SpGradientAssVec<doublereal>: SpGradientAssVecBase {
      public:
-          SpGradientAssVec(SubVectorHandler& vh, SpAssMode mode = RESET)
+          explicit SpGradientAssVec(SubVectorHandler& vh, SpAssMode mode = RESET)
                :WorkVec(vh) {
 
                switch (mode) {
@@ -188,7 +210,7 @@ namespace sp_grad {
      template <>
      class SpGradientAssVec<SpGradient>: public SpGradientAssVecBase {
      public:
-          SpGradientAssVec(SpGradientSubMatrixHandler& mh, SpAssMode mode = RESET)
+          explicit SpGradientAssVec(SpGradientSubMatrixHandler& mh, SpAssMode mode = RESET)
                :oWorkMat(mh) {
 
                switch (mode) {
@@ -252,6 +274,47 @@ namespace sp_grad {
           SpGradientSubMatrixHandler& oWorkMat;
      };
 
+     template <>
+     class SpGradientAssVec<GpGradProd>: public SpGradientAssVecBase {
+     public:
+          explicit SpGradientAssVec(VectorHandler& Jac, SpAssMode mode = RESET)
+               :Jac(Jac) {
+          }
+
+          template <typename T>
+          static void AssJac(T* pElem,
+                             VectorHandler& Jac,
+                             const VectorHandler& Y,
+                             doublereal dCoef,
+                             const VectorHandler& XCurr,
+                             const VectorHandler& XPrimeCurr,
+                             SpFunctionCall func,
+                             SpAssMode mode = RESET) {
+
+               const SpGradientVectorHandler<GpGradProd> XCurr_grad(XCurr, Y);
+               const SpGradientVectorHandler<GpGradProd> XPrimeCurr_grad(XPrimeCurr, Y);
+
+               SpGradientAssVec Jac_grad(Jac, mode);
+
+               pElem->AssRes(Jac_grad, dCoef, XCurr_grad, XPrimeCurr_grad, func);
+          }
+
+          void AddItem(integer iRow, const GpGradProd& oGrad) {
+               Jac.IncCoef(iRow, oGrad.dGetDeriv());
+          }
+
+          template <index_type N_rows>
+          void AddItem(integer iFirstRow, const SpColVector<GpGradProd, N_rows>& v) {
+               // zero based index according to VectorHandler::Put(integer iRow, const Vec3& v)
+
+               for (integer i = 0; i < v.iGetNumRows(); ++i) {
+                    AddItem(iFirstRow + i, v(i + 1));
+               }
+          }
+     private:
+          VectorHandler& Jac;
+     };
+     
 } // namespace
 
 #endif /* ___SP_MATVECASS_H__INCLUDED___ */

@@ -402,6 +402,18 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void DataManager::AssJac(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef)
+{
+     ASSERT(Jac.iGetSize() == iGetNumDofs());
+     ASSERT(Y.iGetSize() == iGetNumDofs());
+     
+     NodesUpdateJac(Y, dCoef, NodeIter);
+
+     AssJac(Jac, Y, dCoef, ElemIter, *pWorkMat);
+}
+#endif
+
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 void DataManager::NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter)
 {
@@ -409,6 +421,15 @@ void DataManager::NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter)
 
      for (bool bStatus = Iter.bGetFirst(pNode); bStatus; bStatus = Iter.bGetNext(pNode)) {
 	  pNode->UpdateJac(dCoef);
+     }
+}
+
+void DataManager::NodesUpdateJac(const VectorHandler& Y, doublereal dCoef, VecIter<Node *>& Iter)
+{
+     Node* pNode = nullptr;
+
+     for (bool bStatus = Iter.bGetFirst(pNode); bStatus; bStatus = Iter.bGetNext(pNode)) {
+	  pNode->UpdateJac(Y, dCoef);
      }
 }
 #endif
@@ -456,6 +477,35 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 		} while (Iter.bGetNext(pTmpEl));
 	}
 }
+
+#ifdef USE_SPARSE_AUTODIFF
+void
+DataManager::AssJac(VectorHandler& Jac,
+                    const VectorHandler& Y,
+                    doublereal dCoef,
+                    VecIter<Elem *> &Iter,
+                    VariableSubMatrixHandler& WorkMat)
+{
+	Elem* pTmpEl = nullptr;
+        
+        Jac.Reset();
+     
+	if (Iter.bGetFirst(pTmpEl)) {
+		do {
+			try {
+                             pTmpEl->AssJac(Jac, Y, dCoef, *pXCurr, *pXPrimeCurr, WorkMat);
+			}
+			catch (ErrDivideByZero& e) {
+				silent_cerr("AssJac: divide by zero "
+					"in " << psElemNames[pTmpEl->GetElemType()]
+					<< "(" << pTmpEl->GetLabel() << ")"
+					<< std::endl);
+				throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
+			}
+		} while (Iter.bGetNext(pTmpEl));
+	}
+}
+#endif
 
 void
 DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
@@ -587,6 +637,11 @@ DataManager::SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::se
 	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		integer first_index = Nodes[i]->iGetFirstIndex();
 
+                if (first_index < 0) {
+                     // Ignore DummyStructNode
+                     continue;
+                }
+                
 		/* set the indices value to corresponding dimensions */
 		for (unsigned int j = 1; j <= Nodes[i]->iGetNumDof(); j++) {
 			(*pDimMap)[Nodes[i]->GetEquationDimension(j)].insert(first_index + j);

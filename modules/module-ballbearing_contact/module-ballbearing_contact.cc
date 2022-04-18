@@ -77,6 +77,13 @@ public:
             doublereal dCoef,
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& Jac,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;
      SubVectorHandler&
      AssRes(SubVectorHandler& WorkVec,
             doublereal dCoef,
@@ -163,8 +170,9 @@ private:
      std::vector<Washer> washers;
 
      inline void CheckTimeStep(Washer& w, doublereal Fn, doublereal d, doublereal dn_dt);
-     inline void CheckTimeStep(Washer& w, const SpGradient&, const SpGradient&, const SpGradient&);
-
+     static inline void CheckTimeStep(Washer& w, const SpGradient&, const SpGradient&, const SpGradient&){}
+     static inline void CheckTimeStep(Washer& w, const GpGradProd&, const GpGradProd&, const GpGradProd&){}
+     
      static const int iNumPrivData = 11;
 
      static const struct PrivData {
@@ -521,6 +529,25 @@ BallBearingContact::AssJac(VariableSubMatrixHandler& WorkMat,
      return WorkMat;
 }
 
+void
+BallBearingContact::AssJac(VectorHandler& Jac,
+                           const VectorHandler& Y,
+                           doublereal dCoef,
+                           const VectorHandler& XCurr,
+                           const VectorHandler& XPrimeCurr,
+                           VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          Jac,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
+
 SubVectorHandler&
 BallBearingContact::AssRes(SubVectorHandler& WorkVec,
                            doublereal dCoef,
@@ -578,8 +605,8 @@ inline void BallBearingContact::AssRes(SpGradientAssVec<T>& WorkVec,
                zP *= dStictionStateDofScale;
 
                for (index_type j = 1; j <= 2; ++j) {
-                    i->z(j) = SpGradient::dGetValue(z(j));
-                    i->zP(j) = SpGradient::dGetValue(zP(j));
+                    i->z(j) = SpGradientTraits<T>::dGetValue(z(j));
+                    i->zP(j) = SpGradientTraits<T>::dGetValue(zP(j));
                }
           }
 
@@ -589,7 +616,7 @@ inline void BallBearingContact::AssRes(SpGradientAssVec<T>& WorkVec,
 
           const T n = v(3);
 
-          SpGradient::ResizeReset(v(3), 0., 0);
+          SpGradientTraits<T>::ResizeReset(v(3), 0., 0);
 
           const T dn_dt = Dot(R2 * i->Rt2.GetCol(3), X1P - X2P - Cross(omega2, dX));
           const T d = R - n;
@@ -597,11 +624,11 @@ inline void BallBearingContact::AssRes(SpGradientAssVec<T>& WorkVec,
           if (R > n) {
                norm_Fn = k * pow(d, 3./2.) - beta * sqrt(d) * dn_dt;
           } else {
-               SpGradient::ResizeReset(norm_Fn, 0., 0);
+               SpGradientTraits<T>::ResizeReset(norm_Fn, 0., 0);
           }
 
           if (norm_Fn < 0.) {
-               SpGradient::ResizeReset(norm_Fn, 0., 0);
+               SpGradientTraits<T>::ResizeReset(norm_Fn, 0., 0);
           }
 
           CheckTimeStep(*i, norm_Fn, d, dn_dt);
@@ -611,7 +638,7 @@ inline void BallBearingContact::AssRes(SpGradientAssVec<T>& WorkVec,
                const SpColVector<T, 3> c2P = X2P + Cross(omega2, R2 * (i->o2 + i->Rt2 * v));
 
                SpColVector<T, 3> l = v;
-               SpGradient::ResizeReset(l(3), R, 0);
+               SpGradientTraits<T>::ResizeReset(l(3), R, 0);
                
                const SpColVector<T, 3> Deltac = X1 - X2 - R2 * (i->o2 + i->Rt2 * l);
 
@@ -621,15 +648,15 @@ inline void BallBearingContact::AssRes(SpGradientAssVec<T>& WorkVec,
 
                if (typeid(T) == typeid(doublereal)) {
                     for (int j = 1; j <= 2; ++j) {
-                         i->uP(j) = SpGradient::dGetValue(uP(j));
-                         i->tau(j) = SpGradient::dGetValue(tau(j));
+                         i->uP(j) = SpGradientTraits<T>::dGetValue(uP(j));
+                         i->tau(j) = SpGradientTraits<T>::dGetValue(tau(j));
                     }
                }
 
                const T Norm_uP2 = Dot(uP, uP);
 
                if (Norm_uP2 == 0.) {
-                    SpGradient::ResizeReset(kappa, 0., 0);
+                    SpGradientTraits<T>::ResizeReset(kappa, 0., 0);
                } else {
                     const T a0 = Norm(Mk2 * uP);
                     const T a1 = a0 / Norm(Mk * uP);
@@ -717,11 +744,6 @@ inline void BallBearingContact::CheckTimeStep(Washer& w, doublereal Fn, doublere
                }
           }
      }
-}
-
-inline void BallBearingContact::CheckTimeStep(Washer& w, const SpGradient&, const SpGradient&, const SpGradient&)
-{
-     // Do nothing
 }
 
 void BallBearingContact::AfterConvergence(const VectorHandler& X,

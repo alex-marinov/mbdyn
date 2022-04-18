@@ -120,12 +120,18 @@ public:
      }
 
 private:
-     void SaveStictionState(const sp_grad::SpColVector<doublereal, 2>& z,
-			    const sp_grad::SpColVector<doublereal, 2>& zP);
+     void
+     SaveStictionState(const sp_grad::SpColVector<doublereal, 2>& z,
+                       const sp_grad::SpColVector<doublereal, 2>& zP);
 
-     void SaveStictionState(const sp_grad::SpColVector<sp_grad::SpGradient, 2>& z,
-			    const sp_grad::SpColVector<sp_grad::SpGradient, 2>& zP);
+     static inline void
+     SaveStictionState(const sp_grad::SpColVector<sp_grad::SpGradient, 2>& z,
+                       const sp_grad::SpColVector<sp_grad::SpGradient, 2>& zP){}
 
+     static inline void
+     SaveStictionState(const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& z,
+                       const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& zP){}
+     
      const LugreData* const pData;
      sp_grad::SpColVectorA<doublereal, 2> zPrev, zCurr, zPPrev, zPCurr;
 };
@@ -142,6 +148,13 @@ public:
 	    doublereal dCoef,
 	    const VectorHandler& XCurr,
 	    const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& Jac,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;     
      SubVectorHandler&
      AssRes(SubVectorHandler& WorkVec,
 	    doublereal dCoef,
@@ -260,6 +273,8 @@ private:
 
      sp_grad::SpGradient GetContactForce(const sp_grad::SpGradient& dz) const;
 
+     sp_grad::GpGradProd GetContactForce(const sp_grad::GpGradProd& dz) const;
+          
      template <typename T>
      void
      UnivAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -444,13 +459,13 @@ void LugreState::GetFrictionForce(const doublereal dt,
 	  Ueff = U;
 	  norm_Ueff = Dot(Ueff, Ueff);
      } else {
-	  SpGradient::ResizeReset(norm_Ueff, 0., 0);
+	  SpGradientTraits<T>::ResizeReset(norm_Ueff, 0., 0);
      }
 
      T kappa;
 
      if (norm_Ueff == 0.) {
-	  SpGradient::ResizeReset(kappa, 0., 0);
+	  SpGradientTraits<T>::ResizeReset(kappa, 0., 0);
      } else {
 	  const VVec2 Mk_U = pData->Mk * Ueff;
 	  const VVec2 Ms_U = pData->Ms * Ueff;
@@ -480,12 +495,6 @@ void LugreState::SaveStictionState(const sp_grad::SpColVector<doublereal, 2>& z,
 {
      zCurr = z;
      zPCurr = zP;
-}
-
-void LugreState::SaveStictionState(const sp_grad::SpColVector<sp_grad::SpGradient, 2>&,
-				   const sp_grad::SpColVector<sp_grad::SpGradient, 2>&)
-{
-     // Do nothing
 }
 
 TriangularContact::TargetFace::TargetFace(const DataManager* pDM)
@@ -847,6 +856,21 @@ sp_grad::SpGradient TriangularContact::GetContactForce(const sp_grad::SpGradient
      return F2n;
 }
 
+sp_grad::GpGradProd TriangularContact::GetContactForce(const sp_grad::GpGradProd& dz) const
+{
+     using namespace sp_grad;
+
+     GpGradProd F2n;
+
+     F2n.Reset((*pCL)(dz.dGetValue()));
+
+     const doublereal dF_dz = pCL->ComputeDiff(dz.dGetValue());
+
+     dz.InsertDeriv(F2n, dF_dz);
+
+     return F2n;     
+}
+
 void TriangularContact::SetValue(DataManager*, VectorHandler&, VectorHandler&, SimulationEntity::Hints*)
 {
 
@@ -1123,6 +1147,25 @@ TriangularContact::AssJac(VariableSubMatrixHandler& WorkMat,
      SpGradientAssVec<SpGradient>::AssJac(this, WorkMat.SetSparseGradient(), dCoef, XCurr, XPrimeCurr, REGULAR_JAC);
 
      return WorkMat;
+}
+
+void
+TriangularContact::AssJac(VectorHandler& Jac,
+                          const VectorHandler& Y,
+                          doublereal dCoef,
+                          const VectorHandler& XCurr,
+                          const VectorHandler& XPrimeCurr,
+                          VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          Jac,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
 }
 
 SubVectorHandler&

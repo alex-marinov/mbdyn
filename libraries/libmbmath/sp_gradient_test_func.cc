@@ -58,6 +58,10 @@ namespace sp_grad_test {
 
      template
      void func_scalar1<SpGradient>(const SpGradient& u, const SpGradient& v, const SpGradient& w, doublereal e, SpGradient& f);
+
+     template
+     void func_scalar1<GpGradProd>(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e, GpGradProd& f);
+
 #ifdef USE_AUTODIFF
      template
      void func_scalar1<grad::Gradient<0> >(const grad::Gradient<0>& u, const grad::Gradient<0>& v, const grad::Gradient<0>& w, doublereal e, grad::Gradient<0>& f);
@@ -102,6 +106,9 @@ namespace sp_grad_test {
      template
      void func_scalar2<SpGradient>(const SpGradient& u, const SpGradient& v, const SpGradient& w, doublereal e, SpGradient& f);
 
+     template
+     void func_scalar2<GpGradProd>(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e, GpGradProd& f);
+     
      template <typename U, typename V, typename W>
      bool func_bool1(const U& u, const V& v, const W& w, doublereal e) {
           return u + v >= e * (v - w);
@@ -131,6 +138,29 @@ namespace sp_grad_test {
      template
      bool func_bool1(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+
+     template
+     bool func_bool1(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool1(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool1(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool1(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool1(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool1(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool1(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
+     
      template <typename U, typename V, typename W>
      bool func_bool2(const U& u, const V& v, const W& w, doublereal e) {
           return u + v <= e * (v - w);
@@ -160,6 +190,27 @@ namespace sp_grad_test {
      template
      bool func_bool2(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+     template
+     bool func_bool2(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool2(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool2(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool2(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool2(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool2(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool2(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
      template <typename U, typename V, typename W>
      bool func_bool3(const U& u, const V& v, const W& w, doublereal e) {
           return u + v > e * (v - w);
@@ -189,6 +240,27 @@ namespace sp_grad_test {
      template
      bool func_bool3(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+     template
+     bool func_bool3(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool3(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool3(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool3(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool3(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool3(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool3(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
      template <typename U, typename V, typename W>
      bool func_bool4(const U& u, const V& v, const W& w, doublereal e) {
           return u + v < e * (v - w);
@@ -218,6 +290,27 @@ namespace sp_grad_test {
      template
      bool func_bool4(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+     template
+     bool func_bool4(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool4(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool4(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool4(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool4(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool4(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool4(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
      template <typename U, typename V, typename W>
      bool func_bool5(const U& u, const V& v, const W& w, doublereal e) {
           return (u + v - w) * e == e * (v + u - w);
@@ -247,6 +340,27 @@ namespace sp_grad_test {
      template
      bool func_bool5(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+     template
+     bool func_bool5(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool5(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool5(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool5(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool5(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool5(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool5(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
      template <typename U, typename V, typename W>
      bool func_bool6(const U& u, const V& v, const W& w, doublereal e) {
           return (u + v - w) * e != e * (v + u - w);
@@ -276,6 +390,28 @@ namespace sp_grad_test {
      template
      bool func_bool6(const SpGradient& u, const doublereal& v, const SpGradient& w, doublereal e);
 
+
+     template
+     bool func_bool6(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool6(const GpGradProd& u, const doublereal& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool6(const doublereal& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool6(const doublereal& u, const doublereal& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool6(const GpGradProd& u, const GpGradProd& v, const doublereal& w, doublereal e);
+
+     template
+     bool func_bool6(const doublereal& u, const GpGradProd& v, const GpGradProd& w, doublereal e);
+
+     template
+     bool func_bool6(const GpGradProd& u, const doublereal& v, const GpGradProd& w, doublereal e);
+     
      doublereal sec(doublereal x) {
           return 1./cos(x);
      }
@@ -471,13 +607,13 @@ namespace sp_grad_test {
           SpGradDofStat s;
 
           for (const auto& xi:x) {
-               SpGradient::GetDofStat(xi, s);
+               SpGradientTraits<SpGradient>::GetDofStat(xi, s);
           }
 
           SpGradExpDofMap oDofMap(s);
 
           for (const auto& xi:x) {
-               SpGradient::InsertDof(xi, oDofMap);
+               SpGradientTraits<SpGradient>::InsertDof(xi, oDofMap);
           }
 
           oDofMap.InsertDone();

@@ -1,11 +1,12 @@
+/* $Header$ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2022
+ * Copyright (C) 1996-2017
  *
- * Pierangelo Masarati  <masarati@aero.polimi.it>
- * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -28,33 +29,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*
-  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+ /*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
   Copyright (C) 2022(-2022) all rights reserved.
 
-  The copyright of this code is transferred
-  to Pierangelo Masarati and Paolo Mantegazza
-  for use in the software MBDyn as described
-  in the GNU Public License version 2.1
-*/
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
+  */
 
-#ifndef ___AZTEC_OO_SOLUTION_MANAGER_H__INCLUDED__
-#define ___AZTEC_OO_SOLUTION_MANAGER_H__INCLUDED__
+#ifndef __SOLVER_BASE_H__INCLUDED__
+#define __SOLVER_BASE_H__INCLUDED__
 
-#ifdef USE_TRILINOS
+struct SolverBase {
+        enum StepIntegratorType {
+                        INT_CRANKNICOLSON,
+                        INT_IMPLICITEULER,
+                        INT_MS2,
+                        INT_HOPE,
+                        INT_DEFAULT,
+                        INT_THIRDORDER,
+                        INT_HYBRID,
+                        INT_DERIVATIVE,
+                        INT_UNKNOWN,
+        };
 
-#include "solman.h"
-#include "mbcomm.h"
+        static constexpr auto INT_COUNT = INT_DEFAULT + 1;
+};
 
-SolutionManager*
-pAllocateAztecOOSolutionManager(
-#ifdef USE_MPI
-     MPI::Intracomm& oComm,
-#endif
-     integer iNLD,
-     integer iMaxIter,
-     doublereal dTolRes,
-     integer iVerbose,
-     unsigned uPrecondFlag);
-#endif
 #endif

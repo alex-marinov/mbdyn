@@ -43,12 +43,19 @@
 #ifdef USE_TRILINOS
 #include "ls.h"
 #include "linsol.h"
+#ifdef USE_MPI
+#include "mbcomm.h"
+#endif
 #undef HAVE_BLAS
 #undef HAVE_BOOL
 #include "aztecoowrap.h"
 #include "epetravh.h"
 #include "epetraspmh.h"
+#ifdef USE_MPI
+#include <Epetra_MpiComm.h>
+#else
 #include <Epetra_SerialComm.h>
+#endif
 #include <AztecOO.h>
 #include <Amesos.h>
 #include <Amesos_BaseSolver.h>
@@ -95,8 +102,13 @@ private:
 
 class EpetraLinearSystem: public SolutionManager {
 public:
-     explicit EpetraLinearSystem(integer Dim);
 
+     explicit EpetraLinearSystem(
+#ifdef USE_MPI
+          MPI::Intracomm& Comm,
+#endif
+          integer Dim);
+     
      virtual ~EpetraLinearSystem(void);
 
 #ifdef DEBUG
@@ -114,18 +126,26 @@ public:
      virtual bool bGetConditionNumber(doublereal& dCond) const override;
      
 protected:
+#ifdef USE_MPI
+     Epetra_MpiComm Comm;
+#else
      Epetra_SerialComm Comm;
+#endif
      mutable EpetraVectorHandler x, b;
      mutable EpetraSparseMatrixHandler A;
 };
 
 class AztecOOSolutionManager: public EpetraLinearSystem {
 public:
-     AztecOOSolutionManager(integer Dim,
-                            integer iMaxIter,
-                            doublereal dTol,
-                            integer iVerbose,
-                            unsigned uPrecondFlag);
+     AztecOOSolutionManager(
+#ifdef USE_MPI
+          MPI::Intracomm& oComm,
+#endif
+          integer Dim,
+          integer iMaxIter,
+          doublereal dTol,
+          integer iVerbose,
+          unsigned uPrecondFlag);
 
      virtual ~AztecOOSolutionManager(void);
      virtual void Solve() override;
@@ -141,11 +161,15 @@ private:
 
 class AztecOOPrecondSolutionManager: public AztecOOSolutionManager {
 public:
-     AztecOOPrecondSolutionManager(integer Dim,
-                                   integer iMaxIter,
-                                   doublereal dTol,
-                                   integer iVerbose,
-                                   unsigned uPrecondFlag);
+     AztecOOPrecondSolutionManager(
+#ifdef USE_MPI
+          MPI::Intracomm& oComm,
+#endif
+          integer Dim,
+          integer iMaxIter,
+          doublereal dTol,
+          integer iVerbose,
+          unsigned uPrecondFlag);
 
      virtual ~AztecOOPrecondSolutionManager();
      virtual void Solve() override;     
@@ -207,8 +231,8 @@ int AmesosPreconditioner::Apply(const Epetra_MultiVector& X, Epetra_MultiVector&
      
 int AmesosPreconditioner::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
 {
-     ASSERT(X.GlobalLength() == pOperator->GetGlobalSize());
-     ASSERT(Y.GlobalLength() == pOperator->GetGlobalSize());
+     ASSERT(X.GlobalLength() == pOperator->NumGlobalCols());
+     ASSERT(Y.GlobalLength() == pOperator->NumGlobalRows());
 
      // AztecOO requires that the same object may be passed for X and Y
      std::copy(X.Values(), X.Values() + X.GlobalLength(), oRhs.Values());
@@ -273,8 +297,16 @@ const char* AmesosPreconditioner::GetSolverName(unsigned uPrecondFlag)
      }
 }
 
-EpetraLinearSystem::EpetraLinearSystem(integer Dim)
-     :x(Dim, Comm),
+EpetraLinearSystem::EpetraLinearSystem(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer Dim)
+     :
+#ifdef USE_MPI
+      Comm(oComm),
+#endif
+      x(Dim, Comm),
       b(Dim, Comm),
       A(Dim, Dim, 1, Comm)
 {
@@ -318,8 +350,20 @@ bool EpetraLinearSystem::bGetConditionNumber(doublereal& dCond) const
      return false;
 }
 
-AztecOOSolutionManager::AztecOOSolutionManager(integer Dim, integer iMaxIter, doublereal dTol, integer iVerbose, unsigned uPrecondFlag)
-     :EpetraLinearSystem(Dim),
+AztecOOSolutionManager::AztecOOSolutionManager(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer Dim,
+     integer iMaxIter,
+     doublereal dTol,
+     integer iVerbose,
+     unsigned uPrecondFlag)
+     :EpetraLinearSystem(
+#ifdef USE_MPI
+          oComm,
+#endif
+          Dim),
       oProblem(A.pGetEpetraCrsMatrix(), x.pGetEpetraVector(), b.pGetEpetraVector()),
       oSolver(oProblem),
       iMaxIter(iMaxIter),
@@ -344,8 +388,24 @@ void AztecOOSolutionManager::Solve(void)
      }
 }
 
-AztecOOPrecondSolutionManager::AztecOOPrecondSolutionManager(integer Dim, integer iMaxIter, doublereal dTol, integer iVerbose, unsigned uPrecondFlag)
-     :AztecOOSolutionManager(Dim, iMaxIter, dTol, iVerbose, uPrecondFlag),
+AztecOOPrecondSolutionManager::AztecOOPrecondSolutionManager(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer Dim,
+     integer iMaxIter,
+     doublereal dTol,
+     integer iVerbose,
+     unsigned uPrecondFlag)
+     :AztecOOSolutionManager(
+#ifdef USE_MPI
+          oComm,
+#endif
+          Dim,
+          iMaxIter,
+          dTol,
+          iVerbose,
+          uPrecondFlag),
       oPrecond(uPrecondFlag, Teuchos::rcpFromRef(*A.pGetEpetraCrsMatrix())),
       bRebuildSymbolic(true),
       bRebuildNumeric(true)
@@ -405,7 +465,11 @@ void AztecOOPrecondSolutionManager::MatrInitialize()
 }
 
 SolutionManager*
-pAllocateAztecOOSolutionManager(integer iNLD,
+pAllocateAztecOOSolutionManager(
+#ifdef USE_MPI
+                                MPI::Intracomm& oComm,
+#endif
+                                integer iNLD,
                                 integer iMaxIter,
                                 doublereal dTolRes,
                                 integer iVerbose,
@@ -419,12 +483,28 @@ pAllocateAztecOOSolutionManager(integer iNLD,
      case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_ILUT:
           SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                  AztecOOSolutionManager,
-                                 AztecOOSolutionManager(iNLD, iMaxIter, dTolRes, iVerbose, uPrecondFlag));
+                                 AztecOOSolutionManager(
+#ifdef USE_MPI
+                                      oComm,
+#endif
+                                      iNLD,
+                                      iMaxIter,
+                                      dTolRes,
+                                      iVerbose,
+                                      uPrecondFlag));
           break;
      default:
           SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                  AztecOOPrecondSolutionManager,
-                                 AztecOOPrecondSolutionManager(iNLD, iMaxIter, dTolRes, iVerbose, uPrecondFlag));
+                                 AztecOOPrecondSolutionManager(
+#ifdef USE_MPI
+                                      oComm,
+#endif
+                                      iNLD,
+                                      iMaxIter,
+                                      dTolRes,
+                                      iVerbose,
+                                      uPrecondFlag));
      }
 
      return pCurrSM;

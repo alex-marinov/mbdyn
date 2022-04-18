@@ -78,10 +78,23 @@ begin: initial value;
 	min time step: min_time_step;
 	max time step: max_time_step;
 	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
-	linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
-    nonlinear solver: newton raphson;
+	linear solver: naive, grad, scale, row max column max, always, max iterations, 10;
+    #nonlinear solver: newton raphson;
     method: ms, 0.6;
     threads: assembly, 1;
+
+    nonlinear solver: nox, modified, 200,
+        jacobian operator, newton krylov,
+        algorithm, line search based,
+        verbose, yes,
+        print convergence info, yes,
+        weighted rms absolute tolerance, 1e-3,
+        weighted rms relative tolerance, 1e-2,
+        linear solver tolerance, 1e-5,
+        linear solver max iterations, 100,
+        krylov subspace size, 6,
+        minimum step, 1e-8;
+        
     #method: implicit euler;
 	max iterations: 20;
 	tolerance: 1e-6;

@@ -76,6 +76,10 @@ static struct funcs *ff = NULL;
 static bool print_help = false;
 static void* p_data = NULL;
 
+#ifdef USE_MPI
+MPI::Intracomm MBDynComm = MPI::COMM_SELF;
+#endif
+
 int
 main(int argc, char *const argv[])
 {
@@ -473,7 +477,11 @@ method_multistep(const char* module, integration_data* d,
 
 	// TODO: abstract from a specific solution manager?
 	LinSol ls;
-	SolutionManager *sm = ls.GetSolutionManager(size);
+	SolutionManager *sm = ls.GetSolutionManager(size,
+#ifdef USE_MPI
+                                                    MBDynComm,
+#endif
+                                                    0);
 
    	MatrixHandler* Jac = sm->pMatHdl();
    	VectorHandler* Res = sm->pResHdl();
@@ -658,7 +666,11 @@ method_cubic(const char* module, integration_data* d,
 
 	// TODO: abstract from a specific solution manager?
 	LinSol ls;
-	SolutionManager *sm = ls.GetSolutionManager(2*size);
+	SolutionManager *sm = ls.GetSolutionManager(2*size,
+#ifdef USE_MPI
+                                                    MBDynComm,
+#endif
+                                                    0);
 
    	MatrixHandler* Jac = sm->pMatHdl();
    	VectorHandler* Res = sm->pResHdl();
@@ -931,7 +943,11 @@ method_radau_II(const char* module, integration_data* d,
 
 	// TODO: abstract from a specific solution manager?
 	LinSol ls;
-	SolutionManager *sm = ls.GetSolutionManager(2*size);
+	SolutionManager *sm = ls.GetSolutionManager(2*size,
+#ifdef USE_MPI
+                                                    MBDynComm,
+#endif
+                                                    0);
 
    	MatrixHandler* Jac = sm->pMatHdl();
    	VectorHandler* Res = sm->pResHdl();

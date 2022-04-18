@@ -84,29 +84,40 @@ begin: initial value;
 	initial time: 0.;
 	final time: 1;
 	time step: 1e-4;
-    min time step: 1e-6;
-    max time step: 1e-4;
-	max iterations: 10;
-	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
-	tolerance: 1e-8;
+        ## min time step: 1e-6;
+        ## max time step: 1e-4;
 
+        ## strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
+	tolerance: 1e-8, test, sepnorm, 1e-3, test, norm;
+	max iterations: 10;
 	max iterations: 100;
-    method: ms, 0.9;
+    method: ms, 0.6;
     derivatives tolerance: 1e-5;
-    derivatives max iterations: 10;
+    derivatives max iterations: 20;
     derivatives coefficient: 1e-5;
     #output: residual;
     #output: solution;
     #output: jacobian;
-    output: iterations, solver condition number, stat, yes;
+    #output: iterations, solver condition number, stat, yes;
     linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
-    nonlinear solver: line search, 
-            abort at lambda min, no, 
-            scale newton step, no, 
-            lambda min, 1e-2,
-            verbose, no,
-            print convergence info, no,
-            divergence check, yes, factor, 10.;
+    ## nonlinear solver: line search, 
+    ##         abort at lambda min, no, 
+    ##         scale newton step, no, 
+    ##         lambda min, 1e-2,
+    ##         verbose, no,
+    ##         print convergence info, no,
+    ##         divergence check, yes, factor, 10.;
+
+    nonlinear solver: nox,
+              modified, 100,
+              jacobian operator, newton krylov,
+              linear solver tolerance, 1e-10,
+              linear solver max iterations, 100,
+              minimum step, 1e-4,
+              weighted rms absolute tolerance, 1e-3,
+              weighted rms relative tolerance, 1e-1,
+              krylov subspace size, 12;
+    
     #abort after: assembly;
     threads: solver, 1;
     threads: assembly, 1;

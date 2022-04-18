@@ -106,7 +106,7 @@ libmbmath_la_SOURCES += \
 ldl_.c
 endif
 
-libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
+libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@ @TRILINOS_LIBS@
 libmbmath_la_LDFLAGS =
 
 noinst_PROGRAMS = matmultest itertest dgeequtest subtest
@@ -140,6 +140,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
+@TRILINOS_LIBS@ \
 @LIBS@
 
 itertest_SOURCES = itertest.cc
@@ -160,6 +161,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
+@TRILINOS_LIBS@ \
 @LIBS@
 
 dgeequtest_SOURCES = dgeequtest.cc
@@ -180,6 +182,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
+@TRILINOS_LIBS@ \
 @LIBS@
 
 subtest_SOURCES = subtest.cc
@@ -200,6 +203,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
+@TRILINOS_LIBS@ \
 @LIBS@
 
 gradienttest_SOURCES = gradienttest.cc
@@ -274,6 +278,7 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
+@TRILINOS_LIBS@ \
 @RT_LIBS@
 
 AM_CPPFLAGS = \

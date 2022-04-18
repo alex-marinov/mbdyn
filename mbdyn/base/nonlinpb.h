@@ -53,7 +53,10 @@ public:
 	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const = 0;
 
 	virtual void Jacobian(MatrixHandler* pJac) const = 0;
-	
+
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const = 0;
+#endif
 	virtual void Update(const VectorHandler* pSol) const = 0;
 
 	/* scale factor for tests */
