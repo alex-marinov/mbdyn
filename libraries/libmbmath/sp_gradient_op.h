@@ -125,6 +125,11 @@ namespace sp_grad {
      EvalUnique(const GpGradProdBase<Expr>& g) noexcept {
 	  return g;
      }
+
+     constexpr inline const GpGradProd&
+     EvalUnique(const GpGradProd& g) noexcept {
+          return g;
+     }
      
 #ifdef SP_GRAD_DEBUG
      template <typename Expr>
