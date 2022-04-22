@@ -765,7 +765,7 @@ FullSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
 }
 
 #ifdef USE_SPARSE_AUTODIFF
-VectorHandler& FullSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandler& Y) const
+VectorHandler& FullSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
         IsValid();
@@ -773,7 +773,7 @@ VectorHandler& FullSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandler
         Y.IsValid();
 #endif
         ASSERT(A.iGetSize() == Y.iGetSize());
-        
+
         for (integer c = 1; c <= iNumCols; ++c) {
                 ASSERT(piColm1[c] > 0);
                 ASSERT(piColm1[c] <= Y.iGetSize());
@@ -785,7 +785,7 @@ VectorHandler& FullSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandler
                         A(piRowm1[r]) += ppdColsm1[c][r] * Y(piColm1[c]);
                 }
         }
-        
+
         return A;
 }
 #endif
@@ -1611,14 +1611,14 @@ SparseSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
 }
 
 #ifdef USE_SPARSE_AUTODIFF
-VectorHandler& SparseSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandler& Y) const
+VectorHandler& SparseSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
         IsValid();
         A.IsValid();
         Y.IsValid();
 #endif
-        
+
         for (integer i = 1; i <= iNumItems; ++i) {
                 ASSERT(piRowm1[i] > 0);
                 ASSERT(piRowm1[i] <= A.iGetSize());
@@ -1627,7 +1627,7 @@ VectorHandler& SparseSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandl
 
                 A(piRowm1[i]) += pdMatm1[i] * Y(piColm1[i]);
         }
-        
+
         return A;
 }
 #endif
@@ -1827,7 +1827,7 @@ MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
      return MH;
 }
 
-VectorHandler& SpGradientSubMatrixHandler::AddTo(VectorHandler& A, const VectorHandler& Y) const
+VectorHandler& SpGradientSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
         IsValid();
@@ -1836,15 +1836,15 @@ VectorHandler& SpGradientSubMatrixHandler::AddTo(VectorHandler& A, const VectorH
 #endif
 
         ASSERT(A.iGetSize() == Y.iGetSize());
-        
+
         for (const auto& oItem: oVec) {
                 ASSERT(oItem.iEquationIdx >= 1);
                 ASSERT(oItem.iEquationIdx <= A.iGetSize());
-                
+
                 for (const auto& oRec: oItem.oResidual) {
                         ASSERT(oRec.iDof >= 1);
                         ASSERT(oRec.iDof <= Y.iGetSize());
-                        
+
                         A(oItem.iEquationIdx) += oRec.dDer * Y(oRec.iDof);
                 }
         }

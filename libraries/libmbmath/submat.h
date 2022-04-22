@@ -149,7 +149,11 @@ public:
 	virtual MatrixHandler& AddToT(MatrixHandler& MH) const = 0;
 
 #ifdef USE_SPARSE_AUTODIFF
-        virtual VectorHandler& AddTo(VectorHandler& A, const VectorHandler& Y) const = 0;
+        /*
+         * Needed for Newton Krylov solver
+         * A += (*this) * Y;
+         */
+        virtual VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const = 0;
 #endif
 	/*
 	 * Si sottrae da una matrice.
@@ -660,7 +664,7 @@ public:
 	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
 #ifdef USE_SPARSE_AUTODIFF
-        VectorHandler& AddTo(VectorHandler& A, const VectorHandler& Y) const;
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override;
 #endif
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
@@ -1093,7 +1097,7 @@ public:
 	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
 #ifdef USE_SPARSE_AUTODIFF
-        VectorHandler& AddTo(VectorHandler& A, const VectorHandler& Y) const;
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override;
 #endif
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
@@ -1135,7 +1139,7 @@ public:
      virtual MatrixHandler& AddTo(MatrixHandler& HM) const override;
      virtual MatrixHandler& SubFrom(MatrixHandler& HM) const override;
      virtual MatrixHandler& AddToT(MatrixHandler& HM) const override;
-     VectorHandler& AddTo(VectorHandler& A, const VectorHandler& Y) const;
+     VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const;
      virtual MatrixHandler& SubFromT(MatrixHandler& HM) const override;
 
 #ifdef DEBUG
@@ -1428,14 +1432,14 @@ public:
 	};
 
 #ifdef USE_SPARSE_AUTODIFF
-        VectorHandler& AddTo(VectorHandler& A, const VectorHandler& Y) const {
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override {
                 switch (eStatus) {
                 case FULL:
-                        return FullSubMatrixHandler::AddTo(A, Y);
+                        return FullSubMatrixHandler::MultAddTo(A, Y);
                 case SPARSE:
-                        return SparseSubMatrixHandler::AddTo(A, Y);
+                        return SparseSubMatrixHandler::MultAddTo(A, Y);
                 case SPARSE_GRADIENT:
-                        return SpGradientSubMatrixHandler::AddTo(A, Y);
+                        return SpGradientSubMatrixHandler::MultAddTo(A, Y);
                 default:
                         return A;
                 }

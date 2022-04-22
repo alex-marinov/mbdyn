@@ -77,7 +77,7 @@ Elem::AssJac(VectorHandler& Jac,
      
      AssJac(WorkMat, dCoef, XCurr, XPrimeCurr);
 
-     WorkMat.AddTo(Jac, Y);
+     WorkMat.MultAddTo(Jac, Y);
 }
 #endif
 
