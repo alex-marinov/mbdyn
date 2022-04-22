@@ -1060,7 +1060,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-TotalJoint::AssJac(VectorHandler& Jac,
+TotalJoint::AssJac(VectorHandler& JacY,
                    const VectorHandler& Y,
                    doublereal dCoef,
                    const VectorHandler& XCurr,
@@ -1070,7 +1070,7 @@ TotalJoint::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,
@@ -3200,7 +3200,7 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-TotalPinJoint::AssJac(VectorHandler& Jac,
+TotalPinJoint::AssJac(VectorHandler& JacY,
                       const VectorHandler& Y,
                       doublereal dCoef,
                       const VectorHandler& XCurr,
@@ -3210,7 +3210,7 @@ TotalPinJoint::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

@@ -1071,7 +1071,7 @@ Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF                
 void
-Beam::AssJac(VectorHandler& Jac,
+Beam::AssJac(VectorHandler& JacY,
              const VectorHandler& Y,
              doublereal dCoef,
              const VectorHandler& XCurr,
@@ -1081,7 +1081,7 @@ Beam::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,
@@ -2211,7 +2211,7 @@ ViscoElasticBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 void
-ViscoElasticBeam::AssJac(VectorHandler& Jac,
+ViscoElasticBeam::AssJac(VectorHandler& JacY,
                          const VectorHandler& Y,
                          doublereal dCoef,
                          const VectorHandler& XCurr,
@@ -2223,7 +2223,7 @@ ViscoElasticBeam::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

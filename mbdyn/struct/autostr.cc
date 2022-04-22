@@ -525,7 +525,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-AutomaticStructElem::AssJac(VectorHandler& Jac,
+AutomaticStructElem::AssJac(VectorHandler& JacY,
                             const VectorHandler& Y,
                             doublereal dCoef,
                             const VectorHandler& XCurr,
@@ -535,7 +535,7 @@ AutomaticStructElem::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

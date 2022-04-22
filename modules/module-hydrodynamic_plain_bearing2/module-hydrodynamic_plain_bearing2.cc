@@ -2486,7 +2486,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode)=0;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -2774,7 +2774,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode) override;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -2989,7 +2989,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode) override;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3306,7 +3306,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode)=0;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3444,7 +3444,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3514,7 +3514,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3560,7 +3560,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3647,7 +3647,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3704,7 +3704,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode) override;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3789,7 +3789,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -3849,7 +3849,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -4040,7 +4040,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -4108,7 +4108,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -4224,7 +4224,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode);
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -4798,7 +4798,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode) override;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -4942,7 +4942,7 @@ namespace {
                  SpGradientAssVecBase::SpAssMode mode) override;
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -5149,7 +5149,7 @@ namespace {
 
 
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -5354,7 +5354,7 @@ namespace {
                  const VectorHandler& XCurr,
                  const VectorHandler& XPrimeCurr) override;
           virtual void
-          AssJac(VectorHandler& Jac,
+          AssJac(VectorHandler& JacY,
                  const VectorHandler& Y,
                  doublereal dCoef,
                  const VectorHandler& XCurr,
@@ -6282,7 +6282,7 @@ namespace {
      }
 
      void
-     HydroRootElement::AssJac(VectorHandler& Jac,
+     HydroRootElement::AssJac(VectorHandler& JacY,
                               const VectorHandler& Y,
                               doublereal dCoef,
                               const VectorHandler& XCurr,
@@ -6300,10 +6300,10 @@ namespace {
           }
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               (*i)->AssJac(Jac, Y, dCoef, XCurr, XPrimeCurr);
+               (*i)->AssJac(JacY, Y, dCoef, XCurr, XPrimeCurr);
           }
 
-          pMesh->pGetGeometry()->AssJac(Jac, Y, dCoef, XCurr, XPrimeCurr);
+          pMesh->pGetGeometry()->AssJac(JacY, Y, dCoef, XCurr, XPrimeCurr);
      }
 
      SubVectorHandler&
@@ -11579,14 +11579,14 @@ namespace {
      }
 
      void
-     ComplianceModelNodal::AssJac(VectorHandler& Jac,
+     ComplianceModelNodal::AssJac(VectorHandler& JacY,
                                   const VectorHandler& Y,
                                   doublereal dCoef,
                                   const VectorHandler& XCurr,
                                   const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -12027,14 +12027,14 @@ namespace {
      }
 
      void
-     ComplianceModelNodalDouble::AssJac(VectorHandler& Jac,
+     ComplianceModelNodalDouble::AssJac(VectorHandler& JacY,
                                         const VectorHandler& Y,
                                         doublereal dCoef,
                                         const VectorHandler& XCurr,
                                         const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -13263,14 +13263,14 @@ namespace {
 
 
      void
-     ComplianceModelModal::AssJac(VectorHandler& Jac,
+     ComplianceModelModal::AssJac(VectorHandler& JacY,
                                   const VectorHandler& Y,
                                   doublereal dCoef,
                                   const VectorHandler& XCurr,
                                   const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -15733,14 +15733,14 @@ namespace {
      }
 
      void
-     CylindricalMeshAtShaft::AssJac(VectorHandler& Jac,
+     CylindricalMeshAtShaft::AssJac(VectorHandler& JacY,
                                     const VectorHandler& Y,
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -16050,14 +16050,14 @@ namespace {
      }
 
      void
-     CylindricalMeshAtBearing::AssJac(VectorHandler& Jac,
+     CylindricalMeshAtBearing::AssJac(VectorHandler& JacY,
                                       const VectorHandler& Y,
                                       doublereal dCoef,
                                       const VectorHandler& XCurr,
                                       const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -17469,14 +17469,14 @@ namespace {
 
 
      void
-     LinFD5ReynoldsElem::AssJac(VectorHandler& Jac,
+     LinFD5ReynoldsElem::AssJac(VectorHandler& JacY,
                                 const VectorHandler& Y,
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -17630,14 +17630,14 @@ namespace {
      }
 
      void
-     LinFD5CouplingElem::AssJac(VectorHandler& Jac,
+     LinFD5CouplingElem::AssJac(VectorHandler& JacY,
                                 const VectorHandler& Y,
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -17776,14 +17776,14 @@ namespace {
      }
 
      void
-     LinFD4FrictionElem::AssJac(VectorHandler& Jac,
+     LinFD4FrictionElem::AssJac(VectorHandler& JacY,
                                 const VectorHandler& Y,
                                 doublereal dCoef,
                                 const VectorHandler& XCurr,
                                 const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -18081,14 +18081,14 @@ namespace {
      }
 
      void
-     LinFD4MassFlowZ::AssJac(VectorHandler& Jac,
+     LinFD4MassFlowZ::AssJac(VectorHandler& JacY,
                              const VectorHandler& Y,
                              doublereal dCoef,
                              const VectorHandler& XCurr,
                              const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -18212,14 +18212,14 @@ namespace {
      }
 
      void
-     LinFD5ComprReynoldsElem::AssJac(VectorHandler& Jac,
+     LinFD5ComprReynoldsElem::AssJac(VectorHandler& JacY,
                                      const VectorHandler& Y,
                                      doublereal dCoef,
                                      const VectorHandler& XCurr,
                                      const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -18651,14 +18651,14 @@ namespace {
      }
 
      void
-     LinFD5ThermalElemImp::AssJac(VectorHandler& Jac,
+     LinFD5ThermalElemImp::AssJac(VectorHandler& JacY,
                                   const VectorHandler& Y,
                                   doublereal dCoef,
                                   const VectorHandler& XCurr,
                                   const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -18806,14 +18806,14 @@ namespace {
      }
 
      void
-     LinFD5ThermalCouplingElem::AssJac(VectorHandler& Jac,
+     LinFD5ThermalCouplingElem::AssJac(VectorHandler& JacY,
                                        const VectorHandler& Y,
                                        doublereal dCoef,
                                        const VectorHandler& XCurr,
                                        const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -19387,14 +19387,14 @@ namespace {
      }
 
      void
-     QuadFeIso9ReynoldsElem::AssJac(VectorHandler& Jac,
+     QuadFeIso9ReynoldsElem::AssJac(VectorHandler& JacY,
                                     const VectorHandler& Y,
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -19644,14 +19644,14 @@ namespace {
      }
 
      void
-     QuadFeIso9FrictionElem::AssJac(VectorHandler& Jac,
+     QuadFeIso9FrictionElem::AssJac(VectorHandler& JacY,
                                     const VectorHandler& Y,
                                     doublereal dCoef,
                                     const VectorHandler& XCurr,
                                     const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,
@@ -19966,14 +19966,14 @@ namespace {
      }
 
      void
-     QuadFeIso9MassFlowZ::AssJac(VectorHandler& Jac,
+     QuadFeIso9MassFlowZ::AssJac(VectorHandler& JacY,
                                  const VectorHandler& Y,
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
                                  const VectorHandler& XPrimeCurr)
      {
           SpGradientAssVec<GpGradProd>::AssJac(this,
-                                               Jac,
+                                               JacY,
                                                Y,
                                                dCoef,
                                                XCurr,

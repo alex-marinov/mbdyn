@@ -149,7 +149,7 @@ public:
 	    const VectorHandler& XCurr,
 	    const VectorHandler& XPrimeCurr);
      virtual void
-     AssJac(VectorHandler& Jac,
+     AssJac(VectorHandler& JacY,
             const VectorHandler& Y,
             doublereal dCoef,
             const VectorHandler& XCurr,
@@ -1150,7 +1150,7 @@ TriangularContact::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 void
-TriangularContact::AssJac(VectorHandler& Jac,
+TriangularContact::AssJac(VectorHandler& JacY,
                           const VectorHandler& Y,
                           doublereal dCoef,
                           const VectorHandler& XCurr,
@@ -1160,7 +1160,7 @@ TriangularContact::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

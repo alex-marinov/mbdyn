@@ -1174,7 +1174,7 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-DynamicBody::AssJac(VectorHandler& Jac,
+DynamicBody::AssJac(VectorHandler& JacY,
                     const VectorHandler& Y,
                     doublereal dCoef,
                     const VectorHandler& XCurr,
@@ -1184,7 +1184,7 @@ DynamicBody::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,
@@ -1683,7 +1683,7 @@ ModalBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-ModalBody::AssJac(VectorHandler& Jac,
+ModalBody::AssJac(VectorHandler& JacY,
                   const VectorHandler& Y,
                   doublereal dCoef,
                   const VectorHandler& XCurr,
@@ -1693,7 +1693,7 @@ ModalBody::AssJac(VectorHandler& Jac,
         using namespace sp_grad;
      
         SpGradientAssVec<GpGradProd>::AssJac(this,
-                                             Jac,
+                                             JacY,
                                              Y,
                                              dCoef,
                                              XCurr,
@@ -2042,7 +2042,7 @@ StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-StaticBody::AssJac(VectorHandler& Jac,
+StaticBody::AssJac(VectorHandler& JacY,
                    const VectorHandler& Y,
                    doublereal dCoef,
                    const VectorHandler& XCurr,
@@ -2052,7 +2052,7 @@ StaticBody::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

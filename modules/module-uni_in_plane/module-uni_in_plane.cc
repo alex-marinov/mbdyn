@@ -89,7 +89,7 @@ public:
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
      virtual void
-     AssJac(VectorHandler& Jac,
+     AssJac(VectorHandler& JacY,
             const VectorHandler& Y,
             doublereal dCoef,
             const VectorHandler& XCurr,
@@ -809,7 +809,7 @@ UniInPlaneFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 }
 
 void
-UniInPlaneFriction::AssJac(VectorHandler& Jac,
+UniInPlaneFriction::AssJac(VectorHandler& JacY,
                            const VectorHandler& Y,
                            doublereal dCoef,
                            const VectorHandler& XCurr,
@@ -819,7 +819,7 @@ UniInPlaneFriction::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

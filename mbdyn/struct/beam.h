@@ -447,7 +447,7 @@ protected:
 
 #ifdef USE_SPARSE_AUTODIFF                
         virtual void
-        AssJac(VectorHandler& Jac,
+        AssJac(VectorHandler& JacY,
                const VectorHandler& Y,
                doublereal dCoef,
                const VectorHandler& XCurr,
@@ -710,7 +710,7 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
             const VectorHandler& XPrimeCurr);
 
      virtual void
-     AssJac(VectorHandler& Jac,
+     AssJac(VectorHandler& JacY,
             const VectorHandler& Y,
             doublereal dCoef,
             const VectorHandler& XCurr,

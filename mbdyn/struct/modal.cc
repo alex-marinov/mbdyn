@@ -936,7 +936,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-Modal::AssJac(VectorHandler& Jac,
+Modal::AssJac(VectorHandler& JacY,
               const VectorHandler& Y,
               doublereal dCoef,
               const VectorHandler& XCurr,
@@ -946,7 +946,7 @@ Modal::AssJac(VectorHandler& Jac,
         using namespace sp_grad;
      
         SpGradientAssVec<GpGradProd>::AssJac(this,
-                                             Jac,
+                                             JacY,
                                              Y,
                                              dCoef,
                                              XCurr,

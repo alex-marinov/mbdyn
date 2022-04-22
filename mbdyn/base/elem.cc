@@ -63,7 +63,7 @@ Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-Elem::AssJac(VectorHandler& Jac,
+Elem::AssJac(VectorHandler& JacY,
              const VectorHandler& Y,
              doublereal dCoef,
              const VectorHandler& XCurr,
@@ -77,7 +77,7 @@ Elem::AssJac(VectorHandler& Jac,
      
      AssJac(WorkMat, dCoef, XCurr, XPrimeCurr);
 
-     WorkMat.MultAddTo(Jac, Y);
+     WorkMat.MultAddTo(JacY, Y);
 }
 #endif
 

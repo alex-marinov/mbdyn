@@ -349,7 +349,7 @@ public:
         virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
 #ifdef USE_SPARSE_AUTODIFF
-        virtual void AssJac(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef);
+        virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
 #endif
                 
         /* Assembla le matrici per gli autovalori */
@@ -395,7 +395,7 @@ protected:
                         VectorHandler*const pAbsResHdl = 0);
 
 #ifdef USE_SPARSE_AUTODIFF
-        virtual void AssJac(VectorHandler& Jac,
+        virtual void AssJac(VectorHandler& JacY,
                             const VectorHandler& Y,
                             doublereal dCoef,
                             VecIter<Elem *> &Iter,

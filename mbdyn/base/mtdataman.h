@@ -169,8 +169,8 @@ protected:
 #endif
 #ifdef USE_SPARSE_AUTODIFF
         void GradAssJac(SpGradientSparseMatrixHandler& JacHdl, doublereal dCoef);
-        void GradAssJacProd(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef);
-        virtual void AssJac(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef) override;
+        void GradAssJacProd(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
+        virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef) override;
 #endif
         static void SetAffinity(const ThreadData& oThread);
 public:

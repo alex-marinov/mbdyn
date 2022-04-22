@@ -198,7 +198,7 @@ public:
 
 #ifdef USE_SPARSE_AUTODIFF                
        virtual void
-       AssJac(VectorHandler& Jac,
+       AssJac(VectorHandler& JacY,
               const VectorHandler& Y,
               doublereal dCoef,
               const VectorHandler& XCurr,
@@ -456,7 +456,7 @@ public:
 
 #ifdef USE_SPARSE_AUTODIFF                
         virtual void
-        AssJac(VectorHandler& Jac,
+        AssJac(VectorHandler& JacY,
                const VectorHandler& Y,
                doublereal dCoef,
                const VectorHandler& XCurr,

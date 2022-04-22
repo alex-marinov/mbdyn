@@ -403,14 +403,14 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 }
 
 #ifdef USE_SPARSE_AUTODIFF
-void DataManager::AssJac(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef)
+void DataManager::AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef)
 {
-     ASSERT(Jac.iGetSize() == iGetNumDofs());
+     ASSERT(JacY.iGetSize() == iGetNumDofs());
      ASSERT(Y.iGetSize() == iGetNumDofs());
      
      NodesUpdateJac(Y, dCoef, NodeIter);
 
-     AssJac(Jac, Y, dCoef, ElemIter, *pWorkMat);
+     AssJac(JacY, Y, dCoef, ElemIter, *pWorkMat);
 }
 #endif
 
@@ -480,7 +480,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 
 #ifdef USE_SPARSE_AUTODIFF
 void
-DataManager::AssJac(VectorHandler& Jac,
+DataManager::AssJac(VectorHandler& JacY,
                     const VectorHandler& Y,
                     doublereal dCoef,
                     VecIter<Elem *> &Iter,
@@ -488,12 +488,12 @@ DataManager::AssJac(VectorHandler& Jac,
 {
 	Elem* pTmpEl = nullptr;
         
-        Jac.Reset();
+        JacY.Reset();
      
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
 			try {
-                             pTmpEl->AssJac(Jac, Y, dCoef, *pXCurr, *pXPrimeCurr, WorkMat);
+                             pTmpEl->AssJac(JacY, Y, dCoef, *pXCurr, *pXPrimeCurr, WorkMat);
 			}
 			catch (ErrDivideByZero& e) {
 				silent_cerr("AssJac: divide by zero "

@@ -205,8 +205,9 @@ public:
 
 #ifdef USE_SPARSE_AUTODIFF
         // Used by Newton Krylov solvers only
+        // JacY += Jac * Y
         virtual void
-        AssJac(VectorHandler& Jac,
+        AssJac(VectorHandler& JacY,
                const VectorHandler& Y,
                doublereal dCoef,
                const VectorHandler& XCurr,

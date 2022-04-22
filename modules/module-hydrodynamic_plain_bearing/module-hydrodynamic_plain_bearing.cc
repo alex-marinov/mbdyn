@@ -71,7 +71,7 @@ public:
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
      virtual void
-     AssJac(VectorHandler& Jac,
+     AssJac(VectorHandler& JacY,
             const VectorHandler& Y,
             doublereal dCoef,
             const VectorHandler& XCurr,
@@ -710,7 +710,7 @@ HydrodynamicPlainBearing::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 void
-HydrodynamicPlainBearing::AssJac(VectorHandler& Jac,
+HydrodynamicPlainBearing::AssJac(VectorHandler& JacY,
                                  const VectorHandler& Y,
                                  doublereal dCoef,
                                  const VectorHandler& XCurr,
@@ -720,7 +720,7 @@ HydrodynamicPlainBearing::AssJac(VectorHandler& Jac,
      using namespace sp_grad;
      
      SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          Jac,
+                                          JacY,
                                           Y,
                                           dCoef,
                                           XCurr,

@@ -586,21 +586,21 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 }
 
 #ifdef USE_SPARSE_AUTODIFF
-void MultiThreadDataManager::AssJac(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef)
+void MultiThreadDataManager::AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef)
 {
      DEBUGCERR("Assemble Jacobian vector product in parallel ...\n");
      
-     ASSERT(Jac.iGetSize() == iGetNumDofs());
+     ASSERT(JacY.iGetSize() == iGetNumDofs());
      ASSERT(Y.iGetSize() == iGetNumDofs());
      
      NodesUpdateJac(Y, dCoef, NodeIter);
 
      AssMode = ASS_GRAD_PROD;
      
-     GradAssJacProd(Jac, Y, dCoef);     
+     GradAssJacProd(JacY, Y, dCoef);
 }
 
-void MultiThreadDataManager::GradAssJacProd(VectorHandler& Jac, const VectorHandler& Y, doublereal dCoef)
+void MultiThreadDataManager::GradAssJacProd(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef)
 {
         ASSERT(thread_data != NULL);
 
@@ -619,7 +619,7 @@ void MultiThreadDataManager::GradAssJacProd(VectorHandler& Jac, const VectorHand
         }
 
         try {
-                DataManager::AssJac(Jac, Y, dCoef, thread_data[0].ElemIter, *thread_data[0].pWorkMat);
+                DataManager::AssJac(JacY, Y, dCoef, thread_data[0].ElemIter, *thread_data[0].pWorkMat);
         } catch (...) {
              thread_data[0].except = std::current_exception();
         }
@@ -643,7 +643,7 @@ void MultiThreadDataManager::GradAssJacProd(VectorHandler& Jac, const VectorHand
         }
 
         for (unsigned i = 1; i < nThreads; i++) {
-                Jac += *thread_data[i].pJacProd;
+                JacY += *thread_data[i].pJacProd;
         }
 }
 #endif
