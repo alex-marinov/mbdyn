@@ -40,6 +40,10 @@
 #include "mbpar.h"
 #include "dataman.h"
 
+#ifdef HAVE_BOOST_JSON_SRC_HPP
+#include <boost/json/src.hpp>
+#endif //HAVE_BOOST_JSON_SRC_HPP
+
 /* OutputHandler - begin */
 
 #ifndef OUTPUT_PRECISION
