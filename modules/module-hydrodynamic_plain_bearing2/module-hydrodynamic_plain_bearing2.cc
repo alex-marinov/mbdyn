@@ -10538,6 +10538,7 @@ namespace {
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dTheta_dt[1])));
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.T)));
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dT_dt)));
+          HYDRO_ASSERT(GetCavitationState() == HydroFluidBase::FULL_FILM_REGION ? (oState.p >= pGetFluid()->dGetRefPressure()) : (oState.p == pGetFluid()->dGetRefPressure()));
      }
 
      integer HydroActiveComprNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
@@ -10648,6 +10649,7 @@ namespace {
           if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
                rgState[0].Theta[0] = 0.;
                rgState[0].dTheta_dt[0] = 0.;
+               rgState[0].Theta[1] = std::min(1., rgState[0].Theta[1]);
 
                if (rgState[0].eCavitationState != ePrevCavitationState) {
                     ResolveDofDerivative(1);
@@ -10655,6 +10657,7 @@ namespace {
           } else {
                rgState[0].Theta[1] = 1.;
                rgState[0].dTheta_dt[1] = 0.;
+               rgState[0].Theta[0] = std::max(0., rgState[0].Theta[0]);
 
                if (rgState[0].eCavitationState != ePrevCavitationState) {
                     ResolveDofDerivative(0);
@@ -10675,6 +10678,10 @@ namespace {
                X.PutCoef(iIndex, rgState[0].Theta[i] / s[i]);
                XP.PutCoef(iIndex, rgState[0].dTheta_dt[i] / s[i]);
           }
+
+          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (rgState[0].Theta[0] == 0.) : (rgState[0].Theta[0] >= 0.));
+          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (rgState[0].Theta[1] <= 1.) : (rgState[1].Theta[1] >= 1.));
+          HYDRO_ASSERT(rgState[0].Theta[1] >= 0.);
      }
 
      void
@@ -18322,16 +18329,31 @@ namespace {
 
                rgHydroNodes[iNodeCenter]->GetPressure(p, dCoef);
 
+               HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(p)));
+               HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(pc)));
+
                if (rgHydroNodes[iNodeCenter]->GetCavitationState() == HydroFluid::FULL_FILM_REGION) {
+                    HYDRO_ASSERT(p >= pc);
+
                     G T, rhoc;
 
                     rgHydroNodes[iNodeCenter]->GetTemperature(T, dCoef);
 
+                    HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(T)));
+
                     pGetFluid()->GetDensity(p, T, rhoc);
 
+                    HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(rhoc)));
+
                     f = EvalUnique((rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
+
+                    HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(f)));
                } else {
+                    HYDRO_ASSERT(p <= pc);
+
                     f = EvalUnique((p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
+
+                    HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(f)));
                }
 
                CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex + 1);

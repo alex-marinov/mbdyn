@@ -2163,7 +2163,7 @@ Solver::ReadData(MBDynParser& HP)
         /* Dati del passo iniziale di calcolo delle derivate */
 
         doublereal dDerivativesTol = ::dDefaultTol;
-        doublereal dDerivativesSolTol = 0.;
+        doublereal dDerivativesSolTol = -1.;
         integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
         integer iDerivativesCoefMaxIter = 0;
         doublereal dDerivativesCoefFactor = 10.;
@@ -3845,6 +3845,42 @@ Solver::ReadData(MBDynParser& HP)
                                                                     << HP.GetLineData() << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+                                        } else if (HP.IsKeyWord("forcing" "term" "min" "tolerance")) {
+                                                oNoxSolverParam.dForcingTermMinTol = HP.GetReal();
+
+                                                if (oNoxSolverParam.dForcingTermMinTol <= 0.) {
+                                                        silent_cerr("forcing term min tolerance "
+                                                                    "must be greater than zero at line "
+                                                                    << HP.GetLineData() << "\n");
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("forcing" "term" "max" "tolerance")) {
+                                                oNoxSolverParam.dForcingTermMaxTol = HP.GetReal();
+
+                                                if (oNoxSolverParam.dForcingTermMaxTol <= 0.) {
+                                                        silent_cerr("forcing term max tolerance "
+                                                                    "must be greater than zero at line "
+                                                                    << HP.GetLineData() << "\n");
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("forcing" "term" "alpha")) {
+                                                oNoxSolverParam.dForcingTermAlpha = HP.GetReal();
+
+                                                if (oNoxSolverParam.dForcingTermAlpha <= 0.) {
+                                                        silent_cerr("forcing term alpha "
+                                                                    "must be greater than zero at line "
+                                                                    << HP.GetLineData() << "\n");
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("forcing" "term" "gamma")) {
+                                                oNoxSolverParam.dForcingTermGamma = HP.GetReal();
+
+                                                if (oNoxSolverParam.dForcingTermGamma <= 0.) {
+                                                        silent_cerr("forcing term gamma "
+                                                                    "must be greater than zero at line "
+                                                                    << HP.GetLineData() << "\n");
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
                                         } else if (HP.IsKeyWord("line" "search" "method")) {
                                                 oNoxSolverParam.uFlags &= ~NoxSolverParameters::LINESEARCH_MASK;
 
@@ -3867,6 +3903,8 @@ Solver::ReadData(MBDynParser& HP)
                                                                     << HP.GetLineData() << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+                                        } else if (HP.IsKeyWord("inner" "iterations" "before" "assembly")) {
+                                                oNoxSolverParam.iInnerIterBeforeAssembly = HP.GetInt();
                                         } else {
                                                 silent_cerr("Keywords \"print convergence info\", "
                                                             "\"verbose\", "
@@ -3884,11 +3922,19 @@ Solver::ReadData(MBDynParser& HP)
                                                             "\"minimum step\", "
                                                             "\"recovery step\", "
                                                             "\"recovery step type\", "
+                                                            "\"inner iterations before assembly\", "
                                                             "\"weighted rms relative tolerance\" or "
                                                             "\"weighted rms absolute tolerance\" expected at line "
                                                             << HP.GetLineData() << std::endl);
                                                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
+                                }
+
+                                if (oNoxSolverParam.dForcingTermMinTol >= oNoxSolverParam.dForcingTermMaxTol) {
+                                        silent_cerr("\"forcing term min tolerance\" must be "
+                                                    "less than \"forcing term max tolerance\" at line "
+                                                    << HP.GetLineData() << "\n");
+                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                 }
 
                                 if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
@@ -4173,6 +4219,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
                 pRhoAlgebraicDummy = pRhoDummy->pCopy();
 
                 DummyType = INT_MS2;
+        }
+
+        if (dDerivativesSolTol < 0.) {
+             dDerivativesSolTol = dSolutionTol;
         }
 
         /* costruzione dello step solver derivative */
@@ -5652,6 +5702,8 @@ Solver::AllocateNonlinearSolver()
                 break;
 #ifdef USE_TRILINOS
         case NonlinearSolver::NOX:
+                // FIXME: Since access to the Jacobian matrix through the Trilinos library is not under our control,
+                // FIXME: we have to ensure that the content of the matrix is not destroyed by the linear solver.
                 switch (CurrLinearSolver.GetSolver()) {
                 case LinSol::UMFPACK_SOLVER:
                 case LinSol::KLU_SOLVER:
@@ -5662,14 +5714,30 @@ Solver::AllocateNonlinearSolver()
                 case LinSol::SPQR_SOLVER:
                 case LinSol::STRUMPACK_SOLVER:
                 case LinSol::AZTECOO_SOLVER:
+                        // All solvers which do not destroy the Jacobian during factorization can be added here.
                         break;
                 default:
                         if (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON) {
-                                silent_cerr("nonlinear solver \"nox\" cannot "
+                                silent_cerr("Nonlinear solver \"nox\" cannot "
                                             "be used with linear solver \""
                                             << CurrLinearSolver.GetSolverName()
                                             << "\" unless the \"newton krylov\" option is used!\n");
                                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                        }
+                }
+                {
+                        const SolutionManager::ScaleOpt& oScale = CurrLinearSolver.GetScale();
+                        const bool bScaleEnabled = oScale.when != SolutionManager::SCALEW_NEVER && oScale.algorithm != SolutionManager::SCALEA_NONE;
+                        const unsigned uSolFlags = CurrLinearSolver.GetSolverFlags();
+                        const unsigned uMaskCCDir = LinSol::SOLVER_FLAGS_ALLOWS_CC | LinSol::SOLVER_FLAGS_ALLOWS_DIR;
+                        const bool bCompactSpmh = (uSolFlags & uMaskCCDir) != 0;
+
+                        if (bScaleEnabled && bCompactSpmh) {
+                                silent_cerr("Warning: Nonlinear solver \"nox\" cannot "
+                                            "be used with compact sparse matrix handlers "
+                                            "\"cc\" or \"dir\" and matrix scaling enabled at the same time!\n"
+                                            "Warning: using matrix handler \"map\" instead\n");
+                                CurrLinearSolver.SetSolverFlags((uSolFlags & ~uMaskCCDir) | LinSol::SOLVER_FLAGS_ALLOWS_MAP);
                         }
                 }
                 

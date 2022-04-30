@@ -59,6 +59,7 @@
 #include <Epetra_SerialComm.h>
 #endif
 #include <Epetra_Map.h>
+#include <AztecOO.h>
 #include <NOX.H>
 #include <NOX_Epetra.H>
 #include <NOX_Solver_Generic.H>
@@ -67,7 +68,7 @@
 #include <NOX_Epetra_Interface_Required.H>
 #include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Epetra_Interface_Preconditioner.H>
-#include <NOX_Epetra_LinearSystem_AztecOO.H>
+#include <NOX_Epetra_LinearSystem.H>
 #include <NOX_Abstract_PrePostOperator.H>
 #include <Teuchos_ParameterList.hpp>
 
@@ -93,9 +94,14 @@ NoxSolverParameters::NoxSolverParameters()
       dTolLinSol(1e-10),
       dMinStep(1e-12),
       dRecoveryStep(1.),
+      dForcingTermMinTol(1e-6),
+      dForcingTermMaxTol(1e-2),
+      dForcingTermAlpha(1.5),
+      dForcingTermGamma(0.9),
       iMaxIterLinSol(1000),
       iKrylovSubSpaceSize(300),
-      iMaxIterLineSearch(200)
+      iMaxIterLineSearch(200),
+      iInnerIterBeforeAssembly(std::numeric_limits<integer>::max())
 {
 }
 
@@ -184,7 +190,8 @@ namespace {
                                 private NOX::Epetra::Interface::Jacobian,
                                 private NOX::Epetra::Interface::Preconditioner,
                                 private Epetra_Operator,
-                                private NOX::Abstract::PrePostOperator
+                                private NOX::Abstract::PrePostOperator,
+                                private NOX::Epetra::LinearSystem
      {
      public:
 #ifdef USE_SPARSE_AUTODIFF
@@ -230,8 +237,8 @@ namespace {
           };
 
           void Attach(Solver* pSolver, const NonlinearProblem* pNLP);
-          bool Residual(const VectorHandler* pSol, VectorHandler* pRes);
-          void Jacobian(const VectorHandler* pSol, MatrixHandler* pJac);
+          void Residual(const VectorHandler* pSol, VectorHandler* pRes);
+          void Jacobian();
           virtual bool computeF(const Epetra_Vector &x, Epetra_Vector &f, const FillType fillFlag) override;
           virtual bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
           virtual bool computePreconditioner(const Epetra_Vector &x, Epetra_Operator &M, Teuchos::ParameterList *precParams) override;
@@ -253,13 +260,81 @@ namespace {
           virtual void runPreLineSearch(const NOX::Solver::Generic& solver) override;
           virtual void runPostLineSearch(const NOX::Solver::Generic& solver) override;
 
+          virtual bool
+          applyJacobian(const NOX::Epetra::Vector& input,
+                        NOX::Epetra::Vector& result) const override;
+
+          virtual bool
+          applyJacobianTranspose(const NOX::Epetra::Vector& input,
+                                 NOX::Epetra::Vector& result) const override;
+
+          virtual bool
+          applyJacobianInverse(Teuchos::ParameterList &params,
+                               const NOX::Epetra::Vector &input,
+                               NOX::Epetra::Vector &result) override;
+
+          virtual bool
+          applyRightPreconditioning(bool useTranspose,
+                                    Teuchos::ParameterList& params,
+                                    const NOX::Epetra::Vector& input,
+                                    NOX::Epetra::Vector& result) const override;
+
+          virtual Teuchos::RCP<NOX::Epetra::Scaling>
+          getScaling() override;
+
+          virtual void
+          resetScaling(const Teuchos::RCP<NOX::Epetra::Scaling>& s) override;
+
+          virtual bool
+          computeJacobian(const NOX::Epetra::Vector& x) override;
+
+          virtual bool
+          createPreconditioner(const NOX::Epetra::Vector& x,
+                               Teuchos::ParameterList& p,
+                               bool recomputeGraph) const override;
+
+          virtual bool
+          destroyPreconditioner() const override;
+
+          virtual bool
+          recomputePreconditioner(const NOX::Epetra::Vector& x,
+                                  Teuchos::ParameterList& linearSolverParams) const override;
+
+          virtual PreconditionerReusePolicyType
+          getPreconditionerPolicy(bool advanceReuseCounter=true) override;
+
+          virtual bool
+          isPreconditionerConstructed() const override;
+
+          virtual Teuchos::RCP<const Epetra_Operator>
+          getJacobianOperator() const override;
+
+          virtual Teuchos::RCP<Epetra_Operator>
+          getJacobianOperator() override;
+
+          virtual Teuchos::RCP<const Epetra_Operator>
+          getGeneratedPrecOperator() const override;
+
+          virtual Teuchos::RCP<Epetra_Operator>
+          getGeneratedPrecOperator() override;
+
+          virtual void
+          setJacobianOperatorForSolve(const Teuchos::RCP<const Epetra_Operator>& solveJacOp) override;
+
+          virtual bool
+          hasPreconditioner() const;
+
+          virtual void
+          setPrecOperatorForSolve(const Teuchos::RCP<const Epetra_Operator>& solvePrecOp) override;
+
+          inline void ResetPrecondReuse() const;
+          inline void ForcePrecondRebuild() const;
+
           void BuildSolver(integer iMaxIter);
           void OutputIteration(integer iIterCnt, bool bJacobian) const;
           Teuchos::RCP<NOX::Solver::Generic> pNonlinearSolver;
-          Teuchos::RCP<NOX::Epetra::LinearSystemAztecOO> pLinearSystem;
           Teuchos::RCP<NOX::Epetra::Vector> pSolutionView;
           Teuchos::ParameterList oSolverParam;
-          Teuchos::ParameterList* pLinSolParam;
           const NonlinearProblem* pNonlinearProblem;
           Solver* pSolver;
           SolutionManager* pSolutionManager;
@@ -267,9 +342,12 @@ namespace {
           NoxResidualTest oResTest;
           NoxSolutionTest oSolTest;
 #ifdef USE_SPARSE_AUTODIFF
-          NoxMatrixFreeJacOper oJacobianOperator;
+          NoxMatrixFreeJacOper oMatFreeJacOper;
 #endif
-          bool bUseTranspose;
+          NOX::Epetra::Interface::Jacobian* pJacInt;
+          Teuchos::RCP<Epetra_Operator> pJacOper;
+          NOX::Epetra::Interface::Preconditioner* pPrecInt;
+          mutable bool bUseTranspose;
           bool bUpdateJacobian;
 #ifdef HAVE_MPI
           Epetra_MpiComm oComm;
@@ -279,7 +357,10 @@ namespace {
           Epetra_Map oMap;
           bool bInDerivativeSolver;
           bool bInLineSearch;
-          mutable bool bRecomputePrecond;
+          mutable integer iPrecInnerIterCnt;
+          mutable integer iPrecInnerIterCntTot;
+          mutable integer iInnerIterCntTot;
+          AztecOO oIterativeLinSol;
      };
 
      NoxStatusTest::NoxStatusTest(NoxNonlinearSolver& oNoxSolver)
@@ -335,7 +416,10 @@ namespace {
           const Epetra_Vector& F = FE.getEpetraVector();
           const MyVectorHandler oResVec(F.GlobalLength(), F.Values());
 
-          eStatus = oNoxSolver.MakeResTest(oResVec, dTolRes, dErrRes, dErrResDiff)
+          // According to "Numerical recipes in C the art of scientific computing" / William H. Press [et al.]. – 2nd ed.
+          const doublereal dFirstResFact = problem.getNumIterations() == 0 ? 1e-2 : 1.;
+
+          eStatus = oNoxSolver.MakeResTest(oResVec, dFirstResFact * dTolRes, dErrRes, dErrResDiff)
                ? NOX::StatusTest::Converged
                : NOX::StatusTest::Unconverged;
 
@@ -652,13 +736,15 @@ namespace {
                                             const NoxSolverParameters& oParam)
           :NonlinearSolver(oSolverOpt),
            NoxSolverParameters(oParam),
-           pLinSolParam(nullptr),
            pNonlinearProblem(nullptr),
            pSolver(nullptr),
            pSolutionManager(nullptr),
            oResTest(*this),
            oSolTest(*this),
-           oJacobianOperator(*this),
+           oMatFreeJacOper(*this),
+           pJacInt(nullptr),
+           pJacOper(nullptr),
+           pPrecInt(nullptr),
            bUseTranspose(false),
            bUpdateJacobian(true),
 #ifdef HAVE_MPI
@@ -667,12 +753,14 @@ namespace {
            oMap(Size, 1, oComm),
            bInDerivativeSolver(true),
            bInLineSearch(false),
-           bRecomputePrecond(false)
+           iInnerIterCntTot(0)
      {
+          ForcePrecondRebuild();
      }
 
      NoxNonlinearSolver::~NoxNonlinearSolver()
      {
+          silent_cerr("total inner iterations: " << iInnerIterCntTot << "\n");
      }
 
      void
@@ -690,7 +778,7 @@ namespace {
           bInLineSearch = false;
           SetNonlinearSolverHint(LINESEARCH_ITERATION_CURR, 0);
           SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, 1.);
-          
+
           oResTest.SetTolerance(dTolRes);
           oSolTest.SetTolerance(dTolSol);
 
@@ -701,10 +789,13 @@ namespace {
           }
 
           pNonlinearSolver->reset(*pSolutionView);
-        
+
+          if (!bKeepJacAcrossSteps) {
+               ForcePrecondRebuild();
+          }
+
           iIterCnt = 0;
-          bRecomputePrecond = !bKeepJacAcrossSteps;
-          
+
           for (;;) {
                oResTest.Reset();
                oSolTest.Reset();
@@ -771,15 +862,17 @@ namespace {
           Teuchos::ParameterList& oPrintParam(oSolverParam.sublist("Printing"));
           Teuchos::ParameterList& oDirectionParam = oSolverParam.sublist("Direction");
           Teuchos::ParameterList& oNewtonParam = oDirectionParam.sublist("Newton");
-          Teuchos::ParameterList& oLinSolParam = oNewtonParam.sublist("Linear Solver");
-          
-          pLinSolParam = &oLinSolParam;
-          
+
+          oNewtonParam.set("Forcing Term Minimum Tolerance", dForcingTermMinTol);
+          oNewtonParam.set("Forcing Term Maximum Tolerance", dForcingTermMaxTol);
+          oNewtonParam.set("Forcing Term Alpha", dForcingTermAlpha);
+          oNewtonParam.set("Forcing Term Gamma", dForcingTermGamma);
+
           NOX::Abstract::PrePostOperator& oPrePost = *this;
           Teuchos::RCP<NOX::Abstract::PrePostOperator> pPrePost = Teuchos::rcpFromRef(oPrePost);
           oSolverParam.sublist("Solver Options").set("User Defined Pre/Post Operator", pPrePost);
 
-          int iSolverOutput = 0x0;
+          int iSolverOutput = 0;
 
           if (outputIters()) {
                if (uFlags & VERBOSE_MODE) {
@@ -808,7 +901,7 @@ namespace {
                Teuchos::ParameterList& oLineSearchParam = oSolverParam.sublist("Line Search");
 
                std::string strLineSearchMethod;
-               
+
                if (uFlags & LINESEARCH_BACKTRACK) {
                     strLineSearchMethod = "Backtrack";
                } else if (uFlags & LINESEARCH_POLYNOMIAL) {
@@ -871,75 +964,51 @@ namespace {
           }
 
           if (uFlags & LINEAR_SOLVER_GMRES) {
-               oLinSolParam.set("Aztec Solver", "GMRES");
+               oIterativeLinSol.SetAztecOption(AZ_solver, AZ_gmres);
           } else if (uFlags & LINEAR_SOLVER_CG) {
-               oLinSolParam.set("Aztec Solver", "CG");
+               oIterativeLinSol.SetAztecOption(AZ_solver, AZ_cg);
           } else if (uFlags & LINEAR_SOLVER_CGS) {
-               oLinSolParam.set("Aztec Solver", "CGS");
+               oIterativeLinSol.SetAztecOption(AZ_solver, AZ_cgs);
           } else if (uFlags & LINEAR_SOLVER_TFQMR) {
-               oLinSolParam.set("Aztec Solver", "TFQMR");
+               oIterativeLinSol.SetAztecOption(AZ_solver, AZ_tfqmr);
           } else if (uFlags & LINEAR_SOLVER_BICGSTAB) {
-               oLinSolParam.set("Aztec Solver", "BiCGStab");
+               oIterativeLinSol.SetAztecOption(AZ_solver, AZ_bicgstab);
           }
 
-          oLinSolParam.set("Max Iterations", iMaxIterLinSol);
-          oLinSolParam.set("Tolerance", dTolLinSol);
+          oIterativeLinSol.SetAztecOption(AZ_kspace, std::min(Size, iKrylovSubSpaceSize));
+          oIterativeLinSol.SetAztecOption(AZ_output, (uFlags & PRINT_CONVERGENCE_INFO) ? 1 : 0);
+          oIterativeLinSol.SetOutputStream(std::cout);
+          oIterativeLinSol.SetErrorStream(std::cerr);
 
-          oLinSolParam.set("Preconditioner", "User Defined");
-          oLinSolParam.set("Preconditioner Reuse Policy", "Reuse");
-          oLinSolParam.set("Max Age Of Prec", iIterationsBeforeAssembly);
-          oLinSolParam.set("Size of Krylov Subspace", std::min(Size, iKrylovSubSpaceSize));
-          oLinSolParam.set("Use Preconditioner as Solver", (uFlags & USE_PRECOND_AS_SOLVER) != 0);
-          
-          if (uFlags & PRINT_CONVERGENCE_INFO) {
-               oLinSolParam.set("Output Frequency", 1);
-          }
-          
           Teuchos::RCP<Epetra_Vector> pSolution = Teuchos::rcp(new Epetra_Vector(oMap, true));
           pSolutionView = Teuchos::rcp(new NOX::Epetra::Vector{pSolution, NOX::Epetra::Vector::CreateView});
 
           NOX::Epetra::Interface::Required& oResidualInt = *this;
           Teuchos::RCP<NOX::Epetra::Interface::Required> pResidualInt{Teuchos::rcpFromRef(oResidualInt)};
-          NOX::Epetra::Interface::Preconditioner& oPrecondInt = *this;
-          Teuchos::RCP<NOX::Epetra::Interface::Preconditioner> pPrecondInt{Teuchos::rcpFromRef(oPrecondInt)};
-          Epetra_Operator& oPrecondOper = *this;
-          Teuchos::RCP<Epetra_Operator> pPrecondOper{Teuchos::rcpFromRef(oPrecondOper)};
 
-          if ((uFlags & JACOBIAN_NEWTON)) {
-               NOX::Epetra::Interface::Jacobian& oJacobianInt = *this;
-               Teuchos::RCP<NOX::Epetra::Interface::Jacobian> pJacobianInt{Teuchos::rcpFromRef(oJacobianInt)};
-               pLinearSystem = Teuchos::rcp(new NOX::Epetra::LinearSystemAztecOO(oPrintParam,
-                                                                                 oLinSolParam,
-                                                                                 pJacobianInt,
-                                                                                 pPrecondOper,
-                                                                                 pPrecondInt,
-                                                                                 pPrecondOper,
-                                                                                 *pSolutionView));
-          } else {
 #ifdef USE_SPARSE_AUTODIFF
-               Teuchos::RCP<NOX::Epetra::Interface::Jacobian> pJacobianInt{Teuchos::rcpFromRef(oJacobianOperator)};
-               Teuchos::RCP<Epetra_Operator> pJacobianOper{Teuchos::rcpFromRef(oJacobianOperator)};
-#else
-               Teuchos::RCP<NOX::Epetra::MatrixFree> pJacobianOper{new NOX::Epetra::MatrixFree(oPrintParam, pResidualInt, *pSolutionView)};
-
-               pJacobianOper->setLambda(dNewtonKrylovPerturbation);
-
-               Teuchos::RCP<NOX::Epetra::Interface::Jacobian> pJacobianInt(pJacobianOper);
+          if (uFlags & JACOBIAN_NEWTON_KRYLOV) {
+               pJacOper = Teuchos::rcpFromRef(oMatFreeJacOper);
+               pJacInt = &oMatFreeJacOper;
+          } else {
 #endif
-               pLinearSystem = Teuchos::rcp(new NOX::Epetra::LinearSystemAztecOO(oPrintParam,
-                                                                                 oLinSolParam,
-                                                                                 pJacobianInt,
-                                                                                 pJacobianOper,
-                                                                                 pPrecondInt,
-                                                                                 pPrecondOper,
-                                                                                 *pSolutionView));
+               Epetra_Operator& oJacOper = *this;
+               pJacOper = Teuchos::rcpFromRef(oJacOper);
+               pJacInt = this;
+#ifdef USE_SPARSE_AUTODIFF
           }
+#endif
+          pPrecInt = this;
+          oIterativeLinSol.SetUserOperator(pJacOper.get());
+          oIterativeLinSol.SetPrecOperator(this);
+
+          NOX::Epetra::LinearSystem& oLinSys = *this;
 
           Teuchos::RCP<NOX::Epetra::Group> grpPtr =
                Teuchos::rcp(new NOX::Epetra::Group(oPrintParam,
                                                    pResidualInt,
                                                    *pSolutionView,
-                                                   pLinearSystem));
+                                                   Teuchos::rcpFromRef(oLinSys)));
 
           Teuchos::RCP<NOX::StatusTest::Combo> converged =
                Teuchos::rcp(new NOX::StatusTest::Combo(NOX::StatusTest::Combo::AND));
@@ -973,6 +1042,8 @@ namespace {
           pCombCriteria->addStatusTest(fv);
           pCombCriteria->addStatusTest(converged);
           pCombCriteria->addStatusTest(maxiters);
+
+          ForcePrecondRebuild();
 
           pNonlinearSolver = NOX::Solver::buildSolver(grpPtr, pCombCriteria, pSolverParam);
      }
@@ -1066,24 +1137,11 @@ namespace {
           TmpRes.ResizeReset(Size);
      }
 
-     bool NoxNonlinearSolver::Residual(const VectorHandler* const pSol, VectorHandler* const pRes)
+     void NoxNonlinearSolver::Residual(const VectorHandler* const pSol, VectorHandler* const pRes)
      {
           CPUTimeGuard oCPUTimeRes(*this, CPU_RESIDUAL);
 
           DeltaX.ScalarAddMul(*pSol, XPrev, -1.); // Convert to incremental solution
-
-          bool bSolutionUpdate = false;
-
-          for (integer i = 1; i <= Size; ++i) {
-               if (DeltaX.dGetCoef(i)) {
-                    bSolutionUpdate = true;
-                    break;
-               }
-          }
-
-          if (bSolutionUpdate) {
-               bUpdateJacobian = true;
-          }
 
           XPrev = *pSol;
 
@@ -1098,18 +1156,32 @@ namespace {
           }
 
           pNonlinearProblem->Residual(pRes, pAbsRes);
-
-          return bSolutionUpdate;
      }
 
-     void NoxNonlinearSolver::Jacobian(const VectorHandler* const pSol, MatrixHandler* const pJac)
+     void NoxNonlinearSolver::Jacobian()
      {
-          ASSERT(pJac != nullptr);
-
           CPUTimeGuard oCPUTimeJac(*this, CPU_JACOBIAN);
 
-          pNonlinearProblem->Jacobian(pJac);
-          pJac->PacMat();
+          bool bDone = false;
+          MatrixHandler* pJac = nullptr;
+
+          do {
+               try {
+                    pJac = pSolutionManager->pMatHdl();
+
+                    pNonlinearProblem->Jacobian(pJac);
+
+                    pJac->PacMat(); // Needed for Epetra_CrsMatrix only
+
+                    bDone = true;
+               } catch (const MatrixHandler::ErrRebuildMatrix& oErr) {
+                    silent_cout("NoxNonlinearSolver: "
+                                "rebuilding matrix...\n");
+                    pSolutionManager->MatrInitialize();
+               }
+          } while (!bDone);
+
+          ASSERT(pJac != nullptr);
 
 #ifdef USE_MPI
           if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -1131,6 +1203,8 @@ namespace {
      {
           DEBUGCERR("computeF()\n");
 
+          bUpdateJacobian = true;
+
           ASSERT(pNonlinearProblem != nullptr);
           ASSERT(pSolutionManager != nullptr);
 
@@ -1142,16 +1216,16 @@ namespace {
 
           if (bInLineSearch) {
                auto& oLineSearch = dynamic_cast<const NOX::Solver::LineSearchBased&>(*pNonlinearSolver);
-               
+
                SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, oLineSearch.getStepSize());
-               
+
                DEBUGCERR("line search iteration " << GetNonlinearSolverHint(LINESEARCH_ITERATION_CURR)
                          << ": lambda=" << oLineSearch.getStepSize() << "\n");
           }
-          
-          const bool bSolutionUpdate = Residual(&oSol, &oRes);
 
-          if (bSolutionUpdate && outputSol()) {
+          Residual(&oSol, &oRes);
+
+          if (outputSol()) {
                pSolver->PrintSolution(DeltaX, pNonlinearSolver->getNumIterations());
           }
 
@@ -1163,10 +1237,10 @@ namespace {
 
           if (bInLineSearch) {
                integer iIterCurr = GetNonlinearSolverHint(LINESEARCH_ITERATION_CURR);
-               
+
                SetNonlinearSolverHint(LINESEARCH_ITERATION_CURR, iIterCurr + 1);
           }
-          
+
           return true;
      }
 
@@ -1177,13 +1251,11 @@ namespace {
 
           ASSERT(x.GlobalLength() == Size);
 
-          const MyVectorHandler oSol(Size, x.Values());
-
-          Residual(&oSol, &TmpRes); // By convention AssRes must be called always before AssJac
-
           if (bUpdateJacobian) {
+               const MyVectorHandler oSol(Size, x.Values());
+               Residual(&oSol, &TmpRes); // By convention AssRes must be called always before AssJac
                pSolutionManager->MatrReset();
-               Jacobian(&oSol, pSolutionManager->pMatHdl());
+               Jacobian();
                bUpdateJacobian = false;
           }
 
@@ -1200,6 +1272,7 @@ namespace {
      int NoxNonlinearSolver::SetUseTranspose(bool UseTranspose)
      {
           DEBUGCERR("SetUseTranspose(" << UseTranspose << ")\n");
+
           bUseTranspose = UseTranspose;
 
           return 0;
@@ -1232,19 +1305,10 @@ namespace {
 
      int NoxNonlinearSolver::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
      {
-          if (bRecomputePrecond) {
-               DEBUGCERR("Recompute preconditioner for the first iteration ...\n");
-
-               const NOX::Abstract::Group& oGroupA = pNonlinearSolver->getSolutionGroup();
-               const NOX::Abstract::Vector& oSolVecA = oGroupA.getX();
-               const NOX::Epetra::Vector& oSolVecE = dynamic_cast<const NOX::Epetra::Vector&>(oSolVecA);
-               
-               pLinearSystem->recomputePreconditioner(oSolVecE, *pLinSolParam);
-               
-               bRecomputePrecond = false;
-          }
-          
           DEBUGCERR("ApplyInverse()\n");
+
+          ++iPrecInnerIterCnt;
+          ++iInnerIterCntTot;
 
           CPUTimeGuard oCPULinearSolver(*this, CPU_LINEAR_SOLVER);
 
@@ -1338,7 +1402,7 @@ namespace {
      void NoxNonlinearSolver::runPreLineSearch(const NOX::Solver::Generic& solver)
      {
           DEBUGCERR("runPreLineSearch()\n");
-          
+
           bInLineSearch = true;
 
           SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, 1.);
@@ -1348,11 +1412,246 @@ namespace {
      void NoxNonlinearSolver::runPostLineSearch(const NOX::Solver::Generic& solver)
      {
           DEBUGCERR("runPostLineSearch()\n");
-          
+
           bInLineSearch = false;
-          
+
           SetNonlinearSolverHint(LINESEARCH_LAMBDA_CURR, 1.);
           SetNonlinearSolverHint(LINESEARCH_ITERATION_CURR, 0);
+     }
+
+     bool
+     NoxNonlinearSolver::applyJacobian(const NOX::Epetra::Vector& input,
+                                       NOX::Epetra::Vector& result) const
+     {
+          const bool bPrevUseTranspose = bUseTranspose;
+
+          pJacOper->SetUseTranspose(false);
+
+          integer status = pJacOper->Apply(input.getEpetraVector(), result.getEpetraVector());
+
+          pJacOper->SetUseTranspose(bPrevUseTranspose);
+
+          return status == 0;
+     }
+
+     bool
+     NoxNonlinearSolver::applyJacobianTranspose(const NOX::Epetra::Vector& input,
+                                                NOX::Epetra::Vector& result) const
+     {
+          const bool bPrevUseTranspose = pJacOper->UseTranspose();
+
+          pJacOper->SetUseTranspose(true);
+
+          integer status = pJacOper->Apply(input.getEpetraVector(), result.getEpetraVector());
+
+          pJacOper->SetUseTranspose(bPrevUseTranspose);
+
+          return status == 0;
+     }
+
+     bool
+     NoxNonlinearSolver::applyJacobianInverse(Teuchos::ParameterList &params,
+                                              const NOX::Epetra::Vector &input,
+                                              NOX::Epetra::Vector &result)
+     {
+          const bool bPrevUseTranspose = UseTranspose();
+
+          SetUseTranspose(false);
+
+          if (uFlags & USE_PRECOND_AS_SOLVER) {
+               integer status = ApplyInverse(input.getEpetraVector(), result.getEpetraVector());
+
+               SetUseTranspose(bPrevUseTranspose);
+
+               return status == 0;
+          }
+
+          oIterativeLinSol.SetLHS(&result.getEpetraVector());
+          oIterativeLinSol.SetRHS(const_cast<Epetra_Vector*>(&input.getEpetraVector()));
+
+          integer iMaxIter = params.get("Max Iterations", iMaxIterLinSol);
+          doublereal dTol = params.get("Tolerance", dTolLinSol);
+
+          iPrecInnerIterCnt = 0;
+
+          integer status;
+
+          bool bPrecReuse = iPrecInnerIterCntTot > 1;
+
+          for (;;) {
+               status = oIterativeLinSol.Iterate(iMaxIter, dTol);
+
+               if (status == 0) {
+                    DEBUGCERR("Linear solver converged\n");
+                    break;
+               }
+
+               if (!bPrecReuse) {
+                    DEBUGCERR("Linear solver failed to converge even with up to date preconditioner\n");
+                    break;
+               }
+
+               DEBUGCERR("Linear solver failed to converge with non up to date preconditioner\n");
+               DEBUGCERR("Preconditioner will be rebuild\n");
+
+               const NOX::Abstract::Vector& XCurrA = pNonlinearSolver->getSolutionGroup().getX();
+               const NOX::Epetra::Vector& XCurrE = dynamic_cast<const NOX::Epetra::Vector&>(XCurrA);
+
+               recomputePreconditioner(XCurrE, oSolverParam);
+
+               // Avoid starting the iterative solution with a residual too close to convergence
+               // because it could cause a "loss of precision error"
+               oIterativeLinSol.GetRHS()->PutScalar(0.);
+
+               bPrecReuse = false;
+          }
+
+          oIterativeLinSol.UnsetLHSRHS();
+
+          SetUseTranspose(bPrevUseTranspose);
+
+          return status == 0;
+     }
+
+     bool
+     NoxNonlinearSolver::applyRightPreconditioning(bool useTranspose,
+                                                   Teuchos::ParameterList& params,
+                                                   const NOX::Epetra::Vector& input,
+                                                   NOX::Epetra::Vector& result) const
+     {
+          bool bPrevUseTranspose = UseTranspose();
+
+          const_cast<NoxNonlinearSolver*>(this)->SetUseTranspose(useTranspose);
+
+          integer status = ApplyInverse(input.getEpetraVector(), result.getEpetraVector());
+
+          const_cast<NoxNonlinearSolver*>(this)->SetUseTranspose(bPrevUseTranspose);
+
+          return status == 0;
+     }
+
+     Teuchos::RCP<NOX::Epetra::Scaling>
+     NoxNonlinearSolver::getScaling()
+     {
+          return Teuchos::null;
+     }
+
+     void
+     NoxNonlinearSolver::resetScaling(const Teuchos::RCP<NOX::Epetra::Scaling>& s)
+     {
+     }
+
+     bool
+     NoxNonlinearSolver::computeJacobian(const NOX::Epetra::Vector& x)
+     {
+          return pJacInt->computeJacobian(x.getEpetraVector(), *pJacOper);
+     }
+
+     bool
+     NoxNonlinearSolver::createPreconditioner(const NOX::Epetra::Vector& x,
+                                              Teuchos::ParameterList& p,
+                                              bool recomputeGraph) const
+     {
+          return recomputePreconditioner(x, p);
+     }
+
+     bool
+     NoxNonlinearSolver::destroyPreconditioner() const
+     {
+          return true;
+     }
+
+     bool
+     NoxNonlinearSolver::recomputePreconditioner(const NOX::Epetra::Vector& x,
+                                                 Teuchos::ParameterList& linearSolverParams) const
+     {
+          bool bStatus = pPrecInt->computePreconditioner(x.getEpetraVector(),
+                                                         *oIterativeLinSol.GetPrecOperator(),
+                                                         &linearSolverParams);
+
+          if (bStatus) {
+               ResetPrecondReuse();
+          }
+
+          return bStatus;
+     }
+
+     NOX::Epetra::LinearSystem::PreconditionerReusePolicyType
+     NoxNonlinearSolver::getPreconditionerPolicy(bool advanceReuseCounter)
+     {
+          if (iPrecInnerIterCnt >= iInnerIterBeforeAssembly || iPrecInnerIterCntTot >= iIterationsBeforeAssembly) {
+               return NOX::Epetra::LinearSystem::PRPT_RECOMPUTE;
+          }
+
+          if (advanceReuseCounter) {
+               ++iPrecInnerIterCntTot;
+          }
+
+          return NOX::Epetra::LinearSystem::PRPT_REUSE;
+     }
+
+     bool
+     NoxNonlinearSolver::isPreconditionerConstructed() const
+     {
+          return pPrecInt != nullptr;
+     }
+
+     Teuchos::RCP<const Epetra_Operator>
+     NoxNonlinearSolver::getJacobianOperator() const
+     {
+          return pJacOper;
+     }
+
+     Teuchos::RCP<Epetra_Operator>
+     NoxNonlinearSolver::getJacobianOperator()
+     {
+          return pJacOper;
+     }
+
+     Teuchos::RCP<Epetra_Operator>
+     NoxNonlinearSolver::getGeneratedPrecOperator()
+     {
+          Epetra_Operator& oJac = *this;
+          return Teuchos::rcpFromRef(oJac);
+     }
+
+     Teuchos::RCP<const Epetra_Operator>
+     NoxNonlinearSolver::getGeneratedPrecOperator() const
+     {
+          const Epetra_Operator& oJac = *this;
+          return Teuchos::rcpFromRef(oJac);
+     }
+
+     void
+     NoxNonlinearSolver::setJacobianOperatorForSolve(const Teuchos::RCP<const Epetra_Operator>& solveJacOp)
+     {
+          DEBUGCERR("setJacobianOperatorForSolve()\n");
+
+          ASSERT(solveJacOp.get() == this || solveJacOp.get() == &oMatFreeJacOper);
+     }
+
+     bool
+     NoxNonlinearSolver::hasPreconditioner() const
+     {
+          return true;
+     }
+
+     void
+     NoxNonlinearSolver::setPrecOperatorForSolve(const Teuchos::RCP<const Epetra_Operator>& solvePrecOp)
+     {
+          DEBUGCERR("setPrecOperatorForSolve()\n");
+
+          ASSERT(solvePrecOp.get() == this);
+     }
+
+     void NoxNonlinearSolver::ResetPrecondReuse() const
+     {
+          iPrecInnerIterCnt = iPrecInnerIterCntTot = 0;
+     }
+
+     void NoxNonlinearSolver::ForcePrecondRebuild() const
+     {
+          iPrecInnerIterCnt = iPrecInnerIterCntTot = std::numeric_limits<integer>::max();
      }
 }
 

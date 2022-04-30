@@ -103,9 +103,14 @@ struct NoxSolverParameters: public CommonNonlinearSolverParam {
      doublereal dTolLinSol;
      doublereal dMinStep;
      doublereal dRecoveryStep;
+     doublereal dForcingTermMinTol;
+     doublereal dForcingTermMaxTol;
+     doublereal dForcingTermAlpha;
+     doublereal dForcingTermGamma;
      integer iMaxIterLinSol;
      integer iKrylovSubSpaceSize;
      integer iMaxIterLineSearch;
+     integer iInnerIterBeforeAssembly;
 };
 
 NonlinearSolver*
