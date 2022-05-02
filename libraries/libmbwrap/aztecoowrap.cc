@@ -46,8 +46,13 @@
 #ifdef USE_MPI
 #include "mbcomm.h"
 #endif
+
+// FIXME: Compiler fails with -Werror if HAVE_BLAS is redefined inside a Trilinos header
+#define HAVE_BLAS_SAVE HAVE_BLAS
+#define HAVE_BOOL_SAVE HAVE_BOOL
 #undef HAVE_BLAS
 #undef HAVE_BOOL
+
 #include "aztecoowrap.h"
 #include "epetravh.h"
 #include "epetraspmh.h"
@@ -60,40 +65,47 @@
 #include <Amesos.h>
 #include <Amesos_BaseSolver.h>
 
+#undef HAVE_BLAS
+#undef HAVE_BOOL
+#define HAVE_BLAS HAVE_BLAS_SAVE
+#define HAVE_BOOL HAVE_BOOL_SAVE
+#undef HAVE_BLAS_SAVE
+#undef HAVE_BOOL_SAVE
+
 class AmesosPreconditioner: public Epetra_Operator {
 public:
-     AmesosPreconditioner(unsigned uPrecondFlag, const Teuchos::RCP<Epetra_RowMatrix>& pOperator);     
+     AmesosPreconditioner(unsigned uPrecondFlag, const Teuchos::RCP<Epetra_RowMatrix>& pOperator);
      virtual ~AmesosPreconditioner();
 
      const Teuchos::RCP<Epetra_RowMatrix>& GetOperator() const;
 
      int SymbolicFactorization();
-     
+
      int NumericFactorization();
-     
+
      virtual int SetUseTranspose(bool UseTranspose) override;
-     
+
      virtual int Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-     
+
      virtual int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-          
+
      virtual double NormInf() const override;
-     
+
      virtual const char* Label() const override;
-     
+
      virtual bool UseTranspose() const override;
-     
+
      virtual bool HasNormInf() const override;
-     
+
      virtual const Epetra_Comm & Comm() const override;
-     
+
      virtual const Epetra_Map & OperatorDomainMap() const override;
-     
+
      virtual const Epetra_Map & OperatorRangeMap() const override;
-     
+
 private:
      static const char* GetSolverName(unsigned uPrecondFlag);
-     
+
      Teuchos::RCP<Epetra_RowMatrix> pOperator;
      mutable Epetra_Vector oRhs;
      mutable Epetra_LinearProblem oProblem;
@@ -108,7 +120,7 @@ public:
           MPI::Intracomm& Comm,
 #endif
           integer Dim);
-     
+
      virtual ~EpetraLinearSystem(void);
 
 #ifdef DEBUG
@@ -124,7 +136,7 @@ public:
      virtual VectorHandler* pSolHdl(void) const override;
 
      virtual bool bGetConditionNumber(doublereal& dCond) const override;
-     
+
 protected:
 #ifdef USE_MPI
      Epetra_MpiComm Comm;
@@ -149,11 +161,11 @@ public:
 
      virtual ~AztecOOSolutionManager(void);
      virtual void Solve() override;
-     
+
 protected:
      Epetra_LinearProblem oProblem;
      AztecOO oSolver;
-     
+
 private:
      const integer iMaxIter;
      const doublereal dTol;
@@ -172,7 +184,7 @@ public:
           unsigned uPrecondFlag);
 
      virtual ~AztecOOPrecondSolutionManager();
-     virtual void Solve() override;     
+     virtual void Solve() override;
      virtual void MatrReset() override;
      virtual void MatrInitialize() override;
 
@@ -186,14 +198,14 @@ AmesosPreconditioner::AmesosPreconditioner(unsigned uPrecondFlag, const Teuchos:
       oRhs(pOperator->Map(), false),
       oProblem(pOperator.get(), nullptr, &oRhs),
       pSolver(Teuchos::rcp(Amesos().Create(GetSolverName(uPrecondFlag), oProblem)))
-{          
+{
      if (!pSolver.get()) {
           throw Teuchos::ExceptionBase("Amesos failed to create linear solver interface");
      }
-          
+
      pSolver->SetUseTranspose(pOperator->UseTranspose());
 }
-     
+
 AmesosPreconditioner::~AmesosPreconditioner()
 {
 }
@@ -212,23 +224,23 @@ int AmesosPreconditioner::NumericFactorization()
 {
      return pSolver->NumericFactorization();
 }
-     
-int AmesosPreconditioner::SetUseTranspose(bool UseTranspose) 
+
+int AmesosPreconditioner::SetUseTranspose(bool UseTranspose)
 {
      int ierr = pOperator->SetUseTranspose(UseTranspose);
 
      if (ierr != 0) {
           return ierr;
      }
-          
+
      return pSolver->SetUseTranspose(UseTranspose);
 }
-     
+
 int AmesosPreconditioner::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
 {
      return pOperator->Apply(X, Y);
 }
-     
+
 int AmesosPreconditioner::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
 {
      ASSERT(X.GlobalLength() == pOperator->NumGlobalCols());
@@ -236,48 +248,48 @@ int AmesosPreconditioner::ApplyInverse(const Epetra_MultiVector& X, Epetra_Multi
 
      // AztecOO requires that the same object may be passed for X and Y
      std::copy(X.Values(), X.Values() + X.GlobalLength(), oRhs.Values());
-          
+
      oProblem.SetLHS(&Y);
 
      int ierr = pSolver->Solve();
-          
+
      oProblem.SetLHS(nullptr);
 
      return ierr;
 }
-          
+
 double AmesosPreconditioner::NormInf() const
 {
      return -1.;
 }
-     
+
 const char* AmesosPreconditioner::Label() const
 {
      return pOperator->Label();
 }
-     
+
 bool AmesosPreconditioner::UseTranspose() const
 {
      ASSERT(pSolver->UseTranspose() == pOperator->UseTranspose());
-          
+
      return pSolver->UseTranspose();
 }
-     
+
 bool AmesosPreconditioner::HasNormInf() const
 {
      return false;
 }
-     
+
 const Epetra_Comm & AmesosPreconditioner::Comm() const
 {
      return pOperator->Comm();
 }
-     
+
 const Epetra_Map & AmesosPreconditioner::OperatorDomainMap() const
 {
      return pOperator->OperatorDomainMap();
 }
-     
+
 const Epetra_Map & AmesosPreconditioner::OperatorRangeMap() const
 {
      return pOperator->OperatorRangeMap();
@@ -379,7 +391,7 @@ AztecOOSolutionManager::~AztecOOSolutionManager(void)
 void AztecOOSolutionManager::Solve(void)
 {
      A.PacMat();
-    
+
      integer ierr = oSolver.Iterate(iMaxIter, dTol);
 
      if (ierr != 0) {
@@ -428,7 +440,7 @@ void AztecOOPrecondSolutionManager::Solve(void)
                ierr = oPrecond.SymbolicFactorization();
 
                if (ierr != 0) {
-                    silent_cerr("Amesos error: symbolic factorization failed\n");               
+                    silent_cerr("Amesos error: symbolic factorization failed\n");
                     throw LinearSolver::ErrFactor(-1, MBDYN_EXCEPT_ARGS);
                }
           }
@@ -441,15 +453,15 @@ void AztecOOPrecondSolutionManager::Solve(void)
                          bRebuildSymbolic = true;
                     } else {
                          silent_cerr("Amesos error: numeric factorization failed\n");
-                         throw LinearSolver::ErrFactor(-1, MBDYN_EXCEPT_ARGS);                         
+                         throw LinearSolver::ErrFactor(-1, MBDYN_EXCEPT_ARGS);
                     }
                }
           }
      } while (ierr);
 
-     bRebuildNumeric = false;     
+     bRebuildNumeric = false;
      bRebuildSymbolic = false;
-     
+
      AztecOOSolutionManager::Solve();
 }
 
@@ -457,7 +469,7 @@ void AztecOOPrecondSolutionManager::MatrReset()
 {
      bRebuildNumeric = true;
 }
-     
+
 void AztecOOPrecondSolutionManager::MatrInitialize()
 {
      bRebuildSymbolic = true;
@@ -476,7 +488,7 @@ pAllocateAztecOOSolutionManager(
                                 unsigned uSolverFlags)
 {
      SolutionManager* pCurrSM = nullptr;
-     
+
      unsigned uPrecondFlag = uSolverFlags & LinSol::SOLVER_FLAGS_PRECOND_MASK;
 
      switch (uPrecondFlag) {

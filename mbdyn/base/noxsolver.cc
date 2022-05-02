@@ -48,7 +48,10 @@
 #include "mbcomm.h"
 #endif
 
-#undef HAVE_BLAS // FIXME: conflicting declaration
+// FIXME: Compiler fails with -Werror if HAVE_BLAS is redefined inside a Trilinos header
+#define HAVE_BLAS_SAVE HAVE_BLAS
+#define HAVE_BOOL_SAVE HAVE_BOOL
+#undef HAVE_BLAS
 #undef HAVE_BOOL
 
 #include <Epetra_config.h>
@@ -71,6 +74,13 @@
 #include <NOX_Epetra_LinearSystem.H>
 #include <NOX_Abstract_PrePostOperator.H>
 #include <Teuchos_ParameterList.hpp>
+
+#undef HAVE_BLAS
+#undef HAVE_BOOL
+#define HAVE_BLAS HAVE_BLAS_SAVE
+#define HAVE_BOOL HAVE_BOOL_SAVE
+#undef HAVE_BLAS_SAVE
+#undef HAVE_BOOL_SAVE
 
 #ifdef DEBUG_JACOBIAN
 #include "sp_gradient_spmh.h"
