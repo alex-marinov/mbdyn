@@ -2170,9 +2170,9 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       }
 	  }
 
-	  J = EvalUnique(J);
+	  SpMatrix<T, 3, 3> Jtmp = EvalUnique(J);
 
-	  J = (R * J) * Transpose(R);
+	  J = (R * Jtmp) * Transpose(R);
 
 	  SpColVector<T, 3> STmp(3, NModes);
 

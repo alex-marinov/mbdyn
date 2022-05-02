@@ -629,7 +629,8 @@ namespace {
 
           for (integer i = 1; i <= X.iGetSize(); ++i) {
                if (std::fabs(AX(i) - Jac(i)) > dTolRel + dTolAbs * dNormAX) {
-                    DEBUGCERR("Error: AX(" << i << ")=" << AX(i) << " Jac(" << i << ")=" << Jac(i) << "\n");
+                    DEBUGCERR("Jacobian check failed: AX(" << i << ")=" << AX(i) << " Jac(" << i << ")=" << Jac(i) << "\n");
+                    ASSERT(0);
                }
           }
 
@@ -696,6 +697,13 @@ namespace {
                                       SpGradientSparseMatrixHandler(x.GlobalLength(), x.GlobalLength()));
           }
 
+          DEBUGCERR("Assemble sparse Jacobian matrix ...\n");
+
+          oNoxSolver.pNonlinearProblem->Jacobian(pA);
+
+          pA->PacMat();
+
+#if DEBUG_JACOBIAN >= 2
           MyVectorHandler Y(oNoxSolver.Size), JY(oNoxSolver.Size), JYRef(oNoxSolver.Size);
 
           for (integer i = 1; i <= oNoxSolver.Size; ++i) {
@@ -707,12 +715,6 @@ namespace {
 
                oNoxSolver.pNonlinearProblem->Jacobian(&JY, &Y);
 
-               DEBUGCERR("Assemble sparse Jacobian matrix ...\n");
-
-               oNoxSolver.pNonlinearProblem->Jacobian(pA);
-
-               pA->PacMat();
-
                pA->MatVecMul(JYRef, Y);
 
                const doublereal dTol = (1. + JYRef.Norm()) * pow(std::numeric_limits<doublereal>::epsilon(), 0.5);
@@ -721,12 +723,14 @@ namespace {
 
                for (integer j = 1; j <= oNoxSolver.Size; ++j) {
                     if (fabs(JYRef(j) - JY(j)) > dTol) {
-                         DEBUGCERR("Jacobian check: " << i << " JYRef(" << j << ")=" << JYRef(j) << ", JY(" << j << ")=" << JY(j) << "\n");
+                         DEBUGCERR("Jacobian check failed: " << i << " JYRef(" << j << ")=" << JYRef(j) << ", JY(" << j << ")=" << JY(j) << "\n");
+                         ASSERT(0);
                     }
                }
 
                DEBUGCERR("End of check Jacobian vector product " << i << "\n");
           }
+#endif
 #endif
           return true;
      }

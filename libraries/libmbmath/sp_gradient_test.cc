@@ -130,7 +130,7 @@ namespace sp_grad_test {
 
           return u.iGetSize();
      }
-     
+
      template <typename RAND_NZ_T, typename RAND_DOF_T, typename RAND_VAL_T, typename GEN_T>
      index_type sp_grad_rand_gen(doublereal& u, RAND_NZ_T& randnz, RAND_DOF_T& randdof, RAND_VAL_T& randval, GEN_T& gen) {
           u = randval(gen);
@@ -152,6 +152,29 @@ namespace sp_grad_test {
           for (index_type i = s.iMinDof; i <= s.iMaxDof; ++i) {
                sp_grad_assert_equal(u.dGetDeriv(i), v.dGetDeriv(i), dTol);
           }
+     }
+
+     void testx() {
+          SpMatrix<doublereal> A(3, 3, 0);
+          SpMatrix<doublereal, 3, 3> B(3, 3, 0);
+
+          A.ResizeReset(2, 2, 0);
+
+          for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+               for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+                    A(i, j) = 10. * i + j;
+               }
+          }
+
+          B.ResizeReset(3, 3, 0);
+
+          for (index_type i = 1; i <= B.iGetNumRows(); ++i) {
+               for (index_type j = 1; j <= B.iGetNumCols(); ++j) {
+                    B(i, j) = 10. * i + j;
+               }
+          }
+
+          std::cout << "A=" << A << "\nB=" << B << "\n";
      }
 
      void test0(index_type inumloops, index_type inumnz, index_type inumdof) {
@@ -219,7 +242,7 @@ namespace sp_grad_test {
                SpMatrix<doublereal, SpMatrixSize::DYNAMIC, 3> A2x3f3 = Transpose(SubMatrix<3, 2, 3>(Transpose(A6x7f2), 2, 4, 2));
                SpMatrix<SpGradient, SpMatrixSize::DYNAMIC, 3> A2x3gf3 = Transpose(SubMatrix<3, 2, 3>(Transpose(A6x7gf2), 2, 4, 2));
                SpMatrix<SpGradient, 3, 3> CrossX8a(MatCrossVec(X8a, 5.));
-               
+
                sp_grad_assert_equal(A2x3(1, 1), A6x7(2, 3), 0.);
                sp_grad_assert_equal(A2x3(1, 2), A6x7(2, 5), 0.);
                sp_grad_assert_equal(A2x3(1, 3), A6x7(2, 7), 0.);
@@ -336,7 +359,7 @@ namespace sp_grad_test {
                SpMatrix<SpGradient, 3, 3> A2x3gT_A2x3gTbf2 =  SubMatrix<3, 2>(Transpose(A6x7gf), 3, 2, 2, 4) * SubMatrix<2, 3>(A6x7gf, 2, 4, 3, 2);
 
                SpMatrix<SpGradient, 3, 3> A2x3gT_A2x3gf3 = Transpose(A2x3gf3) * A2x3gf3;
-                  
+
                for (index_type i = 1; i <= A2x3T_A2x3.iGetNumRows(); ++i) {
                     for (index_type j = 1; j <= A2x3T_A2x3.iGetNumCols(); ++j) {
                          sp_grad_assert_equal(A2x3T_A2x3(i, j), A2x3T_A2x3b(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
@@ -416,9 +439,9 @@ namespace sp_grad_test {
                SpColVector<doublereal, 3> u1 = Transpose(Transpose(b) * Transpose(A)) + Transpose(C) * g;
                SpColVector<doublereal, 3> u2 = A * SubColVector<4, 1, 3>(gb6) + Transpose(C) * SubColVector<1, 1, 3>(gb6);
                SpColVector<doublereal, 3> u3 = Transpose(Transpose(SubColVector<4, 1, 3>(gb6)) * Transpose(A) + Transpose(SubColVector<1, 1, 3>(gb6)) * C);
-               SpRowVector<doublereal, 3> u4 = Transpose(A * SubColVector<4, 1, 3>(gb6) + Transpose(C) * SubColVector<1, 1, 3>(gb6));                  
+               SpRowVector<doublereal, 3> u4 = Transpose(A * SubColVector<4, 1, 3>(gb6) + Transpose(C) * SubColVector<1, 1, 3>(gb6));
                SpRowVector<doublereal, 3> u5 = Transpose(SubColVector<4, 1, 3>(gb6)) * Transpose(A) + Transpose(SubColVector<1, 1, 3>(gb6)) * C;
-               SpRowVector<doublereal, 3> u6 = Transpose(A * SubColVector<4, 1, 3>(gb6)) + Transpose(Transpose(C) * SubColVector<1, 1, 3>(gb6));                  
+               SpRowVector<doublereal, 3> u6 = Transpose(A * SubColVector<4, 1, 3>(gb6)) + Transpose(Transpose(C) * SubColVector<1, 1, 3>(gb6));
 
                doublereal d0 = u.Dot();
                doublereal d1 = Dot(u1, u1);
@@ -433,7 +456,7 @@ namespace sp_grad_test {
                SpMatrix<doublereal, 3, 3> AC1 = Transpose(Transpose(C) * Transpose(A));
                SpMatrixA<doublereal, 3, 3> AC2, AC4, AC7, AC8, AC10;
                SpMatrix<doublereal> AC3(3, 3, 0), AC5(3, 3, 0), AC6(3, 3, 0), AC9(3, 3, 0), AC11(3, 3, 0);
-                  
+
                for (index_type i = 1; i <= 3; ++i) {
                     for (index_type j = 1; j <= 3; ++j) {
                          AC2(i, j) = Dot(Transpose(A1.GetRow(i)), C1.GetCol(j));
@@ -468,7 +491,7 @@ namespace sp_grad_test {
                          sp_grad_assert_equal(AC(i, j), AC8(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
                          sp_grad_assert_equal(AC(i, j), AC9(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
                          sp_grad_assert_equal(AC(i, j), AC10(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
-                         sp_grad_assert_equal(AC(i, j), AC11(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));                            
+                         sp_grad_assert_equal(AC(i, j), AC11(i, j), sqrt(std::numeric_limits<doublereal>::epsilon()));
                     }
                }
 
@@ -479,7 +502,7 @@ namespace sp_grad_test {
                sp_grad_assert_equal(d0, d5, sqrt(std::numeric_limits<doublereal>::epsilon()));
                sp_grad_assert_equal(d0, d6, sqrt(std::numeric_limits<doublereal>::epsilon()));
                sp_grad_assert_equal(d0, d7, sqrt(std::numeric_limits<doublereal>::epsilon()));
-                  
+
                SpMatrix<doublereal, 3, 3> Asp(A), Csp(C);
                SpMatrix<doublereal, 2, 2> InvE2x2 = Inv(E2x2);
                SpMatrix<doublereal, 2, 2> InvE2x2_E2x2 = InvE2x2 * E2x2;
@@ -533,8 +556,7 @@ namespace sp_grad_test {
                SpColVector<doublereal, 3> csp3 = Asp * bsp;
                SpColVector<doublereal, 3> csp4{A * b};
 
-               SpColVector<doublereal, 3> q = csp1;
-               q = 3. * q + 1.5 * q;
+               SpColVector<doublereal, 3> q = 3. * csp1 + 1.5 * csp1;
 
                Vec3 c = A * b;
 
@@ -907,13 +929,13 @@ namespace sp_grad_test {
      SpColVector<T, 2> func_grad_prod0(const SpColVector<T, 2>& X) {
           return SpColVector<T, 2>{sin(2. * X(1) - X(2) * 3.) * exp(X(1) / X(2)) + sqrt(X(1)), 4. * cos(X(1) * X(2)) * pow(X(1), X(2))};
      }
-     
+
      void test0gp()
      {
           using namespace sp_grad;
 
           constexpr index_type N = 2;
-          
+
           SpColVector<doublereal, N> X{0.5, 0.3}, Y{-0.7, 0.1};
           SpColVectorA<GpGradProd, N> Xg;
 
@@ -922,20 +944,20 @@ namespace sp_grad_test {
           }
 
           SpColVectorA<doublereal, N> F = func_grad_prod0(X);
-          
+
           SpColVectorA<GpGradProd, N> Fg = func_grad_prod0(Xg);
 
           const doublereal dF1_dX1 = 2. * cos(2. * X(1) - 3. * X(2)) * exp(X(1) / X(2)) + sin(2 * X(1) - X(2) * 3) * exp(X(1) / X(2)) / X(2) + 1. / (2. * sqrt(X(1)));
           const doublereal dF1_dX2 = -3. * cos(2. * X(1) - 3. * X(2)) * exp(X(1) / X(2)) - sin(2. * X(1) - X(2) * 3.) * exp(X(1) / X(2)) * X(1) / (X(2) * X(2));
           const doublereal dF2_dX1 = -4. * sin(X(1) * X(2)) * X(2) * pow(X(1), X(2)) + 4. * cos(X(1) * X(2)) * X(2) * pow(X(1), X(2) - 1.);
           const doublereal dF2_dX2 = -4. * sin(X(1) * X(2)) * X(1) * pow(X(1), X(2)) + 4. * cos(X(1) * X(2)) * pow(X(1), X(2)) * log(X(1));
-          
+
           SpMatrixA<doublereal, N, N> J = {dF1_dX1, dF2_dX1, dF1_dX2, dF2_dX2};
 
           SpColVector<doublereal, N> JY = J * Y;
 
           const doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
-          
+
           for (index_type i = 1; i <= N; ++i) {
                sp_grad_assert_equal(Fg(i).dGetValue(), F(i), dTol);
                sp_grad_assert_equal(Fg(i).dGetDeriv(), JY(i), dTol);
@@ -968,7 +990,7 @@ namespace sp_grad_test {
                     sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
                }
           }
-          
+
           FFTg *= 0.75;
           FFTTg *= 0.75;
           FFT *= 0.75;
@@ -982,7 +1004,7 @@ namespace sp_grad_test {
                     sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
                }
           }
-          
+
           FFTg /= 11.5;
           FFTTg /= 11.5;
           FFT /= 11.5;
@@ -996,10 +1018,13 @@ namespace sp_grad_test {
                     sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
                }
           }
-          
+
           FFTg *= Dot(Ag, Ag);
           FFTTg *= Dot(Ag, Ag);
-          FFTd = 2. * FFT * Dot(Ad, A) + FFTd * Dot(A, A);
+
+          SpMatrix<doublereal, N, N> FFTdTmp = FFTd * Dot(A, A);
+
+          FFTd = 2. * FFT * Dot(Ad, A) + FFTdTmp;
           FFT *= Dot(A, A);
 
           for (index_type i = 1; i <= N; ++i) {
@@ -1010,10 +1035,11 @@ namespace sp_grad_test {
                     sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
                }
           }
-          
+
           FFTg /= Dot(ATg, ATg);
           FFTTg /= Dot(ATg, ATg);
-          FFTd = FFTd / Dot(AT, AT) - FFT / pow(Dot(AT, AT), 2) * 2. * Dot(ATd, AT);
+          FFTdTmp = FFTd / Dot(AT, AT);
+          FFTd = FFTdTmp - FFT / pow(Dot(AT, AT), 2) * 2. * Dot(ATd, AT);
           FFT /= Dot(AT, AT);
 
           for (index_type i = 1; i <= N; ++i) {
@@ -1027,9 +1053,10 @@ namespace sp_grad_test {
 
           FFTg *= ATg(1) + ATg(2);
           FFTTg *= ATg(1) + ATg(2);
-          FFTd = FFT * (ATd(1) + ATd(2)) + FFTd * (AT(1) + AT(2));
+          FFTdTmp = FFTd * (AT(1) + AT(2));
+          FFTd = FFT * (ATd(1) + ATd(2)) + FFTdTmp;
           FFT *= AT(1) + AT(2);
-          
+
           for (index_type i = 1; i <= N; ++i) {
                for (index_type j = 1; j <= N; ++j) {
                     sp_grad_assert_equal(FFTg(i, j).dGetValue(), FFT(i, j), dTol);
@@ -1038,27 +1065,28 @@ namespace sp_grad_test {
                     sp_grad_assert_equal(FFTTg(j, i).dGetDeriv(), FFTd(i, j), dTol);
                }
           }
-          
+
           FFTg /= ATg(1) + ATg(2);
           FFTTg /= ATg(1) + ATg(2);
-          FFTd = -FFT / pow(AT(1) + AT(2), 2) * (ATd(1) + ATd(2)) + FFTd / (AT(1) + AT(2));
+          FFTdTmp = FFTd / (AT(1) + AT(2));
+          FFTd = -FFT / pow(AT(1) + AT(2), 2) * (ATd(1) + ATd(2)) + FFTdTmp;
           FFT /= AT(1) + AT(2);
-          
+
           std::vector<doublereal> a(N);
           std::vector<GpGradProd> b(N);
           std::vector<GpGradProd> c(N);
-          
+
           for (index_type i = 0; i < N; ++i) {
                a[i] = (i + 1) / 5.;
                b[i].Reset(3. / (i + 1), 10. / (i + 1));
                c[i].Reset((i + 1.) / 4., (i + 1) / 2.);
           }
-          
+
           GpGradProd adotb, bdotc;
-          
+
           adotb.MapInnerProduct(a.begin(), a.end(), 1L, b.begin(), b.end(), 1L);
           bdotc.MapInnerProduct(b.begin(), b.end(), 1L, c.begin(), c.end(), 1L);
-          
+
           sp_grad_assert_equal(adotb.dGetValue(), 3. / 5. * N, dTol);
           sp_grad_assert_equal(adotb.dGetDeriv(), 10. / 5. * N, dTol);
           sp_grad_assert_equal(bdotc.dGetValue(), 3. / 4. * N, dTol);
@@ -1078,7 +1106,7 @@ namespace sp_grad_test {
                }
           }
      }
-     
+
      void test1()
      {
           using namespace std;
@@ -1163,7 +1191,7 @@ namespace sp_grad_test {
                     << "|" << endl;
           }
      }
-     
+
      void test2(index_type inumloops, index_type inumnz, index_type inumdof)
      {
           using namespace std;
@@ -3274,7 +3302,7 @@ namespace sp_grad_test {
           EpetraVectorHandler Xep(iNumCols, Comm), Yep(iNumRows, Comm), Zep(iNumRows, Comm), Wep(iNumCols, Comm);
           EpetraSparseMatrixHandler oEpMatHd(iNumRows, iNumCols, 5 * inumnz, Comm);
 #endif
-          
+
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
                integer k = randadd(gen);
 
@@ -3356,12 +3384,12 @@ namespace sp_grad_test {
 #ifdef USE_TRILINOS
                std::vector<integer> Aepi, Aepp;
                std::vector<doublereal> Aepx;
-               
+
                oEpMatHd.MakeCompressedColumnForm(Aepx, Aepi, Aepp, 1);
 
                const auto& oEpMatHdConst = oEpMatHd; // FIXME: operator() is not defined for non constant matrix
 #endif
-               
+
                for (index_type j = 1; j <= oFullMatHd.iGetNumCols(); ++j) {
                     for (index_type i = 1; i <= oFullMatHd.iGetNumRows(); ++i) {
                          sp_grad_assert_equal(oFullMatHd(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
@@ -3370,7 +3398,7 @@ namespace sp_grad_test {
                          sp_grad_assert_equal(oEpMatHdConst(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
 #endif
                     }
-               }               
+               }
 #ifdef USE_TRILINOS
                for (size_t i = 0; i < Ax.size(); ++i) {
                     sp_grad_assert_equal(Aepx[i], Ax[i], dTol);
@@ -3380,7 +3408,7 @@ namespace sp_grad_test {
                for (size_t i = 0; i < Ap.size(); ++i) {
                     assert(Ap[i] == Aepp[i]);
                }
-#endif               
+#endif
                const CColMatrixHandler<1> oMatCC1(Ax, Ai, Ap);
 
                for (index_type j = 1; j <= oMatCC1.iGetNumCols(); ++j) {
@@ -3410,7 +3438,7 @@ namespace sp_grad_test {
                          sp_grad_assert_equal(oMatCCep1(i, j), k * (a * A(i, j) - b * B(i, j)), dTol);
                     }
                }
-#endif           
+#endif
                oSpMatHd.MatVecMul(Z1, X);
 
                oFullMatHd.MatVecMul(Z2, X);
@@ -3421,7 +3449,7 @@ namespace sp_grad_test {
                oSpMatHd.MatTVecMul(W1, Y);
 
                oFullMatHd.MatTVecMul(W2, Y);
-               
+
 #ifdef USE_TRILINOS
                oEpMatHd.MatTVecMul(Wep, Yep);
 #endif
@@ -3473,6 +3501,8 @@ int main(int argc, char* argv[])
 
 #define SP_GRAD_RUN_TEST(number)                        \
           (dtest == dall_tests || dtest == (number))
+
+          testx();
 
           if (SP_GRAD_RUN_TEST(0.1)) {
                test0(inumloops, inumnz, inumdof);

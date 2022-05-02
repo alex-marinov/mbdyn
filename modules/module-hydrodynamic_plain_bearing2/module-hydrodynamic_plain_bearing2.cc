@@ -251,6 +251,8 @@ namespace {
           virtual ~Geometry2D();
           virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const=0;
           virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const=0;
+          virtual bool bPointIsInside(const SpColVector<SpGradient, 2>& p1) const=0;
+          virtual bool bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const=0;
           static std::unique_ptr<Geometry2D> Read(HydroRootElement* pRoot, MBDynParser& HP);
           const SpColVector<doublereal, 2>& GetPosition() const {
                return x;
@@ -263,9 +265,12 @@ namespace {
      public:
           Circle2D(const SpColVector<doublereal, 2>& x, doublereal r);
           virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
-          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
-
+          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<SpGradient, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const override;
      private:
+          template <typename T>
+          inline bool bPointIsInsideTpl(const SpColVector<T, 2>& p1) const;
           const doublereal r;
      };
 
@@ -273,9 +278,12 @@ namespace {
      public:
           Rectangle2D(const SpColVector<doublereal, 2>& x, doublereal w, doublereal h);
           virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
-          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
-
+          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<SpGradient, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const override;
      private:
+          template <typename T>
+          inline bool bPointIsInsideTpl(const SpColVector<T, 2>& p1) const;
           const doublereal w, h;
      };
 
@@ -283,7 +291,12 @@ namespace {
      public:
           explicit CompleteSurface2D(const SpColVector<doublereal, 2>& x);
           virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& x) const;
-          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
+          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<SpGradient, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const override;
+     private:
+          template <typename T>
+          inline bool bPointIsInsideTpl(const SpColVector<T, 2>& p1) const;
      };
 
      class SurfaceGrid2D: public Geometry2D {
@@ -295,9 +308,12 @@ namespace {
                                  doublereal tolz,
                                  const std::vector<bool>& status);
           virtual std::unique_ptr<Geometry2D> Clone(const SpColVector<doublereal, 2>& xc) const;
-          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const;
-
+          virtual bool bPointIsInside(const SpColVector<doublereal, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<SpGradient, 2>& p1) const override;
+          virtual bool bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const override;
      private:
+          template <typename T>
+          inline bool bPointIsInsideTpl(const SpColVector<T, 2>& p1) const;
           const doublereal tolx, tolz;
           const SpColVector<doublereal> x, z;
           const std::vector<bool> status;
@@ -2653,10 +2669,28 @@ namespace {
           pFindBearingPocket(const SpColVector<doublereal, 2>& x) const;
 
           const Pocket*
+          pFindBearingPocket(const SpColVector<SpGradient, 2>& x) const;
+
+          const Pocket*
+          pFindBearingPocket(const SpColVector<GpGradProd, 2>& x) const;
+
+          const Pocket*
           pFindShaftPocket(const SpColVector<doublereal, 2>& x) const;
+
+          const Pocket*
+          pFindShaftPocket(const SpColVector<SpGradient, 2>& x) const;
+
+          const Pocket*
+          pFindShaftPocket(const SpColVector<GpGradProd, 2>& x) const;
 
           virtual const Pocket*
           pFindMeshPocket(const SpColVector<doublereal, 2>& x) const=0;
+
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<SpGradient, 2>& x) const=0;
+
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<GpGradProd, 2>& x) const=0;
 
           virtual const SpMatrix<doublereal, 3, 3>&
           GetOrientationMeshNode() const=0;
@@ -2665,7 +2699,8 @@ namespace {
           dGetPocketHeightMesh(const SpColVector<doublereal, 2>& x) const;
 
      private:
-          static const Pocket* pFindPocket(const SpColVector<doublereal, 2>& x, const PocketVector& rgPockets);
+          template <typename T>
+          static const Pocket* pFindPocket(const SpColVector<T, 2>& x, const PocketVector& rgPockets);
           void ReadPockets(MBDynParser& HP, PocketVector& rgPockets);
 
           template <typename T>
@@ -2822,6 +2857,11 @@ namespace {
           virtual const Pocket*
           pFindMeshPocket(const SpColVector<doublereal, 2>& x) const override;
 
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<SpGradient, 2>& x) const override;
+
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<GpGradProd, 2>& x) const override;
      private:
           template <typename T>
           void UnivAssRes(SpGradientAssVec<T>& WorkMat,
@@ -3035,6 +3075,12 @@ namespace {
 
           virtual const Pocket*
           pFindMeshPocket(const SpColVector<doublereal, 2>& x) const override;
+
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<SpGradient, 2>& x) const override;
+
+          virtual const Pocket*
+          pFindMeshPocket(const SpColVector<GpGradProd, 2>& x) const override;
 
      private:
           template <typename T>
@@ -7154,9 +7200,25 @@ namespace {
 
      bool Circle2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
      {
-          const SpColVector<doublereal, 2> v = p1 - x;
+          return bPointIsInsideTpl(p1);
+     }
 
-          return sqrt(Dot(v, v)) <= r;
+     bool Circle2D::bPointIsInside(const SpColVector<SpGradient, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     bool Circle2D::bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     template <typename T>
+     bool Circle2D::bPointIsInsideTpl(const SpColVector<T, 2>& p1) const
+     {
+          const doublereal dx = SpGradientTraits<T>::dGetValue(p1(1)) - x(1);
+          const doublereal dz = SpGradientTraits<T>::dGetValue(p1(2)) - x(2);
+          return sqrt(dx * dx + dz * dz) <= r;
      }
 
      Rectangle2D::Rectangle2D(const SpColVector<doublereal, 2>& x, doublereal w, doublereal h)
@@ -7172,8 +7234,26 @@ namespace {
 
      bool Rectangle2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
      {
-          const bool bInside = std::abs(p1(1) - x(1)) <= 0.5 * w
-               && std::abs(p1(2) - x(2)) <= 0.5 * h;
+          return bPointIsInsideTpl(p1);
+     }
+
+     bool Rectangle2D::bPointIsInside(const SpColVector<SpGradient, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     bool Rectangle2D::bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     template <typename T>
+     bool Rectangle2D::bPointIsInsideTpl(const SpColVector<T, 2>& p1) const
+     {
+          const doublereal p1x = SpGradientTraits<T>::dGetValue(p1(1));
+          const doublereal p1z = SpGradientTraits<T>::dGetValue(p1(2));
+          const bool bInside = std::abs(p1x - x(1)) <= 0.5 * w
+                            && std::abs(p1z - x(2)) <= 0.5 * h;
 
           HYDRO_TRACE("point p1(" << p1 << ") is " << (bInside ? "inside" : "outside")
                       << " rectangle " << w << "x" << h << " at x(" << x << ")" << std::endl);
@@ -7192,6 +7272,18 @@ namespace {
      }
 
      bool CompleteSurface2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
+     {
+          // per definition everything is inside
+          return true;
+     }
+
+     bool CompleteSurface2D::bPointIsInside(const SpColVector<SpGradient, 2>& p1) const
+     {
+          // per definition everything is inside
+          return true;
+     }
+
+     bool CompleteSurface2D::bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const
      {
           // per definition everything is inside
           return true;
@@ -7221,6 +7313,22 @@ namespace {
      }
 
      bool SurfaceGrid2D::bPointIsInside(const SpColVector<doublereal, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     bool SurfaceGrid2D::bPointIsInside(const SpColVector<SpGradient, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     bool SurfaceGrid2D::bPointIsInside(const SpColVector<GpGradProd, 2>& p1) const
+     {
+          return bPointIsInsideTpl(p1);
+     }
+
+     template <typename T>
+     bool SurfaceGrid2D::bPointIsInsideTpl(const SpColVector<T, 2>& p1) const
      {
           index_type ix = x.iGetNumRows() - 1;
 
@@ -10538,7 +10646,6 @@ namespace {
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dTheta_dt[1])));
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.T)));
           HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dT_dt)));
-          HYDRO_ASSERT(GetCavitationState() == HydroFluidBase::FULL_FILM_REGION ? (oState.p >= pGetFluid()->dGetRefPressure()) : (oState.p == pGetFluid()->dGetRefPressure()));
      }
 
      integer HydroActiveComprNode::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
@@ -15059,7 +15166,7 @@ namespace {
           const doublereal r = dGetMeshRadius();
           const T Phi1 = x1(1) / r;
           const T& z1 = x1(2);
-          const Pocket* const pPocket = pFindMeshPocket(x1.GetValue());
+          const Pocket* const pPocket = pFindMeshPocket(x1);
           T dy;
 
           if (pPocket != 0) {
@@ -15124,7 +15231,7 @@ namespace {
 
           const auto& Rb = GetOrientationMeshNode();
 
-          const Pocket* const pPocket = pFindMeshPocket(x1.GetValue());
+          const Pocket* const pPocket = pFindMeshPocket(x1);
 
           if (pPocket) {
                T tan_beta, tan_gamma;
@@ -15193,12 +15300,33 @@ namespace {
           return pFindPocket(x, rgPocketsBearing);
      }
 
+     const Pocket* CylindricalBearing::pFindBearingPocket(const SpColVector<SpGradient, 2>& x) const
+     {
+          return pFindPocket(x, rgPocketsBearing);
+     }
+
+     const Pocket* CylindricalBearing::pFindBearingPocket(const SpColVector<GpGradProd, 2>& x) const
+     {
+          return pFindPocket(x, rgPocketsBearing);
+     }
+
      const Pocket* CylindricalBearing::pFindShaftPocket(const SpColVector<doublereal, 2>& x) const
      {
           return pFindPocket(x, rgPocketsShaft);
      }
 
-     const Pocket* CylindricalBearing::pFindPocket(const SpColVector<doublereal, 2>& x, const PocketVector& rgPockets)
+     const Pocket* CylindricalBearing::pFindShaftPocket(const SpColVector<SpGradient, 2>& x) const
+     {
+          return pFindPocket(x, rgPocketsShaft);
+     }
+
+     const Pocket* CylindricalBearing::pFindShaftPocket(const SpColVector<GpGradProd, 2>& x) const
+     {
+          return pFindPocket(x, rgPocketsShaft);
+     }
+
+     template <typename T>
+     const Pocket* CylindricalBearing::pFindPocket(const SpColVector<T, 2>& x, const PocketVector& rgPockets)
      {
           for (ConstPocketIterator i = rgPockets.begin(); i != rgPockets.end(); ++i) {
                if ((*i)->pGetGeometry()->bPointIsInside(x)) {
@@ -15206,7 +15334,7 @@ namespace {
                }
           }
 
-          return 0;
+          return nullptr;
      }
 
      void CylindricalBearing::ReadPockets(MBDynParser& HP, PocketVector& rgPockets)
@@ -15418,7 +15546,7 @@ namespace {
           }
 
           const SpColVector<T, 2> x2{Phi2 * R, z2};
-          const Pocket* const pPocket2 = rParent.pFindBearingPocket(x2.GetValue());
+          const Pocket* const pPocket2 = rParent.pFindBearingPocket(x2);
 
           T Deltay2, dDeltay2_dx2, dDeltay2_dz2;
 
@@ -15547,6 +15675,18 @@ namespace {
 
      const Pocket*
      CylindricalMeshAtShaft::pFindMeshPocket(const SpColVector<doublereal, 2>& x) const
+     {
+          return pFindShaftPocket(x);
+     }
+
+     const Pocket*
+     CylindricalMeshAtShaft::pFindMeshPocket(const SpColVector<SpGradient, 2>& x) const
+     {
+          return pFindShaftPocket(x);
+     }
+
+     const Pocket*
+     CylindricalMeshAtShaft::pFindMeshPocket(const SpColVector<GpGradProd, 2>& x) const
      {
           return pFindShaftPocket(x);
      }
@@ -16406,7 +16546,7 @@ namespace {
           }
 
           const SpColVector<T, 2> x1{r * Phi1, z1};
-          const Pocket* const pPocket1 = rParent.pFindShaftPocket(x1.GetValue());
+          const Pocket* const pPocket1 = rParent.pFindShaftPocket(x1);
 
           T Deltay1, dDeltay1_dx1, dDeltay1_dz1;
 
@@ -16503,6 +16643,18 @@ namespace {
 
      const Pocket*
      CylindricalMeshAtBearing::pFindMeshPocket(const SpColVector<doublereal, 2>& x) const
+     {
+          return pFindBearingPocket(x);
+     }
+
+     const Pocket*
+     CylindricalMeshAtBearing::pFindMeshPocket(const SpColVector<SpGradient, 2>& x) const
+     {
+          return pFindBearingPocket(x);
+     }
+
+     const Pocket*
+     CylindricalMeshAtBearing::pFindMeshPocket(const SpColVector<GpGradProd, 2>& x) const
      {
           return pFindBearingPocket(x);
      }

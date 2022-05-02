@@ -55,11 +55,13 @@ begin: initial value;
         linear solver: umfpack, grad;
         
         nonlinear solver: nox,
-        modified, 20,
-        jacobian operator, newton,
+        modified, 100,
+        keep jacobian matrix,
+        inner iterations before assembly, 10,
+        jacobian operator, newton krylov,
         algorithm, line search based,
         linesearch method, backtrack,
-        direction, broyden,
+        direction, newton,
         forcing term, type 2,
         print convergence info, no,
         verbose, yes,
@@ -69,7 +71,6 @@ begin: initial value;
                  
         threads: assembly, 1;
         threads: solver, 1;
-        output: iterations;
 end: initial value;
 
 begin: control data;
@@ -642,7 +643,7 @@ begin: elements;
                 reference, (5006), null,
                 
                 diag, 0.,  0., (1.54001e-06),
-		inertial, reference, (5006), eye;
+		orientation, reference, (5006), eye;
 
 	body: (2002), (1004), 
                 
@@ -651,7 +652,7 @@ begin: elements;
                 reference, (5004), null,
                 
                 null,
-		inertial, reference, (5004), eye;
+		orientation, reference, (5004), eye;
 
     hydraulic fluid: (6001), incompressible, 
         density, (950),

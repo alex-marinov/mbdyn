@@ -833,8 +833,6 @@ void LineSearchModified::Solve(const NonlinearProblem* const pNLP,
      try {
           while (true) {
                if (bUpdateResidual) {
-                    TRACE_VAR(fCurr);
-
                     Residual(fCurr, iIterCnt);
 
                     TRACE_VAR(fCurr);
