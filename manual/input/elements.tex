@@ -504,6 +504,7 @@ of the \kw{abstract} node.
         [ , \kw{initial current} , \bnt{i_0} ]
 \end{Verbatim}
 %\end{verbatim}
+This element implements a simple DC motor, whose equations are
 \begin{subequations}
 \begin{align}
 	\omega &= \T{e}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \\
@@ -515,15 +516,20 @@ of the \kw{abstract} node.
 	i_2 &= i
 \end{align}
 \end{subequations}
-The motor applies an internal torque about direction
-$\T{e}=\nt{direction\_relative\_to\_node\_1}$
-to both the structural nodes it is connected to.
-The direction $\T{e}$ is internally normalized to unity.
-It also applies a current to both the electrical nodes it is connected to.
+where \nt{dL} is the inductance, \nt{dR} is the resistance, and \nt{dG} is the motor torque/back-EMF constant.
 
-The element assumes that the relative orientation between nodes 1 and 2
-can only change by rotating about direction $\T{e}$, so appropriate
-joints must be in place.
+The motor applies an internal torque, $C = \nt{dG} \, i$, about direction
+$\T{e}=\nt{direction\_relative\_to\_node\_1}$, with opposite sign
+to both the structural nodes it is connected to, namely \nt{struct\_node\_1\_label} and \nt{struct\_node\_2\_label}.
+The input vector that represents direction $\T{e}$ is internally normalized to unity.
+
+It also contributes with a current $i$ to both the electrical nodes it is connected to,
+the abstract nodes \nt{abstract\_node\_1\_label} and \nt{abstract\_node\_2\_label}.
+
+The element assumes that the only allowed relative motion between nodes 1 and 2 is a rotation about direction $\T{e}$,
+so appropriate joints (e.g.\ a \kw{total joint}, a \kw{revolute hinge}, or \kw{revolute pin}) must be in place.
+
+
 
 
 \subsection{Discrete control}\label{sec:EL:DISCCTRL}
