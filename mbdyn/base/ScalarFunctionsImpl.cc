@@ -517,17 +517,17 @@ doublereal
 CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) const
 {
 	ASSERTMSGBREAK(order >=0, "Error in CubicSplineScalarFunction::ComputeDiff, order<0");
+	if ((x <= X_i[0] || x >= X_i[X_i.size()-1]) && (order != 0)) {
+		if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+			"Trying to evaluate a CubicSplineScalarFunction derivative outside "
+			"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+			);
+		else
+			return 0;
+	}
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		if (x <= X_i[0] || x >= X_i[X_i.size()-1]) {
-			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
-				"Trying to evaluate a CubicSplineScalarFunction derivative outside "
-				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
-				);
-			else
-				return 0;
-		}
 		
 	case 1: 
 		return seval(x, X_i, Y_i, b, c, d, 1);
@@ -637,17 +637,17 @@ doublereal
 MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const
 {
 	ASSERTMSGBREAK(order >=0, "Error in MultiLinearScalarFunction::ComputeDiff, order<0");
+	if ((x <= X_i[0] || x >= X_i[X_i.size()-1]) && (order != 0)) {
+		if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+			"Trying to evaluate a MultiLinearScalarFunction derivative outside "
+			"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+			);
+		else
+			return 0;
+	}
 	switch (order) {
 	case 0: 
 		return operator()(x);
-		if (x <= X_i[0] || x >= X_i[X_i.size()-1]) {
-			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
-				"Trying to evaluate a MultiLinearScalarFunction derivative outside "
-				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
-				);
-			else
-				return 0;
-		}
 
 	case 1: 
 		return leval(x, X_i, Y_i, order);
