@@ -458,9 +458,11 @@ struct ExpSFR: public ScalarFunctionRead {
 CubicSplineScalarFunction::CubicSplineScalarFunction(
 	const std::vector<doublereal>& y_i,
 	const std::vector<doublereal>& x_i,
-	bool doNotExtrapolate)
+	bool doNotExtrapolate,
+	bool bailout)
 : Y_i(y_i), X_i(x_i),
-doNotExtrapolate(doNotExtrapolate)
+doNotExtrapolate(doNotExtrapolate),
+bailout(bailout)
 {
 	ASSERTMSGBREAK(Y_i.size() == X_i.size(),
 		"CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
@@ -491,11 +493,19 @@ CubicSplineScalarFunction::operator()(const doublereal x) const
 {
 	if (doNotExtrapolate) {
 		if (x <= X_i[0]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a CubicSplineScalarFunction outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
 			return Y_i[0];
 		}
 
 		int s = X_i.size() - 1;
 		if (x >= X_i[s]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a Cubic Spline Scalar Function outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
 			return Y_i[s];
 		}
 	}
@@ -510,7 +520,15 @@ CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-
+		if (x <= X_i[0] || x >= X_i[X_i.size()-1]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a CubicSplineScalarFunction derivative outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
+			else
+				return 0;
+		}
+		
 	case 1: 
 		return seval(x, X_i, Y_i, b, c, d, 1);
 
@@ -530,8 +548,12 @@ struct CubicSplineSFR: public ScalarFunctionRead {
 	virtual const BasicScalarFunction *
 	Read(DataManager* const pDM, MBDynParser& HP) const {
 		bool doNotExtrapolate(false);
+		bool bailout(false);
 		if (HP.IsKeyWord("do" "not" "extrapolate")) {
 			doNotExtrapolate = true;
+			if (HP.IsKeyWord("bailout")) {
+				bailout = true;
+			}
 		}
 		std::vector<doublereal> y_i;
 		std::vector<doublereal> x_i;
@@ -549,7 +571,7 @@ struct CubicSplineSFR: public ScalarFunctionRead {
 			y_i[size] = HP.GetReal();
 		}
 		return new CubicSplineScalarFunction(y_i, x_i,
-			doNotExtrapolate);
+			doNotExtrapolate, bailout);
 	};
 };
 
@@ -557,9 +579,11 @@ struct CubicSplineSFR: public ScalarFunctionRead {
 MultiLinearScalarFunction::MultiLinearScalarFunction(
 	const std::vector<doublereal>& y_i,
 	const std::vector<doublereal>& x_i,
-	bool doNotExtrapolate)
+	bool doNotExtrapolate,
+	bool bailout)
 : Y_i(y_i), X_i(x_i),
-doNotExtrapolate(doNotExtrapolate)
+doNotExtrapolate(doNotExtrapolate),
+bailout(bailout)
 {
 	ASSERTMSGBREAK(X_i.size() == Y_i.size(),
 		"MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
@@ -589,11 +613,19 @@ MultiLinearScalarFunction::operator()(const doublereal x) const
 {
 	if (doNotExtrapolate) {
 		if (x <= X_i[0]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a MultiLinearScalarFunction outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
 			return Y_i[0];
 		}
 		
 		int s = X_i.size() - 1;
 		if (x >= X_i[s]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a MultiLinearScalarFunction outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
 			return Y_i[s];
 		}
 	}
@@ -608,6 +640,14 @@ MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 	switch (order) {
 	case 0: 
 		return operator()(x);
+		if (x <= X_i[0] || x >= X_i[X_i.size()-1]) {
+			if (bailout) throw ErrOutOfRange(MBDYN_EXCEPT_ARGS, 
+				"Trying to evaluate a MultiLinearScalarFunction derivative outside "
+				"the range of definition with \"do not extrapolate\" and \"bailout\" set."
+				);
+			else
+				return 0;
+		}
 
 	case 1: 
 		return leval(x, X_i, Y_i, order);
@@ -622,8 +662,12 @@ struct MultiLinearSFR: public ScalarFunctionRead {
 	virtual const BasicScalarFunction *
 	Read(DataManager* const pDM, MBDynParser& HP) const {
 		bool doNotExtrapolate(false);
+		bool bailout(false);
 		if (HP.IsKeyWord("do" "not" "extrapolate")) {
 			doNotExtrapolate = true;
+			if (HP.IsKeyWord("bailout")) {
+				bailout = true;
+			}
 		}
 		std::vector<doublereal> y_i;
 		std::vector<doublereal> x_i;
@@ -641,7 +685,7 @@ struct MultiLinearSFR: public ScalarFunctionRead {
 			y_i[size] = HP.GetReal();
 		}
 		return new MultiLinearScalarFunction(y_i, x_i,
-			doNotExtrapolate);
+			doNotExtrapolate, bailout);
 	};
 };
 
