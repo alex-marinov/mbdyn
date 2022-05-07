@@ -41,6 +41,7 @@
 #include "mbconfig.h"
 
 #ifdef USE_TRILINOS
+#include "solman.h"
 #include "solver.h"
 #include "noxsolver.h"
 #include "output.h"
@@ -87,7 +88,7 @@
 #endif
 
 NoxSolverParameters::NoxSolverParameters()
-     :CommonNonlinearSolverParam(ALGORITHM_LINESEARCH_BASED |
+     :CommonNonlinearSolverParam(SOLVER_LINESEARCH_BASED |
                                  JACOBIAN_NEWTON |
                                  DIRECTION_NEWTON |
                                  FORCING_TERM_CONSTANT |
@@ -96,9 +97,6 @@ NoxSolverParameters::NoxSolverParameters()
                                  RECOVERY_STEP_TYPE_CONST,
                                  0,
                                  false),
-#ifndef USE_SPARSE_AUTODIFF
-      dNewtonKrylovPerturbation(1e-3),
-#endif
       dWrmsRelTol(0.),
       dWrmsAbsTol(0.),
       dTolLinSol(1e-10),
@@ -475,8 +473,12 @@ namespace {
      doublereal NoxResidualTest::dGetTestDiff() const
      {
           ASSERT(eStatus != NOX::StatusTest::Unevaluated);
-          ASSERT(dErrResDiff >= 0.);
 
+#ifdef DEBUG
+          if(dErrResDiff < 0.) {
+               DEBUGCERR("Warning: dErrResDiff was not evaluated!\n");
+          }
+#endif
           return dErrResDiff;
      }
 
@@ -910,7 +912,7 @@ namespace {
 
           static constexpr char szNonlinearSolver[] = "Nonlinear Solver";
 
-          if (uFlags & ALGORITHM_LINESEARCH_BASED) {
+          if (uFlags & SOLVER_LINESEARCH_BASED) {
                oSolverParam.set(szNonlinearSolver, "Line Search Based");
                Teuchos::ParameterList& oLineSearchParam = oSolverParam.sublist("Line Search");
 
@@ -927,6 +929,13 @@ namespace {
                }
 
                oLineSearchParam.set("Method", strLineSearchMethod);
+
+               if (uFlags & SUFFICIENT_DEC_COND_ARMIJO_GOLDSTEIN) {
+                    oLineSearchParam.sublist(strLineSearchMethod).set("Sufficient Decrease Condition", "Armijo-Goldstein");
+               } else if (uFlags & SUFFICIENT_DEC_COND_ARED_PRED) {
+                    oLineSearchParam.sublist(strLineSearchMethod).set("Sufficient Decrease Condition", "Ared/Pred");
+               }
+               
                Teuchos::ParameterList& oLineSearchMethod = oLineSearchParam.sublist(strLineSearchMethod);
                oLineSearchMethod.set("Max Iters", iMaxIterLineSearch);
                oLineSearchMethod.set("Minimum Step", dMinStep);
@@ -937,11 +946,11 @@ namespace {
                } else if (uFlags & RECOVERY_STEP_TYPE_LAST_STEP) {
                     oLineSearchMethod.set("Recovery Step Type", "Last Computed Step");
                }
-          } else if (uFlags & ALGORITHM_TRUST_REGION_BASED) {
+          } else if (uFlags & SOLVER_TRUST_REGION_BASED) {
                oSolverParam.set(szNonlinearSolver, "Trust Region Based");
-          } else if (uFlags & ALGORITHM_INEXACT_TRUST_REGION_BASED) {
+          } else if (uFlags & SOLVER_INEXACT_TRUST_REGION_BASED) {
                oSolverParam.set(szNonlinearSolver, "Inexact Trust Region Based");
-          } else if (uFlags & ALGORITHM_TENSOR_BASED) {
+          } else if (uFlags & SOLVER_TENSOR_BASED) {
                oSolverParam.set(szNonlinearSolver, "Tensor Based");
                Teuchos::ParameterList& oLineSearchParam = oSolverParam.sublist("Line Search");
                oLineSearchParam.set("Method", "Curvilinear");
@@ -989,7 +998,7 @@ namespace {
                oIterativeLinSol.SetAztecOption(AZ_solver, AZ_bicgstab);
           }
 
-          oIterativeLinSol.SetAztecOption(AZ_kspace, std::min(Size, iKrylovSubSpaceSize));
+          oIterativeLinSol.SetAztecOption(AZ_kspace, std::min(Size, std::min(iMaxIterLinSol, iKrylovSubSpaceSize)));
           oIterativeLinSol.SetAztecOption(AZ_output, (uFlags & PRINT_CONVERGENCE_INFO) ? 1 : 0);
           oIterativeLinSol.SetOutputStream(std::cout);
           oIterativeLinSol.SetErrorStream(std::cerr);
@@ -1169,7 +1178,17 @@ namespace {
                pAbsRes->Reset();
           }
 
-          pNonlinearProblem->Residual(pRes, pAbsRes);
+          try {
+               pNonlinearProblem->Residual(pRes, pAbsRes);
+          } catch (const SolutionDataManager::ChangedEquationStructure& oErr) {
+               DEBUGCERR("Caught exception change equation structure ...\n");
+               
+               if (bHonorJacRequest) {
+                    DEBUGCERR("Force update of preconditioner ...\n");
+                    
+                    ForcePrecondRebuild();
+               }
+          }
      }
 
      void NoxNonlinearSolver::Jacobian()

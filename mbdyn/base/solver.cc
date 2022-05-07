@@ -3703,19 +3703,6 @@ Solver::ReadData(MBDynParser& HP)
                                                 } else {
                                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::VERBOSE_MODE;
                                                 }
-                                        } else if (HP.IsKeyWord("newton" "krylov" "perturbation")) {
-#ifndef USE_SPARSE_AUTODIFF
-                                                oNoxSolverParam.dNewtonKrylovPerturbation = HP.GetReal();
-
-                                                if (oNoxSolverParam.dNewtonKrylovPerturbation <= 0.) {
-                                                        silent_cerr("newton krylov perturbation must be a value greater than zero at line "
-                                                                    << HP.GetLineData()
-                                                                    << "\n");
-                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                }
-#else
-                                                pedantic_cerr("parameter \"newton krylov perturbation\" is ignored at line " << HP.GetLineData() << "\n");
-#endif
                                         } else if (HP.IsKeyWord("weighted" "rms" "relative" "tolerance")) {
                                                 oNoxSolverParam.dWrmsRelTol = HP.GetReal();
                                         } else if (HP.IsKeyWord("weighted" "rms" "absolute" "tolerance")) {
@@ -3769,17 +3756,17 @@ Solver::ReadData(MBDynParser& HP)
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
-                                        } else if (HP.IsKeyWord("algorithm")) {
-                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::ALGORITHM_MASK;
+                                        } else if (HP.IsKeyWord("solver")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::SOLVER_MASK;
 
                                                 if (HP.IsKeyWord("line" "search" "based")) {
-                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_LINESEARCH_BASED;
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SOLVER_LINESEARCH_BASED;
                                                 } else if (HP.IsKeyWord("trust" "region" "based")) {
-                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_TRUST_REGION_BASED;
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SOLVER_TRUST_REGION_BASED;
                                                 } else if (HP.IsKeyWord("inexact" "trust" "region" "based")) {
-                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_INEXACT_TRUST_REGION_BASED;
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SOLVER_INEXACT_TRUST_REGION_BASED;
                                                 } else if (HP.IsKeyWord("tensor" "based")) {
-                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_TENSOR_BASED;
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SOLVER_TENSOR_BASED;
                                                 } else {
                                                         silent_cerr("keywords \"line search based\", \"trust region based\", \"inexact trust region based\" or \"tensor based\" expected "
                                                                     << HP.GetLineData()
@@ -3903,13 +3890,24 @@ Solver::ReadData(MBDynParser& HP)
                                                                     << HP.GetLineData() << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+                                        } else if (HP.IsKeyWord("sufficient" "decrease" "condition")) {
+                                                oNoxSolverParam.uFlags &= ~NoxSolverParameters::SUFFICIENT_DEC_COND_MASK;
+
+                                                if (HP.IsKeyWord("armijo" "goldstein")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SUFFICIENT_DEC_COND_ARMIJO_GOLDSTEIN;
+                                                } else if (HP.IsKeyWord("ared" "pred")) {
+                                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SUFFICIENT_DEC_COND_ARED_PRED;
+                                                } else {
+                                                        silent_cerr("Keywords \"armijo goldstein\" or \"ared pred\" expected at line " << HP.GetLineData() << "\n");
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
                                         } else if (HP.IsKeyWord("inner" "iterations" "before" "assembly")) {
                                                 oNoxSolverParam.iInnerIterBeforeAssembly = HP.GetInt();
                                         } else {
                                                 silent_cerr("Keywords \"print convergence info\", "
                                                             "\"verbose\", "
                                                             "\"newton krylov perturbation\", "
-                                                            "\"algorithm\", "
+                                                            "\"solver\", "
                                                             "\"jacobian operator\", "
                                                             "\"direction\", "
                                                             "\"linear solver\", "
@@ -3922,6 +3920,7 @@ Solver::ReadData(MBDynParser& HP)
                                                             "\"minimum step\", "
                                                             "\"recovery step\", "
                                                             "\"recovery step type\", "
+                                                            "\"sufficient decrease condition\", "
                                                             "\"inner iterations before assembly\", "
                                                             "\"weighted rms relative tolerance\" or "
                                                             "\"weighted rms absolute tolerance\" expected at line "
@@ -3937,9 +3936,9 @@ Solver::ReadData(MBDynParser& HP)
                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                 }
 
-                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::SOLVER_LINESEARCH_BASED) == 0 &&
                                     (oNoxSolverParam.uFlags & NoxSolverParameters::JACOBIAN_NEWTON_KRYLOV) != 0) {
-                                        silent_cerr("warning: jacobian operator \"newton krylov\" can be used only for the line search based algorithm\n");
+                                        silent_cerr("warning: jacobian operator \"newton krylov\" can be used only for the line search based solver\n");
                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::JACOBIAN_OPERATOR_MASK;
                                         oNoxSolverParam.uFlags |= NoxSolverParameters::JACOBIAN_NEWTON;
                                 }
@@ -3952,17 +3951,17 @@ Solver::ReadData(MBDynParser& HP)
                                 }
 
                                 if ((oNoxSolverParam.uFlags & (NoxSolverParameters::DIRECTION_STEEPEST_DESCENT | NoxSolverParameters::DIRECTION_NONLINEAR_CG)) != 0 &&
-                                    (oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_TENSOR_BASED) != 0) {
-                                        silent_cerr("warning: directions \"steepest descent\" and \"nonlinear cg\" are not valid for algorithm \"tensor based\"\n");
+                                    (oNoxSolverParam.uFlags & NoxSolverParameters::SOLVER_TENSOR_BASED) != 0) {
+                                        silent_cerr("warning: directions \"steepest descent\" and \"nonlinear cg\" are not valid for solver \"tensor based\"\n");
                                         oNoxSolverParam.uFlags &= ~NoxSolverParameters::DIRECTION_MASK;
                                         oNoxSolverParam.uFlags |= NoxSolverParameters::DIRECTION_NEWTON;
                                 }
 
-                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::ALGORITHM_LINESEARCH_BASED) == 0 &&
+                                if ((oNoxSolverParam.uFlags & NoxSolverParameters::SOLVER_LINESEARCH_BASED) == 0 &&
                                     (oNoxSolverParam.uFlags & NoxSolverParameters::DIRECTION_BROYDEN) != 0) {
-                                        silent_cerr("warning: direction \"broyden\" is valid for algorithm \"line search based\" only\n");
-                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::ALGORITHM_MASK;
-                                        oNoxSolverParam.uFlags |= NoxSolverParameters::ALGORITHM_LINESEARCH_BASED;
+                                        silent_cerr("warning: direction \"broyden\" is valid for solver \"line search based\" only\n");
+                                        oNoxSolverParam.uFlags &= ~NoxSolverParameters::SOLVER_MASK;
+                                        oNoxSolverParam.uFlags |= NoxSolverParameters::SOLVER_LINESEARCH_BASED;
                                 }
 
                                 if ((oNoxSolverParam.uFlags & NoxSolverParameters::DIRECTION_BROYDEN) != 0 &&
