@@ -105,6 +105,8 @@ strforce.h \
 strforce_impl.h \
 strnode.cc \
 strnode.h \
+strnodead.cc \
+strnodead.h \
 tdclw.cc \
 tdclw.h \
 totalequation.cc \

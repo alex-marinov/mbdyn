@@ -49,10 +49,6 @@
 #include "sp_gradient.h"
 #endif
 
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
-#include "veciter.h"
-#endif
-
 /*
  * Array dei nomi dei nodi.
  * Usato per output
@@ -78,9 +74,6 @@ extern const char* psReadNodesNodes[];
 
 class Node : public WithLabel, public SimulationEntity,
 public DofOwnerOwner, public ToBeOutput
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
-	   , public InUse
-#endif
 {
 public:
 	/* Enumerazione dei tipi di nodi */
@@ -222,7 +215,7 @@ public:
         virtual void UpdateJac(doublereal dCoef);
 #endif
 #ifdef USE_SPARSE_AUTODIFF
-     virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef);
+        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef);
 #endif
 };
 

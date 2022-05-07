@@ -1621,10 +1621,8 @@ StructNode::bOmegaRotates(void) const
 /* Forward declaration */
 class AutomaticStructElem;
 
-class DynamicStructNode
-: virtual public StructDispNode,
-public DynamicStructDispNode,
-public StructNode
+class DynamicStructNode: virtual public DynamicStructDispNode,
+                         virtual public StructNode
 {
 protected:
 
@@ -1761,10 +1759,8 @@ DynamicStructNode::iGetInitialFirstIndexPrime() const
  *   la cui non-singolarita' sia garantita da elementi elastici
  *   o da vincoli */
 
-class StaticStructNode
-: virtual public StructDispNode,
-public StaticStructDispNode,
-public StructNode
+class StaticStructNode: virtual public StaticStructDispNode,
+                        virtual public StructNode
 {
 protected:
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
@@ -1828,7 +1824,7 @@ StaticStructNode::iGetInitialFirstIndexPrime() const
 
 /* classe ModalNode derivato da Dynamic */
 
-class ModalNode : virtual public StructDispNode, public DynamicStructNode {
+class ModalNode: public DynamicStructNode {
 protected:
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	virtual inline integer iGetInitialFirstIndexPrime() const;

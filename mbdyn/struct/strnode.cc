@@ -37,6 +37,7 @@
 
 #include "mynewmem.h"
 #include "strnode.h"
+#include "strnodead.h"
 #include "body.h"
 #include "autostr.h"
 #include "dataman.h"
@@ -3706,10 +3707,12 @@ ModalNode::ModalNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-:
-StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
-DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
-                  dPosStiff, dVelStiff, bOmRot, ood, fOut)
+:StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ DynamicStructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ StructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
+            dPosStiff, dVelStiff, bOmRot, ood, fOut),
+ DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
+                   dPosStiff, dVelStiff, bOmRot, ood, fOut)
 #ifdef USE_SPARSE_AUTODIFF
 ,XPPY(::Zero3), WPY(::Zero3)
 #endif
