@@ -2431,9 +2431,22 @@ namespace sp_grad {
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
+     index_type SpMatrixDataStatic<ValueType, NumRows, NumCols>::iGetNumRows() const noexcept {
+          ASSERT(this->iNumRows == NumRows);
+
+          return NumRows;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
+     index_type SpMatrixDataStatic<ValueType, NumRows, NumCols>::iGetNumCols() const noexcept {
+          ASSERT(this->iNumCols == NumCols);
+
+          return NumCols;
+     }
+
+     template <typename ValueType, index_type NumRows, index_type NumCols>
      inline SpMatrixDataStatic<ValueType, NumRows, NumCols>&
-     SpMatrixDataStatic<ValueType, NumRows, NumCols>::operator=(SpMatrixDataStatic&& oRhs)
-     {
+     SpMatrixDataStatic<ValueType, NumRows, NumCols>::operator=(SpMatrixDataStatic&& oRhs) {
           SP_GRAD_ASSERT(&oRhs != pGetNullData());
 
           SP_GRAD_ASSERT(this->iNumRows == NumRows);
@@ -3737,11 +3750,15 @@ namespace sp_grad {
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
      index_type SpMatrixBase<ValueType, NumRows, NumCols>::iGetNumRows() const {
+          ASSERT(NumRows == SpMatrixSize::DYNAMIC || NumRows == pData->iGetNumRows());
+
           return pData->iGetNumRows();
      }
 
      template <typename ValueType, index_type NumRows, index_type NumCols>
      index_type SpMatrixBase<ValueType, NumRows, NumCols>::iGetNumCols() const {
+          ASSERT(NumCols == SpMatrixSize::DYNAMIC || NumCols == pData->iGetNumCols());
+
           return pData->iGetNumCols();
      }
 

@@ -208,6 +208,9 @@ namespace sp_grad {
 
           void operator=(const SpMatrixDataStatic&) = delete;
 
+          inline index_type iGetNumRows() const noexcept;
+          inline index_type iGetNumCols() const noexcept;
+
           inline SpMatrixDataStatic& operator=(SpMatrixDataStatic&& oRhs);
 
           static SpMatrixDataStatic* pGetNullData() noexcept;
