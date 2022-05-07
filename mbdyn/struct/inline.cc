@@ -337,7 +337,7 @@ void InLineJoint::Output(OutputHandler& OH) const
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, RvTmp*F, Zero3);
 			if (fc) {
-				OH.WriteNcVar(Var_FF, F3);
+				OH.WriteNcVar(Var_FF, RvTmp.GetVec(3)*F3);
 				OH.WriteNcVar(Var_fc, fc->fc());
 				OH.WriteNcVar(Var_v, v);
 				OH.WriteNcVar(Var_displ, displ);
