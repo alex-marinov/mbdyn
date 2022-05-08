@@ -13,6 +13,8 @@ autostrad.cc \
 autostrad.h \
 beam.cc \
 beam.h \
+beamad.cc \
+beamad.h \
 beam2.cc \
 beam2.h \
 beamslider.h \
