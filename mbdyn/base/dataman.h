@@ -900,6 +900,9 @@ public:
 
         SolverBase::StepIntegratorType GetStepIntegratorType(unsigned int iDof) const;
         doublereal dGetStepIntegratorCoef(unsigned int iDof) const;
+        bool bUseAutoDiff() const { return bAutoDiff; }
+private:
+        bool bAutoDiff; // Create nodes and elements with support for automatic differentiation if applicable
 };
 
 // if bActive is true, the cast only succeeds when driven element is active

@@ -4905,63 +4905,174 @@ ReadStructNode(DataManager* pDM,
 		/* costruzione del nodo */
 		switch (CurrType) {
 		case STATIC_DISP:
-			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructDispNode,
-				StaticStructDispNode(uLabel, pDO,
-					X0,
-					XPrime0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructDispNodeAd,
+                                                       StaticStructDispNodeAd(uLabel,
+                                                                              pDO,
+                                                                              X0,
+                                                                              XPrime0,
+                                                                              pRefNode,
+                                                                              pRBK,
+                                                                              dPosStiff,
+                                                                              dVelStiff,
+                                                                              od,
+                                                                              fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructDispNode,
+                                                       StaticStructDispNode(uLabel,
+                                                                            pDO,
+                                                                            X0,
+                                                                            XPrime0,
+                                                                            pRefNode,
+                                                                            pRBK,
+                                                                            dPosStiff,
+                                                                            dVelStiff,
+                                                                            od,
+                                                                            fOut));
+                        }
 			break;
 
 		case DYNAMIC_DISP:
-			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructDispNode,
-				DynamicStructDispNode(uLabel, pDO,
-					X0,
-					XPrime0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					od, fOut));
-
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructDispNodeAd,
+                                                       DynamicStructDispNodeAd(uLabel,
+                                                                               pDO,
+                                                                               X0,
+                                                                               XPrime0,
+                                                                               pRefNode,
+                                                                               pRBK,
+                                                                               dPosStiff,
+                                                                               dVelStiff,
+                                                                               od,
+                                                                               fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructDispNode,
+                                                       DynamicStructDispNode(uLabel,
+                                                                             pDO,
+                                                                             X0,
+                                                                             XPrime0,
+                                                                             pRefNode,
+                                                                             pRBK,
+                                                                             dPosStiff,
+                                                                             dVelStiff,
+                                                                             od,
+                                                                             fOut));
+                        }
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 			break;
 
 		case STATIC:
-			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructNode,
-				StaticStructNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructNodeAd,
+                                                       StaticStructNodeAd(uLabel,
+                                                                          pDO,
+                                                                          X0,
+                                                                          R0,
+                                                                          XPrime0,
+                                                                          Omega0,
+                                                                          pRefNode,
+                                                                          pRBK,
+                                                                          dPosStiff,
+                                                                          dVelStiff,
+                                                                          bOmRot,
+                                                                          od,
+                                                                          fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructNode,
+                                                       StaticStructNode(uLabel,
+                                                                        pDO,
+                                                                        X0,
+                                                                        R0,
+                                                                        XPrime0,
+                                                                        Omega0,
+                                                                        pRefNode,
+                                                                        pRBK,
+                                                                        dPosStiff,
+                                                                        dVelStiff,
+                                                                        bOmRot,
+                                                                        od,
+                                                                        fOut));
+                        }
 			break;
 
 		case DYNAMIC:
-			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
-				DynamicStructNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructNodeAd,
+                                                       DynamicStructNodeAd(uLabel,
+                                                                           pDO,
+                                                                           X0,
+                                                                           R0,
+                                                                           XPrime0,
+                                                                           Omega0,
+                                                                           pRefNode,
+                                                                           pRBK,
+                                                                           dPosStiff,
+                                                                           dVelStiff,
+                                                                           bOmRot,
+                                                                           od,
+                                                                           fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructNode,
+                                                       DynamicStructNode(uLabel,
+                                                                         pDO,
+                                                                         X0,
+                                                                         R0,
+                                                                         XPrime0,
+                                                                         Omega0,
+                                                                         pRefNode,
+                                                                         pRBK,
+                                                                         dPosStiff,
+                                                                         dVelStiff,
+                                                                         bOmRot,
+                                                                         od,
+                                                                         fOut));
+                        }
 
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 			break;
 
 		case MODAL:
-			SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,
-				ModalNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       ModalNodeAd,
+                                                       ModalNodeAd(uLabel,
+                                                                   pDO,
+                                                                   X0,
+                                                                   R0,
+                                                                   XPrime0,
+                                                                   Omega0,
+                                                                   pRBK,
+                                                                   dPosStiff,
+                                                                   dVelStiff,
+                                                                   bOmRot,
+                                                                   od,
+                                                                   fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       ModalNode,
+                                                       ModalNode(uLabel,
+                                                                 pDO,
+                                                                 X0,
+                                                                 R0,
+                                                                 XPrime0,
+                                                                 Omega0,
+                                                                 pRBK,
+                                                                 dPosStiff,
+                                                                 dVelStiff,
+                                                                 bOmRot,
+                                                                 od,
+                                                                 fOut));
+                        }
 			break;
 
 		default:

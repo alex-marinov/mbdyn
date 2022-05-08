@@ -181,7 +181,8 @@ iTotNodes(0),
 iTotDofOwners(0),
 DofOwners(),
 iTotDofs(0),
-Dofs()
+Dofs(),
+bAutoDiff(false)
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
 

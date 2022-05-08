@@ -161,7 +161,9 @@ DataManager::ReadControl(MBDynParser& HP,
 		"model",
 
 		"rigid" "body" "kinematics",
-
+                
+                "use" "automatic" "differentiation",
+                
 		0
 	};
 
@@ -254,7 +256,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		SELECTTIMEOUT,
 		MODEL,
 		RIGIDBODYKINEMATICS,
-
+                USE_AUTOMATIC_DIFFERENTIATION,
+                
 		LASTKEYWORD
 	};
 
@@ -1451,6 +1454,11 @@ EndOfUse:
 			}
 		} break;
 
+                case USE_AUTOMATIC_DIFFERENTIATION:
+                        DEBUGCERR("Support for automatic differentiation is enabled\n");
+                        bAutoDiff = true;
+                        break;
+                        
 		case UNKNOWN:
 			/*
 			 * If description is not in key table the parser

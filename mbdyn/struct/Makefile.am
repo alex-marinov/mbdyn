@@ -113,6 +113,8 @@ totalequation.cc \
 totalequation.h \
 totalj.cc \
 totalj.h \
+totaljad.cc \
+totaljad.h \
 univj.cc \
 univj.h \
 vb.cc \

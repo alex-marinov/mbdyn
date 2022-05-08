@@ -69,7 +69,7 @@ StructDispNodeAd::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 
      for (integer i = 1; i <= 3; ++i) {
           XY(i) = Y(iFirstDofIndex + i);
-     }     
+     }
 }
 
 DynamicStructDispNodeAd::DynamicStructDispNodeAd(unsigned int uL,
@@ -88,7 +88,11 @@ DynamicStructDispNodeAd::DynamicStructDispNodeAd(unsigned int uL,
 {
      DEBUGCERR("DynamicStructDispNodeAd(" << GetLabel() << "\n");
      DEBUGCERR("X=" << GetXCurr() << "\n");
-     DEBUGCERR("V=" << GetVCurr() << "\n");     
+     DEBUGCERR("V=" << GetVCurr() << "\n");
+}
+
+DynamicStructDispNodeAd::~DynamicStructDispNodeAd()
+{
 }
 
 inline integer
@@ -115,7 +119,11 @@ StaticStructDispNodeAd::StaticStructDispNodeAd(unsigned int uL,
 {
      DEBUGCERR("StaticStructDispNodeAd(" << GetLabel() << "\n");
      DEBUGCERR("X=" << GetXCurr() << "\n");
-     DEBUGCERR("V=" << GetVCurr() << "\n");     
+     DEBUGCERR("V=" << GetVCurr() << "\n");
+}
+
+StaticStructDispNodeAd::~StaticStructDispNodeAd()
+{
 }
 
 inline integer
@@ -157,11 +165,42 @@ StructNodeAd::~StructNodeAd()
 {
 }
 
+inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     W = WCurr;
+}
+
+inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     sp_grad::index_type iFirstDofIndex = -1;
+
+     switch (func) {
+     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
+          iFirstDofIndex = iGetFirstIndex() + 9;
+          break;
+
+     default:
+          SP_GRAD_ASSERT(false);
+     }
+
+     W.ResizeReset(3, 1);
+
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          W(i).Reset(WCurr(i), iFirstDofIndex + i, -1.);
+     }
+}
+
+inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     // FIXME: Should be eliminated
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 template <typename T>
 void StructNodeAd::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& R, sp_grad::SpColVector<T, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      SP_GRAD_ASSERT(bNeedRotation);
-     
+
      using namespace sp_grad;
 
      const T d = 4. / (4. + Dot(g, g));
@@ -189,142 +228,142 @@ void StructNodeAd::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp
 
      switch (func) {
      case SpFunctionCall::INITIAL_ASS_JAC:
-	  GetWCurrInitAss(W, dCoef, func);
-	  break;
+          GetWCurrInitAss(W, dCoef, func);
+          break;
 
      case SpFunctionCall::INITIAL_DER_JAC:
      case SpFunctionCall::REGULAR_JAC:
      {
-	  SpMatrix<T, 3, 3> G(3, 3, 8);
+          SpMatrix<T, 3, 3> G(3, 3, 8);
 
-	  const T tmp7 = 0.5 * g(1) * d;
-	  const T tmp8 = 0.5 * g(2) * d;
-	  const T tmp9 = 0.5 * g(3) * d;
+          const T tmp7 = 0.5 * g(1) * d;
+          const T tmp8 = 0.5 * g(2) * d;
+          const T tmp9 = 0.5 * g(3) * d;
 
-	  G(1,1) = d;
-	  G(1,2) = -tmp9;
-	  G(1,3) = tmp8;
-	  G(2,1) = tmp9;
-	  G(2,2) = d;
-	  G(2,3) = -tmp7;
-	  G(3,1) = -tmp8;
-	  G(3,2) = tmp7;
-	  G(3,3) = d;
+          G(1,1) = d;
+          G(1,2) = -tmp9;
+          G(1,3) = tmp8;
+          G(2,1) = tmp9;
+          G(2,2) = d;
+          G(2,3) = -tmp7;
+          G(3,1) = -tmp8;
+          G(3,2) = tmp7;
+          G(3,3) = d;
 
-	  W = EvalUnique(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
+          W = EvalUnique(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
      }
      break;
 
      default:
-	  SP_GRAD_ASSERT(false);
+          SP_GRAD_ASSERT(false);
      }
 }
 
 void StructNodeAd::UpdateRotation(doublereal dCoef) const
 {
      SP_GRAD_ASSERT(bNeedRotation);
-     
+
      if (bUpdateRotation) {
-	  sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 1> gCurr_grad, gPCurr_grad;
+          sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 1> gCurr_grad, gPCurr_grad;
 
-	  GetgCurr(gCurr_grad, dCoef, eCurrFunc);
-	  GetgPCurr(gPCurr_grad, dCoef, eCurrFunc);
+          GetgCurr(gCurr_grad, dCoef, eCurrFunc);
+          GetgPCurr(gPCurr_grad, dCoef, eCurrFunc);
 
-	  UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
-          
+          UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
+
 #if defined(DEBUG)
-	  {
-	       using sp_grad::index_type;
-			 
-	       const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+          {
+               using sp_grad::index_type;
 
-	       Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+               const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
-	       Mat3x3 RCurr_tmp = RDelta * RRef;
+               Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 
-	       bool bErr = false;
+               Mat3x3 RCurr_tmp = RDelta * RRef;
 
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
-	       }
+               bool bErr = false;
 
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
+               for (index_type i = 1; i <= 3; ++i) {
+                    for (index_type j = 1; j <= 3; ++j) {
+                         if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
+                              bErr = true;
+                         }
+                    }
+               }
 
-		    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
-			 bErr = true;
-		    }
-	       }
+               for (index_type i = 1; i <= 3; ++i) {
+                    for (index_type j = 1; j <= 3; ++j) {
+                         if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
+                              bErr = true;
+                         }
+                    }
 
-	       if (bErr) {
-		    std::cerr << "gCurr=" << gCurr << std::endl;
-		    std::cerr << "RCurr=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
+                    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
+                         bErr = true;
+                    }
+               }
 
-		    std::cerr << "RRef=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RRef(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
+               if (bErr) {
+                    std::cerr << "gCurr=" << gCurr << std::endl;
+                    std::cerr << "RCurr=" << std::endl;
+                    for (integer i = 1; i <= 3; ++i) {
+                         for (integer j = 1; j <= 3; ++j) {
+                              std::cerr << RCurr(i, j) << " ";
+                         }
+                         std::cerr << std::endl;
+                    }
 
-		    std::cerr << "RPrev=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RPrev(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
+                    std::cerr << "RRef=" << std::endl;
+                    for (integer i = 1; i <= 3; ++i) {
+                         for (integer j = 1; j <= 3; ++j) {
+                              std::cerr << RRef(i, j) << " ";
+                         }
+                         std::cerr << std::endl;
+                    }
 
-		    std::cerr << "RCurr_grad=" << std::endl;
+                    std::cerr << "RPrev=" << std::endl;
+                    for (integer i = 1; i <= 3; ++i) {
+                         for (integer j = 1; j <= 3; ++j) {
+                              std::cerr << RPrev(i, j) << " ";
+                         }
+                         std::cerr << std::endl;
+                    }
 
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr_grad(i, j).dGetValue() << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
+                    std::cerr << "RCurr_grad=" << std::endl;
 
-		    std::cerr << "WCurr=" << WCurr << std::endl;
-		    std::cerr << "WCurr_grad=";
-		    for (integer i = 1; i <= 3; ++i) {
-			 std::cerr << WCurr_grad(i).dGetValue() << " ";
-		    }
-		    std::cerr << std::endl;
-		    SP_GRAD_ASSERT(false);
-	       }
-	  }
+                    for (integer i = 1; i <= 3; ++i) {
+                         for (integer j = 1; j <= 3; ++j) {
+                              std::cerr << RCurr_grad(i, j).dGetValue() << " ";
+                         }
+                         std::cerr << std::endl;
+                    }
+
+                    std::cerr << "WCurr=" << WCurr << std::endl;
+                    std::cerr << "WCurr_grad=";
+                    for (integer i = 1; i <= 3; ++i) {
+                         std::cerr << WCurr_grad(i).dGetValue() << " ";
+                    }
+                    std::cerr << std::endl;
+                    SP_GRAD_ASSERT(false);
+               }
+          }
 #endif
-	  bUpdateRotation = false;
+          bUpdateRotation = false;
      }
 }
 
 void StructNodeAd::UpdateRotation(const VectorHandler& Y, doublereal dCoef) const
 {
      SP_GRAD_ASSERT(bNeedRotation);
-     
+
      if (bUpdateRotationGradProd) {
-	  sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> gCurr_gradp, gPCurr_gradp;
+          sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> gCurr_gradp, gPCurr_gradp;
 
-	  GetgCurr(gCurr_gradp, dCoef, eCurrFunc);
-	  GetgPCurr(gPCurr_gradp, dCoef, eCurrFunc);
+          GetgCurr(gCurr_gradp, dCoef, eCurrFunc);
+          GetgPCurr(gPCurr_gradp, dCoef, eCurrFunc);
 
-	  UpdateRotation(RRef, WRef, gCurr_gradp, gPCurr_gradp, RCurr_gradp, WCurr_gradp, dCoef, eCurrFunc);
-	  bUpdateRotationGradProd = false;
+          UpdateRotation(RRef, WRef, gCurr_gradp, gPCurr_gradp, RCurr_gradp, WCurr_gradp, dCoef, eCurrFunc);
+          bUpdateRotationGradProd = false;
      }
 }
 
@@ -340,7 +379,7 @@ void
 StructNodeAd::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      StructNode::DerivativesUpdate(X, XP);
 }
 
@@ -348,19 +387,27 @@ void
 StructNodeAd::InitialUpdate(const VectorHandler& X)
 {
      InvalidateGradients();
-     
+
      StructNode::InitialUpdate(X);
 }
 
 void StructNodeAd::UpdateJac(doublereal dCoef)
 {
-	if (bNeedRotation) {
-		UpdateRotation(dCoef);
-	}
+#ifdef USE_SPARSE_AUTODIFF
+     StructNode::UpdateJac(dCoef); // FIXME: Remove this line as soon as all elements are using the new interface
+#endif
+     
+     if (bNeedRotation) {
+          UpdateRotation(dCoef);
+     }
 }
 
 void StructNodeAd::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 {
+#ifdef USE_SPARSE_AUTODIFF
+     StructNode::UpdateJac(Y, dCoef); // FIXME: Remove this line as soon as all elements are using the new interface
+#endif
+     
      StructDispNodeAd::UpdateJac(Y, dCoef);
 
      UpdateJacRotation(Y, dCoef);
@@ -376,7 +423,7 @@ void StructNodeAd::UpdateJacRotation(const VectorHandler& Y, doublereal dCoef)
           for (integer i = 1; i <= 3; ++i) {
                gY(i) = Y(iFirstIndex + i + 3);
           }
-          
+
           UpdateRotation(Y, dCoef);
      }
 }
@@ -385,7 +432,7 @@ void
 StructNodeAd::SetInitialValue(VectorHandler& X)
 {
      StructNode::SetInitialValue(X);
-     
+
      eCurrFunc = sp_grad::INITIAL_ASS_JAC;
 }
 
@@ -395,7 +442,7 @@ StructNodeAd::SetValue(DataManager *pDM,
                        SimulationEntity::Hints *ph)
 {
      InvalidateGradients();
-     
+
      eCurrFunc = sp_grad::REGULAR_JAC;
 
      StructNode::SetValue(pDM, X, XP, ph);
@@ -405,13 +452,13 @@ void
 StructNodeAd::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      StructNode::AfterPredict(X, XP);
 }
 
 void
-StructNodeAd::AfterConvergence(const VectorHandler& X, 
-                               const VectorHandler& XP, 
+StructNodeAd::AfterConvergence(const VectorHandler& X,
+                               const VectorHandler& XP,
                                const VectorHandler& XPP)
 {
      InvalidateGradients();
@@ -419,7 +466,7 @@ StructNodeAd::AfterConvergence(const VectorHandler& X,
 
 void StructNodeAd::InvalidateGradients() const
 {
-     bUpdateRotationGradProd = bUpdateRotation = true;     
+     bUpdateRotationGradProd = bUpdateRotation = true;
 }
 
 DynamicStructNodeAd::DynamicStructNodeAd(unsigned int uL,
@@ -437,7 +484,7 @@ DynamicStructNodeAd::DynamicStructNodeAd(unsigned int uL,
                                          flag fOut)
 :StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
- DynamicStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut), 
+ DynamicStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  DynamicStructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut)
@@ -446,7 +493,7 @@ DynamicStructNodeAd::DynamicStructNodeAd(unsigned int uL,
      DEBUGCERR("X=" << GetXCurr() << "\n");
      DEBUGCERR("V=" << GetVCurr() << "\n");
      DEBUGCERR("R=" << GetRCurr() << "\n");
-     DEBUGCERR("W=" << GetWCurr() << "\n");     
+     DEBUGCERR("W=" << GetWCurr() << "\n");
 }
 
 DynamicStructNodeAd::~DynamicStructNodeAd()
@@ -456,8 +503,13 @@ DynamicStructNodeAd::~DynamicStructNodeAd()
 void DynamicStructNodeAd::Update(const VectorHandler& X, const VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      DynamicStructNode::Update(X, XP);
+}
+
+integer DynamicStructNodeAd::iGetInitialFirstIndexPrime() const
+{
+     return iGetFirstIndex() + 6;
 }
 
 StaticStructNodeAd::StaticStructNodeAd(unsigned int uL,
@@ -475,7 +527,7 @@ StaticStructNodeAd::StaticStructNodeAd(unsigned int uL,
                                        flag fOut)
 :StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
- StaticStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut), 
+ StaticStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StaticStructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut)
@@ -484,17 +536,22 @@ StaticStructNodeAd::StaticStructNodeAd(unsigned int uL,
      DEBUGCERR("X=" << GetXCurr() << "\n");
      DEBUGCERR("V=" << GetVCurr() << "\n");
      DEBUGCERR("R=" << GetRCurr() << "\n");
-     DEBUGCERR("W=" << GetWCurr() << "\n");     
+     DEBUGCERR("W=" << GetWCurr() << "\n");
 }
 
 StaticStructNodeAd::~StaticStructNodeAd()
 {
 }
 
+integer StaticStructNodeAd::iGetInitialFirstIndexPrime() const
+{
+     return iGetFirstIndex() + 6;
+}
+
 void StaticStructNodeAd::Update(const VectorHandler& X, const VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      StaticStructNode::Update(X, XP);
 }
 
@@ -514,7 +571,7 @@ ModalNodeAd::ModalNodeAd(unsigned int uL,
  StructDispNodeAd(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
  DynamicStructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
  ModalNode(uL, pDO, X0, R0, V0, W0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
- StructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut), 
+ StructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, 0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  XPPY(::Zero3), WPY(::Zero3)
 {
@@ -522,18 +579,25 @@ ModalNodeAd::ModalNodeAd(unsigned int uL,
      DEBUGCERR("X=" << GetXCurr() << "\n");
      DEBUGCERR("V=" << GetVCurr() << "\n");
      DEBUGCERR("R=" << GetRCurr() << "\n");
-     DEBUGCERR("W=" << GetWCurr() << "\n");          
+     DEBUGCERR("W=" << GetWCurr() << "\n");
 }
 
-ModalNodeAd::~ModalNodeAd(void)
+ModalNodeAd::~ModalNodeAd()
 {
+}
+
+integer
+ModalNodeAd::iGetInitialFirstIndexPrime() const
+{
+        // FIXME: Don't know how it should be implemented!
+        throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
 void
 ModalNodeAd::Update(const VectorHandler& X, const VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      ModalNode::Update(X, XP);
 }
 
@@ -542,7 +606,7 @@ ModalNodeAd::DerivativesUpdate(const VectorHandler& X,
                                const VectorHandler& XP)
 {
      InvalidateGradients();
-     
+
      ModalNode::DerivativesUpdate(X, XP);
 }
 
@@ -557,19 +621,11 @@ void ModalNodeAd::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 {
         ModalNode::UpdateJac(Y, dCoef);
         StructNodeAd::UpdateJacRotation(Y, dCoef);
-        
-     	const integer iFirstIndex = iGetFirstIndex();
+
+        const integer iFirstIndex = iGetFirstIndex();
 
         for (sp_grad::index_type i = 1; i <= 3; ++i) {
                 XPPY(i) = Y(iFirstIndex + i + 6);
                 WPY(i) = Y(iFirstIndex + i + 9);
         }
 }
-
-#ifdef DEBUG
-DynamicStructDispNodeAd node1(0,0,::Zero3, ::Zero3, 0, 0, 0, 0, OrientationDescription(0), 0);
-StaticStructDispNodeAd node2(0,0,::Zero3, ::Zero3, 0, 0, 0, 0, OrientationDescription(0), 0);
-DynamicStructNodeAd node3(0,0,::Zero3, ::Zero3x3, ::Zero3, ::Zero3, 0, 0, 0, 0, false, OrientationDescription(0), 0);
-StaticStructNodeAd node4(0,0,::Zero3, ::Zero3x3, ::Zero3, ::Zero3, 0, 0, 0, 0, false, OrientationDescription(0), 0);
-ModalNodeAd node5(0,0,::Zero3, ::Zero3x3, ::Zero3, ::Zero3, 0, 0, 0, false, OrientationDescription(0), 0);
-#endif

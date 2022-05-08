@@ -63,7 +63,7 @@ protected:
 public:
      using StructDispNode::GetXCurr;
      using StructDispNode::GetVCurr;
-     
+
      inline void
      GetXCurr(sp_grad::SpColVector<doublereal, 3>& X,
               doublereal dCoef,
@@ -166,7 +166,7 @@ public:
      using StructNode::GetgPCurr;
      using StructNode::GetRCurr;
      using StructNode::GetWCurr;
-     
+
      inline void GetgCurr(sp_grad::SpColVector<doublereal, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 
      inline void GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
@@ -199,18 +199,18 @@ public:
      virtual void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP, SimulationEntity::Hints *ph) override;
      virtual void SetInitialValue(VectorHandler& X) override;
      virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) override;
-     virtual void AfterConvergence(const VectorHandler& X, 
-                                   const VectorHandler& XP, 
+     virtual void AfterConvergence(const VectorHandler& X,
+                                   const VectorHandler& XP,
                                    const VectorHandler& XPP) override;
 
 protected:
      inline void InvalidateGradients() const;
      inline void UpdateJacRotation(const VectorHandler& Y, doublereal dCoef);
-     
+
 private:
      void UpdateRotation(doublereal dCoef) const;
      void UpdateRotation(const VectorHandler& Y, doublereal dCoef) const;
-     
+
      template <typename T>
      inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& RCurr, sp_grad::SpColVector<T, 3>& WCurr, doublereal dCoef, sp_grad::SpFunctionCall func) const;
      inline void GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
@@ -245,7 +245,7 @@ public:
 
      virtual ~DynamicStructNodeAd();
      virtual void Update(const VectorHandler&, const VectorHandler&) override;
-     
+
 protected:
      virtual integer iGetInitialFirstIndexPrime() const override;
 };
@@ -269,7 +269,7 @@ public:
 
      virtual ~StaticStructNodeAd();
      virtual void Update(const VectorHandler&, const VectorHandler&) override;
-     
+
 protected:
      virtual integer iGetInitialFirstIndexPrime() const override;
 };
@@ -294,7 +294,7 @@ public:
      virtual void Update(const VectorHandler& X, const VectorHandler& XP) override;
 
      virtual void DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP) override;
-     
+
      virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP) override;
 
      using StructNode::GetXPPCurr;
@@ -302,7 +302,7 @@ public:
 
      inline void
      GetXPPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-                
+
      inline void
      GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 
@@ -311,7 +311,7 @@ public:
 
      inline void
      GetWPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-                
+
      inline void
      GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 
@@ -322,7 +322,7 @@ public:
 
 protected:
      virtual inline integer iGetInitialFirstIndexPrime() const override;
-     
+
 private:
      Vec3 XPPY, WPY;
 };
@@ -380,12 +380,12 @@ inline void StructDispNodeAd::GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient,
      switch (func) {
      case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
           SP_GRAD_ASSERT(dCoef == 1.);
-          iFirstDofIndex = StructDispNode::iGetInitialFirstIndexPrime();
+          iFirstDofIndex = iGetInitialFirstIndexPrime();
           break;
 
      case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
      case sp_grad::SpFunctionCall::REGULAR_JAC:
-          iFirstDofIndex = StructDispNode::iGetFirstIndex();
+          iFirstDofIndex = iGetFirstIndex();
           break;
 
      default:
@@ -416,28 +416,28 @@ inline void StructNodeAd::GetgCurr(sp_grad::SpColVector<doublereal, 3>& g, doubl
 {
      g = gCurr;
 }
-     
+
 inline void StructNodeAd::GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
      case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  SP_GRAD_ASSERT(dCoef == 1.);
+          SP_GRAD_ASSERT(dCoef == 1.);
 
      case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
      case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex();
-	  break;
+          iFirstDofIndex = iGetFirstIndex();
+          break;
 
      default:
-	  SP_GRAD_ASSERT(false);
+          SP_GRAD_ASSERT(false);
      }
 
      g.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  g(i).Reset(gCurr(i), iFirstDofIndex + i + 3, -dCoef);
+          g(i).Reset(gCurr(i), iFirstDofIndex + i + 3, -dCoef);
      }
 }
 
@@ -445,29 +445,29 @@ inline void StructNodeAd::GetgPCurr(sp_grad::SpColVector<doublereal, 3>& gP, dou
 {
      gP = gPCurr;
 }
-                
+
 inline void StructNodeAd::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      sp_grad::index_type iFirstDofIndex = -1;
 
      switch (func) {
      case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  gP = gPCurr;
-	  return;
-	  
+          gP = gPCurr;
+          return;
+
      case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
      case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 3;
-	  break;
+          iFirstDofIndex = iGetFirstIndex() + 3;
+          break;
 
      default:
-	  SP_GRAD_ASSERT(false);
+          SP_GRAD_ASSERT(false);
      }
 
      gP.ResizeReset(3, 1);
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  gP(i).Reset(gPCurr(i), iFirstDofIndex + i, -1.);
+          gP(i).Reset(gPCurr(i), iFirstDofIndex + i, -1.);
      }
 }
 
@@ -475,7 +475,7 @@ inline void StructNodeAd::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>
 inline void StructNodeAd::GetgCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      g.ResizeReset(3, 1);
-     
+
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
           g(i).Reset(gCurr(i), -dCoef * gY(i));
      }
@@ -494,7 +494,7 @@ inline void StructNodeAd::GetRCurr(sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>&
 {
      SP_GRAD_ASSERT(bNeedRotation);
      SP_GRAD_ASSERT(!bUpdateRotationGradProd);
-     
+
      R = RCurr_gradp;
 }
 
@@ -502,7 +502,7 @@ inline void StructNodeAd::GetWCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>&
 {
      SP_GRAD_ASSERT(bNeedRotation);
      SP_GRAD_ASSERT(!bUpdateRotationGradProd);
-     
+
      W = WCurr_gradp;
 }
 
@@ -516,7 +516,7 @@ inline void StructNodeAd::GetRCurr(sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>&
 {
      SP_GRAD_ASSERT(bNeedRotation);
      SP_GRAD_ASSERT(!bUpdateRotation);
-     
+
      R = RCurr_grad;
 }
 
@@ -534,70 +534,32 @@ inline void StructNodeAd::GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>&
      W = WCurr_grad;
 }
 
-inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     W = WCurr;
-}
-
-inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 9;
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-
-     W.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  W(i).Reset(WCurr(i), iFirstDofIndex + i, -1.);
-     }     
-}
-
-inline void StructNodeAd::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     // FIXME: Not needed and should be eliminated
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-}
-
-inline integer
-ModalNodeAd::iGetInitialFirstIndexPrime() const
-{
-	// FIXME: Don't know how it should be implemented!
-	throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-}
-
 inline void
 ModalNodeAd::GetXPPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-	XPP = XPPCurr;
+        XPP = XPPCurr;
 }
-                
+
 inline void
 ModalNodeAd::GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-	sp_grad::index_type iFirstDofIndex = -1;
+        sp_grad::index_type iFirstDofIndex = -1;
 
-	switch (func) {
-	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-	case sp_grad::SpFunctionCall::REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
+        switch (func) {
+        case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+        case sp_grad::SpFunctionCall::REGULAR_JAC:
+                iFirstDofIndex = iGetFirstIndex();
+                break;
 
-	default:
-		SP_GRAD_ASSERT(false);
-	}
+        default:
+                SP_GRAD_ASSERT(false);
+        }
 
-	XPP.ResizeReset(3, 1);
-	
-	for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	     XPP(i).Reset(XPPCurr(i), iFirstDofIndex + i + 6, -1.);
-	}		
+        XPP.ResizeReset(3, 1);
+
+        for (sp_grad::index_type i = 1; i <= 3; ++i) {
+             XPP(i).Reset(XPPCurr(i), iFirstDofIndex + i + 6, -1.);
+        }
 }
 
 inline void
@@ -607,33 +569,33 @@ ModalNodeAd::GetXPPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& XPP, doubl
           XPP(i).Reset(XPPCurr(i), -XPPY(i));
      }
 }
-                
+
 inline void
 ModalNodeAd::GetWPCurr(sp_grad::SpColVector<doublereal, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-	WP = WPCurr;
+        WP = WPCurr;
 }
-                
+
 inline void
 ModalNodeAd::GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
-	sp_grad::index_type iFirstDofIndex = -1;
+        sp_grad::index_type iFirstDofIndex = -1;
 
-	switch (func) {
-	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-	case sp_grad::SpFunctionCall::REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
+        switch (func) {
+        case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
+        case sp_grad::SpFunctionCall::REGULAR_JAC:
+                iFirstDofIndex = iGetFirstIndex();
+                break;
 
-	default:
-		SP_GRAD_ASSERT(false);
-	}
+        default:
+                SP_GRAD_ASSERT(false);
+        }
 
-	WP.ResizeReset(3, 1);
-	
-	for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	     WP(i).Reset(WPCurr(i), iFirstDofIndex + i + 9, -1.);
-	}
+        WP.ResizeReset(3, 1);
+
+        for (sp_grad::index_type i = 1; i <= 3; ++i) {
+             WP(i).Reset(WPCurr(i), iFirstDofIndex + i + 9, -1.);
+        }
 }
 
 inline void
