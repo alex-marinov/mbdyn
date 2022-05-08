@@ -19,6 +19,8 @@ beamslider.h \
 beamslider.cc \
 body.cc \
 body.h \
+bodyad.cc \
+bodyad.h \
 body_vm.cc \
 body_vm.h \
 brake.cc \
