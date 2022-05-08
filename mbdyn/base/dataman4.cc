@@ -45,6 +45,7 @@
 
 /* Elementi */
 #include "autostr.h"   /* Elementi automatici associati ai nodi dinamici */
+#include "autostrad.h"
 #include "gravity.h"   /* Elemento accelerazione di gravita' */
 #include "body.h"
 #include "inertia.h"
@@ -247,9 +248,17 @@ DataManager::ReadElems(MBDynParser& HP)
 				}
 
 				Elem *pTmpEl = 0;
-				SAFENEWWITHCONSTRUCTOR(pTmpEl,
-					AutomaticStructElem,
-					AutomaticStructElem(pN));
+
+                                if (bUseAutoDiff()) {
+                                     SAFENEWWITHCONSTRUCTOR(pTmpEl,
+                                                            AutomaticStructElemAd,
+                                                            AutomaticStructElemAd(dynamic_cast<const DynamicStructNodeAd*>(pN)));
+                                } else {
+                                     SAFENEWWITHCONSTRUCTOR(pTmpEl,
+                                                            AutomaticStructElem,
+                                                            AutomaticStructElem(pN));
+                                }
+                                
 				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pN->GetLabel(), pTmpEl);
 
 				*ei = pTmpEl;
@@ -273,9 +282,17 @@ DataManager::ReadElems(MBDynParser& HP)
 				}
 
 				Elem *pTmpEl = 0;
-				SAFENEWWITHCONSTRUCTOR(pTmpEl,
-					AutomaticStructDispElem,
-					AutomaticStructDispElem(pDN));
+
+                                if (bUseAutoDiff()) {
+                                     SAFENEWWITHCONSTRUCTOR(pTmpEl,
+                                                            AutomaticStructDispElemAd,
+                                                            AutomaticStructDispElemAd(dynamic_cast<const DynamicStructDispNodeAd*>(pDN)));
+                                } else {
+                                     SAFENEWWITHCONSTRUCTOR(pTmpEl,
+                                                            AutomaticStructDispElem,
+                                                            AutomaticStructDispElem(pDN));
+                                }
+                                
 				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pDN->GetLabel(), pTmpEl);
 
 				*ei = pTmpEl;

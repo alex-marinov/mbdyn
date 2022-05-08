@@ -9,6 +9,8 @@ accj.cc \
 accj.h \
 autostr.cc \
 autostr.h \
+autostrad.cc \
+autostrad.h \
 beam.cc \
 beam.h \
 beam2.cc \

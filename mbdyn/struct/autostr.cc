@@ -463,7 +463,6 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 {
 	DEBUGCOUTFNAME("AutomaticStructElem::AssJac");
 
-#ifndef USE_SPARSE_AUTODIFF        
 	/* Casting di WorkMat */
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 
@@ -509,40 +508,9 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutCross(31, iFirstMomentumIndex + 3,
 			iFirstMomentumIndex + 3, W0*dCoef);
 	}
-#else
-        using namespace sp_grad;
 
-        SpGradientAssVec<SpGradient>::AssJac(this,
-                                             WorkMat.SetSparseGradient(),
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_JAC);
-#endif
 	return WorkMat;
 }
-
-
-#ifdef USE_SPARSE_AUTODIFF
-void
-AutomaticStructElem::AssJac(VectorHandler& JacY,
-                            const VectorHandler& Y,
-                            doublereal dCoef,
-                            const VectorHandler& XCurr,
-                            const VectorHandler& XPrimeCurr,
-                            VariableSubMatrixHandler& WorkMat)
-{
-     using namespace sp_grad;
-     
-     SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          JacY,
-                                          Y,
-                                          dCoef,
-                                          XCurr,
-                                          XPrimeCurr,
-                                          SpFunctionCall::REGULAR_JAC);
-}
-#endif
 
 /* assemblaggio autoval */
 void
@@ -594,7 +562,6 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AutomaticStructElem::AssRes");
-#ifndef USE_SPARSE_AUTODIFF
 	WorkVec.ResizeReset(12);
 
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
@@ -639,97 +606,9 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 	m = 0.;
 	S = Zero3;
 	J = Zero3x3;
-#else
-        using namespace sp_grad;
 
-        SpGradientAssVec<doublereal>::AssRes(this,
-                                             WorkVec,
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_RES);        
-#endif
 	return WorkVec;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-void
-AutomaticStructElem::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-                            doublereal dCoef,
-                            const sp_grad::SpGradientVectorHandler<T>& XCurr,
-                            const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-                            sp_grad::SpFunctionCall func)
-{
-     using namespace sp_grad;
-     
-     const integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-     const integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-
-     SpColVector<T, 3> B(3, 1), G(3, 1), BP(3, 1), GP(3, 1), V(3, 1);
-
-     pNode->GetVCurr(V, dCoef, func);
-     
-     XCurr.GetVec(iFirstMomentumIndex + 1, B, dCoef);
-     XCurr.GetVec(iFirstMomentumIndex + 4, G, dCoef);
-     XPrimeCurr.GetVec(iFirstMomentumIndex + 1, BP, 1.);
-     XPrimeCurr.GetVec(iFirstMomentumIndex + 4, GP, 1.);
-     
-     /*
-      * Momentum and momenta moment (about node):
-      *
-      * B = m V + W /\ S
-      *
-      * G = S /\ V + J W
-      *
-      * Bp = F
-      *
-      * Gp + V /\ B = M
-      */
-     WorkVec.AddItem(iFirstPositionIndex + 1, B);
-     WorkVec.AddItem(iFirstPositionIndex + 4, G);
-
-     SpColVector<T, 3> F = -BP;
-     SpColVector<T, 3> M = -Cross(V, B) - GP;
-
-     // relative frame dynamics contribution
-     // (see tecman, "Dynamics in a Relative Reference Frame")
-     const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-
-     if (pRBK) {
-          const Vec3& W0 = pRBK->GetW();
-
-          F -= 2. * Cross(W0, B);
-          M -= Cross(W0, G);
-     }
-     
-     WorkVec.AddItem(iFirstPositionIndex + 7, F);
-     WorkVec.AddItem(iFirstPositionIndex + 10, M);
-     
-     UpdateState(B, BP, G, GP);
-}
-
-inline void
-AutomaticStructElem::UpdateState(const sp_grad::SpColVector<doublereal, 3>& BTmp,
-                                 const sp_grad::SpColVector<doublereal, 3>& BPTmp,
-                                 const sp_grad::SpColVector<doublereal, 3>& GTmp,
-                                 const sp_grad::SpColVector<doublereal, 3>& GPTmp)
-{
-     using namespace sp_grad;
-
-     for (integer i = 1; i <= 3; ++i) {
-          B(i) = BTmp(i);
-          BP(i) = BPTmp(i);
-          G(i) = GTmp(i);
-          GP(i) = GPTmp(i);
-     }
-     
-     // reset instantaneous inertia properties
-     m = 0.;
-     S = Zero3;
-     J = Zero3x3;     
-}
-#endif
 
 void
 AutomaticStructElem::OutputPrepare(OutputHandler &OH)
