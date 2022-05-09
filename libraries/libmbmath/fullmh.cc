@@ -346,31 +346,6 @@ FullMatrixHandler::IsValid(void) const
 }
 #endif /* DEBUG */
 
-
-std::ostream&
-operator << (std::ostream& out, const FullMatrixHandler& m)
-{
-#ifdef HAVE_FMTFLAGS_IN_IOS
-	std::ios::fmtflags oldbits = out.setf(std::ios::scientific);
-#else /* !HAVE_FMTFLAGS_IN_IOS */
-	long oldbits = out.setf(ios::scientific);
-#endif /* !HAVE_FMTFLAGS_IN_IOS */
-
-	out << "<FullMatrixHandler> n. rows: " << m.iNumRows
-		<< "; n. cols: " << m.iNumCols << std::endl;
-	for (int i = 1; i <= m.iNumRows; i++) {
-		out << "Row " << std::setw(8) << i;
-		for (int j = 1; j <= m.iNumCols; j++) {
-			out << std::setw(10) << std::setprecision(2)
-				<< m.ppdColsm1[j][i];
-		}
-		out << std::endl;
-	}
-
-	out.flags(oldbits);
-	return out;
-}
-
 extern std::ostream&
 Write(std::ostream& out,
 	const FullMatrixHandler& m,

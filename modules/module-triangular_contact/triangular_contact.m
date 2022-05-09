@@ -27,7 +27,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ## AUTHOR: Reinhard Resch <octave-user@a1.net>
-## Copyright (C) 2020(-2020) all rights reserved.
+## Copyright (C) 2020(-2022) all rights reserved.
 
 ## The copyright of this code is transferred
 ## to Pierangelo Masarati and Paolo Mantegazza
@@ -36,7 +36,7 @@
 
 ## Usage:
 ## MBDyn installation:
-##   configure --enable-octave --enable-autodiff --with-static-modules
+##   configure --enable-octave --enable-autodiff --with-static-modules --with-trilinos
 ##
 ## Octave package installation:
 ##   octave --eval 'pkg install -forge nurbs'
@@ -119,7 +119,12 @@ unwind_protect
     endif
   end_unwind_protect
 
-  options.mbdyn_command = "mbdyn";
+  options.mbdyn_command = getenv("MBDYN_EXEC");
+  
+  if (isempty(options.mbdyn_command))
+    options.mbdyn_command = "mbdyn";
+  endif
+  
   mbdyn_solver_run("triangular_contact.mbd", options);
 
   log_dat = mbdyn_post_load_log(options.output_file);

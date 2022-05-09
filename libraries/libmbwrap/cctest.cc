@@ -279,6 +279,11 @@ retry:;
 		return 0;
 	}
 
-	goto retry;
+ 	goto retry;
+
+
+        SAFEDELETE(pSM);
+
+        return 0;
 }
 

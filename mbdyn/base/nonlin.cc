@@ -681,9 +681,9 @@ NonlinearSolverTestRange::SetRange(integer iFirstIndex, integer iLastIndex)
 	m_iLastIndex = iLastIndex;
 }
 
-NonlinearSolverOptions::NonlinearSolverOptions(bool bHonorJacRequest,
-											   enum ScaleFlags eScaleFlags,
-											   doublereal dScaleAlgebraic)
+NonlinearSolverTestOptions::NonlinearSolverTestOptions(bool bHonorJacRequest,
+                                                       enum ScaleFlags eScaleFlags,
+                                                       doublereal dScaleAlgebraic)
 :bHonorJacRequest(bHonorJacRequest),
  eScaleFlags(eScaleFlags),
  dScaleAlgebraic(dScaleAlgebraic)
@@ -693,8 +693,8 @@ NonlinearSolverOptions::NonlinearSolverOptions(bool bHonorJacRequest,
 
 /* NonlinearSolver - begin */
 
-NonlinearSolver::NonlinearSolver(const NonlinearSolverOptions& options)
-: NonlinearSolverOptions(options),
+NonlinearSolver::NonlinearSolver(const NonlinearSolverTestOptions& options)
+: NonlinearSolverTestOptions(options),
 Size(0),
 TotJac(0),
 #ifdef USE_MPI

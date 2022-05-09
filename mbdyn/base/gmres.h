@@ -57,7 +57,7 @@ public:
 			integer MaxIt,
 			doublereal etaMx,
 			doublereal T,
-			const NonlinearSolverOptions& options);
+			const NonlinearSolverTestOptions& options);
 	
 	~Gmres(void);
 	

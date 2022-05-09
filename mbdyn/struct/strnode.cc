@@ -182,6 +182,17 @@ StructDispNode::GetWP(void) const
 	return ::Zero3;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void StructDispNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
+{
+     integer iFirstDofIndex = iGetFirstIndex();
+
+     for (integer i = 1; i <= 3; ++i) {
+          XY(i) = Y(iFirstDofIndex + i);
+     }
+}
+#endif
+
 bool
 StructDispNode::ComputeAccelerations(bool b)
 {
@@ -1518,6 +1529,7 @@ bOmegaRot(bOmRot)
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 ,bNeedRotation(false)
 ,bUpdateRotation(true)
+,bUpdateRotationGradProd(true)
 #endif
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
 ,eCurrFunc(grad::UNKNOWN_FUNC)
@@ -1928,6 +1940,22 @@ void StructNode::UpdateJac(doublereal dCoef)
 		UpdateRotation(dCoef);
 	}
 }
+
+void StructNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
+{
+     bUpdateRotationGradProd = true;
+     StructDispNode::UpdateJac(Y, dCoef);
+
+     if (bNeedRotation) {
+          integer iFirstIndex = iGetFirstIndex();
+
+          for (integer i = 1; i <= 3; ++i) {
+               gY(i) = Y(iFirstIndex + i + 3);
+          }
+          
+          UpdateRotation(Y, dCoef);
+     }
+}
 #endif
 
 /* Output del nodo strutturale (da mettere a punto) */
@@ -2029,7 +2057,7 @@ void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 
 	integer iFirstIndex = iGetFirstIndex();
@@ -2481,6 +2509,21 @@ void StructNode::UpdateRotation(doublereal dCoef) const
 	  bUpdateRotation = false;
      }
 }
+
+void StructNode::UpdateRotation(const VectorHandler& Y, doublereal dCoef) const
+{
+     SP_GRAD_ASSERT(bNeedRotation);
+     
+     if (bUpdateRotationGradProd) {
+	  sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> gCurr_gradp, gPCurr_gradp;
+
+	  GetgCurr(gCurr_gradp, dCoef, eCurrFunc);
+	  GetgPCurr(gPCurr_gradp, dCoef, eCurrFunc);
+
+	  UpdateRotation(RRef, WRef, gCurr_gradp, gPCurr_gradp, RCurr_gradp, WCurr_gradp, dCoef, eCurrFunc);
+	  bUpdateRotationGradProd = false;
+     }
+}
 #endif
 
 /* Aggiorna dati in base alla soluzione */
@@ -2488,7 +2531,7 @@ void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 
 	integer iFirstIndex = iGetFirstIndex();
@@ -2506,7 +2549,7 @@ void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 	integer iFirstIndex = iGetFirstIndex();
 
@@ -2527,7 +2570,7 @@ void
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 
 	integer iFirstIndex = iGetFirstIndex();
@@ -2587,7 +2630,7 @@ StructNode::SetValue(DataManager *pDM,
 	SimulationEntity::Hints *ph)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 
 #ifdef MBDYN_X_RELATIVE_PREDICTION
@@ -2751,7 +2794,7 @@ void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 
 	integer iFirstIndex = iGetFirstIndex();
@@ -2853,7 +2896,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XPP)
 {
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotation = true;
+	bUpdateRotationGradProd = bUpdateRotation = true;
 #endif
 /* Right now, AfterConvergence is performed only on position 
  * to reset orientation parameters. XPrime and XPrimePrime are 
@@ -3666,7 +3709,10 @@ ModalNode::ModalNode(unsigned int uL,
 :
 StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
 DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
-	dPosStiff, dVelStiff, bOmRot, ood, fOut)
+                  dPosStiff, dVelStiff, bOmRot, ood, fOut)
+#ifdef USE_SPARSE_AUTODIFF
+,XPPY(::Zero3), WPY(::Zero3)
+#endif
 {
 	/* XPP and WP are not known in ModalNode */
 	ComputeAccelerations(false);
@@ -3919,6 +3965,20 @@ ModalNode::GetEquationDimension(integer index) const {
 	return dimension;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void ModalNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
+{
+        DynamicStructNode::UpdateJac(Y, dCoef);
+        
+     	const integer iFirstIndex = iGetFirstIndex();
+
+        for (sp_grad::index_type i = 1; i <= 3; ++i) {
+                XPPY(i) = Y(iFirstIndex + i + 6);
+                WPY(i) = Y(iFirstIndex + i + 9);
+        }
+}
+#endif
+
 /* ModalNode - end */
 
 
@@ -3938,19 +3998,74 @@ pNode(pN)
 	ASSERT(pNode != NULL);
 }
 
-
 /* Distruttore (per ora e' banale) */
 DummyStructNode::~DummyStructNode(void)
 {
 	NO_OP;
 }
 
-
 /* Tipo di nodo strutturale */
 StructNode::Type
 DummyStructNode::GetStructNodeType(void) const
 {
 	return StructNode::DUMMY;
+}
+
+/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
+inline unsigned int
+DummyStructNode::iGetInitialNumDof(void) const
+{
+	return 0;
+}
+
+inline integer
+DummyStructNode::iGetFirstIndex(void) const
+{
+	DEBUGCERR("DummyStructNode(" << GetLabel() << ") has no dofs\n");
+
+        // Allow calls from DataManager::SetNodeDimensionIndices
+	return -1;
+}
+
+/* Ritorna il primo indice (-1) di posizione */
+inline integer
+DummyStructNode::iGetFirstPositionIndex(void) const
+{
+	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
+		<< std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+/* Ritorna il primo indice (-1) di Quantita' di moto */
+inline integer
+DummyStructNode::iGetFirstMomentumIndex(void) const
+{
+	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
+		<< std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+inline integer
+DummyStructNode::iGetInitialFirstIndexPrime() const
+{
+	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
+		<< std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+#endif
+
+/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+inline unsigned int
+DummyStructNode::iGetNumDof(void) const
+{
+	return 0;
+}
+
+inline bool
+DummyStructNode::bComputeAccelerations(void) const
+{
+	return pNode->bComputeAccelerations();
 }
 
 StructDispNode::Type
@@ -4041,7 +4156,6 @@ DummyStructNode::BeforePredict(VectorHandler& /* X */ ,
 	NO_OP;
 }
 
-
 void
 DummyStructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
@@ -4054,6 +4168,19 @@ DummyStructNode::ComputeAccelerations(bool b)
 	return const_cast<StructNode *>(pNode)->ComputeAccelerations(b);
 }
 
+#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+void DummyStructNode::UpdateJac(doublereal dCoef)
+{
+     // We must not call iGetFirstIndex() here
+}
+#endif
+
+#ifdef USE_SPARSE_AUTODIFF
+void DummyStructNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
+{
+     // We must not call iGetFirstIndex() here
+}
+#endif
 /* DummyStructNode - end */
 
 

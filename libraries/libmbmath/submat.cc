@@ -764,6 +764,31 @@ FullSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
         return MH;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+VectorHandler& FullSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
+{
+#ifdef DEBUG
+        IsValid();
+        A.IsValid();
+        Y.IsValid();
+#endif
+        ASSERT(A.iGetSize() == Y.iGetSize());
+
+        for (integer c = 1; c <= iNumCols; ++c) {
+                ASSERT(piColm1[c] > 0);
+                ASSERT(piColm1[c] <= Y.iGetSize());
+
+                for (integer r = 1; r <= iNumRows; ++r) {
+                        ASSERT(piRowm1[r] > 0);
+                        ASSERT(piRowm1[r] <= A.iGetSize());
+
+                        A(piRowm1[r]) += ppdColsm1[c][r] * Y(piColm1[c]);
+                }
+        }
+
+        return A;
+}
+#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
@@ -1538,7 +1563,6 @@ SparseSubMatrixHandler::AddToT(MatrixHandler& MH) const
         return MH;
 }
 
-
 /* somma la matrice ad un FullMatrixHandler */
 MatrixHandler&
 SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
@@ -1586,6 +1610,27 @@ SparseSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
         return MH;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+VectorHandler& SparseSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
+{
+#ifdef DEBUG
+        IsValid();
+        A.IsValid();
+        Y.IsValid();
+#endif
+
+        for (integer i = 1; i <= iNumItems; ++i) {
+                ASSERT(piRowm1[i] > 0);
+                ASSERT(piRowm1[i] <= A.iGetSize());
+                ASSERT(piColm1[i] > 0);
+                ASSERT(piColm1[i] <= Y.iGetSize());
+
+                A(piRowm1[i]) += pdMatm1[i] * Y(piColm1[i]);
+        }
+
+        return A;
+}
+#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
@@ -1780,6 +1825,31 @@ MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
      } while (bRepeatLoop);
 #endif
      return MH;
+}
+
+VectorHandler& SpGradientSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
+{
+#ifdef DEBUG
+        IsValid();
+        A.IsValid();
+        Y.IsValid();
+#endif
+
+        ASSERT(A.iGetSize() == Y.iGetSize());
+
+        for (const auto& oItem: oVec) {
+                ASSERT(oItem.iEquationIdx >= 1);
+                ASSERT(oItem.iEquationIdx <= A.iGetSize());
+
+                for (const auto& oRec: oItem.oResidual) {
+                        ASSERT(oRec.iDof >= 1);
+                        ASSERT(oRec.iDof <= Y.iGetSize());
+
+                        A(oItem.iEquationIdx) += oRec.dDer * Y(oRec.iDof);
+                }
+        }
+
+        return A;
 }
 
 MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const

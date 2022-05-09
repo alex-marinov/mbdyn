@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+        Copyright (C) 2020(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -207,6 +207,11 @@ namespace sp_grad {
           }
           
 	  return os;
-     }     
+     }
+
+     std::ostream& operator<<(std::ostream& os, const GpGradProd& g)
+     {
+          return os << "f=(" << g.dGetValue() << ") df=(" << g.dGetDeriv() << ")";
+     }
 #endif
 }

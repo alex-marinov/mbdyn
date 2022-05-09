@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2021(-2021) all rights reserved.
+  Copyright (C) 2021(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -44,6 +44,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <memory>
 
 #ifdef USE_MKL_SET_NUM_THREADS_LOCAL
@@ -54,7 +55,7 @@
 #include "cscmhtpl.h"
 
 template <typename MKL_INT_TYPE>
-PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, const SolutionManager::ScaleOpt& scale, integer iVerbose)
+PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, integer iVerbose)
      :LinearSolver(pSM),
       pAx(nullptr),
       pAi(nullptr),
@@ -76,15 +77,7 @@ PardisoSolver<MKL_INT_TYPE>::PardisoSolver(SolutionManager* pSM, integer iDim, d
      iparm[1] = 3; // The parallel (OpenMP) version of the nested dissection algorithm
      iparm[7] = iNumIter; // Iterative refinement step
      iparm[9] = -log10(dPivot); // Pivoting perturbation
-
-     switch (scale.algorithm) {
-     case SolutionManager::SCALEA_NONE:
-       iparm[10] = 1; // Enable builtin scaling
-       break;
-     default:
-       iparm[10] = 0; // Disable builtin scaling
-     }
-
+     iparm[10] = 1; // Enable builtin scaling
      iparm[12] = 1; // Improved accuracy using (non-) symmetric weighted matching.
 
 #ifdef USE_MKL_SET_NUM_THREADS_LOCAL
@@ -203,61 +196,14 @@ MKL_INT_TYPE PardisoSolver<MKL_INT_TYPE>::MakeCompactForm(SparseMatrixHandler& m
 }
 
 template <typename MatrixHandlerType, typename MKL_INT_TYPE>
-void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::ScaleMatrixAndRightHandSide(MatrixHandlerType &mh)
-{
-    if (scale.when != SCALEW_NEVER) {
-         MatrixScale<MatrixHandlerType>& rMatScale = GetMatrixScale();
-
-         if (pLS->bReset()) {
-              if (!rMatScale.bGetInitialized()
-                  || scale.when == SolutionManager::SCALEW_ALWAYS) {
-                   // (re)compute
-                   rMatScale.ComputeScaleFactors(mh);
-              }
-              // in any case scale matrix and right-hand-side
-              rMatScale.ScaleMatrix(mh);
-
-              if (silent_err) {
-                   rMatScale.Report(std::cerr);
-              }
-         }
-
-         rMatScale.ScaleRightHandSide(b);
-    }
-}
-
-template <typename MatrixHandlerType, typename MKL_INT_TYPE>
-MatrixScale<MatrixHandlerType>&
-PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::GetMatrixScale()
-{
-    if (pMatScale == nullptr) {
-         pMatScale = MatrixScale<MatrixHandlerType>::Allocate(scale);
-    }
-
-    return *pMatScale;
-}
-
-template <typename MatrixHandlerType, typename MKL_INT_TYPE>
-void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::ScaleSolution()
-{
-        if (scale.when != SCALEW_NEVER) {
-                ASSERT(pMatScale != nullptr);
-                // scale solution
-                pMatScale->ScaleSolution(x);
-        }
-}
-
-template <typename MatrixHandlerType, typename MKL_INT_TYPE>
-PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::PardisoSolutionManager(integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, const ScaleOpt& scale, integer iVerbose)
+PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::PardisoSolutionManager(integer iDim, doublereal dPivot, integer iNumThreads, integer iNumIter, integer iVerbose)
     :x(iDim),
      b(iDim),
-     scale(scale),
-     pMatScale(nullptr),
      A(iDim, iDim)
 {
     SAFENEWWITHCONSTRUCTOR(pLS,
                            PardisoSolver<MKL_INT_TYPE>,
-                           PardisoSolver<MKL_INT_TYPE>(this, iDim, dPivot, iNumThreads, iNumIter, scale, iVerbose));
+                           PardisoSolver<MKL_INT_TYPE>(this, iDim, dPivot, iNumThreads, iNumIter, iVerbose));
 
     pLS->pdSetResVec(b.pdGetVec());
     pLS->pdSetSolVec(x.pdGetVec());
@@ -266,10 +212,7 @@ PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::PardisoSolutionManager(
 template <typename MatrixHandlerType, typename MKL_INT_TYPE>
 PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::~PardisoSolutionManager(void)
 {
-    if (pMatScale) {
-         SAFEDELETE(pMatScale);
-         pMatScale = nullptr;
-    }
+
 }
 
 #ifdef DEBUG
@@ -294,8 +237,6 @@ void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::MatrInitialize(voi
 template <typename MatrixHandlerType, typename MKL_INT_TYPE>
 void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::MakeCompressedRowForm(void)
 {
-    ScaleMatrixAndRightHandSide(A);
-
     pGetSolver()->MakeCompactForm(A, Ax, Ai, Ap);
 }
 
@@ -305,8 +246,6 @@ void PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::Solve(void)
     MakeCompressedRowForm();
 
     pLS->Solve();
-
-    ScaleSolution();
 }
 
 template <typename MatrixHandlerType, typename MKL_INT_TYPE>

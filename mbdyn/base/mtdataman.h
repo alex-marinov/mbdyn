@@ -65,6 +65,7 @@ protected:
 #endif
 #ifdef USE_SPARSE_AUTODIFF
                 ASS_GRAD,
+                ASS_GRAD_PROD,
 #endif
                 ASS_DEFAULT,
                 ASS_LAST
@@ -100,6 +101,8 @@ protected:
 #endif
 #ifdef USE_SPARSE_AUTODIFF
                 SpGradientSparseMatrixWrapper oGradJacHdl;
+                const VectorHandler* pY;
+                VectorHandler* pJacProd;
 #endif
                 AO_TS_t* lock;
 #ifdef MBDYN_X_MT_ASSRES
@@ -121,6 +124,7 @@ protected:
 #endif
 #ifdef USE_SPARSE_AUTODIFF
                 OP_ASSJAC_GRAD,
+                OP_ASSJAC_PROD,
 #endif
                 /* used only #ifdef MBDYN_X_MT_ASSRES */
                 OP_ASSRES,
@@ -165,6 +169,8 @@ protected:
 #endif
 #ifdef USE_SPARSE_AUTODIFF
         void GradAssJac(SpGradientSparseMatrixHandler& JacHdl, doublereal dCoef);
+        void GradAssJacProd(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
+        virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef) override;
 #endif
         static void SetAffinity(const ThreadData& oThread);
 public:

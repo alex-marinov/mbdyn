@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,44 +28,34 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
- /* 
-  *
-  * Copyright (C) 2003-2017
-  * Giuseppe Quaranta	<quaranta@aero.polimi.it>
-  *
-  * interfaccia dello Step integrator con il nonlinear solver 
+
+ /*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+  Copyright (C) 2022(-2022) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
   */
-  
-#ifndef NONLINPB_H
-#define NONLINPB_H
 
-#include <solman.h>
+#ifndef __SOLVER_BASE_H__INCLUDED__
+#define __SOLVER_BASE_H__INCLUDED__
 
-class NonlinearSolverTest;
+struct SolverBase {
+        enum StepIntegratorType {
+                        INT_CRANKNICOLSON,
+                        INT_IMPLICITEULER,
+                        INT_MS2,
+                        INT_HOPE,
+                        INT_DEFAULT,
+                        INT_THIRDORDER,
+                        INT_HYBRID,
+                        INT_DERIVATIVE,
+                        INT_UNKNOWN,
+        };
 
-class NonlinearProblem
-{
-public:
-	/* Distruttore */
-   	virtual ~NonlinearProblem(void) { };
+        static constexpr auto INT_COUNT = INT_DEFAULT + 1;
+};
 
-	virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const = 0;
-
-	virtual void Jacobian(MatrixHandler* pJac) const = 0;
-
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const = 0;
 #endif
-	virtual void Update(const VectorHandler* pSol) const = 0;
-
-	/* scale factor for tests */
-	virtual doublereal TestScale(const NonlinearSolverTest *pTest,
-								 doublereal& dAlgebraicEquations) const = 0;
-	
-	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
-			const VectorHandler& w, VectorHandler& z) const = 0;
-};   
-
-#endif /* NONLINPB_H */
-

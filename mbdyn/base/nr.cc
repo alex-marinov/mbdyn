@@ -55,9 +55,9 @@
 #include <cstdlib>
 
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
-		const bool bKJ, 
-		const integer IterBfAss,
-		const NonlinearSolverOptions& options)
+                                         const bool bKJ, 
+                                         const integer IterBfAss,
+                                         const NonlinearSolverTestOptions& options)
 : NonlinearSolver(options), pRes(NULL),pAbsRes(NULL),
 pSol(NULL),
 bTrueNewtonRaphson(bTNR),

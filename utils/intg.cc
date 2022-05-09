@@ -45,7 +45,9 @@
 #include "linsol.h"
 #include "fullmh.h"
 #include "harwrap.h"
-
+#ifdef USE_MPI
+#include "mbcomm.h"
+#endif
 #include "intg.h"
 
 struct integration_data {
@@ -69,6 +71,10 @@ void* get_method_data(int, const char*);
 static struct funcs *ff = NULL;
 static bool print_help = false;
 static void* p_data = NULL;
+
+#ifdef USE_MPI
+MPI::Intracomm MBDynComm = MPI::COMM_SELF;
+#endif
 
 int
 main(int argn, char *const argv[])
@@ -375,7 +381,11 @@ method_multistep(const char* module, integration_data* d,
 
 	// TODO: abstract from a specific solution manager?
 	LinSol ls;
-	SolutionManager *sm = ls.GetSolutionManager(size);
+	SolutionManager *sm = ls.GetSolutionManager(size,
+#ifdef USE_MPI
+                                                    MBDynComm,
+#endif
+                                                    0);
 
 	MatrixHandler& Jac = *sm->pMatHdl();
 	VectorHandler& Res = *sm->pResHdl();
@@ -531,7 +541,11 @@ method_cubic(const char* module, integration_data* d,
 
 	// TODO: abstract from a specific solution manager?
 	LinSol ls;
-	SolutionManager *sm = ls.GetSolutionManager(size);
+	SolutionManager *sm = ls.GetSolutionManager(size,
+#ifdef USE_MPI
+                                                    MBDynComm,
+#endif
+                                                    0);
 
 	MatrixHandler& Jac = *sm->pMatHdl();
 	VectorHandler& Res = *sm->pResHdl();

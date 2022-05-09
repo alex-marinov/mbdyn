@@ -87,6 +87,8 @@ j2p.cc \
 j2p.h \
 linesearch.h \
 linesearch.cc \
+noxsolver.h \
+noxsolver.cc \
 loadable.cc \
 loadable.h \
 mbpar.cc \
@@ -236,7 +238,7 @@ schurdataman.cc \
 schurdataman.h
 endif
 
-libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)
+libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ @OCTAVE_LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
 
 AM_CPPFLAGS = \

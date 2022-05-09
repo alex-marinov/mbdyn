@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2021
+ * Copyright (C) 1996-2022
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  * Paolo Mantegazza     <mantegazza@aero.polimi.it>
@@ -29,22 +29,32 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2022) all rights reserved.
+  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+  Copyright (C) 2022(-2022) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+  The copyright of this code is transferred
+  to Pierangelo Masarati and Paolo Mantegazza
+  for use in the software MBDyn as described
+  in the GNU Public License version 2.1
 */
 
-#ifndef ___MODULE_HYDRODYNAMIC_PLAIN_BEARING2_H__INCLUDED___
-#define ___MODULE_HYDRODYNAMIC_PLAIN_BEARING2_H__INCLUDED___
+#ifndef ___AZTEC_OO_SOLUTION_MANAGER_H__INCLUDED__
+#define ___AZTEC_OO_SOLUTION_MANAGER_H__INCLUDED__
 
-#ifdef HAVE_CONFIG_H
-#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#ifdef USE_TRILINOS
 
-extern bool hydrodynamic_plain_bearing2_set(void);
+#include "solman.h"
+#include "mbcomm.h"
 
+SolutionManager*
+pAllocateAztecOOSolutionManager(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer iNLD,
+     integer iMaxIter,
+     doublereal dTolRes,
+     integer iVerbose,
+     unsigned uPrecondFlag);
+#endif
 #endif

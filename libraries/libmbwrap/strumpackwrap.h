@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2020(-2020) all rights reserved.
+  Copyright (C) 2020(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -51,7 +51,6 @@
 #include "mynewmem.h"
 #include "ls.h"
 #include "solman.h"
-#include "dgeequ.h"
 
 #include "spmapmh.h"
 #ifdef USE_SPARSE_AUTODIFF
@@ -90,7 +89,6 @@ public:
      explicit StrumpackSolutionManager(integer iDim,
 				       integer iNumThreads,
 				       integer iNumIter,
-				       const ScaleOpt& scale = ScaleOpt(),
 				       unsigned uSolverFlags = 0u,
 				       integer iVerbose = 0);
      virtual ~StrumpackSolutionManager(void);
@@ -105,22 +103,12 @@ public:
      virtual MyVectorHandler* pSolHdl(void) const override;
 
 private:
-     template <typename MH>
-     void ScaleMatrixAndRightHandSide(MH &mh);
-
-     template <typename MH>
-     MatrixScale<MH>& GetMatrixScale();
-
-     void ScaleSolution();
-     
      inline StrumpackSolver* pGetSolver() const;
 
      mutable MatrixHandlerType A;
      mutable MyVectorHandler x, b;
      std::vector<integer> Ai, Ap;
      std::vector<doublereal> Ax;
-     MatrixScaleBase* pMatScale;
-     const ScaleOpt scale;
 };
 #endif
 #endif 

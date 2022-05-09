@@ -57,6 +57,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 ::solver[LinSol::SPQR_SOLVER].s_name,
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		::solver[LinSol::WATSON_SOLVER].s_name,
+                ::solver[LinSol::AZTECOO_SOLVER].s_name,
 		NULL
 	};
 
@@ -78,7 +79,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                 SPQR,
 		STRUMPACK,
 		WATSON,
-		
+		AZTECOO,
 		LASTKEYWORD
 	};
 
@@ -244,7 +245,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	     bGotIt = true;
 #endif
 	     break;
-	     
+        case AZTECOO:
+             cs.SetSolver(LinSol::AZTECOO_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using AztecOO solver\n");
+#ifdef USE_TRILINOS
+             bGotIt = true;
+#endif
+             break;
+             
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -757,12 +765,39 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			}
 	}
 
+        if (HP.IsKeyWord("tolerance")) {
+             if (!cs.SetTolerance(HP.GetReal())) {
+                  silent_cerr("Warning: refinement tolerance is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << "\n");
+             }
+        }
+        
 	if (HP.IsKeyWord("max" "iterations")) {
 		if (!cs.SetMaxIterations(HP.GetInt())) {
 			silent_cerr("Warning: iterative refinement is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
 		}
 	}
 
+        if (HP.IsKeyWord("preconditioner")) {
+             unsigned uPrecondFlag = 0u;
+             
+             if (HP.IsKeyWord("umfpack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK;
+             } else if (HP.IsKeyWord("klu")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_KLU;
+             } else if (HP.IsKeyWord("lapack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK;
+             } else if (HP.IsKeyWord("ilut")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_ILUT;
+             } else {
+                  silent_cerr("Keywords {umfpack, klu, lapack, ilut} expected at line " << HP.GetLineData() << std::endl);
+                  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+             }
+
+             if (!cs.AddSolverFlags(LinSol::SOLVER_FLAGS_PRECOND_MASK, uPrecondFlag)) {
+                  silent_cerr("Warning: preconditioner flag is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+             }
+        }
+        
 	if (HP.IsKeyWord("verbose")) {
 	     if (!cs.SetVerbose(HP.GetInt())) {
 		  silent_cerr("Warning: verbose flag is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);

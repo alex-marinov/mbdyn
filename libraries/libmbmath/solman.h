@@ -191,7 +191,7 @@ public:
    	doublereal *pdSetSolVec(doublereal* pd);
 
    	/* return true if the condition number is available */
-   	bool bGetConditionNumber(doublereal& dCond) const;
+   	virtual bool bGetConditionNumber(doublereal& dCond) const;
 };
 
 class QrSolutionManager: public SolutionManager {

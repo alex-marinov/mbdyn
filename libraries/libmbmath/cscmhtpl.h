@@ -33,7 +33,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-	Copyright (C) 2020(-2020) all rights reserved.
+	Copyright (C) 2020(-2022) all rights reserved.
 
 	The copyright of this code is transferred
 	to Pierangelo Masarati and Paolo Mantegazza
@@ -44,6 +44,7 @@
 #ifndef __COMPRESSED_SPARSE_COLUMN_MATRIX_HANDLER_TPL__
 #define __COMPRESSED_SPARSE_COLUMN_MATRIX_HANDLER_TPL__
 
+#include <algorithm>
 #include <vector>
 
 #include "myassert.h"
@@ -55,6 +56,10 @@ public:
      // This matrix handler is used mainly for scaling matrices after they are converted to compressed sparse column form.
      // It does not own the memory and will not free it!
      // So, it can be used with in combination with any CSC matrix handler (e.g. Umfpack, KLU, Pastix)
+     CSCMatrixHandlerTpl()
+          :NCols(0), NZ(0), pAx(nullptr), pAi(nullptr), pAp(nullptr) {
+     }
+     
      CSCMatrixHandlerTpl(value_type* pAx, idx_type* pAi, idx_type* pAp, idx_type NCols, idx_type NZ)
 	  :NCols(NCols), NZ(NZ), pAx(pAx), pAi(pAi), pAp(pAp) {
 
@@ -81,13 +86,13 @@ public:
      virtual integer iGetNumCols() const override { return NCols; }
 
      virtual const doublereal&
-     operator () (integer iRow, integer iCol) const {
-	  throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     operator () (const integer iRow, const integer iCol) const {
+          return *pFindItem(iRow, iCol);
      }
 
      virtual doublereal&
-     operator () (integer iRow, integer iCol) {
-	  throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     operator () (const integer iRow, const integer iCol) {
+          return *pFindItem(iRow, iCol);
      }
 
      virtual void Resize(integer, integer) override {
@@ -239,7 +244,7 @@ public:
      virtual CSCMatrixHandlerTpl* Copy() const override {
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }     
-protected:
+
      virtual VectorHandler&
      MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 					      const doublereal& dCoef),
@@ -281,12 +286,72 @@ protected:
 
 	  return out;
      }
+
+     CSCMatrixHandlerTpl& operator=(const CSCMatrixHandlerTpl& oMH) {
+#ifdef DEBUG
+          oMH.IsValid();
+          IsValid();
+#endif
+          NCols = oMH.NCols;
+          NZ = oMH.NZ;
+          pAx = oMH.pAx;
+          pAi = oMH.pAi;
+          pAp = oMH.pAp;
+
+#ifdef DEBUG
+          IsValid();
+#endif
+          return *this;
+     }
+     
 private:
-     const idx_type NCols;
-     const idx_type NZ;
-     value_type* const pAx;
-     idx_type* const pAi;
-     idx_type* const pAp;
+     doublereal* pFindItem(const integer iRow, const integer iCol) const {
+#ifdef DEBUG
+          IsValid();
+#endif
+          ASSERT(iRow >= 1);
+          ASSERT(iRow <= iGetNumRows());
+          ASSERT(iCol >= 1);
+          ASSERT(iCol <= iGetNumCols());
+     
+          const idx_type iColStart = pAp[iCol - 1] - offset;
+          const idx_type iColEnd = pAp[iCol] - offset;
+
+          ASSERT(iColStart >= 0);
+          ASSERT(iColStart < NZ);
+          ASSERT(iColEnd >= iColStart);
+          ASSERT(iColEnd <= NZ);
+     
+          const idx_type* const pRowStart = pAi + iColStart;
+          const idx_type* const pRowEnd = pAi + iColEnd;
+     
+          const auto it = std::lower_bound(pRowStart, pRowEnd, iRow + offset - 1);
+
+          ASSERT(it >= pRowStart);
+          ASSERT(it <= pRowEnd);
+     
+          if (*it != iRow + offset - 1) {
+               static constexpr doublereal dZero = 0.;
+               // Return address of write protected memory
+               // Depending on the platform it may cause a SIGSEGV
+               // if we are writing to this address
+               ASSERT(dZero == 0.);
+               return const_cast<doublereal*>(&dZero);
+          }
+
+          const idx_type iIndex = it - pRowStart + iColStart;
+
+          ASSERT(iIndex >= 0);
+          ASSERT(iIndex < NZ);
+     
+          return pAx + iIndex;
+     }
+     
+     idx_type NCols;
+     idx_type NZ;
+     value_type* pAx;
+     idx_type* pAi;
+     idx_type* pAp;
 };
 
 #endif

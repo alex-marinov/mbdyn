@@ -88,6 +88,13 @@ public:
             doublereal dCoef,
             const VectorHandler& XCurr,
             const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& JacY,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;
      SubVectorHandler&
      AssRes(SubVectorHandler& WorkVec,
             doublereal dCoef,
@@ -127,28 +134,48 @@ private:
                lambdaPrev = lambda;
           }
 
-          inline void UpdateReaction(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
-                                     const sp_grad::SpGradient&,
-                                     const sp_grad::SpGradient&) {
+          static inline void
+          UpdateReaction(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 3>&,
+                         const sp_grad::SpGradient&,
+                         const sp_grad::SpGradient&) {
 
           }
 
-          inline void UpdateReaction(const sp_grad::SpColVector<doublereal, 3>& F1,
-                                     const sp_grad::SpColVector<doublereal, 3>& M1,
-                                     const sp_grad::SpColVector<doublereal, 3>& F2,
-                                     const sp_grad::SpColVector<doublereal, 3>& M2,
-                                     doublereal dXn,
-                                     doublereal lambda);
+          static inline void
+          UpdateReaction(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&,
+                         const sp_grad::GpGradProd&,
+                         const sp_grad::GpGradProd&) {
 
-          inline void UpdateFriction(const sp_grad::SpColVector<sp_grad::SpGradient, 2>& U,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 2>& tau,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 2>& z,
-                                     const sp_grad::SpColVector<sp_grad::SpGradient, 2>& zP) {
+          }
+          
+          inline void
+          UpdateReaction(const sp_grad::SpColVector<doublereal, 3>& F1,
+                         const sp_grad::SpColVector<doublereal, 3>& M1,
+                         const sp_grad::SpColVector<doublereal, 3>& F2,
+                         const sp_grad::SpColVector<doublereal, 3>& M2,
+                         doublereal dXn,
+                         doublereal lambda);
+
+          static inline void
+          UpdateFriction(const sp_grad::SpColVector<sp_grad::SpGradient, 2>& U,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 2>& tau,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 2>& z,
+                         const sp_grad::SpColVector<sp_grad::SpGradient, 2>& zP) {
           }
 
+          static inline void
+          UpdateFriction(const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& U,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& tau,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& z,
+                         const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& zP) {
+          }
+          
           inline void UpdateFriction(const sp_grad::SpColVector<doublereal, 2>& U,
                                      const sp_grad::SpColVector<doublereal, 2>& tau,
                                      const sp_grad::SpColVector<doublereal, 2>& z,
@@ -780,6 +807,26 @@ UniInPlaneFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 
      return WorkMatVar;
 }
+
+void
+UniInPlaneFriction::AssJac(VectorHandler& JacY,
+                           const VectorHandler& Y,
+                           doublereal dCoef,
+                           const VectorHandler& XCurr,
+                           const VectorHandler& XPrimeCurr,
+                           VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
+
 SubVectorHandler&
 UniInPlaneFriction::AssRes(SubVectorHandler& WorkVec,
                            doublereal dCoef,
@@ -860,7 +907,7 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
                const T norm_U2 = Dot(U, U);
 
                if (norm_U2 == 0.) {
-                    SpGradient::ResizeReset(kappa, 0., 0);
+                    SpGradientTraits<T>::ResizeReset(kappa, 0., 0);
                } else {
                     const SpColVector<T, 2> Mk_U = Mk * U;
                     const SpColVector<T, 2> Ms_U = Ms * U;

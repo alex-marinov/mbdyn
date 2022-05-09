@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2020(-2020) all rights reserved.
+        Copyright (C) 2020(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -53,6 +53,130 @@
 #include "sp_matrix_base.h"
 
 namespace sp_grad {
+     void SpGradientTraits<doublereal>::ResizeReset(doublereal& g, doublereal dVal, index_type)
+     {
+     	  g = dVal;
+     }
+
+     void SpGradientTraits<doublereal>::InsertDof(doublereal, SpGradExpDofMap&)
+     {
+     }
+
+     constexpr index_type
+     SpGradientTraits<doublereal>::iGetSize(doublereal a)
+     {
+	  return 0;
+     }
+
+     constexpr doublereal
+     SpGradientTraits<doublereal>::dGetValue(doublereal a)
+     {
+	  return a;
+     }
+
+     void SpGradientTraits<doublereal>::GetDofStat(doublereal, SpGradDofStat&)
+     {
+     }
+
+     void SpGradientTraits<doublereal>::Sort(doublereal)
+     {
+     }
+
+     constexpr doublereal SpGradientTraits<doublereal>::dGetDeriv(doublereal, index_type)
+     {
+	  return 0.;
+     }
+     
+     template <index_type NumRows, index_type NumCols>
+     inline bool SpGradientTraits<SpGradient>::bHaveRefTo(const SpGradient& g, const SpMatrixBase<SpGradient, NumRows, NumCols>& A)
+     {
+          return g.bHaveRefTo(A);
+     }
+
+     bool SpGradientTraits<SpGradient>::bIsUnique(const SpGradient& g)
+     {
+          return g.bIsUnique();
+     }
+
+     void SpGradientTraits<SpGradient>::ResizeReset(SpGradient& g, doublereal dVal, index_type iSize)
+     {
+	  g.ResizeReset(dVal, iSize);
+     }
+
+     void SpGradientTraits<SpGradient>::InsertDof(const SpGradient& g, SpGradExpDofMap& oDofMap)
+     {
+	  g.InsertDof(oDofMap);
+     }
+
+     void SpGradientTraits<SpGradient>::AddDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef, const SpGradExpDofMap& oDofMap)
+     {
+	  f.AddDeriv(g, dCoef, oDofMap);
+     }
+
+     template <typename Expr>
+     constexpr doublereal
+     SpGradientTraits<SpGradient>::dGetValue(const SpGradBase<Expr>& a)
+     {
+	  return a.dGetValue();
+     }
+
+     template <typename Expr>
+     index_type
+     SpGradientTraits<SpGradient>::iGetSize(const SpGradBase<Expr>& a)
+     {
+	  return a.iGetSize();
+     }
+
+     inline index_type
+     SpGradientTraits<SpGradient>::iGetSize(const SpGradient& a)
+     {
+          return a.iGetSize();
+     }
+
+     inline doublereal
+     SpGradientTraits<GpGradProd>::dGetValue(const GpGradProd& a)
+     {
+          return a.dGetValue();
+     }
+     
+     inline void
+     SpGradientTraits<GpGradProd>::ResizeReset(GpGradProd& g, doublereal dVal, index_type)
+     {
+          g.Reset(dVal, 0.);
+     }
+
+     template <index_type NumRows, index_type NumCols>
+     inline bool
+     SpGradientTraits<GpGradProd>::bHaveRefTo(const GpGradProd& g, const SpMatrixBase<GpGradProd, NumRows, NumCols>& A)
+     {
+          return g.bHaveRefTo(A);
+     }
+     
+     inline void
+     SpGradientTraits<GpGradProd>::InsertDeriv(const GpGradProd& f, GpGradProd& g, doublereal dCoef)
+     {
+          f.InsertDeriv(g, dCoef);
+     }
+
+     void SpGradientTraits<SpGradient>::InsertDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef)
+     {
+	  f.InsertDeriv(g, dCoef);
+     }
+
+     void SpGradientTraits<SpGradient>::Sort(SpGradient& g)
+     {
+	  g.Sort();
+     }
+
+     void SpGradientTraits<SpGradient>::GetDofStat(const SpGradient& g, SpGradDofStat& s)
+     {
+	  g.GetDofStat(s);
+     }
+
+     doublereal SpGradientTraits<SpGradient>::dGetDeriv(const SpGradient&g, index_type iDof) {
+	  return g.dGetDeriv(iDof);
+     }
+
      SpGradient::SpGradient(SpDerivData* p)
 	  :pData(p)
      {
@@ -364,14 +488,6 @@ namespace sp_grad {
 	  SP_GRAD_ASSERT(bValid());
      }
 
-     void SpGradient::ResizeReset(SpGradient& g, doublereal dVal, index_type iSize) {
-	  g.ResizeReset(dVal, iSize);
-     }
-
-     void SpGradient::ResizeReset(doublereal& g, doublereal dVal, index_type) {
-     	  g = dVal;
-     }
-
      void SpGradient::Scale(doublereal dRowScale, const std::vector<doublereal>& oColScale) {
 	  UniqueOwner();
 
@@ -453,13 +569,6 @@ namespace sp_grad {
 	  }
      }
 
-     void SpGradient::InsertDof(const SpGradient& g, SpGradExpDofMap& oDofMap) {
-	  g.InsertDof(oDofMap);
-     }
-
-     void SpGradient::InsertDof(doublereal, SpGradExpDofMap&) {
-     }
-
      void SpGradient::AddDeriv(SpGradient& g, const doublereal dCoef, const SpGradExpDofMap& oDofMap) const {
 	  SP_GRAD_ASSERT(g.bValid());
 	  SP_GRAD_ASSERT(oDofMap.bValid());
@@ -480,10 +589,6 @@ namespace sp_grad {
 
 	  SP_GRAD_ASSERT(g.bValid());
 	  SP_GRAD_ASSERT(oDofMap.bValid());
-     }
-
-     void SpGradient::AddDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef, const SpGradExpDofMap& oDofMap) {
-	  f.AddDeriv(g, dCoef, oDofMap);
      }
 
      const SpDerivRec* SpGradient::begin() const {
@@ -536,6 +641,9 @@ namespace sp_grad {
 
      template <typename AITER, typename BITER>
      void SpGradient::MapInnerProduct(AITER pAFirst, AITER pALast, index_type iAOffset, BITER pBFirst, BITER pBLast, index_type iBOffset, const SpGradExpDofMap& oDofMap) {
+          typedef typename util::remove_all<decltype(*pAFirst)>::type AType;
+          typedef typename util::remove_all<decltype(*pBFirst)>::type BType;
+          
 	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT((pBLast - pBFirst) / iBOffset == (pALast - pAFirst) / iAOffset);
 	  SP_GRAD_ASSERT((pALast - pAFirst) % iAOffset == 0);
@@ -556,8 +664,8 @@ namespace sp_grad {
 	  while (pAFirst < pALast) {
 	       const auto& ai = *pAFirst;
 	       const auto& bi = *pBFirst;
-	       const doublereal aiv = dGetValue(ai);
-	       const doublereal biv = dGetValue(bi);
+	       const doublereal aiv = SpGradientTraits<AType>::dGetValue(ai);
+	       const doublereal biv = SpGradientTraits<BType>::dGetValue(bi);
 
 	       pData->dVal += aiv * biv;
 
@@ -574,6 +682,8 @@ namespace sp_grad {
 
      template <typename AITER, typename BITER>
      void SpGradient::InnerProduct(AITER pAFirst, AITER pALast, index_type iAOffset, BITER pBFirst, BITER pBLast, index_type iBOffset) {
+          typedef typename util::remove_all<decltype(*pAFirst)>::type AType;
+          typedef typename util::remove_all<decltype(*pBFirst)>::type BType;
 	  SP_GRAD_ASSERT(bValid());
 	  SP_GRAD_ASSERT((pBLast - pBFirst) / iBOffset == (pALast - pAFirst) / iAOffset);
 
@@ -589,8 +699,8 @@ namespace sp_grad {
 	  while (pAFirst != pALast) {
 	       const auto& ai = *pAFirst;
 	       const auto& bi = *pBFirst;
-	       const doublereal aiv = dGetValue(ai);
-	       const doublereal biv = dGetValue(bi);
+	       const doublereal aiv = SpGradientTraits<AType>::dGetValue(ai);
+	       const doublereal biv = SpGradientTraits<BType>::dGetValue(bi);
 
 	       pData->dVal += aiv * biv;
 
@@ -606,55 +716,6 @@ namespace sp_grad {
 
      void SpGradient::UniqueOwner() {
 	  Allocate(pData->iSizeRes, pData->iSizeCurr, pData->uFlags);
-     }
-
-
-     template <typename Expr>
-     constexpr doublereal
-     SpGradient::dGetValue(const SpGradBase<Expr>& a) {
-	  return a.dGetValue();
-     }
-
-     constexpr doublereal
-     SpGradient::dGetValue(doublereal a) {
-	  return a;
-     }
-
-     template <typename Expr>
-     constexpr index_type
-     SpGradient::iGetSize(const SpGradBase<Expr>& a) {
-	  return a.iGetSize();
-     }
-
-     constexpr index_type
-     SpGradient::iGetSize(doublereal a) {
-	  return 0;
-     }
-
-     void SpGradient::InsertDeriv(const SpGradient& f, SpGradient& g, doublereal dCoef) {
-	  f.InsertDeriv(g, dCoef);
-     }
-
-     void SpGradient::Sort(doublereal) {
-     }
-
-     void SpGradient::Sort(SpGradient& g) {
-	  g.Sort();
-     }
-
-     void SpGradient::GetDofStat(const SpGradient& g, SpGradDofStat& s) {
-	  g.GetDofStat(s);
-     }
-
-     void SpGradient::GetDofStat(doublereal, SpGradDofStat&) {
-     }
-
-     doublereal SpGradient::dGetDeriv(const SpGradient&g, index_type iDof) {
-	  return g.dGetDeriv(iDof);
-     }
-
-     constexpr doublereal SpGradient::dGetDeriv(doublereal, index_type) {
-	  return 0.;
      }
 
      constexpr size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
@@ -975,10 +1036,12 @@ namespace sp_grad {
 
      template <typename ITER>
      void SpGradient::InnerProductInsertDof(ITER pFirst, ITER pLast, index_type iOffset, SpGradExpDofMap& oDofMap) {
+          typedef typename util::remove_all<decltype(*pFirst)>::type IterValType;
+          
 	  SP_GRAD_ASSERT(oDofMap.bValid());
 	  
 	  while (pFirst < pLast) {
-	       InsertDof(*pFirst, oDofMap);
+	       SpGradientTraits<IterValType>::InsertDof(*pFirst, oDofMap);
 	       pFirst += iOffset;
 	  }
 
@@ -987,10 +1050,11 @@ namespace sp_grad {
 
      template <typename ITER>
      index_type SpGradient::InnerProductSize(ITER pFirst, ITER pLast, index_type iOffset) {
+          typedef typename util::remove_all<decltype(*pFirst)>::type IterType;
 	  index_type iNumNz = 0;
 
 	  while (pFirst < pLast) {
-	       iNumNz += iGetSize(*pFirst);
+	       iNumNz += SpGradientTraits<IterType>::iGetSize(*pFirst);
 	       pFirst += iOffset;
 	  }
 
@@ -1008,8 +1072,10 @@ namespace sp_grad {
 
      template <typename ITER>
      void SpGradient::InnerProductDofStat(ITER pFirst, ITER pLast, index_type iOffset, SpGradDofStat& s) {
+          typedef typename util::remove_all<decltype(*pFirst)>::type IterValType;
+          
 	  while (pFirst < pLast) {
-	       GetDofStat(*pFirst, s);
+	       SpGradientTraits<IterValType>::GetDofStat(*pFirst, s);
 	       pFirst += iOffset;
 	  }
      }
@@ -1025,6 +1091,83 @@ namespace sp_grad {
 	  
 	  return &oNullData;
      }
-}
 
+     template <typename Expr>
+     constexpr GpGradProd::GpGradProd(const GpGradProdBase<Expr>& oExpr)
+          :dVal(oExpr.dGetValue()), dDer(oExpr.dGetDeriv()) {
+     }
+
+     template <typename Expr>
+     inline GpGradProd& GpGradProd::operator+=(const GpGradProdBase<Expr>& oExpr) {
+          return AssignOper<SpGradBinPlus, Expr>(oExpr);
+     }
+
+     template <typename Expr>
+     inline GpGradProd& GpGradProd::operator-=(const GpGradProdBase<Expr>& oExpr) {
+          return AssignOper<SpGradBinMinus, Expr>(oExpr);
+     }
+
+     template <typename Expr>
+     inline GpGradProd& GpGradProd::operator*=(const GpGradProdBase<Expr>& oExpr) {
+          return AssignOper<SpGradBinMult, Expr>(oExpr);
+     }
+
+     template <typename Expr>
+     inline GpGradProd& GpGradProd::operator/=(const GpGradProdBase<Expr>& oExpr) {
+          return AssignOper<SpGradBinDiv, Expr>(oExpr);
+     }
+
+     inline void GpGradProd::InsertDeriv(GpGradProd& g, doublereal dCoef) const
+     {
+          g.dDer += dDer * dCoef;
+     }
+     
+     template <typename BinFunc, typename Expr>
+     inline GpGradProd& GpGradProd::AssignOper(const GpGradProdBase<Expr>& oExpr) {
+          const doublereal uv = dGetValue();
+          const doublereal ud = dGetDeriv();
+          const doublereal vv = oExpr.dGetValue();
+          const doublereal vd = oExpr.dGetDeriv();
+
+          dVal = BinFunc::f(uv, vv);
+          dDer = BinFunc::df_du(uv, vv) * ud + BinFunc::df_dv(uv, vv) * vd;
+          
+          return *this;
+     }
+
+     template <typename AITER, typename BITER>
+     void GpGradProd::MapInnerProduct(AITER pAFirst, AITER pALast, index_type iAOffset, BITER pBFirst, BITER pBLast, index_type iBOffset) {
+          SP_GRAD_ASSERT(bValid());
+	  SP_GRAD_ASSERT((pBLast - pBFirst) / iBOffset == (pALast - pAFirst) / iAOffset);
+	  SP_GRAD_ASSERT((pALast - pAFirst) % iAOffset == 0);
+	  SP_GRAD_ASSERT((pBLast - pBFirst) % iBOffset == 0);
+
+	  Reset();
+
+	  while (pAFirst < pALast) {
+	       const auto& ai = *pAFirst;
+	       const auto& bi = *pBFirst;
+	       const doublereal aiv = dGetValue(ai);
+	       const doublereal biv = dGetValue(bi);
+
+	       dVal += aiv * biv;
+
+	       InnerProductAddDer(ai, biv);
+	       InnerProductAddDer(bi, aiv);
+
+	       pAFirst += iAOffset;
+	       pBFirst += iBOffset;
+	  }
+     }
+
+     void GpGradProd::InnerProductAddDer(const GpGradProd& g, const doublereal dCoef) {
+          dDer += dCoef * g.dDer;
+     }
+
+#ifdef SP_GRAD_DEBUG
+     bool GpGradProd::bValid() const {
+          return std::isfinite(dVal) && std::isfinite(dDer);
+     }
+#endif     
+}
 #endif

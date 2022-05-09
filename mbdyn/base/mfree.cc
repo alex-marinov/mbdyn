@@ -51,7 +51,7 @@ MatrixFreeSolver::MatrixFreeSolver(
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		const NonlinearSolverOptions& options)
+		const NonlinearSolverTestOptions& options)
 : NonlinearSolver(options),
 pPM(NULL),
 pRes(NULL),

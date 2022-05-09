@@ -6,6 +6,21 @@ manual/femgen.1
 manual/mbdyn.1
 var/mbdyn2easyanim.sh
 
+## Latex temporary files
+*.log
+*.aux
+*.toc
+*.tvi
+*.bbl
+*.blg
+*.lof
+*.dvi
+*.lot
+
+## MBDyn manuals
+manual/input/mbdyn-input-develop.pdf
+manual/install/mbdyn-install-develop.pdf
+manual/tecman/mbdyn-tecman-develop.pdf
 
 # Prerequisites
 *.d

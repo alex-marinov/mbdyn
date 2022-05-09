@@ -206,6 +206,9 @@ public:
      inline sp_grad::SpColVector<sp_grad::SpGradient, iDim>
      Update(const sp_grad::SpColVector<sp_grad::SpGradient, iDim>& Eps);
 
+     inline sp_grad::SpColVector<sp_grad::GpGradProd, iDim>
+     Update(const sp_grad::SpColVector<sp_grad::GpGradProd, iDim>& Eps);
+     
      inline sp_grad::SpColVector<doublereal, iDim>
      Update(const sp_grad::SpColVector<doublereal, iDim>& Eps,
             const sp_grad::SpColVector<doublereal, iDim>& EpsPrime);
@@ -213,6 +216,10 @@ public:
      inline sp_grad::SpColVector<sp_grad::SpGradient, iDim>
      Update(const sp_grad::SpColVector<sp_grad::SpGradient, iDim>& Eps,
             const sp_grad::SpColVector<sp_grad::SpGradient, iDim>& EpsPrime);
+
+     inline sp_grad::SpColVector<sp_grad::GpGradProd, iDim>
+     Update(const sp_grad::SpColVector<sp_grad::GpGradProd, iDim>& Eps,
+            const sp_grad::SpColVector<sp_grad::GpGradProd, iDim>& EpsPrime);
 #endif
 protected:
 #ifdef USE_AUTODIFF
@@ -363,6 +370,33 @@ ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<sp_grad::SpGradient,
      return FTmp;
 }
 
+
+template <typename T, typename Tder>
+sp_grad::SpColVector<sp_grad::GpGradProd, ConstitutiveLaw<T, Tder>::iDim>
+ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<sp_grad::GpGradProd, ConstitutiveLaw<T, Tder>::iDim>& Eps)
+{
+     using namespace sp_grad;
+
+     static_assert(iDim == T::iNumRowsStatic);
+     static_assert(iDim >= 1);
+     static_assert(T::iNumColsStatic == 1);
+
+     ASSERT(iGetNumDof() == 0);
+     ASSERT((GetConstLawType() & ConstLawType::VISCOUS) == 0);
+
+     SpColVector<GpGradProd, iDim> FTmp(iDim, 1);
+
+     for (index_type i = 1; i <= iDim; ++i) {
+          FTmp(i).Reset(F(i));
+          
+          for (index_type j = 1; j <= iDim; ++j) {
+               Eps(j).InsertDeriv(FTmp(i), FDE(i, j));
+          }
+     }
+
+     return FTmp;
+}
+
 template <typename T, typename Tder>
 sp_grad::SpColVector<doublereal, ConstitutiveLaw<T, Tder>::iDim>
 ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<doublereal, ConstitutiveLaw<T, Tder>::iDim>& Eps,
@@ -427,6 +461,34 @@ ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<sp_grad::SpGradient,
           for (index_type j = 1; j <= iDim; ++j) {
                Eps(j).AddDeriv(FTmp(i), FDE(i, j), oDofMap);
                EpsPrime(j).AddDeriv(FTmp(i), FDEPrime(i, j), oDofMap);
+          }
+     }
+
+     return FTmp;
+}
+
+template <typename T, typename Tder>
+sp_grad::SpColVector<sp_grad::GpGradProd, ConstitutiveLaw<T, Tder>::iDim>
+ConstitutiveLaw<T, Tder>::Update(const sp_grad::SpColVector<sp_grad::GpGradProd, ConstitutiveLaw<T, Tder>::iDim>& Eps,
+                                 const sp_grad::SpColVector<sp_grad::GpGradProd, ConstitutiveLaw<T, Tder>::iDim>& EpsPrime)
+{
+     using namespace sp_grad;
+
+     static_assert(iDim == T::iNumRowsStatic);
+     static_assert(iDim >= 1);
+     static_assert(T::iNumColsStatic == 1);
+
+     ASSERT(iGetNumDof() == 0);
+     ASSERT((GetConstLawType() & ConstLawType::VISCOUS) != 0);
+     
+     SpColVector<GpGradProd, iDim> FTmp(iDim, 1);
+
+     for (index_type i = 1; i <= iDim; ++i) {
+          FTmp(i).Reset(F(i));
+          
+          for (index_type j = 1; j <= iDim; ++j) {
+               Eps(j).InsertDeriv(FTmp(i), FDE(i, j));
+               EpsPrime(j).InsertDeriv(FTmp(i), FDEPrime(i, j));
           }
      }
 
