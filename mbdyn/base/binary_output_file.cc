@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,38 +31,5 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include "dofown.h"
-#include "solman.h"
+#include "binary_output_file.h"
 
-doublereal
-DofOwner::dGetScale(void) const
-{
-	return dScale;
-}
-
-void
-DofOwner::SetScale(const doublereal& d)
-{
-	dScale = d;
-}
-
-DofOwnerOwner::DofOwnerOwner(const DofOwner* pDO) 
-: pDofOwner(pDO)
-{ 
-	ASSERT(pDofOwner != NULL);
-}
-   
-void 
-DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
-{ 
-	NO_OP; 
-}
-
-const MBUnits::Dimensions
-DofOwnerOwner::GetEquationDimension(integer index) const {
-
-	silent_cout("entered GetEquationDimension of DofOwnerOwner");
-	throw("runtime error");
-	
-	return MBUnits::Dimensions::Boolean;
-}

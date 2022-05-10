@@ -178,11 +178,11 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Linear velocity", OH, name);
 
 			Var_dv = OH.CreateVar<doublereal>(name + "dv",
-					OutputHandler::Dimensions::Dimensionless,
+					MBUnits::Dimensions::Dimensionless,
 					"direction of imposed velocity");
 
 			Var_v = OH.CreateVar<doublereal>(name + "v",
-					OutputHandler::Dimensions::Velocity,
+					MBUnits::Dimensions::Velocity,
 					"magnitude of imposed velocity");
 		}
 #endif // USE_NETCDF
@@ -280,21 +280,21 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 LinearVelocityJoint::GetEquationDimension(integer index) const {
 	// DOF == 6
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 	}
 
@@ -463,11 +463,11 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int("Angular velocity", OH, name);
 
 			Var_dOmega = OH.CreateVar<doublereal>(name + "dOmega",
-					OutputHandler::Dimensions::AngularVelocity,
+					MBUnits::Dimensions::AngularVelocity,
 					"magnitude imposed angular velocity");
 
 			Var_w = OH.CreateVar<Vec3>(name + "w",
-					OutputHandler::Dimensions::Dimensionless,
+					MBUnits::Dimensions::Dimensionless,
 					"direction of imposed angular velocity");
 		}
 #endif // USE_NETCDF
@@ -572,21 +572,21 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 AngularVelocityJoint::GetEquationDimension(integer index) const {
 	// DOF == 1
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 	}
 

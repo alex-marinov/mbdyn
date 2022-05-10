@@ -115,7 +115,7 @@ public:
 	virtual VectorHandler* GetAbsRes() { return 0;}
 
 	/* returns pointer to map of dimension and corresponding equations */
-	virtual std::map<OutputHandler::Dimensions, std::set<integer>>* GetDimMap() { return 0; };
+	virtual std::map<MBUnits::Dimensions, std::set<integer>>* GetDimMap() { return 0; };
 };
 
 class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
@@ -160,8 +160,8 @@ public:
 class NonlinearSolverTestSepNorm : virtual public NonlinearSolverTest {
 public:
 	/* Indices for corresponding dimensions */
-	std::map<OutputHandler::Dimensions, std::set<integer>> MapOfDimensionIndices;
-	virtual std::map<OutputHandler::Dimensions, std::set<integer>>* GetDimMap();
+	std::map<MBUnits::Dimensions, std::set<integer>> MapOfDimensionIndices;
+	virtual std::map<MBUnits::Dimensions, std::set<integer>>* GetDimMap();
 
 	/* Vector of the absolute values */
 	MyVectorHandler AbsRes;

@@ -173,7 +173,7 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int("Linear acceleration", OH, name);
 
 			Var_a = OH.CreateVar<Vec3>(name + "a", 
-				OutputHandler::Dimensions::Acceleration, "imposed acceleration (x, y, z)");
+				MBUnits::Dimensions::Acceleration, "imposed acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF
 	}
@@ -281,18 +281,18 @@ LinearAccelerationJoint::dGetPrivData(unsigned int i) const
    }
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 LinearAccelerationJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Acceleration;
+			dimension = MBUnits::Dimensions::Acceleration;
 			break;
 	}
 
@@ -458,7 +458,7 @@ AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Angular acceleration", OH, name);
 
 			Var_wP = OH.CreateVar<Vec3>(name + "wP", 
-				OutputHandler::Dimensions::AngularAcceleration,
+				MBUnits::Dimensions::AngularAcceleration,
 				"imposed angular acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -567,18 +567,18 @@ AngularAccelerationJoint::dGetPrivData(unsigned int i) const
    }
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 AngularAccelerationJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::AngularAcceleration;
+			dimension = MBUnits::Dimensions::AngularAcceleration;
 			break;
 	}
 

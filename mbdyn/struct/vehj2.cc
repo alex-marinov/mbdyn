@@ -337,16 +337,16 @@ DeformableDispJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("deformable displacement", OH, name);
 
 			Var_tilde_d = OH.CreateVar<Vec3>(name + "d",
-					OutputHandler::Dimensions::Length,
+					MBUnits::Dimensions::Length,
 					"relative position in local frame (x, y, z)");
 			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime",
-					OutputHandler::Dimensions::Velocity,
+					MBUnits::Dimensions::Velocity,
 					"relative linear velocity in local frame (x, y, z)");
 			Var_d = OH.CreateVar<Vec3>(name + "D",
-					OutputHandler::Dimensions::Length,
+					MBUnits::Dimensions::Length,
 					"relative position in global frame (x, y, z)");
 			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime",
-					OutputHandler::Dimensions::Velocity,
+					MBUnits::Dimensions::Velocity,
 					"relative linear velocity in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -573,10 +573,10 @@ DeformableDispJoint::dGetPrivData(unsigned int i) const
 	}
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 DeformableDispJoint::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 /* DeformableDispJoint - end */
 

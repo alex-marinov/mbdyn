@@ -620,21 +620,21 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PrismaticJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
       case 3:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 	}
 

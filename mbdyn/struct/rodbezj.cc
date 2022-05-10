@@ -458,23 +458,23 @@ RodBezier::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("rod bezier", OH, name);
 			
 			Var_F2 = OH.CreateVar<Vec3>(name + "F2",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"force on Node 2 (x, y, z)");
 
 			Var_l = OH.CreateVar<doublereal>(name + "l",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"length of the element");
 
 			Var_l1 = OH.CreateVar<Vec3>(name + "l1",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"node 1 reference unit vector (x, y, z)");
 			
 			Var_l2 = OH.CreateVar<Vec3>(name + "l2",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"node 2 reference unit vector (x, y, z)");
 
 			Var_v = OH.CreateVar<doublereal>(name + "v",
-				OutputHandler::Dimensions::Velocity,
+				MBUnits::Dimensions::Velocity,
 				"length rate of change");
 		}
 #endif // USE_NETCDF
@@ -945,10 +945,10 @@ RodBezier::dGetPrivData(unsigned int i) const
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 RodBezier::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 
 /* RodBezier - end */

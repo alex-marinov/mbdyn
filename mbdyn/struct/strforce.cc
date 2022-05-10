@@ -143,7 +143,7 @@ AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"force components (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -314,7 +314,7 @@ AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"force components (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -577,11 +577,11 @@ AbsoluteForce::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"global force components (x, y, z)");
 
 			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"arm in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -866,18 +866,18 @@ FollowerForce::OutputPrepare(OutputHandler& OH)
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				os << '.';
 				Var_F = OH.CreateVar<Vec3>(os.str() + "f",
-					OutputHandler::Dimensions::Force,
+					MBUnits::Dimensions::Force,
 					"local force components (x, y, z)");
 
 			} else {
 				os << '.';
 				Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-					OutputHandler::Dimensions::Force,
+					MBUnits::Dimensions::Force,
 					"global force components (x, y, z)");
 			}
 
 			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"arm in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -1118,7 +1118,7 @@ AbsoluteCouple::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "M",
-				OutputHandler::Dimensions::Moment,
+				MBUnits::Dimensions::Moment,
 				"global couple components (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -1324,12 +1324,12 @@ FollowerCouple::OutputPrepare(OutputHandler& OH)
 
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "m",
-					OutputHandler::Dimensions::Moment,
+					MBUnits::Dimensions::Moment,
 					"local couple components (x, y, z)");
 
 			} else {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "M",
-					OutputHandler::Dimensions::Moment,
+					MBUnits::Dimensions::Moment,
 					"global couple components (x, y, z)");
 			}
 		}
@@ -1662,15 +1662,15 @@ AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"global force components (x, y, z)");
 
 			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"node 1 arm in global frame (x, y, z)");
 
 			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"node 2 arm in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -2014,20 +2014,20 @@ FollowerInternalForce::OutputPrepare(OutputHandler& OH)
 			os << '.';
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "f",
-					OutputHandler::Dimensions::Force,
+					MBUnits::Dimensions::Force,
 					"local force components (x, y, z)");
 			} else {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "F",
-					OutputHandler::Dimensions::Force,
+					MBUnits::Dimensions::Force,
 					"global force components (x, y, z)");
 			}
 
 			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"node 1 arm in global frame (x, y, z)");
 
 			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"node 2 arm in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -2328,7 +2328,7 @@ AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
 			// joint sub-data
 			os << '.';
 			Var_F = OH.CreateVar<Vec3>(os.str() + "M",
-				OutputHandler::Dimensions::Moment,
+				MBUnits::Dimensions::Moment,
 				"global couple components (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -2554,12 +2554,12 @@ FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
 			os << '.';
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "m",
-					OutputHandler::Dimensions::Moment,
+					MBUnits::Dimensions::Moment,
 					"local couple components (x, y, z)");
 
 			} else {
 				Var_F = OH.CreateVar<Vec3>(os.str() + "M",
-					OutputHandler::Dimensions::Moment,
+					MBUnits::Dimensions::Moment,
 					"global couple components (x, y, z)");
 			}
 		}

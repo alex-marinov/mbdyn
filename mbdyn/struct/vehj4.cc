@@ -140,11 +140,11 @@ DeformableAxialJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Deformable axial joint", OH, name);
 
 			Var_Theta = OH.CreateVar<doublereal>(name + "Theta",
-				OutputHandler::Dimensions::rad,
+				MBUnits::Dimensions::rad,
 				"relative angle");
 
 			Var_Omega = OH.CreateVar<doublereal>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"relative angular velocity");
 		}
 #endif // USE_NETCDF
@@ -325,10 +325,10 @@ DeformableAxialJoint::dGetPrivData(unsigned int i) const
 	}
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 DeformableAxialJoint::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 
 /* DeformableAxialJoint - end */

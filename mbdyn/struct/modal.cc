@@ -3645,28 +3645,28 @@ Modal::GetG_int(void) const
 	return ::Zero3;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 Modal::GetEquationDimension(integer index) const {
 	// DOF is varible
-	std::map<int, OutputHandler::Dimensions> index_map;
+	std::map<int, MBUnits::Dimensions> index_map;
 
 	unsigned int i, j;
 
 	for (i = 1; i <= NModes; i++) {
-		index_map[i] = OutputHandler::Dimensions::Momentum;
+		index_map[i] = MBUnits::Dimensions::Momentum;
 	}
 
 	for ( i = NModes + 1; i <= 2 * NModes; i++) {
-		index_map[i] = OutputHandler::Dimensions::Force;
+		index_map[i] = MBUnits::Dimensions::Force;
 	}
 
 	for (i=0; i<NStrNodes; i++) {
 		for ( j = 2*NModes+6*i+1; j <= 2*NModes+6*i+3 ; j++) {
-			index_map[j] = OutputHandler::Dimensions::Length;
+			index_map[j] = MBUnits::Dimensions::Length;
 		}
 
 		for ( j = 2*NModes+6*i+4; j <= 2*NModes+6*i+6; j++) {
-			index_map[j] = OutputHandler::Dimensions::rad;
+			index_map[j] = MBUnits::Dimensions::rad;
 		}
 	}
 

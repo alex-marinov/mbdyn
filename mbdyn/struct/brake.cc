@@ -451,15 +451,15 @@ Brake::OutputPrepare(OutputHandler& OH)
 				"relative rotation (Euler123)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity, node 2 RF (x, y, z)");
 			
 			Var_fc = OH.CreateVar<doublereal>(name + "fc",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"friction coefficient");
 
 			Var_Fb = OH.CreateVar<doublereal>(name + "Fb",
-				OutputHandler::Dimensions::Force,
+				MBUnits::Dimensions::Force,
 				"normal force the brake is activated with");
 		}
 #endif // USE_NETCDF
@@ -579,7 +579,7 @@ doublereal Brake::dGetPrivData(unsigned int i) const
    }
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 Brake::GetEquationDimension(integer index) const {
 	// DOF is unknown
    if (fc && fc->iGetNumDof() > 0) {
@@ -589,7 +589,7 @@ Brake::GetEquationDimension(integer index) const {
       }
    }
 
-   return OutputHandler::Dimensions::UnknownDimension;
+   return MBUnits::Dimensions::UnknownDimension;
 }
 
 std::ostream&

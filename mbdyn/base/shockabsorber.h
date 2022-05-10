@@ -200,10 +200,10 @@ private:
 	};
    
 #if defined(USE_NETCDF)
-	MBDynNcVar Var_dPressure;
-	MBDynNcVar Var_dArea;
-	MBDynNcVar Var_dFelastic;
-	MBDynNcVar Var_dFviscous;
+	size_t Var_dPressure;
+	size_t Var_dArea;
+	size_t Var_dFelastic;
+	size_t Var_dFviscous;
 #endif /* USE_NETCDF */
 public:
 	ShockAbsorberConstitutiveLaw(
@@ -613,19 +613,16 @@ public:
 	};
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
-#if defined(USE_NETCDF)
-		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
-			Var_dPressure = OH.CreateVar<doublereal>(name + ".p", 
-				OutputHandler::Dimensions::Pressure, "Gas pressure");
-			Var_dArea = OH.CreateVar<doublereal>(name + ".A", 
-				OutputHandler::Dimensions::Area, "Metering area");
-			Var_dFelastic = OH.CreateVar<doublereal>(name + ".Fe", 
-				OutputHandler::Dimensions::Force, "Elastic force");
-			Var_dFviscous = OH.CreateVar<doublereal>(name + ".Fv", 
-				OutputHandler::Dimensions::Force, "Viscous force");
+		if (OH.HasBinaryOutput()) {
+			Var_dPressure = OH.GetBinaryFile()->CreateVar<doublereal>(name + ".p", 
+				MBUnits::Dimensions::Pressure, "Gas pressure");
+			Var_dArea = OH.GetBinaryFile()->CreateVar<doublereal>(name + ".A", 
+				MBUnits::Dimensions::Area, "Metering area");
+			Var_dFelastic = OH.GetBinaryFile()->CreateVar<doublereal>(name + ".Fe", 
+				MBUnits::Dimensions::Force, "Elastic force");
+			Var_dFviscous = OH.GetBinaryFile()->CreateVar<doublereal>(name + ".Fv", 
+				MBUnits::Dimensions::Force, "Viscous force");
 		}
-#endif /* USE_NETCDF */
 	}
 
 	virtual std::ostream& OutputAppend(std::ostream& out) const {
@@ -637,10 +634,10 @@ public:
 #if defined(USE_NETCDF)
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
-			OH.WriteNcVar(Var_dPressure, dPressure);
-			OH.WriteNcVar(Var_dArea, dArea);
-			OH.WriteNcVar(Var_dFelastic, dFelastic);
-			OH.WriteNcVar(Var_dFviscous, dFviscous);
+			OH.WriteVar(Var_dPressure, dPressure);
+			OH.WriteVar(Var_dArea, dArea);
+			OH.WriteVar(Var_dFelastic, dFelastic);
+			OH.WriteVar(Var_dFviscous, dFviscous);
 		}
 #endif /* USE_NETCDF */
 	}

@@ -1,6 +1,5 @@
-/* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,41 +27,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * ACKNOWLEDGEMENTS:
+ * Support for output with NetCDF is based on a contribution
+ * by Patrick Rix <patrick.rix@online.de>
+ */
 
-#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+/* gestore dell'output */
 
-#include "dofown.h"
-#include "solman.h"
+#ifndef BINARY_OUTPUT_FILE_H
+#define BINARY_OUTPUT_FILE_H
 
-doublereal
-DofOwner::dGetScale(void) const
-{
-	return dScale;
-}
 
-void
-DofOwner::SetScale(const doublereal& d)
-{
-	dScale = d;
-}
 
-DofOwnerOwner::DofOwnerOwner(const DofOwner* pDO) 
-: pDofOwner(pDO)
-{ 
-	ASSERT(pDofOwner != NULL);
-}
-   
-void 
-DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
-{ 
-	NO_OP; 
-}
-
-const MBUnits::Dimensions
-DofOwnerOwner::GetEquationDimension(integer index) const {
-
-	silent_cout("entered GetEquationDimension of DofOwnerOwner");
-	throw("runtime error");
-	
-	return MBUnits::Dimensions::Boolean;
-}
+#endif /* BINARY_OUTPUT_FILE_H */

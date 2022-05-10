@@ -321,29 +321,29 @@ Inertia::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int(OH, name);
 
 			Var_dMass = OH.CreateVar<doublereal>(name + "M",
-				OutputHandler::Dimensions::Mass,
+				MBUnits::Dimensions::Mass,
 				"total mass");
 			Var_X_cm = OH.CreateVar<Vec3>(name + "X_cm",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"center of mass position (x, y, z)");
 			Var_V_cm = OH.CreateVar<Vec3>(name + "V_cm",
-				OutputHandler::Dimensions::Velocity,
+				MBUnits::Dimensions::Velocity,
 				"center of mass velocity (x, y, z)");
 			Var_Omega_cm = OH.CreateVar<Vec3>(name + "Omega_cm",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"center of mass angular velocity (x, y, z)");
 
 			Var_DX = OH.CreateVar<Vec3>(name + "DX",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"relative center of mass position, global frame (x, y, z)");
 			Var_dx = OH.CreateVar<Vec3>(name + "dx",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 			 	"relative center of mass position, local frame (x, y, z)");
 			Var_Jp = OH.CreateVar<Vec3>(name + "Jp",
-				OutputHandler::Dimensions::MomentOfInertia,
+				MBUnits::Dimensions::MomentOfInertia,
 				"global inertia matrix, w.r.t. principal axes");
 			Var_Phip = OH.CreateVar<Vec3>(name + "Phip",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"orientation vector of principal axes, global frame");
 		}
 #endif // USE_NETCDF

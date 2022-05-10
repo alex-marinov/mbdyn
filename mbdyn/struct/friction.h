@@ -101,7 +101,7 @@ public:
 		const unsigned int solution_startdof) {};
 	
 	/* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const = 0;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const = 0;
 };
 
 /** Base class for friction shape coefficient
@@ -204,7 +204,7 @@ public:
 		const ExpandableRowVector& dv) const;
 	
 	/* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /** A Coulomb model based on 
@@ -295,7 +295,7 @@ public:
 		const ExpandableRowVector& dv) const;
 
 	/* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 

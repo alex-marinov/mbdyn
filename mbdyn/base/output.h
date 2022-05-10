@@ -48,18 +48,21 @@
 #include <typeinfo>
 #include <unordered_map>
 
+//class OutputHandler;
+#include "binaryoutput.h"
+
 #if defined(USE_NETCDF)
 #include <netcdf>
 typedef netCDF::NcDim MBDynNcDim; // not const because cannot be if not a pointer (in this case)
 typedef netCDF::NcVar MBDynNcVar;
 typedef netCDF::NcFile MBDynNcFile;
-typedef netCDF::NcType MBDynNcType;
-#define MBDynNcInt netCDF::NcType::nc_INT /**< replaces long in netcdf4 */
-#define MBDynNcDouble netCDF::NcType::nc_DOUBLE
-#define MBDynNcChar netCDF::NcType::nc_CHAR
-#define MbNcInt MBDynNcType(MBDynNcInt) /**< creates a NcType object for a int, makes the notation simpler */
-#define MbNcDouble MBDynNcType(MBDynNcDouble) /**< creates a NcType object for a double, makes the notation simpler */
-#define MbNcChar MBDynNcType(MBDynNcChar) /**< makes the notation simpler */
+//typedef netCDF::NcType MBDynNcType;
+// #define MBDynNcInt netCDF::NcType::nc_INT /**< replaces long in netcdf4 */
+// #define MBDynNcDouble netCDF::NcType::nc_DOUBLE
+// #define MBDynNcChar netCDF::NcType::nc_CHAR
+// #define MbNcInt MBDynNcType(MBDynNcInt) /**< creates a NcType object for a int, makes the notation simpler */
+// #define MbNcDouble MBDynNcType(MBDynNcDouble) /**< creates a NcType object for a double, makes the notation simpler */
+// #define MbNcChar MBDynNcType(MBDynNcChar) /**< makes the notation simpler */
 #endif
 
 #include "myassert.h"
@@ -73,6 +76,7 @@ class MBDynParser;
 
 class OutputHandler : public FileName {
 public:
+	static const std::vector<const char*> psExt;
 	enum OutFiles {
 		UNKNOWN			= -1,
 		FIRSTFILE		= 0,
@@ -108,57 +112,13 @@ public:
 		DOFSTATS,
 		DRIVECALLERS,			// 30
 		TRACES,
+		MBBINARY,
 		EIGENANALYSIS,			// NOTE: ALWAYS LAST!
-		LASTFILE			// 33
-	};
-	enum struct Dimensions {
-		Dimensionless,
-		Boolean,
-		Length,
-		Mass,
-		Time,
-		Current,
-		Temperature,
-		Angle,
-		Area,
-		Force,
-		Velocity,
-		Acceleration,
-		AngularVelocity,
-		AngularAcceleration,
-
-		Momentum,
-		MomentaMoment,
-		MomentumDerivative,
-		MomentaMomentDerivative,
-
-		StaticMoment,
-		MomentOfInertia,
-
-		LinearStrain,
-		AngularStrain,
-		LinearStrainRate,
-		AngularStrainRate,
-		
-		ForceUnitSpan,
-
-		Work,
-		Power,
-		Pressure,
-		Moment,
-		Voltage,
-		Charge,
-		Frequency,
-		deg,
-		rad,
-
-		/* added for GetEquationDimension method of DofOwnerOwner class */
-		MassFlow,
-		Jerk,
-		VoltageDerivative,
-		UnknownDimension
+		LASTFILE			// 34
 	};
 
+	BinaryOutput*const GetBinaryFile() {return m_pBinFile;};
+	bool HasBinaryOutput() {return m_pBinFile != 0;};
 private:
 	long currentStep;
 
@@ -203,10 +163,10 @@ private:
 
 	// NetCDF dimensions and global attributes related to the binary file
 #ifdef USE_NETCDF
-	MBDynNcDim m_DimTime;
-	MBDynNcDim m_DimV1;
-	MBDynNcDim m_DimV3;
-	MBDynNcFile *m_pBinFile;   /* ! one ! binary NetCDF data file */
+// 	MBDynNcDim m_DimTime;
+// 	MBDynNcDim m_DimV1;
+// 	MBDynNcDim m_DimV3;
+	BinaryOutput *m_pBinFile = 0;   /* ! one ! binary NetCDF data file */
 #endif /* USE_NETCDF */
 
 	/* handlers to streams */
@@ -253,10 +213,12 @@ private:
 	bool UseScientific(int out) const;
 
 	bool UseText(int out) const;
-	bool UseNetCDF(int out) const;
+	bool UseBinary(int out) const;
 
 	// Pseudo-constructor
 	void OutputHandler_int(void);
+	
+	MBUnits Units;
 
 public:
 	OutputHandler(void);
@@ -343,27 +305,27 @@ public:
 	void SetExceptions(std::ios::iostate flags);
 
 #ifdef USE_NETCDF
-	inline MBDynNcFile * pGetBinFile(void) const;
+	inline BinaryOutput * pGetBinFile(void) const;
 
-	struct AttrVal {
-		std::string attr;
-		std::string val;
-		AttrVal(void) { NO_OP; };
-		AttrVal(const std::string& attr, const std::string& val) : attr(attr), val(val) { NO_OP; };
-	};
-
-	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
+// 	struct AttrVal {
+// 		std::string attr;
+// 		std::string val;
+// 		AttrVal(void) { NO_OP; };
+// 		AttrVal(const std::string& attr, const std::string& val) : attr(attr), val(val) { NO_OP; };
+// 	};
+// 
+// 	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
 	typedef std::vector<MBDynNcDim> NcDimVec;
 
-	MBDynNcDim 
-	CreateDim(const std::string& name, integer size = -1);
+// 	MBDynNcDim 
+// 	CreateDim(const std::string& name, integer size = -1);
+// 
+// 	MBDynNcDim 
+// 	GetDim(const std::string& name) const;
 
-	MBDynNcDim 
-	GetDim(const std::string& name) const;
-
-	inline MBDynNcDim DimTime(void) const;
-	inline MBDynNcDim DimV1(void) const;
-	inline MBDynNcDim DimV3(void) const;
+// 	inline MBDynNcDim DimTime(void) const;
+// 	inline MBDynNcDim DimV1(void) const;
+// 	inline MBDynNcDim DimV3(void) const;
 
 	std::vector<size_t> ncStart1;
 
@@ -373,114 +335,105 @@ public:
 	std::vector<size_t> ncStart1x3x3;
 	std::vector<size_t> ncCount1x3x3;
 
-	MBDynNcVar
-	CreateVar(const std::string& name, const MBDynNcType& type,
-		const AttrValVec& attrs, const NcDimVec& dims);
+// 	MBDynNcVar
+// 	CreateVar(const std::string& name, const MBDynOutType& type,
+// 		const AttrValVec& attrs, const NcDimVec& dims);
 	
 	void
-	WriteNcVar(const MBDynNcVar&, const Vec3&);
+	WriteVar(size_t, const Vec3&);
 
 	void
-	WriteNcVar(const MBDynNcVar&, const Vec3&, const size_t&);
+	WriteVar(size_t, const Vec3&, const size_t&);
 
 	void
-	WriteNcVar(const MBDynNcVar&, const Mat3x3&);
+	WriteVar(size_t, const Mat3x3&);
 
 	void
-	WriteNcVar(const MBDynNcVar&, const Mat3x3&, const size_t&);
+	WriteVar(size_t, const Mat3x3&, const size_t&);
 
 	template <class Tvar>
 	void
-	WriteNcVar(const MBDynNcVar&, const Tvar&);
+	WriteVar(size_t, const Tvar&);
 	
-	template <class Tvar, class Tstart>
-	void
-	WriteNcVar(const MBDynNcVar&, const Tvar&, const Tstart&);
-
-	template <class Tvar, class Tstart>
-	void
-	WriteNcVar(const MBDynNcVar&, const Tvar&, 
-			const std::vector<Tstart>&, 
-			const std::vector<size_t>& = std::vector<size_t>(1,1));
+// 	template <class Tvar, class Tstart>
+// 	void
+// 	WriteNcVar(size_t, const Tvar&, const Tstart&);
+// 
+// 	template <class Tvar, class Tstart>
+// 	void
+// 	WriteNcVar(size_t, const Tvar&, 
+// 			const std::vector<Tstart>&, 
+// 			const std::vector<size_t>& = std::vector<size_t>(1,1));
 	
-	MBDynNcVar
-	CreateVar(const std::string& name, const std::string& type);
+// 	MBDynNcVar
+// 	CreateVar(const std::string& name, const std::string& type);
+// 
+// 	template <class T>
+// 	MBDynNcVar
+// 	CreateVar(const std::string& name,
+// 		const Dimensions phys_dim, const std::string& description);
 
-	template <class T>
-	MBDynNcVar
-	CreateVar(const std::string& name,
-		const Dimensions phys_dim, const std::string& description);
+}; 
 
-	MBDynNcVar
-	CreateRotationVar(const std::string& name_prefix,
-		const std::string& name_postfix,
-		OrientationDescription od,
-		const std::string& description);
-#endif /* USE_NETCDF */
-/* Unit system related stuff */
-private:
-	std::unordered_map<Dimensions, std::string> Units;
-	void SetDerivedUnits(std::unordered_map<Dimensions, std::string>& Units );
-	void SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units);
-	void SetMKSUnits(std::unordered_map<Dimensions, std::string>& Units);
-	void SetCGSUnits(std::unordered_map<Dimensions, std::string>& Units);
-	void SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& Units);
-	void SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& Units);
-}; /* End class OutputHandler */
+// 
+// 	MBDynNcVar
+// 	CreateRotationVar(const std::string& name_prefix,
+// 		const std::string& name_postfix,
+// 		OrientationDescription od,
+// 		const std::string& description);
+// 
+// template <class T>
+// MBDynNcVar
+// OutputHandler::CreateVar(const std::string& name,
+// 	const Dimensions phys_dim, const std::string& description)
+// {
+// 	AttrValVec attrs(3);
+// 	NcDimVec dims(1);
+// 
+// 	//attrs[0] = AttrVal("units", units);
+// 	attrs[0] = AttrVal("units", Units[phys_dim]);
+// 	attrs[2] = AttrVal("description", description);
+// 	dims[0] = DimTime();
+// 	
+// 	if (typeid(T) == typeid(integer)) {
+// 		attrs[1] = AttrVal("type", "integer");
+// 		return CreateVar(name, MbNcInt, attrs, dims); // put this one inside if because couldn't figure out how to assign type inside if while declaring it outside of if.. alternative would be to create a pointer and change CreateVar function to copy type parameter instead of passing by reference (because type cannot be delete in CreateVar since addVar passes it by reference to netcdf)...
+// 	} else if (typeid(T) == typeid(doublereal)) {
+// 		attrs[1] = AttrVal("type", "doublereal");
+// 	return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
+// 	} else if (typeid(T) == typeid(Vec3)) {
+// 		attrs[1] = AttrVal("type", "Vec3");
+// 		dims.resize(2);
+// 		dims[1] = DimV3();
+// 		return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
+// 	} else {
+// 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+// 	}
+// }
 
-#ifdef USE_NETCDF
-template <class T>
-MBDynNcVar
-OutputHandler::CreateVar(const std::string& name,
-	const Dimensions phys_dim, const std::string& description)
-{
-	AttrValVec attrs(3);
-	NcDimVec dims(1);
-
-	//attrs[0] = AttrVal("units", units);
-	attrs[0] = AttrVal("units", Units[phys_dim]);
-	attrs[2] = AttrVal("description", description);
-	dims[0] = DimTime();
-	
-	if (typeid(T) == typeid(integer)) {
-		attrs[1] = AttrVal("type", "integer");
-		return CreateVar(name, MbNcInt, attrs, dims); // put this one inside if because couldn't figure out how to assign type inside if while declaring it outside of if.. alternative would be to create a pointer and change CreateVar function to copy type parameter instead of passing by reference (because type cannot be delete in CreateVar since addVar passes it by reference to netcdf)...
-	} else if (typeid(T) == typeid(doublereal)) {
-		attrs[1] = AttrVal("type", "doublereal");
-	return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
-	} else if (typeid(T) == typeid(Vec3)) {
-		attrs[1] = AttrVal("type", "Vec3");
-		dims.resize(2);
-		dims[1] = DimV3();
-		return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-}
-
-inline MBDynNcFile *
+inline BinaryOutput *
 OutputHandler::pGetBinFile(void) const
 {
 	return m_pBinFile;
 }
 
-inline MBDynNcDim 
-OutputHandler::DimTime(void) const
-{
-	return m_DimTime;
-}
-
-inline MBDynNcDim 
-OutputHandler::DimV1(void) const
-{
-	return m_DimV1;
-}
-
-inline MBDynNcDim 
-OutputHandler::DimV3(void) const
-{
-	return m_DimV3;
-}
+// inline MBDynNcDim 
+// OutputHandler::DimTime(void) const
+// {
+// 	return m_DimTime;
+// }
+// 
+// inline MBDynNcDim 
+// OutputHandler::DimV1(void) const
+// {
+// 	return m_DimV1;
+// }
+// 
+// inline MBDynNcDim 
+// OutputHandler::DimV3(void) const
+// {
+// 	return m_DimV3;
+// }
 #endif /* USE_NETCDF */
 
 inline std::ostream&

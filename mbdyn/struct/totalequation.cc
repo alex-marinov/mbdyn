@@ -1246,28 +1246,28 @@ TotalEquation::dGetPrivData(unsigned int i) const
 	return 0.;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 TotalEquation::GetEquationDimension(integer index) const {
 	// DOF is variable
 	// TODO
-	std::map<int, OutputHandler::Dimensions> index_map;
+	std::map<int, MBUnits::Dimensions> index_map;
 
 	int i = 0;
 		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 			i++;
-			index_map[i] = OutputHandler::Dimensions::Length;
+			index_map[i] = MBUnits::Dimensions::Length;
 		}
 		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
 			i++;
-			index_map[i] = OutputHandler::Dimensions::rad;
+			index_map[i] = MBUnits::Dimensions::rad;
 		}
 		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
 			i++;
-			index_map[i] = OutputHandler::Dimensions::Velocity;
+			index_map[i] = MBUnits::Dimensions::Velocity;
 		}
 		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
 			i++;
-			index_map[i] = OutputHandler::Dimensions::AngularVelocity;
+			index_map[i] = MBUnits::Dimensions::AngularVelocity;
 		}		
 
 	return index_map[index];
@@ -2409,10 +2409,10 @@ TotalReaction::dGetPrivData(unsigned int i) const
 	return 0.;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 TotalReaction::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 
 /* TotalReaction - end */

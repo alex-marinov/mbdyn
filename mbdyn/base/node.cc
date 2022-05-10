@@ -150,15 +150,15 @@ ScalarNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Update(X, XP);
 }
 
-const OutputHandler::Dimensions 
+const MBUnits::Dimensions 
 ScalarNode::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::UnknownDimension;
+			dimension = MBUnits::Dimensions::UnknownDimension;
 			break;
 	}
 
@@ -373,15 +373,15 @@ ScalarDifferentialNode::dGetPrivData(unsigned int i) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions 
+const MBUnits::Dimensions 
 ScalarDifferentialNode::GetEquationDimension(integer index) const {
    // DOF == 2
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::UnknownDimension;
+			dimension = MBUnits::Dimensions::UnknownDimension;
 			break;
 	}
 

@@ -154,15 +154,15 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int("Beam slider", OH, name);
 			
 			Var_Beam = OH.CreateVar<integer>(name + "Beam",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"current beam label");
 
 			Var_sRef = OH.CreateVar<doublereal>(name + "sRef",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"current curvilinear abscissa");
 
 			Var_l = OH.CreateVar<Vec3>(name + "l",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"local direction vector (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -773,33 +773,33 @@ BeamSliderJoint::InitialAssRes(
 	return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 BeamSliderJoint::GetEquationDimension(integer index) const {
 	// DOF is unknown
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 4:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 5:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 6:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 7:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 	}
 

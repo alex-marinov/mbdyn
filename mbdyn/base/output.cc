@@ -53,7 +53,7 @@
 const int iDefaultWidth = OUTPUT_PRECISION + 6;
 const int iDefaultPrecision = OUTPUT_PRECISION;
 
-const char* psExt[] = {
+const std::vector<const char*> OutputHandler::psExt = {
 	".out",		//  0
 	".mov",
 	".ele",
@@ -90,54 +90,6 @@ const char* psExt[] = {
 	NULL		// 33
 };
 
-const std::unordered_map<const OutputHandler::Dimensions, const std::string> DimensionNames ({
-	{ OutputHandler::Dimensions::Dimensionless , std::string("Dimensionless") },
-	{ OutputHandler::Dimensions::Boolean , std::string("Boolean") },
-	{ OutputHandler::Dimensions::Length , std::string("Length") },
-	{ OutputHandler::Dimensions::Mass , std::string("Mass") },
-	{ OutputHandler::Dimensions::Time , std::string("Time") },
-	{ OutputHandler::Dimensions::Current , std::string("Current") },
-	{ OutputHandler::Dimensions::Temperature , std::string("Temperature") },
-	{ OutputHandler::Dimensions::Angle , std::string("Angle") },
-	{ OutputHandler::Dimensions::Area , std::string("Area") },
-	{ OutputHandler::Dimensions::Force , std::string("Force") },
-	{ OutputHandler::Dimensions::Velocity , std::string("Velocity") },
-	{ OutputHandler::Dimensions::Acceleration , std::string("Acceleration") },
-	{ OutputHandler::Dimensions::AngularVelocity , std::string("Angular velocity") },
-	{ OutputHandler::Dimensions::AngularAcceleration , std::string("Angular acceleration") },
-
-	{ OutputHandler::Dimensions::Momentum , std::string("Momentum") },
-	{ OutputHandler::Dimensions::MomentaMoment , std::string("Momenta moment") },
-	{ OutputHandler::Dimensions::MomentumDerivative , std::string("Momentum derivative") },
-	{ OutputHandler::Dimensions::MomentaMomentDerivative , std::string("Momenta moment derivative") },
-
-	{ OutputHandler::Dimensions::LinearStrain , std::string("Linear strain") },
-	{ OutputHandler::Dimensions::AngularStrain , std::string("Angular strain") },
-	{ OutputHandler::Dimensions::LinearStrainRate , std::string("Linear strain rate") },
-	{ OutputHandler::Dimensions::AngularStrainRate , std::string("Angular strain rate") },
-
-	{ OutputHandler::Dimensions::StaticMoment , std::string("Static moment") },
-	{ OutputHandler::Dimensions::MomentOfInertia , std::string("Moment of inertia") },
-
-	{ OutputHandler::Dimensions::ForceUnitSpan , std::string("Force per unit span") },
-
-	{ OutputHandler::Dimensions::Work , std::string("Work") },
-	{ OutputHandler::Dimensions::Power , std::string("Power") },
-	{ OutputHandler::Dimensions::Pressure , std::string("Pressure") },
-	{ OutputHandler::Dimensions::Moment , std::string("Moment") },
-	{ OutputHandler::Dimensions::Voltage , std::string("Voltage") },
-	{ OutputHandler::Dimensions::Charge , std::string("Charge") },
-	{ OutputHandler::Dimensions::Frequency , std::string("Frequency") },
-	{ OutputHandler::Dimensions::deg , std::string("deg") },
-	{ OutputHandler::Dimensions::rad , std::string("rad") },
-
-	/* added later for GetEquationDimension method of DofOwnerOwner class */
-
-	{ OutputHandler::Dimensions::MassFlow, std::string("Mass flow")},
-	{ OutputHandler::Dimensions::Jerk , std::string("Jerk") },
-	{ OutputHandler::Dimensions::VoltageDerivative , std::string("Voltage derivative") },
-	{ OutputHandler::Dimensions::UnknownDimension , std::string("Unknown dimension") }
-});
 
 /* Costruttore senza inizializzazione */
 OutputHandler::OutputHandler(void)
@@ -181,191 +133,11 @@ ncCount1x3x3(3,1)
 {
 	OutputHandler_int();
 	Init(sFName, iExtNum);
-	SetUnspecifiedUnits(Units);
 }
 
 void OutputHandler::ReadOutputUnits(MBDynParser& HP) {
-	if (HP.IsKeyWord("MKS")) {
-		SetMKSUnits(Units);
-	} else if (HP.IsKeyWord("CGS")) {
-		SetCGSUnits(Units);
-	} else if (HP.IsKeyWord("MMTMS")) {
-		SetMMTMSUnits(Units);
-	} else if (HP.IsKeyWord("MMKGMS")) {
-		SetMMKGMSUnits(Units);
-	} else if (HP.IsKeyWord("Custom")) {
-		const std::list<Dimensions> BaseUnits ({
-			Dimensions::Length,
-			Dimensions::Mass,
-			Dimensions::Time,
-			Dimensions::Current,
-			Dimensions::Temperature		 
-		});
-		for (auto i = BaseUnits.begin(); i != BaseUnits.end(); i++) {
-			if (HP.IsKeyWord(DimensionNames.find(*i)->second.c_str())) {
-				Units[*i] = HP.GetStringWithDelims();
-			} else {
-				silent_cerr("Error while reading Custom unit system  at line"
-						<< HP.GetLineData()
-						<< "\nExpecting the definition of "
-						<< DimensionNames.find(*i)->second
-						<< " units."
-						<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-		SetDerivedUnits(Units);
-		for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
-			Log() << "Unit for " << i->second << ": " << Units[i->first] << std::endl;
-		}
-	} else {
-		silent_cerr("Error while reading the model Units at line"
-						<< HP.GetLineData()
-						<< std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	Units.ReadOutputUnits(Log(), HP);
 }
-
-void OutputHandler::SetDerivedUnits(std::unordered_map<Dimensions, std::string>& Units ) {
-	Units[Dimensions::Angle] = "rad";
-	Units[Dimensions::Area] = Units[Dimensions::Length] + "^2";
-	Units[Dimensions::Force] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Length] + " " +
-		Units[Dimensions::Time] + "^-2";
-	Units[Dimensions::Velocity] = Units[Dimensions::Length] + " " +
-		Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::Acceleration] = Units[Dimensions::Length] + " " +
-		Units[Dimensions::Time] + "^-2";
-	Units[Dimensions::AngularVelocity] = Units[Dimensions::Angle] + " " +
-		Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::AngularAcceleration] = Units[Dimensions::Angle] + " " +
-		Units[Dimensions::Time] + "^-2";
-
-	Units[Dimensions::Momentum] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Velocity];
-	Units[Dimensions::MomentaMoment] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Length] + "^2 " + 
-		Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::MomentumDerivative] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Acceleration];
-	Units[Dimensions::MomentaMomentDerivative] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Length] + "^2 " + 
-		Units[Dimensions::Time] + "^-2";
-
-	Units[Dimensions::LinearStrain] = Units[Dimensions::Dimensionless];
-	Units[Dimensions::AngularStrain] = Units[Dimensions::Angle] + " " +
-		Units[Dimensions::Length] + "^-1";
-	Units[Dimensions::LinearStrainRate] = Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::AngularStrainRate] = Units[Dimensions::Angle] + " " +
-		Units[Dimensions::Length] + "^-1 " + 
-		Units[Dimensions::Time] + "^-1";
-
-	Units[Dimensions::StaticMoment] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Length];
-	Units[Dimensions::MomentOfInertia] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Length] + "^2";
-
-	Units[Dimensions::ForceUnitSpan] = Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Time] + "^-2";
-
-	Units[Dimensions::Work] = Units[Dimensions::Force] + " " +
-		Units[Dimensions::Length];
-	Units[Dimensions::Power] = Units[Dimensions::Force] + " " +
-		Units[Dimensions::Velocity];
-	Units[Dimensions::Pressure] = Units[Dimensions::Force] + " " +
-		Units[Dimensions::Length] + "^-2";
-	Units[Dimensions::Moment] = Units[Dimensions::Force] + " " +
-		Units[Dimensions::Length];
-	Units[Dimensions::Voltage] = Units[Dimensions::Length] + "^2 " +
-		Units[Dimensions::Mass] + " " +
-		Units[Dimensions::Time] + "^-3 " +
-		Units[Dimensions::Current] + "^-1";
-	Units[Dimensions::Frequency] = Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::Charge] = Units[Dimensions::Time] + " " +
-		Units[Dimensions::Current];
-	Units[Dimensions::deg] = "deg";
-	Units[Dimensions::rad] = "rad";
-	Units[Dimensions::MassFlow] = Units[Dimensions::Mass] + " " + 
-		Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::Jerk] = Units[Dimensions::Mass] + " " +
-        Units[Dimensions::Time] + "^-3";
-	Units[Dimensions::VoltageDerivative] = Units[Dimensions::Voltage] + " " +
-        Units[Dimensions::Time] + "^-1";
-	Units[Dimensions::UnknownDimension] = "UnknownDimension";
-};
-
-void OutputHandler::SetUnspecifiedUnits(std::unordered_map<Dimensions, std::string>& Units) {
-	for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
-		Units[i->first] = i->second;
-	}
-}
-
-void OutputHandler::SetMKSUnits(std::unordered_map<Dimensions, std::string>& Units) {
-	Units[Dimensions::Length] = "m";
-	Units[Dimensions::Mass] = "kg";
-	Units[Dimensions::Time] = "s";
-	Units[Dimensions::Current] = "A";
-	Units[Dimensions::Temperature] = "K";
-	SetDerivedUnits(Units);
-	Units[Dimensions::Force] = "N";
-	Units[Dimensions::Moment] = "N m";
-	Units[Dimensions::Work] = "J";
-	Units[Dimensions::Power] = "W";
-	Units[Dimensions::Pressure] = "Pa";
-	Units[Dimensions::Voltage] = "V";
-	Units[Dimensions::Charge] = "C";
-	Units[Dimensions::Frequency] = "Hz";
-};
-
-void OutputHandler::SetCGSUnits(std::unordered_map<Dimensions, std::string>& Units) {
-	Units[Dimensions::Length] = "cm";
-	Units[Dimensions::Mass] = "kg";
-	Units[Dimensions::Time] = "s";
-	Units[Dimensions::Current] = "A";
-	Units[Dimensions::Temperature] = "K";
-	SetDerivedUnits(Units);
-	Units[Dimensions::Force] = "dyn";
-	Units[Dimensions::Pressure] = "dyn cm^-2";
-	Units[Dimensions::Moment] = "dyn cm";
-	Units[Dimensions::Work] = "erg";
-	Units[Dimensions::Power] = "erg s^-1";
-	Units[Dimensions::Frequency] = "Hz";
-	Units[Dimensions::Charge] = "C";
-}
-
-void OutputHandler::SetMMTMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
-	Units[Dimensions::Length] = "mm";
-	Units[Dimensions::Mass] = "ton";
-	Units[Dimensions::Time] = "ms";
-	Units[Dimensions::Current] = "A";
-	Units[Dimensions::Temperature] = "K";
-	SetDerivedUnits(Units);
-	Units[Dimensions::Force] = "N";
-	Units[Dimensions::Moment] = "N mm";
-	Units[Dimensions::Work] = "N mm";
-	Units[Dimensions::Power] = "N mm s^-1";
-	Units[Dimensions::Pressure] = "MPa";
-	Units[Dimensions::Frequency] = "kHz";
-	Units[Dimensions::Charge] = "mC";
-}
-
-void OutputHandler::SetMMKGMSUnits(std::unordered_map<Dimensions, std::string>& Units) {
-	Units[Dimensions::Length] = "mm";
-	Units[Dimensions::Mass] = "kg";
-	Units[Dimensions::Time] = "ms";
-	Units[Dimensions::Current] = "A";
-	Units[Dimensions::Temperature] = "K";
-	SetDerivedUnits(Units);
-	Units[Dimensions::Force] = "kN";
-	Units[Dimensions::Moment] = "N m";
-	Units[Dimensions::Work] = "N m";
-	Units[Dimensions::Power] = "N m ms^-1";
-	Units[Dimensions::Pressure] = "GPa";
-	Units[Dimensions::Work] = "kN mm";
-	Units[Dimensions::Frequency] = "kHz";
-	Units[Dimensions::Charge] = "mC";
-}
-
 
 // Pesudo-constructor
 void
@@ -533,14 +305,12 @@ OutputHandler::~OutputHandler(void)
 {
 	for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
 		if (IsOpen(iCnt)) {
-#ifdef USE_NETCDF
-			if (iCnt == NETCDF) {
+			if (iCnt == NETCDF || iCnt == MBBINARY) {
 				if (m_pBinFile != 0) {
 					delete m_pBinFile;
 				}
 
 			} else
-#endif /* USE_NETCDF */
 			{
 				OutData[iCnt].pof->exceptions(std::ios::iostate(0));
 				OutData[iCnt].pof->close();
@@ -595,22 +365,22 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 }
 
 #ifdef USE_NETCDF
-void
-OutputHandler::NetCDFOpen(const OutputHandler::OutFiles out, const netCDF::NcFile::FileFormat NetCDF_Format)
-{
-	if (!IsOpen(out)) {
-		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, NetCDF_Format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
-		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
-		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
-
-		// Let's define some dimensions which could be useful
-		m_DimTime = CreateDim("time");
-		m_DimV1 = CreateDim("Vec1", 1);
-		m_DimV3 = CreateDim("Vec3", 3);
-	}
-
-	return;
-}
+// void
+// OutputHandler::NetCDFOpen(const OutputHandler::OutFiles out, const netCDF::NcFile::FileFormat NetCDF_Format)
+// {
+// 	if (!IsOpen(out)) {
+// 		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(psExt[NETCDF])), netCDF::NcFile::replace, NetCDF_Format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
+// 		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
+// 		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
+// 
+// 		// Let's define some dimensions which could be useful
+// 		m_DimTime = CreateDim("time");
+// 		m_DimV1 = CreateDim("Vec1", 1);
+// 		m_DimV3 = CreateDim("Vec3", 3);
+// 	}
+// 
+// 	return;
+// }
 #endif /* USE_NETCDF */
 
 void
@@ -671,8 +441,8 @@ bool
 OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
 {
 #ifdef USE_NETCDF
-	if (out == NETCDF) {
-		return m_pBinFile == 0 ? false : !m_pBinFile->isNull();
+	if (out == NETCDF || out == MBBINARY) {
+		return m_pBinFile == 0 ? false : m_pBinFile->isOpen();
 	}
 #endif /* USE_NETCDF */
 
@@ -755,12 +525,11 @@ OutputHandler::UseText(const OutputHandler::OutFiles out) const
 }
 
 bool
-OutputHandler::UseNetCDF(int out) const
+OutputHandler::UseBinary(int out) const
 {
 	ASSERT(out > OutputHandler::UNKNOWN);
 	ASSERT(out < OutputHandler::LASTFILE);
-
-	return UseNetCDF(OutputHandler::OutFiles(out));
+	return ((out == NETCDF || out == MBBINARY) && m_pBinFile->isOpen()) ;
 }
 
 void
@@ -806,12 +575,10 @@ OutputHandler::Close(const OutputHandler::OutFiles out)
 		return false;
 	}
 
-#ifdef USE_NETCDF
-	if (out == NETCDF) {
+	if (out == NETCDF || out == MBBINARY) {
 		m_pBinFile->close();
 
 	} else
-#endif /* USE_NETCDF */
 	{
 		// Chiude lo stream
 		OutData[out].pof->close();
@@ -952,28 +719,28 @@ void OutputHandler::SetExceptions(std::ios::iostate flags)
 }
 
 #ifdef USE_NETCDF
-MBDynNcDim 
-OutputHandler::CreateDim(const std::string& name, integer size)
-{
-	ASSERT(m_pBinFile != 0);
-
-	MBDynNcDim dim;
-	if (size == -1) {
-		dim = m_pBinFile->addDim(name);  // .c_str is useless here
-	} else {
-		dim = m_pBinFile->addDim(name, size);
-	}
-
-	return dim;
-}
-
-MBDynNcDim 
-OutputHandler::GetDim(const std::string& name) const
-{
-	ASSERT(m_pBinFile != 0);
-
-	return m_pBinFile->getDim(name);
-}
+// MBDynNcDim 
+// OutputHandler::CreateDim(const std::string& name, integer size)
+// {
+// 	ASSERT(m_pBinFile != 0);
+// 
+// 	MBDynNcDim dim;
+// 	if (size == -1) {
+// 		dim = m_pBinFile->addDim(name);  // .c_str is useless here
+// 	} else {
+// 		dim = m_pBinFile->addDim(name, size);
+// 	}
+// 
+// 	return dim;
+// }
+// 
+// MBDynNcDim 
+// OutputHandler::GetDim(const std::string& name) const
+// {
+// 	ASSERT(m_pBinFile != 0);
+// 
+// 	return m_pBinFile->getDim(name);
+// }
 
 
 /// the following overloaded functions allow to use a uniform function call
@@ -982,174 +749,170 @@ OutputHandler::GetDim(const std::string& name) const
 /// or further testing of the NcVar, which if done at every timestep
 /// would slow down the execution
 void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar) {
-	Var_Var.putVar(ncStart1x3x3, ncCount1x3x3, pGetVar.pGetMat());
+OutputHandler::WriteVar(size_t Var_Var, const Mat3x3& pGetVar) {
+	m_pBinFile->WriteVar(Var_Var, pGetVar);
 }
 void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Mat3x3& pGetVar,
+OutputHandler::WriteVar(size_t Var_Var, const Mat3x3& pGetVar,
 		const size_t& ncStart) 
 {
-	std::vector<size_t> ncStart1x3x3Tmp = ncStart1x3x3;
-	ncStart1x3x3Tmp[0] = ncStart;
-	Var_Var.putVar(ncStart1x3x3Tmp, ncCount1x3x3, pGetVar.pGetMat());
+	m_pBinFile->WriteVar(Var_Var, pGetVar, ncStart);
 }
 void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar) {
-	Var_Var.putVar(ncStart1x3, ncCount1x3, pGetVar.pGetVec());
+OutputHandler::WriteVar(size_t Var_Var, const Vec3& pGetVar) {
+	m_pBinFile->WriteVar(Var_Var, pGetVar);
 }
 void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Vec3& pGetVar,
+OutputHandler::WriteVar(size_t Var_Var, const Vec3& pGetVar,
 		const size_t& ncStart) 
 {
-	std::vector<size_t> ncStart1x3Tmp = ncStart1x3;
-	ncStart1x3Tmp[0] = ncStart;
-	Var_Var.putVar(ncStart1x3Tmp, ncCount1x3, pGetVar.pGetVec());
+	m_pBinFile->WriteVar(Var_Var, pGetVar, ncStart);
 }
 template <class Tvar>
 void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar) {
-	Var_Var.putVar(ncStart1, ncCount1, &pGetVar);
+OutputHandler::WriteVar(size_t Var_Var, const Tvar& pGetVar) {
+	m_pBinFile->WriteVar(Var_Var, pGetVar);
 }
-template <class Tvar, class Tstart>
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar, 
-		const Tstart& ncStart) 
-{
-	Var_Var.putVar(std::vector<size_t>(1,ncStart), ncCount1, &pGetVar);
-}
-template <class Tvar, class Tstart>
-void
-OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar, 
-		const std::vector<Tstart>& ncStart,
-		const std::vector<size_t>& count) 
-{
-	Var_Var.putVar(ncStart, count, &pGetVar);
-}
+// template <class Tvar, class Tstart>
+// void
+// OutputHandler::WriteNcVar(size_t Var_Var, const Tvar& pGetVar, 
+// 		const Tstart& ncStart) 
+// {
+// 	Var_Var.putVar(std::vector<size_t>(1,ncStart), ncCount1, &pGetVar);
+// }
+// template <class Tvar, class Tstart>
+// void
+// OutputHandler::WriteNcVar(size_t Var_Var, const Tvar& pGetVar, 
+// 		const std::vector<Tstart>& ncStart,
+// 		const std::vector<size_t>& count) 
+// {
+// 	Var_Var.putVar(ncStart, count, &pGetVar);
+// }
 
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const size_t&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const unsigned int&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const size_t&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const unsigned int&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&,
-		const std::vector<size_t>&, const std::vector<size_t>&);
-template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&,
-		const std::vector<size_t>&, const std::vector<size_t>&);
+template void OutputHandler::WriteVar(size_t, const doublereal&);
+template void OutputHandler::WriteVar(size_t, const long&);
+template void OutputHandler::WriteVar(size_t, const int&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const size_t&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&, const unsigned int&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const size_t&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&, const unsigned int&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&,
+// 		const std::vector<size_t>&, const std::vector<size_t>&);
+// template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&,
+// 		const std::vector<size_t>&, const std::vector<size_t>&);
 
-MBDynNcVar 
-OutputHandler::CreateVar(const std::string& name, const MBDynNcType& type,
-	const AttrValVec& attrs, const NcDimVec& dims)
-{
-	MBDynNcVar var;
+// MBDynNcVar 
+// OutputHandler::CreateVar(const std::string& name, const MBDynOutType& type,
+// 	const AttrValVec& attrs, const NcDimVec& dims)
+// {
+// 	MBDynNcVar var;
+// 
+// 	var = m_pBinFile->addVar(name, type, dims);
+// 	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); ++i) {
+// 		var.putAtt(i->attr, i->val);
+// 	}
+// 
+// 	return var;
+// }
 
-	var = m_pBinFile->addVar(name, type, dims);
-	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); ++i) {
-		var.putAtt(i->attr, i->val);
-	}
+// MBDynNcVar 
+// OutputHandler::CreateVar(const std::string& name, const std::string& type)
+// {
+// 	AttrValVec attrs(1);
+// 	attrs[0] = AttrVal("type", type);
+// 
+// 	NcDimVec dims(1);
+// 	dims[0] = DimV1();
+// 	return CreateVar(name, MbNcChar, attrs, dims);
+// }
 
-	return var;
-}
-
-MBDynNcVar 
-OutputHandler::CreateVar(const std::string& name, const std::string& type)
-{
-	AttrValVec attrs(1);
-	attrs[0] = AttrVal("type", type);
-
-	NcDimVec dims(1);
-	dims[0] = DimV1();
-	return CreateVar(name, MbNcChar, attrs, dims);
-}
-
-MBDynNcVar 
-OutputHandler::CreateRotationVar(const std::string& name_prefix,
-	const std::string& name_postfix,
-	OrientationDescription od,
-	const std::string& description)
-{
-	NcDimVec dim;
-	AttrValVec attrs;
-	std::string name(name_prefix);
-
-	switch (od) {
-	case ORIENTATION_MATRIX:
-		dim.resize(3);
-		dim[0] = DimTime();
-		dim[1] = DimV3();
-		dim[2] = DimV3();
-
-		attrs.resize(3);
-		attrs[0] = AttrVal("units", "-");
-		attrs[1] = AttrVal("type", "Mat3x3");
-		attrs[2] = AttrVal("description",
-			description + " orientation matrix "
-			"(R11, R21, R31, R12, R22, R32, R13, R23, R33)");
-
-		name += "R";
-		break;
-
-	case ORIENTATION_VECTOR:
-	case UNKNOWN_ORIENTATION_DESCRIPTION:  // only relevant to displacement nodes
-		dim.resize(2);
-		dim[0] = DimTime();
-		dim[1] = DimV3();
-
-		attrs.resize(3);
-		attrs[0] = AttrVal("units", "radian");
-		attrs[1] = AttrVal("type", "Vec3");
-		attrs[2] = AttrVal("description",
-			description + " orientation vector "
-			"(Phi_X, Phi_Y, Phi_Z)");
-
-		name += "Phi";
-		break;
-
-	case EULER_123:
-	case EULER_313:
-	case EULER_321:
-		{
-		dim.resize(2);
-		dim[0] = DimTime();
-		dim[1] = DimV3();
-
-		attrs.resize(3);
-		attrs[0] = AttrVal("units", "deg");
-		attrs[1] = AttrVal("type", "Vec3");
-
-		std::string etype;
-		switch (od) {
-		case EULER_123:
-			etype = "123";
-			break;
-
-		case EULER_313:
-			etype = "313";
-			break;
-
-		case EULER_321:
-			etype = "321";
-			break;
-
-		default:
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		attrs[2] = AttrVal("description",
-			description + " orientation Euler angles (" + etype + ") "
-			"(E_X, E_Y, E_Z)");
-
-		name += "E";
-		} break;
-
-	default:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	name += name_postfix;
-	return CreateVar(name, MbNcDouble, attrs, dim);
-}
+// MBDynNcVar 
+// OutputHandler::CreateRotationVar(const std::string& name_prefix,
+// 	const std::string& name_postfix,
+// 	OrientationDescription od,
+// 	const std::string& description)
+// {
+// 	NcDimVec dim;
+// 	AttrValVec attrs;
+// 	std::string name(name_prefix);
+// 
+// 	switch (od) {
+// 	case ORIENTATION_MATRIX:
+// 		dim.resize(3);
+// 		dim[0] = DimTime();
+// 		dim[1] = DimV3();
+// 		dim[2] = DimV3();
+// 
+// 		attrs.resize(3);
+// 		attrs[0] = AttrVal("units", "-");
+// 		attrs[1] = AttrVal("type", "Mat3x3");
+// 		attrs[2] = AttrVal("description",
+// 			description + " orientation matrix "
+// 			"(R11, R21, R31, R12, R22, R32, R13, R23, R33)");
+// 
+// 		name += "R";
+// 		break;
+// 
+// 	case ORIENTATION_VECTOR:
+// 	case UNKNOWN_ORIENTATION_DESCRIPTION:  // only relevant to displacement nodes
+// 		dim.resize(2);
+// 		dim[0] = DimTime();
+// 		dim[1] = DimV3();
+// 
+// 		attrs.resize(3);
+// 		attrs[0] = AttrVal("units", "radian");
+// 		attrs[1] = AttrVal("type", "Vec3");
+// 		attrs[2] = AttrVal("description",
+// 			description + " orientation vector "
+// 			"(Phi_X, Phi_Y, Phi_Z)");
+// 
+// 		name += "Phi";
+// 		break;
+// 
+// 	case EULER_123:
+// 	case EULER_313:
+// 	case EULER_321:
+// 		{
+// 		dim.resize(2);
+// 		dim[0] = DimTime();
+// 		dim[1] = DimV3();
+// 
+// 		attrs.resize(3);
+// 		attrs[0] = AttrVal("units", "deg");
+// 		attrs[1] = AttrVal("type", "Vec3");
+// 
+// 		std::string etype;
+// 		switch (od) {
+// 		case EULER_123:
+// 			etype = "123";
+// 			break;
+// 
+// 		case EULER_313:
+// 			etype = "313";
+// 			break;
+// 
+// 		case EULER_321:
+// 			etype = "321";
+// 			break;
+// 
+// 		default:
+// 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+// 		}
+// 
+// 		attrs[2] = AttrVal("description",
+// 			description + " orientation Euler angles (" + etype + ") "
+// 			"(E_X, E_Y, E_Z)");
+// 
+// 		name += "E";
+// 		} break;
+// 
+// 	default:
+// 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+// 	}
+// 
+// 	name += name_postfix;
+// 	return CreateVar(name, MbNcDouble, attrs, dim);
+// }
 #endif // USE_NETCDF
 
 /* OutputHandler - end */

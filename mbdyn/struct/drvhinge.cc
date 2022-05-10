@@ -99,7 +99,7 @@ DriveHingeJoint::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int("Drive Hinge", OH, name);
 
 			Var_Phi = OH.CreateVar<Vec3>(name + "Theta",
-				OutputHandler::Dimensions::rad,
+				MBUnits::Dimensions::rad,
 				"Relative orientation");
 		}
 #endif // USE_NETCDF
@@ -647,30 +647,30 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 DriveHingeJoint::GetEquationDimension(integer index) const {
 	// DOF == 6
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 	case 1:
-		dimension = OutputHandler::Dimensions::rad;
+		dimension = MBUnits::Dimensions::rad;
 		break;
 	case 2:
-		dimension = OutputHandler::Dimensions::rad;
+		dimension = MBUnits::Dimensions::rad;
 		break;
 	case 3:
-		dimension = OutputHandler::Dimensions::rad;
+		dimension = MBUnits::Dimensions::rad;
 		break;
 	case 4:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
+		dimension = MBUnits::Dimensions::AngularVelocity;
 		break;
 	case 5:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
+		dimension = MBUnits::Dimensions::AngularVelocity;
 		break;
 	case 6:
-		dimension = OutputHandler::Dimensions::AngularVelocity;
+		dimension = MBUnits::Dimensions::AngularVelocity;
 		break;
 	}
 

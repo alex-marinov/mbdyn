@@ -129,14 +129,14 @@ class InPlaneContactJoint : public Joint {
    /* ************************************************ */
 
    /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const {
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const {
       // DOF == 1
-      OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+      MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 	}
 

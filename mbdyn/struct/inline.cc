@@ -309,19 +309,19 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 
 			if (fc) {
 				Var_FF = OH.CreateVar<Vec3>(name + "FF",
-						OutputHandler::Dimensions::Force,
+						MBUnits::Dimensions::Force,
 						"friction force (x, y, z)");
 
 				Var_fc = OH.CreateVar<doublereal>(name + "fc",
-						OutputHandler::Dimensions::Dimensionless,
+						MBUnits::Dimensions::Dimensionless,
 						"friction coefficient");
 
 				Var_v = OH.CreateVar<doublereal>(name + "v",
-						OutputHandler::Dimensions::Velocity,
+						MBUnits::Dimensions::Velocity,
 						"relative sliding velocity");
 
 				Var_displ = OH.CreateVar<doublereal>(name + "displ",
-						OutputHandler::Dimensions::Length,
+						MBUnits::Dimensions::Length,
 						"relative sliding displacement");
 			}
 		}
@@ -569,18 +569,18 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 InLineJoint::GetEquationDimension(integer index) const {
 	// DOF is unknown
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 	}
 
@@ -1088,18 +1088,18 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 InLineWithOffsetJoint::GetEquationDimension(integer index) const {
 	// DOF == 2
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 	}
 

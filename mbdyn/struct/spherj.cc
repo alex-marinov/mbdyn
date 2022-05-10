@@ -562,21 +562,21 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 SphericalHingeJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
       case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 	}
 
@@ -761,7 +761,7 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Spherical pin", OH, name);
 
 			Var_Phi = OH.CreateVar<Vec3>(name + "E",
-				OutputHandler::Dimensions::deg,
+				MBUnits::Dimensions::deg,
 				"node orientation (E123)");
 
 		}
@@ -930,21 +930,21 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PinJoint::GetEquationDimension(integer index) const {
 	// DOF == 3
-   OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+   MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
       case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 	}
 

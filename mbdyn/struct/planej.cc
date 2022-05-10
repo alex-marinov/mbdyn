@@ -954,16 +954,16 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
 				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
-						OutputHandler::Dimensions::Moment,
+						MBUnits::Dimensions::Moment,
 						"friciton moment ");
 
 				Var_fc = OH.CreateVar<doublereal>(name + "fc",
-						OutputHandler::Dimensions::Dimensionless,
+						MBUnits::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
 		}
@@ -1514,26 +1514,26 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PlaneHingeJoint::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 4:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
          break;
 		case 5:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
          break;
 	}
 
@@ -2054,7 +2054,7 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 				"relative orientation");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -2526,18 +2526,18 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PlaneRotationJoint::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 	}
 
@@ -3402,16 +3402,16 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 			Var_Phi = OH.CreateRotationVar(name, "", od, "Relative orientation");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
 				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
-						OutputHandler::Dimensions::Moment,
+						MBUnits::Dimensions::Moment,
 						"friciton moment");
 
 				Var_fc = OH.CreateVar<doublereal>(name + "fc",
-						OutputHandler::Dimensions::Dimensionless,
+						MBUnits::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
 		}
@@ -3991,30 +3991,30 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 AxialRotationJoint::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
 			break;
 		case 4:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 5:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
 			break;
 		case 6:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 	}
 
@@ -4948,26 +4948,26 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PlanePinJoint::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Length;
+			dimension = MBUnits::Dimensions::Length;
          break;
 		case 4:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
          break;
 		case 5:
-			dimension = OutputHandler::Dimensions::rad;
+			dimension = MBUnits::Dimensions::rad;
          break;
 	}
 

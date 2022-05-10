@@ -300,13 +300,13 @@ Rod::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Rod", OH, name);
 
 			Var_dElle = OH.CreateVar<doublereal>(name + "l",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"length of the element");
 			Var_dEllePrime = OH.CreateVar<doublereal>(name + "lP",
-				OutputHandler::Dimensions::Velocity,
+				MBUnits::Dimensions::Velocity,
 				"lengthening velocity of the element");
 			Var_v = OH.CreateVar<Vec3>(name + "v",
-				OutputHandler::Dimensions::Dimensionless,
+				MBUnits::Dimensions::Dimensionless,
 				"direction unit vector");
 			ConstitutiveLaw1DOwner::OutputAppendPrepare(OH, name + "CL");
 		}
@@ -515,10 +515,10 @@ Rod::dGetPrivData(unsigned int i) const
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 Rod::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 
 /* Rod - end */

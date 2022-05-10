@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,38 +31,20 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include "dofown.h"
-#include "solman.h"
+#include "netcdf_output_file.h"
+#include "output.h"
 
-doublereal
-DofOwner::dGetScale(void) const
-{
-	return dScale;
-}
+virtual void NetCDFOutput::Open(const int format) {
+	if (!IsOpen()) {
+		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(OutputHandler::psExt[OutputHandler::NETCDF])), netCDF::NcFile::replace, format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
+		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
+		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
 
-void
-DofOwner::SetScale(const doublereal& d)
-{
-	dScale = d;
-}
+		// Let's define some dimensions which could be useful
+		DimTime = CreateDim("time");
+		DimV1 = CreateDim("Vec1", 1);
+		DimV3 = CreateDim("Vec3", 3);
+	}
 
-DofOwnerOwner::DofOwnerOwner(const DofOwner* pDO) 
-: pDofOwner(pDO)
-{ 
-	ASSERT(pDofOwner != NULL);
-}
-   
-void 
-DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
-{ 
-	NO_OP; 
-}
-
-const MBUnits::Dimensions
-DofOwnerOwner::GetEquationDimension(integer index) const {
-
-	silent_cout("entered GetEquationDimension of DofOwnerOwner");
-	throw("runtime error");
-	
-	return MBUnits::Dimensions::Boolean;
-}
+	return;
+};

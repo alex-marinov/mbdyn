@@ -199,7 +199,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* return s the dimension of the component */
-   const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+   const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlaneHingeJoint - end */
@@ -340,7 +340,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlaneRotationJoint - end */
@@ -518,7 +518,7 @@ public Joint, public DriveOwner {
    /* ************************************************ */
 
    /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* AxialRotationJoint - end */
@@ -650,7 +650,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    /* ************************************************ */
 
    /* return s the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* PlanePinJoint - end */

@@ -468,27 +468,27 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 			std::string name = os.str();
 
 			Var_X = OH.CreateVar<Vec3>(name + "X",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				"global position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
 			Var_XP = OH.CreateVar<Vec3>(name + "XP",
-				OutputHandler::Dimensions::Velocity,
+				MBUnits::Dimensions::Velocity,
 				"global velocity vector (v_X, v_Y, v_Z)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
 				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
-					OutputHandler::Dimensions::Acceleration,
+					MBUnits::Dimensions::Acceleration,
 					"global acceleration vector (a_X, a_Y, a_Z)");
 
 				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
-					OutputHandler::Dimensions::AngularAcceleration,
+					MBUnits::Dimensions::AngularAcceleration,
 					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
@@ -1065,21 +1065,21 @@ StructDispNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 StructDispNode::GetEquationDimension(integer index) const {
 
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 		{
 			case 1:
-				dimension = OutputHandler::Dimensions::Force;
+				dimension = MBUnits::Dimensions::Force;
 				break;
 			case 2:
-				dimension = OutputHandler::Dimensions::Force;
+				dimension = MBUnits::Dimensions::Force;
 				break;
 			case 3:
-				dimension = OutputHandler::Dimensions::Force;
+				dimension = MBUnits::Dimensions::Force;
 				break;
 		}
 
@@ -1423,29 +1423,29 @@ DynamicStructDispNode::SetOutputFlag(flag f)
 	ToBeOutput::SetOutputFlag(f);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 DynamicStructDispNode::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 4:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 5:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 6:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 	}
 
@@ -1893,27 +1893,27 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			std::string name = os.str();
 
 			Var_X = OH.CreateVar<Vec3>(name + "X",
-				OutputHandler::Dimensions::Length,
+				MBUnits::Dimensions::Length,
 				glocal + " position vector (X, Y, Z)");
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
 			Var_XP = OH.CreateVar<Vec3>(name + "XP",
-				OutputHandler::Dimensions::Velocity,
+				MBUnits::Dimensions::Velocity,
 				glocal + " velocity vector (v_X, v_Y, v_Z)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
-				OutputHandler::Dimensions::AngularVelocity,
+				MBUnits::Dimensions::AngularVelocity,
 				glocal + " angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
 				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
-					OutputHandler::Dimensions::Acceleration,
+					MBUnits::Dimensions::Acceleration,
 					glocal + " acceleration vector (a_X, a_Y, a_Z)");
 
 				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
-					OutputHandler::Dimensions::AngularAcceleration,
+					MBUnits::Dimensions::AngularAcceleration,
 					glocal + " angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
@@ -3179,30 +3179,30 @@ StructNode::dGetPrivData(unsigned int i) const
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 StructNode::GetEquationDimension(integer index) const {
 	
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 	case 1:
-		dimension = OutputHandler::Dimensions::Force;
+		dimension = MBUnits::Dimensions::Force;
 		break;
 	case 2:
-		dimension = OutputHandler::Dimensions::Force;
+		dimension = MBUnits::Dimensions::Force;
 		break;
 	case 3:
-		dimension = OutputHandler::Dimensions::Force;
+		dimension = MBUnits::Dimensions::Force;
 		break;
 	case 4:
-		dimension = OutputHandler::Dimensions::Moment;
+		dimension = MBUnits::Dimensions::Moment;
 		break;
 	case 5:
-		dimension = OutputHandler::Dimensions::Moment;
+		dimension = MBUnits::Dimensions::Moment;
 		break;
 	case 6:
-		dimension = OutputHandler::Dimensions::Moment;
+		dimension = MBUnits::Dimensions::Moment;
 		break;
 	}
 
@@ -3554,48 +3554,48 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	}
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 DynamicStructNode::GetEquationDimension(integer index) const {
 
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Momentum;
+			dimension = MBUnits::Dimensions::Momentum;
 			break;
 		case 4:
-			dimension = OutputHandler::Dimensions::MomentaMoment;
+			dimension = MBUnits::Dimensions::MomentaMoment;
 			break;
 		case 5:
-			dimension = OutputHandler::Dimensions::MomentaMoment;
+			dimension = MBUnits::Dimensions::MomentaMoment;
 			break;
 		case 6:
-			dimension = OutputHandler::Dimensions::MomentaMoment;
+			dimension = MBUnits::Dimensions::MomentaMoment;
 			break;
 		case 7:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 8:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 9:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 10:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 		case 11:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 		case 12:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 
 	}
@@ -3871,47 +3871,47 @@ ModalNode::AfterConvergence(const VectorHandler& X,
 	NO_OP;
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 ModalNode::GetEquationDimension(integer index) const {
-	OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	switch (index)
 	{
 		case 1:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 2:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 3:
-			dimension = OutputHandler::Dimensions::Velocity;
+			dimension = MBUnits::Dimensions::Velocity;
 			break;
 		case 4:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 5:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 6:
-			dimension = OutputHandler::Dimensions::AngularVelocity;
+			dimension = MBUnits::Dimensions::AngularVelocity;
 			break;
 		case 7:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 8:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 9:
-			dimension = OutputHandler::Dimensions::Force;
+			dimension = MBUnits::Dimensions::Force;
 			break;
 		case 10:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 		case 11:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 		case 12:
-			dimension = OutputHandler::Dimensions::Moment;
+			dimension = MBUnits::Dimensions::Moment;
 			break;
 
 	}

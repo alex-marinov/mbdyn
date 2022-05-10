@@ -324,8 +324,8 @@ PointSurfaceContact::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 						
 }
 
-const OutputHandler::Dimensions
+const MBUnits::Dimensions
 PointSurfaceContact::GetEquationDimension(integer index) const {
 	// DOF == 0
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }

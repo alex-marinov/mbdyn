@@ -10,6 +10,8 @@ auth.cc \
 auth.h \
 bicg.cc \
 bicg.h \
+binaryoutput.cc \
+binary_output_file.cc \
 bufferstream_out_elem.cc \
 bufferstream_out_elem.h \
 bufferstreamdrive.cc \
@@ -101,6 +103,7 @@ mtdataman.cc \
 mtdataman.h \
 nestedelem.cc \
 nestedelem.h \
+netcdf_output_file.cc \
 node.cc \
 node.h \
 nodeman.cc \
@@ -174,6 +177,7 @@ thirdorderstepsol.h \
 thirdorderstepsol.cc \
 TimeStepControl.h \
 TimeStepControl.cc \
+units.cc \
 userelem.cc \
 userelem.h \
 usesock.cc \

@@ -36,6 +36,7 @@
 
 #include "myassert.h"
 
+#include "units.h"
 #include "output.h"
 #include "withlab.h"
 #include "dofown.h"
@@ -294,7 +295,7 @@ public:
 #endif
 
 	 /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 
 	/* describes the dimension of components of equation */
     virtual std::ostream& DescribeEq(std::ostream& out,
@@ -467,7 +468,7 @@ public:
 #endif
 
 	 /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 
 	/* describes the dimension of components of equation */
     virtual std::ostream& DescribeEq(std::ostream& out,

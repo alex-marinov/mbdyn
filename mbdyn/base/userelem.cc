@@ -227,11 +227,11 @@ UserDefinedElem::GetAerodynamicElemType(void) const
 	return AerodynamicElem::AERODYNAMICLOADABLE;
 }
 
-const OutputHandler::Dimensions 
+const MBUnits::Dimensions 
 UserDefinedElem::GetEquationDimension(integer index) const {
 	// DOF is unknown
 	
-	return OutputHandler::Dimensions::UnknownDimension;
+	return MBUnits::Dimensions::UnknownDimension;
 }
 
 std::ostream&

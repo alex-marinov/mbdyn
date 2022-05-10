@@ -355,8 +355,8 @@ public:
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0);
 
 	/* sets the dimesnions of the equation components */
-	virtual void SetElemDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
-	virtual void SetNodeDimensionIndices(std::map<OutputHandler::Dimensions, std::set<integer>>* pDimMap);
+	virtual void SetElemDimensionIndices(std::map<MBUnits::Dimensions, std::set<integer>>* pDimMap);
+	virtual void SetNodeDimensionIndices(std::map<MBUnits::Dimensions, std::set<integer>>* pDimMap);
 
 	// inverse dynamics
 	/* Constraints residual, switch iOrder*/

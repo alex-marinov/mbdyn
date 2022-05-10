@@ -1498,11 +1498,11 @@ DataManager::OutputPrepare(void)
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
 		Var_Step = OutHdl.CreateVar<integer>("run.step", 
-			OutputHandler::Dimensions::Dimensionless, "time step index");
+			MBUnits::Dimensions::Dimensionless, "time step index");
 		Var_Time = OutHdl.CreateVar<doublereal>("time", 
-			OutputHandler::Dimensions::Time, "simulation time");
+			MBUnits::Dimensions::Time, "simulation time");
 		Var_TimeStep = OutHdl.CreateVar<doublereal>("run.timestep", 
-			OutputHandler::Dimensions::Time, "integration time step");
+			MBUnits::Dimensions::Time, "integration time step");
 	}
 #endif /* USE_NETCDF */
 
@@ -1735,13 +1735,13 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
 		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
-				OutputHandler::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
+				MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
 		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
-			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
+			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
                 OutputEigSparseMatrixNc(Var_Eig_dAplus, *pMatB);
                 OutputEigSparseMatrixNc(Var_Eig_dAminus, *pMatA);           
@@ -1821,13 +1821,13 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
 		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
-			OutputHandler::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
+			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
 		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
-			OutputHandler::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
+			MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		size_t iCnt = 0;
 		Vec3 v;

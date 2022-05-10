@@ -309,7 +309,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	/* test code for getting dimension of components */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -658,7 +658,7 @@ public:
 	virtual void SetOutputFlag(flag f = flag(1));
 
 	/* for getting dimension of equations */
-	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension (integer index) const;
 };
 
 inline void
@@ -1076,7 +1076,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	/* test code for getting dimension of components */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 }; /* End class StructNode */
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -1640,7 +1640,7 @@ public:
 		const VectorHandler& XP);
 
 	/* to get dimensions of equations */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 };
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
@@ -1849,7 +1849,7 @@ public:
 #endif
 
 	/* to get dimension of equations */
-	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
+	const virtual MBUnits::Dimensions GetEquationDimension (integer index) const;
 
 };
 

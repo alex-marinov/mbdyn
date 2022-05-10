@@ -313,7 +313,7 @@ NonlinearSolverTestSepNorm::GetAbsRes() {
 	return &AbsRes;
 }
 
-std::map<OutputHandler::Dimensions, std::set<integer>>* 
+std::map<MBUnits::Dimensions, std::set<integer>>* 
 NonlinearSolverTestSepNorm::GetDimMap() { 
 	return &MapOfDimensionIndices; 
 };
