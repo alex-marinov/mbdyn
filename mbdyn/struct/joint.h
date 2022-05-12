@@ -53,10 +53,10 @@ class Joint
 {
 protected:
 #ifdef USE_NETCDF
-	MBDynNcVar Var_F_local;
-	MBDynNcVar Var_M_local;
-	MBDynNcVar Var_F_global;
-	MBDynNcVar Var_M_global;
+	size_t Var_F_local;
+	size_t Var_M_local;
+	size_t Var_F_global;
+	size_t Var_M_global;
 #endif /* USE_NETCDF */
 
 	virtual void OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string& name);

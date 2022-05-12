@@ -60,7 +60,7 @@ protected:
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 #ifdef USE_NETCDF
-	MBDynNcVar Var_d;
+	size_t Var_d;
 #endif // USE_NETCDF
 public:
 	/* Costruttore non banale */
@@ -209,7 +209,7 @@ protected:
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 #ifdef USE_NETCDF
-	MBDynNcVar Var_d;
+	size_t Var_d;
 #endif // USE_NETCDF
 public:
 	/* Costruttore non banale */

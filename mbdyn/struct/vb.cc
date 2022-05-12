@@ -99,11 +99,11 @@ ViscousBody::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("viscous body", OH, name);
 
-			Var_v = OH.CreateVar<Vec3>(name + "V",
+			Var_v = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V",
 				MBUnits::Dimensions::Velocity,
 				"local relative linear velocity (x, y, z)");
 			
-			Var_omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -130,8 +130,8 @@ ViscousBody::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, Rh*F, Rh*M);
-			OH.WriteNcVar(Var_v, tilde_kPrime.GetVec1());
-			OH.WriteNcVar(Var_omega, tilde_kPrime.GetVec2());
+			OH.WriteVar(Var_v, tilde_kPrime.GetVec1());
+			OH.WriteVar(Var_omega, tilde_kPrime.GetVec2());
 		}
 #endif // USE_NETCDF
 

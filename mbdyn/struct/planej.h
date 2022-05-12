@@ -60,10 +60,10 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Vec3 F;
    Vec3 M;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_Omega;
-	MBDynNcVar Var_MFR;
-	MBDynNcVar Var_fc;
+	size_t Var_Phi;
+	size_t Var_Omega;
+	size_t Var_MFR;
+	size_t Var_fc;
 #endif // USE_NETCDF
 
    bool calcInitdTheta;
@@ -225,8 +225,8 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    mutable int NTheta;
    mutable doublereal dTheta, dThetaWrapped;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_Omega;
+	size_t Var_Phi;
+	size_t Var_Omega;
 #endif // USE_NETCDF
 
  protected:
@@ -373,10 +373,10 @@ public Joint, public DriveOwner {
    mutable doublereal dTheta, dThetaWrapped;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_Omega;
-	MBDynNcVar Var_MFR;
-	MBDynNcVar Var_fc;
+	size_t Var_Phi;
+	size_t Var_Omega;
+	size_t Var_MFR;
+	size_t Var_fc;
 #endif // USE_NETCDF
 
    /* friction related data */

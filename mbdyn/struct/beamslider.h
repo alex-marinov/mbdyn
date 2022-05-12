@@ -129,9 +129,9 @@ private:
 	Mat3x3 Rb;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Beam;
-	MBDynNcVar Var_sRef;
-	MBDynNcVar Var_l;
+	size_t Var_Beam;
+	size_t Var_sRef;
+	size_t Var_l;
 #endif // USE_NETCDF
    
 public:

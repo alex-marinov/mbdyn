@@ -457,23 +457,23 @@ RodBezier::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("rod bezier", OH, name);
 			
-			Var_F2 = OH.CreateVar<Vec3>(name + "F2",
+			Var_F2 = OH.GetBinaryFile()->CreateVar<Vec3>(name + "F2",
 				MBUnits::Dimensions::Force,
 				"force on Node 2 (x, y, z)");
 
-			Var_l = OH.CreateVar<doublereal>(name + "l",
+			Var_l = OH.GetBinaryFile()->CreateVar<doublereal>(name + "l",
 				MBUnits::Dimensions::Length,
 				"length of the element");
 
-			Var_l1 = OH.CreateVar<Vec3>(name + "l1",
+			Var_l1 = OH.GetBinaryFile()->CreateVar<Vec3>(name + "l1",
 				MBUnits::Dimensions::Dimensionless,
 				"node 1 reference unit vector (x, y, z)");
 			
-			Var_l2 = OH.CreateVar<Vec3>(name + "l2",
+			Var_l2 = OH.GetBinaryFile()->CreateVar<Vec3>(name + "l2",
 				MBUnits::Dimensions::Dimensionless,
 				"node 2 reference unit vector (x, y, z)");
 
-			Var_v = OH.CreateVar<doublereal>(name + "v",
+			Var_v = OH.GetBinaryFile()->CreateVar<doublereal>(name + "v",
 				MBUnits::Dimensions::Velocity,
 				"length rate of change");
 		}
@@ -502,11 +502,11 @@ RodBezier::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTmp, Zero3, l1*dF, Zero3);
-			OH.WriteNcVar(Var_F2, l2*dF);
-			OH.WriteNcVar(Var_l, dElle);
-			OH.WriteNcVar(Var_l1, l1);
-			OH.WriteNcVar(Var_l2, l2);
-			OH.WriteNcVar(Var_v, dEpsilonPrime*dL0);
+			OH.WriteVar(Var_F2, l2*dF);
+			OH.WriteVar(Var_l, dElle);
+			OH.WriteVar(Var_l1, l1);
+			OH.WriteVar(Var_l2, l2);
+			OH.WriteVar(Var_v, dEpsilonPrime*dL0);
 			ConstitutiveLaw1DOwner::NetCDFOutputAppend(OH);
 		}
 #endif // USE_NETCDF

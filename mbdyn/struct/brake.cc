@@ -447,18 +447,18 @@ Brake::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("brake", OH, name);
 			
-			Var_Phi = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
 				"relative rotation (Euler123)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity, node 2 RF (x, y, z)");
 			
-			Var_fc = OH.CreateVar<doublereal>(name + "fc",
+			Var_fc = OH.GetBinaryFile()->CreateVar<doublereal>(name + "fc",
 				MBUnits::Dimensions::Dimensionless,
 				"friction coefficient");
 
-			Var_Fb = OH.CreateVar<doublereal>(name + "Fb",
+			Var_Fb = OH.GetBinaryFile()->CreateVar<doublereal>(name + "Fb",
 				MBUnits::Dimensions::Force,
 				"normal force the brake is activated with");
 		}
@@ -490,12 +490,12 @@ void Brake::Output(OutputHandler& OH) const
 	      
 	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 	      
-	      OH.WriteNcVar(Var_Phi, RotManip::VecRot(RTmp));
-	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+	      OH.WriteVar(Var_Phi, RotManip::VecRot(RTmp));
+	      OH.WriteVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
 	      
 	      if (fc) {
-		      OH.WriteNcVar(Var_fc, fc->fc());
-		      OH.WriteNcVar(Var_Fb, brakeForce.dGet());
+		      OH.WriteVar(Var_fc, fc->fc());
+		      OH.WriteVar(Var_Fb, brakeForce.dGet());
 	      }
 
       }

@@ -47,7 +47,7 @@ class LinearAccelerationJoint
    Vec3 Dir;
    doublereal dF;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_a;
+   size_t Var_a;
 #endif // USE_NETCDF
    
  public:
@@ -139,7 +139,7 @@ class AngularAccelerationJoint
    Vec3 Dir;
    doublereal dM;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_wP;
+   size_t Var_wP;
 #endif // USE_NETCDF
    
  public:

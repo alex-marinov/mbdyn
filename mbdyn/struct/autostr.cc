@@ -241,13 +241,13 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 
 			std::string name(os.str());
 
-			Var_B = OH.CreateVar<Vec3>(name + "B", 
+			Var_B = OH.GetBinaryFile()->CreateVar<Vec3>(name + "B", 
 				MBUnits::Dimensions::Momentum, "momentum (X, Y, Z)");
-			Var_G = OH.CreateVar<Vec3>(name + "G",  
+			Var_G = OH.GetBinaryFile()->CreateVar<Vec3>(name + "G",  
 				MBUnits::Dimensions::MomentaMoment, "momenta moment (X, Y, Z)");
-			Var_BP = OH.CreateVar<Vec3>(name + "BP",  
+			Var_BP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "BP",  
 				MBUnits::Dimensions::MomentumDerivative, "momentum derivative (X, Y, Z)");
-			Var_GP = OH.CreateVar<Vec3>(name + "GP",  
+			Var_GP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "GP",  
 				MBUnits::Dimensions::MomentaMomentDerivative, "momenta moment derivative (X, Y, Z)");
 		}
 #endif // USE_NETCDF
@@ -260,10 +260,10 @@ AutomaticStructDispElem::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::INERTIA)) {
-			OH.WriteNcVar(Var_B, B);
-			OH.WriteNcVar(Var_G, Zero3);
-			OH.WriteNcVar(Var_BP, BP);
-			OH.WriteNcVar(Var_GP, Zero3);
+			OH.WriteVar(Var_B, B);
+			OH.WriteVar(Var_G, Zero3);
+			OH.WriteVar(Var_BP, BP);
+			OH.WriteVar(Var_GP, Zero3);
 		}
 #endif /* USE_NETCDF */
 
@@ -723,13 +723,13 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 
 			std::string name(os.str());
 
-			Var_B = OH.CreateVar<Vec3>(name + "B",  
+			Var_B = OH.GetBinaryFile()->CreateVar<Vec3>(name + "B",  
 				MBUnits::Dimensions::Momentum, "momentum (X, Y, Z)");
-			Var_G = OH.CreateVar<Vec3>(name + "G",  
+			Var_G = OH.GetBinaryFile()->CreateVar<Vec3>(name + "G",  
 				MBUnits::Dimensions::MomentaMoment, "momenta moment (X, Y, Z)");
-			Var_BP = OH.CreateVar<Vec3>(name + "BP",  
+			Var_BP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "BP",  
 				MBUnits::Dimensions::MomentumDerivative, "momentum derivative (X, Y, Z)");
-			Var_GP = OH.CreateVar<Vec3>(name + "GP",   
+			Var_GP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "GP",   
 				MBUnits::Dimensions::MomentaMomentDerivative, "momenta moment derivative (X, Y, Z)");
 		}
 #endif // USE_NETCDF
@@ -742,10 +742,10 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::INERTIA)) {
-			OH.WriteNcVar(Var_B, B);
-			OH.WriteNcVar(Var_G, G);
-			OH.WriteNcVar(Var_BP, BP);
-			OH.WriteNcVar(Var_GP, GP);
+			OH.WriteVar(Var_B, B);
+			OH.WriteVar(Var_G, G);
+			OH.WriteVar(Var_BP, BP);
+			OH.WriteVar(Var_GP, GP);
 		}
 #endif /* USE_NETCDF */
 

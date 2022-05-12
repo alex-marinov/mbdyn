@@ -67,8 +67,8 @@ protected:
 	Mat3x3 MDEPrime;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Theta;
-	MBDynNcVar Var_Omega;
+	size_t Var_Theta;
+	size_t Var_Omega;
 #endif // USE_NETCDF
 	/* Jacobian matrix helpers */
 	virtual void

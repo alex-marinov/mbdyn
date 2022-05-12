@@ -104,7 +104,7 @@ protected:
 					active (not default, see configuration options!) */
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_X,
+	size_t Var_X,
 		Var_Phi,
 		Var_XP,
 		Var_Omega,

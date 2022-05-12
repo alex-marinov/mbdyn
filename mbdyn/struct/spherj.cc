@@ -224,7 +224,7 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Spherical hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, 
 					"relative orientation, in joint reference frame");
 
 		}
@@ -272,11 +272,11 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, RTmp);
+				OH.WriteVar(Var_Phi, RTmp);
 				break;
 
 			default:
@@ -760,7 +760,7 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Spherical pin", OH, name);
 
-			Var_Phi = OH.CreateVar<Vec3>(name + "E",
+			Var_Phi = OH.GetBinaryFile()->CreateVar<Vec3>(name + "E",
 				MBUnits::Dimensions::deg,
 				"node orientation (E123)");
 
@@ -782,7 +782,7 @@ void PinJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
-			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(pNode->GetRCurr())*dRaDegr);
+			OH.WriteVar(Var_Phi, MatR2EulerAngles(pNode->GetRCurr())*dRaDegr);
 		}
 #endif // USE_NETCDF
 	}

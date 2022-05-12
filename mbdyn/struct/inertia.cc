@@ -279,15 +279,15 @@ Inertia::Output(OutputHandler& OH) const
 			Vec3 dx = R0.MulTV(DX);
 			Vec3 Phip = RotManip::VecRot(R_princ);
 
-			OH.WriteNcVar(Var_dMass, dMass);
-			OH.WriteNcVar(Var_X_cm, X_cm);
-			OH.WriteNcVar(Var_V_cm, V_cm);
-			OH.WriteNcVar(Var_Omega_cm, Omega_cm);
+			OH.WriteVar(Var_dMass, dMass);
+			OH.WriteVar(Var_X_cm, X_cm);
+			OH.WriteVar(Var_V_cm, V_cm);
+			OH.WriteVar(Var_Omega_cm, Omega_cm);
 
-			OH.WriteNcVar(Var_DX, DX);
-			OH.WriteNcVar(Var_dx, dx);
-			OH.WriteNcVar(Var_Jp, J_princ);
-			OH.WriteNcVar(Var_Phip, Phip);
+			OH.WriteVar(Var_DX, DX);
+			OH.WriteVar(Var_dx, dx);
+			OH.WriteVar(Var_Jp, J_princ);
+			OH.WriteVar(Var_Phip, Phip);
 		}
 #endif // USE_NETCDF
 	}
@@ -302,7 +302,7 @@ Inertia::OutputPrepare_int(OutputHandler &OH, std::string& name)
 
 		std::ostringstream os;
 		os << "elem.inertia." << GetLabel();
-		(void)OH.CreateVar(os.str(), "inertia");
+		(void)OH.GetBinaryFile()->CreateVar(os.str(), "inertia");
 
 		os << ".";
 		name = os.str();
@@ -320,29 +320,29 @@ Inertia::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int(OH, name);
 
-			Var_dMass = OH.CreateVar<doublereal>(name + "M",
+			Var_dMass = OH.GetBinaryFile()->CreateVar<doublereal>(name + "M",
 				MBUnits::Dimensions::Mass,
 				"total mass");
-			Var_X_cm = OH.CreateVar<Vec3>(name + "X_cm",
+			Var_X_cm = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X_cm",
 				MBUnits::Dimensions::Length,
 				"center of mass position (x, y, z)");
-			Var_V_cm = OH.CreateVar<Vec3>(name + "V_cm",
+			Var_V_cm = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V_cm",
 				MBUnits::Dimensions::Velocity,
 				"center of mass velocity (x, y, z)");
-			Var_Omega_cm = OH.CreateVar<Vec3>(name + "Omega_cm",
+			Var_Omega_cm = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega_cm",
 				MBUnits::Dimensions::AngularVelocity,
 				"center of mass angular velocity (x, y, z)");
 
-			Var_DX = OH.CreateVar<Vec3>(name + "DX",
+			Var_DX = OH.GetBinaryFile()->CreateVar<Vec3>(name + "DX",
 				MBUnits::Dimensions::Length,
 				"relative center of mass position, global frame (x, y, z)");
-			Var_dx = OH.CreateVar<Vec3>(name + "dx",
+			Var_dx = OH.GetBinaryFile()->CreateVar<Vec3>(name + "dx",
 				MBUnits::Dimensions::Length,
 			 	"relative center of mass position, local frame (x, y, z)");
-			Var_Jp = OH.CreateVar<Vec3>(name + "Jp",
+			Var_Jp = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Jp",
 				MBUnits::Dimensions::MomentOfInertia,
 				"global inertia matrix, w.r.t. principal axes");
-			Var_Phip = OH.CreateVar<Vec3>(name + "Phip",
+			Var_Phip = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Phip",
 				MBUnits::Dimensions::Dimensionless,
 				"orientation vector of principal axes, global frame");
 		}

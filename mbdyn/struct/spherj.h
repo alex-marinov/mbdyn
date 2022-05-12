@@ -44,7 +44,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
    const StructNode* pNode1;
    const StructNode* pNode2;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_Phi;
+   size_t Var_Phi;
 #endif // USE_NETCDF
    Vec3 d1;
    Mat3x3 R1h;
@@ -167,7 +167,7 @@ class PinJoint : virtual public Elem, public Joint {
    Vec3 d;
    Vec3 F;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_Phi;
+   size_t Var_Phi;
 #endif // USE_NETCDF
 
  public:

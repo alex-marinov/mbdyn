@@ -288,7 +288,7 @@ UniversalHingeJoint::OutputPrepare(OutputHandler& OH)
 
 			// Only orientation vector for now. 
 			// TODO use orientation description?
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", ORIENTATION_VECTOR, 
 					"Orientation vector of node in relative frame (x, y, z)");
 
 		}
@@ -319,7 +319,7 @@ UniversalHingeJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTildeTmp, MTildeTmp, F, MTmp);
-			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R2Tmp.MulTM(R1Tmp)));
+			OH.WriteVar(Var_Phi, RotManip::VecRot(R2Tmp.MulTM(R1Tmp)));
 		}
 #endif // USE_NETCDF
 	}
@@ -862,7 +862,7 @@ UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Cardano rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, 
 					"Relative orientation");
 
 		}
@@ -917,11 +917,11 @@ UniversalRotationJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, RTmp);
+				OH.WriteVar(Var_Phi, RTmp);
 				break;
 
 			default:
@@ -1403,7 +1403,7 @@ UniversalPinJoint::OutputPrepare(OutputHandler& OH)
 
 			// Only orientation vector for now. 
 			// TODO use orientation description?
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", ORIENTATION_VECTOR, 
 					"Orientation vector of node in relative frame (x, y, z)");
 
 		}
@@ -1430,7 +1430,7 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmp.MulTV(F), MTildeTmp, F, vTmp*dM);
-			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R0.MulTM(RTmp)));
+			OH.WriteVar(Var_Phi, RotManip::VecRot(R0.MulTM(RTmp)));
 		}
 #endif // USE_NETCDF
 	}

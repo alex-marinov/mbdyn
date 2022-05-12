@@ -98,7 +98,7 @@ DriveHingeJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Drive Hinge", OH, name);
 
-			Var_Phi = OH.CreateVar<Vec3>(name + "Theta",
+			Var_Phi = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Theta",
 				MBUnits::Dimensions::rad,
 				"Relative orientation");
 		}
@@ -123,7 +123,7 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R1*M);
-			OH.WriteNcVar(Var_Phi, ThetaCurr);
+			OH.WriteVar(Var_Phi, ThetaCurr);
 		}
 #endif // USE_NETCDF
 

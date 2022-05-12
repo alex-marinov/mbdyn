@@ -115,21 +115,21 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Deformable joint", OH, name);
-			Var_tilde_d = OH.CreateVar<Vec3>(name + "d",
+			Var_tilde_d = OH.GetBinaryFile()->CreateVar<Vec3>(name + "d",
 				MBUnits::Dimensions::Length,
 				"relative position in local frame (x, y, z)");
-			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime",
+			Var_tilde_dPrime = OH.GetBinaryFile()->CreateVar<Vec3>(name + "dPrime",
 				MBUnits::Dimensions::Velocity,
 				"relative linear velocity in local frame (x, y, z)");
-			Var_d = OH.CreateVar<Vec3>(name + "D",
+			Var_d = OH.GetBinaryFile()->CreateVar<Vec3>(name + "D",
 				MBUnits::Dimensions::Length,
 				"relative position in global frame (x, y, z)");
-			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime",
+			Var_dPrime = OH.GetBinaryFile()->CreateVar<Vec3>(name + "DPrime",
 				MBUnits::Dimensions::Velocity,
 				"relative linear velocity in global frame (x, y, z)");
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, 
 				"relative orientation, in joint reference frame");
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -183,10 +183,10 @@ DeformableJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, R);
+				OH.WriteVar(Var_Phi, R);
 				break;
 			default:
 				/* impossible */

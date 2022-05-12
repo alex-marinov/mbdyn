@@ -47,8 +47,8 @@ class LinearVelocityJoint
    Vec3 Dir;
    doublereal dF;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_dv;
-   MBDynNcVar Var_v;
+   size_t Var_dv;
+   size_t Var_v;
 #endif // USE_NETCDF
 
  public:
@@ -149,8 +149,8 @@ class AngularVelocityJoint
    Vec3 Dir;
    doublereal dM;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_dOmega;
-   MBDynNcVar Var_w;
+   size_t Var_dOmega;
+   size_t Var_w;
 #endif // USE_NETCDF
  public:
    /* Costruttore non banale */

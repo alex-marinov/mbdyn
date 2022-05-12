@@ -138,11 +138,11 @@ AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "absolute displacement");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "absolute displacement");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 				MBUnits::Dimensions::Force,
 				"force components (x, y, z)");
 		}
@@ -156,7 +156,7 @@ AbsoluteDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
+			OH.WriteVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
 
@@ -309,11 +309,11 @@ AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "internal absolute displacement");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "internal absolute displacement");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 				MBUnits::Dimensions::Force,
 				"force components (x, y, z)");
 		}
@@ -327,7 +327,7 @@ AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
+			OH.WriteVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
 
@@ -572,15 +572,15 @@ AbsoluteForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "absolute");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "absolute");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 				MBUnits::Dimensions::Force,
 				"global force components (x, y, z)");
 
-			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm",
+			Var_A = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm",
 				MBUnits::Dimensions::Length,
 				"arm in global frame (x, y, z)");
 		}
@@ -594,8 +594,8 @@ AbsoluteForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
-			OH.WriteNcVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
+			OH.WriteVar(Var_F, f.Get());
+			OH.WriteVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
 		}
 #endif // USE_NETCDF
 
@@ -860,23 +860,23 @@ FollowerForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "follower");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "follower");
 
 			// joint sub-data
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				os << '.';
-				Var_F = OH.CreateVar<Vec3>(os.str() + "f",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "f",
 					MBUnits::Dimensions::Force,
 					"local force components (x, y, z)");
 
 			} else {
 				os << '.';
-				Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 					MBUnits::Dimensions::Force,
 					"global force components (x, y, z)");
 			}
 
-			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm",
+			Var_A = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm",
 				MBUnits::Dimensions::Length,
 				"arm in global frame (x, y, z)");
 		}
@@ -891,11 +891,11 @@ FollowerForce::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
-				OH.WriteNcVar(Var_F, f.Get());
+				OH.WriteVar(Var_F, f.Get());
 			} else {
-				OH.WriteNcVar(Var_F, (pNode->GetRCurr()*f.Get()));
+				OH.WriteVar(Var_F, (pNode->GetRCurr()*f.Get()));
 			}
-			OH.WriteNcVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
+			OH.WriteVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
 		}
 #endif // USE_NETCDF
 
@@ -1113,11 +1113,11 @@ AbsoluteCouple::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.couple." << GetLabel();
-			(void)OH.CreateVar(os.str(), "absolute");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "absolute");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "M",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "M",
 				MBUnits::Dimensions::Moment,
 				"global couple components (x, y, z)");
 		}
@@ -1132,7 +1132,7 @@ AbsoluteCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
+			OH.WriteVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
 
@@ -1317,18 +1317,18 @@ FollowerCouple::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.couple." << GetLabel();
-			(void)OH.CreateVar(os.str(), "follower");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "follower");
 
 			// joint sub-data
 			os << '.';
 
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "m",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "m",
 					MBUnits::Dimensions::Moment,
 					"local couple components (x, y, z)");
 
 			} else {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "M",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "M",
 					MBUnits::Dimensions::Moment,
 					"global couple components (x, y, z)");
 			}
@@ -1345,9 +1345,9 @@ FollowerCouple::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
-				OH.WriteNcVar(Var_F, f.Get());
+				OH.WriteVar(Var_F, f.Get());
 			} else {
-				OH.WriteNcVar(Var_F, (pNode->GetRCurr()*f.Get()));
+				OH.WriteVar(Var_F, (pNode->GetRCurr()*f.Get()));
 			}
 		}
 #endif // USE_NETCDF
@@ -1657,19 +1657,19 @@ AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "internal absolute");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "internal absolute");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 				MBUnits::Dimensions::Force,
 				"global force components (x, y, z)");
 
-			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1",
+			Var_A1 = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm1",
 				MBUnits::Dimensions::Length,
 				"node 1 arm in global frame (x, y, z)");
 
-			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2",
+			Var_A2 = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm2",
 				MBUnits::Dimensions::Length,
 				"node 2 arm in global frame (x, y, z)");
 		}
@@ -1683,9 +1683,9 @@ AbsoluteInternalForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
-			OH.WriteNcVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
-			OH.WriteNcVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
+			OH.WriteVar(Var_F, f.Get());
+			OH.WriteVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
+			OH.WriteVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
 		}
 #endif // USE_NETCDF
 
@@ -2008,25 +2008,25 @@ FollowerInternalForce::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.force." << GetLabel();
-			(void)OH.CreateVar(os.str(), "internal follower");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "internal follower");
 
 			// joint sub-data
 			os << '.';
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "f",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "f",
 					MBUnits::Dimensions::Force,
 					"local force components (x, y, z)");
 			} else {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "F",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "F",
 					MBUnits::Dimensions::Force,
 					"global force components (x, y, z)");
 			}
 
-			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1",
+			Var_A1 = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm1",
 				MBUnits::Dimensions::Length,
 				"node 1 arm in global frame (x, y, z)");
 
-			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2",
+			Var_A2 = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "Arm2",
 				MBUnits::Dimensions::Length,
 				"node 2 arm in global frame (x, y, z)");
 		}
@@ -2041,12 +2041,12 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-				OH.WriteNcVar(Var_F, f.Get());
+				OH.WriteVar(Var_F, f.Get());
 			} else {
-				OH.WriteNcVar(Var_F, (pNode1->GetRCurr()*f.Get()));
+				OH.WriteVar(Var_F, (pNode1->GetRCurr()*f.Get()));
 			}
-			OH.WriteNcVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
-			OH.WriteNcVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
+			OH.WriteVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
+			OH.WriteVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
 		}
 #endif // USE_NETCDF
 
@@ -2323,11 +2323,11 @@ AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.couple." << GetLabel();
-			(void)OH.CreateVar(os.str(), "internal absolute");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "internal absolute");
 
 			// joint sub-data
 			os << '.';
-			Var_F = OH.CreateVar<Vec3>(os.str() + "M",
+			Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "M",
 				MBUnits::Dimensions::Moment,
 				"global couple components (x, y, z)");
 		}
@@ -2341,7 +2341,7 @@ AbsoluteInternalCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
-			OH.WriteNcVar(Var_F, f.Get());
+			OH.WriteVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
 
@@ -2548,17 +2548,17 @@ FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
 
 			std::ostringstream os;
 			os << "elem.couple." << GetLabel();
-			(void)OH.CreateVar(os.str(), "internal follower");
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), "internal follower");
 
 			// joint sub-data
 			os << '.';
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "m",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "m",
 					MBUnits::Dimensions::Moment,
 					"local couple components (x, y, z)");
 
 			} else {
-				Var_F = OH.CreateVar<Vec3>(os.str() + "M",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(os.str() + "M",
 					MBUnits::Dimensions::Moment,
 					"global couple components (x, y, z)");
 			}
@@ -2574,9 +2574,9 @@ FollowerInternalCouple::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-				OH.WriteNcVar(Var_F, f.Get());
+				OH.WriteVar(Var_F, f.Get());
 			} else {
-				OH.WriteNcVar(Var_F, (pNode1->GetRCurr()*f.Get()));
+				OH.WriteVar(Var_F, (pNode1->GetRCurr()*f.Get()));
 			}
 		}
 #endif // USE_NETCDF

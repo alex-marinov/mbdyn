@@ -1347,7 +1347,7 @@ Beam::OutputPrepare(OutputHandler &OH)
 			std::ostringstream os;
 			os << "elem.beam." << GetLabel();
 
-			(void)OH.CreateVar(os.str(), type);
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), type);
 
 			os << '.';
 			std::string name(os.str());
@@ -1361,48 +1361,48 @@ Beam::OutputPrepare(OutputHandler &OH)
 				std::string ep(os.str());
 
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
-					Var_X[iSez] = OH.CreateVar<Vec3>(name + "X_" + sez[iSez], 
+					Var_X[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X_" + sez[iSez], 
 						MBUnits::Dimensions::Length,
 						ep + "global position vector (X, Y, Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_R) {
-					Var_Phi[iSez] = OH.CreateRotationVar(name,
+					Var_Phi[iSez] = OH.GetBinaryFile()->CreateRotationVar(name,
 						std::string("_") + sez[iSez], od, ep + "global");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_F) {
-					Var_F[iSez] = OH.CreateVar<Vec3>(name + "F_" + sez[iSez], 
+					Var_F[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "F_" + sez[iSez], 
 						MBUnits::Dimensions::Force,
 						ep + "internal force in local frame (F_X, F_Y, F_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_M) {
-					Var_M[iSez] = OH.CreateVar<Vec3>(name + "M_" + sez[iSez],  
+					Var_M[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "M_" + sez[iSez],  
 						MBUnits::Dimensions::Moment,
 						ep + "internal moment in local frame (M_X, M_Y, M_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-					Var_Nu[iSez] = OH.CreateVar<Vec3>(name + "nu_" + sez[iSez],  
+					Var_Nu[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "nu_" + sez[iSez],  
 						MBUnits::Dimensions::LinearStrain,
 						ep + "linear strain in local frame (nu_X, nu_Y, nu_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_K) {
-					Var_K[iSez] = OH.CreateVar<Vec3>(name + "k_" + sez[iSez],  
+					Var_K[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "k_" + sez[iSez],  
 						MBUnits::Dimensions::AngularStrain,
 						ep + "angular strain in local frame (K_X, K_Y, K_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-					Var_NuP[iSez] = OH.CreateVar<Vec3>(name + "nuP_" + sez[iSez],  
+					Var_NuP[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "nuP_" + sez[iSez],  
 						MBUnits::Dimensions::LinearStrainRate,
 						ep + "linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-					Var_KP[iSez] = OH.CreateVar<Vec3>(name + "kP_" + sez[iSez],  
+					Var_KP[iSez] = OH.GetBinaryFile()->CreateVar<Vec3>(name + "kP_" + sez[iSez],  
 						MBUnits::Dimensions::AngularStrainRate,
 						ep + "angular strain rate in local frame (KP_X, KP_Y, KP_Z)");
 				}
@@ -1424,7 +1424,7 @@ Beam::Output(OutputHandler& OH) const
 		if (OH.UseBinary(OutputHandler::BEAMS)) {
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
-					OH.WriteNcVar(Var_X[iSez], p[iSez]);
+					OH.WriteVar(Var_X[iSez], p[iSez]);
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_R) {
@@ -1459,11 +1459,11 @@ Beam::Output(OutputHandler& OH) const
 					case EULER_313:
 					case EULER_321:
 					case ORIENTATION_VECTOR:
-						OH.WriteNcVar(Var_Phi[iSez], E);
+						OH.WriteVar(Var_Phi[iSez], E);
 						break;
 
 					case ORIENTATION_MATRIX:
-						OH.WriteNcVar(Var_Phi[iSez], R[iSez]);
+						OH.WriteVar(Var_Phi[iSez], R[iSez]);
 						break;
 
 					default:
@@ -1473,27 +1473,27 @@ Beam::Output(OutputHandler& OH) const
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_F) {
-					OH.WriteNcVar(Var_F[iSez], AzLoc[iSez].GetVec1());
+					OH.WriteVar(Var_F[iSez], AzLoc[iSez].GetVec1());
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_M) {
-					OH.WriteNcVar(Var_M[iSez], AzLoc[iSez].GetVec2());
+					OH.WriteVar(Var_M[iSez], AzLoc[iSez].GetVec2());
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-					OH.WriteNcVar(Var_Nu[iSez], DefLoc[iSez].GetVec1());
+					OH.WriteVar(Var_Nu[iSez], DefLoc[iSez].GetVec1());
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_K) {
-					OH.WriteNcVar(Var_K[iSez], DefLoc[iSez].GetVec2());
+					OH.WriteVar(Var_K[iSez], DefLoc[iSez].GetVec2());
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-					OH.WriteNcVar(Var_NuP[iSez], DefPrimeLoc[iSez].GetVec1());
+					OH.WriteVar(Var_NuP[iSez], DefPrimeLoc[iSez].GetVec1());
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-					OH.WriteNcVar(Var_KP[iSez], DefPrimeLoc[iSez].GetVec2());
+					OH.WriteVar(Var_KP[iSez], DefPrimeLoc[iSez].GetVec2());
 				}
 			}
 		}

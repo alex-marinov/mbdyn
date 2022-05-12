@@ -67,7 +67,7 @@ protected:
 	virtual void ComputeAccelerations(Vec3& XPP) const;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_B,
+	size_t Var_B,
 		Var_G,
 		Var_BP,
 		Var_GP;

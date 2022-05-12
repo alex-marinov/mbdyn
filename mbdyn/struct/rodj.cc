@@ -299,13 +299,13 @@ Rod::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Rod", OH, name);
 
-			Var_dElle = OH.CreateVar<doublereal>(name + "l",
+			Var_dElle = OH.GetBinaryFile()->CreateVar<doublereal>(name + "l",
 				MBUnits::Dimensions::Length,
 				"length of the element");
-			Var_dEllePrime = OH.CreateVar<doublereal>(name + "lP",
+			Var_dEllePrime = OH.GetBinaryFile()->CreateVar<doublereal>(name + "lP",
 				MBUnits::Dimensions::Velocity,
 				"lengthening velocity of the element");
-			Var_v = OH.CreateVar<Vec3>(name + "v",
+			Var_v = OH.GetBinaryFile()->CreateVar<Vec3>(name + "v",
 				MBUnits::Dimensions::Dimensionless,
 				"direction unit vector");
 			ConstitutiveLaw1DOwner::OutputAppendPrepare(OH, name + "CL");
@@ -333,9 +333,9 @@ Rod::Output(OutputHandler& OH) const
 			
 			Joint::NetCDFOutput(OH, F, M, FTmp, M);
 			
-			OH.WriteNcVar(Var_dElle, dElle);
-			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
-			OH.WriteNcVar(Var_v, vTmp);
+			OH.WriteVar(Var_dElle, dElle);
+			OH.WriteVar(Var_dEllePrime, dEllePrime);
+			OH.WriteVar(Var_v, vTmp);
 
 			ConstitutiveLaw1DOwner::NetCDFOutputAppend(OH);
 		}

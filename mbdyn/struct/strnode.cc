@@ -461,33 +461,33 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 
 			std::ostringstream os;
 			os << "node.struct." << GetLabel();
-			(void)OH.CreateVar(os.str(), type);
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), type);
 
 			// node sub-data
 			os << '.';
 			std::string name = os.str();
 
-			Var_X = OH.CreateVar<Vec3>(name + "X",
+			Var_X = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X",
 				MBUnits::Dimensions::Length,
 				"global position vector (X, Y, Z)");
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, "global");
 
-			Var_XP = OH.CreateVar<Vec3>(name + "XP",
+			Var_XP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "XP",
 				MBUnits::Dimensions::Velocity,
 				"global velocity vector (v_X, v_Y, v_Z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
-				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
+				Var_XPP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "XPP",
 					MBUnits::Dimensions::Acceleration,
 					"global acceleration vector (a_X, a_Y, a_Z)");
 
-				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
+				Var_OmegaP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "OmegaP",
 					MBUnits::Dimensions::AngularAcceleration,
 					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
@@ -503,18 +503,18 @@ StructDispNode::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::STRNODES)) {
-			OH.WriteNcVar(Var_X, XCurr);
+			OH.WriteVar(Var_X, XCurr);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
 			case UNKNOWN_ORIENTATION_DESCRIPTION:
-				OH.WriteNcVar(Var_Phi, Zero3);
+				OH.WriteVar(Var_Phi, Zero3);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, Eye3);
+				OH.WriteVar(Var_Phi, Eye3);
 				break;
 
 			default:
@@ -522,12 +522,12 @@ StructDispNode::Output(OutputHandler& OH) const
 				break;
 			}
 
-			OH.WriteNcVar(Var_XP, VCurr);
-			OH.WriteNcVar(Var_Omega, Zero3);
+			OH.WriteVar(Var_XP, VCurr);
+			OH.WriteVar(Var_Omega, Zero3);
 
 			if (bOutputAccels) {
-				OH.WriteNcVar(Var_XPP, XPPCurr);
-				OH.WriteNcVar(Var_OmegaP, Zero3);
+				OH.WriteVar(Var_XPP, XPPCurr);
+				OH.WriteVar(Var_OmegaP, Zero3);
 			}
 		}
 #endif /* USE_NETCDF */
@@ -1886,33 +1886,33 @@ StructNode::OutputPrepare(OutputHandler &OH)
 
 			std::ostringstream os;
 			os << "node.struct." << GetLabel();
-			(void)OH.CreateVar(os.str(), type);
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), type);
 
 			// node sub-data
 			os << '.';
 			std::string name = os.str();
 
-			Var_X = OH.CreateVar<Vec3>(name + "X",
+			Var_X = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X",
 				MBUnits::Dimensions::Length,
 				glocal + " position vector (X, Y, Z)");
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, "global");
 
-			Var_XP = OH.CreateVar<Vec3>(name + "XP",
+			Var_XP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "XP",
 				MBUnits::Dimensions::Velocity,
 				glocal + " velocity vector (v_X, v_Y, v_Z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				glocal + " angular velocity vector (omega_X, omega_Y, omega_Z)");
 
 			// accelerations
 			if (bOutputAccels) {
-				Var_XPP = OH.CreateVar<Vec3>(name + "XPP",
+				Var_XPP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "XPP",
 					MBUnits::Dimensions::Acceleration,
 					glocal + " acceleration vector (a_X, a_Y, a_Z)");
 
-				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP",
+				Var_OmegaP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "OmegaP",
 					MBUnits::Dimensions::AngularAcceleration,
 					glocal + " angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
@@ -1963,17 +1963,17 @@ StructNode::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::STRNODES)) {
-			OH.WriteNcVar(Var_X, XCurr);
+			OH.WriteVar(Var_X, XCurr);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-					OH.WriteNcVar(Var_Phi, RCurr);
+					OH.WriteVar(Var_Phi, RCurr);
 				break;
 
 			default:
@@ -1981,12 +1981,12 @@ StructNode::Output(OutputHandler& OH) const
 				break;
 			}
 
-			OH.WriteNcVar(Var_XP, VCurr);
-			OH.WriteNcVar(Var_Omega, WCurr);
+			OH.WriteVar(Var_XP, VCurr);
+			OH.WriteVar(Var_Omega, WCurr);
 				
 			if (bOutputAccels) {
-					OH.WriteNcVar(Var_XPP, XPPCurr);
-					OH.WriteNcVar(Var_OmegaP, WPCurr);
+					OH.WriteVar(Var_XPP, XPPCurr);
+					OH.WriteVar(Var_OmegaP, WPCurr);
 			}
 		}
 #endif /* USE_NETCDF */

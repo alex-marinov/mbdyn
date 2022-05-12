@@ -308,19 +308,19 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 			OutputPrepare_int("Inline", OH, name);
 
 			if (fc) {
-				Var_FF = OH.CreateVar<Vec3>(name + "FF",
+				Var_FF = OH.GetBinaryFile()->CreateVar<Vec3>(name + "FF",
 						MBUnits::Dimensions::Force,
 						"friction force (x, y, z)");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+				Var_fc = OH.GetBinaryFile()->CreateVar<doublereal>(name + "fc",
 						MBUnits::Dimensions::Dimensionless,
 						"friction coefficient");
 
-				Var_v = OH.CreateVar<doublereal>(name + "v",
+				Var_v = OH.GetBinaryFile()->CreateVar<doublereal>(name + "v",
 						MBUnits::Dimensions::Velocity,
 						"relative sliding velocity");
 
-				Var_displ = OH.CreateVar<doublereal>(name + "displ",
+				Var_displ = OH.GetBinaryFile()->CreateVar<doublereal>(name + "displ",
 						MBUnits::Dimensions::Length,
 						"relative sliding displacement");
 			}
@@ -337,10 +337,10 @@ void InLineJoint::Output(OutputHandler& OH) const
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, RvTmp*F, Zero3);
 			if (fc) {
-				OH.WriteNcVar(Var_FF, F3);
-				OH.WriteNcVar(Var_fc, fc->fc());
-				OH.WriteNcVar(Var_v, v);
-				OH.WriteNcVar(Var_displ, displ);
+				OH.WriteVar(Var_FF, F3);
+				OH.WriteVar(Var_fc, fc->fc());
+				OH.WriteVar(Var_v, v);
+				OH.WriteVar(Var_displ, displ);
 			}
 		}
 #endif // USE_NETCDF

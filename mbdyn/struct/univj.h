@@ -54,7 +54,7 @@ private:
 	Vec3 F;
 	doublereal dM;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
+	size_t Var_Phi;
 #endif // USE_NETCDF
 
 public:
@@ -155,7 +155,7 @@ private:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
+	size_t Var_Phi;
 #endif // USE_NETCDF
 	Mat3x3 R1h;
 	Mat3x3 R2h;
@@ -269,7 +269,7 @@ private:
 	Vec3 F;
 	doublereal dM;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
+	size_t Var_Phi;
 #endif // USE_NETCDF
 public:
 	/* Costruttore non banale */

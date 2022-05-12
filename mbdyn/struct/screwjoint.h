@@ -72,11 +72,11 @@ private:
 	doublereal vrel;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_dTheta;
-	MBDynNcVar Var_Theta;
-	MBDynNcVar Var_vrel;
-	MBDynNcVar Var_fc;
-	MBDynNcVar Var_MFR;
+	size_t Var_dTheta;
+	size_t Var_Theta;
+	size_t Var_vrel;
+	size_t Var_fc;
+	size_t Var_MFR;
 #endif // USE_NETCDF
 
 // 	bool bFirstRes;

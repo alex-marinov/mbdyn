@@ -275,11 +275,11 @@ DistanceJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Distance", OH, name);
 			
-			Var_V = OH.CreateVar<Vec3>(name + "V",
+			Var_V = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V",
 				MBUnits::Dimensions::Dimensionless,
 				"constrained distance direction unit vector (x, y, z)");
 			
-			Var_d = OH.CreateVar<doublereal>(name + "d",
+			Var_d = OH.GetBinaryFile()->CreateVar<doublereal>(name + "d",
 				MBUnits::Dimensions::Length,
 				"constrained distance magnitude");
 		}
@@ -308,8 +308,8 @@ void DistanceJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 	if (OH.UseBinary(OutputHandler::JOINTS)) {
 		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
-		OH.WriteNcVar(Var_V, v/d);
-		OH.WriteNcVar(Var_d, d);
+		OH.WriteVar(Var_V, v/d);
+		OH.WriteVar(Var_d, d);
 	}
 #endif // USE_NETCDF
 
@@ -939,11 +939,11 @@ DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Distance with offset", OH, name);
 			
-			Var_V = OH.CreateVar<Vec3>(name + "V",
+			Var_V = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V",
 				MBUnits::Dimensions::Dimensionless,
 				"constrained distance direction unit vector (x, y, z)");
 			
-			Var_d = OH.CreateVar<doublereal>(name + "d",
+			Var_d = OH.GetBinaryFile()->CreateVar<doublereal>(name + "d",
 				MBUnits::Dimensions::Length,
 				"constrained distance magnitude");
 		}
@@ -971,8 +971,8 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
-			OH.WriteNcVar(Var_V, v/d);
-			OH.WriteNcVar(Var_d, d);
+			OH.WriteVar(Var_V, v/d);
+			OH.WriteVar(Var_d, d);
 		}
 #endif // USE_NETCDF
 	}

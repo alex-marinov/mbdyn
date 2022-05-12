@@ -84,10 +84,10 @@ class Brake : virtual public Elem, public Joint {
    /* end of friction related data */
 
 #ifdef USE_NETCDF
-   MBDynNcVar Var_Phi;
-   MBDynNcVar Var_Omega;
-   MBDynNcVar Var_fc;
-   MBDynNcVar Var_Fb;
+   size_t Var_Phi;
+   size_t Var_Omega;
+   size_t Var_fc;
+   size_t Var_Fb;
 #endif // USE_NETCDF
 
  public:

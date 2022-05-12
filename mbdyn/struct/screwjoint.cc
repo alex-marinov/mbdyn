@@ -160,20 +160,20 @@ ScrewJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Screw Joint", OH, name);
 
-			Var_dTheta = OH.CreateVar<doublereal>(name + "dTheta",
+			Var_dTheta = OH.GetBinaryFile()->CreateVar<doublereal>(name + "dTheta",
 				MBUnits::Dimensions::rad,
 				"screw angle magnitude [deg]");
-			Var_Theta = OH.CreateVar<Vec3>(name + "Theta",
+			Var_Theta = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Theta",
 				MBUnits::Dimensions::Length,
 				"screw axis (x, y, z)");
 			if (fc) {
-				Var_vrel = OH.CreateVar<doublereal>(name + "vRel",
+				Var_vrel = OH.GetBinaryFile()->CreateVar<doublereal>(name + "vRel",
 					MBUnits::Dimensions::Velocity,
 					"contact point sliding velocity");
-				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+				Var_fc = OH.GetBinaryFile()->CreateVar<doublereal>(name + "fc",
 					MBUnits::Dimensions::Dimensionless,
 					"friction coefficient");
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+				Var_MFR = OH.GetBinaryFile()->CreateVar<doublereal>(name + "MFR",
 					MBUnits::Dimensions::Moment,
 					"friction moment");
 
@@ -206,13 +206,13 @@ ScrewJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTilde, MTilde, F, M);
-			OH.WriteNcVar(Var_dTheta, dD);
-			OH.WriteNcVar(Var_Theta, D);
+			OH.WriteVar(Var_dTheta, dD);
+			OH.WriteVar(Var_Theta, D);
 
 			if (fc) {
-				OH.WriteNcVar(Var_vrel, vrel);
-				OH.WriteNcVar(Var_fc, fc->fc());
-				OH.WriteNcVar(Var_MFR, e1hz*M3diff);
+				OH.WriteVar(Var_vrel, vrel);
+				OH.WriteVar(Var_fc, fc->fc());
+				OH.WriteVar(Var_MFR, e1hz*M3diff);
 			}
 		}
 #endif // USE_NETCDF

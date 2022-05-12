@@ -65,8 +65,8 @@ protected:
 	void AssVec(SubVectorHandler& WorkVec);
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_v;
-	MBDynNcVar Var_omega;	
+	size_t Var_v;
+	size_t Var_omega;	
 #endif // USE_NETCDF
 
 public:

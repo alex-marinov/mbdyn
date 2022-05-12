@@ -646,7 +646,7 @@ Beam2::OutputPrepare(OutputHandler &OH)
 			std::ostringstream os;
 			os << "elem.beam." << GetLabel();
 
-			(void)OH.CreateVar(os.str(), type);
+			(void)OH.GetBinaryFile()->CreateVar(os.str(), type);
 
 			os << '.';
 			std::string name(os.str());
@@ -654,48 +654,48 @@ Beam2::OutputPrepare(OutputHandler &OH)
 			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 
 			if (uOutputFlags & Beam::OUTPUT_EP_X) {
-				Var_X = OH.CreateVar<Vec3>(name + "X",
+				Var_X = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X",
 					MBUnits::Dimensions::Length,
 					"evaluation point global position vector (X, Y, Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_R) {
-				Var_Phi = OH.CreateRotationVar(name, "", od,
+				Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od,
 					" evaluation point global orientation matrix");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_F) {
-				Var_F = OH.CreateVar<Vec3>(name + "F",
+				Var_F = OH.GetBinaryFile()->CreateVar<Vec3>(name + "F",
 					MBUnits::Dimensions::Force,
 					"evaluation point internal force in local frame (F_X, F_Y, F_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_M) {
-				Var_M = OH.CreateVar<Vec3>(name + "M",
+				Var_M = OH.GetBinaryFile()->CreateVar<Vec3>(name + "M",
 					MBUnits::Dimensions::Moment,
 					"evaluation point internal force in local frame (M_X, M_Y, M_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-				Var_Nu = OH.CreateVar<Vec3>(name + "nu",
+				Var_Nu = OH.GetBinaryFile()->CreateVar<Vec3>(name + "nu",
 					MBUnits::Dimensions::LinearStrain,
 					"evaluation point linear strain in local frame (nu_X, nu_Y, nu_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_K) {
-				Var_K = OH.CreateVar<Vec3>(name + "k",
+				Var_K = OH.GetBinaryFile()->CreateVar<Vec3>(name + "k",
 					MBUnits::Dimensions::AngularStrain,
 					"evaluation point angular strain in local frame (K_X, K_Y, K_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-				Var_NuP = OH.CreateVar<Vec3>(name + "nuP",
+				Var_NuP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "nuP",
 					MBUnits::Dimensions::LinearStrainRate,
 					"evaluation point linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z)");
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-				Var_KP = OH.CreateVar<Vec3>(name + "kP",
+				Var_KP = OH.GetBinaryFile()->CreateVar<Vec3>(name + "kP",
 					MBUnits::Dimensions::AngularStrainRate,
 					"evaluation point angular strain rate in local frame (KP_X, KP_Y, KP_Z)");
 			}
@@ -716,7 +716,7 @@ Beam2::Output(OutputHandler& OH) const
 			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 
 			if (uOutputFlags & Beam::OUTPUT_EP_X) {
-				OH.WriteNcVar(Var_X, p);
+				OH.WriteVar(Var_X, p);
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_R) {
@@ -752,11 +752,11 @@ Beam2::Output(OutputHandler& OH) const
 				case EULER_313:
 				case EULER_321:
 				case ORIENTATION_VECTOR:
-					OH.WriteNcVar(Var_Phi, E);
+					OH.WriteVar(Var_Phi, E);
 					break;
 
 				case ORIENTATION_MATRIX:
-					OH.WriteNcVar(Var_Phi, R);
+					OH.WriteVar(Var_Phi, R);
 					break;
 
 				default:
@@ -766,27 +766,27 @@ Beam2::Output(OutputHandler& OH) const
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_F) {
-				OH.WriteNcVar(Var_F, AzLoc.GetVec1());
+				OH.WriteVar(Var_F, AzLoc.GetVec1());
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_M) {
-				OH.WriteNcVar(Var_M, AzLoc.GetVec2());
+				OH.WriteVar(Var_M, AzLoc.GetVec2());
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-				OH.WriteNcVar(Var_Nu, DefLoc.GetVec1());
+				OH.WriteVar(Var_Nu, DefLoc.GetVec1());
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_K) {
-				OH.WriteNcVar(Var_K, DefLoc.GetVec2());
+				OH.WriteVar(Var_K, DefLoc.GetVec2());
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-				OH.WriteNcVar(Var_NuP, DefPrimeLoc.GetVec1());
+				OH.WriteVar(Var_NuP, DefPrimeLoc.GetVec1());
 			}
 
 			if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-				OH.WriteNcVar(Var_KP, DefPrimeLoc.GetVec2());
+				OH.WriteVar(Var_KP, DefPrimeLoc.GetVec2());
 			}
 		}
 #endif /* USE_NETCDF */

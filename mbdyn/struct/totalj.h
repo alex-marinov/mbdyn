@@ -92,10 +92,10 @@ private:
 	Vec3 tilde_f1;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_X;
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_V;
-	MBDynNcVar Var_Omega;
+	size_t Var_X;
+	size_t Var_Phi;
+	size_t Var_V;
+	size_t Var_Omega;
 #endif // USE_NETCDF
 
 	mutable Vec3 M;
@@ -337,10 +337,10 @@ private:
 	unsigned int iAgvEqIndex[3];
 	
 #ifdef USE_NETCDF
-	MBDynNcVar Var_X;
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_V;
-	MBDynNcVar Var_Omega;
+	size_t Var_X;
+	size_t Var_Phi;
+	size_t Var_V;
+	size_t Var_Omega;
 #endif // USE_NETCDF
 
 	mutable Vec3 M;

@@ -336,16 +336,16 @@ DeformableDispJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("deformable displacement", OH, name);
 
-			Var_tilde_d = OH.CreateVar<Vec3>(name + "d",
+			Var_tilde_d = OH.GetBinaryFile()->CreateVar<Vec3>(name + "d",
 					MBUnits::Dimensions::Length,
 					"relative position in local frame (x, y, z)");
-			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime",
+			Var_tilde_dPrime = OH.GetBinaryFile()->CreateVar<Vec3>(name + "dPrime",
 					MBUnits::Dimensions::Velocity,
 					"relative linear velocity in local frame (x, y, z)");
-			Var_d = OH.CreateVar<Vec3>(name + "D",
+			Var_d = OH.GetBinaryFile()->CreateVar<Vec3>(name + "D",
 					MBUnits::Dimensions::Length,
 					"relative position in global frame (x, y, z)");
-			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime",
+			Var_dPrime = OH.GetBinaryFile()->CreateVar<Vec3>(name + "DPrime",
 					MBUnits::Dimensions::Velocity,
 					"relative linear velocity in global frame (x, y, z)");
 		}
@@ -360,14 +360,14 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, GetF(), Zero3, pNode1->GetRCurr()*(tilde_R1h*GetF()), Zero3);
-			OH.WriteNcVar(Var_tilde_d, tilde_d);
-			OH.WriteNcVar(Var_d, (pNode1->GetRCurr()*(tilde_R1h*tilde_d)));
+			OH.WriteVar(Var_tilde_d, tilde_d);
+			OH.WriteVar(Var_d, (pNode1->GetRCurr()*(tilde_R1h*tilde_d)));
 			if (GetConstLawType() & ConstLawType::VISCOUS) {
-				OH.WriteNcVar(Var_tilde_dPrime, tilde_dPrime);
-				OH.WriteNcVar(Var_dPrime, (pNode1->GetRCurr()*(tilde_R1h*tilde_dPrime)));
+				OH.WriteVar(Var_tilde_dPrime, tilde_dPrime);
+				OH.WriteVar(Var_dPrime, (pNode1->GetRCurr()*(tilde_R1h*tilde_dPrime)));
 			} else {
-				OH.WriteNcVar(Var_tilde_dPrime, Zero3);
-				OH.WriteNcVar(Var_dPrime, Zero3);
+				OH.WriteVar(Var_tilde_dPrime, Zero3);
+				OH.WriteVar(Var_dPrime, Zero3);
 			}
 		}
 #endif // USE_NETCDF

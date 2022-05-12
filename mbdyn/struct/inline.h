@@ -48,10 +48,10 @@ class InLineJoint : virtual public Elem, public Joint {
    Vec3 F;
 
 #ifdef USE_NETCDF
-   MBDynNcVar Var_FF;
-   MBDynNcVar Var_fc; 
-   MBDynNcVar Var_v; 
-   MBDynNcVar Var_displ;
+   size_t Var_FF;
+   size_t Var_fc; 
+   size_t Var_v; 
+   size_t Var_displ;
 #endif // USE_NETCDF
 
    /* friction related data */
@@ -168,8 +168,8 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
    
    Vec3 F;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_FF;
-   MBDynNcVar Var_fc;
+   size_t Var_FF;
+   size_t Var_fc;
 #endif // USE_NETCDF
  public:
    /* Costruttore */

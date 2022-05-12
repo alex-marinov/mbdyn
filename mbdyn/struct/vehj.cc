@@ -178,10 +178,10 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Deformable hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, 
 				"relative orientation, in joint reference frame");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -229,18 +229,18 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, R);
+				OH.WriteVar(Var_Phi, R);
 				break;
 
 			default:
@@ -330,27 +330,27 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, hat_R*v);
 			switch (od) {
 			case EULER_123:
-				OH.WriteNcVar(Var_Phi, MatR2EulerAngles123(R)*dRaDegr);
+				OH.WriteVar(Var_Phi, MatR2EulerAngles123(R)*dRaDegr);
 				break;
 			case EULER_313:
-				OH.WriteNcVar(Var_Phi, MatR2EulerAngles313(R)*dRaDegr);
+				OH.WriteVar(Var_Phi, MatR2EulerAngles313(R)*dRaDegr);
 				break;
 			case EULER_321:
-				OH.WriteNcVar(Var_Phi, MatR2EulerAngles321(R)*dRaDegr);
+				OH.WriteVar(Var_Phi, MatR2EulerAngles321(R)*dRaDegr);
 				break;
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, RotManip::VecRot(R));
+				OH.WriteVar(Var_Phi, RotManip::VecRot(R));
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, R);
+				OH.WriteVar(Var_Phi, R);
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 

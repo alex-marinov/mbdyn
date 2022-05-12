@@ -1662,18 +1662,18 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Total joint", OH, name);
 
-			Var_X = OH.CreateVar<Vec3>(name + "X",
+			Var_X = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X",
 				MBUnits::Dimensions::Length,
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
-			Var_V = OH.CreateVar<Vec3>(name + "V",
+			Var_V = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V",
 				MBUnits::Dimensions::Velocity,
 				"local relative velocity (x, y, z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -1712,10 +1712,10 @@ TotalJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
-			OH.WriteNcVar(Var_X, XTmp);
-			OH.WriteNcVar(Var_Phi, ThetaTmp);
-			OH.WriteNcVar(Var_V, VTmp);
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_X, XTmp);
+			OH.WriteVar(Var_Phi, ThetaTmp);
+			OH.WriteVar(Var_V, VTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 
@@ -3690,18 +3690,18 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Total pin joint", OH, name);
 
-			Var_X = OH.CreateVar<Vec3>(name + "X",
+			Var_X = OH.GetBinaryFile()->CreateVar<Vec3>(name + "X",
 				MBUnits::Dimensions::Length,
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
-			Var_V = OH.CreateVar<Vec3>(name + "V",
+			Var_V = OH.GetBinaryFile()->CreateVar<Vec3>(name + "V",
 				MBUnits::Dimensions::Velocity,
 				"local relative velocity (x, y, z)");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -3733,10 +3733,10 @@ TotalPinJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
-			OH.WriteNcVar(Var_X, XTmp);
-			OH.WriteNcVar(Var_Phi, ThetaTmp);
-			OH.WriteNcVar(Var_V, VTmp);
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_X, XTmp);
+			OH.WriteVar(Var_Phi, ThetaTmp);
+			OH.WriteVar(Var_V, VTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 

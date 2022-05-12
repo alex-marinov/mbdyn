@@ -91,11 +91,11 @@ GimbalRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Gimbal rotation", OH, name);
 
-			Var_Theta = OH.CreateVar<doublereal>(name + "Theta",
+			Var_Theta = OH.GetBinaryFile()->CreateVar<doublereal>(name + "Theta",
 					MBUnits::Dimensions::rad,
 					"relative angle Theta");
 
-			Var_Phi = OH.CreateVar<doublereal>(name + "Phi",
+			Var_Phi = OH.GetBinaryFile()->CreateVar<doublereal>(name + "Phi",
 					MBUnits::Dimensions::rad,
 					"relative angle Phi");
 		}
@@ -152,8 +152,8 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, M, Zero3, Ra*M);
-			OH.WriteNcVar(Var_Theta, dTheta);
-			OH.WriteNcVar(Var_Phi, dPhi);
+			OH.WriteVar(Var_Theta, dTheta);
+			OH.WriteVar(Var_Phi, dPhi);
 		}
 #endif // USE_NETCDF
 	}

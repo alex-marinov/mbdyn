@@ -65,7 +65,7 @@ protected:
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
+	size_t Var_Phi;
 #endif // USE_NETCDF
 public:
 	/* Costruttore non banale */

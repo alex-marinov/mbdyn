@@ -101,15 +101,15 @@ protected:
 
 #ifdef USE_NETCDF
 private:
-	MBDynNcVar Var_dMass;
-	MBDynNcVar Var_X_cm;
-	MBDynNcVar Var_V_cm;
-	MBDynNcVar Var_Omega_cm;
+	size_t Var_dMass;
+	size_t Var_X_cm;
+	size_t Var_V_cm;
+	size_t Var_Omega_cm;
 
-	MBDynNcVar Var_DX;
-	MBDynNcVar Var_dx;
-	MBDynNcVar Var_Jp;
-	MBDynNcVar Var_Phip;
+	size_t Var_DX;
+	size_t Var_dx;
+	size_t Var_Jp;
+	size_t Var_Phip;
 #endif // USE_NETCDF
 
 public:

@@ -57,8 +57,8 @@ protected:
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Theta;
-	MBDynNcVar Var_Phi;
+	size_t Var_Theta;
+	size_t Var_Phi;
 #endif // USE_NETCDF
 
 public:

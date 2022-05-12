@@ -69,7 +69,7 @@ class Beam2
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_X,
+	size_t Var_X,
 		Var_Phi,
 		Var_F,
 		Var_M,

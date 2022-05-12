@@ -104,25 +104,25 @@ Joint::OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string
 
 	std::ostringstream os;
 	os << "elem.joint." << GetLabel();
-	(void)OH.CreateVar(os.str(), type);
+	(void)OH.GetBinaryFile()->CreateVar(os.str(), type);
 
 	// joint sub-data
 	os << '.';
 	name = os.str();
 
-	Var_F_local = OH.CreateVar<Vec3>(name + "f",
+	Var_F_local = OH.GetBinaryFile()->CreateVar<Vec3>(name + "f",
 		MBUnits::Dimensions::Force,
 		"local reaction force (Fx, Fy, Fz)");
 
-	Var_M_local = OH.CreateVar<Vec3>(name + "m",
+	Var_M_local = OH.GetBinaryFile()->CreateVar<Vec3>(name + "m",
 		MBUnits::Dimensions::Moment,
 		"local reaction moment (Mx, My, Mz)");
 
-	Var_F_global = OH.CreateVar<Vec3>(name + "F",
+	Var_F_global = OH.GetBinaryFile()->CreateVar<Vec3>(name + "F",
 		MBUnits::Dimensions::Force,
 		"global reaction force (FX, FY, FZ)");
 
-	Var_M_global = OH.CreateVar<Vec3>(name + "M",
+	Var_M_global = OH.GetBinaryFile()->CreateVar<Vec3>(name + "M",
 		MBUnits::Dimensions::Moment,
 		"global reaction moment (MX, MY, MZ)");
 
@@ -161,10 +161,10 @@ Joint::NetCDFOutput(OutputHandler &OH,
 	const Vec3& FLocal, const Vec3& MLocal,
 	const Vec3& FGlobal, const Vec3& MGlobal) const
 {
-	OH.WriteNcVar(Var_F_local, FLocal);
-	OH.WriteNcVar(Var_M_local, MLocal);
-	OH.WriteNcVar(Var_F_global, FGlobal);
-	OH.WriteNcVar(Var_M_global, MGlobal);
+	OH.WriteVar(Var_F_local, FLocal);
+	OH.WriteVar(Var_M_local, MLocal);
+	OH.WriteVar(Var_F_global, FGlobal);
+	OH.WriteVar(Var_M_global, MGlobal);
 }
 #endif // USE_NETCDF
 /* Inverse Dynamics update */

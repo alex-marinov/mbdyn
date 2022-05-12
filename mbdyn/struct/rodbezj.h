@@ -67,11 +67,11 @@ protected:
 
 	GaussDataIterator *gdi;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_F2;
-	MBDynNcVar Var_l;
-	MBDynNcVar Var_l2;
-	MBDynNcVar Var_l1;
-	MBDynNcVar Var_v;
+	size_t Var_F2;
+	size_t Var_l;
+	size_t Var_l2;
+	size_t Var_l1;
+	size_t Var_v;
 #endif // USE_NETCDF
 
 public:

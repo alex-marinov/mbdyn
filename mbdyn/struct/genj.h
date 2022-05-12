@@ -49,8 +49,8 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    mutable Vec3 v;
    doublereal dAlpha;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_V;
-   MBDynNcVar Var_d;
+   size_t Var_V;
+   size_t Var_d;
 #endif // USE_NETCDF
 
  public:
@@ -159,8 +159,8 @@ virtual public Elem, public Joint, public DriveOwner {
    mutable Vec3 v;
    doublereal dAlpha;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_V;
-   MBDynNcVar Var_d;
+   size_t Var_V;
+   size_t Var_d;
 #endif // USE_NETCDF
 
  public:

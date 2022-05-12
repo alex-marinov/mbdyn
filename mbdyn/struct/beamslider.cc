@@ -153,15 +153,15 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Beam slider", OH, name);
 			
-			Var_Beam = OH.CreateVar<integer>(name + "Beam",
+			Var_Beam = OH.GetBinaryFile()->CreateVar<integer>(name + "Beam",
 				MBUnits::Dimensions::Dimensionless,
 				"current beam label");
 
-			Var_sRef = OH.CreateVar<doublereal>(name + "sRef",
+			Var_sRef = OH.GetBinaryFile()->CreateVar<doublereal>(name + "sRef",
 				MBUnits::Dimensions::Dimensionless,
 				"current curvilinear abscissa");
 
-			Var_l = OH.CreateVar<Vec3>(name + "l",
+			Var_l = OH.GetBinaryFile()->CreateVar<Vec3>(name + "l",
 				MBUnits::Dimensions::Dimensionless,
 				"local direction vector (x, y, z)");
 		}
@@ -186,9 +186,9 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmpT*F, M, F, RTmp*M);
 
-			OH.WriteNcVar(Var_Beam, (int)(ppBeam[iCurrBeam]->pGetBeam()->GetLabel()));
-			OH.WriteNcVar(Var_sRef, sRef);
-			OH.WriteNcVar(Var_l, l);
+			OH.WriteVar(Var_Beam, (int)(ppBeam[iCurrBeam]->pGetBeam()->GetLabel()));
+			OH.WriteVar(Var_sRef, sRef);
+			OH.WriteVar(Var_l, l);
 		}
 #endif // USE_NETCDF
 	}

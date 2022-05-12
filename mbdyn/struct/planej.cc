@@ -951,18 +951,18 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("revolute hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, "global");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+				Var_MFR = OH.GetBinaryFile()->CreateVar<doublereal>(name + "MFR",
 						MBUnits::Dimensions::Moment,
 						"friciton moment ");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+				Var_fc = OH.GetBinaryFile()->CreateVar<doublereal>(name + "fc",
 						MBUnits::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
@@ -1012,11 +1012,11 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, RTmp);
+				OH.WriteVar(Var_Phi, RTmp);
 				break;
 
 			default:
@@ -1024,11 +1024,11 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 				break;
 			}
 
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 
 			if (fc) {
-				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_fc, fc->fc());
+				OH.WriteVar(Var_MFR, M3);
+				OH.WriteVar(Var_fc, fc->fc());
 			}
 		}
 #endif // USE_NETCDF
@@ -2050,10 +2050,10 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("revolute rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, 
 				"relative orientation");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 		}
@@ -2102,11 +2102,11 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, RTmp);
+				OH.WriteVar(Var_Phi, RTmp);
 				break;
 
 			default:
@@ -2114,7 +2114,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
 				break;
 			}
 
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -3399,18 +3399,18 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("axial rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "Relative orientation");
+			Var_Phi = OH.GetBinaryFile()->CreateRotationVar(name, "", od, "Relative orientation");
 
-			Var_Omega = OH.CreateVar<Vec3>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<Vec3>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
-				Var_MFR = OH.CreateVar<doublereal>(name + "MFR",
+				Var_MFR = OH.GetBinaryFile()->CreateVar<doublereal>(name + "MFR",
 						MBUnits::Dimensions::Moment,
 						"friciton moment");
 
-				Var_fc = OH.CreateVar<doublereal>(name + "fc",
+				Var_fc = OH.GetBinaryFile()->CreateVar<doublereal>(name + "fc",
 						MBUnits::Dimensions::Dimensionless,
 						"friction model specific data: friction coefficient");
 			}
@@ -3460,11 +3460,11 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.WriteNcVar(Var_Phi, RTmp);
+				OH.WriteVar(Var_Phi, RTmp);
 				break;
 
 			default:
@@ -3472,10 +3472,10 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 				break;
 			}
 
-			OH.WriteNcVar(Var_Omega, OmegaTmp);
+			OH.WriteVar(Var_Omega, OmegaTmp);
 			if (fc) {
-				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_fc, fc->fc());
+				OH.WriteVar(Var_MFR, M3);
+				OH.WriteVar(Var_fc, fc->fc());
 			}
 		}
 #endif // USE_NETCDF

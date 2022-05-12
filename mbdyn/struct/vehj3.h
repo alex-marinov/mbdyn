@@ -59,12 +59,12 @@ protected:
 	Vec6 tilde_kPrime;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_tilde_d;
-	MBDynNcVar Var_tilde_dPrime;
-	MBDynNcVar Var_d;
-	MBDynNcVar Var_dPrime;
-	MBDynNcVar Var_Phi;
-	MBDynNcVar Var_Omega;
+	size_t Var_tilde_d;
+	size_t Var_tilde_dPrime;
+	size_t Var_d;
+	size_t Var_dPrime;
+	size_t Var_Phi;
+	size_t Var_Omega;
 #endif // USE_NETCDF
 
 	bool bFirstRes;

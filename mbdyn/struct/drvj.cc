@@ -177,11 +177,11 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Linear velocity", OH, name);
 
-			Var_dv = OH.CreateVar<doublereal>(name + "dv",
+			Var_dv = OH.GetBinaryFile()->CreateVar<doublereal>(name + "dv",
 					MBUnits::Dimensions::Dimensionless,
 					"direction of imposed velocity");
 
-			Var_v = OH.CreateVar<doublereal>(name + "v",
+			Var_v = OH.GetBinaryFile()->CreateVar<doublereal>(name + "v",
 					MBUnits::Dimensions::Velocity,
 					"magnitude of imposed velocity");
 		}
@@ -204,8 +204,8 @@ void LinearVelocityJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, FTmp, Zero3, Dir*dF, Zero3);
-		   OH.WriteNcVar(Var_dv, Dir);
-		   OH.WriteNcVar(Var_v, dGet());
+		   OH.WriteVar(Var_dv, Dir);
+		   OH.WriteVar(Var_v, dGet());
 	   }
 #endif // USE_NETCDF
 
@@ -462,11 +462,11 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Angular velocity", OH, name);
 
-			Var_dOmega = OH.CreateVar<doublereal>(name + "dOmega",
+			Var_dOmega = OH.GetBinaryFile()->CreateVar<doublereal>(name + "dOmega",
 					MBUnits::Dimensions::AngularVelocity,
 					"magnitude imposed angular velocity");
 
-			Var_w = OH.CreateVar<Vec3>(name + "w",
+			Var_w = OH.GetBinaryFile()->CreateVar<Vec3>(name + "w",
 					MBUnits::Dimensions::Dimensionless,
 					"direction of imposed angular velocity");
 		}
@@ -490,8 +490,8 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, Zero3, MTmp, Zero3, Tmp*dM);
-		   OH.WriteNcVar(Var_w, Tmp);
-		   OH.WriteNcVar(Var_dOmega, dGet());
+		   OH.WriteVar(Var_w, Tmp);
+		   OH.WriteVar(Var_dOmega, dGet());
 	   }
 #endif // USE_NETCDF
 

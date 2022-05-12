@@ -124,7 +124,7 @@ protected:
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
-	MBDynNcVar Var_X[2],
+	size_t Var_X[2],
 		Var_Phi[2],
 		Var_F[2],
 		Var_M[2],

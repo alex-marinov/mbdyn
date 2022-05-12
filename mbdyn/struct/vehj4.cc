@@ -139,11 +139,11 @@ DeformableAxialJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Deformable axial joint", OH, name);
 
-			Var_Theta = OH.CreateVar<doublereal>(name + "Theta",
+			Var_Theta = OH.GetBinaryFile()->CreateVar<doublereal>(name + "Theta",
 				MBUnits::Dimensions::rad,
 				"relative angle");
 
-			Var_Omega = OH.CreateVar<doublereal>(name + "Omega",
+			Var_Omega = OH.GetBinaryFile()->CreateVar<doublereal>(name + "Omega",
 				MBUnits::Dimensions::AngularVelocity,
 				"relative angular velocity");
 		}
@@ -174,8 +174,8 @@ DeformableAxialJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
-			OH.WriteNcVar(Var_Theta, RotManip::VecRot(R)(3));
-			OH.WriteNcVar(Var_Omega, R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr()));
+			OH.WriteVar(Var_Theta, RotManip::VecRot(R)(3));
+			OH.WriteVar(Var_Omega, R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		}
 #endif // USE_NETCDF
 
