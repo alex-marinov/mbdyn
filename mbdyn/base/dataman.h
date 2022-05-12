@@ -421,7 +421,8 @@ public:
 public:
 	virtual void OutputPrepare(void);
 	virtual void OutputEigPrepare(const integer iNumAnalyses,
-			const integer iSize);
+			const integer iSize,
+			bool FullMatrices, bool SparseMatrices);
 
 	/* stampa i risultati */
 	virtual bool
@@ -450,11 +451,11 @@ public:
 			const unsigned uCurrEigSol,
 			const int iMatrixPrecision);
      
-	void
-	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
-			const MatrixHandler* pmMatB,
-			const unsigned uCurrEigSol,
-			const int iMatrixPrecision);
+// 	void
+// 	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
+// 			const MatrixHandler* pmMatB,
+// 			const unsigned uCurrEigSol,
+// 			const int iMatrixPrecision);
 	void
 	OutputEigenvectors(const VectorHandler *pBeta,
 			const VectorHandler& R, const VectorHandler& I,
@@ -660,7 +661,7 @@ protected:
 
 #ifdef USE_NETCDF
         void
-        OutputEigSparseMatrixNc(const MBDynNcVar& var,
+        OutputEigSparseMatrixNc(const size_t var,
                                 const MatrixHandler& mh);
 #endif
 public:

@@ -1515,14 +1515,15 @@ DataManager::OutputPrepare(void)
 
 /* Output setup for Eigenanalysis parameters */
 void
-DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
+DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize, bool FullMatrices, bool SparseMatrices)
 {
 #ifdef USE_NETCDF
 	/* Set up additional NetCDF stuff for eigenanalysis output */
 	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 
 		std::vector<size_t> dim(1);
-		dim[0] = OutHdl.GetEigBinaryFile()->CreateDim("eigensolutions", iNumAnalyses);
+		//dim[0] = OutHdl.GetEigBinaryFile()->CreateDim("eigensolutions", iNumAnalyses);
+		dim[0] = OutHdl.GetEigBinaryFile()->CreateDim("eigensolutions");
 
 		m_Dim_Eig_iSize = OutHdl.GetEigBinaryFile()->CreateDim("eig_iSize", iSize);
 		m_Dim_Eig_iComplex = OutHdl.GetEigBinaryFile()->CreateDim("complex_var_dim", 2);
@@ -1560,6 +1561,41 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 				"structural nodes base index");
 
 		Var_Eig_Idx = OutHdl.GetEigBinaryFile()->CreateVar("eig.idx", MBDynOutType::OutInt, attrs2, dim2);
+		
+		if (FullMatrices) {
+			std::vector<size_t> dim3(3);
+			dim3[0] = dim2[0];
+			dim3[1] = iSize;
+			dim3[2] = iSize;
+
+			BinaryOutput::AttrValVec attrs3(3);
+			attrs3[0] = BinaryOutput::AttrVal("units", "-");
+			attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+			attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime + dCoef * F/x");
+
+			std::stringstream varname_ss;
+			varname_ss << "eig" << ".Aplus";
+			Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim3);
+			attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime - dCoef * F/x");
+
+			varname_ss.str("");
+			varname_ss.clear();
+			varname_ss << "eig" << ".Aminus";
+			Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim3);
+		}
+		
+		if (SparseMatrices) {
+			std::stringstream varname_ss;
+			varname_ss << "eig" << ".Aplus";
+			Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
+					MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
+
+			varname_ss.str("");
+			varname_ss.clear();
+			varname_ss << "eig" << ".Aminus";
+			Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
+				MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
+		}
 	}
 #endif /* USE_NETCDF */
 }
@@ -1595,9 +1631,9 @@ DataManager::OutputEigParams(const doublereal& dTime,
 #ifdef USE_NETCDF
 	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 		long lStep = OutHdl.GetCurrentStep();
-		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dTime, dTime, uCurrEigSol);
-		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_lStep, lStep, uCurrEigSol);
-		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dCoef, dCoef, uCurrEigSol);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dTime, dTime);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_lStep, lStep);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dCoef, dCoef);
 	}
 #endif /* USE_NETCDF */
 }
@@ -1615,31 +1651,12 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 
 #ifdef USE_NETCDF
 	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
-		std::vector<size_t> dim2(2);
-		dim2[0] = m_Dim_Eig_iSize;
-		dim2[1] = m_Dim_Eig_iSize;
 
-		BinaryOutput::AttrValVec attrs3(3);
-		attrs3[0] = BinaryOutput::AttrVal("units", "-");
-		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
-		attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime + dCoef * F/x");
-
-		std::stringstream varname_ss;
-		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim2);
-		attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime - dCoef * F/x");
-
-		varname_ss.str("");
-		varname_ss.clear();
-		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim2);
-
-
-		std::vector<size_t> ncStartPos, ncCount;
-		ncStartPos.push_back(0); // implicit cast here ok?
-		ncStartPos.push_back(0); // implicit cast here ok?
-		ncCount.push_back(nrows);
-		ncCount.push_back(ncols);
+// 		std::vector<size_t> ncStartPos, ncCount;
+// 		ncStartPos.push_back(0); // implicit cast here ok?
+// 		ncStartPos.push_back(0); // implicit cast here ok?
+// 		ncCount.push_back(nrows);
+// 		ncCount.push_back(ncols);
 		Var_Eig_dAplus.putVar(MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
 		Var_Eig_dAminus.putVar(MatA.pdGetMat());
 
@@ -1732,17 +1749,6 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 #ifdef USE_NETCDF
 	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 		
-		std::stringstream varname_ss;
-		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
-				MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
-
-		varname_ss.str("");
-		varname_ss.clear();
-		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
-			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
-
                 OutputEigSparseMatrixNc(Var_Eig_dAplus, *pMatB);
                 OutputEigSparseMatrixNc(Var_Eig_dAminus, *pMatA);           
 	}
@@ -1766,95 +1772,95 @@ void DataManager::OutputEigSparseMatrixNc(const size_t var, const MatrixHandler&
 }
 #endif
 
-void
-DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
-	const MatrixHandler* pMatB,
-	const unsigned uCurrEigSol,
-	const int iMatrixPrecision)
-{
-	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
-	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
-
-	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
-		std::ostream& out = OutHdl.Eigenanalysis();
-
-		if (iMatrixPrecision) {
-			// 7 = number of characters requested by scientific notation
-			int iNewWidth = iMatrixPrecision + 7;
-			out.width(iNewWidth);
-			out.precision(iMatrixPrecision);
-		}
-
-		out
-			<< "% F/xPrime + dCoef *F/x" << std::endl
-			<< "Aplus" << " = [";
-
-		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-			}
-		}
-
-		out << "];" << std::endl
-			<< "Aplus = spconvert(Aplus);" << std::endl;
-
-		out
-			<< "% F/xPrime - dCoef *F/x" << std::endl
-			<< "Aminus" << " = [";
-
-		for (NaiveMatrixHandler::const_iterator j = MatA.begin();
-				j != MatA.end(); ++j)
-		{
-			if (j->dCoef != 0.) {
-				out << j->iRow + 1 << " " << j->iCol + 1 << " " << j->dCoef << ";" << std::endl;
-			}
-		}
-
-		out << "];" << std::endl
-			<< "Aminus = spconvert(Aminus);" << std::endl;
-	}
-#ifdef USE_NETCDF
-	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
-
-		std::stringstream varname_ss;
-		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
-			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
-
-		varname_ss.str("");
-		varname_ss.clear();
-		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
-			MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
-
-		size_t iCnt = 0;
-		Vec3 v;
-		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
-				i != MatB.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAplus, v, iCnt);
-				iCnt++;
-			}
-		}
-
-		iCnt = 0;
-		for (NaiveMatrixHandler::const_iterator i = MatA.begin();
-				i != MatA.end(); ++i)
-		{
-			if (i->dCoef != 0.) {
-				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAminus, v, iCnt);
-				iCnt++;
-			}
-		}
-
-	}
-#endif /* USE_NETCDF */
-}
+// void
+// DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
+// 	const MatrixHandler* pMatB,
+// 	const unsigned uCurrEigSol,
+// 	const int iMatrixPrecision)
+// {
+// 	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
+// 	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
+// 
+// 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+// 		std::ostream& out = OutHdl.Eigenanalysis();
+// 
+// 		if (iMatrixPrecision) {
+// 			// 7 = number of characters requested by scientific notation
+// 			int iNewWidth = iMatrixPrecision + 7;
+// 			out.width(iNewWidth);
+// 			out.precision(iMatrixPrecision);
+// 		}
+// 
+// 		out
+// 			<< "% F/xPrime + dCoef *F/x" << std::endl
+// 			<< "Aplus" << " = [";
+// 
+// 		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
+// 				i != MatB.end(); ++i)
+// 		{
+// 			if (i->dCoef != 0.) {
+// 				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
+// 			}
+// 		}
+// 
+// 		out << "];" << std::endl
+// 			<< "Aplus = spconvert(Aplus);" << std::endl;
+// 
+// 		out
+// 			<< "% F/xPrime - dCoef *F/x" << std::endl
+// 			<< "Aminus" << " = [";
+// 
+// 		for (NaiveMatrixHandler::const_iterator j = MatA.begin();
+// 				j != MatA.end(); ++j)
+// 		{
+// 			if (j->dCoef != 0.) {
+// 				out << j->iRow + 1 << " " << j->iCol + 1 << " " << j->dCoef << ";" << std::endl;
+// 			}
+// 		}
+// 
+// 		out << "];" << std::endl
+// 			<< "Aminus = spconvert(Aminus);" << std::endl;
+// 	}
+// #ifdef USE_NETCDF
+// 	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
+// 
+// 		std::stringstream varname_ss;
+// 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
+// 		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
+// 			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
+// 
+// 		varname_ss.str("");
+// 		varname_ss.clear();
+// 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
+// 		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
+// 			MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
+// 
+// 		size_t iCnt = 0;
+// 		Vec3 v;
+// 		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
+// 				i != MatB.end(); ++i)
+// 		{
+// 			if (i->dCoef != 0.) {
+// 				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
+// 				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAplus, v, iCnt);
+// 				iCnt++;
+// 			}
+// 		}
+// 
+// 		iCnt = 0;
+// 		for (NaiveMatrixHandler::const_iterator i = MatA.begin();
+// 				i != MatA.end(); ++i)
+// 		{
+// 			if (i->dCoef != 0.) {
+// 				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
+// 				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAminus, v, iCnt);
+// 				iCnt++;
+// 			}
+// 		}
+// 
+// 	}
+// #endif /* USE_NETCDF */
+// }
 
 void
 DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPrecision)
