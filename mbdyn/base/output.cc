@@ -183,13 +183,18 @@ ncCount1x3x3(3,1)
 void OutputHandler::ReadOutputUnits(MBDynParser& HP) {
 	if (HP.IsKeyWord("MKS")) {
 		SetMKSUnits(Units);
+		Log() << "Unit for the whole model: MKS" << std::endl;
 	} else if (HP.IsKeyWord("CGS")) {
 		SetCGSUnits(Units);
+		Log() << "Unit for the whole model: CGS" << std::endl;
 	} else if (HP.IsKeyWord("MMTMS")) {
 		SetMMTMSUnits(Units);
+		Log() << "Unit for the whole model: MMTMS" << std::endl;
 	} else if (HP.IsKeyWord("MMKGMS")) {
 		SetMMKGMSUnits(Units);
+		Log() << "Unit for the whole model: MMKGMS" << std::endl;
 	} else if (HP.IsKeyWord("Custom")) {
+		Log() << "Unit for the whole model: Custom" << std::endl;
 		const std::list<Dimensions> BaseUnits ({
 			Dimensions::Length,
 			Dimensions::Mass,
@@ -211,14 +216,14 @@ void OutputHandler::ReadOutputUnits(MBDynParser& HP) {
 			}
 		}
 		SetDerivedUnits(Units);
-		for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
-			Log() << "Unit for " << i->second << ": " << Units[i->first] << std::endl;
-		}
 	} else {
 		silent_cerr("Error while reading the model Units at line"
 						<< HP.GetLineData()
 						<< std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
+		Log() << "Unit for " << i->second << ": " << Units[i->first] << std::endl;
 	}
 }
 
