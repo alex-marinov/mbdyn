@@ -633,7 +633,7 @@ public:
 	virtual void NetCDFOutputAppend(OutputHandler& OH) const {
 #if defined(USE_NETCDF)
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
+		if (OH.UseBinary(OutputHandler::NETCDF)) {
 			OH.WriteVar(Var_dPressure, dPressure);
 			OH.WriteVar(Var_dArea, dArea);
 			OH.WriteVar(Var_dFelastic, dFelastic);

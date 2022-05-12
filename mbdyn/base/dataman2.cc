@@ -1493,15 +1493,15 @@ DataManager::OutputPrepare(void)
 {
 #ifdef USE_NETCDF
 	/* Set up NetCDF stuff if required */
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 		OutHdl.NetCDFOpen(OutputHandler::NETCDF, NetCDF_Format);
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
-		Var_Step = OutHdl.CreateVar<integer>("run.step", 
+		Var_Step = OutHdl.GetBinaryFile()->CreateVar<integer>("run.step", 
 			MBUnits::Dimensions::Dimensionless, "time step index");
-		Var_Time = OutHdl.CreateVar<doublereal>("time", 
+		Var_Time = OutHdl.GetBinaryFile()->CreateVar<doublereal>("time", 
 			MBUnits::Dimensions::Time, "simulation time");
-		Var_TimeStep = OutHdl.CreateVar<doublereal>("run.timestep", 
+		Var_TimeStep = OutHdl.GetBinaryFile()->CreateVar<doublereal>("run.timestep", 
 			MBUnits::Dimensions::Time, "integration time step");
 	}
 #endif /* USE_NETCDF */
@@ -1519,47 +1519,47 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 {
 #ifdef USE_NETCDF
 	/* Set up additional NetCDF stuff for eigenanalysis output */
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 
-		OutputHandler::NcDimVec dim(1);
-		dim[0] = OutHdl.CreateDim("eigensolutions", iNumAnalyses);
+		std::vector<size_t> dim(1);
+		dim[0] = OutHdl.GetEigBinaryFile()->CreateDim("eigensolutions", iNumAnalyses);
 
-		m_Dim_Eig_iSize = OutHdl.CreateDim("eig_iSize", iSize);
-		m_Dim_Eig_iComplex = OutHdl.CreateDim("complex_var_dim", 2);
+		m_Dim_Eig_iSize = OutHdl.GetEigBinaryFile()->CreateDim("eig_iSize", iSize);
+		m_Dim_Eig_iComplex = OutHdl.GetEigBinaryFile()->CreateDim("complex_var_dim", 2);
 
-		OutputHandler::AttrValVec attrs2(2);
-		attrs2[0] = OutputHandler::AttrVal("type", "integer");
-		attrs2[1] = OutputHandler::AttrVal("description",
+		BinaryOutput::AttrValVec attrs2(2);
+		attrs2[0] = BinaryOutput::AttrVal("type", "integer");
+		attrs2[1] = BinaryOutput::AttrVal("description",
 				"timestep index of eigensolution");
 
-		Var_Eig_lStep = OutHdl.CreateVar("eig.step", MbNcInt, attrs2, dim);
+		Var_Eig_lStep = OutHdl.GetEigBinaryFile()->CreateVar("eig.step", MBDynOutType::OutInt, attrs2, dim);
 
-		OutputHandler::AttrValVec attrs3(3);
-		attrs3[0] = OutputHandler::AttrVal("units", "s");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description",
+		BinaryOutput::AttrValVec attrs3(3);
+		attrs3[0] = BinaryOutput::AttrVal("units", "s");
+		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+		attrs3[2] = BinaryOutput::AttrVal("description",
 				"simulation time at which the eigensolution was computed");
 
-		Var_Eig_dTime = OutHdl.CreateVar("eig.time", MbNcDouble, attrs3, dim);
+		Var_Eig_dTime = OutHdl.GetEigBinaryFile()->CreateVar("eig.time", MBDynOutType::OutDouble, attrs3, dim);
 
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description",
+		attrs3[0] = BinaryOutput::AttrVal("units", "-");
+		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+		attrs3[2] = BinaryOutput::AttrVal("description",
 				"coefficient used to build Aplus and Aminus matrices");
 
-		Var_Eig_dCoef = OutHdl.CreateVar("eig.dCoef", MbNcDouble, attrs3, dim);
+		Var_Eig_dCoef = OutHdl.GetEigBinaryFile()->CreateVar("eig.dCoef", MBDynOutType::OutDouble, attrs3, dim);
 
-		OutputHandler::NcDimVec dim2(2);
+		std::vector<size_t> dim2(2);
 		integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size();
 
 		dim2[0] = dim[0];
-		dim2[1] = OutHdl.CreateDim("eig_iIdxSize", iNumNodes);
+		dim2[1] = OutHdl.GetEigBinaryFile()->CreateDim("eig_iIdxSize", iNumNodes);
 
-		attrs2[0] = OutputHandler::AttrVal("type", "integer");
-		attrs2[1] = OutputHandler::AttrVal("description",
+		attrs2[0] = BinaryOutput::AttrVal("type", "integer");
+		attrs2[1] = BinaryOutput::AttrVal("description",
 				"structural nodes base index");
 
-		Var_Eig_Idx = OutHdl.CreateVar("eig.idx", MbNcInt, attrs2, dim2);
+		Var_Eig_Idx = OutHdl.GetEigBinaryFile()->CreateVar("eig.idx", MBDynOutType::OutInt, attrs2, dim2);
 	}
 #endif /* USE_NETCDF */
 }
@@ -1593,11 +1593,11 @@ DataManager::OutputEigParams(const doublereal& dTime,
 			<< "dCoef = " << dCoef << ";" << std::endl;
 	}
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 		long lStep = OutHdl.GetCurrentStep();
-		OutHdl.WriteNcVar(Var_Eig_dTime, dTime, uCurrEigSol);
-		OutHdl.WriteNcVar(Var_Eig_lStep, lStep, uCurrEigSol);
-		OutHdl.WriteNcVar(Var_Eig_dCoef, dCoef, uCurrEigSol);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dTime, dTime, uCurrEigSol);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_lStep, lStep, uCurrEigSol);
+		OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dCoef, dCoef, uCurrEigSol);
 	}
 #endif /* USE_NETCDF */
 }
@@ -1614,25 +1614,25 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 	integer ncols = MatB.iGetNumCols();
 
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutputHandler::NcDimVec dim2(2);
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
+		std::vector<size_t> dim2(2);
 		dim2[0] = m_Dim_Eig_iSize;
 		dim2[1] = m_Dim_Eig_iSize;
 
-		OutputHandler::AttrValVec attrs3(3);
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
+		BinaryOutput::AttrValVec attrs3(3);
+		attrs3[0] = BinaryOutput::AttrVal("units", "-");
+		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+		attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime + dCoef * F/x");
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
-		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim2);
+		attrs3[2] = BinaryOutput::AttrVal("description", "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim2);
 
 
 		std::vector<size_t> ncStartPos, ncCount;
@@ -1730,17 +1730,17 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 			<< "Aminus = spconvert(Aminus);" << std::endl;
 	}
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 		
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
 				MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
 			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
                 OutputEigSparseMatrixNc(Var_Eig_dAplus, *pMatB);
@@ -1750,15 +1750,15 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 }
 
 #ifdef USE_NETCDF
-void DataManager::OutputEigSparseMatrixNc(const MBDynNcVar& var, const MatrixHandler& mh)
+void DataManager::OutputEigSparseMatrixNc(const size_t var, const MatrixHandler& mh)
 {
-     ASSERT(OutHdl.UseNetCDF(OutputHandler::NETCDF));
+     ASSERT(OutHdl.UseBinary(OutputHandler::NETCDF));
      
      size_t iCnt = 0;
      
      auto func = [this, &iCnt, &var] (integer iRow, integer iCol, doublereal dCoef) {
                       Vec3 v(iRow, iCol, dCoef);
-                      OutHdl.WriteNcVar(var, v, iCnt);
+                      OutHdl.GetEigBinaryFile()->WriteVar(var, v, iCnt);
                       ++iCnt;
                  };
 
@@ -1816,17 +1816,17 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 			<< "Aminus = spconvert(Aminus);" << std::endl;
 	}
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+		Var_Eig_dAplus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
 			MBUnits::Dimensions::Dimensionless, "F/xPrime + dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar<Vec3>(varname_ss.str(), 
+		Var_Eig_dAminus = OutHdl.GetEigBinaryFile()->CreateVar<Vec3>(varname_ss.str(), 
 			MBUnits::Dimensions::Dimensionless, "F/xPrime - dCoef * F/x");
 
 		size_t iCnt = 0;
@@ -1836,7 +1836,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
+				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAplus, v, iCnt);
 				iCnt++;
 			}
 		}
@@ -1847,7 +1847,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow + 1, i->iCol + 1, i->dCoef);
-				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
+				OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAminus, v, iCnt);
 				iCnt++;
 			}
 		}
@@ -1944,7 +1944,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 		out << "];" << std::endl;
 	}
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
 
 		/* start corner and count vector for NetCDF matrix output.
 		 * Since we are writing a matrix element-by-element, count will
@@ -1967,7 +1967,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 			}
 
 			iNodeIndex = pSN->iGetFirstIndex();
-			OutHdl.WriteNcVar(Var_Eig_Idx, iNodeIndex, start, count); 
+			OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_Idx, iNodeIndex, start, count); 
 			start[1]++;
 		}
 
@@ -2127,8 +2127,8 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 	}
 
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutputHandler::NcDimVec dim_alpha(2);
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
+		std::vector<size_t> dim_alpha(2);
 
 		std::stringstream dimname_ss;
 		dimname_ss << "eig_" << uCurrEigSol << "_iNVec_out";
@@ -2141,17 +2141,17 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			}
 		}
 
-		dim_alpha[0] = OutHdl.CreateDim(dimname_ss.str(), iNVecOut);
+		dim_alpha[0] = OutHdl.GetEigBinaryFile()->CreateDim(dimname_ss.str(), iNVecOut);
 		dim_alpha[1] = OutHdl.DimV3();
 
-		OutputHandler::AttrValVec attrs3(3);
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "alpha matrix");
+		BinaryOutput::AttrValVec attrs3(3);
+		attrs3[0] = BinaryOutput::AttrVal("units", "-");
+		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+		attrs3[2] = BinaryOutput::AttrVal("description", "alpha matrix");
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".alpha";
-		Var_Eig_dAlpha = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_alpha);
+		Var_Eig_dAlpha = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim_alpha);
 
 		Vec3 v;
 		size_t uNRec = 0;
@@ -2163,11 +2163,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			v(1) = R(r) + dShiftR;
 			v(2) = I(r);
 			v(3) = (pBeta ? (*pBeta)(r) : 1.);
-			OutHdl.WriteNcVar(Var_Eig_dAlpha, v, uNRec);
+			OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dAlpha, v, uNRec);
 			uNRec++;
 		}
 
-		OutputHandler::NcDimVec dim_v(3);
+		std::vector<size_t> dim_v(3);
 		dim_v[0] = m_Dim_Eig_iComplex;
 		dim_v[1] = dim_alpha[0];
 		dim_v[2] = m_Dim_Eig_iSize;
@@ -2181,14 +2181,14 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 		if (pVL) {
 			// VL
-			OutputHandler::AttrValVec attrs3(3);
-			attrs3[0] = OutputHandler::AttrVal("units", "-");
-			attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-			attrs3[2] = OutputHandler::AttrVal("description", "VL - Left eigenvectors matrix");
+			BinaryOutput::AttrValVec attrs3(3);
+			attrs3[0] = BinaryOutput::AttrVal("units", "-");
+			attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+			attrs3[2] = BinaryOutput::AttrVal("description", "VL - Left eigenvectors matrix");
 
 			std::stringstream varname_ss;
 			varname_ss << "eig." << uCurrEigSol << ".VL";
-			Var_Eig_dVL = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_v);
+			Var_Eig_dVL = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim_v);
 
 			doublereal re;
 			doublereal im;
@@ -2211,10 +2211,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 						// NetCDF indexing is zero-based!
 						start[0] = 0;	// real part in first "page" of VL
-						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, re, start, count);
 
 						start[0] = 1;	// imaginary part in second "page"
-						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, re, start, count);
 
 						start[1]++;
 
@@ -2222,10 +2222,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 							im = -im;
 
 							start[0] = 0;
-							OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
+							OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, re, start, count);
 
 							start[0] = 1;
-							OutHdl.WriteNcVar(Var_Eig_dVL, im, start, count);
+							OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, im, start, count);
 
 							start[1]++;
 						}
@@ -2235,10 +2235,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						im = 0.;
 
 						start[0] = 0;
-						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, re, start, count);
 
 						start[0] = 1;
-						OutHdl.WriteNcVar(Var_Eig_dVL, im, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVL, im, start, count);
 
 						start[1]++;
 					}
@@ -2247,14 +2247,14 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 		// VR
-		attrs3[0] = OutputHandler::AttrVal("units", "-");
-		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "VR - Right eigenvectors matrix");
+		attrs3[0] = BinaryOutput::AttrVal("units", "-");
+		attrs3[1] = BinaryOutput::AttrVal("type", "doublereal");
+		attrs3[2] = BinaryOutput::AttrVal("description", "VR - Right eigenvectors matrix");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".VR";
-		Var_Eig_dVR = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_v);
+		Var_Eig_dVR = OutHdl.GetEigBinaryFile()->CreateVar(varname_ss.str(), MBDynOutType::OutDouble, attrs3, dim_v);
 
 		doublereal re;
 		doublereal im;
@@ -2275,10 +2275,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 					// NetCDF indexing is zero-based!
 					start[0] = 0;	// real part in first 'page' of VR
-					OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
+					OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, re, start, count);
 
 					start[0] = 1;	// imaginary part in second 'page'
-					OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
+					OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, im, start, count);
 
 					start[1]++;
 
@@ -2286,10 +2286,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						im = -im;
 
 						start[0] = 0;
-						OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, re, start, count);
 
 						start[0] = 1;
-						OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
+						OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, im, start, count);
 						start[1]++;
 					}
 					c++;
@@ -2298,10 +2298,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 					im = 0.;
 
 					start[0] = 0;
-					OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
+					OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, re, start, count);
 
 					start[0] = 1;
-					OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
+					OutHdl.GetEigBinaryFile()->WriteVar(Var_Eig_dVR, im, start, count);
 
 					start[1]++;
 				}
@@ -2354,10 +2354,10 @@ DataManager::Output(long lStep,
 	 *   the current integration time step
 	 */
 #ifdef USE_NETCDF
-	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		OutHdl.WriteNcVar(Var_Step, lStep);
-		OutHdl.WriteNcVar(Var_Time, dTime);
-		OutHdl.WriteNcVar(Var_TimeStep, dTimeStep);
+	if (OutHdl.UseBinary(OutputHandler::NETCDF)) {
+		OutHdl.GetBinaryFile()->WriteVar(Var_Step, lStep);
+		OutHdl.GetBinaryFile()->WriteVar(Var_Time, dTime);
+		OutHdl.GetBinaryFile()->WriteVar(Var_TimeStep, dTimeStep);
 	}
 #endif /* USE_NETCDF */
 
@@ -2372,7 +2372,7 @@ DataManager::Output(long lStep,
 	OutHdl.IncCurrentStep();
 #ifdef USE_NETCDF
 	if (bNetCDFsync) {
-		OutHdl.pGetBinFile()->sync(); // only works with netcdf-cxx4 >= 4.3.0, check implemented in configure.ac (see also https://github.com/Unidata/netcdf-cxx4/commit/e013ab35f0219fff92ed8237d2f385e89fd1cf77#diff-59778321f93df82ff613be3e32d9a3ec)
+		OutHdl.GetBinaryFile()->sync(); // only works with netcdf-cxx4 >= 4.3.0, check implemented in configure.ac (see also https://github.com/Unidata/netcdf-cxx4/commit/e013ab35f0219fff92ed8237d2f385e89fd1cf77#diff-59778321f93df82ff613be3e32d9a3ec)
 
 	}
 #endif /* USE_NETCDF */

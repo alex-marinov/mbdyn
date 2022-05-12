@@ -253,7 +253,7 @@ Wheel4::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
+		if (OH.UseBinary(OutputHandler::LOADABLE)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 		        std::ostringstream os;
@@ -420,7 +420,7 @@ Wheel4::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
+		if (OH.UseBinary(OutputHandler::LOADABLE)) {
 			OH.WriteNcVar(Var_Fint, Fint);
 			OH.WriteNcVar(Var_Xpar, Xpar);
 			OH.WriteNcVar(Var_Xparp, Xparp);

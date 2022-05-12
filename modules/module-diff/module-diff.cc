@@ -364,7 +364,7 @@ ModuleDiffDrive::Output(OutputHandler& OH) const
 			}
 			out << std::endl;
 		}
-		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
+		if (OH.UseBinary(OutputHandler::LOADABLE)) {
 		// TODO
 		}
 	}

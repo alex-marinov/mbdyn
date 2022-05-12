@@ -168,7 +168,7 @@ void InPlaneJoint::OutputPrepare(OutputHandler& OH)
 {
 	if(bToBeOutput()) {      
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("In plane", OH, name);
 	}
@@ -189,7 +189,7 @@ void InPlaneJoint::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+      if (OH.UseBinary(OutputHandler::JOINTS)) {
 	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
       }
 #endif // USE_NETCDF
@@ -558,7 +558,7 @@ void InPlaneWithOffsetJoint::OutputPrepare(OutputHandler& OH)
 {
 	if(bToBeOutput()) {      
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("In plane with offset", OH, name);
 	}
@@ -576,7 +576,7 @@ void InPlaneWithOffsetJoint::Output(OutputHandler& OH) const
 			      Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;
       }
 #ifdef USE_NETCDF
-      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+      if (OH.UseBinary(OutputHandler::JOINTS)) {
 	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
       }
 #endif // USE_NETCDF

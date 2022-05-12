@@ -173,7 +173,7 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #if USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Linear velocity", OH, name);
 
@@ -202,7 +202,7 @@ void LinearVelocityJoint::Output(OutputHandler& OH) const
 	   }
 
 #ifdef USE_NETCDF
-	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, FTmp, Zero3, Dir*dF, Zero3);
 		   OH.WriteNcVar(Var_dv, Dir);
 		   OH.WriteNcVar(Var_v, dGet());
@@ -458,7 +458,7 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #if USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Angular velocity", OH, name);
 
@@ -488,7 +488,7 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
 	   }
 
 #ifdef USE_NETCDF
-	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, Zero3, MTmp, Zero3, Tmp*dM);
 		   OH.WriteNcVar(Var_w, Tmp);
 		   OH.WriteNcVar(Var_dOmega, dGet());

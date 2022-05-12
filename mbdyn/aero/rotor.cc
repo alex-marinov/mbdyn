@@ -186,7 +186,7 @@ Rotor::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+		if (OH.UseBinary(OutputHandler::ROTORS)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 			std::ostringstream os;
 			os << "elem.inducedvelocity." << GetLabel() << ".";
@@ -242,7 +242,7 @@ Rotor::Output(OutputHandler& OH) const
 				Vec3 TmpF(pTmpVecR);
 				Vec3 TmpM(pTmpVecR+3);
 #ifdef USE_NETCDF
-				if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+				if (OH.UseBinary(OutputHandler::ROTORS)) {
 					OH.WriteNcVar(Var_f, RRotTranspose*TmpF);
 					OH.WriteNcVar(Var_m, RRotTranspose*TmpM);
 					OH.WriteNcVar(Var_dUMean, dUMean);
@@ -287,7 +287,7 @@ Rotor::Output(OutputHandler& OH) const
 			}
 		} else {
 #ifdef USE_NETCDF
-			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			if (OH.UseBinary(OutputHandler::ROTORS)) {
 				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
 				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
 				OH.WriteNcVar(Var_dUMean, dUMean);
@@ -329,7 +329,7 @@ Rotor::Output(OutputHandler& OH) const
 		}
 #else /* !USE_MPI */
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+		if (OH.UseBinary(OutputHandler::ROTORS)) {
 			OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
 			OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
 			OH.WriteNcVar(Var_dUMean, dUMean);
@@ -1753,7 +1753,7 @@ DynamicInflowRotor::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-	     if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+	     if (OH.UseBinary(OutputHandler::ROTORS)) {
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		/* The first part of the output is the same for Rotor and
 		 * DynamicInflowRotor
@@ -1790,7 +1790,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			if (IndVelComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
 #ifdef USE_NETCDF
-				if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+				if (OH.UseBinary(OutputHandler::ROTORS)) {
 					OH.WriteNcVar(Var_f, RRotTranspose*TmpF);
 					OH.WriteNcVar(Var_m, RRotTranspose*TmpM);
 					OH.WriteNcVar(Var_dUMean, dUMean);
@@ -1841,7 +1841,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			}
 		} else {
 #ifdef USE_NETCDF
-			if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+			if (OH.UseBinary(OutputHandler::ROTORS)) {
 				OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
 				OH.WriteNcVar(Var_m, RRotTranspose*Ref.Moment());
 				OH.WriteNcVar(Var_dUMean, dUMean);
@@ -1889,7 +1889,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 		}
 #else /* !USE_MPI */
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::ROTORS)) {
+		if (OH.UseBinary(OutputHandler::ROTORS)) {
 			OH.WriteNcVar(Var_f, RRotTranspose*Res.Force());
 			OH.WriteNcVar(Var_m, RRotTranspose*Res.Moment());
 			OH.WriteNcVar(Var_dUMean, dUMean);

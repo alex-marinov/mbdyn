@@ -599,7 +599,7 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
 	for (unsigned et = 0; et < Elem::LASTELEMTYPE; et++) {
-		if (ElemData[et].ElemContainer.size() && OH.UseNetCDF(ElemData[et].OutFile)) {
+		if (ElemData[et].ElemContainer.size() && OH.UseBinary(ElemData[et].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 			ASSERT(ElemData[et].Desc != 0);
 			ASSERT(ElemData[et].ShortDesc != 0);

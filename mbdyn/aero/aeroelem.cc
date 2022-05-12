@@ -457,12 +457,12 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 		int totgp = iNN*GDI.iGetNum();
-		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC) || IsPGAUSS()) {
+		if (OH.UseBinary(OutputHandler::AERODYNAMIC) || IsPGAUSS()) {
 			OutputData.resize(totgp);
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
+		if (OH.UseBinary(OutputHandler::AERODYNAMIC)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -607,7 +607,7 @@ template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::Output_NetCDF(OutputHandler& OH) const
 {
-	if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
+	if (OH.UseBinary(OutputHandler::AERODYNAMIC)) {
 		int j = 0;
 		for (std::vector<Aero_output>::const_iterator i = OutputData.begin();
 			i != OutputData.end(); ++i, ++j)

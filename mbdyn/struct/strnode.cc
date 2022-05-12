@@ -438,7 +438,7 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		if (OH.UseBinary(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			// node
@@ -502,7 +502,7 @@ StructDispNode::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		if (OH.UseBinary(OutputHandler::STRNODES)) {
 			OH.WriteNcVar(Var_X, XCurr);
 			switch (od) {
 			case EULER_123:
@@ -1837,7 +1837,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		if (OH.UseBinary(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::string glocal("global");
@@ -1962,7 +1962,7 @@ StructNode::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		if (OH.UseBinary(OutputHandler::STRNODES)) {
 			OH.WriteNcVar(Var_X, XCurr);
 			switch (od) {
 			case EULER_123:

@@ -1658,7 +1658,7 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Total joint", OH, name);
 
@@ -1710,7 +1710,7 @@ TotalJoint::Output(OutputHandler& OH) const
 		Vec3 MTmp(R1rTmp*M);
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
 			OH.WriteNcVar(Var_X, XTmp);
 			OH.WriteNcVar(Var_Phi, ThetaTmp);
@@ -3686,7 +3686,7 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Total pin joint", OH, name);
 
@@ -3731,7 +3731,7 @@ TotalPinJoint::Output(OutputHandler& OH) const
 		Vec3 MTmp(Rchr*M);
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
 			OH.WriteNcVar(Var_X, XTmp);
 			OH.WriteNcVar(Var_Phi, ThetaTmp);

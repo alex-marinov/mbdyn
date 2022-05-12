@@ -124,7 +124,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
 	for (unsigned nt = 0; nt < Node::LASTNODETYPE; nt++) {
-		if (!NodeData[nt].NodeContainer.empty() && OH.UseNetCDF(NodeData[nt].OutFile)) {
+		if (!NodeData[nt].NodeContainer.empty() && OH.UseBinary(NodeData[nt].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			integer iNumNodes = NodeData[nt].NodeContainer.size();

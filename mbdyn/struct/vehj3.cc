@@ -112,7 +112,7 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Deformable joint", OH, name);
 			Var_tilde_d = OH.CreateVar<Vec3>(name + "d",
@@ -176,7 +176,7 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, R1h*F, R1h*M, F, M);
 			switch (od) {
 			case EULER_123:

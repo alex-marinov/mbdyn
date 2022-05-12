@@ -90,7 +90,7 @@ DriveDisplacementJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Drive displacement", OH, name);
 
@@ -117,7 +117,7 @@ DriveDisplacementJoint::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
 			OH.WriteNcVar(Var_d, d);
 		}
@@ -764,7 +764,7 @@ DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Drive displacement pin", OH, name);
 
@@ -789,7 +789,7 @@ DriveDisplacementPinJoint::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
 			OH.WriteNcVar(Var_d, d);
 		}

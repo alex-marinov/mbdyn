@@ -156,7 +156,7 @@ ScrewJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Screw Joint", OH, name);
 
@@ -204,7 +204,7 @@ ScrewJoint::Output(OutputHandler& OH) const
 			of << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTilde, MTilde, F, M);
 			OH.WriteNcVar(Var_dTheta, dD);
 			OH.WriteNcVar(Var_Theta, D);

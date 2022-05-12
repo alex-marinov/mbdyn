@@ -1318,7 +1318,7 @@ Beam::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+		if (OH.UseBinary(OutputHandler::BEAMS)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			const char *type = 0;
@@ -1421,7 +1421,7 @@ Beam::Output(OutputHandler& OH) const
 	unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+		if (OH.UseBinary(OutputHandler::BEAMS)) {
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
 					OH.WriteNcVar(Var_X[iSez], p[iSez]);

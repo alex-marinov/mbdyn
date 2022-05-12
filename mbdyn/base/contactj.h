@@ -186,7 +186,7 @@ class ContactJoint : virtual public Elem, public Joint {
    void OutputPrepare(OutputHandler& OH) {
 	   if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		   if (OH.UseBinary(OutputHandler::JOINTS)) {
 			   std::string name;
 			   OutputPrepare_int("Contact", OH, name);
 		   }
@@ -203,7 +203,7 @@ class ContactJoint : virtual public Elem, public Joint {
 		   << " " << dD << endl;
 		   }
 #ifdef USE_NETCDF
-		   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		   if (OH.UseBinary(OutputHandler::JOINTS)) {
 			   Joint::NetCDFOutput(OH, Vec3(dF, 0., 0., ), Zero3, F, Zero3);
 		   }
 #endif // USE_NETCDF

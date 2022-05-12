@@ -617,7 +617,7 @@ Beam2::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+		if (OH.UseBinary(OutputHandler::BEAMS)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			const char *type = 0;
@@ -711,7 +711,7 @@ Beam2::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+		if (OH.UseBinary(OutputHandler::BEAMS)) {
 
 			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 

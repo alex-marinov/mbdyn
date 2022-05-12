@@ -89,7 +89,7 @@ MusclePennestriCL::OutputAppendPrepare(OutputHandler& OH, const std::string& nam
 {
 #ifdef USE_NETCDF
 	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-	if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+	if (OH.UseBinary(OutputHandler::LOADABLE)) 
 	{
 		Var_dAct = OH.CreateVar<doublereal>(name + ".a", 
 				OutputHandler::Dimensions::Dimensionless, 
@@ -240,7 +240,7 @@ MusclePennestriReflexiveCL::OutputAppendPrepare(OutputHandler& OH, const std::st
 {
 #ifdef USE_NETCDF
 	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-	if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+	if (OH.UseBinary(OutputHandler::LOADABLE)) 
 	{
 		Var_dAct = OH.CreateVar<doublereal>(name + ".a", 
 				OutputHandler::Dimensions::Dimensionless, 
@@ -395,7 +395,7 @@ MusclePennestriReflexiveCLWithSRS::OutputAppendPrepare(OutputHandler& OH, const 
 {
 #ifdef USE_NETCDF
 	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-	if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+	if (OH.UseBinary(OutputHandler::LOADABLE)) 
 	{
 		Var_dAct = OH.CreateVar<doublereal>(name + ".a", 
 				OutputHandler::Dimensions::Dimensionless, 

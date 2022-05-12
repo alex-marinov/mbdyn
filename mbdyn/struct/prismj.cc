@@ -265,7 +265,7 @@ void PrismaticJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Prismatic", OH, name);
 		}
@@ -280,7 +280,7 @@ void PrismaticJoint::Output(OutputHandler& OH) const
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R1Tmp*M);
 		}
 #endif // USE_NETCDF

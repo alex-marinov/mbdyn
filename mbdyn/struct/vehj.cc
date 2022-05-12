@@ -174,7 +174,7 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Deformable hinge", OH, name);
 
@@ -226,7 +226,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
@@ -293,7 +293,7 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		Vec3 v(GetF());
 
 
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
 					Zero3, v, Zero3, hat_R*v) << " ";
 
@@ -325,7 +325,7 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		}
 #ifdef USE_NETCDF
 		// TODO: Improve removing unnecessary duplications
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, hat_R*v);
 			switch (od) {

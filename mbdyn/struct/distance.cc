@@ -343,7 +343,7 @@ DistanceJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("distance", OH, name);
 			
@@ -370,7 +370,7 @@ DistanceJoint::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3);
 			OH.WriteNcVar(Var_V, Vec/dDistance);
 			OH.WriteNcVar(Var_d, dDistance);

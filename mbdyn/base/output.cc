@@ -86,8 +86,10 @@ const std::vector<const char*> OutputHandler::psExt = {
 	".dof",
 	".drv",		// 30
 	".trc",
+	".bin",
+	".ebin",
 	".m",		// NOTE: ALWAYS LAST!
-	NULL		// 33
+	NULL		// 35
 };
 
 
@@ -149,7 +151,7 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[STRNODES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[STRNODES].pof = &ofStrNodes;
 
 	OutData[ELECTRIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
@@ -170,27 +172,27 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[INERTIA].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[INERTIA].pof = &ofInertia;
 
 	OutData[JOINTS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[JOINTS].pof = &ofJoints;
 
 	OutData[FORCES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[FORCES].pof = &ofForces;
 
 	OutData[BEAMS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[BEAMS].pof = &ofBeams;
 
 	OutData[ROTORS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[ROTORS].pof = &ofRotors;
 
 	OutData[RESTART].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
@@ -203,7 +205,7 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[AERODYNAMIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[AERODYNAMIC].pof = &ofAerodynamic;
 
 	OutData[HYDRAULIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
@@ -216,7 +218,7 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[LOADABLE].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[LOADABLE].pof = &ofLoadable;
 
 	OutData[GENELS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
@@ -257,11 +259,11 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[PLATES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[PLATES].pof = &ofPlates;
 
 	OutData[GRAVITY].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT | OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT | OUTPUT_MAY_USE_BINARY;
 	OutData[GRAVITY].pof = &ofGravity;
 
 	OutData[DOFSTATS].flags = OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
@@ -280,7 +282,7 @@ OutputHandler::OutputHandler_int(void)
 	OutData[EIGENANALYSIS].pof = &ofEigenanalysis;
 
 	OutData[NETCDF].flags = 0
-		| OUTPUT_MAY_USE_NETCDF;
+		| OUTPUT_MAY_USE_BINARY;
 	OutData[NETCDF].pof = 0;
 
 	currentStep = 0;
@@ -529,25 +531,25 @@ OutputHandler::UseBinary(int out) const
 {
 	ASSERT(out > OutputHandler::UNKNOWN);
 	ASSERT(out < OutputHandler::LASTFILE);
-	return ((out == NETCDF || out == MBBINARY) && m_pBinFile->isOpen()) ;
+	return UseBinary(OutputHandler::OutFiles(out));
 }
 
 void
 OutputHandler::SetNetCDF(const OutputHandler::OutFiles out)
 {
-	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_BINARY)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	OutData[out].flags |= OUTPUT_USE_NETCDF;
+	OutData[out].flags |= OUTPUT_USE_BINARY;
 }
 
 void
 OutputHandler::ClearNetCDF(void)
 {
 	for (int out = FIRSTFILE; out < LASTFILE; out++) {
-		if (OutData[out].flags & OUTPUT_MAY_USE_NETCDF) {
-			OutData[out].flags &= ~OUTPUT_USE_NETCDF;
+		if (OutData[out].flags & OUTPUT_MAY_USE_BINARY) {
+			OutData[out].flags &= ~OUTPUT_USE_BINARY;
 		}
 	}
 }
@@ -555,17 +557,17 @@ OutputHandler::ClearNetCDF(void)
 void
 OutputHandler::ClearNetCDF(const OutputHandler::OutFiles out)
 {
-	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_BINARY)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	OutData[out].flags &= ~OUTPUT_USE_NETCDF;
+	OutData[out].flags &= ~OUTPUT_USE_BINARY;
 }
 
 bool
-OutputHandler::UseNetCDF(const OutputHandler::OutFiles out) const
+OutputHandler::UseBinary(const OutputHandler::OutFiles out) const
 {
-	return (OutData[out].flags & OUTPUT_USE_NETCDF);
+	return (OutData[out].flags & OUTPUT_USE_BINARY);
 }
 
 bool

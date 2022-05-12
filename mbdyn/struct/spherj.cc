@@ -220,7 +220,7 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Spherical hinge", OH, name);
 
@@ -265,7 +265,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
 		}
       
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, (R1Tmp.MulTV(F)), Zero3, F, Zero3);
 			switch (od) {
 			case EULER_123:
@@ -756,7 +756,7 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Spherical pin", OH, name);
 
@@ -780,7 +780,7 @@ void PinJoint::Output(OutputHandler& OH) const
 			OH.Joints() << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
 			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(pNode->GetRCurr())*dRaDegr);
 		}

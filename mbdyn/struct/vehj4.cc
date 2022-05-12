@@ -135,7 +135,7 @@ DeformableAxialJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Deformable axial joint", OH, name);
 
@@ -172,7 +172,7 @@ DeformableAxialJoint::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
 			OH.WriteNcVar(Var_Theta, RotManip::VecRot(R)(3));
 			OH.WriteNcVar(Var_Omega, R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr()));

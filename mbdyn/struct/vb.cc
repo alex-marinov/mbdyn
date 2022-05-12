@@ -95,7 +95,7 @@ ViscousBody::OutputPrepare(OutputHandler& OH)
 {	
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("viscous body", OH, name);
 
@@ -128,7 +128,7 @@ ViscousBody::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, Rh*F, Rh*M);
 			OH.WriteNcVar(Var_v, tilde_kPrime.GetVec1());
 			OH.WriteNcVar(Var_omega, tilde_kPrime.GetVec2());

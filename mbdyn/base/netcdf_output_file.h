@@ -55,6 +55,8 @@ private:
 	netCDF::NcDim DimTime;
 	netCDF::NcDim DimV1;
 	netCDF::NcDim DimV3;
+	
+	std::vector<netCDF::NcDim> DimVec;
 
 	std::vector<netCDF::NcVar> BinaryVars;
 	typedef std::vector<netCDF::NcDim> NcDimVec;
@@ -64,10 +66,22 @@ private:
 			{MBDynOutType::OutInt, netCDF::NcType::nc_CHAR}, 
 		};
 
-	netCDF::NcDim CreateDim(const std::string& name, integer size = -1)
+// 	netCDF::NcDim CreateDim(const std::string& name, integer size = -1)
+// 	{
+// 		ASSERT(m_pBinFile != 0);
+// 
+// 		netCDF::NcDim dim;
+// 		if (size == -1) {
+// 			dim = m_pBinFile->addDim(name);  // .c_str is useless here
+// 		} else {
+// 			dim = m_pBinFile->addDim(name, size);
+// 		}
+// 
+// 		return dim;
+// 	}
+	size_t CreateDim(const std::string& name, integer size = -1)
 	{
 		ASSERT(m_pBinFile != 0);
-
 		netCDF::NcDim dim;
 		if (size == -1) {
 			dim = m_pBinFile->addDim(name);  // .c_str is useless here
@@ -75,7 +89,8 @@ private:
 			dim = m_pBinFile->addDim(name, size);
 		}
 
-		return dim;
+		DimVec.push_back(dim);
+		return DimVec.size()-1;
 	}
 public:
 	virtual ~NetCDFOutput(void) {

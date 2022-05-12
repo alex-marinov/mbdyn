@@ -149,7 +149,7 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Beam slider", OH, name);
 			
@@ -183,7 +183,7 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 				<< " " << sRef << " " << l << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmpT*F, M, F, RTmp*M);
 
 			OH.WriteNcVar(Var_Beam, (int)(ppBeam[iCurrBeam]->pGetBeam()->GetLabel()));

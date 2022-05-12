@@ -48,23 +48,23 @@ enum class MBDynOutType {
 };
 
 class BinaryOutput {
-protected:
+public:
 	struct AttrVal {
 		std::string attr;
 		std::string val;
 		AttrVal(void) { NO_OP; };
 		AttrVal(const std::string& attr, const std::string& val) : attr(attr), val(val) { NO_OP; };
 	};
-
 	typedef std::vector<AttrVal> AttrValVec;
 
-public:
 	virtual ~BinaryOutput(void);
 	virtual void Open(const int format) = 0;
 // 	virtual const int CreateDim(const std::string& name, integer size = -1) = 0;
 	
 	virtual bool isOpen(void) = 0;
-	virtual void close() = 0;
+	virtual void close(void) = 0;
+	
+	virtual void sync(void) = 0;
 
 // 	virtual const int GetDim(const std::string& name) const = 0;
 
@@ -79,6 +79,9 @@ public:
 	std::vector<size_t> Count1x3;
 	std::vector<size_t> Start1x3x3;
 	std::vector<size_t> Count1x3x3;
+
+	virtual size_t 
+	CreateDim(const std::string& name, integer size = -1) = 0;
 	
 	virtual void
 	WriteVar(const size_t, const doublereal&) = 0;
@@ -122,6 +125,10 @@ public:
 	size_t
 	CreateVar(const std::string& name,
 		const MBUnits::Dimensions phys_dim, const std::string& description);
+
+	size_t
+	CreateVar(const std::string& name, const MBDynOutType& type,
+		const AttrValVec& attrs, const std::vector<size_t>& dims);
 
 	size_t
 	CreateRotationVar(const std::string& name_prefix,

@@ -947,7 +947,7 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("revolute hinge", OH, name);
 
@@ -1005,7 +1005,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, R2Tmp.MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
@@ -2046,7 +2046,7 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("revolute rotation", OH, name);
 
@@ -2095,7 +2095,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
       
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
@@ -3395,7 +3395,7 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("axial rotation", OH, name);
 
@@ -3453,7 +3453,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
       
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, R2Tmp.MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
@@ -4570,7 +4570,7 @@ PlanePinJoint::OutputPrepare(OutputHandler& OH)
 {
    if (bToBeOutput()) {
 #ifdef USE_NETCDF
-	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   std::string name;
 		   OutputPrepare_int("Plane Pin", OH, name);
 	   }
@@ -4593,7 +4593,7 @@ void PlanePinJoint::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	   if (OH.UseBinary(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, RTmp.MulTV(F), M, F, RTmp*M);
 	   }
 #endif // USE_NETCDF

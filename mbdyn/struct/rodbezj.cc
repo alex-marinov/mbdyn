@@ -453,7 +453,7 @@ RodBezier::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("rod bezier", OH, name);
 			
@@ -500,7 +500,7 @@ RodBezier::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTmp, Zero3, l1*dF, Zero3);
 			OH.WriteNcVar(Var_F2, l2*dF);
 			OH.WriteNcVar(Var_l, dElle);

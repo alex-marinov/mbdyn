@@ -133,7 +133,7 @@ AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -155,7 +155,7 @@ AbsoluteDispForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
@@ -304,7 +304,7 @@ AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -326,7 +326,7 @@ AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
@@ -567,7 +567,7 @@ AbsoluteForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -593,7 +593,7 @@ AbsoluteForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 			OH.WriteNcVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
 		}
@@ -855,7 +855,7 @@ FollowerForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -889,7 +889,7 @@ FollowerForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
 				OH.WriteNcVar(Var_F, f.Get());
 			} else {
@@ -1108,7 +1108,7 @@ AbsoluteCouple::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -1131,7 +1131,7 @@ AbsoluteCouple::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
@@ -1312,7 +1312,7 @@ FollowerCouple::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -1343,7 +1343,7 @@ FollowerCouple::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
 				OH.WriteNcVar(Var_F, f.Get());
 			} else {
@@ -1652,7 +1652,7 @@ AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -1682,7 +1682,7 @@ AbsoluteInternalForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 			OH.WriteNcVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
 			OH.WriteNcVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
@@ -2003,7 +2003,7 @@ FollowerInternalForce::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -2039,7 +2039,7 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				OH.WriteNcVar(Var_F, f.Get());
 			} else {
@@ -2318,7 +2318,7 @@ AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -2340,7 +2340,7 @@ AbsoluteInternalCouple::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			OH.WriteNcVar(Var_F, f.Get());
 		}
 #endif // USE_NETCDF
@@ -2543,7 +2543,7 @@ FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -2572,7 +2572,7 @@ FollowerInternalCouple::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+		if (OH.UseBinary(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				OH.WriteNcVar(Var_F, f.Get());
 			} else {

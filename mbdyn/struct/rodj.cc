@@ -295,7 +295,7 @@ Rod::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Rod", OH, name);
 
@@ -326,7 +326,7 @@ Rod::Output(OutputHandler& OH) const
 		doublereal dEllePrime = dEpsilonPrime*dL0;
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;

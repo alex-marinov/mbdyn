@@ -34,16 +34,16 @@
 #include "netcdf_output_file.h"
 #include "output.h"
 
-virtual void NetCDFOutput::Open(const int format) {
+void NetCDFOutput::Open(const int format) {
 	if (!IsOpen()) {
 		m_pBinFile = new netCDF::NcFile(_sPutExt((char*)(OutputHandler::psExt[OutputHandler::NETCDF])), netCDF::NcFile::replace, format); // using the default (nc4) mode was seen to drasticly reduce the writing speed, thus using classic format
 		//~ NC_FILL only applies top variables, not files or groups in netcdf-cxx4
 		// also: error messages (throw) are part of the netcdf-cxx4 interface by default...
 
 		// Let's define some dimensions which could be useful
-		DimTime = CreateDim("time");
-		DimV1 = CreateDim("Vec1", 1);
-		DimV3 = CreateDim("Vec3", 3);
+		DimTime = DimVec[CreateDim("time")];
+		DimV1 = DimVec[CreateDim("Vec1", 1)];
+		DimV3 = DimVec[CreateDim("Vec3", 3)];
 	}
 
 	return;

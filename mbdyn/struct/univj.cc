@@ -282,7 +282,7 @@ UniversalHingeJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Cardano hinge", OH, name);
 
@@ -317,7 +317,7 @@ UniversalHingeJoint::Output(OutputHandler& OH) const
 				<< " " << PhiTmp << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTildeTmp, MTildeTmp, F, MTmp);
 			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R2Tmp.MulTM(R1Tmp)));
 		}
@@ -858,7 +858,7 @@ UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Cardano rotation", OH, name);
 
@@ -908,7 +908,7 @@ UniversalRotationJoint::Output(OutputHandler& OH) const
 
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			
 			Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM);
 			
@@ -1397,7 +1397,7 @@ UniversalPinJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Cardano pin", OH, name);
 
@@ -1428,7 +1428,7 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 				<< " " << PhiTmp << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmp.MulTV(F), MTildeTmp, F, vTmp*dM);
 			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R0.MulTM(RTmp)));
 		}

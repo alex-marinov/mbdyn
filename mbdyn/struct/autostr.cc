@@ -233,7 +233,7 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		if (OH.UseBinary(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -259,7 +259,7 @@ AutomaticStructDispElem::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseBinary(OutputHandler::INERTIA)) {
 			OH.WriteNcVar(Var_B, B);
 			OH.WriteNcVar(Var_G, Zero3);
 			OH.WriteNcVar(Var_BP, BP);
@@ -715,7 +715,7 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseBinary(OutputHandler::INERTIA)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
@@ -741,7 +741,7 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseBinary(OutputHandler::INERTIA)) {
 			OH.WriteNcVar(Var_B, B);
 			OH.WriteNcVar(Var_G, G);
 			OH.WriteNcVar(Var_BP, BP);

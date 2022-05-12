@@ -113,11 +113,13 @@ public:
 		DRIVECALLERS,			// 30
 		TRACES,
 		MBBINARY,
+		EIGMBBINARY,
 		EIGENANALYSIS,			// NOTE: ALWAYS LAST!
-		LASTFILE			// 34
+		LASTFILE			// 35
 	};
 
 	BinaryOutput*const GetBinaryFile() {return m_pBinFile;};
+	BinaryOutput*const GetEigBinaryFile() {return m_pEigBinFile;};
 	bool HasBinaryOutput() {return m_pBinFile != 0;};
 private:
 	long currentStep;
@@ -146,8 +148,8 @@ private:
 
 		OUTPUT_MAY_USE_TEXT		= 0x10U,
 		OUTPUT_USE_TEXT			= 0x20U,
-		OUTPUT_MAY_USE_NETCDF		= 0x40U,
-		OUTPUT_USE_NETCDF		= 0x80U,
+		OUTPUT_MAY_USE_BINARY		= 0x40U,
+		OUTPUT_USE_BINARY		= 0x80U,
 
 // REMEMBER TO MODIFY OUTPUT_PRIVATE AND OUTPUT_MASK WHEN THE ABOVE MASKS
 // BECOME GRATER THAN OUTPUT_PRIVATE !
@@ -167,6 +169,7 @@ private:
 // 	MBDynNcDim m_DimV1;
 // 	MBDynNcDim m_DimV3;
 	BinaryOutput *m_pBinFile = 0;   /* ! one ! binary NetCDF data file */
+	BinaryOutput *m_pEigBinFile = 0;   /* ! one ! binary NetCDF data file */
 #endif /* USE_NETCDF */
 
 	/* handlers to streams */
@@ -212,8 +215,8 @@ private:
 	bool UseDefaultPrecision(int out) const;
 	bool UseScientific(int out) const;
 
-	bool UseText(int out) const;
-	bool UseBinary(int out) const;
+	bool IsText(int out) const;
+	bool IsBinary(int out) const;
 
 	// Pseudo-constructor
 	void OutputHandler_int(void);
@@ -251,7 +254,7 @@ public:
 	void SetNetCDF(const OutputHandler::OutFiles out);
 	void ClearNetCDF(void);
 	void ClearNetCDF(const OutputHandler::OutFiles out);
-	bool UseNetCDF(const OutputHandler::OutFiles out) const;
+	bool UseBinary(const OutputHandler::OutFiles out) const;
 
 	bool Close(const OutputHandler::OutFiles out);
 
@@ -305,7 +308,7 @@ public:
 	void SetExceptions(std::ios::iostate flags);
 
 #ifdef USE_NETCDF
-	inline BinaryOutput * pGetBinFile(void) const;
+// 	inline BinaryOutput * pGetBinFile(void) const;
 
 // 	struct AttrVal {
 // 		std::string attr;
@@ -411,12 +414,12 @@ public:
 // 	}
 // }
 
-inline BinaryOutput *
-OutputHandler::pGetBinFile(void) const
-{
-	return m_pBinFile;
-}
-
+// inline BinaryOutput *
+// OutputHandler::pGetBinFile(void) const
+// {
+// 	return m_pBinFile;
+// }
+// 
 // inline MBDynNcDim 
 // OutputHandler::DimTime(void) const
 // {

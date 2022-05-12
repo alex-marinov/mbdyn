@@ -303,7 +303,7 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Inline", OH, name);
 
@@ -334,7 +334,7 @@ void InLineJoint::Output(OutputHandler& OH) const
    if (bToBeOutput()) {
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, RvTmp*F, Zero3);
 			if (fc) {
 				OH.WriteNcVar(Var_FF, F3);

@@ -443,7 +443,7 @@ Brake::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("brake", OH, name);
 			
@@ -486,7 +486,7 @@ void Brake::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+      if (OH.UseBinary(OutputHandler::JOINTS)) {
 	      
 	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 	      

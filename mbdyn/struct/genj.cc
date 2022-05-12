@@ -271,7 +271,7 @@ DistanceJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Distance", OH, name);
 			
@@ -306,7 +306,7 @@ void DistanceJoint::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	if (OH.UseBinary(OutputHandler::JOINTS)) {
 		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
 		OH.WriteNcVar(Var_V, v/d);
 		OH.WriteNcVar(Var_d, d);
@@ -935,7 +935,7 @@ DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Distance with offset", OH, name);
 			
@@ -969,7 +969,7 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
 			OH.WriteNcVar(Var_V, v/d);
 			OH.WriteNcVar(Var_d, d);
@@ -1691,7 +1691,7 @@ void ClampJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Clamp", OH, name);
 		}
@@ -1711,7 +1711,7 @@ ClampJoint::Output(OutputHandler& OH) const
 					R.MulTV(F), R.MulTV(M), F, M) << std::endl;
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, R.MulTV(F), R.MulTV(M), F, M);
 		}
 #endif // USE_NETCDF

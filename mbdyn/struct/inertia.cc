@@ -273,7 +273,7 @@ Inertia::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseBinary(OutputHandler::INERTIA)) {
 
 			Vec3 DX(X_cm - X0);
 			Vec3 dx = R0.MulTV(DX);
@@ -315,7 +315,7 @@ Inertia::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA))
+		if (OH.UseBinary(OutputHandler::INERTIA))
 		{
 			std::string name;
 			OutputPrepare_int(OH, name);

@@ -168,7 +168,7 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Linear acceleration", OH, name);
 
@@ -188,7 +188,7 @@ void LinearAccelerationJoint::Output(OutputHandler& OH) const
      			<< " " << dGet() << std::endl;
 		}
 	#ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
    			Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3);
 			OH.WriteNcVar(Var_a, dGet());
 		}
@@ -453,7 +453,7 @@ AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("Angular acceleration", OH, name);
 
@@ -474,7 +474,7 @@ void AngularAccelerationJoint::Output(OutputHandler& OH) const
 				<< " " << dGet() << std::endl;   
 		}
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseBinary(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM);
 			OH.WriteNcVar(Var_wP, dGet());
 		}
