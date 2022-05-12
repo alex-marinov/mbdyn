@@ -239,25 +239,30 @@ public:
 		return CreateVar(name, MBDynOutType::OutDouble, attrs, dim);
 	};
 	
-	virtual void WriteNcVar(size_t Var_Var, const Mat3x3& pGetVar) {
+	virtual void WriteVar(size_t Var_Var, const Mat3x3& pGetVar) {
 		BinaryVars[Var_Var].putVar(Start1x3x3, Count1x3x3, pGetVar.pGetMat());
 	}
-	virtual void WriteNcVar(size_t Var_Var, const Mat3x3& pGetVar,
+	virtual void WriteVar(size_t Var_Var, const Mat3x3& pGetVar,
 		const size_t& ncStart) 
 	{
 		std::vector<size_t> Start1x3x3Tmp = Start1x3x3;
 		Start1x3x3Tmp[0] = ncStart;
 		BinaryVars[Var_Var].putVar(Start1x3x3Tmp, Count1x3x3, pGetVar.pGetMat());
 	}
-	virtual void WriteNcVar(size_t Var_Var, const Vec3& pGetVar) {
+	virtual void WriteVar(size_t Var_Var, const Vec3& pGetVar) {
 		BinaryVars[Var_Var].putVar(Start1x3, Count1x3, pGetVar.pGetVec());
 	}
-	virtual void WriteNcVar(size_t& Var_Var, const Vec3& pGetVar,
+	virtual void WriteVar(size_t Var_Var, const Vec3& pGetVar,
 		const size_t& ncStart) 
 	{
 		std::vector<size_t> Start1x3Tmp = Start1x3;
 		Start1x3Tmp[0] = ncStart;
 		BinaryVars[Var_Var].putVar(Start1x3Tmp, Count1x3, pGetVar.pGetVec());
+	}
+
+	virtual void PutVar(size_t& Var_Var, const doublereal *d) 
+	{
+		BinaryVars[Var_Var].putVar(d);
 	}
 
 };

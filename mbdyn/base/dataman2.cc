@@ -1657,8 +1657,8 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 // 		ncStartPos.push_back(0); // implicit cast here ok?
 // 		ncCount.push_back(nrows);
 // 		ncCount.push_back(ncols);
-		Var_Eig_dAplus.putVar(MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
-		Var_Eig_dAminus.putVar(MatA.pdGetMat());
+		OutHdl.GetEigBinaryFile()->PutVar(Var_Eig_dAplus, MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
+		OutHdl.GetEigBinaryFile()->PutVar(Var_Eig_dAminus, MatA.pdGetMat());
 
 	}
 #endif /* USE_NETCDF */

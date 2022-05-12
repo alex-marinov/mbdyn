@@ -103,6 +103,9 @@ public:
 
 	virtual void
 	WriteVar(const size_t, const Mat3x3&, const size_t&) = 0;
+	
+	virtual void
+	PutVar(const size_t var, const doublereal* data) = 0;
 
 // 	template <class Tvar>
 // 	void
