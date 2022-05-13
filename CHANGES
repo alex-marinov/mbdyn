@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- Trilinos wrappers; (Reinard Resch)
 		- get rid of legacy NetCDF 3; require NetCDF > 4.3 with c++ wrappers (Marco Morandini)
 		- new "relnorm" and "sepnorm" residual checks (GSOC 2021, Satyam Kumar and Marco Morandini)
 		- refactor and improve output units (Marco Morandini)
@@ -35,6 +36,7 @@ MBDyn 1.X-Devel
 		- added support for NetCDF4 (Louis Gagnon)
 		- improve diagnostics when input file cannot be opened (#40)
 	Backward compatibility issues:
+		- get rid of third order stepsol; (Marco Morandini)
 		- now escape sequences are honored in "hints"
 		- conditional compilation of aerod2.f
 		- C replacement of ldl.f

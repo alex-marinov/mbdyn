@@ -127,39 +127,6 @@ CColMatrixHandler<off, idx_type>::MulAndSumWithShift(MatrixHandler& out, doubler
 	return out;	
 }
 
-template <int off, typename idx_type>
-MatrixHandler&
-CColMatrixHandler<off, idx_type>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
-								   std::vector<bool> b,
-								   doublereal s,
-								   integer drow, 
-								   integer dcol) const
-{
-	silent_cerr("CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
-			"called" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-	if ((out.iGetNumCols() < this->iGetNumCols() + dcol)
-			|| (out.iGetNumRows() < this->iGetNumRows() + drow)) {
-		silent_cerr("Assertion fault "
-				"in CColMatrixHandler<off>::MulAndSumWithShift"
-				<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	drow = drow + 1;
-	for (integer col = 0; col < this->iGetNumCols(); col++) {
-	     auto idx = this->Ap[col];
-	     auto idxe = this->Ap[col + 1] - off;
-	     auto newcol = col + dcol + 1;
-	     for (; idx < idxe; idx++) {
-		  if (b[this->Ai[idx] - off]) {
-		       out.IncCoef(this->Ai[idx] - off + drow,
-				   newcol, this->Ax[idx]*s);
-		  }
-	     }
-	}
-	return out;	
-}
-
 template class CColMatrixHandler<0, int32_t>;
 template class CColMatrixHandler<1, int32_t>;
 template class CColMatrixHandler<1, int64_t>;
