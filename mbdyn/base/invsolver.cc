@@ -64,7 +64,6 @@
 #include "invsolver.h"
 #include "dataman.h"
 #include "mtdataman.h"
-#include "thirdorderstepsol.h"
 #include "nr.h"
 #include "bicg.h"
 #include "gmres.h"

@@ -349,7 +349,7 @@ modify the residual test taking in account the rate of change of the status.
     \bnt{card} ::= \kw{method} : \bnt{method_data} ;
 \end{Verbatim}
 %\end{verbatim}
-there are four multistep methods at present. 
+there are three multistep methods at present. 
 
 The first is Crank-Nicolson:
 %\begin{verbatim}
@@ -387,24 +387,6 @@ The \nt{algebraic\_radius} can be omitted, defaulting to the same
 as the differential one.
 It is unclear whether a different spectral radius can help in increasing
 accuracy or dissipation of the algebraic unknowns.
-
-The fourth method is experimental. It is a third-order,
-two stage unconditionally stable method, which can be tuned to give 
-the desired algorithmic dissipation by setting the value 
-of the asymptotic spectral radius, which should not be 
-too close to zero.
-Currently it is not possible to independently set the radius 
-for the differential and the algebraic variables.
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \kw{third order} ,
-        \{ \kw{ad hoc} | (\hty{DriveCaller}) \bnt{differential_radius} \}
-\end{Verbatim}
-%\end{verbatim}
-When the keyword \kw{ad hoc} is used, a method equivalent
-to a Runge-Kutta Radau IIA results, with zero asymptotic
-spectral radius; otherwise, an original third-order
-integration method is used, with tunable algorithmic dissipation.
 
 \noindent
 The multistep method, when the asymptotic radius is zero, degenerates

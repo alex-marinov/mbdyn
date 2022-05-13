@@ -172,8 +172,6 @@ tpldrive.h \
 tpldrive_impl.cc \
 tpldrive_impl.h \
 vec3drv.h \
-thirdorderstepsol.h \
-thirdorderstepsol.cc \
 TimeStepControl.h \
 TimeStepControl.cc \
 userelem.cc \
