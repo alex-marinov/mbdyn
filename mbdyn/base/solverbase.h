@@ -49,7 +49,6 @@ struct SolverBase {
                         INT_MS2,
                         INT_HOPE,
                         INT_DEFAULT,
-                        INT_THIRDORDER,
                         INT_HYBRID,
                         INT_DERIVATIVE,
                         INT_UNKNOWN,

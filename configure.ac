@@ -212,9 +212,6 @@ AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile]
 AC_ARG_WITH(octave-cli,[ --with-octave-cli=exec-path Octave command line interpreter],[
         ol_with_octave_cli_exec="$withval"
 ],[ol_with_octave_cli_exec=""])
-OL_ARG_ENABLE(autodiff,[  --enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
-OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
-OL_ARG_ENABLE(sparse_autodiff, [  --enable-sparse_autodiff                enable automatic differentiation based on sparse algorithms],no)dnl
 OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -871,7 +868,6 @@ if test "$ol_enable_octave" != no || test "$ol_enable_octave_utils" != no ; then
         fi
 fi
 
-if test "$ol_enable_autodiff" != no || test "$ol_enable_sparse_autodiff" != no; then
 	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
 	AC_TRY_LINK([
 #include <stdlib.h>
@@ -930,297 +926,6 @@ free(p);
 	else
 		AC_MSG_RESULT([no])
 	fi
-fi
-
-if test "$ol_enable_autodiff" != no ; then
-	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
-
-        AC_LANG_SAVE
-        AC_LANG_CPLUSPLUS
-        AC_CHECK_HEADERS(dense_hash_map)
-        if test "$ac_cv_header_dense_hash_map" = "yes" ; then
-                AC_MSG_CHECKING([for dense_hash_map])
-                AC_TRY_COMPILE([#include <dense_hash_map>
-                                #include <functional>],[
-                                google::dense_hash_map<int,
-                                int,
-                                std::hash<int>,
-                                std::equal_to<int>,
-                                std::allocator<std::pair<const int, int> > > dhm;
-                                dhm.set_empty_key(-1);
-                                dhm.set_deleted_key(-2);
-                                dhm[1] = 1;
-                                for (auto i = dhm.begin(); i != dhm.end(); ++i) {
-                                i->first;
-                                i->second;
-                                }
-                                auto i = dhm.find(1);
-                                i->first;
-                                i->second;
-                                dhm.clear();
-                ], [have_dense_hash_map=yes], [have_dense_hash_map=no])
-                if test $have_dense_hash_map = yes ; then
-                        AC_DEFINE(USE_DENSE_HASH_MAP, 1, [define if google::dense_hash_map can be used])
-                        AC_MSG_RESULT([yes])
-                else
-                        AC_MSG_RESULT([no])
-                fi
-        fi
-        AC_LANG_RESTORE
-
-	if test "$ol_enable_autodiff_vect" == 0 ; then
-		save_CXXFLAGS="$CXXFLAGS"
-		VECTOR_FLAGS="-march=native -mtune=native"
-		CXXFLAGS="$CXXFLAGS $VECTOR_FLAGS"
-
-		AC_LANG_CPLUSPLUS
-		AC_TRY_RUN([
-#include <ctime>
-#include <cassert>
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-#include <new>
-#include <iomanip>
-#include <fstream>
-using namespace std;
-
-template <typename scalar_type, int VECTOR_SIZE>
-class vector
-{
-public:
-    static const int vec_size = VECTOR_SIZE / sizeof(scalar_type);
-    typedef scalar_type __attribute__((vector_size(VECTOR_SIZE))) vector_type;
-
-    vector(int n)
-    {
-        N = n / vec_size;
-
-        if (n % vec_size != 0)
-        {
-            ++N;
-        }
-
-        void* p;
-
-#if HAVE_POSIX_MEMALIGN == 1
-    	if (0 != posix_memalign(&p, sizeof(vector_type), vector_size() * sizeof(vector_type)))
-    	{
-    		p = 0;
-    	}
-#elif HAVE_ALIGNED_MALLOC == 1
-        p = _aligned_malloc(vector_size() * sizeof(vector_type), sizeof(vector_type));
-#elif HAVE_MEMALIGN == 1
-    	p = memalign(sizeof(vector_type), vector_size() * sizeof(vector_type));
-#else
-		p = malloc(vector_size() * sizeof(vector_type));
-#endif
-
-        v = reinterpret_cast<vector_type*>(p);
-
-        if (v == 0)
-            throw std::bad_alloc();
-    }
-
-    ~vector()
-    {
-#if HAVE_ALIGNED_MALLOC == 1
-        _aligned_free(v);
-#else
-    	free(v);
-#endif
-    }
-
-    int size() const { return N * vec_size; }
-
-    int vector_size() const { return N; }
-
-    vector_type& operator[](int i)
-    {
-        return v[i];
-    }
-
-    vector_type operator[](int i) const
-    {
-        return v[i];
-    }
-
-    scalar_type& operator()(int i)
-    {
-        return s[i];
-    }
-
-    scalar_type operator()(int i) const
-    {
-        return s[i];
-    }
-private:
-    union {
-        scalar_type* s;
-        vector_type* v;
-    };
-    int N;
-};
-
-template <typename T, int VECTOR_SIZE>
-T func_vec(const T a, const T b, const vector<T,VECTOR_SIZE>& ad, const vector<T,VECTOR_SIZE>& bd,  vector<T,VECTOR_SIZE>& cd)
-{
-    for (int i = 0; i < ad.vector_size(); ++i)
-    {
-        cd[i] = ad[i] * b + a * bd[i];
-    }
-
-    return a * b;
-}
-
-template<typename T, int VECTOR_SIZE>
-clock_t testVector(int N, int M)
-{
-    T a, b, c;
-
-    a = 10;
-    b = 5;
-    vector<T,VECTOR_SIZE> ad(N), bd(N), cd(N);
-
-    for (int i = 0; i < ad.size(); ++i)
-    {
-        ad(i) = i + 1;
-        bd(i) = 10 * (i + 1);
-    }
-
-    const clock_t start = clock();
-
-    for (int i = 0; i < M; ++i)
-        c = func_vec(a, b, ad, bd, cd);
-
-    const clock_t dt = clock() - start;
-
-    assert(c == a * b);
-    for (int i = 0; i < ad.size(); ++i)
-    {
-        assert(cd(i) == ad(i) * b + bd(i) * a);
-    }
-
-    return dt;
-}
-
-int vec_size = 0;
-clock_t tmin = std::numeric_limits<clock_t>::max();
-
-template <int i>
-void runTest(int N, int M, clock_t t[])
-{
-    const int iprev = i - 1;
-    runTest<iprev>(N, M, t);
-    const int K = 1 << (i + 3);
-
-    cout << "checking for vector_size=" << setw(3) << K << " ... ";
-
-    t[i] = testVector<double, K>(N, M);
-
-    cout << "[OK] t=" << setw(5) << t[i] << endl;
-
-    if (t[i] < tmin)
-    {
-        tmin = t[i];
-        vec_size = K;
-        ofstream("grad_vector_size.dat") << K;
-    }
-}
-
-template <>
-void runTest<-1>(int N, int M, clock_t t[])
-{
-}
-
-int main(int argc, char* argv[])
-{
-    int N = 1024;
-    int M = 1000000;
-
-    if (argc > 1)
-        N = atoi(argv[1]);
-
-    if (argc > 2)
-        M = atoi(argv[2]);
-
-    const int K = 3;
-    clock_t t[K];
-
-    ofstream("grad_vector_size.dat") << 0;
-
-    runTest<K>(N, M, t);
-
-    cout << "result: optimum(vector_size)=" << vec_size << endl;
-    return 0;
-}					],
-					[use_vector_flags=enabled],
-					[use_vector_flags=disabled; printf "[FAILED]\n"])
-
-		dnl If AVX is working, we must keep -march=native in order to avoid compiler errors.
-		
-		if test $use_vector_flags != enabled; then
-		   CXXFLAGS="$save_CXXFLAGS"
-		fi
-		
-		if test $use_vector_flags == enabled && test -f grad_vector_size.dat; then
-			ol_enable_autodiff_vect=`cat grad_vector_size.dat`
-
-			if test -z "$ol_enable_autodiff_vect"; then
-				ol_enable_autodiff_vect=0
-			fi
-
-			rm grad_vector_size.dat
-		fi
-
-		AC_LANG_C
-	fi
-
-	case "$ol_enable_autodiff_vect" in
-	16)
-		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 16, [the number of bytes of an avx or sse register])
-		AC_MSG_RESULT([vectorization of derivatives will use 16 byte vectors])
-		;;
-	32)
-		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 32, [the number of bytes of an avx or sse register])
-		AC_MSG_RESULT([vectorization of derivatives will use 32 byte vectors])
-		;;
-	64)
-		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 64, [the number of bytes of an avx or sse register])
-		AC_MSG_RESULT([vectorization of derivatives will use 64 byte vectors])
-		;;
-	*)
-		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 0, [the number of bytes of an avx or sse register])
-		AC_MSG_WARN([vectorization of derivatives is not possible])
-	esac
-fi
-
-if test "$ol_enable_sparse_autodiff" != no ; then
-	AC_DEFINE(USE_SPARSE_AUTODIFF, 1, [define if automatic differentiation based on sparse algorithms can be used])
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Enable blitz++ support <http://oonumerics.org/blitz/>
-dnl
-AC_LANG_CPLUSPLUS
-AC_CHECK_HEADER(blitz/blitz.h,[have_blitz_blitz_h=yes],[have_blitz_blitz_h=no])
-AC_CHECK_HEADER(blitz/array.h,[have_blitz_array_h=yes],[have_blitz_array_h=no])
-AC_CHECK_HEADER(blitz/tinyvec.h,[have_blitz_tinyvec_h=yes],[have_blitz_tinyvec_h=no])
-AC_CHECK_HEADER(blitz/tinyvec-et.h,[have_blitz_tinyvecet_h=yes],[have_blitz_tinyvecet_h=no])
-AC_CHECK_HEADER(blitz/tinymat.h,[have_blitz_tinymat_h=yes],[have_blitz_tinymat_h=no])
-AC_CHECK_HEADER(blitz/matrix.h,[have_blitz_matrix_h=yes],[have_blitz_matrix_h=no])
-AC_LANG_C
-
-if test "$have_blitz_blitz_h" = "yes" \
-	-a "$have_blitz_array_h" = "yes" \
-	-a "$have_blitz_tinyvec_h" = "yes" \
-	-a "$have_blitz_tinyvecet_h" = "yes" \
-	-a "$have_blitz_tinymat_h" = "yes" \
-	-a "$have_blitz_matrix_h" = "yes"; \
-then
-	AC_DEFINE(HAVE_BLITZ, 1, [define if blitz++ can be used])
-fi
 
 dnl ----------------------------------------------------------------
 dnl
@@ -3005,8 +2710,8 @@ if test $ol_with_trilinos != no ; then
         AC_LANG_CPLUSPLUS
         AC_CHECK_HEADERS([Epetra_Comm.h Epetra_SerialComm.h Epetra_Vector.h Epetra_Operator.h Epetra_CrsMatrix.h AztecOO.h Amesos.h Amesos_BaseSolver.h NOX.H NOX_Epetra.H NOX_Solver_Generic.H NOX_Epetra_Vector.H NOX_Epetra_Interface_Required.H NOX_Epetra_Interface_Jacobian.H NOX_Epetra_Interface_Preconditioner.H NOX_Epetra_LinearSystem_AztecOO.H],[have_trilinos_h=yes],[have_trilinos_h=no])
         
+        AC_MSG_CHECKING([for Trilinos library])
         if test "$have_trilinos_h" = "yes" ; then
-                AC_MSG_CHECKING([for Trilinos library])
                 have_trilinos="no"
                 for trilinos_lib_config in prefix_none_without_mpi prefix_trilinos_with_mpi prefix_user ; do
                     if test $have_trilinos = no; then
@@ -3787,8 +3492,6 @@ AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
-AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
-AM_CONDITIONAL(USE_SPARSE_AUTODIFF,[test "$ol_enable_sparse_autodiff" = yes])
 AM_CONDITIONAL([USE_PASTIX],[test "$ol_link_pastix" = "yes"])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])

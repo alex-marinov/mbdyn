@@ -59,7 +59,7 @@ begin: initial value;
         keep jacobian matrix,
         inner iterations before assembly, 10,
         jacobian operator, newton krylov,
-        algorithm, line search based,
+        solver, line search based,
         linesearch method, backtrack,
         direction, newton,
         forcing term, type 2,
@@ -74,6 +74,7 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
+    use automatic differentiation;
     skip initial joint assembly;
     max iterations: 10;
     tolerance: 1e-10;

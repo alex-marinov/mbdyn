@@ -131,9 +131,7 @@ public:
 
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 
-#ifdef USE_SPARSE_AUTODIFF
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
-#endif
 
      virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 

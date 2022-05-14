@@ -500,11 +500,13 @@ ModalAd::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
           SpColVector<T, 3> x2(3, 1);
 
-          SND[iStrNodem1].pNode->GetXCurr(x2, dCoef, func);
+          auto pStrNodem1 = dynamic_cast<const StructNodeAd*>(SND[iStrNodem1].pNode);
+          
+          pStrNodem1->GetXCurr(x2, dCoef, func);
 
           SpMatrix<T, 3, 3> R2(3, 3, 3);
 
-          SND[iStrNodem1].pNode->GetRCurr(R2, dCoef, func);
+          pStrNodem1->GetRCurr(R2, dCoef, func);
 
           const SpColVector<T, 3> dTmp2(R2 * SND[iStrNodem1].OffsetMB);
 

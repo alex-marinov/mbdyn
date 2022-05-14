@@ -621,7 +621,6 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
         ASSERT(MH.iGetNumRows() >= iNumRows);
         ASSERT(MH.iGetNumCols() >= iNumCols);
 
-#ifdef USE_SPARSE_AUTODIFF
         sp_grad::SpGradient oRow, oItem;
 
 #ifdef USE_MULTITHREAD
@@ -660,19 +659,7 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 #ifdef USE_MULTITHREAD
         } while (bRepeatLoop);
 #endif
-#else
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumCols());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumRows());
-
-                        MH(piRowm1[r], piColm1[c]) += ppdColsm1[c][r];
-                }
-        }
-#endif
         return MH;
 }
 
@@ -764,7 +751,6 @@ FullSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
         return MH;
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 VectorHandler& FullSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
@@ -788,7 +774,6 @@ VectorHandler& FullSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHan
 
         return A;
 }
-#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
@@ -1494,7 +1479,6 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
         MH.IsValid();
 #endif /* DEBUG */
 
-#ifdef USE_SPARSE_AUTODIFF
         sp_grad::SpGradient oItem;
 
 #ifdef USE_MULTITHREAD
@@ -1528,16 +1512,7 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 #ifdef USE_MULTITHREAD
         } while (bRepeatLoop);
 #endif
-#else
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumRows());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumCols());
-
-                MH(piRowm1[i], piColm1[i]) += pdMatm1[i];
-        }
-#endif
+        
         return MH;
 }
 
@@ -1610,7 +1585,6 @@ SparseSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
         return MH;
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 VectorHandler& SparseSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
@@ -1630,7 +1604,6 @@ VectorHandler& SparseSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorH
 
         return A;
 }
-#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
@@ -1724,7 +1697,6 @@ SparseSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
 
 /* SparseSubMatrixHandler - end */
 
-#ifdef USE_SPARSE_AUTODIFF
 SpGradientSubMatrixHandler::SpGradientSubMatrixHandler(integer iNumItemsMax) {
      oVec.reserve(iNumItemsMax);
 }
@@ -1907,7 +1879,6 @@ void SpGradientSubMatrixHandler::IsValid(void) const
           SP_GRAD_ASSERT(oItem.oResidual.bValid());
      }
 }
-#endif
 #endif
 
 /* MySubVectorHandler - begin */

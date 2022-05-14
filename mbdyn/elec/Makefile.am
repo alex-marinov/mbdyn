@@ -15,6 +15,8 @@ elec.cc \
 elec.h \
 elecnode.cc \
 elecnode.h \
+elecnodead.cc \
+elecnodead.h \
 forgfact.cc \
 forgfact.h \
 genel.cc \

@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2013(-2020) all rights reserved.
+  Copyright (C) 2013(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -48,6 +48,7 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
+#include <chrono>
 
 #ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
@@ -55,23 +56,11 @@
 
 #include <dataman.h>
 #include <userelem.h>
-
+#include <strnodead.h>
 #include "module-autodiff_test.h"
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-
-#include <clock_time.h>
-
-#if defined(USE_AUTODIFF)
-#include <gradient.h>
-#include <matvec.h>
-#include <matvecass.h>
-#endif
-
-#if defined(USE_SPARSE_AUTODIFF)
 #include <sp_gradient.h>
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
-#endif
 
 #include <ac/f2c.h>
 
@@ -143,6 +132,13 @@ public:
 	    doublereal dCoef,
 	    const VectorHandler& XCurr,
 	    const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& JacY,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;
      SubVectorHandler&
      AssRes(SubVectorHandler& WorkVec,
 	    doublereal dCoef,
@@ -168,17 +164,7 @@ public:
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-#ifdef USE_AUTODIFF
-     template <typename T>
-     inline void
-     AssRes(grad::GradientAssVec<T>& WorkVec,
-	    doublereal dCoef,
-	    const grad::GradientVectorHandler<T>& XCurr,
-	    const grad::GradientVectorHandler<T>& XPrimeCurr,
-	    grad::FunctionCall func);
-#endif
 
-#ifdef USE_SPARSE_AUTODIFF
      template <typename T>
      inline void
      AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -186,7 +172,6 @@ public:
 	    const sp_grad::SpGradientVectorHandler<T>& XCurr,
 	    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
 	    sp_grad::SpFunctionCall func);
-#endif
      
      unsigned int iGetNumPrivData(void) const;
      int iGetNumConnectedNodes(void) const;
@@ -204,28 +189,18 @@ public:
      InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 private:
-#ifdef USE_AUTODIFF
-     static const grad::index_type iNumADVars = 12;
-#endif
      const StructNode* pNode1;
      const StructNode* pNode2;
+     const StructNodeAd* pNode1Ad;
+     const StructNodeAd* pNode2Ad;     
      Mat3x3 S1;
      Mat3x3 D1;
      Vec3 o1;
      Vec3 o2;
      
-#ifdef USE_AUTODIFF
-     grad::LocalDofMap dof;   
-#endif
-     
      enum AssemblyFlag {
 	  TRADITIONAL = 0,
-#ifdef USE_AUTODIFF
-	  TEMPLATE_META_PROG,
-#endif
-#ifdef USE_SPARSE_AUTODIFF
 	  SPARSE_TEMPLATE_META_PROG,
-#endif
 	  F77
      } fRes, fJac;
 
@@ -235,12 +210,13 @@ private:
 	  JACOBIAN = 1
      };
      struct {
-	  doublereal dtRes;
-	  doublereal dtJac;
-	  doublereal dtInit[2];
-	  doublereal dtGet[2];
-	  doublereal dtCalc[2];
-	  doublereal dtAss[2];
+          typedef std::chrono::duration<long long, std::ratio<1L, 1000000000L> > duration_type;
+          duration_type dtRes;
+	  duration_type dtJac;
+	  duration_type dtInit[2];
+	  duration_type dtGet[2];
+	  duration_type dtCalc[2];
+          duration_type dtAss[2];
      } profile;
 
      static const char* AssemblyFuncName(enum AssemblyFlag flag);
@@ -337,24 +313,20 @@ DeformableJointAD::DeformableJointAD(
      if (HP.IsKeyWord("residual")) {
 	  if (HP.IsKeyWord("traditional")) {
 	       fRes = TRADITIONAL;
-#ifdef USE_AUTODIFF
-	  } else if (HP.IsKeyWord("template" "meta" "program")) {
-	       fRes = TEMPLATE_META_PROG;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
 	  } else if (HP.IsKeyWord("sparse" "template" "meta" "program")) {
 	       fRes = SPARSE_TEMPLATE_META_PROG;
-#endif
+               pNode1Ad = dynamic_cast<const StructNodeAd*>(pNode1);
+               pNode2Ad = dynamic_cast<const StructNodeAd*>(pNode2);
+
+               if (!(pNode1Ad && pNode2Ad)) {
+                    silent_cerr("Support for automatic differentiation needs to be enabled for this element type at line " << HP.GetLineData() << "\n");
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+               }
 	  } else if (HP.IsKeyWord("fortran77")) {
 	       fRes = F77;
 	  } else {
 	       silent_cerr("deformable joint ad" << GetLabel() << "): keyword \"traditional\""
-#ifdef USE_AUTODIFF
-			   ", \"template meta program\", "
-#endif
-#ifdef USE_SPARSE_AUTODIFF
 			   ", \"sparse template meta program\""
-#endif
 			   " or \"fortran77\" expected at line " << HP.GetLineData() << std::endl);
 	       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  }
@@ -363,14 +335,8 @@ DeformableJointAD::DeformableJointAD(
      if (HP.IsKeyWord("jacobian")) {
 	  if (HP.IsKeyWord("traditional")) {
 	       fJac = TRADITIONAL;
-#ifdef USE_AUTODIFF
-	  } else if (HP.IsKeyWord("template" "meta" "program")) {
-	       fJac = TEMPLATE_META_PROG;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
 	  } else if (HP.IsKeyWord("sparse" "template" "meta" "program")) {
 	       fJac = SPARSE_TEMPLATE_META_PROG;
-#endif
 	  } else if (HP.IsKeyWord("fortran77")) {
 	       fJac = F77;
 	  } else {
@@ -389,22 +355,22 @@ DeformableJointAD::~DeformableJointAD(void)
 
      std::cerr << "dtRes["
 	       << AssemblyFuncName(fRes)
-	       << "]=" << profile.dtRes << std::endl;
+	       << "]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtRes).count() << std::endl;
 
      std::cerr << "dtJac["
 	       << AssemblyFuncName(fJac)
-	       << "]=" << profile.dtJac << std::endl;
+	       << "]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtJac).count() << std::endl;
 
 
-     std::cerr << "dtInit[RESIDUAL]=" << profile.dtInit[RESIDUAL] << std::endl;
-     std::cerr << "dtGet[RESIDUAL]=" << profile.dtGet[RESIDUAL] << std::endl;
-     std::cerr << "dtCalc[RESIDUAL]=" << profile.dtCalc[RESIDUAL] << std::endl;
-     std::cerr << "dtAss[RESIDUAL]=" << profile.dtAss[RESIDUAL] << std::endl;
+     std::cerr << "dtInit[RESIDUAL]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtInit[RESIDUAL]).count() << std::endl;
+     std::cerr << "dtGet[RESIDUAL]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtGet[RESIDUAL]).count() << std::endl;
+     std::cerr << "dtCalc[RESIDUAL]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtCalc[RESIDUAL]).count() << std::endl;
+     std::cerr << "dtAss[RESIDUAL]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtAss[RESIDUAL]).count() << std::endl;
 
-     std::cerr << "dtInit[JACOBIAN]=" << profile.dtInit[JACOBIAN] << std::endl;
-     std::cerr << "dtGet[JACOBIAN]=" << profile.dtGet[JACOBIAN] << std::endl;
-     std::cerr << "dtCalc[JACOBIAN]=" << profile.dtCalc[JACOBIAN] << std::endl;
-     std::cerr << "dtAss[JACOBIAN]=" << profile.dtAss[JACOBIAN] << std::endl;
+     std::cerr << "dtInit[JACOBIAN]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtInit[JACOBIAN]).count() << std::endl;
+     std::cerr << "dtGet[JACOBIAN]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtGet[JACOBIAN]).count() << std::endl;
+     std::cerr << "dtCalc[JACOBIAN]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtCalc[JACOBIAN]).count() << std::endl;
+     std::cerr << "dtAss[JACOBIAN]=" << std::chrono::duration_cast<std::chrono::microseconds>(profile.dtAss[JACOBIAN]).count() << std::endl;
 
      std::cerr << std::endl;
 #endif
@@ -419,19 +385,15 @@ DeformableJointAD::Output(OutputHandler& OH) const
 void
 DeformableJointAD::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-#ifdef USE_SPARSE_AUTODIFF
      switch (fJac) {
      case SPARSE_TEMPLATE_META_PROG:
 	  *piNumRows = -12;
 	  *piNumCols = 24;
 	  break;
      default:
-#endif
 	  *piNumRows = 12;
 	  *piNumCols = 12;
-#ifdef USE_SPARSE_AUTODIFF
      }
-#endif
 }
 
 VariableSubMatrixHandler&
@@ -441,25 +403,14 @@ DeformableJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     const double start = mbdyn_clock_time();
+     const auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      switch (fJac) {
      case TRADITIONAL:
 	  AssJacTrad(WorkMat, dCoef, XCurr, XPrimeCurr);
 	  break;
-#ifdef USE_AUTODIFF
-     case TEMPLATE_META_PROG:
-	  grad::GradientAssVec<grad::Gradient<iNumADVars> >::AssJac(this,
-								    WorkMat.SetSparse(),
-								    dCoef,
-								    XCurr,
-								    XPrimeCurr,
-								    grad::REGULAR_JAC,
-								    &dof);
-	  break;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
+          
      case SPARSE_TEMPLATE_META_PROG:
 	  sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
 								 WorkMat.SetSparseGradient(),
@@ -468,7 +419,7 @@ DeformableJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 								 XPrimeCurr,
 								 sp_grad::SpFunctionCall::REGULAR_JAC);
 	  break;
-#endif
+          
      case F77:
 	  AssJacF77(WorkMat, dCoef, XCurr, XPrimeCurr);
 	  break;
@@ -478,10 +429,54 @@ DeformableJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
      }
 
 #if CREATE_PROFILE == 1
-     profile.dtJac += mbdyn_clock_time() - start;
+     profile.dtJac += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkMat;
+}
+
+void
+DeformableJointAD::AssJac(VectorHandler& JacY,
+                          const VectorHandler& Y,
+                          doublereal dCoef,
+                          const VectorHandler& XCurr,
+                          const VectorHandler& XPrimeCurr,
+                          VariableSubMatrixHandler& WorkMat)
+{
+#if CREATE_PROFILE == 1
+     const auto start = std::chrono::high_resolution_clock::now();
+#endif
+     
+     using namespace sp_grad;
+
+     switch (fJac) {
+     case TRADITIONAL:
+	  AssJacTrad(WorkMat, dCoef, XCurr, XPrimeCurr);
+          WorkMat.MultAddTo(JacY, Y);
+	  break;
+          
+     case SPARSE_TEMPLATE_META_PROG:
+          SpGradientAssVec<GpGradProd>::AssJac(this,
+                                               JacY,
+                                               Y,
+                                               dCoef,
+                                               XCurr,
+                                               XPrimeCurr,
+                                               SpFunctionCall::REGULAR_JAC);
+          break;          
+          
+     case F77:
+	  AssJacF77(WorkMat, dCoef, XCurr, XPrimeCurr);
+          WorkMat.MultAddTo(JacY, Y);          
+	  break;
+
+     default:
+	  WorkMat.SetNullMatrix();
+     }
+
+#if CREATE_PROFILE == 1
+     profile.dtJac += std::chrono::high_resolution_clock::now() - start;
+#endif     
 }
 
 SubVectorHandler&
@@ -491,24 +486,13 @@ DeformableJointAD::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     const double start = mbdyn_clock_time();
+     const auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      switch (fRes) {
      case TRADITIONAL:
 	  AssResTrad(WorkVec, dCoef, XCurr, XPrimeCurr);
 	  break;
-#ifdef USE_AUTODIFF
-     case TEMPLATE_META_PROG:
-	  grad::GradientAssVec<doublereal>::AssRes(this,
-						   WorkVec,
-						   dCoef,
-						   XCurr,
-						   XPrimeCurr,
-						   grad::REGULAR_RES);
-	  break;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
      case SPARSE_TEMPLATE_META_PROG:
 	  sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
 							WorkVec,
@@ -517,7 +501,6 @@ DeformableJointAD::AssRes(SubVectorHandler& WorkVec,
 							XPrimeCurr,
 							sp_grad::SpFunctionCall::REGULAR_RES);
 	  break;
-#endif
      case F77:
 	  AssResF77(WorkVec, dCoef, XCurr, XPrimeCurr);
 	  break;
@@ -527,7 +510,7 @@ DeformableJointAD::AssRes(SubVectorHandler& WorkVec,
      }
 
 #if CREATE_PROFILE == 1
-     profile.dtRes += mbdyn_clock_time() - start;
+     profile.dtRes += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkVec;
@@ -540,7 +523,7 @@ DeformableJointAD::AssJacTrad(VariableSubMatrixHandler& WorkMatVar,
 			      const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
+     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      const Vec3& X1 = pNode1->GetXCurr();
@@ -558,8 +541,8 @@ DeformableJointAD::AssJacTrad(VariableSubMatrixHandler& WorkMatVar,
      const Vec3& W2_0 = pNode2->GetWRef();
 
 #if CREATE_PROFILE == 1
-     profile.dtGet[JACOBIAN] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtGet[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const Vec3 R1o1 = R1 * o1;
@@ -628,8 +611,8 @@ DeformableJointAD::AssJacTrad(VariableSubMatrixHandler& WorkMatVar,
      const Mat3x3 dM2_dgP2 = skew_R2o2 * dF2_dgP2;
 
 #if CREATE_PROFILE == 1
-     profile.dtCalc[JACOBIAN] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtCalc[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      FullSubMatrixHandler& WorkMat = WorkMatVar.SetFull();
@@ -673,7 +656,7 @@ DeformableJointAD::AssJacTrad(VariableSubMatrixHandler& WorkMatVar,
      WorkMat.Put(10, 10, -dM2_dgP2 - dM2_dg2 * dCoef);
 
 #if CREATE_PROFILE == 1
-     profile.dtAss[JACOBIAN] += mbdyn_clock_time() - start;
+     profile.dtAss[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkMatVar;
@@ -686,7 +669,7 @@ DeformableJointAD::AssResTrad(SubVectorHandler& WorkVec,
 			      const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
+     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      const Vec3& X1 = pNode1->GetXCurr();
@@ -700,8 +683,8 @@ DeformableJointAD::AssResTrad(SubVectorHandler& WorkVec,
      const Vec3& W2 = pNode2->GetWCurr();
 
 #if CREATE_PROFILE == 1
-     profile.dtGet[RESIDUAL] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtGet[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const Vec3 R1o1 = R1 * o1;
@@ -714,8 +697,8 @@ DeformableJointAD::AssResTrad(SubVectorHandler& WorkVec,
      const Vec3 M2 = R2o2.Cross(F2);
 
 #if CREATE_PROFILE == 1
-     profile.dtCalc[RESIDUAL] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtCalc[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const integer iFirstMomIndexNode1 = pNode1->iGetFirstMomentumIndex();
@@ -738,7 +721,7 @@ DeformableJointAD::AssResTrad(SubVectorHandler& WorkVec,
      WorkVec.Put(10, M2);
 
 #if CREATE_PROFILE == 1
-     profile.dtAss[RESIDUAL] += mbdyn_clock_time() - start;
+     profile.dtAss[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkVec;
@@ -751,7 +734,7 @@ DeformableJointAD::AssJacF77(VariableSubMatrixHandler& WorkMatVar,
 			     const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
+     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      const doublereal* X1 = pNode1->GetXCurr().pGetVec();
@@ -784,8 +767,8 @@ DeformableJointAD::AssJacF77(VariableSubMatrixHandler& WorkMatVar,
      }
 
 #if CREATE_PROFILE == 1
-     profile.dtGet[JACOBIAN] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtGet[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      doublereal F1[3], M1[3], F2[3], M2[3];
@@ -826,8 +809,8 @@ DeformableJointAD::AssJacF77(VariableSubMatrixHandler& WorkMatVar,
 					  12);
 
 #if CREATE_PROFILE == 1
-     profile.dtCalc[JACOBIAN] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtCalc[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      FullSubMatrixHandler& WorkMat = WorkMatVar.SetFull();
@@ -860,7 +843,7 @@ DeformableJointAD::AssJacF77(VariableSubMatrixHandler& WorkMatVar,
      }
 
 #if CREATE_PROFILE == 1
-     profile.dtAss[JACOBIAN] += mbdyn_clock_time() - start;
+     profile.dtAss[JACOBIAN] += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkMatVar;
@@ -873,7 +856,7 @@ DeformableJointAD::AssResF77(SubVectorHandler& WorkVec,
 			     const VectorHandler& XPrimeCurr)
 {
 #if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
+     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      const doublereal* X1 = pNode1->GetXCurr().pGetVec();
@@ -890,8 +873,8 @@ DeformableJointAD::AssResF77(SubVectorHandler& WorkVec,
      const doublereal* W2_0 = pNode2->GetWRef().pGetVec();
 
 #if CREATE_PROFILE == 1
-     profile.dtGet[RESIDUAL] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtGet[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      doublereal F1[3], M1[3], F2[3], M2[3];
@@ -918,8 +901,8 @@ DeformableJointAD::AssResF77(SubVectorHandler& WorkVec,
 				       M2);
 
 #if CREATE_PROFILE == 1
-     profile.dtCalc[RESIDUAL] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtCalc[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const integer iFirstMomIndexNode1 = pNode1->iGetFirstMomentumIndex();
@@ -944,84 +927,12 @@ DeformableJointAD::AssResF77(SubVectorHandler& WorkVec,
      }
 
 #if CREATE_PROFILE == 1
-     profile.dtAss[RESIDUAL] += mbdyn_clock_time() - start;
+     profile.dtAss[RESIDUAL] += std::chrono::high_resolution_clock::now() - start;
 #endif
 
      return WorkVec;
 }
 
-#ifdef USE_AUTODIFF
-template <typename T>
-inline void DeformableJointAD::AssRes(grad::GradientAssVec<T>& WorkVec,
-				      doublereal dCoef,
-				      const grad::GradientVectorHandler<T>& XCurr,
-				      const grad::GradientVectorHandler<T>& XPrimeCurr,
-				      enum grad::FunctionCall func)
-{
-     using namespace grad;
-     
-     typedef Matrix<T, 3, 3> Mat3x3;
-     typedef Vector<T, 3> Vec3;
-
-#if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
-#endif
-
-     Mat3x3 R1, R2;
-     Vec3 X1, X2, XP1, XP2, W1, W2;
-
-#if CREATE_PROFILE == 1
-     const index_type iFunc = (func == grad::REGULAR_RES) ? RESIDUAL : JACOBIAN;
-     profile.dtInit[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
-#endif
-
-     pNode1->GetXCurr(X1, dCoef, func, &dof);
-     pNode1->GetVCurr(XP1, dCoef, func, &dof);
-     pNode1->GetRCurr(R1, dCoef, func, &dof);
-     pNode1->GetWCurr(W1, dCoef, func, &dof);
-
-     pNode2->GetXCurr(X2, dCoef, func, &dof);
-     pNode2->GetVCurr(XP2, dCoef, func, &dof);
-     pNode2->GetRCurr(R2, dCoef, func, &dof);
-     pNode2->GetWCurr(W2, dCoef, func, &dof);
-
-#if CREATE_PROFILE == 1
-     profile.dtGet[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
-#endif
-
-     const Vec3 R1o1 = R1 * o1;
-     const Vec3 R2o2 = R2 * o2;
-     const Vec3 dX = Transpose(R1) * Vec3(X1 + R1o1 - X2 - R2o2);
-
-     const Vec3 dXP = Transpose(R1) * Vec3(XP1 + Cross(W1, R1o1) - XP2 - Cross(W2, R2o2));
-     const Vec3 F1 = -(R1 * Vec3(S1 * dX + D1 * dXP));
-
-     const Vec3 F2 = -F1;
-     const Vec3 M1 = Cross(R1o1, F1);
-     const Vec3 M2 = Cross(R2o2, F2);
-
-#if CREATE_PROFILE == 1
-     profile.dtCalc[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
-#endif
-
-     const integer iFirstMomIndexNode1 = pNode1->iGetFirstMomentumIndex();
-     const integer iFirstMomIndexNode2 = pNode2->iGetFirstMomentumIndex();
-
-     WorkVec.AddItem(iFirstMomIndexNode1 + 1, F1);
-     WorkVec.AddItem(iFirstMomIndexNode1 + 4, M1);
-     WorkVec.AddItem(iFirstMomIndexNode2 + 1, F2);
-     WorkVec.AddItem(iFirstMomIndexNode2 + 4, M2);
-
-#if CREATE_PROFILE == 1
-     profile.dtAss[iFunc] += mbdyn_clock_time() - start;
-#endif
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
 template <typename T>
 inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 				      doublereal dCoef,
@@ -1034,7 +945,7 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      typedef SpColVectorA<T, 3> Vec3;
 
 #if CREATE_PROFILE == 1
-     doublereal start = mbdyn_clock_time();
+     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
      Mat3x3 R1, R2;
@@ -1042,23 +953,23 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      
 #if CREATE_PROFILE == 1
      const index_type iFunc = (func == SpFunctionCall::REGULAR_RES) ? RESIDUAL : JACOBIAN;
-     profile.dtInit[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtInit[iFunc] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
-     pNode1->GetXCurr(X1, dCoef, func);
-     pNode1->GetVCurr(XP1, dCoef, func);
-     pNode1->GetRCurr(R1, dCoef, func);
-     pNode1->GetWCurr(W1, dCoef, func);
+     pNode1Ad->GetXCurr(X1, dCoef, func);
+     pNode1Ad->GetVCurr(XP1, dCoef, func);
+     pNode1Ad->GetRCurr(R1, dCoef, func);
+     pNode1Ad->GetWCurr(W1, dCoef, func);
 
-     pNode2->GetXCurr(X2, dCoef, func);
-     pNode2->GetVCurr(XP2, dCoef, func);
-     pNode2->GetRCurr(R2, dCoef, func);
-     pNode2->GetWCurr(W2, dCoef, func);
+     pNode2Ad->GetXCurr(X2, dCoef, func);
+     pNode2Ad->GetVCurr(XP2, dCoef, func);
+     pNode2Ad->GetRCurr(R2, dCoef, func);
+     pNode2Ad->GetWCurr(W2, dCoef, func);
 
 #if CREATE_PROFILE == 1
-     profile.dtGet[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtGet[iFunc] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const Vec3 R1o1 = R1 * o1;
@@ -1073,8 +984,8 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      const Vec3 M2 = Cross(R2o2, F2);
 
 #if CREATE_PROFILE == 1
-     profile.dtCalc[iFunc] += mbdyn_clock_time() - start;
-     start = mbdyn_clock_time();
+     profile.dtCalc[iFunc] += std::chrono::high_resolution_clock::now() - start;
+     start = std::chrono::high_resolution_clock::now();
 #endif
 
      const integer iFirstMomIndexNode1 = pNode1->iGetFirstMomentumIndex();
@@ -1086,10 +997,9 @@ inline void DeformableJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      WorkVec.AddItem(iFirstMomIndexNode2 + 4, M2);
 
 #if CREATE_PROFILE == 1
-     profile.dtAss[iFunc] += mbdyn_clock_time() - start;
+     profile.dtAss[iFunc] += std::chrono::high_resolution_clock::now() - start;
 #endif
 }
-#endif
 
 unsigned int
 DeformableJointAD::iGetNumPrivData(void) const
@@ -1166,14 +1076,10 @@ const char* DeformableJointAD::AssemblyFuncName(enum AssemblyFlag flag)
      switch (flag) {
      case TRADITIONAL:
 	  return "traditional";
-#ifdef USE_AUTODIFF
-     case TEMPLATE_META_PROG:
-	  return "template meta program";
-#endif
-#ifdef USE_SPARSE_AUTODIFF
+          
      case SPARSE_TEMPLATE_META_PROG:
 	  return "sparse template meta prog";
-#endif
+          
      case F77:
 	  return "Fortran 77";
 
@@ -1204,21 +1110,18 @@ public:
 	    doublereal dCoef,
 	    const VectorHandler& XCurr,
 	    const VectorHandler& XPrimeCurr);
+     virtual void
+     AssJac(VectorHandler& JacY,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;     
      SubVectorHandler&
      AssRes(SubVectorHandler& WorkVec,
 	    doublereal dCoef,
 	    const VectorHandler& XCurr,
 	    const VectorHandler& XPrimeCurr);
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     template <typename T>
-     inline void
-     AssRes(grad::GradientAssVec<T>& WorkVec,
-	    doublereal dCoef,
-	    const grad::GradientVectorHandler<T>& XCurr,
-	    const grad::GradientVectorHandler<T>& XPrimeCurr,
-	    enum grad::FunctionCall func);
-#endif
-#ifdef USE_SPARSE_AUTODIFF
      template <typename T>
      inline void
      AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -1226,7 +1129,6 @@ public:
 	    const sp_grad::SpGradientVectorHandler<T>& XCurr,
 	    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
 	    sp_grad::SpFunctionCall func);
-#endif
      int iGetNumConnectedNodes(void) const;
      void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
      void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
@@ -1242,34 +1144,19 @@ public:
 		   const VectorHandler& XCurr);
      SubVectorHandler&
      InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     template <typename T>
-     inline void
-     InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-		   const grad::GradientVectorHandler<T>& XCurr,
-		   enum grad::FunctionCall func);
-#endif
-#ifdef USE_SPARSE_AUTODIFF
      template <typename T>
      inline void
      InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 		   const sp_grad::SpGradientVectorHandler<T>& XCurr,
 		   sp_grad::SpFunctionCall func);
-#endif
 private:
-     StructNode* pNode1;
-     StructNode* pNode2;
+     const StructNodeAd* pNode1;
+     const StructNodeAd* pNode2;
 
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::Vector<doublereal, 3> o1;
-     grad::Matrix<doublereal, 3, 3> e;
-     grad::Vector<doublereal, 3> o2;
-#endif
-#ifdef USE_SPARSE_AUTODIFF     
      sp_grad::SpColVector<doublereal, 3> o1;
      sp_grad::SpMatrix<doublereal, 3, 3> e;
      sp_grad::SpColVector<doublereal, 3> o2;
-#endif
+     
      enum LagrangeMultiplierIndex
      {
 	  L1 = 0,
@@ -1278,9 +1165,6 @@ private:
 
      doublereal lambda[2];
 
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::LocalDofMap dof;
-#endif
      static constexpr integer iWorkSpace = 14;
      static constexpr integer iInitialWorkSpace = 28;
 };
@@ -1296,11 +1180,7 @@ InlineJointAD::InlineJointAD(
 	e(Eye3),
 	o2(Zero3)
 {
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     using namespace grad;
-#else
      using namespace sp_grad;
-#endif
      
      memset(lambda, 0, sizeof(lambda));
 
@@ -1334,7 +1214,7 @@ InlineJointAD::InlineJointAD(
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pNode1 = dynamic_cast<StructNode*>(pDM->ReadNode(HP,Node::STRUCTURAL));
+     pNode1 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!pNode1) {
 	  silent_cerr("inline friction ad(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -1356,7 +1236,7 @@ InlineJointAD::InlineJointAD(
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pNode2 = dynamic_cast<StructNode*>(pDM->ReadNode(HP,Node::STRUCTURAL));
+     pNode2 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!pNode2) {
 	  silent_cerr("inline friction ad(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -1508,26 +1388,34 @@ InlineJointAD::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& XCurr,
 		      const VectorHandler& XPrimeCurr)
 {
-
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::GradientAssVec<grad::Gradient<iWorkSpace> >::AssJac(this,
-							       WorkMat.SetSparse(),
-							       dCoef,
-							       XCurr,
-							       XPrimeCurr,
-							       grad::REGULAR_JAC,
-							       &dof);
-#else
      sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
 							    WorkMat.SetSparseGradient(),
 							    dCoef,
 							    XCurr,
 							    XPrimeCurr,
 							    sp_grad::SpFunctionCall::REGULAR_JAC);
-#endif     
+     
      return WorkMat;
 }
 
+void
+InlineJointAD::AssJac(VectorHandler& JacY,
+                      const VectorHandler& Y,
+                      doublereal dCoef,
+                      const VectorHandler& XCurr,
+                      const VectorHandler& XPrimeCurr,
+                      VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
 
 SubVectorHandler&
 InlineJointAD::AssRes(SubVectorHandler& WorkVec,
@@ -1535,76 +1423,16 @@ InlineJointAD::AssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr,
 		      const VectorHandler& XPrimeCurr)
 {
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::GradientAssVec<doublereal>::AssRes(this,
-					      WorkVec,
-					      dCoef,
-					      XCurr,
-					      XPrimeCurr,
-					      grad::REGULAR_RES);
-#else
      sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
 						   WorkVec,
 						   dCoef,
 						   XCurr,
 						   XPrimeCurr,
 						   sp_grad::SpFunctionCall::REGULAR_RES);
-#endif
      
      return WorkVec;
 }
 
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-template <typename T>
-inline void
-InlineJointAD::AssRes(grad::GradientAssVec<T>& WorkVec,
-		      doublereal dCoef,
-		      const grad::GradientVectorHandler<T>& XCurr,
-		      const grad::GradientVectorHandler<T>& XPrimeCurr,
-		      enum grad::FunctionCall func) {
-     using namespace grad;
-     
-     typedef Vector<T, 3> Vec3;
-     typedef Matrix<T, 3, 3> Mat3x3;
-
-     const integer iFirstIndex = iGetFirstIndex();
-     const integer iFirstMomentumIndexNode1 = pNode1->iGetFirstMomentumIndex();
-     const integer iFirstMomentumIndexNode2 = pNode2->iGetFirstMomentumIndex();
-
-     Vec3 X1, X2;
-     Mat3x3 R1, R2;
-
-     pNode1->GetXCurr(X1, dCoef, func, &dof);
-     pNode1->GetRCurr(R1, dCoef, func, &dof);
-     pNode2->GetXCurr(X2, dCoef, func, &dof);
-     pNode2->GetRCurr(R2, dCoef, func, &dof);
-
-     Vector<T, 2> lambda;
-
-     XCurr.GetVec(iFirstIndex + 1, lambda, 1., &dof); // Note: for algebraic variables dCoef is always one
-
-     const Vec3 R2o2 = R2 * o2;
-     const Vec3 l1 = X2 + R2o2 - X1;
-
-     const Vec3 F1 = R1 * Vec3(e.GetCol(2) * lambda(1) + e.GetCol(3) * lambda(2));
-     const Vec3 M1 = Cross(l1, F1);
-     const Vec3 F2 = -F1;
-     const Vec3 M2 = Cross(R2o2, F2);
-
-     const Vec3 a = Transpose(R1) * l1 - o1;
-
-     WorkVec.AddItem(iFirstMomentumIndexNode1 + 1, F1);
-     WorkVec.AddItem(iFirstMomentumIndexNode1 + 4, M1);
-     WorkVec.AddItem(iFirstMomentumIndexNode2 + 1, F2);
-     WorkVec.AddItem(iFirstMomentumIndexNode2 + 4, M2);
-
-     for (integer i = 1; i <= 2; ++i) {
-	  WorkVec.AddItem(iFirstIndex + i, Dot(e.GetCol(i + 1), a) / dCoef);
-     }
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
 template <typename T>
 inline void
 InlineJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -1652,7 +1480,6 @@ InlineJointAD::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	  WorkVec.AddItem(iFirstIndex + i, Dot(e.GetCol(i + 1), a) / dCoef);
      }
 }
-#endif
 
 int
 InlineJointAD::iGetNumConnectedNodes(void) const
@@ -1719,18 +1546,11 @@ InlineJointAD::InitialAssJac(
      VariableSubMatrixHandler& WorkMat,
      const VectorHandler& XCurr)
 {
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::GradientAssVec<grad::Gradient<iInitialWorkSpace> >::InitialAssJac(this,
-									     WorkMat.SetSparse(),
-									     XCurr,
-									     grad::INITIAL_ASS_JAC,
-									     &dof);
-#else
      sp_grad::SpGradientAssVec<sp_grad::SpGradient>::InitialAssJac(this,
 								   WorkMat.SetSparseGradient(),
 								   XCurr,
-								   sp_grad::SpFunctionCall::INITIAL_ASS_JAC);     
-#endif
+								   sp_grad::SpFunctionCall::INITIAL_ASS_JAC);
+     
      return WorkMat;
 }
 
@@ -1739,88 +1559,14 @@ InlineJointAD::InitialAssRes(
      SubVectorHandler& WorkVec,
      const VectorHandler& XCurr)
 {
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-     grad::GradientAssVec<doublereal>::InitialAssRes(this,
-						     WorkVec,
-						     XCurr,
-						     grad::INITIAL_ASS_RES);
-#else
      sp_grad::SpGradientAssVec<doublereal>::InitialAssRes(this,
 							  WorkVec,
 							  XCurr,
 							  sp_grad::SpFunctionCall::INITIAL_ASS_RES);
-#endif
+
      return WorkVec;
 }
 
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-template <typename T>
-inline void
-InlineJointAD::InitialAssRes(grad::GradientAssVec<T>& WorkVec,
-			     const grad::GradientVectorHandler<T>& XCurr,
-			     enum grad::FunctionCall func) {
-     using namespace grad;
-     typedef Vector<T, 3> Vec3;
-     typedef Matrix<T, 3, 3> Mat3x3;
-
-     Vec3 X1, XP1, X2, XP2, omega1, omega2;
-     Mat3x3 R1, R2;
-
-     pNode1->GetXCurr(X1, 1., func, &dof);	// Note: during initial assembly dCoef is always one
-     pNode1->GetRCurr(R1, 1., func, &dof);
-     pNode1->GetVCurr(XP1, 1., func, &dof);
-     pNode1->GetWCurr(omega1, 1., func, &dof);
-
-     pNode2->GetXCurr(X2, 1., func, &dof);
-     pNode2->GetRCurr(R2, 1., func, &dof);
-     pNode2->GetVCurr(XP2, 1., func, &dof);
-     pNode2->GetWCurr(omega2, 1., func, &dof);
-
-     const integer iFirstIndexNode1 = pNode1->iGetFirstIndex();
-     const integer iFirstIndexNode2 = pNode2->iGetFirstIndex();
-     const integer iFirstIndex = iGetFirstIndex();
-
-     T lambda[2], lambdaP[2];
-
-     for (integer i = 1; i <= 2; ++i) {
-	  XCurr.dGetCoef(iFirstIndex + i, lambda[i - 1], 1., &dof);
-	  XCurr.dGetCoef(iFirstIndex + i + 2, lambdaP[i - 1], 1., &dof);
-     }
-
-     const Vec3 R2o2 = R2 * o2;
-     const Vec3 l1 = X2 + R2o2 - X1;
-
-     const Vec3 F1 = R1 * Vec3(e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2]);
-     const Vec3 M1 = Cross(l1, F1);
-     const Vec3 FP1 = Cross(omega1, R1 * Vec3(e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2]))
-	  + R1 * Vec3(e.GetCol(2) * lambdaP[L1] + e.GetCol(3) * lambdaP[L2]);
-     const Vec3 MP1 = -Cross(F1, XP2 + Cross(omega2, R2o2) - XP1) + Cross(l1, FP1);
-     const Vec3 F2 = -F1;
-     const Vec3 M2 = Cross(R2o2, F2);
-     const Vec3 FP2 = -FP1;
-     const Vec3 MP2 = Cross(Cross(omega2, R2o2), F2) + Cross(R2o2, FP2);
-
-     const Vec3 a = Transpose(R1) * l1 - o1;
-     const Vec3 aP = Transpose(R1) * Vec3(Cross(l1, omega1) + XP2 + Cross(omega2, R2o2) - XP1);
-
-     WorkVec.AddItem(iFirstIndexNode1 + 1, F1);
-     WorkVec.AddItem(iFirstIndexNode1 + 4, M1);
-     WorkVec.AddItem(iFirstIndexNode1 + 7, FP1);
-     WorkVec.AddItem(iFirstIndexNode1 + 10, MP1);
-
-     WorkVec.AddItem(iFirstIndexNode2 + 1, F2);
-     WorkVec.AddItem(iFirstIndexNode2 + 4, M2);
-     WorkVec.AddItem(iFirstIndexNode2 + 7, FP2);
-     WorkVec.AddItem(iFirstIndexNode2 + 10, MP2);
-
-     for (int i = 1; i <= 2; ++i) {
-	  WorkVec.AddItem(iFirstIndex + i, Dot(e.GetCol(i + 1), a));
-	  WorkVec.AddItem(iFirstIndex + i + 2, Dot(e.GetCol(i + 1), aP));
-     }
-}
-#endif
-
-#if defined(USE_SPARSE_AUTODIFF)
 template <typename T>
 inline void
 InlineJointAD::InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -1885,12 +1631,9 @@ InlineJointAD::InitialAssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	  WorkVec.AddItem(iFirstIndex + i + 2, Dot(e.GetCol(i + 1), aP));
      }
 }
-#endif
-#endif
 
 bool autodiff_test_set(void)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
      UserDefinedElemRead *rf = new UDERead<DeformableJointAD>;
 
      if (!SetUDE("deformable" "joint" "ad", rf))
@@ -1908,9 +1651,6 @@ bool autodiff_test_set(void)
      }
 
      return true;
-#else
-     return false;
-#endif
 }
 
 //#ifndef STATIC_MODULES

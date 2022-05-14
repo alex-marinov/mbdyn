@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2021
+ * Copyright (C) 1996-2022
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  * Paolo Mantegazza     <mantegazza@aero.polimi.it>
@@ -76,14 +76,14 @@
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
 #include <hfluid.h>
-#include <presnode.h>
-#include <../thermo/thermalnode.h>
+#include <presnodead.h>
+#include <../thermo/thermalnodead.h>
 #include <userelem.h>
-#include <modal.h>
+#include <modalad.h>
+#include <strnodead.h>
 
 #include "module-hydrodynamic_plain_bearing2.h"
 
-#if defined(USE_SPARSE_AUTODIFF) && __cplusplus >= 201103L
 namespace {
      using namespace sp_grad;
 
@@ -604,7 +604,7 @@ namespace {
           }
 
      private:
-          std::array<ThermalNode*, 2> rgNodes;
+          std::array<ThermalNodeAd*, 2> rgNodes;
      };
 
      class HydroFluidBase {
@@ -1309,8 +1309,8 @@ namespace {
                return pGeometry.get();
           }
 
-          virtual PressureNode* pGetNode() const=0;
-          virtual ThermalNode* pGetThermalNode() const=0;
+          virtual PressureNodeAd* pGetNode() const=0;
+          virtual ThermalNodeAd* pGetThermalNode() const=0;
 
           static std::unique_ptr<PressureCouplingMaster>
           Read(integer iLabel, HydroRootElement* pRoot, DataManager* pDM, MBDynParser& HP);
@@ -1327,21 +1327,21 @@ namespace {
      class PressureCouplingMaster: public PressureCouplingCond {
      public:
           PressureCouplingMaster(integer iLabel,
-                                 PressureNode* pHydroNode,
-                                 ThermalNode* pThermalNode,
+                                 PressureNodeAd* pHydroNode,
+                                 ThermalNodeAd* pThermalNode,
                                  std::unique_ptr<Geometry2D>&& pGeometry);
 
           virtual ~PressureCouplingMaster();
 
-          virtual PressureNode* pGetNode() const;
-          virtual ThermalNode* pGetThermalNode() const;
+          virtual PressureNodeAd* pGetNode() const;
+          virtual ThermalNodeAd* pGetThermalNode() const;
           virtual void AddNode(HydroNode* pNode);
           virtual integer iGetNumNodes() const;
           std::unique_ptr<PressureCouplingSlave> Clone(const SpColVector<doublereal, 2>& x);
 
      private:
-          PressureNode* const pHydroNode;
-          ThermalNode* const pThermalNode;
+          PressureNodeAd* const pHydroNode;
+          ThermalNodeAd* const pThermalNode;
           integer iNumNodes;
      };
 
@@ -1349,8 +1349,8 @@ namespace {
      public:
           PressureCouplingSlave(PressureCouplingMaster* pMaster,
                                 std::unique_ptr<Geometry2D>&& pGeometry);
-          virtual PressureNode* pGetNode() const;
-          virtual ThermalNode* pGetThermalNode() const;
+          virtual PressureNodeAd* pGetNode() const;
+          virtual ThermalNodeAd* pGetThermalNode() const;
           virtual void AddNode(HydroNode* pNode);
           virtual integer iGetNumNodes() const;
 
@@ -1462,7 +1462,7 @@ namespace {
           ThermalCoupledNode(integer iNodeNo,
                              const SpColVector<doublereal, 2>& x,
                              HydroMesh* pMesh,
-                             ThermalNode* pExtThermNode);
+                             ThermalNodeAd* pExtThermNode);
 
           virtual ~ThermalCoupledNode();
           virtual void GetTemperature(doublereal& T, doublereal = 0.) const;
@@ -1486,7 +1486,7 @@ namespace {
           Update(const VectorHandler& Y,
                  doublereal dCoef) override;
      private:
-          ThermalNode* const pExtThermNode;
+          ThermalNodeAd* const pExtThermNode;
           sp_grad::SpFunctionCall eCurrFunc;
      };
 
@@ -1495,7 +1495,7 @@ namespace {
           ThermalInletNode(integer iNodeNo,
                            const SpColVector<doublereal, 2>& x,
                            HydroMesh* pParent,
-                           ThermalNode* pExtThermNode,
+                           ThermalNodeAd* pExtThermNode,
                            bool bDoInitAss,
                            SolverBase::StepIntegratorType eStepInteg);
 
@@ -2072,7 +2072,7 @@ namespace {
                            HydroMesh* pParent,
                            ContactModel* pContactModel,
                            std::unique_ptr<FrictionModel>&& pFrictionModel,
-                           const PressureNode* pNode);
+                           const PressureNodeAd* pNode);
           virtual ~HydroCoupledNode();
 
           virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const override;
@@ -2092,7 +2092,7 @@ namespace {
           virtual void
           Update(const VectorHandler& Y, doublereal dCoef) override;
      private:
-          const PressureNode* const pExtNode;
+          const PressureNodeAd* const pExtNode;
           doublereal pextY;
           sp_grad::SpFunctionCall eCurrFunc;
      };
@@ -2299,7 +2299,7 @@ namespace {
                                 HydroMesh* pParent,
                                 ContactModel* pContactModel,
                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                PressureNode* pExtNode);
+                                PressureNodeAd* pExtNode);
           virtual ~HydroCoupledComprNode();
 
           virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const override;
@@ -2348,7 +2348,7 @@ namespace {
           inline void GetExtPressure(doublereal& p, doublereal& dp_dt, doublereal dCoef) const;
           inline void GetExtPressure(SpGradient& p, SpGradient& dp_dt, doublereal dCoef) const;
           inline void GetExtPressure(GpGradProd& p, GpGradProd& dp_dt, doublereal dCoef) const;
-          const PressureNode* const pExtNode;
+          const PressureNodeAd* const pExtNode;
           doublereal pext;
           doublereal dpext_dt;
           doublereal pextY;
@@ -2565,8 +2565,8 @@ namespace {
           RigidBodyBearing(HydroRootElement* pParent);
           virtual ~RigidBodyBearing();
           virtual void ParseInput(DataManager* pDM, MBDynParser& HP);
-          const StructNode* pGetNode1() const { return pNode1; }
-          const StructNode* pGetNode2() const { return pNode2; }
+          const StructNodeAd* pGetNode1() const { return pNode1; }
+          const StructNodeAd* pGetNode2() const { return pNode2; }
           const SpColVector<doublereal, 3>&
           GetOffsetNode1() const { return o1_R1; }
           const SpMatrix<doublereal, 3, 3>&
@@ -2603,8 +2603,8 @@ namespace {
 
           SpColVectorA<doublereal, 3> F1, M1, F2, M2;
      private:
-          const StructNode* pNode1;   // shaft node
-          const StructNode* pNode2;   // bearing node
+          const StructNodeAd* pNode1;   // shaft node
+          const StructNodeAd* pNode2;   // bearing node
           SpColVectorA<doublereal, 3> o1_R1;
           SpColVectorA<doublereal, 3> o2_R2;
           SpMatrixA<doublereal, 3, 3> Rb1;
@@ -4387,13 +4387,13 @@ namespace {
           std::string ParseFileName(MBDynParser& HP);
 
           struct CouplingCondition {
-               CouplingCondition(PressureNode* pHydroNode = nullptr,
-                                 ThermalNode* pThermalNode = nullptr)
+               CouplingCondition(PressureNodeAd* pHydroNode = nullptr,
+                                 ThermalNodeAd* pThermalNode = nullptr)
                     :pExtHydroNode(pHydroNode),
                      pExtThermNode(pThermalNode) {
                }
-               PressureNode* pExtHydroNode;
-               ThermalNode* pExtThermNode;
+               PressureNodeAd* pExtHydroNode;
+               ThermalNodeAd* pExtThermNode;
           };
 
           static const index_type iNumCouplingAxial = 2;
@@ -4629,7 +4629,7 @@ namespace {
           public:
                template <typename... ARGS>
                MatrixData(MeshLocation eMeshLocation,
-                          const Modal* pModalJoint,
+                          const ModalAd* pModalJoint,
                           ARGS... pMatrix)
                     :eMeshLocation(eMeshLocation),
                      pModalJoint(pModalJoint),
@@ -4637,7 +4637,7 @@ namespace {
                }
 
                const MeshLocation eMeshLocation;
-               const Modal* const pModalJoint;
+               const ModalAd* const pModalJoint;
                MatrixArray rgMatrices;
                std::vector<doublereal> rgGridX, rgGridZ;
                std::vector<index_type> rgMatIdx;
@@ -4815,7 +4815,7 @@ namespace {
           typedef std::array<ComplianceMatrixPtr, 2> ComplianceMatrixArray;
 
           explicit ComplianceModelNodal(HydroMesh* pMesh,
-                                        const Modal* pModalJoint,
+                                        const ModalAd* pModalJoint,
                                         doublereal dDefScale,
                                         doublereal dPressScale,
                                         SolverBase::StepIntegratorType eStepInteg,
@@ -4925,7 +4925,7 @@ namespace {
           index_type iNumNodes, iNumModes;
           SpMatrix<doublereal> C, D, E;
           SpColVector<doublereal> w, dw_dt, wY;
-          const Modal* const pModalJoint;
+          const ModalAd* const pModalJoint;
           ComplianceMatrixArray rgMatrices;
           std::vector<index_type> rgModeIndex;
           sp_grad::SpFunctionCall eCurrFunc;
@@ -4954,7 +4954,7 @@ namespace {
 
           typedef std::unique_ptr<ComplianceMatrix> ComplianceMatrixPtr;
           typedef std::array<ComplianceMatrixPtr, DEHD_BODY_LAST> ComplianceMatrixArray;
-          typedef std::array<const Modal*, DEHD_BODY_LAST> ModalJointArray;
+          typedef std::array<const ModalAd*, DEHD_BODY_LAST> ModalJointArray;
 
           explicit ComplianceModelNodalDouble(HydroMesh* pMesh,
                                               const ModalJointArray& rgModalJoints,
@@ -8242,7 +8242,7 @@ namespace {
                                 << HP.GetLineData() << std::endl);
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
-               rgNodes[i] = pDM->ReadNode<ThermalNode, Node::THERMAL>(HP);
+               rgNodes[i] = pDM->ReadNode<ThermalNodeAd, Node::THERMAL>(HP);
           }
      }
 
@@ -8581,7 +8581,7 @@ namespace {
      ThermalCoupledNode::ThermalCoupledNode(integer iNodeNo,
                                             const SpColVector<doublereal, 2>& x,
                                             HydroMesh* pMesh,
-                                            ThermalNode* pExtThermNode)
+                                            ThermalNodeAd* pExtThermNode)
           :ThermoHydrNode(iNodeNo, x, pMesh, COUPLED_NODE | MASTER_NODE),
            pExtThermNode(pExtThermNode),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
@@ -8662,7 +8662,7 @@ namespace {
      ThermalInletNode::ThermalInletNode(integer iNodeNo,
                                         const SpColVector<doublereal, 2>& x,
                                         HydroMesh* pParent,
-                                        ThermalNode* pExtThermNode,
+                                        ThermalNodeAd* pExtThermNode,
                                         bool bDoInitAss,
                                         SolverBase::StepIntegratorType eStepInteg)
           :ThermalActiveNode(iNodeNo, x, pParent, pExtThermNode->dGetX(), bDoInitAss, eStepInteg),
@@ -10339,7 +10339,7 @@ namespace {
                                         HydroMesh* pParent,
                                         ContactModel* pContactModel,
                                         std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                        const PressureNode* pNode)
+                                        const PressureNodeAd* pNode)
           :HydroIncompressibleNode(iNodeNo,
                                    x,
                                    pParent,
@@ -10787,7 +10787,7 @@ namespace {
           }
 
           HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (rgState[0].Theta[0] == 0.) : (rgState[0].Theta[0] >= 0.));
-          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (rgState[0].Theta[1] <= 1.) : (rgState[1].Theta[1] >= 1.));
+          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (rgState[0].Theta[1] <= 1.) : (rgState[0].Theta[1] == 1.));
           HYDRO_ASSERT(rgState[0].Theta[1] >= 0.);
      }
 
@@ -11280,7 +11280,7 @@ namespace {
                                                   HydroMesh* pParent,
                                                   ContactModel* pContactModel,
                                                   std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                                  PressureNode* pExtNode)
+                                                  PressureNodeAd* pExtNode)
           :HydroCompressibleNode(iNodeNo, x, pParent, pContactModel, std::move(pFrictionModel), COUPLED_NODE),
            pExtNode(pExtNode),
            eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG)
@@ -11623,7 +11623,7 @@ namespace {
      }
 
      ComplianceModelNodal::ComplianceModelNodal(HydroMesh* pMesh,
-                                                const Modal* pModalJoint,
+                                                const ModalAd* pModalJoint,
                                                 doublereal dDefScale,
                                                 doublereal dPressScale,
                                                 SolverBase::StepIntegratorType eStepInteg,
@@ -13266,7 +13266,7 @@ namespace {
                const index_type iNumModes = iGetNumModes();
 
                for (index_type i = 1; i <= iNumModes; ++i, ++iDofIndex) {
-                    out << prefix << iDofIndex << ": Modal elasticity dof for mode " << i << std::endl;
+                    out << prefix << iDofIndex << ": ModalAd elasticity dof for mode " << i << std::endl;
                }
           }
 
@@ -13281,7 +13281,7 @@ namespace {
                const index_type iNumModes = iGetNumModes();
 
                for (index_type i = 1; i <= iNumModes; ++i, ++iDofIndex) {
-                    out << prefix << iDofIndex << ": Modal elasticity definition for mode " << i << std::endl;
+                    out << prefix << iDofIndex << ": ModalAd elasticity definition for mode " << i << std::endl;
                }
           }
 
@@ -14078,7 +14078,7 @@ namespace {
                                              throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
 
-                                        const StructNode* pNodeInterface = nullptr;
+                                        const StructNodeAd* pNodeInterface = nullptr;
 
                                         const RigidBodyBearing* pGeometry = pMesh->pGetGeometry();
                                         const BearingGeometry::Type eBearingType = pGeometry->GetType();
@@ -14157,7 +14157,7 @@ namespace {
                                         switch (eCurrMatrix) {
                                         case MATRIX_D3:
                                         case MATRIX_E3: {
-                                             const ModalNode* pModalNode = dynamic_cast<const ModalNode*>(pNodeInterface);
+                                             const ModalNodeAd* pModalNode = dynamic_cast<const ModalNodeAd*>(pNodeInterface);
 
                                              if (!pModalNode || pModalNode != oMatData.pModalJoint->pGetModalNode()) {
                                                   silent_cerr("hydrodynamic plain bearing2(" << pMesh->pGetParent()->GetLabel()
@@ -14423,7 +14423,7 @@ namespace {
                                              HYDRO_ASSERT(0);
                                         }
 
-                                        const StructNode* pNodeInterface = nullptr;
+                                        const StructNodeAd* pNodeInterface = nullptr;
 
                                         const RigidBodyBearing* pGeometry = pMesh->pGetGeometry();
                                         const BearingGeometry::Type eBearingType = pGeometry->GetType();
@@ -14445,7 +14445,7 @@ namespace {
                                              throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
                                         }
 
-                                        const StructNode* pModalNode = nullptr;
+                                        const StructNodeAd* pModalNode = nullptr;
 
                                         if (oMatData.pModalJoint) {
                                              pModalNode = oMatData.pModalJoint->pGetModalNode();
@@ -14887,7 +14887,7 @@ namespace {
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
           }
 
-          pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+          pNode1 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
           if (HP.IsKeyWord("offset")) {
                o1_R1 = HP.GetPosRel(ReferenceFrame(pNode1));
@@ -14906,7 +14906,7 @@ namespace {
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
           }
 
-          pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+          pNode2 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
           if (HP.IsKeyWord("offset")) {
                o2_R2 = HP.GetPosRel(ReferenceFrame(pNode2));
@@ -15438,8 +15438,8 @@ namespace {
           doublereal dCoef,
           SpFunctionCall func)
      {
-          const StructNode* const pNode1 = rParent.pGetNode1();
-          const StructNode* const pNode2 = rParent.pGetNode2();
+          const StructNodeAd* const pNode1 = rParent.pGetNode1();
+          const StructNodeAd* const pNode2 = rParent.pGetNode2();
 
           pNode1->GetXCurr(X1, dCoef, func);
           pNode1->GetRCurr(R1, dCoef, func);
@@ -15958,12 +15958,12 @@ namespace {
           SpColVectorA<T, 3, 1> X1, X2;
           SpMatrixA<T, 3, 3, 3> R1, R2;
 
-          const StructNode* const pNode1 = pGetNode1();
+          const StructNodeAd* const pNode1 = pGetNode1();
 
           pNode1->GetXCurr(X1, dCoef, func);
           pNode1->GetRCurr(R1, dCoef, func);
 
-          const StructNode* const pNode2 = pGetNode2();
+          const StructNodeAd* const pNode2 = pGetNode2();
 
           pNode2->GetXCurr(X2, dCoef, func);
           pNode2->GetRCurr(R2, dCoef, func);
@@ -16266,8 +16266,8 @@ namespace {
           SpColVectorA<T, 3, 1> X1, X2;
           SpMatrixA<T, 3, 3, 3> R1, R2;
 
-          const StructNode* const pNode1 = pGetNode1();
-          const StructNode* const pNode2 = pGetNode2();
+          const StructNodeAd* const pNode1 = pGetNode1();
+          const StructNodeAd* const pNode2 = pGetNode2();
 
           pNode1->GetXCurr(X1, dCoef, func);
           pNode1->GetRCurr(R1, dCoef, func);
@@ -16494,8 +16494,8 @@ namespace {
      CylindricalMeshAtBearing::Boundary<T>::Update(doublereal dCoef,
                                                    SpFunctionCall func)
      {
-          const StructNode* const pNode1 = rParent.pGetNode1();
-          const StructNode* const pNode2 = rParent.pGetNode2();
+          const StructNodeAd* const pNode1 = rParent.pGetNode1();
+          const StructNodeAd* const pNode2 = rParent.pGetNode2();
 
           pNode1->GetXCurr(X1, dCoef, func);
           pNode1->GetRCurr(R1, dCoef, func);
@@ -21280,9 +21280,9 @@ namespace {
                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
           }
 
-          PressureNode* pHydroNode = pDM->ReadNode<PressureNode, Node::HYDRAULIC>(HP);
+          PressureNodeAd* pHydroNode = pDM->ReadNode<PressureNodeAd, Node::HYDRAULIC>(HP);
 
-          ThermalNode* pThermalNode = nullptr;
+          ThermalNodeAd* pThermalNode = nullptr;
 
           const HydroFluid* pFluid = pRoot->pGetFluid();
 
@@ -21295,7 +21295,7 @@ namespace {
 
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
-               pThermalNode = pDM->ReadNode<ThermalNode, Node::THERMAL>(HP);
+               pThermalNode = pDM->ReadNode<ThermalNodeAd, Node::THERMAL>(HP);
           } else if (pFluid->GetThermalType() != HydroFluid::ISOTHERMAL) {
                silent_cerr("hydrodynamic plain bearing2("
                            << pRoot->GetLabel()
@@ -21312,8 +21312,8 @@ namespace {
      }
 
      PressureCouplingMaster::PressureCouplingMaster(integer iLabel,
-                                                    PressureNode* pHydroNode,
-                                                    ThermalNode* pThermalNode,
+                                                    PressureNodeAd* pHydroNode,
+                                                    ThermalNodeAd* pThermalNode,
                                                     std::unique_ptr<Geometry2D>&& pGeometry)
           :PressureCouplingCond(iLabel, std::move(pGeometry)),
            pHydroNode(pHydroNode),
@@ -21328,11 +21328,11 @@ namespace {
 
      }
 
-     PressureNode* PressureCouplingMaster::pGetNode() const {
+     PressureNodeAd* PressureCouplingMaster::pGetNode() const {
           return pHydroNode;
      }
 
-     ThermalNode* PressureCouplingMaster::pGetThermalNode() const {
+     ThermalNodeAd* PressureCouplingMaster::pGetThermalNode() const {
           return pThermalNode;
      }
 
@@ -21356,12 +21356,12 @@ namespace {
 
      }
 
-     PressureNode* PressureCouplingSlave::pGetNode() const
+     PressureNodeAd* PressureCouplingSlave::pGetNode() const
      {
           return pMaster->pGetNode();
      }
 
-     ThermalNode* PressureCouplingSlave::pGetThermalNode() const
+     ThermalNodeAd* PressureCouplingSlave::pGetThermalNode() const
      {
           return pMaster->pGetThermalNode();
      }
@@ -21438,7 +21438,7 @@ namespace {
      {
           if (HP.IsKeyWord("pressure" "coupling" "conditions" "axial")) {
                for (index_type i = 0; i < iNumCouplingAxial; ++i) {
-                    rgOutletAxial[i].pExtHydroNode = pDM->ReadNode<PressureNode, Node::HYDRAULIC>(HP);
+                    rgOutletAxial[i].pExtHydroNode = pDM->ReadNode<PressureNodeAd, Node::HYDRAULIC>(HP);
                }
 
                if (bThermalModel) {
@@ -21451,7 +21451,7 @@ namespace {
                     }
 
                     for (index_type i = 0; i < iNumCouplingAxial; ++i) {
-                         rgOutletAxial[i].pExtThermNode = pDM->ReadNode<ThermalNode, Node::THERMAL>(HP);
+                         rgOutletAxial[i].pExtThermNode = pDM->ReadNode<ThermalNodeAd, Node::THERMAL>(HP);
                     }
                }
 
@@ -21692,7 +21692,7 @@ namespace {
                const index_type iNumMatricesMax = ComplianceModelNodalDouble::DEHD_BODY_LAST;
                std::array<Material, iNumMatricesMax> rgMaterials;
                std::array<std::unique_ptr<ComplianceMatrix>, iNumMatricesMax> rgMatrices;
-               std::array<const Modal*, iNumMatricesMax> rgModalJoints = {nullptr};
+               std::array<const ModalAd*, iNumMatricesMax> rgModalJoints = {nullptr};
                index_type iNumMatrices = iNumMatricesMax;
                index_type iNumMaterials = iNumMatrices;
                std::string strFileNameModal;
@@ -21790,7 +21790,7 @@ namespace {
                          }
 
                          if (HP.IsKeyWord("modal" "element")) {
-                              rgModalJoints[iIndex] = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
+                              rgModalJoints[iIndex] = pDM->ReadElem<const ModalAd, const Joint, Elem::JOINT>(HP);
                          }
                     }
 
@@ -21853,7 +21853,7 @@ namespace {
                     }
 
                     if (HP.IsKeyWord("modal" "element")) {
-                         rgModalJoints[0] = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
+                         rgModalJoints[0] = pDM->ReadElem<const ModalAd, const Joint, Elem::JOINT>(HP);
                     }
                }
 
@@ -21964,7 +21964,7 @@ namespace {
           const index_type iIndexAxial = x(2) <= 0. ? 0 : 1;
 
           if (bUseOutletAxial) {
-               const PressureNode* const pExtNode = rgOutletAxial[iIndexAxial].pExtHydroNode;
+               const PressureNodeAd* const pExtNode = rgOutletAxial[iIndexAxial].pExtHydroNode;
                pExtNode->GetX(p, dCoef, func);
           } else {
                FluidStateBoundaryCond* pBoundaryCond = nullptr;
@@ -23707,11 +23707,9 @@ namespace {
      }
 
 }
-#endif
 
 bool hydrodynamic_plain_bearing2_set(void)
 {
-#if defined(USE_SPARSE_AUTODIFF) && __cplusplus >= 201103L
      UserDefinedElemRead *pElemRead = new UDERead<HydroRootElement>;
 
      if (!SetUDE("hydrodynamic" "plain" "bearing2", pElemRead))
@@ -23728,9 +23726,6 @@ bool hydrodynamic_plain_bearing2_set(void)
      }
 
      return true;
-#else
-     return false;
-#endif
 }
 
 #ifndef STATIC_MODULES

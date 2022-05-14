@@ -43,14 +43,25 @@
 
 	time step: (final_time-initial_time)/number_of_time_steps;
 	max iterations: 100;
-	tolerance: 1e-6;
+	tolerance: 1e-10, 1e-10;
 	method: ms, 0.6;
     derivatives tolerance: 1e-2;
     derivatives max iterations: 100;
     derivatives coefficient: 1e-9;
 
-    linear solver: naive, colamd, pivot factor, 0.1;	
-
+    linear solver: naive, colamd;	
+    nonlinear solver: nox,
+              modified, 50,
+              keep jacobian matrix,
+              jacobian operator, newton krylov,
+              forcing term, type 2,
+              solver, line search based,
+              line search method, backtrack,
+              weighted rms absolute tolerance, 0.,
+              weighted rms relative tolerance, 0.,
+              verbose, yes,
+              inner iterations before assembly, 4,
+              use preconditioner as solver, no;
 	eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.,
         suffix width, 2,
 	output matrices,
@@ -59,3 +70,4 @@
 	use lapack,balance, permute;
 
         threads: assembly, 1;
+        

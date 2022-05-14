@@ -159,11 +159,6 @@ $(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.h \
 $(srcdir)/../../modules/module-switch_drive/module-switch_drive.cc \
 $(srcdir)/../../modules/module-switch_drive/module-switch_drive.h
 
-if USE_AUTODIFF
-nodist_libstruct_la_SOURCES +=
-endif
-
-if USE_SPARSE_AUTODIFF
 nodist_libstruct_la_SOURCES += \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
@@ -182,7 +177,6 @@ $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc
 \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
-endif
 
 # add more...
 endif

@@ -40,8 +40,6 @@
 
 #include "mbconfig.h"
 
-#ifdef USE_SPARSE_AUTODIFF
-
 #include <iomanip>
 
 #include "sp_gradient_spmh.h"
@@ -656,6 +654,4 @@ SpGradientSparseMatrixWrapper::MatTVecMul_base(
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
-#endif
-
 #endif

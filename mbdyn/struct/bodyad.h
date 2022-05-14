@@ -74,7 +74,9 @@ protected:
 
      void
      UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                   const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const {}     
+                   const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const {}
+private:
+     const StructNodeAd* const pNode;
 };
 
 class DynamicBodyAd: public DynamicBody, public BodyAd {

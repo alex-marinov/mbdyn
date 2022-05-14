@@ -41,7 +41,6 @@
 #ifndef __SP_GRADIENT_SPARSE_MATRIX_HANDLER_H__INCLUDED__
 #define __SP_GRADIENT_SPARSE_MATRIX_HANDLER_H__INCLUDED__
 
-#ifdef USE_SPARSE_AUTODIFF
 #include <vector>
 
 #include "myassert.h"
@@ -340,7 +339,5 @@ protected:
 private:
      SpGradientSparseMatrixHandler* pMH;
 };
-#endif
-
 #endif
 #endif

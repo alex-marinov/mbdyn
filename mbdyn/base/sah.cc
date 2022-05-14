@@ -41,10 +41,11 @@ SampleAndHold::SampleAndHold(unsigned int uL,
 		DriveCaller *pDC,
 		const doublereal &dSP,
 		flag fOut)
-: ParameterNode(uL, pDO, 0., fOut),
-pNode(pN),
-Time(pDC),
-dSamplePeriod(dSP)
+: ScalarNode(uL, pDO, fOut),
+  ParameterNode(uL, pDO, 0., fOut),  
+  pNode(pN),
+  Time(pDC),
+  dSamplePeriod(dSP)
 {
 	ASSERT(pN != 0);
 	ASSERT(pDC != 0);

@@ -395,14 +395,12 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	ASSERT(pWorkMat != NULL);
 	ASSERT(Elems.begin() != Elems.end());
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        
 	NodesUpdateJac(dCoef, NodeIter);
-#endif	
+
 	AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void DataManager::AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef)
 {
      ASSERT(JacY.iGetSize() == iGetNumDofs());
@@ -412,9 +410,7 @@ void DataManager::AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal
 
      AssJac(JacY, Y, dCoef, ElemIter, *pWorkMat);
 }
-#endif
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 void DataManager::NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter)
 {
      Node* pNode = nullptr;
@@ -432,7 +428,6 @@ void DataManager::NodesUpdateJac(const VectorHandler& Y, doublereal dCoef, VecIt
 	  pNode->UpdateJac(Y, dCoef);
      }
 }
-#endif
 
 void
 DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
@@ -478,7 +473,6 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 	}
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void
 DataManager::AssJac(VectorHandler& JacY,
                     const VectorHandler& Y,
@@ -505,7 +499,6 @@ DataManager::AssJac(VectorHandler& JacY,
 		} while (Iter.bGetNext(pTmpEl));
 	}
 }
-#endif
 
 void
 DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)

@@ -45,9 +45,7 @@
 #include <iomanip>
 #include <new>
 
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient.h"
-#endif
 #undef HAVE_BLAS
 #include "epetraspmh.h"
 #include "epetravh.h"
@@ -438,7 +436,6 @@ EpetraSparseMatrixHandler::MakeCompressedRowForm(doublereal *const Ax,
      return MakeCompressedRowFormTpl(Ax, Ai, Ap, offset);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 bool EpetraSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
 #ifdef DEBUG
@@ -473,7 +470,6 @@ bool EpetraSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient&
      
      return true;
 }
-#endif
 
 VectorHandler& EpetraSparseMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 {

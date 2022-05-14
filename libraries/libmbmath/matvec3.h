@@ -42,10 +42,7 @@
 #include "myassert.h"
 #include "except.h"
 #include "solman.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_matrix_base_fwd.h"
-#endif
 
 #include "tpls.h"
 
@@ -99,10 +96,7 @@ class Vec3_Manip {
 /* Vec3 - begin */
 
 // Vettori di dimensione 3
-class Vec3
-#ifdef USE_SPARSE_AUTODIFF
-     :public sp_grad::SpConstMatElemAdapter<Vec3>
-#endif
+class Vec3: public sp_grad::SpConstMatElemAdapter<Vec3>
 {
    friend class Mat3x3;   
    friend Vec3 operator - (const Vec3& v);
@@ -375,7 +369,6 @@ class Vec3
       return *this;
    };
 
-#ifdef USE_SPARSE_AUTODIFF
      template <typename DERIVED>
      Vec3& operator = (const sp_grad::SpMatElemExprBase<doublereal, DERIVED>& v) {
           using namespace sp_grad;
@@ -389,7 +382,6 @@ class Vec3
           
           return *this;
      }
-#endif
    /*
     Operatore somma. 
     Restituisce v sommato a se stesso in un temporaneo.
@@ -523,7 +515,6 @@ class Vec3
     */
    std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
 
-#ifdef USE_SPARSE_AUTODIFF
      static constexpr sp_grad::index_type iNumRowsStatic = 3;
      static constexpr sp_grad::index_type iNumColsStatic = 1;
      inline constexpr sp_grad::index_type iGetRowOffset() const noexcept { return 1; }
@@ -533,7 +524,6 @@ class Vec3
      inline const doublereal* begin() const noexcept { return &pdVec[0]; }
      inline const doublereal* end() const noexcept { return &pdVec[iNumRowsStatic]; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i); }     
-#endif
 };
    
 /* Vec3 - end */
@@ -582,10 +572,7 @@ class Mat3x3_Manip {
 
 /* Mat3x3 - begin */
 // Matrici 3x3
-class Mat3x3
-#ifdef USE_SPARSE_AUTODIFF
-     :public sp_grad::SpConstMatElemAdapter<Mat3x3>
-#endif
+class Mat3x3: public sp_grad::SpConstMatElemAdapter<Mat3x3>
 {
    friend class Vec3;
    friend class SparseSubMatrixHandler;
@@ -1106,7 +1093,6 @@ class Mat3x3
       return *this;
    };
 
-#ifdef USE_SPARSE_AUTODIFF
      template <typename DERIVED>
      Mat3x3& operator = (const sp_grad::SpMatElemExprBase<doublereal, DERIVED>& m) {
           using namespace sp_grad;
@@ -1122,7 +1108,6 @@ class Mat3x3
           
           return *this;
      }
-#endif
      
    /*
     Operatore somma. 
@@ -1432,7 +1417,6 @@ class Mat3x3
 		  const char* sFill = " ", 
 		  const char* sFill2 = NULL) const;
      
-#ifdef USE_SPARSE_AUTODIFF
      static constexpr sp_grad::index_type iNumRowsStatic = 3;
      static constexpr sp_grad::index_type iNumColsStatic = 3;
      inline constexpr sp_grad::index_type iGetRowOffset() const noexcept { return 1; }
@@ -1442,7 +1426,6 @@ class Mat3x3
      inline const doublereal* begin() const noexcept { return &pdMat[0]; }
      inline const doublereal* end() const noexcept { return &pdMat[iNumRowsStatic * iNumColsStatic]; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
-#endif
 };
 
 /* Mat3x3 - end */

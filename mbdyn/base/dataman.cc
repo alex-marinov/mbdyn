@@ -158,9 +158,7 @@ od(EULER_123),
 #ifdef USE_SOCKET
 SocketUsersTimeout(0),
 #endif // USE_SOCKET
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 NodeIter(),
-#endif
 /* ElemManager */
 ElemIter(),
 ppDrive(0),

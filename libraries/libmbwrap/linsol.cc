@@ -113,11 +113,7 @@ const LinSol::solver_t solver[] = {
        		-1., -1. },
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS|LinSol::SOLVER_FLAGS_ALLOWS_GRAD,
-#else
-	        LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-#endif
 	        LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		.1,
 #ifdef UMFPACK_DROPTOL
@@ -128,11 +124,7 @@ const LinSol::solver_t solver[] = {
 		},
 	{ "KLU", NULL, 
 		LinSol::KLU_SOLVER,
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_GRAD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-#else
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-#endif
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		.1 },
 	{ "Y12", NULL,
@@ -143,30 +135,24 @@ const LinSol::solver_t solver[] = {
         { "Pardiso", NULL,
 		LinSol::PARDISO_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
-#endif	  
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
 		1e-13, -1. },
         { "Pardiso_64", NULL,
 		LinSol::PARDISO_64_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
-#endif	  
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
 		1e-13, -1. },
         { "Pastix", NULL,
 		LinSol::PASTIX_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP |
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
-#endif	  
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT |
 	        LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH |
 	        LinSol::SOLVER_FLAGS_ALLOWS_METIS |
@@ -185,10 +171,8 @@ const LinSol::solver_t solver[] = {
         { "SPQR", NULL,
                 LinSol::SPQR_SOLVER,
                 LinSol::SOLVER_FLAGS_ALLOWS_MAP |
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
-#endif
                 LinSol::SOLVER_FLAGS_ALLOWS_AMD |
                 LinSol::SOLVER_FLAGS_ALLOWS_METIS |
                 LinSol::SOLVER_FLAGS_ALLOWS_GIVEN,
@@ -197,10 +181,8 @@ const LinSol::solver_t solver[] = {
         { "STRUMPACK", NULL,
                 LinSol::STRUMPACK_SOLVER,
                 LinSol::SOLVER_FLAGS_ALLOWS_MAP |
-#ifdef USE_SPARSE_AUTODIFF
 	        LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
-#endif
 	        LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT |
 	        LinSol::SOLVER_FLAGS_ALLOWS_METIS |
 	        LinSol::SOLVER_FLAGS_ALLOWS_SCOTCH |
@@ -214,9 +196,7 @@ const LinSol::solver_t solver[] = {
 	  LinSol::SOLVER_FLAGS_ALLOWS_MAP |
 	  LinSol::SOLVER_FLAGS_ALLOWS_CC |
 	  LinSol::SOLVER_FLAGS_ALLOWS_DIR |
-#ifdef USE_SPARSE_AUTODIFF
 	  LinSol::SOLVER_FLAGS_ALLOWS_GRAD |
-#endif	  
 #ifdef WSMP_SOLVER_ENABLE_MULTITHREAD_FACTOR // Disable by default because valgrind reports a race condition in WSMP Version 20.05.20
 	  LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT | 
 #endif
@@ -822,7 +802,6 @@ LinSol::GetSolutionManager(integer iNLD,
 					       CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, scale, iMaxIter, iVerbose));
 			break;
 		}
-#ifdef USE_SPARSE_AUTODIFF
 		case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
 		        typedef UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler> UMFSM;
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -830,7 +809,6 @@ LinSol::GetSolutionManager(integer iNLD,
 					       UMFSM(iNLD, dPivotFactor, dDropTolerance, blockSize, scale, iMaxIter, iVerbose));
 			break;		     
 		}
-#endif
 		default:
 		        typedef UmfpackSparseSolutionManager<SpMapMatrixHandler> UMFSM;
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -863,7 +841,6 @@ LinSol::GetSolutionManager(integer iNLD,
 			break;
 		}
 		     
-#ifdef USE_SPARSE_AUTODIFF
 		case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
 		     typedef KLUSparseSolutionManager<SpGradientSparseMatrixHandler> KLUSM;
 		     SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -871,7 +848,7 @@ LinSol::GetSolutionManager(integer iNLD,
 					    KLUSM(iNLD, dPivotFactor, scale));
 		     break;
 		}
-#endif
+                     
 		default:
 		     typedef KLUSparseSolutionManager<SpMapMatrixHandler> KLUSM;
 			  SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -890,15 +867,12 @@ LinSol::GetSolutionManager(integer iNLD,
         case LinSol::PARDISO_64_SOLVER:
 #ifdef USE_PARDISO
                 {
-#ifdef USE_SPARSE_AUTODIFF
                         typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT> PARDISO_SM_GRAD;
                         typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, long long> PARDISO_64_SM_GRAD;
-#endif
                         typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISO_SM_MAP;
                         typedef PardisoSolutionManager<SpMapMatrixHandler, long long> PARDISO_64_SM_MAP;
                         
                         switch (type) {
-#ifdef USE_SPARSE_AUTODIFF
                         case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
                                 if (currSolver == LinSol::PARDISO_64_SOLVER) {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -910,7 +884,6 @@ LinSol::GetSolutionManager(integer iNLD,
                                                                PARDISO_SM_GRAD(iNLD, dPivotFactor, nThreads, iMaxIter, iVerbose));
                                 }
                         } break;
-#endif
                         default:
                                 if (currSolver == LinSol::PARDISO_64_SOLVER) {
                                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -932,13 +905,11 @@ LinSol::GetSolutionManager(integer iNLD,
 #ifdef USE_PASTIX
 		{
                     switch (type) {
-#ifdef USE_SPARSE_AUTODIFF
 		    case LinSol::SOLVER_FLAGS_ALLOWS_GRAD: {
                         SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                PastixSolutionManager<SpGradientSparseMatrixHandler>,
                                                PastixSolutionManager<SpGradientSparseMatrixHandler>(iNLD, nThreads, iMaxIter, scale, solverFlags, dLowRankCompressTol, dLowRankCompressMinRatio, iVerbose));
                     } break;
-#endif
                     default:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
                                                PastixSolutionManager<SpMapMatrixHandler>,
@@ -958,13 +929,11 @@ LinSol::GetSolutionManager(integer iNLD,
 #ifdef USE_SUITESPARSE_QR
         case LinSol::SPQR_SOLVER:
 	     switch (type) {
-#ifdef USE_SPARSE_AUTODIFF
 	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 QrSparseSolutionManager<SpGradientSparseMatrixHandler>,
 					 QrSparseSolutionManager<SpGradientSparseMatrixHandler>(iNLD, solverFlags));
 		  break;
-#endif
 	     default:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 QrSparseSolutionManager<SpMapMatrixHandler>,
@@ -976,13 +945,11 @@ LinSol::GetSolutionManager(integer iNLD,
 #ifdef USE_STRUMPACK
 	case LinSol::STRUMPACK_SOLVER:
 	     switch (type) {
-#ifdef USE_SPARSE_AUTODIFF
 	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>,
 					 StrumpackSolutionManager<SpGradientSparseMatrixHandler>(iNLD, nThreads, iMaxIter, solverFlags, iVerbose));
 		  break;
-#endif
 	     default:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 StrumpackSolutionManager<SpMapMatrixHandler>,
@@ -1004,13 +971,11 @@ LinSol::GetSolutionManager(integer iNLD,
 					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >,
 					 WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
 		  break;
-#ifdef USE_SPARSE_AUTODIFF
 	     case LinSol::SOLVER_FLAGS_ALLOWS_GRAD:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>,
 					 WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>(iNLD, dPivotFactor, blockSize, nThreads, scale, iMaxIter));
 		  break;
-#endif
 	     default:
 		  SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					 WsmpSparseSolutionManager<SpMapMatrixHandler>,

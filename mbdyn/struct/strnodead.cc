@@ -51,7 +51,8 @@ StructDispNodeAd::StructDispNodeAd(unsigned int uL,
                                    doublereal dVelStiff,
                                    OrientationDescription od,
                                    flag fOut)
-:StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, od, fOut)
+:StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, od, fOut),
+ XY(::Zero3)
 {
      DEBUGCERR("StructDispNodeAd(" << GetLabel() << "\n");
      DEBUGCERR("X=" << GetXCurr() << "\n");
@@ -149,10 +150,11 @@ StructNodeAd::StructNodeAd(unsigned int uL,
 :StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ eCurrFunc(sp_grad::UNKNOWN_FUNC),
+ gY(::Zero3),
  bNeedRotation(false),
  bUpdateRotation(true),
- bUpdateRotationGradProd(true),
- eCurrFunc(sp_grad::UNKNOWN_FUNC)
+ bUpdateRotationGradProd(true)
 {
      DEBUGCERR("StructNodeAd(" << GetLabel() << "\n");
      DEBUGCERR("X=" << GetXCurr() << "\n");
@@ -393,10 +395,6 @@ StructNodeAd::InitialUpdate(const VectorHandler& X)
 
 void StructNodeAd::UpdateJac(doublereal dCoef)
 {
-#ifdef USE_SPARSE_AUTODIFF
-     StructNode::UpdateJac(dCoef); // FIXME: Remove this line as soon as all elements are using the new interface
-#endif
-     
      if (bNeedRotation) {
           UpdateRotation(dCoef);
      }
@@ -404,10 +402,6 @@ void StructNodeAd::UpdateJac(doublereal dCoef)
 
 void StructNodeAd::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 {
-#ifdef USE_SPARSE_AUTODIFF
-     StructNode::UpdateJac(Y, dCoef); // FIXME: Remove this line as soon as all elements are using the new interface
-#endif
-     
      StructDispNodeAd::UpdateJac(Y, dCoef);
 
      UpdateJacRotation(Y, dCoef);
@@ -483,10 +477,10 @@ DynamicStructNodeAd::DynamicStructNodeAd(unsigned int uL,
                                          OrientationDescription ood,
                                          flag fOut)
 :StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
- StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  DynamicStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
- DynamicStructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
+ StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut), 
+ DynamicStructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
      DEBUGCERR("DynamicStructNodeAd(" << GetLabel() << "\n");
@@ -526,10 +520,10 @@ StaticStructNodeAd::StaticStructNodeAd(unsigned int uL,
                                        OrientationDescription ood,
                                        flag fOut)
 :StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
- StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StaticStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut), 
+ StructDispNodeAd(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
  StaticStructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
- StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
      DEBUGCERR("StaticStructNodeAd(" << GetLabel() << "\n");
@@ -568,10 +562,10 @@ ModalNodeAd::ModalNodeAd(unsigned int uL,
                          OrientationDescription ood,
                          flag fOut)
 :StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
- StructDispNodeAd(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
  DynamicStructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
- ModalNode(uL, pDO, X0, R0, V0, W0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
+ StructDispNodeAd(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut), 
+ ModalNode(uL, pDO, X0, R0, V0, W0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  StructNodeAd(uL, pDO, X0, R0, V0, W0, 0, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut),
  XPPY(::Zero3), WPY(::Zero3)
 {
@@ -619,8 +613,7 @@ ModalNodeAd::AfterConvergence(const VectorHandler& X,
 
 void ModalNodeAd::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 {
-        ModalNode::UpdateJac(Y, dCoef);
-        StructNodeAd::UpdateJacRotation(Y, dCoef);
+        StructNodeAd::UpdateJac(Y, dCoef);
 
         const integer iFirstIndex = iGetFirstIndex();
 

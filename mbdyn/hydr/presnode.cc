@@ -1,9 +1,8 @@
-/* $Header$ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2017
+ * Copyright (C) 1996-2022
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -31,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2013(-2022) all rights reserved.
+        Copyright (C) 2022(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -39,13 +38,54 @@
         in the GNU Public License version 2.1
 */
 
-#ifndef ___MODULE_AUTODIFF_TEST_H__INCLUDED___
-#define ___MODULE_AUTODIFF_TEST_H__INCLUDED___
-
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
-extern bool autodiff_test_set(void);
+#include "presnode.h"
 
-#endif
+PressureNode::PressureNode(unsigned int uL, const DofOwner* pDO, doublereal dx, flag fOut) 
+     :ScalarNode(uL, pDO, fOut),
+      ScalarAlgebraicNode(uL, pDO, dx, fOut)
+{
+     NO_OP;
+}
+   
+PressureNode::~PressureNode()
+{ 
+     NO_OP;      
+};
+   
+Node::Type PressureNode::GetNodeType() const
+{
+     return Node::HYDRAULIC;
+}
+   
+void PressureNode::Output(OutputHandler& OH) const
+{
+     ScalarAlgebraicNode::Output(OH.PresNodes());
+}
+
+/* returns the dimension of the component */
+const OutputHandler::Dimensions PressureNode::GetEquationDimension(integer index) const
+{
+     OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+
+     switch (index)
+     {
+     case 1:
+          dimension = OutputHandler::Dimensions::MassFlow;
+          break;
+     }
+
+     return dimension;
+}
+
+/* describes the dimension of components of equation */
+std::ostream& PressureNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+     integer iIndex = iGetFirstIndex();
+
+     out << prefix << iIndex + 1 << ": "
+         << "mass flow balance" << std::endl;
+
+     return out;
+}

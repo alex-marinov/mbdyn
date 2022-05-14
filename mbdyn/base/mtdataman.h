@@ -45,9 +45,7 @@
 #include "naivemh.h"
 #endif
 
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 
 class Solver;
 
@@ -63,10 +61,9 @@ protected:
 #ifdef USE_NAIVE_MULTITHREAD
                 ASS_NAIVE,		/* use native H-P sparse solver */
 #endif
-#ifdef USE_SPARSE_AUTODIFF
                 ASS_GRAD,
                 ASS_GRAD_PROD,
-#endif
+
                 ASS_DEFAULT,
                 ASS_LAST
         } AssMode;
@@ -99,11 +96,10 @@ protected:
                 /* for Naive assembly */
                 NaiveMatrixHandler** ppNaiveJacHdl;
 #endif
-#ifdef USE_SPARSE_AUTODIFF
                 SpGradientSparseMatrixWrapper oGradJacHdl;
                 const VectorHandler* pY;
                 VectorHandler* pJacProd;
-#endif
+
                 AO_TS_t* lock;
 #ifdef MBDYN_X_MT_ASSRES
                 VectorHandler* pResHdl;
@@ -122,10 +118,9 @@ protected:
                 OP_ASSJAC_NAIVE,
                 OP_SUM_NAIVE,
 #endif
-#ifdef USE_SPARSE_AUTODIFF
                 OP_ASSJAC_GRAD,
                 OP_ASSJAC_PROD,
-#endif
+
                 /* used only #ifdef MBDYN_X_MT_ASSRES */
                 OP_ASSRES,
 
@@ -167,11 +162,10 @@ protected:
         virtual void NaiveAssJac(NaiveMatrixHandler& JacHdl, doublereal dCoef);
         virtual void NaiveAssJacInit(NaiveMatrixHandler& JacHdl, doublereal dCoef);
 #endif
-#ifdef USE_SPARSE_AUTODIFF
         void GradAssJac(SpGradientSparseMatrixHandler& JacHdl, doublereal dCoef);
         void GradAssJacProd(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
         virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef) override;
-#endif
+
         static void SetAffinity(const ThreadData& oThread);
 public:
         /* costruttore - legge i dati e costruisce le relative strutture */

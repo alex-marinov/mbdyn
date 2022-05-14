@@ -466,14 +466,12 @@ DerivativeSolver::Jacobian(MatrixHandler* pJac) const
         pDM->AssJac(*pJac, dCoef);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void DerivativeSolver::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
 {
      ASSERT(pDM != nullptr);
      
      pDM->AssJac(*pJac, *pY, dCoef);
 }
-#endif
 
 void
 DerivativeSolver::UpdateDof(const int DCount,
@@ -582,14 +580,12 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
         }
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void StepNIntegrator::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
 {
         ASSERT(pDM != NULL);
         
         pDM->AssJac(*pJac, *pY, db0Differential);
 }
-#endif
 
 void
 StepNIntegrator::UpdateDof(const int DCount,
@@ -1102,12 +1098,10 @@ void HybridStepIntegrator::Jacobian(MatrixHandler* pJac) const
      rgInteg[SolverBase::INT_DEFAULT]->Jacobian(pJac);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void HybridStepIntegrator::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
 {
      rgInteg[SolverBase::INT_DEFAULT]->Jacobian(pJac, pY);
 }
-#endif
 
 void HybridStepIntegrator::Predict(void)
 {
@@ -2023,12 +2017,10 @@ InverseDynamicsStepSolver::Jacobian(MatrixHandler* pJac) const
         pDM->AssConstrJac(*pJac);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void InverseDynamicsStepSolver::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
-#endif
 
 void
 InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const

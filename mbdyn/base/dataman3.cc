@@ -49,11 +49,15 @@
 #include "drive.h"
 #include "drive_.h"
 #include "filedrv.h"
+#include "nodead.h"
+#include "elecnodead.h"
 #include "presnode.h"
+#include "presnodead.h"
 #include "j2p.h"
 #include "sah.h"
 
 #include "thermalnode.h"
+#include "thermalnodead.h"
 
 #include "aeroelem.h"
 #include "beam.h"
@@ -1873,9 +1877,17 @@ DataManager::ReadNodes(MBDynParser& HP)
 				pDO->SetScale(dScale);
 
 				Node *pN = 0;
-				SAFENEWWITHCONSTRUCTOR(pN,
-					ElectricNode,
-					ElectricNode(uLabel, pDO, dx, dxp, fOut));
+
+                                if (bUseAutoDiff()) {
+                                        SAFENEWWITHCONSTRUCTOR(pN,
+                                                               ElectricNodeAd,
+                                                               ElectricNodeAd(uLabel, pDO, dx, dxp, fOut));                                        
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pN,
+                                                               ElectricNode,
+                                                               ElectricNode(uLabel, pDO, dx, dxp, fOut));
+                                }
+                                
 				if (pN != 0) {
 					ppN = InsertNode(NodeData[Node::ELECTRIC], uLabel, pN);
 				}
@@ -1913,9 +1925,16 @@ DataManager::ReadNodes(MBDynParser& HP)
 				pDO->SetScale(dScale);
 
 				Node *pN = 0;
-				SAFENEWWITHCONSTRUCTOR(pN,
-					ThermalNode,
-					ThermalNode(uLabel, pDO, dx, dxp, fOut));
+
+                                if (bUseAutoDiff()) {
+                                     SAFENEWWITHCONSTRUCTOR(pN,
+                                                            ThermalNodeAd,
+                                                            ThermalNodeAd(uLabel, pDO, dx, dxp, fOut));
+                                } else {
+                                     SAFENEWWITHCONSTRUCTOR(pN,
+                                                            ThermalNode,
+                                                            ThermalNode(uLabel, pDO, dx, dxp, fOut));
+                                }
 				if (pN != 0) {
 					ppN = InsertNode(NodeData[Node::THERMAL], uLabel, pN);
 				}
@@ -1972,14 +1991,25 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 				Node *pN = 0;
 				if (bAlgebraic) {
-					SAFENEWWITHCONSTRUCTOR(pN,
-						ScalarAlgebraicNode,
-						ScalarAlgebraicNode(uLabel, pDO, dx, fOut));
-
-				} else {
-					SAFENEWWITHCONSTRUCTOR(pN,
-						ScalarDifferentialNode,
-						ScalarDifferentialNode(uLabel, pDO, dx, dxp, fOut));
+                                        if (bUseAutoDiff()) {
+                                                SAFENEWWITHCONSTRUCTOR(pN,
+                                                                       ScalarAlgebraicNodeAd,
+                                                                       ScalarAlgebraicNodeAd(uLabel, pDO, dx, fOut));
+                                        } else {
+                                                SAFENEWWITHCONSTRUCTOR(pN,
+                                                                       ScalarAlgebraicNode,
+                                                                       ScalarAlgebraicNode(uLabel, pDO, dx, fOut));
+                                        }
+                                } else {
+                                        if (bUseAutoDiff()) {
+                                                SAFENEWWITHCONSTRUCTOR(pN,
+                                                                       ScalarDifferentialNodeAd,
+                                                                       ScalarDifferentialNodeAd(uLabel, pDO, dx, dxp, fOut));
+                                        } else {
+                                                SAFENEWWITHCONSTRUCTOR(pN,
+                                                                       ScalarDifferentialNode,
+                                                                       ScalarDifferentialNode(uLabel, pDO, dx, dxp, fOut));
+                                        }
 				}
 
 				if (pN != 0) {
@@ -2140,10 +2170,17 @@ DataManager::ReadNodes(MBDynParser& HP)
 				pDO->SetScale(dScale);
 
 				Node *pN = 0;
-				SAFENEWWITHCONSTRUCTOR(pN,
-					PressureNode,
-					PressureNode(uLabel, pDO, dx, fOut));
 
+                                if (bUseAutoDiff()) {
+                                     SAFENEWWITHCONSTRUCTOR(pN,
+                                                            PressureNodeAd,
+                                                            PressureNodeAd(uLabel, pDO, dx, fOut));
+                                } else {
+                                     SAFENEWWITHCONSTRUCTOR(pN,
+                                                            PressureNode,
+                                                            PressureNode(uLabel, pDO, dx, fOut));
+                                }
+                                
 				if (pN != 0) {
 					ppN = InsertNode(NodeData[Node::HYDRAULIC], uLabel, pN);
 				}

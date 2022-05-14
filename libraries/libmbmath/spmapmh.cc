@@ -401,37 +401,6 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 	return out;
 }
 
-MatrixHandler &
-SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
-		std::vector<bool> b, doublereal s, integer drow,
-		integer dcol) const
-{
-	if ((out.iGetNumCols() < iGetNumCols() + dcol)
-			|| (out.iGetNumRows() < iGetNumRows() + drow))
-	{
-		silent_cerr("Assertion fault "
-			"in SpMapMatrixHandler::MulAndSumWithShift"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	drow = drow + 1;
-
-	for (integer col = 0; col < NCols; col++) {
-		row_cont_type::const_iterator ri, re;
-		re = col_indices[col].end();
-		integer newcol = col + dcol + 1;
-		for (ri = col_indices[col].begin(); ri != re; ++ri) {
-			if (b[ri->first]) {
-				out.IncCoef(ri->first + drow,
-						newcol, ri->second*s);
-			}
-		}
-	}
-
-	return out;
-}
-
 VectorHandler &
 SpMapMatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 			const doublereal &dCoef),

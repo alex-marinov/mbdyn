@@ -295,7 +295,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
-#ifdef USE_SPARSE_AUTODIFF
 	} else if (HP.IsKeyWord("sparse" "gradient") || HP.IsKeyWord("grad")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_GRAD) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_GRAD);
@@ -308,7 +307,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
-#endif
 	/* direct? */
 	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {

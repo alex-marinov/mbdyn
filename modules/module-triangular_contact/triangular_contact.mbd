@@ -85,6 +85,7 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
+       use automatic differentiation;
        rigid body kinematics: const, angular velocity, 0., 0., omega0;
        skip initial joint assembly;
 	output meter: closest next, 0, forever, const, 1e-2;

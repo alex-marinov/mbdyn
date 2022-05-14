@@ -47,9 +47,10 @@ BodyAd::BodyAd(unsigned int uL,
                const Vec3& Xgc,
                const Mat3x3& J,
                flag fOut)
-     :Body(uL, pNode, dMass, Xgc, J, fOut)
+     :Body(uL, pNode, dMass, Xgc, J, fOut),
+      pNode(pNode)
 {
-     ASSERT(pNode != NULL);
+     ASSERT(pNode != nullptr);
      ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
      ASSERT(dMass > 0.);
 }
@@ -126,8 +127,8 @@ DynamicBodyAd::DynamicBodyAd(unsigned int uL,
                              flag fOut)
      :Elem(uL, fOut),
       Body(uL, pN, dMass, Xgc, J, fOut),
-      BodyAd(uL, pN, dMass, Xgc, J, fOut),
       DynamicBody(uL, pN, dMass, Xgc, J, fOut),
+      BodyAd(uL, pN, dMass, Xgc, J, fOut),
       pNode(pN)
 {
 }
@@ -265,11 +266,11 @@ StaticBodyAd::StaticBodyAd(unsigned int uL,
                            const Vec3& Xgc,
                            const Mat3x3& J,
                            flag fOut)
-     : Elem(uL, fOut),
-       Body(uL, pN, dMass, Xgc, J, fOut),
-       BodyAd(uL, pN, dMass, Xgc, J, fOut),
-       StaticBody(uL, pN, dMass, Xgc, J, fOut),
-       pNode(pN)
+     :Elem(uL, fOut),
+      Body(uL, pN, dMass, Xgc, J, fOut),
+      StaticBody(uL, pN, dMass, Xgc, J, fOut),
+      BodyAd(uL, pN, dMass, Xgc, J, fOut),       
+      pNode(pN)
 {
 }
 
@@ -395,8 +396,8 @@ ModalBodyAd::ModalBodyAd(unsigned int uL,
      : Elem(uL, fOut),
        Body(uL, pNode, dMass, Xgc, J, fOut),
        DynamicBody(uL, pNode, dMass, Xgc, J, fOut),
-       BodyAd(uL, pNode, dMass, Xgc, J, fOut),
        ModalBody(uL, pNode, dMass, Xgc, J, fOut),
+       BodyAd(uL, pNode, dMass, Xgc, J, fOut),
        pNode(pNode)
 {
 }

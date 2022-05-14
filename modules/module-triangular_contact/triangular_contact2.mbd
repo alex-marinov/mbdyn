@@ -63,6 +63,7 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
+       use automatic differentiation;
        max iterations: 10;
        #use: loadable elements, in assembly;
 	output meter: closest next, 0, forever, const, 1e-2;

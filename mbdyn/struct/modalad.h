@@ -130,6 +130,9 @@ public:
             const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
             sp_grad::SpFunctionCall func);
 
+     const ModalNodeAd* pGetModalNode() const {
+          return pModalNode;
+     }
 private:
      inline void
      UpdateStrNodeData(StrNodeData& oNode,
@@ -198,7 +201,7 @@ private:
      UpdateInvariants(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& Inv3jaj,
                       const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& Inv8jaj,
                       const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& Inv9jkajak) {}
-
+     
 private:
      const ModalNodeAd* const pModalNode;
 };
