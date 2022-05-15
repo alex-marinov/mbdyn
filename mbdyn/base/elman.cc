@@ -362,19 +362,32 @@ DataManager::ElemAssInit(void)
 	ASSERT(iMaxWorkNumColsJac > 0);
 	ASSERT(iMaxWorkNumItemsJac > 0);
 
-	/* SubMatrixHandlers */
-	SAFENEWWITHCONSTRUCTOR(pWorkMatA,
-			VariableSubMatrixHandler,
-			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-						 iMaxWorkNumColsJac,
-						 iMaxWorkNumItemsJac));
+        if (bUseAutoDiff()) {
+             SAFENEWWITHCONSTRUCTOR(pWorkMatA,
+                                    VariableSubMatrixHandlerAd,
+                                    VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                               iMaxWorkNumColsJac,
+                                                               iMaxWorkNumItemsJac));
 
-	SAFENEWWITHCONSTRUCTOR(pWorkMatB,
-			VariableSubMatrixHandler,
-			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-						 iMaxWorkNumColsJac,
-						 iMaxWorkNumItemsJac));
+             SAFENEWWITHCONSTRUCTOR(pWorkMatB,
+                                    VariableSubMatrixHandlerAd,
+                                    VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                               iMaxWorkNumColsJac,
+                                                               iMaxWorkNumItemsJac));
+        } else {
+             /* SubMatrixHandlers */
+             SAFENEWWITHCONSTRUCTOR(pWorkMatA,
+                                    VariableSubMatrixHandlerNonAd,
+                                    VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                  iMaxWorkNumColsJac,
+                                                                  iMaxWorkNumItemsJac));
 
+             SAFENEWWITHCONSTRUCTOR(pWorkMatB,
+                                    VariableSubMatrixHandlerNonAd,
+                                    VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                  iMaxWorkNumColsJac,
+                                                                  iMaxWorkNumItemsJac));
+        }
 	pWorkMat = pWorkMatA;
 
 	SAFENEWWITHCONSTRUCTOR(pWorkVec,

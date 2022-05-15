@@ -519,6 +519,14 @@ Solver::Prepare(void)
                 }
         }
 
+        const unsigned uSolverFlags = CurrLinearSolver.GetSolverFlags();
+
+        if (!pDM->bUseAutoDiff() && (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_GRAD) != 0u) {
+             silent_cerr("warning: sparse matrix handler \"grad\" requires support for automatic differentiation which was not enabled!\n"
+                         "warning: add the statement \"use automatic differentiation;\" inside the control data section to enable it!\n");
+             CurrLinearSolver.SetSolverFlags(uSolverFlags & ~LinSol::SOLVER_FLAGS_ALLOWS_GRAD);
+        }
+
         // log symbol table
         std::ostream& log = pDM->GetLogFile();
         log << "Symbol table:" << std::endl;

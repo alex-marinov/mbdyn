@@ -63,7 +63,7 @@ public:
 		LAST_SOLVER
 	};
 
-	enum SolverFlags {
+     enum SolverFlags: unsigned {
 		SOLVER_FLAGS_NONE = 0x00U,
 		SOLVER_FLAGS_ALLOWS_MAP = 0x01U,
 		SOLVER_FLAGS_ALLOWS_CC = 0x02U,

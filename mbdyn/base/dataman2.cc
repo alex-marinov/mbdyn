@@ -1095,7 +1095,7 @@ DataManager::InitialJointAssembly(void)
 
         /* Matrice di lavoro */
         MatrixHandler* pMatHdl = pSM->pMatHdl();
-        VariableSubMatrixHandler WorkMat(iMaxRowsJac, iMaxColsJac, iMaxItemsJac);
+        VariableSubMatrixHandlerAd WorkMat(iMaxRowsJac, iMaxColsJac, iMaxItemsJac);
 
         /* Soluzione */
         VectorHandler* pSolHdl = pSM->pSolHdl();

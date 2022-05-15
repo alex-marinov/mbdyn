@@ -120,7 +120,7 @@ void SetupSystem(
         MatrixHandler *const pM,
         VectorHandler *const pV
 ) {
-        VariableSubMatrixHandler SBMH(10, 10);
+        VariableSubMatrixHandlerAd SBMH(10, 10);
         FullSubMatrixHandler& WM = SBMH.SetFull();
 
         std::ifstream ifile;

@@ -480,19 +480,34 @@ MultiThreadDataManager::ThreadSpawn(void)
 
                 /* SubMatrixHandlers */
                 thread_data[i].pWorkMatA = 0;
-                SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
-                                VariableSubMatrixHandler,
-                                VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-                                                         iMaxWorkNumColsJac,
-                                                         iMaxWorkNumItemsJac));
-
                 thread_data[i].pWorkMatB = 0;
-                SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
-                                VariableSubMatrixHandler,
-                                VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-                                                         iMaxWorkNumColsJac,
-                                                         iMaxWorkNumItemsJac));
 
+                if (bUseAutoDiff()) {
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
+                                            VariableSubMatrixHandlerAd,
+                                            VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                                       iMaxWorkNumColsJac,
+                                                                       iMaxWorkNumItemsJac));
+
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
+                                            VariableSubMatrixHandlerAd,
+                                            VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                                       iMaxWorkNumColsJac,
+                                                                       iMaxWorkNumItemsJac));
+                } else {
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
+                                            VariableSubMatrixHandlerNonAd,
+                                            VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                          iMaxWorkNumColsJac,
+                                                                          iMaxWorkNumItemsJac));
+
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
+                                            VariableSubMatrixHandlerNonAd,
+                                            VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                          iMaxWorkNumColsJac,
+                                                                          iMaxWorkNumItemsJac));
+                }
+                
                 thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
                 thread_data[i].pWorkVec = 0;
