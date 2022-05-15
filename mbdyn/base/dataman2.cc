@@ -1264,15 +1264,10 @@ DataManager::InitialJointAssembly(void)
                         for (int iCnt = 1; iCnt <= iOffset; iCnt++) {
                                 /* Posizione, rotazione */
                                 integer iTmp = iFirstIndex + iCnt;
-
-                                sp_grad::SpGradient g;
-                                g.Reset(0., iTmp, dPosStiff);
-                                pMatHdl->AddItem(iTmp, g);
-
+                                pMatHdl->IncCoef(iTmp, iTmp, dPosStiff);
                                 /* Velocita', velocita' angolare */
                                 iTmp += iOffset;
-                                g.Reset(0., iTmp, dVelStiff);
-                                pMatHdl->AddItem(iTmp, g);
+                                pMatHdl->IncCoef(iTmp, iTmp, dVelStiff);
                         }
 
                         if (pNode && pNode->bOmegaRotates()) {
@@ -1286,28 +1281,18 @@ DataManager::InitialJointAssembly(void)
 
                                 /* W1 in m(3, 2), -W1 in m(2, 3) */
                                 doublereal d = TmpVec(1);
-                                
-                                sp_grad::SpGradient g;
-                                g.Reset(0., iFirstIndex + 5, d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 6, g);
-                                g.Reset(0., iFirstIndex + 6, -d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 5, g);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 6, iFirstIndex + 5, d);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 5, iFirstIndex + 6, -d);
 
                                 /* W2 in m(1, 3), -W2 in m(3, 1) */
                                 d = TmpVec(2);
-
-                                g.Reset(0., iFirstIndex + 6, d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 4, g);
-                                g.Reset(0., iFirstIndex + 4, -d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 6, g);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 4, iFirstIndex + 6, d);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 6, iFirstIndex + 4, -d);
 
                                 /* W3 in m(2, 1), -W3 in m(1, 2) */
                                 d = TmpVec(3);
-
-                                g.Reset(0., iFirstIndex + 4, d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 5, g);
-                                g.Reset(0.,  iFirstIndex + 5, -d);
-                                pMatHdl->AddItem(iFirstIndex + iOffset + 4, g);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 5, iFirstIndex + 4, d);
+                                pMatHdl->IncCoef(iFirstIndex + iOffset + 4, iFirstIndex + 5, -d);
                         } /* altrimenti la velocita' angolare e' solidale con il nodo */
                 }
 

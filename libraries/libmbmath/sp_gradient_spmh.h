@@ -90,6 +90,9 @@ public:
 
      virtual void Reset() override;
 
+     virtual void
+     IncCoef(integer iRow, integer iCol, const doublereal& dCoef) override;
+
      virtual const doublereal&
      operator()(integer iRow, integer iCol) const override;
 

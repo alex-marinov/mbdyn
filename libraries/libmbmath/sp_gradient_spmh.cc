@@ -113,6 +113,18 @@ void SpGradientSparseMatrixHandler::Reset()
      }
 }
 
+void
+SpGradientSparseMatrixHandler::IncCoef(integer iRow, integer iCol, const doublereal& dCoef)
+{
+     // Not recommended for general use
+     // Needed for DataManager::InitialJointAssembly to make it independent from the bUseAutoDiff() flag
+     sp_grad::SpGradient g;
+
+     g.Reset(0., iCol, dCoef);
+
+     AddItem(iRow, g);
+}
+
 MatrixHandler&
 SpGradientSparseMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 					 const doublereal& dCoef),
