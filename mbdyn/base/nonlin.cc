@@ -732,13 +732,11 @@ NonlinearSolver::~NonlinearSolver(void)
 
 std::ostream& NonlinearSolver::PrintSolverTime(std::ostream& os) const
 {
-     using namespace std;
-     using namespace std::chrono;
-     typedef duration<float, std::ratio<1, 1> > FloatSec;
+     typedef std::chrono::duration<float, std::ratio<1, 1> > FloatSec;
 	     
      auto prec = os.precision();
      auto fmt = os.flags();
-     os.setf(ios::fixed);
+     os.setf(std::ios::fixed);
      os.precision(3);
 
      os << "nonlinear solver time:\n";
@@ -746,7 +744,7 @@ std::ostream& NonlinearSolver::PrintSolverTime(std::ostream& os) const
      os << "\toverall CPU time spent in AssJac:\t" << FloatSec(dTimeCPU[CPU_JACOBIAN]).count() << "s\n";
      os << "\toverall CPU time spent in Solve:\t" << FloatSec(dTimeCPU[CPU_LINEAR_SOLVER]).count() << "s\n";
 
-     nanoseconds total(0);
+     std::chrono::nanoseconds total(0);
 
      for (size_t i = 0; i < CPU_LAST_TYPE; ++i) {
 	  total += dTimeCPU[i];
