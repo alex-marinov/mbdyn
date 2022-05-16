@@ -66,7 +66,6 @@
 #include "solver.h"
 #include "dataman.h"
 #include "mtdataman.h"
-#include "thirdorderstepsol.h"
 #include "nr.h"
 #include "linesearch.h"
 #ifdef USE_TRILINOS
@@ -1383,7 +1382,7 @@ IfFirstStepIsToBeRepeated:
                 && *EigAn.currAnalysis <= dTime)
         {
                 std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-                        EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+                        EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
                 if (i != EigAn.Analyses.end()) {
                         EigAn.currAnalysis = --i;
                 }
@@ -1653,7 +1652,7 @@ IfStepIsToBeRepeated:
                 && *EigAn.currAnalysis <= dTime)
         {
                 std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-                        EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+                        EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
                 if (i != EigAn.Analyses.end()) {
                         EigAn.currAnalysis = --i;
                 }
@@ -1794,13 +1793,6 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
                 pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
                 break;
 
-        case INT_THIRDORDER:
-                out << "thirdorder, ";
-                if (!pRhoRegular)
-                        out << "ad hoc;" << std::endl;
-                        else
-                        pRhoRegular->Restart(out) << ";" << std::endl;
-                break;
         case INT_IMPLICITEULER:
                 out << "implicit euler;" << std::endl;
                 break;
@@ -1955,7 +1947,6 @@ Solver::ReadData(MBDynParser& HP)
                         "ms",
                         "hope",
                         "bdf",
-                        "thirdorder",
                         "implicit" "euler",
                         "hybrid",
 
@@ -2067,7 +2058,6 @@ Solver::ReadData(MBDynParser& HP)
                 MS,
                 HOPE,
                 BDF,
-                THIRDORDER,
                 IMPLICITEULER,
                 HYBRID,
 
@@ -2526,15 +2516,6 @@ Solver::ReadData(MBDynParser& HP)
                                 }
                                 break;
 
-                        case THIRDORDER:
-                                if (HP.IsKeyWord("ad" "hoc")) {
-                                        /* do nothing */ ;
-                                } else {
-                                        pRhoRegular = HP.GetDriveCaller(true);
-                                }
-                                RegularType = INT_THIRDORDER;
-                                break;
-
                         case IMPLICITEULER:
                                 RegularType = INT_IMPLICITEULER;
                                 break;
@@ -2657,15 +2638,6 @@ Solver::ReadData(MBDynParser& HP)
                                 default:
                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                 }
-                                break;
-
-                        case THIRDORDER:
-                                if (HP.IsKeyWord("ad" "hoc")) {
-                                        /* do nothing */ ;
-                                } else {
-                                        pRhoDummy = HP.GetDriveCaller(true);
-                                }
-                                DummyType = INT_THIRDORDER;
                                 break;
 
                         case IMPLICITEULER:
@@ -4277,25 +4249,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
                                                 bModResTest));
                         break;
 
-                case INT_THIRDORDER:
-                        if (pRhoDummy == 0) {
-                                SAFENEWWITHCONSTRUCTOR(pDummySteps,
-                                                AdHocThirdOrderIntegrator,
-                                                AdHocThirdOrderIntegrator(dDummyStepsTolerance,
-                                                        dSolutionTol,
-                                                        iDummyStepsMaxIterations,
-                                                        bModResTest));
-                        } else {
-                                SAFENEWWITHCONSTRUCTOR(pDummySteps,
-                                                TunableThirdOrderIntegrator,
-                                                TunableThirdOrderIntegrator(dDummyStepsTolerance,
-                                                        dSolutionTol,
-                                                        iDummyStepsMaxIterations,
-                                                        pRhoDummy,
-                                                        bModResTest));
-                        }
-                        break;
-
                 case INT_IMPLICITEULER:
                         SAFENEWWITHCONSTRUCTOR(pDummySteps,
                                         ImplicitEulerIntegrator,
@@ -4350,25 +4303,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
                                         pRhoRegular,
                                         pRhoAlgebraicRegular,
                                         bModResTest));
-                break;
-
-        case INT_THIRDORDER:
-                if (pRhoRegular == 0) {
-                        SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-                                        AdHocThirdOrderIntegrator,
-                                        AdHocThirdOrderIntegrator(dTol,
-                                                dSolutionTol,
-                                                iMaxIterations,
-                                                bModResTest));
-                } else {
-                        SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-                                        TunableThirdOrderIntegrator,
-                                        TunableThirdOrderIntegrator(dTol,
-                                                dSolutionTol,
-                                                iMaxIterations,
-                                                pRhoRegular,
-                                                bModResTest));
-                }
                 break;
 
         case INT_IMPLICITEULER:

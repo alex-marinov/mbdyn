@@ -1046,10 +1046,6 @@ Body::AssMatsRBK_int(
 void Body::UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& S,
                          const sp_grad::SpMatrix<doublereal, 3, 3>& J) const
 {
-        const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode*>(pNode);
-
-        ASSERT(pDN != 0);
-
         for (integer i = 1; i <= 3; ++i) {
                 STmp(i) = S(i);
         }
@@ -1059,8 +1055,6 @@ void Body::UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& S,
                         JTmp(i, j) = J(i, j);
                 }
         }
-
-        pDN->AddInertia(dMass, STmp, JTmp);
 }
 
 void Body::UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
@@ -1070,6 +1064,25 @@ void Body::UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STm
 
 void Body::UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
                          const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const
+{
+}
+
+void Body::AddInertia(doublereal dMass,
+                      const sp_grad::SpColVector<doublereal, 3>& S,
+                      const sp_grad::SpMatrix<doublereal, 3, 3>& J)
+{
+     dynamic_cast<const DynamicStructNode&>(*pNode).AddInertia(dMass, STmp, JTmp);
+}
+
+void Body::AddInertia(doublereal dMass,
+                      const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp)
+{
+}
+
+void Body::AddInertia(doublereal dMass,
+                      const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
+                      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp)
 {
 }
 #endif
@@ -1589,6 +1602,9 @@ DynamicBody::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
         }
 
         UpdateInertia(STmp, JTmp);
+
+        AddInertia(dMass, STmp, JTmp);
+
 }
 #endif
 
@@ -1921,39 +1937,7 @@ ModalBody::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      WorkVec.AddItem(iFirstPositionIndex + 10, M);
 
      UpdateInertia(STmp, JTmp);
-}
-
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmpCurr,
-                         const sp_grad::SpMatrix<doublereal, 3, 3>& JTmpCurr)
-{
-     for (integer i = 1; i <= 3; ++i) {
-          STmp(i) = STmpCurr(i);
-     }
-
-     for (integer j = 1; j <= 3; ++j) {
-          for (integer i = 1; i <= 3; ++i) {
-               JTmp(i, j) = JTmpCurr(i, j);
-          }
-     }
-     
-     auto pDN = dynamic_cast<const DynamicStructNode *>(pNode);
-     
-     ASSERT(pDN != nullptr);
-
-     pDN->AddInertia(dMass, STmp, JTmp);     
-}
-                
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp)
-{
-}
-
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp)
-{
+     AddInertia(dMass, STmp, JTmp);     
 }
 #endif
 

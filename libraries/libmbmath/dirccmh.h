@@ -113,9 +113,6 @@ public:
 			doublereal s = 1.,
 			integer drow = 0, integer dcol = 0) const;
 	
-	MatrixHandler& FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
-		std::vector<bool> b, doublereal s = 1.,
-		integer drow = 0, integer dcol = 0) const;
 };
 
 

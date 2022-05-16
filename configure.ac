@@ -3005,8 +3005,8 @@ if test $ol_with_trilinos != no ; then
         AC_LANG_CPLUSPLUS
         AC_CHECK_HEADERS([Epetra_Comm.h Epetra_SerialComm.h Epetra_Vector.h Epetra_Operator.h Epetra_CrsMatrix.h AztecOO.h Amesos.h Amesos_BaseSolver.h NOX.H NOX_Epetra.H NOX_Solver_Generic.H NOX_Epetra_Vector.H NOX_Epetra_Interface_Required.H NOX_Epetra_Interface_Jacobian.H NOX_Epetra_Interface_Preconditioner.H NOX_Epetra_LinearSystem_AztecOO.H],[have_trilinos_h=yes],[have_trilinos_h=no])
         
+        AC_MSG_CHECKING([for Trilinos library])
         if test "$have_trilinos_h" = "yes" ; then
-                AC_MSG_CHECKING([for Trilinos library])
                 have_trilinos="no"
                 for trilinos_lib_config in prefix_none_without_mpi prefix_trilinos_with_mpi prefix_user ; do
                     if test $have_trilinos = no; then

@@ -382,6 +382,21 @@ protected:
        void
        UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
                      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const;
+
+       void
+       AddInertia(doublereal dMass,
+                  const sp_grad::SpColVector<doublereal, 3>& STmp,
+                  const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp);
+
+       void
+       AddInertia(doublereal dMass,
+                  const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                  const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp);
+
+       void
+       AddInertia(doublereal dMass,
+                  const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
+                  const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp);
 #endif
 };
 
@@ -544,18 +559,6 @@ public:
                const sp_grad::SpGradientVectorHandler<T>& XCurr,
                const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
                sp_grad::SpFunctionCall func);
-
-        void
-        UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
-                      const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp);
-                
-        void
-        UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                      const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp);
-
-        void
-        UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp);
 #endif
 
         virtual void
