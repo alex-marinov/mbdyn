@@ -750,9 +750,7 @@ namespace {
            pSolutionManager(nullptr),
            oResTest(*this),
            oSolTest(*this),
-#ifdef USE_SPARSE_AUTODIFF
            oMatFreeJacOper(*this),
-#endif
            pJacInt(nullptr),
            pJacOper(nullptr),
            pPrecInt(nullptr),
@@ -1652,9 +1650,7 @@ namespace {
      {
           DEBUGCERR("setJacobianOperatorForSolve()\n");
 
-#ifdef USE_SPARSE_AUTODIFF
           ASSERT(solveJacOp.get() == this || solveJacOp.get() == &oMatFreeJacOper);
-#endif
      }
 
      bool
