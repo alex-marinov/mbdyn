@@ -399,6 +399,42 @@ class eye:
         s = 'eye'
         return s
 
+class Reference:
+    def __init__(self, idx, pos, orient, vel, angvel):
+        assert isinstance(pos, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the position of a reference must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(orient, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the orientation of a reference must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(vel, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the velocity of a reference must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        assert isinstance(angvel, Position), (
+            '\n-------------------\nERROR:' + 
+            ' the angulare velocity of a reference must be ' +  
+            ' an instance of the Position class;' + 
+            '\n-------------------\n')
+        self.idx = idx
+        self.position = pos
+        self.orientation = orient
+        self.velocity = vel
+        self.angular_velocity = angvel
+    def __str__(self):
+        s = 'reference: '
+        s = s + str(self.idx) + ', \n'
+        s = s + '\t' + str(self.position) + ',\n'
+        s = s + '\t' + str(self.orientation) + ',\n'
+        s = s + '\t' + str(self.velocity) + ',\n'
+        s = s + '\t' + str(self.angular_velocity) + ';\n'
+        return s
+
 class Position:
     def __init__(self, ref, rel_pos):
         self.reference = ref
@@ -840,11 +876,17 @@ class TotalJoint:
         if sum(self.position_constraints):
             s = s + ',\n\tposition constraint, '\
                     + ', '.join(str(pc) for pc in self.position_constraints)
-            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.position_drive)
+            if isinstance(self.position_drive, list):
+                s = s + ',\n\t\t' + ', '.join(str(i) for i in self.position_drive)
+            else:
+                s = s + ',\n\t\t' + str(self.position_drive)
         if sum(self.orientation_constraints):
             s = s + ',\n\torientation constraint, '\
                     + ', '.join(str(oc) for oc in self.orientation_constraints)
-            s = s + ',\n\t\t' + ', '.join(str(i) for i in self.orientation_drive)
+            if isinstance(self.orientation_drive, list):
+                s = s + ',\n\t\t' + ', '.join(str(i) for i in self.orientation_drive)
+            else:
+                s = s + ',\n\t\t', + str(self.orientation_drive)
         if self.output != 'yes':
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
@@ -989,6 +1031,105 @@ class Rod:
                 s = s + ',\n\t\tposition, ' + str(position)
         s = s + ',\n\t' + str(self.length) + ',\n'
         s = s + '\t' + ', '.join(str(i) for i in self.const_law)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class DeformableDiaplacement:
+    def __init__(self, idx, nodes, positions, orientations, const_law, output = 'yes'):
+        assert isinstance(nodes, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a deformable displacement joint, the' +
+            ' nodes must be given in a list' + 
+            '\n-------------------\n')
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a deformable displacement joint with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        assert isinstance(positions, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a deformable displacement joint, the' +
+            ' relative positions must be given in a list' + 
+            '\n-------------------\n')    
+        assert len(nodes) == len(positions), (
+            '\n-------------------\nERROR:' +
+            ' defining a deformable displacement joint with ' + str(len(nodes)) +
+            ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
+            '\n-------------------\n')
+        assert isinstance(orientations, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a deformable displacement joint, the' +
+            ' relative position orientations must be given in a list' + 
+            '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.constitutive_law = const_law
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', deformable displacement'
+        for (node, pos, orient) in zip(self.nodes, self.positions, self.orientations):
+            s = s + ',\n\t' + str(node)
+            if not(pos.isnull()):
+                s + s + ',\n\t\tposition, ' + str(pos)
+            if not(pos_or.iseye()):
+                s + s + ',\n\t\torientation, ' + str(orient)
+        s = s + '\n\t'
+        if isinstance(self.constitutive_law, str):
+            s = s + self.constitutive_law
+        else:
+            s = s + ', '.join(str(i) for i in self.constitutive_law)
+        if self.output != 'yes':
+            s = s + ',\n\toutput, ' + str(self.output)
+        s = s + ';\n'
+        return s
+
+class DeformableHinge:
+    def __init__(self, idx, nodes, positions, orientations, const_law, output = 'yes'):
+        assert isinstance(nodes, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a deformable hinge, the' +
+            ' nodes must be given in a list' + 
+            '\n-------------------\n')
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a deformable hinge with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        assert isinstance(positions, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a displacement hinge, the' +
+            ' relative positions must be given in a list' + 
+            '\n-------------------\n')    
+        assert len(nodes) == len(positions), (
+            '\n-------------------\nERROR:' +
+            ' defining a deformable hinge with ' + str(len(nodes)) +
+            ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
+            '\n-------------------\n')
+        assert isinstance(orientations, list), (
+            '\n-------------------\nERROR:' + 
+            ' in defining a deformable hinge, the' +
+            ' relative position orientations must be given in a list' + 
+            '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.orientations = orientations
+        self.constitutive_law = const_law
+        self.output = output
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ', deformable hinge'
+        for (node, pos, orient) in zip(self.nodes, self.positions, self.orientations):
+            s = s + ',\n\t' + str(node)
+            if not(pos.isnull()):
+                s + s + ',\n\t\tposition, ' + str(pos)
+            if not(orient.iseye()):
+                s + s + ',\n\t\torientation, ' + str(orient)
+        s = s + ',\n\t'
+        if isinstance(self.constitutive_law, str):
+            s = s + self.constitutive_law
+        else:
+            s = s + ', '.join(str(i) for i in self.constitutive_law)
         if self.output != 'yes':
             s = s + ',\n\toutput, ' + str(self.output)
         s = s + ';\n'
