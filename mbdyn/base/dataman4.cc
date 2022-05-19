@@ -793,8 +793,49 @@ DataManager::ReadElems(MBDynParser& HP)
 				case DRIVEN: {
 					/* Reads the driver */
 					DriveCaller* pDC = HP.GetDriveCaller();
-					std::vector<std::string> hints;
+					bool bActive(false);
+					if (HP.IsKeyWord("initial" "state")) {
+						if (HP.IsKeyWord("from" "drive")) {
+							// trivial, but impossible when drive is postponed
+							bActive = pDC->dGet();
 
+						} else if (HP.IsKeyWord("active")) {
+							bActive = true;
+
+						} else if (HP.IsKeyWord("inactive")) {
+							bActive = false;
+
+						} else if (HP.IsArg()) {
+							bActive = HP.GetBool();
+
+						} else {
+							silent_cerr("Driven(" << uLabel << "): "
+								"unable to read initial state "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+#if 0
+						// FIXME: consistency check?
+						if (dynamic_cast<PostponedDriveCaller *>(pDC) == 0) {
+							bool bCheck = pDC->dGet();
+							if ((bActive && !bCheck) || (!bActive && bCheck)) {
+								silent_cerr("Driven(" << uLabel << "): "
+									"initial state \"" << (bActive ? "active" : "inactive") << "\" "
+									"inconsistent with drive caller's status "
+									"at line " << HP.GetLineData()
+									<< std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						}
+#endif
+
+					} else {
+						bActive = (pDC->dGet() != 0.);
+					}
+
+					std::vector<std::string> hints;
 					for (unsigned i = 1; HP.IsKeyWord("hint"); i++) {
 						// const char *hint = HP.GetStringWithDelims(HighParser::DEFAULTDELIM, false);
 						// do escape; needed to deal with quotes in the hint specification
@@ -1015,7 +1056,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					Elem* pEl = 0;
 					SAFENEWWITHCONSTRUCTOR(pEl,
 						DrivenElem,
-						DrivenElem(this, pDC, pE, pHints));
+						DrivenElem(this, pDC, bActive, pE, pHints));
 
 					if (bExisting) {
 						ElemVecType::iterator eitmp = Elems.begin();
