@@ -581,91 +581,90 @@ expand_environment(const char *in)
 static char *
 resolve_filename(const char *filename_in)
 {
-	char	*res = NULL,
-		*filename = NULL;;
+        char	*res = NULL,
+                *filename = NULL;;
 
-	if (strchr(filename_in, '$')) {
-		filename = expand_environment(filename_in);
-		if (filename == NULL) {
-			goto error_return;
-		}
-	} else {
-		filename = (char *)filename_in;
-	}
-	
-   	if (filename[0] == '~') {
-      		filename++;
-      		if (filename[0] == DIR_SEP) {
-	 		/* do environment stuff */
-	 		char *home;
-	 
-	 		home = getenv("HOME");
-	 		if (home == NULL) {	 	 
-	    			goto error_return;
-	 		}
-	 
-	 		char *s = NULL;
-	 		int l, ll;
-	 
-	 		l = strlen(home);
-			ll = l + strlen(filename) + 1;
-	 		SAFENEWARR(s, char, ll);
-	 
-			strcpy(s, home);
-			strcpy(s + l, filename);
-	 
-	 		res = s;
-			goto error_return;
+        if (strchr(filename_in, '$')) {
+                filename = expand_environment(filename_in);
+                if (filename == NULL) {
+                        goto error_return;
+                }
+        } else {
+                filename = (char *)filename_in;
+        }
+
+        if (filename[0] == '~') {
+                if (filename[1] == DIR_SEP) {
+                        /* do environment stuff */
+                        char *home;
+
+                        home = getenv("HOME");
+                        if (home == NULL) {
+                                goto error_return;
+                        }
+
+                        char *s = NULL;
+                        int l, ll;
+
+                        l = strlen(home);
+                        ll = l + strlen(filename + 1) + 1;
+                        SAFENEWARR(s, char, ll);
+
+                        strcpy(s, home);
+                        strcpy(s + l, filename + 1);
+
+                        res = s;
+                        goto error_return;
 
 #if defined(HAVE_PWD_H)
-      		} else {
-	 		const char *p;
-	 
-	 		p = std::strchr(filename, DIR_SEP);
-	 		if (p == NULL) {
-	    			goto error_return;
-	 		} 
-	 
-	 		int l = p - filename;
-	 
-	 		char buf[l + 1];
-	 		memcpy(buf, filename, l);
-	 		buf[l] = '\0';
+                } else {
+                        const char *p;
 
-	 		/* do passwd stuff */
-	 		struct passwd *pw;
-	 
-	 		pw = getpwnam(buf);
-	 
-	 		if (pw == NULL ) {
-	    			goto error_return;
-	 		}
-	 
-	 		l = strlen(pw->pw_dir);
-			int ll = l + strlen(p) + 1;
-	 		char *s = NULL;
-	 		SAFENEWARR(s, char, ll);
-	 		strcpy(s, pw->pw_dir);
-	 		strcpy(s + l, p);
-	 
-	 		res = s;
-			goto error_return;
+                        p = std::strchr(filename + 1, DIR_SEP);
+                        if (p == NULL) {
+                                goto error_return;
+                        }
+
+                        int l = p - (filename + 1);
+
+                        char buf[l + 1];
+                        memcpy(buf, filename + 1, l);
+                        buf[l] = '\0';
+
+                        /* do passwd stuff */
+                        struct passwd *pw;
+
+                        pw = getpwnam(buf);
+
+                        if (pw == NULL ) {
+                                goto error_return;
+                        }
+
+                        l = strlen(pw->pw_dir);
+                        int ll = l + strlen(p) + 1;
+                        char *s = NULL;
+                        SAFENEWARR(s, char, ll);
+                        strcpy(s, pw->pw_dir);
+                        strcpy(s + l, p);
+
+                        res = s;
+                        goto error_return;
 #endif /* HAVE_PWD_H */
-      		}
-   	}
+                }
+        }
 
 error_return:;
-	if (filename != NULL) {		
-		if (res == NULL) {
-			SAFESTRDUP(res, filename);
-		}
+        if (filename != NULL) {
+                if (res == NULL) {
+                        SAFESTRDUP(res, filename);
+                }
 
-		if (!(filename >=  filename_in && filename <= filename_in + strlen(filename_in))) {
-			SAFEDELETEARR(filename);
-		}
-	}
+                if (!(filename >=  filename_in && filename <= filename_in + strlen(filename_in))) {
+                        SAFEDELETEARR(filename);
+                }
+        }
 
-	return res;
+        return res;
 }
 
 const char* 
