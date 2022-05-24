@@ -528,6 +528,16 @@ void Beam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGradient, 
                        const std::array<sp_grad::SpColVectorA<sp_grad::SpGradient, 6>, NUMSEZ>& AzLoc)
 {
 }
+
+void Beam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3>, NUMSEZ>& R,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& p,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& g,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& L,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefLoc,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& Az,
+                       const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& AzLoc)
+{
+}
 #endif
 
 void
@@ -1058,6 +1068,27 @@ Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 #endif        
 	return WorkMat;
 }
+
+#ifdef USE_SPARSE_AUTODIFF                
+void
+Beam::AssJac(VectorHandler& JacY,
+             const VectorHandler& Y,
+             doublereal dCoef,
+             const VectorHandler& XCurr,
+             const VectorHandler& XPrimeCurr,
+             VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);     
+}
+#endif
 
 /* assemblaggio matrici per autovalori */
 void
@@ -1993,6 +2024,21 @@ ViscoElasticBeam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::SpGra
 {
 }
 
+inline void
+ViscoElasticBeam::UpdateState(const std::array<sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3>, NUMSEZ>& R,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& p,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& g,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& gPrime,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& Omega,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& L,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 3>, NUMSEZ>& LPrime,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefLoc,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& DefPrimeLoc,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& Az,
+                              const std::array<sp_grad::SpColVectorA<sp_grad::GpGradProd, 6>, NUMSEZ>& AzLoc)
+{
+}
+
 template <typename T>
 inline void
 ViscoElasticBeam::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -2162,6 +2208,27 @@ ViscoElasticBeam::AssJac(VariableSubMatrixHandler& WorkMat,
                                                                sp_grad::SpFunctionCall::REGULAR_JAC);
 
 	return WorkMat;
+}
+
+void
+ViscoElasticBeam::AssJac(VectorHandler& JacY,
+                         const VectorHandler& Y,
+                         doublereal dCoef,
+                         const VectorHandler& XCurr,
+                         const VectorHandler& XPrimeCurr,
+                         VariableSubMatrixHandler& WorkMat)
+{
+     DEBUGCOUTFNAME("ViscoElasticBeam::AssJac");
+     
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);     
 }
 #endif
 

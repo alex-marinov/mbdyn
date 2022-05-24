@@ -37,6 +37,7 @@
 #include <ac/f2c.h>
 #include <myassert.h>
 #include "output.h"
+#include "solverbase.h"
 
 #include "units.h"
 
@@ -63,6 +64,8 @@ struct Dof {
    integer iIndex;
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
+   // Data used for the HybridStepIntegrator
+   SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
    std::string Description;
    std::string EqDescription;
 };
@@ -147,4 +150,3 @@ class DofOwnerOwner {
 };
 
 #endif /* DOFOWN_H */
-

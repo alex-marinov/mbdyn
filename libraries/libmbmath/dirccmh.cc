@@ -140,40 +140,6 @@ DirCColMatrixHandler<off, idx_type>::MulAndSumWithShift(MatrixHandler& out, doub
 	return out;
 }
 
-template <int off, typename idx_type>
-MatrixHandler&
-DirCColMatrixHandler<off, idx_type>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
-		std::vector<bool> b,
-		doublereal s,
-		integer drow, 
-		integer dcol) const
-{
-	silent_cerr("DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
-			"called" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-	if ((out.iGetNumCols() < this->iGetNumCols() + dcol)
-			|| (out.iGetNumRows() < this->iGetNumRows() + drow))
-	{
-		silent_cerr("Assertion fault "
-				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
-				<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	drow = drow + 1;
-	for (integer col = 0; col < this->iGetNumCols(); col++) {
-	     auto idx = this->Ap[col] - off;
-	     auto idxe = this->Ap[col + 1] - off;
-	     auto newcol = col + dcol + 1;
-	     for (; idx < idxe; idx++) {
-		  if (b[this->Ai[idx] - off]) {
-		       out.IncCoef(this->Ai[idx] - off + drow,
-				   newcol, this->Ax[idx]*s);
-		  }
-	     }
-	}
-	return out;	
-}
-	
 template class DirCColMatrixHandler<0, int32_t>;
 template class DirCColMatrixHandler<1, int32_t>;
 template class DirCColMatrixHandler<1, int64_t>;

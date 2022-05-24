@@ -259,6 +259,15 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void
+        AssJac(VectorHandler& JacY,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
 	/* assemblaggio eig */
 	void AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
@@ -287,12 +296,19 @@ public:
                  const sp_grad::SpColVector<doublereal, 3>& G,
                  const sp_grad::SpColVector<doublereal, 3>& GP);
 
-     inline void
+     static inline void
      UpdateState(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& B,
                  const sp_grad::SpColVector<sp_grad::SpGradient, 3>& BP,
                  const sp_grad::SpColVector<sp_grad::SpGradient, 3>& G,
                  const sp_grad::SpColVector<sp_grad::SpGradient, 3>& GP) {
      }
+
+     static inline void
+     UpdateState(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& B,
+                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& BP,
+                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& G,
+                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& GP) {
+     }     
 #endif
      
 	/* output; si assume che ogni tipo di elemento sappia, attraverso

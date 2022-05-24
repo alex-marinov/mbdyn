@@ -60,7 +60,7 @@ BiCGStab::BiCGStab(const Preconditioner::PrecondType PType,
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		const NonlinearSolverOptions& options)
+		const NonlinearSolverTestOptions& options)
 : MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, options)
 {
 	NO_OP;

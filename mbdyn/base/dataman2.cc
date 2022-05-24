@@ -484,6 +484,21 @@ DataManager::DofOwnerInit(void)
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 				pDf[iCnt].Order = (*i)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*i)->GetEqType(iCnt);
+                                pDf[iCnt].StepIntegrator = (*i)->GetStepIntegrator(iCnt);
+
+                                switch (pDf[iCnt].StepIntegrator) {
+                                case SolverBase::INT_DEFAULT:
+                                case SolverBase::INT_IMPLICITEULER:
+                                case SolverBase::INT_CRANKNICOLSON:
+                                case SolverBase::INT_MS2:
+                                case SolverBase::INT_HOPE:
+                                     break;
+                                default:
+                                     silent_cerr("Step integrator " << pDf[iCnt].StepIntegrator
+                                                 << " requested for Dof " << pDf[iCnt].iIndex
+                                                 << " :" << pDf[iCnt].Description << " is not implemented\n");
+                                     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                }
 			}
 		}
 	}
@@ -587,6 +602,21 @@ DataManager::DofOwnerInit(void)
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
+                                        pDf[iCnt].StepIntegrator = pEWD->GetStepIntegrator(iCnt);
+
+                                        switch (pDf[iCnt].StepIntegrator) {
+                                        case SolverBase::INT_DEFAULT:
+                                        case SolverBase::INT_IMPLICITEULER:
+                                        case SolverBase::INT_CRANKNICOLSON:
+                                        case SolverBase::INT_MS2:
+                                        case SolverBase::INT_HOPE:
+                                             break;
+                                        default:
+                                             silent_cerr("Step integrator " << pDf[iCnt].StepIntegrator
+                                                         << " requested for Dof " << pDf[iCnt].iIndex
+                                                         << " :" << pDf[iCnt].Description << " is not implemented\n");
+                                             throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                                        }
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
@@ -1016,7 +1046,11 @@ DataManager::InitialJointAssembly(void)
 	/* Crea il solutore lineare, tenendo conto dei tipi
 	 * supportati, di quanto scelto nel file di configurazione
 	 * e di eventuali paraametri extra */
-	SolutionManager* pSM = CurrSolver.GetSolutionManager(iInitialNumDofs);
+        SolutionManager* pSM = CurrSolver.GetSolutionManager(iInitialNumDofs,
+#ifdef USE_MPI
+                                                             MBDynComm,
+#endif
+                                                             0);
 
 #ifdef DEBUG_MEMMANAGER
 	DEBUGLCOUT(MYDEBUG_MEM|MYDEBUG_ASSEMBLY,
@@ -1204,6 +1238,7 @@ DataManager::InitialJointAssembly(void)
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 		NodesUpdateJac(1., NodeIter);
 #endif	
+                pMatHdl->Reset(); // Must be called at each iteration!
 		
 		/* Contributo dei nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
@@ -2793,6 +2828,18 @@ DataManager::SetBufOutRaw(unsigned uL, integer n, const doublereal *p)
 	}
 
 	pBSE->SetBufRaw(n, p);
+}
+
+SolverBase::StepIntegratorType DataManager::GetStepIntegratorType(unsigned int iDof) const {
+     ASSERT(iDof > 0 && iDof <= Dofs.size());
+
+     return GetSolver()->pGetStepIntegrator()->GetType(iDof);
+}
+
+doublereal DataManager::dGetStepIntegratorCoef(unsigned int iDof) const {
+     ASSERT(iDof > 0 && iDof <= Dofs.size());
+
+     return GetSolver()->pGetStepIntegrator()->dGetCoef(iDof);
 }
 
 /* DataManager - end */

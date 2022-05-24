@@ -272,7 +272,7 @@ public:
 	void SetRange(integer iFirstIndex, integer iLastIndex);
 };
 
-struct NonlinearSolverOptions
+struct NonlinearSolverTestOptions
 {
 	bool bHonorJacRequest;
 
@@ -283,12 +283,32 @@ struct NonlinearSolverOptions
 
 	doublereal dScaleAlgebraic;
 
-	NonlinearSolverOptions(bool bHonorJacRequest = false,
+	NonlinearSolverTestOptions(bool bHonorJacRequest = false,
 		enum ScaleFlags eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_NO,
 		doublereal dScaleAlgebraic = 1.);
 };
 
-class NonlinearSolver : public SolverDiagnostics, protected NonlinearSolverOptions
+struct CommonNonlinearSolverParam
+{
+     enum CommonSolverFlags { 
+          VERBOSE_MODE           = 0x1, // reserved range from 0x1 to 0xF
+          PRINT_CONVERGENCE_INFO = 0x2
+     };
+     
+     CommonNonlinearSolverParam(unsigned uFlags = 0u,
+                                integer iIterBeforeAss = 0,
+                                bool bKeepJac = false)
+          :uFlags(uFlags),
+           iIterationsBeforeAssembly(iIterBeforeAss),
+           bKeepJacAcrossSteps(bKeepJac) {
+     }
+
+     unsigned uFlags;
+     integer iIterationsBeforeAssembly;
+     bool bKeepJacAcrossSteps;     
+};
+
+class NonlinearSolver : public SolverDiagnostics, protected NonlinearSolverTestOptions
 {
 public:
  	class ErrSimulationDiverged : MBDynErrBase {
@@ -323,6 +343,7 @@ public:
 		MATRIXFREE,
 		LINESEARCH,
                 BFGS,
+                NOX,
 		DEFAULT = NEWTONRAPHSON,
 
 		LASTSOLVERTYPE
@@ -353,19 +374,19 @@ protected:
 		CPU_LAST_TYPE
 	};
 
-	doublereal dGetCondMax()const { return dMaxCond; }
-	doublereal dGetCondMin()const { return dMinCond; }
-	doublereal dGetCondAvg()const { return dSumCond / iNumCond; }
+	doublereal dGetCondMax() const { return dMaxCond; }
+	doublereal dGetCondMin() const { return dMinCond; }
+	doublereal dGetCondAvg() const { return dSumCond / iNumCond; }
         inline std::chrono::nanoseconds dGetTimeCPU(CPUTimeType eType) const;
-	inline void AddCond(doublereal dCond);
-        inline void ResetCond();
-        inline void AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType);
+	inline void AddCond(doublereal dCond) const;
+        inline void ResetCond() const;
+        inline void AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType) const;
 
     friend class CPUStopWatch;
                 
     class CPUStopWatch  {
     public:
-        explicit CPUStopWatch(NonlinearSolver& oSolver, CPUTimeType eType)
+        explicit CPUStopWatch(const NonlinearSolver& oSolver, CPUTimeType eType)
             :oSolver(oSolver),
              eType(eType),
 	     eStatus(SWST_INACTIVE),	     
@@ -398,7 +419,7 @@ protected:
         std::chrono::time_point<std::chrono::high_resolution_clock> Toc() {
             using namespace std::chrono;
 	    
-            time_point<high_resolution_clock> dEndTimeCPU = high_resolution_clock::now();;
+            time_point<high_resolution_clock> dEndTimeCPU = high_resolution_clock::now();
 	    
 	    if (eStatus == SWST_ACTIVE) {
 		 dElapsedCPU = dEndTimeCPU - dStartTimeCPU;
@@ -440,7 +461,7 @@ protected:
 	     return os;
         }
                    
-        NonlinearSolver& oSolver;
+        const NonlinearSolver& oSolver;
         const CPUTimeType eType;
 	enum StatusType {
 	      SWST_ACTIVE,
@@ -452,14 +473,14 @@ protected:
     };
     
 private:
-	integer iNumCond;
-	doublereal dMaxCond;
-	doublereal dMinCond;
-	doublereal dSumCond;
-        std::chrono::nanoseconds dTimeCPU[CPU_LAST_TYPE];
+	mutable integer iNumCond;
+	mutable doublereal dMaxCond;
+	mutable doublereal dMinCond;
+	mutable doublereal dSumCond;
+        mutable std::chrono::nanoseconds dTimeCPU[CPU_LAST_TYPE];
 
 public:
-	explicit NonlinearSolver(const NonlinearSolverOptions& options);
+	explicit NonlinearSolver(const NonlinearSolverTestOptions& options);
 
 	virtual void SetTest(NonlinearSolverTest *pr, NonlinearSolverTest *ps);
 		
@@ -548,7 +569,7 @@ private:
 };
 
 inline void
-NonlinearSolver::AddCond(doublereal dCond)
+NonlinearSolver::AddCond(doublereal dCond) const
 {
 	iNumCond++;
 	dSumCond += dCond;
@@ -563,7 +584,7 @@ NonlinearSolver::AddCond(doublereal dCond)
 }
 
 inline void
-NonlinearSolver::ResetCond()
+NonlinearSolver::ResetCond() const
 {
     iNumCond = 0;
     dSumCond = 0;
@@ -581,7 +602,7 @@ NonlinearSolver::dGetTimeCPU(CPUTimeType eType) const
 }
 
 inline void
-NonlinearSolver::AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType)
+NonlinearSolver::AddTimeCPU(std::chrono::nanoseconds dTime, CPUTimeType eType) const
 {
 	ASSERT(eType >= 0);
 	ASSERT(eType < CPU_LAST_TYPE);

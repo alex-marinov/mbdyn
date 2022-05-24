@@ -223,7 +223,7 @@ while $\nt{x}_f$, $\nt{y}_f$ are the coordinates of the second point.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{cubic spline}
 
-    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
+    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , [ \kw{bailout} , ] ]
         \bnt{point} ,
         \bnt{point}
         [ , ... ]
@@ -235,14 +235,21 @@ while $\nt{x}_f$, $\nt{y}_f$ are the coordinates of the second point.
 The \kw{end} delimiter is required if the card needs to continue
 (i.e.\ the \hty{ScalarFunction} definition is embedded in a more complex
 statement); it can be omitted if the card ends with a semicolon
-right after the last point.
+right after the last point.\\
+Unless \kw{do not extrapolate} is set, when the input is outside
+the provided values of \nt{x} the value is extrapolated. 
+If \kw{do not extrapolate} is set and \kw{bailout}
+is \emph{not} set then the scalar function returns the value of the nearest point.
+If, instead, \kw{bailout} is set then MBDyn will terminate the simulation.
+
+
 
 \subsubsection{Multilinear Scalar Function}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{multilinear}
 
-    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
+    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , [ \kw{bailout} , ] ]
         \bnt{point} ,
         \bnt{point}
         [ , ... ]
@@ -254,6 +261,9 @@ right after the last point.
 Unless \kw{do not extrapolate} is set, when the input is outside
 the provided values of \nt{x} the value is extrapolated using the slope
 of the nearest point pair.
+If \kw{do not extrapolate} is set and \kw{bailout}
+is \emph{not} set then the scalar function returns the value of the nearest point.
+If, instead, \kw{bailout} is set then MBDyn will terminate the simulation.
 
 \subsubsection{Chebychev Scalar Function}
 %\begin{verbatim}

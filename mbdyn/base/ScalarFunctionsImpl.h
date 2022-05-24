@@ -123,11 +123,13 @@ private:
 	std::vector<doublereal> X_i;
 	std::vector<doublereal> b, c, d;
 	bool doNotExtrapolate;
+	bool bailout;
 public:
 	CubicSplineScalarFunction(
 		const std::vector<doublereal>& y_i,
 		const std::vector<doublereal>& x_i,
-		bool doNotExtrapolate = false);
+		bool doNotExtrapolate = false,
+		bool bailout = false);
 	virtual ~CubicSplineScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
@@ -138,11 +140,13 @@ private:
 	std::vector<doublereal> Y_i;
 	std::vector<doublereal> X_i;
 	bool doNotExtrapolate;
+	bool bailout;
 public:
 	MultiLinearScalarFunction(
 		const std::vector<doublereal>& y_i,
 		const std::vector<doublereal>& x_i,
-		bool doNotExtrapolate = false);
+		bool doNotExtrapolate = false,
+		bool bailout = false);
 	virtual ~MultiLinearScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;

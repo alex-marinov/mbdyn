@@ -49,206 +49,206 @@ static int
 skip_remarks(HighParser& HP, InputStream& In, char &cIn)
 {
 skip_again:;
-	for (cIn = In.get(); isspace(cIn); cIn = In.get()) {
-		// this is here in case in some implementation isspace returns success for EOF
-		if (In.eof()) {
-			return -1;
-		}
-	}
+        for (cIn = In.get(); isspace(cIn); cIn = In.get()) {
+                // this is here in case in some implementation isspace returns success for EOF
+                if (In.eof()) {
+                        return -1;
+                }
+        }
 
-	if (In.eof()) {
-		return -1;
-	}
+        if (In.eof()) {
+                return -1;
+        }
 
-	switch (cIn) {
-	case -1: // should be EOF!
-		return -1;
-	
-	case MathParser::ONE_LINE_REMARK:
-		for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
-			if (cIn == '\\') {
-				cIn = In.get();
-				if (In.eof()) {
-					return -1;
-				}
-				if (cIn == '\r') {
-					/* if input file was prepared
-					 * under DOS/Windows */
-					cIn = In.get();
-					if (In.eof()) {
-						return -1;
-					}
-				}
-			}
-			if (In.eof()) {
-				return -1;
-			}
-		}
-		goto skip_again;
+        switch (cIn) {
+        case -1: // should be EOF!
+                return -1;
 
-	case '/':
-		cIn = In.get();
-		if (In.eof()) {
-			return -1;
+        case MathParser::ONE_LINE_REMARK:
+                for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
+                        if (cIn == '\\') {
+                                cIn = In.get();
+                                if (In.eof()) {
+                                        return -1;
+                                }
+                                if (cIn == '\r') {
+                                        /* if input file was prepared
+                                         * under DOS/Windows */
+                                        cIn = In.get();
+                                        if (In.eof()) {
+                                                return -1;
+                                        }
+                                }
+                        }
+                        if (In.eof()) {
+                                return -1;
+                        }
+                }
+                goto skip_again;
 
-		} else if (cIn == '*') {
-			// ok, it's a comment
-			for (cIn = In.get(); !In.eof(); cIn = In.get()) {
-				if (cIn == '*') {
+        case '/':
+                cIn = In.get();
+                if (In.eof()) {
+                        return -1;
+
+                } else if (cIn == '*') {
+                        // ok, it's a comment
+                        for (cIn = In.get(); !In.eof(); cIn = In.get()) {
+                                if (cIn == '*') {
 end_of_comment:;
-					// there may be more than just one '*'
-					// before the end of a comment...
-					while (cIn == '*') {
-						cIn = In.get();
-						if (In.eof()) {
-							return -1;
-						}
-						if (cIn == '/') {
-							goto skip_again;
-						}
-					}
+                                        // there may be more than just one '*'
+                                        // before the end of a comment...
+                                        while (cIn == '*') {
+                                                cIn = In.get();
+                                                if (In.eof()) {
+                                                        return -1;
+                                                }
+                                                if (cIn == '/') {
+                                                        goto skip_again;
+                                                }
+                                        }
 
-				} else if (cIn == '/') {
-					cIn = In.get();
-					if (In.eof()) {
-						return -1;
-					}
-					if (cIn == '*') {
-						silent_cerr("warning: '/*' inside a comment "
-							"at line " << HP.GetLineData()
-							<< std::endl);
-						goto end_of_comment;
-					}
-				}
-			}
-			if (In.eof()) {
-				return -1;
-			}
+                                } else if (cIn == '/') {
+                                        cIn = In.get();
+                                        if (In.eof()) {
+                                                return -1;
+                                        }
+                                        if (cIn == '*') {
+                                                silent_cerr("warning: '/*' inside a comment "
+                                                        "at line " << HP.GetLineData()
+                                                        << std::endl);
+                                                goto end_of_comment;
+                                        }
+                                }
+                        }
+                        if (In.eof()) {
+                                return -1;
+                        }
 
-		} else {
-			In.putback(cIn);
-			return 0;
-		}
-	}
+                } else {
+                        In.putback(cIn);
+                        return 0;
+                }
+        }
 
-	return 0;
+        return 0;
 }
 
 LowParser::LowParser(HighParser& hp)
 : HP(hp), sCurrWordBuf(0), iBufSize(iDefaultBufSize)
 {
-	SAFENEWARR(sCurrWordBuf, char, iBufSize);
+        SAFENEWARR(sCurrWordBuf, char, iBufSize);
 }
 
 LowParser::~LowParser(void)
 {
-	if (sCurrWordBuf) {
-		SAFEDELETEARR(sCurrWordBuf);
-	}
+        if (sCurrWordBuf) {
+                SAFEDELETEARR(sCurrWordBuf);
+        }
 }
 
 void
 LowParser::PackWords(InputStream& In)
 {
-	unsigned iCur = 0;
-	char cIn;
+        unsigned iCur = 0;
+        char cIn;
 
-	/* note: no remarks allowed inside words */
-	for (cIn = In.get(); !In.eof(); cIn = In.get()) {
-		switch (cIn) {
-		case COLON:
-		case COMMA:
-		case SEMICOLON:
-			goto end_of_word;
+        /* note: no remarks allowed inside words */
+        for (cIn = In.get(); !In.eof(); cIn = In.get()) {
+                switch (cIn) {
+                case COLON:
+                case COMMA:
+                case SEMICOLON:
+                        goto end_of_word;
 
-		default:
-      			if (!isspace(cIn)) {
-				sCurrWordBuf[iCur] = cIn;
-				iCur++;
-				 if (iCur == iBufSize - 1) {
-					 char *s = NULL;
-					 unsigned i = 2*iBufSize;
+                default:
+                        if (!isspace(cIn)) {
+                                sCurrWordBuf[iCur] = cIn;
+                                iCur++;
+                                 if (iCur == iBufSize - 1) {
+                                         char *s = NULL;
+                                         unsigned i = 2*iBufSize;
 
-					 /* FIXME: no limit on max size? */
+                                         /* FIXME: no limit on max size? */
 
-					 SAFENEWARR(s, char, i);
-					 memcpy(s, sCurrWordBuf, iBufSize);
-					 SAFEDELETEARR(sCurrWordBuf);
-					 sCurrWordBuf = s;
-					 iBufSize = i;
-				 }
-			}
-		}
-	}
+                                         SAFENEWARR(s, char, i);
+                                         memcpy(s, sCurrWordBuf, iBufSize);
+                                         SAFEDELETEARR(sCurrWordBuf);
+                                         sCurrWordBuf = s;
+                                         iBufSize = i;
+                                 }
+                        }
+                }
+        }
 
-	throw EndOfFile(MBDYN_EXCEPT_ARGS);
+        throw EndOfFile(MBDYN_EXCEPT_ARGS);
 
 end_of_word:;
 
-	sCurrWordBuf[iCur] = '\0';
-	In.putback(cIn);
+        sCurrWordBuf[iCur] = '\0';
+        In.putback(cIn);
 }
 
 
 LowParser::Token
 LowParser::GetToken(InputStream& In)
 {
-	/* toglie gli spazi iniziali e tutti i commenti */
-	char cIn;
-	if (skip_remarks(HP, In, cIn)) {
-		return CurrToken = LowParser::ENDOFFILE;
-	}
+        /* toglie gli spazi iniziali e tutti i commenti */
+        char cIn;
+        if (skip_remarks(HP, In, cIn)) {
+                return CurrToken = LowParser::ENDOFFILE;
+        }
 
-	if (isalpha(cIn) || cIn == '_') {
-		PackWords(In.putback(cIn));
-		return CurrToken = LowParser::WORD;
-	}
+        if (isalpha(cIn) || cIn == '_') {
+                PackWords(In.putback(cIn));
+                return CurrToken = LowParser::WORD;
+        }
 
-	switch (cIn) {
-	case ',':
-		return CurrToken = LowParser::COMMA;
+        switch (cIn) {
+        case ',':
+                return CurrToken = LowParser::COMMA;
 
-	case ':':
-		return CurrToken = LowParser::COLON;
+        case ':':
+                return CurrToken = LowParser::COLON;
 
-	case ';':
-		return CurrToken = LowParser::SEMICOLON;
+        case ';':
+                return CurrToken = LowParser::SEMICOLON;
 
-	case '.':
-	case '-':
-	case '+':
+        case '.':
+        case '-':
+        case '+':
 is_digit:;
-		In.putback(cIn) >> dCurrNumber;
-		return CurrToken = LowParser::NUMBER;
+                In.putback(cIn) >> dCurrNumber;
+                return CurrToken = LowParser::NUMBER;
 
-	default:
-		if (isdigit(cIn)) {
-			goto is_digit;
-		}
-		In.putback(cIn);
-		return CurrToken = LowParser::UNKNOWN;
-	}
+        default:
+                if (isdigit(cIn)) {
+                        goto is_digit;
+                }
+                In.putback(cIn);
+                return CurrToken = LowParser::UNKNOWN;
+        }
 }
 
 
 doublereal
 LowParser::dGetReal(void) const
 {
-	return dCurrNumber;
+        return dCurrNumber;
 }
 
 
 integer
 LowParser::iGetInt(void) const
 {
-	return integer(dCurrNumber);
+        return integer(dCurrNumber);
 }
 
 
 char*
 LowParser::sGetWord(void)
 {
-	return sCurrWordBuf;
+        return sCurrWordBuf;
 }
 
 /* LowParser - end */
@@ -257,31 +257,41 @@ LowParser::sGetWord(void)
 /* KeyTable - begin */
 
 KeyTable::KeyTable(HighParser& hp, const char* const sTable[])
-: sKeyWords(0), oldKey(0), HP(hp) 
+: sKeyWords(0), oldKey(0), HP(hp)
 {
-	sKeyWords = (char* const*)sTable;
-	oldKey = HP.PutKeyTable(*this);
+        sKeyWords = (char* const*)sTable;
+        oldKey = HP.PutKeyTable(*this);
 }
 
 
 KeyTable::~KeyTable(void)
 {
-	if (oldKey) {
-		(void)HP.PutKeyTable(*oldKey);
-	}
+        if (oldKey) {
+                (void)HP.PutKeyTable(*oldKey);
+        }
 }
 
 
 int
 KeyTable::Find(const char* sToFind) const
 {
-	for (int iCnt = 0; sKeyWords[iCnt]; iCnt++) {
-		if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {
-			return iCnt;
-		}
-	}
+        for (int iCnt = 0; sKeyWords[iCnt]; iCnt++) {
+                if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {
+                        return iCnt;
+                }
+        }
 
-	return -1;
+        return -1;
+}
+
+const char* KeyTable::pGetDescription(integer iIndex) const
+{
+#ifdef DEBUG
+     for (integer i = 0; i < iIndex; ++i) {
+          ASSERT(sKeyWords[i]);
+     }
+#endif
+     return sKeyWords[iIndex];
 }
 
 /* KeyTable - end */
@@ -295,9 +305,9 @@ typedef std::map<std::string, DescRead *, ltstrcase> DescFuncMapType;
 static DescFuncMapType DescFuncMap;
 
 struct DescWordSetType : public HighParser::WordSet {
-	bool IsWord(const std::string& s) const {
-		return DescFuncMap.find(s) != DescFuncMap.end();
-	};
+        bool IsWord(const std::string& s) const {
+                return DescFuncMap.find(s) != DescFuncMap.end();
+        };
 };
 
 static DescWordSetType DescWordSet;
@@ -305,8 +315,8 @@ static DescWordSetType DescWordSet;
 bool
 SetDescData(const std::string& name, DescRead *rf)
 {
-	pedantic_cout("registering description \"" << name << "\"" << std::endl);
-	return DescFuncMap.insert(DescFuncMapType::value_type(name, rf)).second;
+        pedantic_cout("registering description \"" << name << "\"" << std::endl);
+        return DescFuncMap.insert(DescFuncMapType::value_type(name, rf)).second;
 }
 
 /* Reads descriptions */
@@ -314,242 +324,242 @@ SetDescData(const std::string& name, DescRead *rf)
 bool
 ReadDescription(HighParser& HP, const std::string& desc)
 {
-	DEBUGCOUTFNAME("ReadDescription()");
+        DEBUGCOUTFNAME("ReadDescription()");
 
-	bool bRC(false);
-	DescFuncMapType::iterator func = DescFuncMap.find(desc);
-	if (func != DescFuncMap.end()) {
-		HP.GotDescription();
-		if (!HP.IsArg() && !HP.IsDescription()) {
-			silent_cerr("Parser error in ReadDescription(),"
-				" colon or semicolon expected after description at line "
-				<< HP.GetLineData() << std::endl);
-			throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-		}
+        bool bRC(false);
+        DescFuncMapType::iterator func = DescFuncMap.find(desc);
+        if (func != DescFuncMap.end()) {
+                HP.GotDescription();
+                if (!HP.IsArg() && !HP.IsDescription()) {
+                        silent_cerr("Parser error in ReadDescription(),"
+                                " colon or semicolon expected after description at line "
+                                << HP.GetLineData() << std::endl);
+                        throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+                }
 
-		bRC = func->second->Read(HP);
+                bRC = func->second->Read(HP);
 
-		if (HP.IsArg()) {
-			silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
-			throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
-		}
-	}
+                if (HP.IsArg()) {
+                        silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
+                        throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
+                }
+        }
 
-	return bRC;
+        return bRC;
 }
 
 DescRead::~DescRead(void)
 {
-	NO_OP;
+        NO_OP;
 }
 
 struct RemarkDR : public DescRead {
 public:
-	bool Read(HighParser& HP);
+        bool Read(HighParser& HP);
 };
 
 bool
 RemarkDR::Read(HighParser& HP)
 {
-	silent_cout("line " << HP.GetLineData());
+        silent_cout("line " << HP.GetLineData());
 
-	char prefix = ':';
-	while (HP.IsArg()) {
-		TypedValue v;
-		v = HP.GetValue(v);
-		silent_cout(prefix << ' ' << v);
+        char prefix = ':';
+        while (HP.IsArg()) {
+                TypedValue v;
+                v = HP.GetValue(v);
+                silent_cout(prefix << ' ' << v);
 
-		if (prefix == ':') {
-			prefix = ',';
-		}
-	}
+                if (prefix == ':') {
+                        prefix = ',';
+                }
+        }
 
-	silent_cout(std::endl);
+        silent_cout(std::endl);
 
-	return true;
+        return true;
 }
 
 struct PrintSymbolTableDR : public DescRead {
 public:
-	bool Read(HighParser& HP);
+        bool Read(HighParser& HP);
 };
 
 bool
 PrintSymbolTableDR::Read(HighParser& HP)
 {
-	if (!HP.IsArg()) {
-		silent_cout( "math parser symbol table at line "
-			<< HP.GetLineData() << ":" << std::endl
-			<< HP.GetMathParser().GetSymbolTable() << std::endl);
-		return true;
-	}
+        if (!HP.IsArg()) {
+                silent_cout( "math parser symbol table at line "
+                        << HP.GetLineData() << ":" << std::endl
+                        << HP.GetMathParser().GetSymbolTable() << std::endl);
+                return true;
+        }
 
-	if (HP.IsKeyWord("all")) {
-		const MathParser::NameSpaceMap& ns = HP.GetMathParser().GetNameSpaceMap();
-		for (MathParser::NameSpaceMap::const_iterator i = ns.begin(); i != ns.end(); ++i) {
-			const std::string& sName = i->second->sGetName();
-			const Table *pT = i->second->GetTable();
-			if (pT != 0) {
-				silent_cout( "namespace \"" << sName << "\" symbol table at line "
-					<< HP.GetLineData() << ":" << std::endl
-					<< *pT << std::endl);
-			}
-		}
+        if (HP.IsKeyWord("all")) {
+                const MathParser::NameSpaceMap& ns = HP.GetMathParser().GetNameSpaceMap();
+                for (MathParser::NameSpaceMap::const_iterator i = ns.begin(); i != ns.end(); ++i) {
+                        const std::string& sName = i->second->sGetName();
+                        const Table *pT = i->second->GetTable();
+                        if (pT != 0) {
+                                silent_cout( "namespace \"" << sName << "\" symbol table at line "
+                                        << HP.GetLineData() << ":" << std::endl
+                                        << *pT << std::endl);
+                        }
+                }
 
-		return true;
-	}
+                return true;
+        }
 
-	while (HP.IsArg()) {
-		const char *sName = HP.GetString();
-		MathParser::NameSpace *pN = HP.GetMathParser().GetNameSpace(sName);
-		if (pN == 0) {
-			silent_cerr("PrintSymbolTableDR::Read(): warning, unable to find namespace \"" << sName << "\" at line " 
-				<< HP.GetLineData() << std::endl);
+        while (HP.IsArg()) {
+                const char *sName = HP.GetString();
+                MathParser::NameSpace *pN = HP.GetMathParser().GetNameSpace(sName);
+                if (pN == 0) {
+                        silent_cerr("PrintSymbolTableDR::Read(): warning, unable to find namespace \"" << sName << "\" at line "
+                                << HP.GetLineData() << std::endl);
 
-		} else {
-			Table *pT = pN->GetTable();
-			if (pT == 0) {
-				silent_cerr("PrintSymbolTableDR::Read(): warning, namespace \"" << sName << "\" "
-					"has no symbol table at line " << HP.GetLineData() << std::endl);
+                } else {
+                        Table *pT = pN->GetTable();
+                        if (pT == 0) {
+                                silent_cerr("PrintSymbolTableDR::Read(): warning, namespace \"" << sName << "\" "
+                                        "has no symbol table at line " << HP.GetLineData() << std::endl);
 
-			} else {
-				silent_cout( "namespace \"" << sName << "\" symbol table at line "
-					<< HP.GetLineData() << ":" << std::endl
-					<< *pT << std::endl);
-			}
-		}
-	}
+                        } else {
+                                silent_cout( "namespace \"" << sName << "\" symbol table at line "
+                                        << HP.GetLineData() << ":" << std::endl
+                                        << *pT << std::endl);
+                        }
+                }
+        }
 
-	return true;
+        return true;
 }
 
 struct SetDR : public DescRead {
 public:
-	bool Read(HighParser& HP);
+        bool Read(HighParser& HP);
 };
 
 bool
 SetDR::Read(HighParser& HP)
 {
-	if (!HP.IsArg()) {
-     		silent_cerr("Parser error in SetDR::Read(), "
-     			"arg expected at line "
-     			<< HP.GetLineData() << std::endl);
-     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (!HP.IsArg()) {
+                silent_cerr("Parser error in SetDR::Read(), "
+                        "arg expected at line "
+                        << HP.GetLineData() << std::endl);
+                throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	TypedValue v;
-	HP.GetValue(v);
+        TypedValue v;
+        HP.GetValue(v);
 
-	return true;
+        return true;
 }
 
 struct SetEnvDR : public DescRead {
 public:
-	bool Read(HighParser& HP);
+        bool Read(HighParser& HP);
 };
 
 bool
 SetEnvDR::Read(HighParser& HP)
 {
 #ifdef HAVE_SETENV
-	if (!HP.IsArg()) {
-     		silent_cerr("Parser error in SetEnvDR::Read(), "
-     			"arg(s) expected at line "
-     			<< HP.GetLineData() << std::endl);
-     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (!HP.IsArg()) {
+                silent_cerr("Parser error in SetEnvDR::Read(), "
+                        "arg(s) expected at line "
+                        << HP.GetLineData() << std::endl);
+                throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	int overwrite = 0;
-	if (HP.IsKeyWord("overwrite")) {
-		bool b = HP.GetYesNoOrBool();
-		overwrite = b ? 1 : 0;
-	}
+        int overwrite = 0;
+        if (HP.IsKeyWord("overwrite")) {
+                bool b = HP.GetYesNoOrBool();
+                overwrite = b ? 1 : 0;
+        }
 
-	const char *ava = HP.GetStringWithDelims();
-	if (ava == NULL) {
-		silent_cerr("unable to get AVA for \"setenv\" at line "
-				<< HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+        const char *ava = HP.GetStringWithDelims();
+        if (ava == NULL) {
+                silent_cerr("unable to get AVA for \"setenv\" at line "
+                                << HP.GetLineData() << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	char *avasep = std::strchr(const_cast<char *>(ava), '=');
-	if (avasep == NULL) {
+        char *avasep = std::strchr(const_cast<char *>(ava), '=');
+        if (avasep == NULL) {
 #ifdef HAVE_UNSETENV
-		unsetenv(ava);
+                unsetenv(ava);
 #elif defined(HAVE_PUTENV)
-		if (putenv(ava)) {
-			silent_cerr("unable to unset the environment variable "
-					"\"" << ava << "\" at line "
-					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                if (putenv(ava)) {
+                        silent_cerr("unable to unset the environment variable "
+                                        "\"" << ava << "\" at line "
+                                        << HP.GetLineData() << std::endl);
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 #endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
 
-	} else {
-		if (avasep == ava) {
-			silent_cerr("illegal AVA \"" << ava
-					<< "\" at line "
-					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+        } else {
+                if (avasep == ava) {
+                        silent_cerr("illegal AVA \"" << ava
+                                        << "\" at line "
+                                        << HP.GetLineData() << std::endl);
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		avasep[0] = '\0';
-		avasep++;
-		bool bPresent(getenv(ava) != NULL);
-		int rc = setenv(ava, avasep, overwrite);
-		if (rc) {
-			silent_cerr("unable to set the environment variable \""
-					<< ava << "\" to \"" << avasep 
-					<< "\" at line " << HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+                avasep[0] = '\0';
+                avasep++;
+                bool bPresent(getenv(ava) != NULL);
+                int rc = setenv(ava, avasep, overwrite);
+                if (rc) {
+                        silent_cerr("unable to set the environment variable \""
+                                        << ava << "\" to \"" << avasep
+                                        << "\" at line " << HP.GetLineData()
+                                        << std::endl);
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
 
-		if (bPresent && overwrite == 0) {
-			silent_cout("Environment variable \"" << ava
-				<< "\" _not_ overwritten with \"" << avasep
-				<< "\" (current value is \"" << getenv(ava)
-				<< "\") at line " << HP.GetLineData()
-				<< std::endl);
+                if (bPresent && overwrite == 0) {
+                        silent_cout("Environment variable \"" << ava
+                                << "\" _not_ overwritten with \"" << avasep
+                                << "\" (current value is \"" << getenv(ava)
+                                << "\") at line " << HP.GetLineData()
+                                << std::endl);
 
-		} else if (!bPresent) {
-			silent_cout("Environment variable \"" << ava
-				<< "\" set to \"" << avasep
-				<< "\" at line " << HP.GetLineData()
-				<< std::endl);
+                } else if (!bPresent) {
+                        silent_cout("Environment variable \"" << ava
+                                << "\" set to \"" << avasep
+                                << "\" at line " << HP.GetLineData()
+                                << std::endl);
 
-		} else {
-			silent_cout("Environment variable \"" << ava
-				<< "\" overwritten to \"" << avasep
-				<< "\" at line " << HP.GetLineData()
-				<< std::endl);
-		}
-	}
+                } else {
+                        silent_cout("Environment variable \"" << ava
+                                << "\" overwritten to \"" << avasep
+                                << "\" at line " << HP.GetLineData()
+                                << std::endl);
+                }
+        }
 #else // ! HAVE_SETENV
-	silent_cerr("SetEnvDR::Read(): warning, setenv() not available; ignored at line "
-		<< HP.GetLineData() << std::endl);
+        silent_cerr("SetEnvDR::Read(): warning, setenv() not available; ignored at line "
+                << HP.GetLineData() << std::endl);
 #endif // !HAVE_SETENV
-	return true;
+        return true;
 }
 
 struct ExitDR : public DescRead {
 public:
-	bool Read(HighParser& HP);
+        bool Read(HighParser& HP);
 };
 
 bool
 ExitDR::Read(HighParser& HP)
 {
-	if (!HP.IsDescription()) {
-		silent_cerr("Parser error in ExitDR::Read(),"
-			" semicolon expected at line "
-			<< HP.GetLineData() << std::endl);
-		throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (!HP.IsDescription()) {
+                silent_cerr("Parser error in ExitDR::Read(),"
+                        " semicolon expected at line "
+                        << HP.GetLineData() << std::endl);
+                throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	/* exits with no error */
-	throw NoErr(MBDYN_EXCEPT_ARGS);
+        /* exits with no error */
+        throw NoErr(MBDYN_EXCEPT_ARGS);
 }
 
 static unsigned desc_done;
@@ -557,42 +567,42 @@ static unsigned desc_done;
 static void
 InitDescData(void)
 {
-	if (::desc_done++ > 0) {
-		return;
-	}
+        if (::desc_done++ > 0) {
+                return;
+        }
 
-	SetDescData("remark", new RemarkDR);
-	SetDescData("print" "symbol" "table", new PrintSymbolTableDR);
-	SetDescData("set", new SetDR);
-	SetDescData("setenv", new SetEnvDR);
-	SetDescData("exit", new ExitDR);
+        SetDescData("remark", new RemarkDR);
+        SetDescData("print" "symbol" "table", new PrintSymbolTableDR);
+        SetDescData("set", new SetDR);
+        SetDescData("setenv", new SetEnvDR);
+        SetDescData("exit", new ExitDR);
 
-	/* NOTE: add here initialization of new built-in descriptions;
-	 * alternative ways to register new custom descriptions are:
-	 * - call SetDescData() from anywhere in the code
-	 * - write a module that calls SetDescData() from inside a function
-	 *   called module_init(), and run-time load it using "module load"
-	 *   in the input file.
-	 */
+        /* NOTE: add here initialization of new built-in descriptions;
+         * alternative ways to register new custom descriptions are:
+         * - call SetDescData() from anywhere in the code
+         * - write a module that calls SetDescData() from inside a function
+         *   called module_init(), and run-time load it using "module load"
+         *   in the input file.
+         */
 }
 
 static void
 DestroyDescData(void)
 {
-	if (::desc_done == 0) {
-		silent_cerr("DestroyDescData() called once too many" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+        if (::desc_done == 0) {
+                silent_cerr("DestroyDescData() called once too many" << std::endl);
+                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
 
-	if (--::desc_done > 0) {
-		return;
-	}
+        if (--::desc_done > 0) {
+                return;
+        }
 
-	/* free stuff */
-	for (DescFuncMapType::iterator i = DescFuncMap.begin(); i != DescFuncMap.end(); ++i) {
-		delete i->second;
-	}
-	DescFuncMap.clear();
+        /* free stuff */
+        for (DescFuncMapType::iterator i = DescFuncMap.begin(); i != DescFuncMap.end(); ++i) {
+                delete i->second;
+        }
+        DescFuncMap.clear();
 }
 
 /* DescRead - end */
@@ -607,21 +617,21 @@ static const HighParser::ErrOut unknownErr = { "(unknown)", "(unknown)", 0 };
 HighParser::ErrOut
 mbdyn_get_line_data(void)
 {
-	if (!pHP.empty()) {
-		return pHP.top()->GetLineData();
-	}
+        if (!pHP.empty()) {
+                return pHP.top()->GetLineData();
+        }
 
-	return unknownErr;
+        return unknownErr;
 }
 
 std::ostream&
 mbdyn_print_line_data(std::ostream& out)
 {
-	if (!pHP.empty()) {
-		out << pHP.top()->GetLineData();
-	}
+        if (!pHP.empty()) {
+                out << pHP.top()->GetLineData();
+        }
 
-	return out;
+        return out;
 }
 
 HighParser::HighParser(MathParser& MP, InputStream& streamIn)
@@ -632,391 +642,391 @@ pf(NULL),
 MathP(MP),
 KeyT(0)
 {
-	DEBUGCOUTFNAME("HighParser::HighParser");
-	CurrToken = HighParser::DESCRIPTION;
+        DEBUGCOUTFNAME("HighParser::HighParser");
+        CurrToken = HighParser::DESCRIPTION;
 
-	InitDescData();
+        InitDescData();
 
-	pHP.push(this);
+        pHP.push(this);
 }
 
 
 HighParser::~HighParser(void)
 {
-	DEBUGCOUTFNAME("HighParser::~HighParser");
-	Close();
-	ASSERT(pHP.top() == this);
-	pHP.pop();
+        DEBUGCOUTFNAME("HighParser::~HighParser");
+        Close();
+        ASSERT(pHP.top() == this);
+        pHP.pop();
 
-	DestroyDescData();
+        DestroyDescData();
 }
 
 
 void
 HighParser::Close(void)
 {
-	NO_OP;
+        NO_OP;
 }
 
 
 const KeyTable*
 HighParser::PutKeyTable(const KeyTable& KT)
 {
-	const KeyTable* oldKey = KeyT;
+        const KeyTable* oldKey = KeyT;
 
-	KeyT = &KT;
+        KeyT = &KT;
 
-	return oldKey;
+        return oldKey;
 }
 
 MathParser&
 HighParser::GetMathParser(void)
 {
-	return MathP;
+        return MathP;
 }
 
 int
 HighParser::GetLineNumber(void) const
 {
-	return const_cast<InputStream *>(pIn)->GetLineNumber();
+        return const_cast<InputStream *>(pIn)->GetLineNumber();
 }
 
 
 HighParser::ErrOut
 HighParser::GetLineData(void) const
 {
-	ErrOut LineData;
-	LineData.iLineNumber = GetLineNumber();
-	LineData.sFileName = NULL;
-	LineData.sPathName = NULL;
-	return LineData;
+        ErrOut LineData;
+        LineData.iLineNumber = GetLineNumber();
+        LineData.sFileName = NULL;
+        LineData.sPathName = NULL;
+        return LineData;
 }
 
 
 bool
 HighParser::IsDescription(void) const
 {
-     	return (CurrToken == HighParser::DESCRIPTION);
+        return (CurrToken == HighParser::DESCRIPTION);
 }
 
 HighParser::Token
 HighParser::GotDescription(void)
 {
-	return FirstToken();
+        return FirstToken();
 }
 
 int
 HighParser::iGetDescription_int(const char* const s)
 {
-	int i = -1;
-	
-	if (KeyT) {
-		i = KeyT->Find(s);
-	}
+        int i = -1;
 
-     	if (FirstToken() == HighParser::UNKNOWN) {
-		silent_cerr("Parser error in HighParser::iGetDescription_int(), "
-			"semicolon expected at line "
-			<< GetLineData() << std::endl);
-	  	throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
-     	}
+        if (KeyT) {
+                i = KeyT->Find(s);
+        }
 
-     	return i;
+        if (FirstToken() == HighParser::UNKNOWN) {
+                silent_cerr("Parser error in HighParser::iGetDescription_int(), "
+                        "semicolon expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
+        }
+
+        return i;
 }
 
 
 void
 HighParser::Eof(void)
 {
-	 throw EndOfFile(MBDYN_EXCEPT_ARGS);
+         throw EndOfFile(MBDYN_EXCEPT_ARGS);
 }
 
 int
 HighParser::GetDescription(void)
 {
-	/* Checks if current token is a description */
-	if (!IsDescription()) {
-		silent_cerr("Parser error in HighParser::GetDescription, "
-			"invalid call to GetDescription at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrInvalidCallToGetDescription(MBDYN_EXCEPT_ARGS);
-	}
+        /* Checks if current token is a description */
+        if (!IsDescription()) {
+                silent_cerr("Parser error in HighParser::GetDescription, "
+                        "invalid call to GetDescription at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrInvalidCallToGetDescription(MBDYN_EXCEPT_ARGS);
+        }
 
 restart_parsing:;
 
-	CurrLowToken = LowP.GetToken(*pIn);
-	if (CurrLowToken != LowParser::WORD) {
-		if (pIn->eof()) {
-			Eof();
-			goto restart_parsing;
-		}
-		
-		silent_cerr("Parser error in HighParser::GetDescription, "
-			<< "keyword expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
-	}
+        CurrLowToken = LowP.GetToken(*pIn);
+        if (CurrLowToken != LowParser::WORD) {
+                if (pIn->eof()) {
+                        Eof();
+                        goto restart_parsing;
+                }
 
-	/* Description corrente */
-	char* s = LowP.sGetWord();
+                silent_cerr("Parser error in HighParser::GetDescription, "
+                        << "keyword expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
+        }
 
- 	if (ReadDescription(*this, s)) {
-		goto restart_parsing;
-	}
+        /* Description corrente */
+        char* s = LowP.sGetWord();
 
-	return iGetDescription_int(s);
+        if (ReadDescription(*this, s)) {
+                goto restart_parsing;
+        }
+
+        return iGetDescription_int(s);
 }
 
 
 HighParser::Token
 HighParser::FirstToken(void)
 {
-	CurrLowToken = LowP.GetToken(*pIn);
+        CurrLowToken = LowP.GetToken(*pIn);
 
-	switch (CurrLowToken) {
-	case LowParser::COLON:
-		CurrToken = HighParser::ARG;
-		break;
+        switch (CurrLowToken) {
+        case LowParser::COLON:
+                CurrToken = HighParser::ARG;
+                break;
 
-	case LowParser::SEMICOLON:
-		CurrToken = HighParser::DESCRIPTION;
-		break;
+        case LowParser::SEMICOLON:
+                CurrToken = HighParser::DESCRIPTION;
+                break;
 
-	default:
-		CurrToken = HighParser::UNKNOWN;
-		break;
-	}
+        default:
+                CurrToken = HighParser::UNKNOWN;
+                break;
+        }
 
-	return CurrToken;
+        return CurrToken;
 }
 
 void
 HighParser::ExpectDescription(void)
 {
-	/* forces the next expected token to be a "description"
-	 * e.g. a keyword followed by a colon (deprecated) */
-	CurrToken = HighParser::DESCRIPTION;
+        /* forces the next expected token to be a "description"
+         * e.g. a keyword followed by a colon (deprecated) */
+        CurrToken = HighParser::DESCRIPTION;
 }
 
 
 void
 HighParser::ExpectArg(void)
 {
-	/* forces the next expected token to be an argument
-	 * e.g. a keyword followed by a separator (deprecated) */
-	CurrToken = HighParser::ARG;
+        /* forces the next expected token to be an argument
+         * e.g. a keyword followed by a separator (deprecated) */
+        CurrToken = HighParser::ARG;
 }
 
 
 bool
 HighParser::IsArg(void)
 {
-	return (CurrToken == ARG);
+        return (CurrToken == ARG);
 }
 
 void
 HighParser::PutBackSemicolon(void)
 {
-	if (CurrLowToken == LowParser::SEMICOLON) {
-		pIn->putback(';');
-	}
+        if (CurrLowToken == LowParser::SEMICOLON) {
+                pIn->putback(';');
+        }
 }
 
 
 void
 HighParser::NextToken(const char* sFuncName)
 {
-	CurrLowToken = LowP.GetToken(*pIn);
-	switch (CurrLowToken) {
-	case LowParser::COMMA:
-		CurrToken = HighParser::ARG;
-		break;
+        CurrLowToken = LowP.GetToken(*pIn);
+        switch (CurrLowToken) {
+        case LowParser::COMMA:
+                CurrToken = HighParser::ARG;
+                break;
 
-	case LowParser::SEMICOLON:
-		CurrToken = HighParser::DESCRIPTION;
-		break;
+        case LowParser::SEMICOLON:
+                CurrToken = HighParser::DESCRIPTION;
+                break;
 
-	default:
-		silent_cerr("Parser error in "
-			<< sFuncName << ", missing separator at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrMissingSeparator(MBDYN_EXCEPT_ARGS);
-	}
+        default:
+                silent_cerr("Parser error in "
+                        << sFuncName << ", missing separator at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrMissingSeparator(MBDYN_EXCEPT_ARGS);
+        }
 }
 
 int
 HighParser::ParseWord(unsigned flags)
 {
-	char* sBuf = sStringBuf;
-	char* sBufWithSpaces = sStringBufWithSpaces;
+        char* sBuf = sStringBuf;
+        char* sBufWithSpaces = sStringBufWithSpaces;
 
-	char cIn;
-	if (skip_remarks(*this, *pIn, cIn)) {
-		return CurrToken = HighParser::ENDOFFILE;
-	}
+        char cIn;
+        if (skip_remarks(*this, *pIn, cIn)) {
+                return CurrToken = HighParser::ENDOFFILE;
+        }
 
-	if (!isalpha(cIn) && cIn != '_') {
-		pIn->putback(cIn);
-		return -1;
-	}
+        if (!isalpha(cIn) && cIn != '_') {
+                pIn->putback(cIn);
+                return -1;
+        }
 
-	*sBufWithSpaces++ = cIn;
+        *sBufWithSpaces++ = cIn;
 
-	if (flags & LOWER) {
-		*sBuf++ = tolower(cIn);
+        if (flags & LOWER) {
+                *sBuf++ = tolower(cIn);
 
-	} else if (flags & UPPER) {
-		*sBuf++ = toupper(cIn);
+        } else if (flags & UPPER) {
+                *sBuf++ = toupper(cIn);
 
-	} else {
-		*sBuf++ = cIn;
-	}
+        } else {
+                *sBuf++ = cIn;
+        }
 
-	for (cIn = pIn->get(); isalnum(cIn) || cIn == '_' || isspace(cIn); cIn = pIn->get()) {
-		*sBufWithSpaces++ = cIn;
-		if (sBufWithSpaces >= sStringBufWithSpaces + iDefaultBufSize - 1) {
-			break;
-		}
+        for (cIn = pIn->get(); isalnum(cIn) || cIn == '_' || isspace(cIn); cIn = pIn->get()) {
+                *sBufWithSpaces++ = cIn;
+                if (sBufWithSpaces >= sStringBufWithSpaces + iDefaultBufSize - 1) {
+                        break;
+                }
 
-		if (isspace(cIn)) {
-			continue;
-		}
-		
-		if (flags & LOWER) {
-			*sBuf++ = tolower(cIn);
+                if (isspace(cIn)) {
+                        continue;
+                }
 
-		} else if (flags & UPPER) {
-			*sBuf++ = toupper(cIn);
+                if (flags & LOWER) {
+                        *sBuf++ = tolower(cIn);
 
-		} else {
-			*sBuf++ = cIn;
-		}
-	}
-	pIn->putback(cIn);
+                } else if (flags & UPPER) {
+                        *sBuf++ = toupper(cIn);
 
-	*sBuf = '\0';
-	*sBufWithSpaces = '\0';
+                } else {
+                        *sBuf++ = cIn;
+                }
+        }
+        pIn->putback(cIn);
 
-	return 0;
+        *sBuf = '\0';
+        *sBufWithSpaces = '\0';
+
+        return 0;
 }
 
 void
 HighParser::PutbackWord(void)
 {
-	char* sBufWithSpaces = sStringBufWithSpaces + strlen(sStringBufWithSpaces);
+        char* sBufWithSpaces = sStringBufWithSpaces + strlen(sStringBufWithSpaces);
 
-   
-	while (sBufWithSpaces > sStringBufWithSpaces) {
-		pIn->putback(*--sBufWithSpaces);
-	}
+
+        while (sBufWithSpaces > sStringBufWithSpaces) {
+                pIn->putback(*--sBufWithSpaces);
+        }
 }
 
 bool
 HighParser::IsKeyWord(const char* sKeyWord)
 {
-	const char sFuncName[] = "HighParser::IsKeyWord()";
+        const char sFuncName[] = "HighParser::IsKeyWord()";
 
-	if (CurrToken != HighParser::ARG) {
-		return false;
-	}
+        if (CurrToken != HighParser::ARG) {
+                return false;
+        }
 
-	switch (ParseWord()) {
-	case 0:
-		break;
+        switch (ParseWord()) {
+        case 0:
+                break;
 
-	case HighParser::ENDOFFILE:
-		return true;
+        case HighParser::ENDOFFILE:
+                return true;
 
-	default:
-		return false;
-	}
+        default:
+                return false;
+        }
 
-	if (!strcasecmp(sStringBuf, sKeyWord)) {
-		NextToken(sFuncName);
-		return true;
-	}
+        if (!strcasecmp(sStringBuf, sKeyWord)) {
+                NextToken(sFuncName);
+                return true;
+        }
 
-	PutbackWord();
+        PutbackWord();
 
-	return false;
+        return false;
 }
 
 int
 HighParser::IsKeyWord(void)
 {
-	const char sFuncName[] = "HighParser::IsKeyWord()";
+        const char sFuncName[] = "HighParser::IsKeyWord()";
 
-	if (CurrToken != HighParser::ARG) {
-		return -1;
-	}
+        if (CurrToken != HighParser::ARG) {
+                return -1;
+        }
 
-	switch (ParseWord()) {
-	case 0:
-		break;
+        switch (ParseWord()) {
+        case 0:
+                break;
 
-	case HighParser::ENDOFFILE:
-		return HighParser::ENDOFFILE;
+        case HighParser::ENDOFFILE:
+                return HighParser::ENDOFFILE;
 
-	default:
-		return -1;
-	}
+        default:
+                return -1;
+        }
 
-	int iKW = -1;
+        int iKW = -1;
 
-	if (KeyT) {
-		iKW = KeyT->Find(sStringBuf);
-	}
-   
-	if (iKW >= 0) {
-		NextToken(sFuncName);
-		return iKW;
-	}
+        if (KeyT) {
+                iKW = KeyT->Find(sStringBuf);
+        }
 
-	PutbackWord();
+        if (iKW >= 0) {
+                NextToken(sFuncName);
+                return iKW;
+        }
 
-	return -1;
+        PutbackWord();
+
+        return -1;
 }
 
 /* 1 se l'argomento successivo e' una parola in un WordSet */
 const char *
 HighParser::IsWord(const HighParser::WordSet& ws)
 {
-	const char sFuncName[] = "HighParser::IsWord()";
+        const char sFuncName[] = "HighParser::IsWord()";
 
-	if (CurrToken != HighParser::ARG) {
-		return 0;
-	}
+        if (CurrToken != HighParser::ARG) {
+                return 0;
+        }
 
-	switch (ParseWord()) {
-	case 0:
-		break;
+        switch (ParseWord()) {
+        case 0:
+                break;
 
-	default:
-		return 0;
-	}
+        default:
+                return 0;
+        }
 
-	if (ws.IsWord(std::string(sStringBuf))) {
-		NextToken(sFuncName);
-		return sStringBuf;
-	}
+        if (ws.IsWord(std::string(sStringBuf))) {
+                NextToken(sFuncName);
+                return sStringBuf;
+        }
 
-	PutbackWord();
+        PutbackWord();
 
-	return 0;
+        return 0;
 }
 
 TypedValue
 HighParser::GetValue(const TypedValue& vDefVal)
 {
-	return GetValue<range_any<TypedValue> >(vDefVal, range_any<TypedValue>());
+        return GetValue<range_any<TypedValue> >(vDefVal, range_any<TypedValue>());
 }
 
 bool
 HighParser::GetBool(bool bDefVal)
 {
-	TypedValue v(bDefVal);
-	v = GetValue(v);
-	return v.GetBool();
+        TypedValue v(bDefVal);
+        v = GetValue(v);
+        return v.GetBool();
 }
 
 /*
@@ -1026,364 +1036,364 @@ HighParser::GetBool(bool bDefVal)
 bool
 HighParser::GetYesNo(bool& bRet)
 {
-	if (IsKeyWord("yes")) {
-		bRet = true;
+        if (IsKeyWord("yes")) {
+                bRet = true;
 
-	} else if (IsKeyWord("no")) {
-		bRet = false;
+        } else if (IsKeyWord("no")) {
+                bRet = false;
 
-	} else {
-		return false;
-	}
+        } else {
+                return false;
+        }
 
-	return true;
+        return true;
 }
 
 bool
 HighParser::GetYesNoOrBool(bool bDefval)
 {
-	bool bRet;
+        bool bRet;
 
-	if (!GetYesNo(bRet)) {
-		bRet = GetBool(bDefval);
-	}
+        if (!GetYesNo(bRet)) {
+                bRet = GetBool(bDefval);
+        }
 
-	return bRet;
+        return bRet;
 }
 
 integer
 HighParser::GetInt(integer iDefVal)
 {
-	return GetInt<range_any<integer> >(iDefVal, range_any<integer>());
+        return GetInt<range_any<integer> >(iDefVal, range_any<integer>());
 }
 
 doublereal
 HighParser::GetReal(const doublereal& dDefVal)
 {
-	return GetReal<range_any<doublereal> >(dDefVal, range_any<doublereal>());
+        return GetReal<range_any<doublereal> >(dDefVal, range_any<doublereal>());
 }
 
 mbsleep_t
 HighParser::GetTimeout(const mbsleep_t& DefVal)
 {
-	doublereal d;
-	mbsleep_sleep2real(&DefVal, &d);
-	TypedValue v(d);
-	v = GetValue(v);
-	mbsleep_t newval;
-	mbsleep_real2sleep(v.GetReal(), &newval);
-	return newval;
+        doublereal d;
+        mbsleep_sleep2real(&DefVal, &d);
+        TypedValue v(d);
+        v = GetValue(v);
+        mbsleep_t newval;
+        mbsleep_real2sleep(v.GetReal(), &newval);
+        return newval;
 }
 
 std::string
 HighParser::GetString(const std::string& sDefVal)
 {
-	TypedValue v(sDefVal);
-	v = GetValue(v);
-	return v.GetString();
+        TypedValue v(sDefVal);
+        v = GetValue(v);
+        return v.GetString();
 }
 
 
 int
 HighParser::GetWord(void)
 {
-	const char sFuncName[] = "HighParser::GetWord()";
+        const char sFuncName[] = "HighParser::GetWord()";
 
-	if (CurrToken != HighParser::ARG) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", keyword arg expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (CurrToken != HighParser::ARG) {
+                silent_cerr("Parser error in "
+                        << sFuncName << ", keyword arg expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	CurrLowToken = LowP.GetToken(*pIn);
-	if (CurrLowToken != LowParser::WORD) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", keyword expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
-	}
+        CurrLowToken = LowP.GetToken(*pIn);
+        if (CurrLowToken != LowParser::WORD) {
+                silent_cerr("Parser error in "
+                        << sFuncName << ", keyword expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrKeyWordExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	int i = -1;
-	if (KeyT) {
-		i = KeyT->Find(LowP.sGetWord());
-	}
+        int i = -1;
+        if (KeyT) {
+                i = KeyT->Find(LowP.sGetWord());
+        }
 
-	NextToken(sFuncName);
+        NextToken(sFuncName);
 
-	return i;
+        return i;
 }
 
 const char*
 HighParser::GetString(unsigned flags)
 {
-	const char sFuncName[] = "HighParser::GetString()";
+        const char sFuncName[] = "HighParser::GetString()";
 
-	pedantic_cout("use of deprecated method \"GetString\" at line"
-		<< GetLineData() << std::endl);
+        pedantic_cout("use of deprecated method \"GetString\" at line"
+                << GetLineData() << std::endl);
 
-	if (CurrToken != HighParser::ARG) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", string arg expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrStringExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (CurrToken != HighParser::ARG) {
+                silent_cerr("Parser error in "
+                        << sFuncName << ", string arg expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrStringExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	char* s = sStringBuf;
-	char* sTmp = s;
+        char* s = sStringBuf;
+        char* sTmp = s;
 
-	char cIn = '\0';
+        char cIn = '\0';
 
-	while (isspace(cIn = pIn->get())) {
-		NO_OP;
-	}
+        while (isspace(cIn = pIn->get())) {
+                NO_OP;
+        }
 
-	if (pIn->eof()) {
-		CurrToken = HighParser::ENDOFFILE;
-		return NULL;
-	}
+        if (pIn->eof()) {
+                CurrToken = HighParser::ENDOFFILE;
+                return NULL;
+        }
 
-	pIn->putback(cIn);
-	for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
-		/* Attenzione! cosi' la legge tutta,
-		 * ma ne tiene solo iBufSize-1 caratteri */
-		if (pIn->eof()) {
-			CurrToken = HighParser::ENDOFFILE;
-			*sTmp = '\0';
-			return s;
+        pIn->putback(cIn);
+        for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
+                /* Attenzione! cosi' la legge tutta,
+                 * ma ne tiene solo iBufSize-1 caratteri */
+                if (pIn->eof()) {
+                        CurrToken = HighParser::ENDOFFILE;
+                        *sTmp = '\0';
+                        return s;
 
-		} else if (sTmp < s + iDefaultBufSize - 1) {
-			if (!(flags & HighParser::EATSPACES) || !isspace(cIn)) {
-				if (flags & HighParser::LOWER) {
-					cIn = tolower(cIn);
+                } else if (sTmp < s + iDefaultBufSize - 1) {
+                        if (!(flags & HighParser::EATSPACES) || !isspace(cIn)) {
+                                if (flags & HighParser::LOWER) {
+                                        cIn = tolower(cIn);
 
-				} else if (flags & HighParser::UPPER) {
-					cIn = toupper(cIn);
-				}
+                                } else if (flags & HighParser::UPPER) {
+                                        cIn = toupper(cIn);
+                                }
 
-				*sTmp++ = cIn;
-			}
-		}
-	}
+                                *sTmp++ = cIn;
+                        }
+                }
+        }
 
-	pIn->putback(cIn);
-	*sTmp = '\0';
+        pIn->putback(cIn);
+        *sTmp = '\0';
 
-	NextToken(sFuncName);
+        NextToken(sFuncName);
 
-	return s;
+        return s;
 }
 
 void
 HighParser::SetDelims(enum Delims Del, char &cLdelim, char &cRdelim) const
 {
-	cLdelim = '\0';
-	cRdelim = '\0';
+        cLdelim = '\0';
+        cRdelim = '\0';
 
-	switch (Del) {
-	case PLAINBRACKETS:
-		cLdelim = '(';
-		cRdelim = ')';
-		break;
+        switch (Del) {
+        case PLAINBRACKETS:
+                cLdelim = '(';
+                cRdelim = ')';
+                break;
 
-	case SQUAREBRACKETS:
-		cLdelim = '[';
-		cRdelim = ']';
-		break;
+        case SQUAREBRACKETS:
+                cLdelim = '[';
+                cRdelim = ']';
+                break;
 
-	case CURLYBRACKETS:
-		cLdelim = '{';
-		cRdelim = '}';
-		break;
+        case CURLYBRACKETS:
+                cLdelim = '{';
+                cRdelim = '}';
+                break;
 
-	case SINGLEQUOTE:
-		cLdelim = '`';
-		cRdelim = '\'';
-		break;
+        case SINGLEQUOTE:
+                cLdelim = '`';
+                cRdelim = '\'';
+                break;
 
-	default:
-	case UNKNOWNDELIM:
-	case DEFAULTDELIM:
-	case DOUBLEQUOTE:
-		cLdelim = '"';
-		cRdelim = '"';
-		break;
-	}
+        default:
+        case UNKNOWNDELIM:
+        case DEFAULTDELIM:
+        case DOUBLEQUOTE:
+                cLdelim = '"';
+                cRdelim = '"';
+                break;
+        }
 }
 
 bool
 HighParser::IsStringWithDelims(enum Delims Del)
 {
-	char cLdelim, cRdelim;
-	SetDelims(Del, cLdelim, cRdelim);
+        char cLdelim, cRdelim;
+        SetDelims(Del, cLdelim, cRdelim);
 
-	char cIn;
-	if (skip_remarks(*this, *pIn, cIn)) {
-		return false;
-	}
+        char cIn;
+        if (skip_remarks(*this, *pIn, cIn)) {
+                return false;
+        }
 
-	/* put back the first non-remark char */
-	pIn->putback(cIn);
+        /* put back the first non-remark char */
+        pIn->putback(cIn);
 
-	/* if the left delimiter is found, true */
-	return (cIn == cLdelim);
+        /* if the left delimiter is found, true */
+        return (cIn == cLdelim);
 }
 
 const char*
 HighParser::GetStringWithDelims(enum Delims Del, bool escape)
 {
-	const char sFuncName[] = "HighParser::GetStringWithDelims()";
+        const char sFuncName[] = "HighParser::GetStringWithDelims()";
 
-	if (CurrToken != HighParser::ARG) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", string arg expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrStringExpected(MBDYN_EXCEPT_ARGS);
-	}
+        if (CurrToken != HighParser::ARG) {
+                silent_cerr("Parser error in "
+                        << sFuncName << ", string arg expected at line "
+                        << GetLineData() << std::endl);
+                throw HighParser::ErrStringExpected(MBDYN_EXCEPT_ARGS);
+        }
 
-	char* s = sStringBuf;
-	char* sTmp = s;
+        char* s = sStringBuf;
+        char* sTmp = s;
 
-	char cLdelim, cRdelim;
-	SetDelims(Del, cLdelim, cRdelim);
+        char cLdelim, cRdelim;
+        SetDelims(Del, cLdelim, cRdelim);
 
-	char cIn;
-	if (skip_remarks(*this, *pIn, cIn)) {
-		return NULL;
-	}
+        char cIn;
+        if (skip_remarks(*this, *pIn, cIn)) {
+                return NULL;
+        }
 
-	/* Se trova il delimitatore sinistro, legge la stringa */
-	if (cIn == cLdelim) {
-		for (cIn = pIn->get(); cIn != cRdelim; cIn = pIn->get()) {
-			/* Attenzione! cosi' la legge tutta,
-			 * ma ne tiene solo iBufSize-1 caratteri */
-			if (pIn->eof()) {
-				/* FIXME: this should be an error ... */
-				sTmp[0] = '\0';
-				return s;
+        /* Se trova il delimitatore sinistro, legge la stringa */
+        if (cIn == cLdelim) {
+                for (cIn = pIn->get(); cIn != cRdelim; cIn = pIn->get()) {
+                        /* Attenzione! cosi' la legge tutta,
+                         * ma ne tiene solo iBufSize-1 caratteri */
+                        if (pIn->eof()) {
+                                /* FIXME: this should be an error ... */
+                                sTmp[0] = '\0';
+                                return s;
 
-			} else if (sTmp < s + iDefaultBufSize - 1) {
-				if (cIn == ESCAPE_CHAR) {
-					cIn = pIn->get();
-					if (cIn == '\n') {
+                        } else if (sTmp < s + iDefaultBufSize - 1) {
+                                if (cIn == ESCAPE_CHAR) {
+                                        cIn = pIn->get();
+                                        if (cIn == '\n') {
 
-						/*
-						 * eat the newline as well, so that
+                                                /*
+                                                 * eat the newline as well, so that
 
-							"first line\
-							second line"
+                                                        "first line\
+                                                        second line"
 
-						 * actually results in "first linesecond line"
-						 */
+                                                 * actually results in "first linesecond line"
+                                                 */
 
-						cIn = pIn->get();
+                                                cIn = pIn->get();
 
-					} else if (cIn == '\r') {
-						cIn = pIn->get();
-						if (cIn != '\n') {
-							pIn->putback(cIn);
-							goto escaped_generic;
-						}
-						cIn = pIn->get();
+                                        } else if (cIn == '\r') {
+                                                cIn = pIn->get();
+                                                if (cIn != '\n') {
+                                                        pIn->putback(cIn);
+                                                        goto escaped_generic;
+                                                }
+                                                cIn = pIn->get();
 
-					} else if ((cIn == ESCAPE_CHAR) || (cIn == cRdelim)) {
-						if (!escape) {
-							sTmp[0] = ESCAPE_CHAR;
-							++sTmp;
-						}
+                                        } else if ((cIn == ESCAPE_CHAR) || (cIn == cRdelim)) {
+                                                if (!escape) {
+                                                        sTmp[0] = ESCAPE_CHAR;
+                                                        ++sTmp;
+                                                }
 
-					} else {
+                                        } else {
 escaped_generic:;
-						if (escape) {
-							int i, c = 0;
-							char hex[3];
+                                                if (escape) {
+                                                        int i, c = 0;
+                                                        char hex[3];
 
-							/*
-							 * allow non-printable chars in the form "\<hexpair>",
-							 * so that "\78" is equivalent to "x";
-							 * "\<non-hexpair>" is treated as an error.
-							 */
+                                                        /*
+                                                         * allow non-printable chars in the form "\<hexpair>",
+                                                         * so that "\78" is equivalent to "x";
+                                                         * "\<non-hexpair>" is treated as an error.
+                                                         */
 
-							hex[0] = cIn;
-							hex[1] = pIn->get();
-							hex[2] = '\0';
+                                                        hex[0] = cIn;
+                                                        hex[1] = pIn->get();
+                                                        hex[2] = '\0';
 
-							for (i = 0; i < 2; i++) {
-								int shift = 4*(1 - i), h = 0;
+                                                        for (i = 0; i < 2; i++) {
+                                                                int shift = 4*(1 - i), h = 0;
 
-								/* NOTE: this conversion relies
-								 * on 0-9, a-f, A-F being consecutive,
-								 * which is true for ASCII, but might
-								 * not be for other encodings;
-								 * bah, not critical right now */
-								if (hex[i] >= '0' && hex[i]  <= '9') {
-									h = hex[i] - '0';
-								} else if (hex[i] >= 'a' && hex[i] <= 'f') {
-									h = hex[i] - 'a';
-								} else if (hex[i] >= 'A' && hex[i] <= 'F') {
-									h = hex[i] - 'A';
-								} else {
-									silent_cerr("invalid escape sequence "
-										"\"\\" << hex << "\" "
-										"at line " << GetLineData()
-										<< std::endl);
-									throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-								}
+                                                                /* NOTE: this conversion relies
+                                                                 * on 0-9, a-f, A-F being consecutive,
+                                                                 * which is true for ASCII, but might
+                                                                 * not be for other encodings;
+                                                                 * bah, not critical right now */
+                                                                if (hex[i] >= '0' && hex[i]  <= '9') {
+                                                                        h = hex[i] - '0';
+                                                                } else if (hex[i] >= 'a' && hex[i] <= 'f') {
+                                                                        h = hex[i] - 'a';
+                                                                } else if (hex[i] >= 'A' && hex[i] <= 'F') {
+                                                                        h = hex[i] - 'A';
+                                                                } else {
+                                                                        silent_cerr("invalid escape sequence "
+                                                                                "\"\\" << hex << "\" "
+                                                                                "at line " << GetLineData()
+                                                                                << std::endl);
+                                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                                }
 
-								c += (h << shift);
-							}
-							cIn = c;
+                                                                c += (h << shift);
+                                                        }
+                                                        cIn = c;
 
-						} else {
-							sTmp[0] = ESCAPE_CHAR;
-							++sTmp;
-						}
-					}
-				}
-				sTmp[0] = cIn;
-				++sTmp;
-			}
-		}
+                                                } else {
+                                                        sTmp[0] = ESCAPE_CHAR;
+                                                        ++sTmp;
+                                                }
+                                        }
+                                }
+                                sTmp[0] = cIn;
+                                ++sTmp;
+                        }
+                }
 
-		/* Se trova una virgola o un punto e virgola, le rimette nello stream
-		 * e passa oltre, restituendo un puntatore nullo. Il chiamante deve
-		 * occuparsi della gestione del valore di default */
-	} else if (cIn == ',' || cIn == ';') {
-		pIn->putback(cIn);
-		goto nullstring;
+                /* Se trova una virgola o un punto e virgola, le rimette nello stream
+                 * e passa oltre, restituendo un puntatore nullo. Il chiamante deve
+                 * occuparsi della gestione del valore di default */
+        } else if (cIn == ',' || cIn == ';') {
+                pIn->putback(cIn);
+                goto nullstring;
 
-		/* Altrimenti c'e' qualcosa senza delimitatore. Adesso da' errore,
-		 * forse e' piu' corretto fargli ritornare lo stream intatto */
-	} else {
-		silent_cerr("Parser error in "
-			<< sFuncName << std::endl
-			<< "first non-blank char at line "
-			<< GetLineData() << " isn't a valid left-delimiter"
-			<< std::endl);
-		throw HighParser::ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS);
-	}
+                /* Altrimenti c'e' qualcosa senza delimitatore. Adesso da' errore,
+                 * forse e' piu' corretto fargli ritornare lo stream intatto */
+        } else {
+                silent_cerr("Parser error in "
+                        << sFuncName << std::endl
+                        << "first non-blank char at line "
+                        << GetLineData() << " isn't a valid left-delimiter"
+                        << std::endl);
+                throw HighParser::ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS);
+        }
 
-	/* Mette zero al termine della stringa */
-	*sTmp = '\0';
+        /* Mette zero al termine della stringa */
+        *sTmp = '\0';
 
 nullstring:;
-	NextToken(sFuncName);
-	return s;
+        NextToken(sFuncName);
+        return s;
 }
 
 /* Returns the current input stream */
 InputStream&
 HighParser::GetInputStream(void) const
 {
-	ASSERT(pIn != 0);
-	return *pIn;
+        ASSERT(pIn != 0);
+        return *pIn;
 }
 
 /* Sets a new input stream (use with care!) */
 const void
 HighParser::PutInputStream(InputStream& streamIn)
 {
-	pIn = &streamIn;
+        pIn = &streamIn;
 }
 
 /* HighParser - end */
@@ -1391,18 +1401,17 @@ HighParser::PutInputStream(InputStream& streamIn)
 std::ostream&
 operator << (std::ostream& out, const HighParser::ErrOut& err)
 {
-	out << err.iLineNumber;
+        out << err.iLineNumber;
 
-	if (err.sFileName != 0) {
-		out << ", file <";
-		if (err.sPathName != 0) {
-			out << err.sPathName << DIR_SEP;
-		}
-		out << err.sFileName << '>';
-	}
+        if (err.sFileName != 0) {
+                out << ", file <";
+                if (err.sPathName != 0) {
+                        out << err.sPathName << DIR_SEP;
+                }
+                out << err.sFileName << '>';
+        }
 
-	return out;
+        return out;
 }
 
 /* HighParser - end */
-

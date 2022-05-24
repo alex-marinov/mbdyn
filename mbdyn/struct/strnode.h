@@ -99,6 +99,9 @@ protected:
 	mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
 	mutable Vec3 XPPPrev;   /* Accelerazione lineare  al passo prec. */
 
+#ifdef USE_SPARSE_AUTODIFF
+        mutable Vec3 XY;
+#endif
 	const StructNode *pRefNode;	/* Reference node for relative prediction
 					WARNING: used only if the relative macro is
 					active (not default, see configuration options!) */
@@ -234,6 +237,12 @@ public:
 	inline void GetVCurr(sp_grad::SpColVector<doublereal, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 
 	inline void GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetXCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetVCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
 #endif
      
 	virtual inline const doublereal& dGetPositionStiffness(void) const;
@@ -465,6 +474,15 @@ inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
      }
 }
 
+inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     X.ResizeReset(3, 1);
+
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          X(i).Reset(XCurr(i), -dCoef * XY(i));
+     }
+}
+
 inline void StructDispNode::GetVCurr(sp_grad::SpColVector<doublereal, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      V = VCurr;
@@ -493,6 +511,15 @@ inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3
 
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	  V(i).Reset(VCurr(i), iFirstDofIndex + i, -1.);
+     }
+}
+
+inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     V.ResizeReset(3, 1);
+
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          V(i).Reset(VCurr(i), -XY(i));
      }
 }
 #endif
@@ -848,7 +875,7 @@ protected:
 
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 private:
-	mutable bool bNeedRotation, bUpdateRotation;
+       mutable bool bNeedRotation, bUpdateRotation, bUpdateRotationGradProd;
 #endif
 
 #if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
@@ -872,13 +899,16 @@ private:
         sp_grad::SpFunctionCall eCurrFunc;
         mutable sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3, 3> RCurr_grad;
         mutable sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 3> WCurr_grad;
-
+        mutable sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3> RCurr_gradp;
+        mutable sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> WCurr_gradp;
+        mutable Vec3 gY;
         void UpdateRotation(doublereal dCoef) const;
-		
+        void UpdateRotation(const VectorHandler& Y, doublereal dCoef) const;
         template <typename T>
         inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& RCurr, sp_grad::SpColVector<T, 3>& WCurr, doublereal dCoef, sp_grad::SpFunctionCall func) const;
         inline void GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
         inline void GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+        inline void GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 #endif
 
 public:
@@ -1003,10 +1033,21 @@ public:
 	inline void GetWCurr(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
 
 	inline void GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetgCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetgPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetRCurr(sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void GetWCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;     
 #endif
 
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         virtual void UpdateJac(doublereal dCoef) override;
+#endif
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
 #endif
 	virtual inline bool bOmegaRotates(void) const;
 
@@ -1457,6 +1498,41 @@ inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& 
      }
 }
 
+
+inline void StructNode::GetgCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     g.ResizeReset(3, 1);
+     
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          g(i).Reset(gCurr(i), -dCoef * gY(i));
+     }
+}
+
+inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     gP.ResizeReset(3, 1);
+
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          gP(i).Reset(gPCurr(i), -gY(i));
+     }
+}
+
+inline void StructNode::GetRCurr(sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     SP_GRAD_ASSERT(bNeedRotation);
+     SP_GRAD_ASSERT(!bUpdateRotationGradProd);
+     
+     R = RCurr_gradp;
+}
+
+inline void StructNode::GetWCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     SP_GRAD_ASSERT(bNeedRotation);
+     SP_GRAD_ASSERT(!bUpdateRotationGradProd);
+     
+     W = WCurr_gradp;
+}
+
 inline void StructNode::GetRCurr(sp_grad::SpMatrix<doublereal, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
      bNeedRotation = true;
@@ -1508,6 +1584,11 @@ inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient
      for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	  W(i).Reset(WCurr(i), iFirstDofIndex + i, -1.);
      }     
+}
+
+inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 #endif
 
@@ -1846,11 +1927,22 @@ public:
                 
 	inline void
 	GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void
+	GetXPPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+	inline void
+	GetWPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
+
+        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
 #endif
 
 	/* to get dimension of equations */
 	const virtual MBUnits::Dimensions GetEquationDimension (integer index) const;
-
+private:
+#ifdef USE_SPARSE_AUTODIFF
+        Vec3 XPPY, WPY;
+#endif
 };
 
 
@@ -1976,6 +2068,15 @@ ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doubler
 }
 
 inline void
+ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          XPP(i).Reset(XPPCurr(i), -XPPY(i));
+     }
+}
+                
+
+inline void
 ModalNode::GetWPCurr(sp_grad::SpColVector<doublereal, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
 {
 	WP = WPCurr;
@@ -2001,6 +2102,14 @@ ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublerea
 	for (sp_grad::index_type i = 1; i <= 3; ++i) {
 	     WP(i).Reset(WPCurr(i), iFirstDofIndex + i + 9, -1.);
 	}
+}
+
+inline void
+ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
+{
+     for (sp_grad::index_type i = 1; i <= 3; ++i) {
+          WP(i).Reset(WPCurr(i), -WPY(i));
+     }
 }
 #endif
 	
@@ -2067,6 +2176,8 @@ public:
 	/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
 	virtual inline unsigned int iGetInitialNumDof(void) const;
 
+     	virtual inline integer iGetFirstIndex(void) const;
+
 	/* Ritorna il primo indice (-1) di posizione */
 	virtual inline integer iGetFirstPositionIndex(void) const;
 
@@ -2095,55 +2206,14 @@ public:
 
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual bool ComputeAccelerations(bool b);
-};
-
-/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
-inline unsigned int
-DummyStructNode::iGetInitialNumDof(void) const
-{
-	return 0;
-}
-
-/* Ritorna il primo indice (-1) di posizione */
-inline integer
-DummyStructNode::iGetFirstPositionIndex(void) const
-{
-	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
-		<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-/* Ritorna il primo indice (-1) di Quantita' di moto */
-inline integer
-DummyStructNode::iGetFirstMomentumIndex(void) const
-{
-	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
-		<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
 
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-DummyStructNode::iGetInitialFirstIndexPrime() const
-{
-	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
-		<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
+        virtual void UpdateJac(doublereal dCoef) override;
 #endif
-
-/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
-inline unsigned int
-DummyStructNode::iGetNumDof(void) const
-{
-	return 0;
-}
-
-inline bool
-DummyStructNode::bComputeAccelerations(void) const
-{
-	return pNode->bComputeAccelerations();
-}
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
+#endif     
+};
 
 /* DummyStructNode - end */
 

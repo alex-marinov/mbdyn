@@ -27,7 +27,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ## AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-## Copyright (C) 2020(-2020) all rights reserved.
+## Copyright (C) 2020(-2022) all rights reserved.
 
 ## The copyright of this code is transferred
 ## to Pierangelo Masarati and Paolo Mantegazza
@@ -57,18 +57,30 @@ begin: initial value;
 
 	time step: 2 * pi / abs(omega) / 10000;
 
-	min time step: 2 * pi / abs(omega) / 1000000;
+	min time step: 2 * pi / abs(omega) / 100000;
 	max time step: 2 * pi / abs(omega) / 10000;
 	strategy: factor, 0.75, 1, 1.25, 3, 2, 4;
 
 	max iterations: 100;
-	tolerance: 1e-6;
+	tolerance: 1e-6, test, sepnorm, 1e-6;
 	method: bdf;
 	derivatives tolerance: 1e-4;
 	derivatives max iterations: 10;
 	derivatives coefficient: 1e-10;
 	linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;
-	nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+        
+	## nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;
+        
+        nonlinear solver: nox, modified, 20, keep jacobian,
+        verbose, yes,
+        print convergence info, no,
+        jacobian operator, newton krylov,
+        algorithm, line search based,
+        weighted rms absolute tolerance, 1e-3,
+        weighted rms relative tolerance, 1e-2,
+        linear solver tolerance, 1e-10,
+        linear solver max iterations, 10,
+        minimum step, 1e-10;
 	threads: assembly, 1;
 end: initial value;
 

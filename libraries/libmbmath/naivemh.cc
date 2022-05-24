@@ -750,7 +750,7 @@ void NaivePermMatrixHandler::IsValid(void) const
         NaiveMatrixHandler::IsValid();
 
         ASSERT(perm.size() == static_cast<size_t>(iSize));
-        ASSERT(invperm.size() == static_cast<size_t>(iSize + 1)); // Required for MakeCCStructure
+        ASSERT(invperm.size() >= static_cast<size_t>(iSize)); // Required for MakeCCStructure
 
         for (integer i = 0; i < iSize; ++i) {
                 ASSERT(invperm[i] >= 0 && invperm[i] < iSize);

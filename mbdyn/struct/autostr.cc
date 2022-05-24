@@ -523,6 +523,27 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 
+#ifdef USE_SPARSE_AUTODIFF
+void
+AutomaticStructElem::AssJac(VectorHandler& JacY,
+                            const VectorHandler& Y,
+                            doublereal dCoef,
+                            const VectorHandler& XCurr,
+                            const VectorHandler& XPrimeCurr,
+                            VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+     
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
+#endif
+
 /* assemblaggio autoval */
 void
 AutomaticStructElem::AssMats(VariableSubMatrixHandler& WorkMatA,

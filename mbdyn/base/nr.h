@@ -59,7 +59,7 @@ public:
 	NewtonRaphsonSolver(const bool bTNR,
 			const bool bKJ, 
 			const integer IterBfAss,
-			const NonlinearSolverOptions& options);
+			const NonlinearSolverTestOptions& options);
 	
 	~NewtonRaphsonSolver(void);
 	

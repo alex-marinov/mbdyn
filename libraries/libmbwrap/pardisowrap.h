@@ -30,7 +30,7 @@
 
 /*
   AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-  Copyright (C) 2021(-2021) all rights reserved.
+  Copyright (C) 2021(-2022) all rights reserved.
 
   The copyright of this code is transferred
   to Pierangelo Masarati and Paolo Mantegazza
@@ -51,7 +51,6 @@
 #include "ls.h"
 #include "solman.h"
 #include "spmapmh.h"
-#include "dgeequ.h"
 
 #ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
@@ -96,7 +95,6 @@ public:
                             doublereal dPivot,
                             integer iNumThreads,
                             integer iNumIter,
-                            const SolutionManager::ScaleOpt& scale,
                             integer iVerbose);
      ~PardisoSolver();
 
@@ -115,17 +113,9 @@ private:
      mutable MyVectorHandler x, b;
      std::vector<MH_INT_TYPE> Ai, Ap;
      std::vector<doublereal> Ax;
-     ScaleOpt scale;
-     MatrixScale<MatrixHandlerType>* pMatScale;
 
 protected:
      mutable MatrixHandlerType A;
-
-     void ScaleMatrixAndRightHandSide(MatrixHandlerType &mh);
-
-     MatrixScale<MatrixHandlerType>& GetMatrixScale();
-
-     void ScaleSolution();
 
      PardisoSolver<MKL_INT_TYPE>* pGetSolver() { return static_cast<PardisoSolver<MKL_INT_TYPE>*>(pLS); }
 
@@ -134,7 +124,6 @@ public:
                             doublereal dPivot,
                             integer iNumThreads,
                             integer iNumIter,
-                            const ScaleOpt& scale = ScaleOpt(),
                             integer iVerbose = 0);
      virtual ~PardisoSolutionManager(void);
 

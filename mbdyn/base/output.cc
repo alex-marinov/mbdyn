@@ -139,6 +139,14 @@ ncCount1x3x3(3,1)
 
 void OutputHandler::ReadOutputUnits(MBDynParser& HP) {
 	Units.ReadOutputUnits(Log(), HP);
+		Log() << "Unit for the whole model: MKS" << std::endl;
+		Log() << "Unit for the whole model: CGS" << std::endl;
+		Log() << "Unit for the whole model: MMTMS" << std::endl;
+		Log() << "Unit for the whole model: MMKGMS" << std::endl;
+		Log() << "Unit for the whole model: Custom" << std::endl;
+	}
+	for (auto i = DimensionNames.begin(); i != DimensionNames.end(); i++) {
+		Log() << "Unit for " << i->second << ": " << Units[i->first] << std::endl;
 }
 
 // Pesudo-constructor

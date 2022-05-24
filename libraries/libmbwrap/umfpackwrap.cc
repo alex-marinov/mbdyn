@@ -116,6 +116,7 @@
 #ifdef MBDYN_ENABLE_PROFILE
 #include <chrono>
 #endif
+#include "cscmhtpl.h"
 
 /* UmfpackSolver - begin */
 	
@@ -463,23 +464,24 @@ template <typename SparseMatrixHandlerType>
 void
 UmfpackSparseSolutionManager<SparseMatrixHandlerType>::MakeCompressedColumnForm(void)
 {
+
 #ifdef MBDYN_ENABLE_PROFILE
 	using namespace std::chrono;
 	auto start = high_resolution_clock::now();
 #endif
-	ScaleMatrixAndRightHandSide(A);
-
-#ifdef MBDYN_ENABLE_PROFILE
-	auto dt = high_resolution_clock::now() - start;
-	silent_cout("UMFPACK: scaling A takes " << dt.count() << "ns\n");
-	start = high_resolution_clock::now();
-#endif
-
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 	
 #ifdef MBDYN_ENABLE_PROFILE
-	dt = high_resolution_clock::now() - start;
+	auto dt = high_resolution_clock::now() - start;
 	silent_cout("UMFPACK: making compact form takes " << dt.count() << "ns\n");
+	start = high_resolution_clock::now();
+#endif
+        CSCMatrixHandlerTpl<doublereal, integer, 0> Acsc(&Ax.front(), &Ai.front(), &Ap.front(), A.iGetNumCols(), A.Nz());
+	ScaleMatrixAndRightHandSide(Acsc);
+        
+#ifdef MBDYN_ENABLE_PROFILE
+        dt = high_resolution_clock::now() - start;
+        silent_cout("UMFPACK: scaling A takes " << dt.count() << "ns\n");
 #endif
 }
 

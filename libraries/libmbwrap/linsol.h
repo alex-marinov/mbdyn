@@ -35,6 +35,9 @@
 #define LINEARSOLVER_H
 
 #include "solman.h"
+#ifdef USE_MPI
+#include "mbcomm.h"
+#endif
 /* Integrator - begin */
 
 class LinSol {
@@ -56,6 +59,7 @@ public:
                 SPQR_SOLVER,
 		STRUMPACK_SOLVER,
 		WATSON_SOLVER,
+                AZTECOO_SOLVER,
 		LAST_SOLVER
 	};
 
@@ -108,7 +112,16 @@ public:
 		        SOLVER_FLAGS_ALLOWS_COMPRESSION_PQRCP | 
 		        SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRCP |
 		        SOLVER_FLAGS_ALLOWS_COMPRESSION_TQRCP |
-		        SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT 
+                        SOLVER_FLAGS_ALLOWS_COMPRESSION_RQRRT,
+                SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK  = 0x10000000U,
+                SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK = 0x20000000U,
+                SOLVER_FLAGS_ALLOWS_PRECOND_KLU     = 0x40000000U,
+                SOLVER_FLAGS_ALLOWS_PRECOND_ILUT    = 0x80000000U,
+                SOLVER_FLAGS_PRECOND_MASK =
+                        SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK |
+                        SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK |
+                        SOLVER_FLAGS_ALLOWS_PRECOND_KLU |
+                        SOLVER_FLAGS_ALLOWS_PRECOND_ILUT
 	};
 
 	/* solver data */
@@ -179,7 +192,7 @@ protected:
 	 *  Umfpack
 	 */
 	integer iMaxIter;
-
+        doublereal dTolRes; // Used by AztecOO iterative linear solver
         integer iVerbose;
 public:
 	static SolverType defaultSolver;
@@ -213,9 +226,16 @@ public:
         bool SetLowRankCompressTol(const doublereal& d);
 	bool SetLowRankCompressMinRatio(const doublereal& d);
 	bool SetMaxIterations(integer iMaxIter);
+        bool SetTolerance(doublereal dToleranceRes);
+        doublereal dGetTolerance() const { return dTolRes; }
+        integer iGetMaxIterations() const { return iMaxIter; }
         bool SetVerbose(integer iVerb);
 	SolutionManager *const
-	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
+	GetSolutionManager(integer iNLD,
+#ifdef USE_MPI
+                           MPI::Intracomm& oComm,
+#endif
+                           integer iLWS = 0) const;
 };
 
 extern const LinSol::solver_t solver[];

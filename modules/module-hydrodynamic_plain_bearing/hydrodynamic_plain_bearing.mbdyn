@@ -198,23 +198,25 @@ begin: initial value;
 	final time: final_time;
 
 	time step: (final_time-initial_time)/number_of_time_steps;
-        min time step: (final_time-initial_time)/number_of_time_steps/1000;
-        max time step: (final_time-initial_time)/number_of_time_steps;
+        
+        ## min time step: (final_time-initial_time)/number_of_time_steps/1000;
+        ## max time step: (final_time-initial_time)/number_of_time_steps;
 	
-        strategy: factor, 
-			# reduction_factor
-				0.5, 
-			# steps_before_reduction
-				5,
-			# raise_factor
-				2, 
-			# steps_before_raise
-				5, 
-			# min_iterations
-				5, 
-			# max_iterations
-				20;
-	max iterations: 1000;
+        ## strategy: factor, 
+	## 		# reduction_factor
+	## 			0.5, 
+	## 		# steps_before_reduction
+	## 			5,
+	## 		# raise_factor
+	## 			2, 
+	## 		# steps_before_raise
+	## 			5, 
+	## 		# min_iterations
+	## 			5, 
+	## 		# max_iterations
+	## 			20;
+        
+	max iterations: 10;
 	tolerance: 1.e-8;
 	#~ method: bdf;
 	#~ method: crank nicolson;
@@ -225,7 +227,17 @@ begin: initial value;
         derivatives coefficient: 1e-6;
         threads: assembly, 1;	
 	linear solver: naive, colamd, mt, 1;
-        nonlinear solver: newton raphson;
+        #nonlinear solver: newton raphson;
+
+        nonlinear solver: nox,
+              modified, 1000,
+              jacobian operator, newton krylov,
+              linear solver tolerance, 1e-10,
+              linear solver max iterations, 100,
+              minimum step, 1e-8,
+              weighted rms absolute tolerance, 1e-3,
+              weighted rms relative tolerance, 1e-1,
+              krylov subspace size, 100;
 end: initial value;
 
 begin: control data;

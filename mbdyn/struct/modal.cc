@@ -934,6 +934,27 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void
+Modal::AssJac(VectorHandler& JacY,
+              const VectorHandler& Y,
+              doublereal dCoef,
+              const VectorHandler& XCurr,
+              const VectorHandler& XPrimeCurr,
+              VariableSubMatrixHandler& WorkMat)
+{
+        using namespace sp_grad;
+     
+        SpGradientAssVec<GpGradProd>::AssJac(this,
+                                             JacY,
+                                             Y,
+                                             dCoef,
+                                             XCurr,
+                                             XPrimeCurr,
+                                             SpFunctionCall::REGULAR_JAC);
+}
+#endif
+
 SubVectorHandler&
 Modal::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -2149,9 +2170,9 @@ Modal::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 	       }
 	  }
 
-	  J = EvalUnique(J);
+	  SpMatrix<T, 3, 3> Jtmp = EvalUnique(J);
 
-	  J = (R * J) * Transpose(R);
+	  J = (R * Jtmp) * Transpose(R);
 
 	  SpColVector<T, 3> STmp(3, NModes);
 

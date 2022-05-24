@@ -61,6 +61,26 @@ Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		"AssMats() not implemented yet" << std::endl);
 }
 
+#ifdef USE_SPARSE_AUTODIFF
+void
+Elem::AssJac(VectorHandler& JacY,
+             const VectorHandler& Y,
+             doublereal dCoef,
+             const VectorHandler& XCurr,
+             const VectorHandler& XPrimeCurr,
+             VariableSubMatrixHandler& WorkMat)
+{
+     // All elements used with the matrix free Trilinos solver
+     // should implement this function for efficiency reasons 
+     DEBUGCERR(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+               "Newton Krylov AssJac() not implemented yet" << std::endl);
+     
+     AssJac(WorkMat, dCoef, XCurr, XPrimeCurr);
+
+     WorkMat.MultAddTo(JacY, Y);
+}
+#endif
+
 bool
 Elem::bInverseDynamics(void) const
 {

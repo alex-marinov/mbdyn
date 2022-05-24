@@ -349,7 +349,7 @@ modify the residual test taking in account the rate of change of the status.
     \bnt{card} ::= \kw{method} : \bnt{method_data} ;
 \end{Verbatim}
 %\end{verbatim}
-there are four multistep methods at present. 
+there are three multistep methods at present. 
 
 The first is Crank-Nicolson:
 %\begin{verbatim}
@@ -388,24 +388,6 @@ as the differential one.
 It is unclear whether a different spectral radius can help in increasing
 accuracy or dissipation of the algebraic unknowns.
 
-The fourth method is experimental. It is a third-order,
-two stage unconditionally stable method, which can be tuned to give 
-the desired algorithmic dissipation by setting the value 
-of the asymptotic spectral radius, which should not be 
-too close to zero.
-Currently it is not possible to independently set the radius 
-for the differential and the algebraic variables.
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \kw{third order} ,
-        \{ \kw{ad hoc} | (\hty{DriveCaller}) \bnt{differential_radius} \}
-\end{Verbatim}
-%\end{verbatim}
-When the keyword \kw{ad hoc} is used, a method equivalent
-to a Runge-Kutta Radau IIA results, with zero asymptotic
-spectral radius; otherwise, an original third-order
-integration method is used, with tunable algorithmic dissipation.
-
 \noindent
 The multistep method, when the asymptotic radius is zero, degenerates
 in the Backward Differentiation Formulas of order two.
@@ -424,6 +406,18 @@ It can also be selected using the shortcut
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{method_data} ::= \kw{implicit euler}
+\end{Verbatim}
+%\end{verbatim}
+
+The \kw{hybrid} method allows elements to select different integration methods for specific degrees of freedom.
+By default, the integration method defined after the \kw{hybrid} keyword is used for all other degrees of freedom.
+For example a model for elastohydrodynamic lubricated bearings could use the \kw{ms} method for all structural
+degrees of freedom, and the \kw{crank nicolson} method for the mass conserving cavitation model.
+At the moment only module-hydrodynamic\_plain\_bearing2 supports this option.
+
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \kw{hybrid} , \bnt{method_data}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -614,6 +608,109 @@ It can be used only together with the \kw{qr} or the \kw{spqr} linear solvers. I
 sufficiently continuous, then the number of Jacobian evaluations of the \kw{bfgs} solver is usually significanlty lower
 than the \kw{line search} solver.
 
+\paragraph{Trilinos NOX solver}
+\emph{Author: Reinhard Resch}
+
+The \verb;NOX; solver is based on Sandias Trilinos library \cite{TRILINOS-WEBSITE}. Support for Trilinos must be enabled during compilation by the \verb;--with-trilinos; flag. Although \verb;NOX; can be compiled with \verb;MPI; parallelism, MBDyn currently does not support a \verb;MPI; based solution using \verb;NOX;.
+Indeed \verb;NOX; is a huge library with many parameters and options. Within this section, only those parameters which are used by MBDyn, are listed. For a complete reference of the \verb;NOX; solver see also \href{https://trilinos.github.io/nox_and_loca.html}{NOX-website}.
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{nonlinear_solver_name} ::= \kw{nox}
+
+    \bnt{nonlinear_solver_data} ::=
+        [ \{ \kw{true}
+        | \kw{modified} , (\ty{integer}) \bnt{outer_iter_before_ass}
+            [ , \kw{keep jacobian matrix} ]
+            [ , \kw{honor element requests} ] \} ]
+        [ , \kw{linear solver}, \{ \kw{gmres} | \kw{cg} | \kw{cgs} | \kw{tfqmr} | \kw{bicgstab} \} ]
+        [ , \kw{linear solver tolerance}, (\ty{real}) \bnt{linsol_tol} ]
+        [ , \kw{linear solver max iterations}, (\ty{integer}) \bnt{linsol_max_iter} ]
+        [ , \kw{krylov subspace size}, (\ty{integer}) \bnt{krylov_subspace} ]
+        [ , \kw{inner iterations before assembly}, (\ty{integer}) \bnt{inner_iter_before_ass} ]
+        [ , \kw{weighted rms relative tolerance}, (\ty{real}) \bnt{wrms_rel_tol} ]
+        [ , \kw{weighted rms absolute tolerance}, (\ty{real}) \bnt{wrms_abs_tol} ]
+        [ , \kw{forcing term}, \{ \kw{constant} | \kw{type 1} | \kw{type 2} \} ]
+        [ , \kw{forcing term min tolerance}, (\ty{real}) \bnt{forcing_term_min_tol} ]
+        [ , \kw{forcing term max tolerance}, (\ty{real}) \bnt{forcing_term_max_tol} ]
+        [ , \kw{forcing term alpha}, (\ty{real}) \bnt{alpha} ]
+        [ , \kw{forcing term gamma}, (\ty{real}) \bnt{gamma} ]
+        [ , \kw{use preconditioner as solver}, \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{jacobian operator}, \{ \kw{newton} | \kw{newton krylov} \} ]
+        [ , \kw{direction}, \{ \kw{newton} |
+                         \kw{steepest descent} |
+                         \kw{nonlinear cg} |
+                         \kw{broyden} \} ]
+        [ , \kw{solver}, \{ \kw{line search based} |
+                      \kw{trust region based} |
+                      \kw{inexact trust region based} |
+                      \kw{tensor based} \} ]
+        [ , \kw{line search method}, \{ \kw{backtrack} |
+                                  \kw{polynomial} |
+                                  \kw{more thuente} \} ]
+        [ , \kw{sufficient decrease condition} \{ \kw{armijo goldstein} | \kw{ared pred} \}]
+        [ , \kw{line search max iterations} (\ty{integer}) \bnt{line_search_max_iter} ]
+        [ , \kw{minimum step}, (\ty{real}) \bnt{minimum_step} ]
+        [ , \kw{recovery step}, (\ty{real}) \bnt{recovery_step} ]
+        [ , \kw{recovery step type}, \{ \kw{constant} | \kw{last computed step} \} ]
+        [ , \kw{verbose}, \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{print convergence info}, \{ \kw{yes} | \kw{no} \} ] ;
+\end{Verbatim}
+\subparagraph{Linear solver and inner iterations}
+If the option \kw{direction} is set to \kw{newton}, an inexact Newton method is applied. This method uses iterative linear solvers to compute the Newton direction. The following linear solvers provided by \href{https://trilinos.github.io/aztecoo.html}{AztecOO} are supported:
+\begin{description}
+\item[\kw{gmres}] Restarted generalized minimal residual
+\item[\kw{cg}] Conjugate gradient (not applicable if the Jacobian is unsymmetrical which is the usual case)
+\item[\kw{cgs}] Conjugate gradient squared
+\item[\kw{tfqmr}] Transpose-free quasi-minimal residual
+\item[\kw{bicgstab}] Bi-conjugate gradient with stabilization
+\end{description}
+The \kw{gmres} solver is accepting also the parameter \bnt{krylov\_subspace} which defines the number of inner iterations before a restart.
+\subparagraph{Preconditioner}
+All linear solvers from the previous paragraph require proper preconditioning. For that purpose \verb;NOX; uses MBDyn's direct linear solvers defined in section~\ref{sec:LINEAR-SOLVER}. Since an update of the preconditioner might be expensive, it can be updated only after a fixed number of outer iterations defined by the parameter \bnt{outer\_iter\_before\_ass}, after the number of inner iterations exceeded \bnt{inner\_iter\_before\_ass} or on request by elements if \kw{honor element requests} is set. At the moment only the \kw{newton krylov} Jacobian operator and the \kw{broyden} direction are considering the parameter \bnt{outer\_iter\_before\_ass}. If the maximum number of inner iterations (\bnt{linsol\_max\_iter}) is exceeded, an update of the preconditioner is also enforced. If the flag \kw{use preconditioner as solver} is set, \verb;NOX; does not use any iterative solver. Instead MBDyn's own linear solvers from section~\ref{sec:LINEAR-SOLVER} are applied directly.
+\subparagraph{Convergence criteria for inner iterations}
+The convergence criteria of the linear solver is called \kw{forcing term}. If \kw{forcing term} is set to \kw{constant}, the parameter \bnt{linsol\_tol} defines the tolerance of the linear solver. Otherwise the actual tolerance can be adjusted automatically by the solver between \bnt{forcing\_term\_min\_tol} and \bnt{forcing\_term\_max\_tol}. In case of forcing term \kw{type 2}, the parameters \bnt{alpha} and \bnt{gamma} can be used to tune the linear solver. See also \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Direction_1_1Newton.html}{NOX::Direction::Newton} for further information.
+\subparagraph{Convergence criteria for outer iterations}
+In addition to the convergence criteria defined in section~\ref{sec:IVP:TOLERANCE}, \verb;NOX; also supports the parameters \bnt{wrms\_rel\_tol} and \bnt{wrms\_abs\_tol} which are based on the weighted root mean square norm for the solution update between iterations. See also \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1StatusTest_1_1NormWRMS.html}{NOX::StatusTest::NormWRMS} for further information.
+\subparagraph{Jacobian operator}
+\verb;NOX; is able to evaluate a Jacobian vector product, required for all iterative linear solvers, without the need to assemble the expensive Jacobian sparse matrix. This option will be used if \kw{jacobian operator} is set to \kw{newton krylov}. In contrast to the matrix free Jacobian operator implemented in the Trilinos library, which is based on a finite difference approximation, MBDyn implements an accurate and inexpensive automatic differentiation approach. If \kw{jacobian operator} is set to \kw{newton}, the sparse Jacobian matrix is used to evaluate the Jacobian vector product.
+\subparagraph{Newton like directions}
+
+\begin{description}
+\item[\kw{newton}] Uses traditional Newton step. See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Direction_1_1Newton.html}{NOX::Direction::Newton}.
+\item[\kw{steepest descent}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Direction_1_1SteepestDescent.html}{NOX::Direction::SteepestDescent}
+\item[\kw{nonlinear cg}] Uses a nonlinear conjugate gradient method. See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Direction_1_1NonlinearCG.html}{NOX::Direction::NonlinearCG}
+\item[\kw{broyden}] Uses a limited memory Broyden update which can be very efficient in some cases. See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Direction_1_1Broyden.html}{NOX::Direction::Broyden}
+\end{description}
+\subparagraph{Solvers}
+The following solvers are supported by \verb;NOX;:
+\begin{description}
+\item[\kw{line search based}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Solver_1_1LineSearchBased.html}{NOX::Solver::LineSearchBased}
+\item[\kw{trust region based}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Solver_1_1TrustRegionBased.html}{NOX::Solver::TrustRegionBased}
+\item[\kw{inexact trust region based}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Solver_1_1InexactTrustRegionBased.html}{NOX::Solver::InexactTrustRegionBased}
+\item[\kw{tensor based}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1Solver_1_1TensorBased.html}{NOX::Solver::TensorBased}
+\end{description}
+\subparagraph{Line search solver}
+The \kw{line search based} solver also supports the following options for backtracking:
+\begin{description}
+\item[\kw{backtrack}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1LineSearch_1_1Backtrack.html}{NOX::LineSearch::Backtrack}
+\item[\kw{polynomial}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1LineSearch_1_1Polynomial.html}{NOX::LineSearch::Polynomial}
+\item[\kw{more thuente}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1LineSearch_1_1MoreThuente.html}{NOX::LineSearch::MoreThuente}
+\end{description}
+\begin{description}
+\item[\kw{line search max iterations}] Maximum number of residual function evaluations.
+\item[\kw{minimum step}] Minimum acceptable step length (e.g. $\bnt{minimum\_step} = 1$ means full Newton step)
+\item[\kw{recovery step}] Step to take when the line search fails
+\item[\kw{recovery step type}] Determines the step size to take when the line search fails
+\end{description}
+Ţhe \kw{more thuente} and \kw{polynomial} option also allow different options for the \kw{sufficient decrease condition}.
+\begin{description}
+\item[\kw{armijo goldstein}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1LineSearch_1_1MoreThuente.html}{Armijo-Goldstein Condition}
+\item[\kw{ared pred}] See \href{https://docs.trilinos.org/latest-release/packages/nox/doc/html/classNOX_1_1LineSearch_1_1MoreThuente.html}{Ared/Pred Condition}
+\end{description}
+\subparagraph{Diagnostic output}
+\begin{description}
+\item[\kw{verbose}] Output only warning messages from the \verb;NOX; solver
+\item[\kw{print convergence info}] Print full status information for inner and outer iterations
+\end{description}
 
 \paragraph{Matrix free.}
 \emph{Author: Giuseppe Quaranta}

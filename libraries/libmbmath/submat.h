@@ -148,6 +148,13 @@ public:
 	 */
 	virtual MatrixHandler& AddToT(MatrixHandler& MH) const = 0;
 
+#ifdef USE_SPARSE_AUTODIFF
+        /*
+         * Needed for Newton Krylov solver
+         * A += (*this) * Y;
+         */
+        virtual VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const = 0;
+#endif
 	/*
 	 * Si sottrae da una matrice.
 	 * Nota: le dimensioni devono essere compatibili.
@@ -656,6 +663,9 @@ public:
 	 */
 	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
+#ifdef USE_SPARSE_AUTODIFF
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override;
+#endif
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
 	 */
@@ -1086,6 +1096,9 @@ public:
 	 */
 	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
+#ifdef USE_SPARSE_AUTODIFF
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override;
+#endif
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
 	 */
@@ -1126,6 +1139,7 @@ public:
      virtual MatrixHandler& AddTo(MatrixHandler& HM) const override;
      virtual MatrixHandler& SubFrom(MatrixHandler& HM) const override;
      virtual MatrixHandler& AddToT(MatrixHandler& HM) const override;
+     VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const;
      virtual MatrixHandler& SubFromT(MatrixHandler& HM) const override;
 
 #ifdef DEBUG
@@ -1417,6 +1431,20 @@ public:
 		}
 	};
 
+#ifdef USE_SPARSE_AUTODIFF
+        VectorHandler& MultAddTo(VectorHandler& A, const VectorHandler& Y) const override {
+                switch (eStatus) {
+                case FULL:
+                        return FullSubMatrixHandler::MultAddTo(A, Y);
+                case SPARSE:
+                        return SparseSubMatrixHandler::MultAddTo(A, Y);
+                case SPARSE_GRADIENT:
+                        return SpGradientSubMatrixHandler::MultAddTo(A, Y);
+                default:
+                        return A;
+                }
+        }
+#endif
 	/*
 	 * Si sottrae da una matrice completa con metodi generici.
 	 */

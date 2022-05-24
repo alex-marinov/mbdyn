@@ -348,6 +348,10 @@ public:
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
+#endif
+                
 	/* Assembla le matrici per gli autovalori */
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
@@ -374,6 +378,9 @@ protected:
 #if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         void NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter);
 #endif
+#ifdef USE_SPARSE_AUTODIFF
+        void NodesUpdateJac(const VectorHandler& Y, doublereal dCoef, VecIter<Node *>& Iter);
+#endif
 	/* specialized functions, called by above general helpers */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
@@ -387,6 +394,13 @@ protected:
 			SubVectorHandler& WorkVec,
 			VectorHandler*const pAbsResHdl = 0);
 
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void AssJac(VectorHandler& JacY,
+                            const VectorHandler& Y,
+                            doublereal dCoef,
+                            VecIter<Elem *> &Iter,
+                            VariableSubMatrixHandler& WorkMat);
+#endif
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
 		VecIter<Elem *> &Iter,
@@ -880,10 +894,13 @@ public:
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
 
-	virtual const std::string& GetDofDescription(int i) const;
-	virtual const std::string& GetEqDescription(int i) const;
-	virtual DofOrder::Order GetDofType(int i) const;
-	virtual DofOrder::Order GetEqType(int i) const;
+        virtual const std::string& GetDofDescription(int iDof) const;
+        virtual const std::string& GetEqDescription(int iDof) const;
+        virtual DofOrder::Order GetDofType(int iDof) const;
+        virtual DofOrder::Order GetEqType(int iDof) const;
+
+        SolverBase::StepIntegratorType GetStepIntegratorType(unsigned int iDof) const;
+        doublereal dGetStepIntegratorCoef(unsigned int iDof) const;
 };
 
 // if bActive is true, the cast only succeeds when driven element is active

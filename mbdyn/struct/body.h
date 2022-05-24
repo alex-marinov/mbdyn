@@ -369,6 +369,20 @@ public:
                 connectedNodes[0] = pNode;
         };
         /**************************************************/
+protected:
+#ifdef USE_SPARSE_AUTODIFF
+       void
+       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
+                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
+                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;
+
+       void
+       UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
+                     const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const;
+#endif
 };
 
 /* Body - end */
@@ -407,6 +421,16 @@ public:
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void
+        AssJac(VectorHandler& JacY,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
+     
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
@@ -449,14 +473,6 @@ public:
               const sp_grad::SpGradientVectorHandler<T>& XCurr,
               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
               sp_grad::SpFunctionCall func);
-
-       void
-       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
-                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
-
-       void
-       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;                
 #endif
 };
 
@@ -496,7 +512,17 @@ public:
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr);
-               
+
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void
+        AssJac(VectorHandler& JacY,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
+     
 #ifndef USE_SPARSE_AUTODIFF
         void AssMats(VariableSubMatrixHandler& WorkMatA,
                      VariableSubMatrixHandler& WorkMatB,
@@ -526,6 +552,10 @@ public:
         void
         UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
                       const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp);
+
+        void
+        UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
+                      const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp);
 #endif
 
         virtual void
@@ -567,6 +597,16 @@ public:
                 const VectorHandler& XCurr,
                 const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+        virtual void
+        AssJac(VectorHandler& JacY,
+               const VectorHandler& Y,
+               doublereal dCoef,
+               const VectorHandler& XCurr,
+               const VectorHandler& XPrimeCurr,
+               VariableSubMatrixHandler& WorkMat) override;
+#endif
+     
         void AssMats(VariableSubMatrixHandler& WorkMatA,
                 VariableSubMatrixHandler& WorkMatB,
                 const VectorHandler& XCurr,
@@ -578,6 +618,16 @@ public:
                 const VectorHandler& XCurr,
                 const VectorHandler& XPrimeCurr);
 
+#ifdef USE_SPARSE_AUTODIFF
+        template <typename T>
+        void
+        AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
+               doublereal dCoef,
+               const sp_grad::SpGradientVectorHandler<T>& XCurr,
+               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
+               sp_grad::SpFunctionCall func);
+#endif
+     
         /* inverse dynamics capable element */
         virtual bool bInverseDynamics(void) const;
 
