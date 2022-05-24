@@ -190,7 +190,7 @@ public:
 class Colamd_ordering;
 // #ifdef USE_BOOST
 class rcmk_ordering;
-class king_ordering;
+// class king_ordering;
 class sloan_ordering;
 class md_ordering;
 // #endif USE_BOOST

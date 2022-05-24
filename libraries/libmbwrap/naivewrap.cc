@@ -512,11 +512,11 @@ NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
 #ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
 #include "boost/graph/cuthill_mckee_ordering.hpp"
 #endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
-#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
-#include "boost/graph/king_ordering.hpp"
-#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+// #ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
+// #include "boost/graph/king_ordering.hpp"
+// #endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
 #ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
-#include <boost/graph/sloan_ordering.hpp>
+#include "boost/graph/sloan_ordering.hpp"
 #endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */
 #ifdef HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP
 #include "boost/graph/minimum_degree_ordering.hpp"
@@ -565,7 +565,8 @@ NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
 
 
         std::vector<Vertex> inv_perm(num_vertices(G));
-        boost::cuthill_mckee_ordering(G, inv_perm.rbegin());
+        boost::cuthill_mckee_ordering(G, inv_perm.rbegin(), 
+	        get(boost::vertex_color, G), make_degree_map(G));
 
         for (integer i = 0; i < A->iGetNumRows(); i++) {
                 invperm[i] = inv_perm[i];
@@ -638,57 +639,58 @@ NaiveSparsePermSolutionManager<sloan_ordering>::ComputePermutation(void)
 }
 #endif /* HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP */
 
-#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
-template<>
-void
-NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
-{
-        std::vector<integer> Ai;
-        std::vector<integer> Ac;
-
-
-        invperm.resize(A->iGetNumCols());
-        A->MakeCCStructure(Ai, Ac);
-
-
-/* boost */
-
-        typedef boost::adjacency_list<
-                        boost::setS,
-                        boost::vecS,
-                        boost::undirectedS,
-                        boost::property<
-                                boost::vertex_color_t,
-                                boost::default_color_type,
-                                boost::property<
-                                        boost::vertex_degree_t,
-                                        integer
-                                >
-                        >
-                > Graph;
-        typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-
-        Graph G(A->iGetNumRows());
-        for (int col=0; col<A->iGetNumCols(); col++) {
-                for (int i = Ac[col]; i < Ac[col + 1]; i++) {
-                        int row = Ai[i];
-                        if (row != col) {
-                                boost::add_edge(row, col, G);
-                                boost::add_edge(col, row, G);
-                        }
-                }
-        }
-
-        std::vector<Vertex> inv_perm(num_vertices(G));
-        boost::king_ordering(G, inv_perm.rbegin());
-
-        for (integer i = 0; i < A->iGetNumRows(); i++) {
-                invperm[i] = inv_perm[i];
-                perm[invperm[i]] = i;
-        }
-        ePermState = PERM_INTERMEDIATE;
-}
-#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+// #ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
+// template<>
+// void
+// NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
+// {
+//         std::vector<integer> Ai;
+//         std::vector<integer> Ac;
+// 
+// 
+//         invperm.resize(A->iGetNumCols());
+//         A->MakeCCStructure(Ai, Ac);
+// 
+// 
+// /* boost */
+// 
+//         typedef boost::adjacency_list<
+//                         boost::setS,
+//                         boost::vecS,
+//                         boost::undirectedS,
+//                         boost::property<
+//                                 boost::vertex_color_t,
+//                                 boost::default_color_type,
+//                                 boost::property<
+//                                         boost::vertex_degree_t,
+//                                         integer
+//                                 >
+//                         >
+//                 > Graph;
+//         typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+// 
+//         Graph G(A->iGetNumRows());
+//         for (int col=0; col<A->iGetNumCols(); col++) {
+//                 for (int i = Ac[col]; i < Ac[col + 1]; i++) {
+//                         int row = Ai[i];
+//                         if (row != col) {
+//                                 boost::add_edge(row, col, G);
+//                                 boost::add_edge(col, row, G);
+//                         }
+//                 }
+//         }
+// 
+//         std::vector<Vertex> inv_perm(num_vertices(G));
+//         boost::king_ordering(G, inv_perm.rbegin(), get(boost::vertex_color, G),
+//             make_degree_map(G), get(boost::vertex_index, G));
+// 
+//         for (integer i = 0; i < A->iGetNumRows(); i++) {
+//                 invperm[i] = inv_perm[i];
+//                 perm[invperm[i]] = i;
+//         }
+//         ePermState = PERM_INTERMEDIATE;
+// }
+// #endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
 
 #ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
 template<>
@@ -862,9 +864,9 @@ template class NaiveSparsePermSolutionManager<Colamd_ordering>;
 #ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<rcmk_ordering>;
 #endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
-#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
-template class NaiveSparsePermSolutionManager<king_ordering>;
-#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+// #ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
+// template class NaiveSparsePermSolutionManager<king_ordering>;
+// #endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
 #ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<md_ordering>;
 #endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */

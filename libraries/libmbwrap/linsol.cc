@@ -80,7 +80,7 @@ const LinSol::solver_t solver[] = {
 			LinSol::SOLVER_FLAGS_ALLOWS_MMDATA |
 			LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT |
 			LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE |
-			LinSol::SOLVER_FLAGS_ALLOWS_KING |
+// 			LinSol::SOLVER_FLAGS_ALLOWS_KING |
 			LinSol::SOLVER_FLAGS_ALLOWS_SLOAN |
 			LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION |
 			LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
@@ -1064,33 +1064,33 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
  			}
 #endif
 
-#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
-		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_KING) {
-			if (nThreads == 1) {
-				SAFENEWWITHCONSTRUCTOR(pCurrSM,
-					NaiveSparsePermSolutionManager<king_ordering>,
-					NaiveSparsePermSolutionManager<king_ordering>(iNLD, dPivotFactor, scale));
-			} else {
-#ifdef USE_NAIVE_MULTITHREAD
-#if 0
-				SAFENEWWITHCONSTRUCTOR(pCurrSM,
-					ParNaiveSparsePermSolutionManager,
-					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
-#endif
-				silent_cerr("multithread naive solver with"
-					"king permutation not"
-					"available yet. Patches welcome"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#else /* ! USE_NAIVE_MULTITHREAD */
-				silent_cerr("multithread naive solver support not compiled; "
-					"you can configure --enable-multithread-naive "
-					"on a linux ix86 to get it"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* ! USE_NAIVE_MULTITHREAD */
-			}
-#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+// #ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
+// 		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_KING) {
+// 			if (nThreads == 1) {
+// 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+// 					NaiveSparsePermSolutionManager<king_ordering>,
+// 					NaiveSparsePermSolutionManager<king_ordering>(iNLD, dPivotFactor, scale));
+// 			} else {
+// #ifdef USE_NAIVE_MULTITHREAD
+// #if 0
+// 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+// 					ParNaiveSparsePermSolutionManager,
+// 					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+// #endif
+// 				silent_cerr("multithread naive solver with"
+// 					"king permutation not"
+// 					"available yet. Patches welcome"
+// 					<< std::endl);
+// 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+// #else /* ! USE_NAIVE_MULTITHREAD */
+// 				silent_cerr("multithread naive solver support not compiled; "
+// 					"you can configure --enable-multithread-naive "
+// 					"on a linux ix86 to get it"
+// 					<< std::endl);
+// 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+// #endif /* ! USE_NAIVE_MULTITHREAD */
+// 			}
+// #endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
 
 #ifdef HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP
 		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_SLOAN) {
