@@ -2183,7 +2183,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 		dim_alpha[0] = OutHdl.GetEigBinaryFile()->CreateDim(dimname_ss.str(), iNVecOut);
-		dim_alpha[1] = OutHdl.DimV3();
+		dim_alpha[1] = OutHdl.GetEigBinaryFile()->DimV3();
 
 		BinaryOutput::AttrValVec attrs3(3);
 		attrs3[0] = BinaryOutput::AttrVal("units", "-");

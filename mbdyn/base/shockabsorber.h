@@ -634,10 +634,10 @@ public:
 #if defined(USE_NETCDF)
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseBinary(OutputHandler::NETCDF)) {
-			OH.WriteVar(Var_dPressure, dPressure);
-			OH.WriteVar(Var_dArea, dArea);
-			OH.WriteVar(Var_dFelastic, dFelastic);
-			OH.WriteVar(Var_dFviscous, dFviscous);
+			OH.GetBinaryFile()->WriteVar(Var_dPressure, dPressure);
+			OH.GetBinaryFile()->WriteVar(Var_dArea, dArea);
+			OH.GetBinaryFile()->WriteVar(Var_dFelastic, dFelastic);
+			OH.GetBinaryFile()->WriteVar(Var_dFviscous, dFviscous);
 		}
 #endif /* USE_NETCDF */
 	}

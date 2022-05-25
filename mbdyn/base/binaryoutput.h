@@ -48,6 +48,8 @@ enum class MBDynOutType {
 };
 
 class BinaryOutput {
+protected:
+	size_t DimTime_id, DimV1_id, DimV3_id;
 public:
 	struct AttrVal {
 		std::string attr;
@@ -57,6 +59,15 @@ public:
 	};
 	typedef std::vector<AttrVal> AttrValVec;
 
+	BinaryOutput(void) :
+		Start1(1,0),  // must initialize vectors otherwise can't assign
+		Count1(1,1),
+		Start1x3(2,0),
+		Count1x3(2,1),
+		Start1x3x3(3,0),
+		Count1x3x3(3,1) {
+	};
+	
 	virtual ~BinaryOutput(void);
 	virtual void Open(const int format) = 0;
 // 	virtual const int CreateDim(const std::string& name, integer size = -1) = 0;
@@ -80,8 +91,13 @@ public:
 	std::vector<size_t> Start1x3x3;
 	std::vector<size_t> Count1x3x3;
 
-	virtual size_t 
-	CreateDim(const std::string& name, integer size = -1) = 0;
+	virtual void SetCurrentStep(long step) = 0;
+
+	virtual const size_t CreateDim(const std::string& name, integer size = -1) = 0;
+
+	const size_t DimTime() {return DimTime_id;};
+	const size_t DimV1() {return DimV1_id;};
+	const size_t DimV3() {return DimV3_id;};
 	
 	virtual void
 	WriteVar(const size_t, const doublereal&) = 0;
@@ -103,6 +119,21 @@ public:
 
 	virtual void
 	WriteVar(const size_t, const Mat3x3&, const size_t&) = 0;
+	
+	virtual void
+	WriteVar(const size_t, const int&, const std::vector<size_t>& start, const std::vector<size_t>& count) = 0;
+	
+	virtual void
+	WriteVar(const size_t, const long int&, const std::vector<size_t>& start, const std::vector<size_t>& count) = 0;
+	
+	virtual void
+	WriteVar(const size_t, const unsigned&, const std::vector<size_t>& start, const std::vector<size_t>& count) = 0;
+	
+	virtual void
+	WriteVar(const size_t, const long unsigned&, const std::vector<size_t>& start, const std::vector<size_t>& count) = 0;
+	
+	virtual void
+	WriteVar(const size_t, const double&, const std::vector<size_t>& start, const std::vector<size_t>& count) = 0;
 	
 	virtual void
 	PutVar(const size_t var, const doublereal* data) = 0;

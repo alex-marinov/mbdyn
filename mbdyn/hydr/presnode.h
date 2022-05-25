@@ -60,13 +60,13 @@ class PressureNode : public ScalarAlgebraicNode {
    };
 
    /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const {
-      OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const {
+      MBUnits::Dimensions dimension = MBUnits::Dimensions::UnknownDimension;
 
 	   switch (index)
 	   {
 		   case 1:
-			   dimension = OutputHandler::Dimensions::MassFlow;
+			   dimension = MBUnits::Dimensions::MassFlow;
 			   break;
 	   }
 

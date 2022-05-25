@@ -66,6 +66,10 @@ private:
 			{MBDynOutType::OutInt, netCDF::NcType::nc_CHAR}, 
 		};
 
+	void SetCurrentStep(long step) {
+		Start1[0] = Start1x3[0] = Start1x3x3[0] = step;
+	};
+
 // 	netCDF::NcDim CreateDim(const std::string& name, integer size = -1)
 // 	{
 // 		ASSERT(m_pBinFile != 0);

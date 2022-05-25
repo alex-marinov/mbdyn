@@ -42,8 +42,11 @@ void NetCDFOutput::Open(const int format) {
 
 		// Let's define some dimensions which could be useful
 		DimTime = DimVec[CreateDim("time")];
+		DimTime_id = DimVec.size() - 1;
 		DimV1 = DimVec[CreateDim("Vec1", 1)];
+		DimV1_id = DimVec.size() - 1;
 		DimV3 = DimVec[CreateDim("Vec3", 3)];
+		DimV3_id = DimVec.size() - 1;
 	}
 
 	return;

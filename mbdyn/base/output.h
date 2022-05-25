@@ -130,9 +130,11 @@ public:
 	};
 	inline void IncCurrentStep(void) {
 		currentStep++;
-#if defined(USE_NETCDF)
-		ncStart1[0] = ncStart1x3[0] = ncStart1x3x3[0] = this->GetCurrentStep();
-#endif  /* USE_NETCDF */
+		if (m_pBinFile) m_pBinFile->SetCurrentStep(this->GetCurrentStep());
+		if (m_pEigBinFile) m_pEigBinFile->SetCurrentStep(this->GetCurrentStep());
+// #if defined(USE_NETCDF)
+// 		ncStart1[0] = ncStart1x3[0] = ncStart1x3x3[0] = this->GetCurrentStep();
+// #endif  /* USE_NETCDF */
 	};
        	inline long GetCurrentStep(void) const {
 		return currentStep;
@@ -318,7 +320,7 @@ public:
 // 	};
 // 
 // 	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
-	typedef std::vector<MBDynNcDim> NcDimVec;
+//	typedef std::vector<MBDynNcDim> NcDimVec;
 
 // 	MBDynNcDim 
 // 	CreateDim(const std::string& name, integer size = -1);
@@ -330,33 +332,33 @@ public:
 // 	inline MBDynNcDim DimV1(void) const;
 // 	inline MBDynNcDim DimV3(void) const;
 
-	std::vector<size_t> ncStart1;
-
-	std::vector<size_t> ncCount1;	
-	std::vector<size_t> ncStart1x3;
-	std::vector<size_t> ncCount1x3;
-	std::vector<size_t> ncStart1x3x3;
-	std::vector<size_t> ncCount1x3x3;
+// 	std::vector<size_t> ncStart1;
+// 
+// 	std::vector<size_t> ncCount1;	
+// 	std::vector<size_t> ncStart1x3;
+// 	std::vector<size_t> ncCount1x3;
+// 	std::vector<size_t> ncStart1x3x3;
+// 	std::vector<size_t> ncCount1x3x3;
 
 // 	MBDynNcVar
 // 	CreateVar(const std::string& name, const MBDynOutType& type,
 // 		const AttrValVec& attrs, const NcDimVec& dims);
 	
-	void
-	WriteVar(size_t, const Vec3&);
-
-	void
-	WriteVar(size_t, const Vec3&, const size_t&);
-
-	void
-	WriteVar(size_t, const Mat3x3&);
-
-	void
-	WriteVar(size_t, const Mat3x3&, const size_t&);
-
-	template <class Tvar>
-	void
-	WriteVar(size_t, const Tvar&);
+// 	void
+// 	WriteVar(size_t, const Vec3&);
+// 
+// 	void
+// 	WriteVar(size_t, const Vec3&, const size_t&);
+// 
+// 	void
+// 	WriteVar(size_t, const Mat3x3&);
+// 
+// 	void
+// 	WriteVar(size_t, const Mat3x3&, const size_t&);
+// 
+// 	template <class Tvar>
+// 	void
+// 	WriteVar(size_t, const Tvar&);
 	
 // 	template <class Tvar, class Tstart>
 // 	void
