@@ -1316,6 +1316,8 @@ DataManager::InitialJointAssembly(void)
                      }
                 }
 
+                pMatHdl->PacMat();
+
                 /* Fattorizza e risolve con jacobiano e residuo appena calcolati */
                 try {
                         pSM->Solve();

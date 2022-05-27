@@ -147,6 +147,130 @@ protected:
      mutable EpetraSparseMatrixHandler A;
 };
 
+class AmesosSolutionManager: public EpetraLinearSystem {
+public:
+     AmesosSolutionManager(
+#ifdef USE_MPI
+          MPI::Intracomm& oComm,
+#endif
+          integer Dim,
+          integer iVerbose,
+          unsigned uFlags);
+
+     virtual ~AmesosSolutionManager();
+     virtual void MatrReset() override;
+     virtual void MatrInitialize() override;
+     virtual void Solve() override;
+
+private:
+     static const char* GetSolverName(unsigned uPrecondFlag);
+     mutable Epetra_LinearProblem oProblem;
+     Teuchos::RCP<Amesos_BaseSolver> pSolver;
+     bool bRebuildSymbolic, bRebuildNumeric;
+};
+
+AmesosSolutionManager::AmesosSolutionManager(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer Dim,
+     integer iVerbose,
+     unsigned uFlags)
+     :EpetraLinearSystem(
+#ifdef USE_MPI
+          oComm,
+#endif
+          Dim),
+      oProblem(A.pGetEpetraCrsMatrix(), x.pGetEpetraVector(), b.pGetEpetraVector()),
+      pSolver(Teuchos::rcp(Amesos().Create(GetSolverName(uFlags), oProblem))),
+      bRebuildSymbolic(true),
+      bRebuildNumeric(true)
+{
+     if (!pSolver.get()) {
+          throw Teuchos::ExceptionBase("Amesos failed to create linear solver interface");
+     }
+
+#ifdef DBG_EPETRA_CRS_MATRIX_FILL_MATRIX_WITH_ZEROS
+     std::vector<doublereal> vv(Dim, 0.);
+     std::vector<integer> cidx(Dim);
+
+     for (integer i = 1; i <= Dim; ++i) {
+          cidx[i - 1] = i;
+     }
+
+     Epetra_CrsMatrix* pA = A.pGetEpetraCrsMatrix();
+
+     for (integer i = 1; i <= Dim; ++i) {
+          pA->InsertGlobalValues(i, Dim, &vv.front(), &cidx.front());
+     }
+#endif
+}
+
+AmesosSolutionManager::~AmesosSolutionManager()
+{
+}
+
+void AmesosSolutionManager::Solve()
+{
+     DEBUGCERR("AmesosSolutionManager::Solve()\n");
+
+     integer ierr = 0;
+
+     do {
+          if (bRebuildSymbolic) {
+               ierr = pSolver->SymbolicFactorization();
+
+               if (ierr != 0) {
+                    silent_cerr("Amesos error: symbolic factorization failed\n");
+                    throw LinearSolver::ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+               }
+          }
+
+          if (bRebuildNumeric) {
+               ierr = pSolver->NumericFactorization();
+
+               if (ierr != 0) {
+                    if (!bRebuildSymbolic) {
+                         bRebuildSymbolic = true;
+                    } else {
+                         silent_cerr("Amesos error: numeric factorization failed\n");
+                         throw LinearSolver::ErrFactor(-1, MBDYN_EXCEPT_ARGS);
+                    }
+               }
+          }
+     } while (ierr);
+
+     bRebuildNumeric = false;
+     bRebuildSymbolic = false;
+
+     ierr = pSolver->Solve();
+}
+
+void AmesosSolutionManager::MatrReset()
+{
+     bRebuildNumeric = true;
+}
+
+void AmesosSolutionManager::MatrInitialize()
+{
+     bRebuildSymbolic = true;
+     bRebuildNumeric = true;
+}
+
+const char* AmesosSolutionManager::GetSolverName(unsigned uPrecondFlag)
+{
+     switch (uPrecondFlag) {
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK:
+          return "Umfpack";
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_KLU:
+          return "Klu";
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK:
+          return "Lapack";
+     default:
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     }
+}
+
 class AztecOOSolutionManager: public EpetraLinearSystem {
 public:
      AztecOOSolutionManager(
@@ -245,6 +369,7 @@ int AmesosPreconditioner::ApplyInverse(const Epetra_MultiVector& X, Epetra_Multi
 {
      ASSERT(X.GlobalLength() == pOperator->NumGlobalCols());
      ASSERT(Y.GlobalLength() == pOperator->NumGlobalRows());
+     ASSERT(X.GlobalLength() == oRhs.GlobalLength());
 
      // AztecOO requires that the same object may be passed for X and Y
      std::copy(X.Values(), X.Values() + X.GlobalLength(), oRhs.Values());
@@ -382,6 +507,7 @@ AztecOOSolutionManager::AztecOOSolutionManager(
       dTol(dTol)
 {
      oSolver.SetAztecOption(AZ_output, iVerbose);
+     oSolver.SetAztecOption(AZ_kspace, iMaxIter);
 }
 
 AztecOOSolutionManager::~AztecOOSolutionManager(void)
@@ -390,9 +516,19 @@ AztecOOSolutionManager::~AztecOOSolutionManager(void)
 
 void AztecOOSolutionManager::Solve(void)
 {
-     A.PacMat();
-
      integer ierr = oSolver.Iterate(iMaxIter, dTol);
+
+#ifdef DEBUG
+     MyVectorHandler Ax(b.iGetSize());
+     A.MatVecMul(Ax, x);
+     doublereal Axmb = 0.;
+     doublereal Axpb = 0.;
+     for (integer i = 1; i <= b.iGetSize(); ++i) {
+          Axmb += std::pow(Ax(i) - b(i), 2);
+          Axpb += std::pow(Ax(i) + b(i), 2);
+     }
+     DEBUGCERR("|A*x-b|/|A*x+b|=" << sqrt(Axmb / Axpb) << "\n");
+#endif
 
      if (ierr != 0) {
           silent_cerr("AztecOO error: iterative solution did not converge\n");
@@ -431,8 +567,6 @@ AztecOOPrecondSolutionManager::~AztecOOPrecondSolutionManager(void)
 
 void AztecOOPrecondSolutionManager::Solve(void)
 {
-     A.PacMat();
-
      integer ierr = 0;
 
      do {
@@ -491,6 +625,17 @@ pAllocateAztecOOSolutionManager(
 
      unsigned uPrecondFlag = uSolverFlags & LinSol::SOLVER_FLAGS_PRECOND_MASK;
 
+#ifdef USE_AMESOS_DIRECT_SOLVER_ONLY
+     SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                            AmesosSolutionManager,
+                            AmesosSolutionManager(
+#ifdef USE_MPI
+                                      oComm,
+#endif
+                                      iNLD,
+                                      iVerbose,
+                                      uPrecondFlag));
+#else
      switch (uPrecondFlag) {
      case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_ILUT:
           SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -518,7 +663,7 @@ pAllocateAztecOOSolutionManager(
                                       iVerbose,
                                       uPrecondFlag));
      }
-
+#endif
      return pCurrSM;
 }
 

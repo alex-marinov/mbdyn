@@ -30,12 +30,12 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-	Copyright (C) 2022(-2022) all rights reserved.
+        Copyright (C) 2022(-2022) all rights reserved.
 
-	The copyright of this code is transferred
-	to Pierangelo Masarati and Paolo Mantegazza
-	for use in the software MBDyn as described
-	in the GNU Public License version 2.1
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
 */
 
 #include "mbconfig.h"
@@ -64,7 +64,7 @@ EpetraSparseMatrixHandler::EpetraSparseMatrixHandler(const integer& iNumRows, co
 
 #ifdef DEBUG
      IsValid();
-#endif     
+#endif
 }
 
 EpetraSparseMatrixHandler::~EpetraSparseMatrixHandler()
@@ -97,12 +97,12 @@ void EpetraSparseMatrixHandler::Reset()
 #ifdef DEBUG
      IsValid();
 #endif
-     
+
      oEPM.PutScalar(0.);
 
 #ifdef DEBUG
      IsValid();
-#endif     
+#endif
 }
 
 VectorHandler&
@@ -153,7 +153,7 @@ EpetraSparseMatrixHandler::const_iterator EpetraSparseMatrixHandler::begin() con
      ExtractCrsDataPointers(rowptr, colind, values);
 
      ASSERT(NRows == oEPM.NumGlobalRows());
-     
+
      return const_iterator(rowptr, colind, values, oEPM.NumGlobalRows(), 0, 0);
 }
 
@@ -165,15 +165,15 @@ EpetraSparseMatrixHandler::const_iterator EpetraSparseMatrixHandler::end() const
      ExtractCrsDataPointers(rowptr, colind, values);
 
      ASSERT(NRows == oEPM.NumGlobalRows());
-     
+
      return const_iterator(rowptr, colind, values, NRows, Nz(), NRows - 1);
-}    
+}
 
 void EpetraSparseMatrixHandler::ExtractCrsDataPointers(integer*& rowptr, integer*& colind, doublereal*& values) const
 {
      ASSERT(oEPM.Filled());
      ASSERT(oEPM.StorageOptimized());
-     
+
      oEPM.ExtractCrsDataPointers(rowptr, colind, values);
 
      ASSERT(rowptr != nullptr);
@@ -184,25 +184,58 @@ void EpetraSparseMatrixHandler::ExtractCrsDataPointers(integer*& rowptr, integer
 CSCMatrixHandlerTpl<doublereal, integer, 0>& EpetraSparseMatrixHandler::GetTransposedCSC() const
 {
      ASSERT(oEPM.Filled());
-     
+
 #ifdef DEBUG
      IsValid();
      oCscT.IsValid();
 #endif
-     
+
      return oCscT;
 }
 
 const doublereal&
 EpetraSparseMatrixHandler::operator()(integer iRow, integer iCol) const
 {
+     if (!oEPM.Filled()) {
+          // FIXME: Without CSC we cannot access matrix entries directly
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     }
+
      return GetTransposedCSC()(iCol, iRow);
 }
 
 doublereal&
 EpetraSparseMatrixHandler::operator()(integer iRow, integer iCol)
 {
+     if (!oEPM.Filled()) {
+          // FIXME: Without CSC we cannot access matrix entries directly
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     }
+
      return GetTransposedCSC()(iCol, iRow);
+}
+
+void
+EpetraSparseMatrixHandler::IncCoef(integer iRow, integer iCol, const doublereal& dCoef)
+{
+     integer ierr;
+
+     if (oEPM.Filled()) {
+          ierr = oEPM.SumIntoGlobalValues(iRow, 1, &dCoef, &iCol);
+     } else {
+          ierr = oEPM.InsertGlobalValues(iRow, 1, &dCoef, &iCol);
+     }
+
+     if (ierr < 0) {
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+void
+EpetraSparseMatrixHandler::DecCoef(integer iRow, integer iCol, const doublereal& dCoef)
+{
+     IncCoef(iRow, iCol, -dCoef);
 }
 
 template <typename idx_type>
@@ -220,7 +253,7 @@ idx_type EpetraSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *cons
 
      ASSERT(oEPM.Filled());
      ASSERT(oEPM.StorageOptimized());
-     
+
      ExtractCrsDataPointers(rowptr, colind, values);
 
      const integer iNumRows = iGetNumRows();
@@ -231,19 +264,19 @@ idx_type EpetraSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *cons
      for (integer i = 0; i < iNumNz; ++i) {
           ASSERT(colind[i] >= 0);
           ASSERT(colind[i] < iNumCols);
-          
+
           ++oColSize[colind[i]];
      }
 
      idx_type iPtr = offset;
 
      for (integer iCol = 0; iCol < iNumCols; ++iCol) {
-	  Ap[iCol] = iPtr;
+          Ap[iCol] = iPtr;
 
           ASSERT(oColSize[iCol] >= 0);
           ASSERT(oColSize[iCol] <= iNumRows);
-          
-	  iPtr += oColSize[iCol];
+
+          iPtr += oColSize[iCol];
      }
 
      Ap[iNumCols] = iPtr;
@@ -261,51 +294,51 @@ idx_type EpetraSparseMatrixHandler::MakeCompressedColumnFormTpl(doublereal *cons
 #endif
 
      for (integer iRow = 0; iRow < iNumRows; ++iRow) {
-	  for (integer iItem = rowptr[iRow]; iItem < rowptr[iRow + 1]; ++iItem) {
-	       const integer iColIdx = colind[iItem];
-	       const idx_type iSlot = Ap[iColIdx] - offset + oColSize[iColIdx]++;
+          for (integer iItem = rowptr[iRow]; iItem < rowptr[iRow + 1]; ++iItem) {
+               const integer iColIdx = colind[iItem];
+               const idx_type iSlot = Ap[iColIdx] - offset + oColSize[iColIdx]++;
 
-	       ASSERT(iSlot >= 0);
-	       ASSERT(iSlot < iNumNz);
-	       ASSERT(Ai[iSlot] == iInvalidIndex);
-	       ASSERT(Ax[iSlot] == dInvalidValue);
+               ASSERT(iSlot >= 0);
+               ASSERT(iSlot < iNumNz);
+               ASSERT(Ai[iSlot] == iInvalidIndex);
+               ASSERT(Ax[iSlot] == dInvalidValue);
 
-	       Ai[iSlot] = iRow + offset;
-	       Ax[iSlot] = values[iItem];
-	  }
+               Ai[iSlot] = iRow + offset;
+               Ax[iSlot] = values[iItem];
+          }
      }
 
 #ifdef DEBUG
      idx_type iSizeTot = 0;
 
      for (idx_type iColSize: oColSize) {
-	  iSizeTot += iColSize;
+          iSizeTot += iColSize;
      }
 
      ASSERT(iSizeTot == iNumNz);
 
      for (integer iCol = 0; iCol < iNumCols; ++iCol) {
-	  idx_type iRowPrev = -1;
-	  for (idx_type iSlot = Ap[iCol] - offset; iSlot < Ap[iCol + 1] - offset; ++iSlot) {
-	       idx_type iRow = Ai[iSlot] - offset;
+          idx_type iRowPrev = -1;
+          for (idx_type iSlot = Ap[iCol] - offset; iSlot < Ap[iCol + 1] - offset; ++iSlot) {
+               idx_type iRow = Ai[iSlot] - offset;
 
-	       ASSERT(iRow > iRowPrev);
-	       ASSERT(iRow >= 0);
-	       ASSERT(iRow < NRows);
-	       ASSERT(std::isfinite(Ax[iSlot]));
+               ASSERT(iRow > iRowPrev);
+               ASSERT(iRow >= 0);
+               ASSERT(iRow < NRows);
+               ASSERT(std::isfinite(Ax[iSlot]));
 
-	       for (integer iItem = rowptr[iRow]; iItem < rowptr[iRow + 1]; ++iItem) {
-		    if (colind[iItem] == iCol) {
-			 ASSERT(Ax[iSlot] == values[iItem]);
-		    }
-	       }
+               for (integer iItem = rowptr[iRow]; iItem < rowptr[iRow + 1]; ++iItem) {
+                    if (colind[iItem] == iCol) {
+                         ASSERT(Ax[iSlot] == values[iItem]);
+                    }
+               }
 
-	       iRowPrev = iRow;
-	  }
+               iRowPrev = iRow;
+          }
      }
 #endif
 
-     return iPtr - offset;     
+     return iPtr - offset;
 }
 
 
@@ -335,22 +368,22 @@ int64_t EpetraSparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublere
      Ax.resize(Nz());
      Ap.resize(iGetNumCols() + 1);
 
-     return MakeCompressedColumnForm(&Ax.front(), &Ai.front(), &Ap.front(), offset);     
+     return MakeCompressedColumnForm(&Ax.front(), &Ai.front(), &Ap.front(), offset);
 }
 
 
 int32_t EpetraSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-								int32_t *const Ai,
-								int32_t *const Ap,
-								int offset) const
+                                                                int32_t *const Ai,
+                                                                int32_t *const Ap,
+                                                                int offset) const
 {
      return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
 }
 
 int64_t EpetraSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-								int64_t *const Ai,
-								int64_t *const Ap,
-								int offset) const
+                                                                int64_t *const Ai,
+                                                                int64_t *const Ap,
+                                                                int offset) const
 {
      return MakeCompressedColumnFormTpl(Ax, Ai, Ap, offset);
 }
@@ -364,14 +397,14 @@ idx_type EpetraSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const A
 #ifdef DEBUG
      IsValid();
 #endif
-     
+
      integer* rowptr;
      integer* colind;
      doublereal* values;
 
      ASSERT(oEPM.Filled());
      ASSERT(oEPM.StorageOptimized());
-     
+
      ExtractCrsDataPointers(rowptr, colind, values);
 
      const integer iNumRows = iGetNumRows();
@@ -380,7 +413,7 @@ idx_type EpetraSparseMatrixHandler::MakeCompressedRowFormTpl(doublereal *const A
      for (integer iRow = 0; iRow <= iNumRows; ++iRow) {
           Ap[iRow] = rowptr[iRow] + offset;
      }
-     
+
      for (integer iItem = 0; iItem < iNumNz; ++iItem) {
           Ax[iItem] = values[iItem];
           Ai[iItem] = colind[iItem] + offset;
@@ -440,7 +473,7 @@ bool EpetraSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient&
 {
 #ifdef DEBUG
      IsValid();
-#endif     
+#endif
      ASSERT(iRow >= 1);
      ASSERT(iRow <= iGetNumRows());
 
@@ -449,14 +482,14 @@ bool EpetraSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient&
 
      rgValues.reserve(oItem.iGetSize());
      rgColIndex.reserve(oItem.iGetSize());
-     
+
      for (const auto& oDer: oItem) {
           rgValues.push_back(oDer.dDer);
           rgColIndex.push_back(oDer.iDof);
      }
 
      integer ierr;
-          
+
      if (oEPM.Filled()) {
           ierr = oEPM.SumIntoGlobalValues(iRow, oItem.iGetSize(), &rgValues.front(), &rgColIndex.front());
      } else {
@@ -467,7 +500,7 @@ bool EpetraSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient&
           ASSERT(0);
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
-     
+
      return true;
 }
 
@@ -487,14 +520,14 @@ void EpetraSparseMatrixHandler::Scale(const std::vector<doublereal>& oRowScale, 
      doublereal* values;
 
      ExtractCrsDataPointers(rowptr, colind, values);
-     
+
      CSCMatrixHandlerTpl<doublereal, integer, 0> A_T(values, colind, rowptr, NRows, Nz());
-     
+
      A_T.Scale(oColScale, oRowScale); // Exchange rows by cols
-     
+
 #ifdef DEBUG
      IsValid();
-#endif     
+#endif
 }
 
 doublereal EpetraSparseMatrixHandler::Norm(Norm_t eNorm) const
@@ -502,7 +535,7 @@ doublereal EpetraSparseMatrixHandler::Norm(Norm_t eNorm) const
 #ifdef DEBUG
      IsValid();
 #endif
-     
+
      doublereal dNorm = 0.;
      switch (eNorm) {
      case NORM_1: {
@@ -512,7 +545,7 @@ doublereal EpetraSparseMatrixHandler::Norm(Norm_t eNorm) const
           return oEPM.NormInf();
      } break;
      default:
-	  throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
 
      return dNorm;
@@ -522,9 +555,9 @@ integer EpetraSparseMatrixHandler::Nz() const {
 #ifdef DEBUG
      IsValid();
 #endif
-     
+
      ASSERT(oEPM.Filled());
-     
+
      return oEPM.NumGlobalNonzeros();
 }
 
@@ -534,14 +567,14 @@ void EpetraSparseMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallb
      IsValid();
 #endif
      PacMat();
-     
+
      integer* rowptr;
      integer* colind;
      doublereal* values;
 
      ASSERT(oEPM.Filled());
      ASSERT(oEPM.StorageOptimized());
-     
+
      ExtractCrsDataPointers(rowptr, colind, values);
 
      const integer iNumRows = iGetNumRows();
@@ -558,7 +591,7 @@ EpetraSparseMatrixHandler* EpetraSparseMatrixHandler::Copy() const
 #ifdef DEBUG
      IsValid();
 #endif
-     
+
      EpetraSparseMatrixHandler* pMH = nullptr;
 
      SAFENEWWITHCONSTRUCTOR(pMH,

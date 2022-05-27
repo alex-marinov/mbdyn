@@ -631,7 +631,7 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
                ASSERT(piRowm1[r] > 0);
                ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-               MH(piRowm1[r], piColm1[c]) += ppdColsm1[c][r];
+               MH.IncCoef(piRowm1[r], piColm1[c], ppdColsm1[c][r]);
           }
      }
 
@@ -661,7 +661,7 @@ FullSubMatrixHandler::AddToT(MatrixHandler& MH) const
                ASSERT(piRowm1[r] > 0);
                ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-               MH(piColm1[c], piRowm1[r]) += ppdColsm1[c][r];
+               MH.IncCoef(piColm1[c], piRowm1[r], ppdColsm1[c][r]);
           }
      }
 
@@ -776,7 +776,7 @@ FullSubMatrixHandler::SubFrom(MatrixHandler& MH) const
                ASSERT(piRowm1[r] > 0);
                ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-               MH(piRowm1[r], piColm1[c]) -= ppdColsm1[c][r];
+               MH.DecCoef(piRowm1[r], piColm1[c], ppdColsm1[c][r]);
           }
      }
 
@@ -804,7 +804,7 @@ FullSubMatrixHandler::SubFromT(MatrixHandler& MH) const
                ASSERT(piRowm1[r] > 0);
                ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-               MH(piColm1[c], piRowm1[r]) -= ppdColsm1[c][r];
+               MH.DecCoef(piColm1[c], piRowm1[r], ppdColsm1[c][r]);
           }
      }
 
@@ -1533,7 +1533,7 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
           ASSERT(piColm1[i] > 0);
           ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-          MH(piRowm1[i], piColm1[i]) += pdMatm1[i];
+          MH.IncCoef(piRowm1[i], piColm1[i], pdMatm1[i]);
      }
 
      return MH;
@@ -1557,7 +1557,7 @@ SparseSubMatrixHandler::AddToT(MatrixHandler& MH) const
           ASSERT(piColm1[i] > 0);
           ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-          MH(piColm1[i], piRowm1[i]) += pdMatm1[i];
+          MH.IncCoef(piColm1[i], piRowm1[i], pdMatm1[i]);
      }
 
      return MH;
@@ -1649,7 +1649,7 @@ SparseSubMatrixHandler::SubFrom(MatrixHandler& MH) const
           ASSERT(piColm1[i] > 0);
           ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-          MH(piRowm1[i], piColm1[i]) -= pdMatm1[i];
+          MH.DecCoef(piRowm1[i], piColm1[i], pdMatm1[i]);
      }
 
      return MH;
@@ -1671,7 +1671,7 @@ SparseSubMatrixHandler::SubFromT(MatrixHandler& MH) const
           ASSERT(piColm1[i] > 0);
           ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-          MH(piColm1[i], piRowm1[i]) -= pdMatm1[i];
+          MH.DecCoef(piColm1[i], piRowm1[i], pdMatm1[i]);
      }
 
      return MH;
@@ -1921,7 +1921,7 @@ MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oItem.iEquationIdx, oRec.iDof) -= oRec.dDer;
+                    MH.DecCoef(oItem.iEquationIdx, oRec.iDof, oRec.dDer);
                }
           }
      }
@@ -1936,7 +1936,7 @@ MatrixHandler& SpGradientSubMatrixHandler::AddToT(MatrixHandler& MH) const
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oRec.iDof, oItem.iEquationIdx) += oRec.dDer;
+                    MH.IncCoef(oRec.iDof, oItem.iEquationIdx, oRec.dDer);
                }
           }
      }
@@ -1951,7 +1951,7 @@ MatrixHandler& SpGradientSubMatrixHandler::SubFromT(MatrixHandler& MH) const
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oRec.iDof, oItem.iEquationIdx) -= oRec.dDer;
+                    MH.DecCoef(oRec.iDof, oItem.iEquationIdx, oRec.dDer);
                }
           }
      }

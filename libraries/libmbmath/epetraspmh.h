@@ -133,6 +133,12 @@ public:
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
+     virtual void
+     IncCoef(integer iRow, integer iCol, const doublereal& dCoef) override final;
+
+     virtual void
+     DecCoef(integer iRow, integer iCol, const doublereal& dCoef) override final;
+     
      virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 
      virtual doublereal Norm(Norm_t eNorm = NORM_1) const override;
