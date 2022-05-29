@@ -9,14 +9,20 @@ accj.cc \
 accj.h \
 autostr.cc \
 autostr.h \
+autostrad.cc \
+autostrad.h \
 beam.cc \
 beam.h \
+beamad.cc \
+beamad.h \
 beam2.cc \
 beam2.h \
 beamslider.h \
 beamslider.cc \
 body.cc \
 body.h \
+bodyad.cc \
+bodyad.h \
 body_vm.cc \
 body_vm.h \
 brake.cc \
@@ -59,6 +65,8 @@ membraneeas.h \
 membraneeas.cc \
 modal.cc \
 modal.h \
+modalad.cc \
+modalad.h \
 modaledge.cc \
 modaledge.h \
 modalext.cc \
@@ -105,12 +113,16 @@ strforce.h \
 strforce_impl.h \
 strnode.cc \
 strnode.h \
+strnodead.cc \
+strnodead.h \
 tdclw.cc \
 tdclw.h \
 totalequation.cc \
 totalequation.h \
 totalj.cc \
 totalj.h \
+totaljad.cc \
+totaljad.h \
 univj.cc \
 univj.h \
 vb.cc \
@@ -147,11 +159,6 @@ $(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.h \
 $(srcdir)/../../modules/module-switch_drive/module-switch_drive.cc \
 $(srcdir)/../../modules/module-switch_drive/module-switch_drive.h
 
-if USE_AUTODIFF
-nodist_libstruct_la_SOURCES +=
-endif
-
-if USE_SPARSE_AUTODIFF
 nodist_libstruct_la_SOURCES += \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
@@ -170,7 +177,6 @@ $(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc
 \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.h \
 $(srcdir)/../../modules/module-triangular_contact/module-triangular_contact.cc
-endif
 
 # add more...
 endif

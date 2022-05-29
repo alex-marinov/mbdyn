@@ -52,10 +52,7 @@
 #include "ls.h"
 #include "solman.h"
 #include "spmapmh.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 
 #define MPI_COMM_WORLD 0
 

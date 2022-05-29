@@ -319,7 +319,6 @@ MultiThreadDataManager::thread(void *p)
                        break;
                   }
 #endif
-#ifdef USE_SPARSE_AUTODIFF
                   case MultiThreadDataManager::OP_ASSJAC_GRAD:
                   {
                        arg->pDM->DataManager::AssJac(arg->oGradJacHdl,
@@ -340,7 +339,6 @@ MultiThreadDataManager::thread(void *p)
                                                      *arg->pWorkMat);
                        break;
                   }
-#endif
 #ifdef MBDYN_X_MT_ASSRES
                   case MultiThreadDataManager::OP_ASSRES:
                        arg->pResHdl->Reset();
@@ -412,13 +410,11 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 #endif
         }
 
-#ifdef USE_SPARSE_AUTODIFF
         if (arg->pJacProd) {
                 SAFEDELETE(arg->pJacProd);
         }
 
         ASSERT(!arg->pY);
-#endif
 
         sem_destroy(&arg->sem);
 
@@ -484,19 +480,34 @@ MultiThreadDataManager::ThreadSpawn(void)
 
                 /* SubMatrixHandlers */
                 thread_data[i].pWorkMatA = 0;
-                SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
-                                VariableSubMatrixHandler,
-                                VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-                                                         iMaxWorkNumColsJac,
-                                                         iMaxWorkNumItemsJac));
-
                 thread_data[i].pWorkMatB = 0;
-                SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
-                                VariableSubMatrixHandler,
-                                VariableSubMatrixHandler(iMaxWorkNumRowsJac,
-                                                         iMaxWorkNumColsJac,
-                                                         iMaxWorkNumItemsJac));
 
+                if (bUseAutoDiff()) {
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
+                                            VariableSubMatrixHandlerAd,
+                                            VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                                       iMaxWorkNumColsJac,
+                                                                       iMaxWorkNumItemsJac));
+
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
+                                            VariableSubMatrixHandlerAd,
+                                            VariableSubMatrixHandlerAd(iMaxWorkNumRowsJac,
+                                                                       iMaxWorkNumColsJac,
+                                                                       iMaxWorkNumItemsJac));
+                } else {
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
+                                            VariableSubMatrixHandlerNonAd,
+                                            VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                          iMaxWorkNumColsJac,
+                                                                          iMaxWorkNumItemsJac));
+
+                     SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
+                                            VariableSubMatrixHandlerNonAd,
+                                            VariableSubMatrixHandlerNonAd(iMaxWorkNumRowsJac,
+                                                                          iMaxWorkNumColsJac,
+                                                                          iMaxWorkNumItemsJac));
+                }
+                
                 thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
                 thread_data[i].pWorkVec = 0;
@@ -510,7 +521,6 @@ MultiThreadDataManager::ThreadSpawn(void)
                 /* set by AssJac when in Naive form */
                 thread_data[i].ppNaiveJacHdl = 0;
 #endif
-#ifdef USE_SPARSE_AUTODIFF
                 thread_data[i].pY = thread_data[i].pJacProd = nullptr;
                 
                 if (i > 0) {
@@ -518,7 +528,6 @@ MultiThreadDataManager::ThreadSpawn(void)
                                                MyVectorHandler,
                                                MyVectorHandler(iTotDofs));
                 }
-#endif
 #ifdef MBDYN_X_MT_ASSRES
                 /* set below */
                 thread_data[i].pResHdl = 0;
@@ -556,23 +565,18 @@ MultiThreadDataManager::ThreadSpawn(void)
 void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-#ifdef USE_SPARSE_AUTODIFF
         SpGradientSparseMatrixHandler* pGradJacHdl = nullptr;
-#endif
 #ifdef USE_NAIVE_MULTITHREAD
         NaiveMatrixHandler* pNaiveJacHdl = nullptr;
 #endif
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         NodesUpdateJac(dCoef, NodeIter);
-#endif
+
         if (dynamic_cast<CompactSparseMatrixHandler*>(&JacHdl) || dynamic_cast<SpMapMatrixHandler*>(&JacHdl)) {
                 AssMode = ASS_CC;
                 CCAssJac(JacHdl, dCoef);
-#ifdef USE_SPARSE_AUTODIFF
         } else if ((pGradJacHdl = dynamic_cast<SpGradientSparseMatrixHandler*>(&JacHdl))) {
                 AssMode = ASS_GRAD;
                 GradAssJac(*pGradJacHdl, dCoef);
-#endif
 #ifdef USE_NAIVE_MULTITHREAD
         } else if ((pNaiveJacHdl = dynamic_cast<NaiveMatrixHandler*>(&JacHdl))) {
                 AssMode = ASS_NAIVE;
@@ -585,7 +589,6 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
         }
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void MultiThreadDataManager::AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef)
 {
      DEBUGCERR("Assemble Jacobian vector product in parallel ...\n");
@@ -646,7 +649,6 @@ void MultiThreadDataManager::GradAssJacProd(VectorHandler& JacY, const VectorHan
                 JacY += *thread_data[i].pJacProd;
         }
 }
-#endif
 
 void
 MultiThreadDataManager::CCAssJac(MatrixHandler& JacHdl, doublereal dCoef)
@@ -927,7 +929,6 @@ MultiThreadDataManager::NaiveAssJac(NaiveMatrixHandler& JacHdl, doublereal dCoef
 }
 #endif
 
-#ifdef USE_SPARSE_AUTODIFF
 void
 MultiThreadDataManager::GradAssJac(SpGradientSparseMatrixHandler& JacHdl, doublereal dCoef)
 {
@@ -975,7 +976,6 @@ MultiThreadDataManager::GradAssJac(SpGradientSparseMatrixHandler& JacHdl, double
              }
         }
 }
-#endif
 
 void MultiThreadDataManager::SetAffinity(const ThreadData& oThread)
 {

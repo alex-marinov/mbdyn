@@ -39,53 +39,21 @@
 
 #include "node.h"
 
-class PressureNode : public ScalarAlgebraicNode {
- public:
-   PressureNode(unsigned int uL, const DofOwner* pDO, 
-		doublereal dx, flag fOut) 
-     : ScalarAlgebraicNode(uL, pDO, dx, fOut) {
-	NO_OP;
-     };
+class PressureNode : virtual public ScalarAlgebraicNode {
+public:
+     PressureNode(unsigned int uL, const DofOwner* pDO, doublereal dx, flag fOut); 
    
-   virtual ~PressureNode(void) { 
-      NO_OP;      
-   };
+     virtual ~PressureNode();
    
-   virtual Node::Type GetNodeType(void) const {
-      return Node::HYDRAULIC;
-   };
+     virtual Node::Type GetNodeType(void) const;
    
-   void Output(OutputHandler& OH) const {
-      ScalarAlgebraicNode::Output(OH.PresNodes());
-   };
+     void Output(OutputHandler& OH) const;
 
-   /* returns the dimension of the component */
-	const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const {
-      OutputHandler::Dimensions dimension = OutputHandler::Dimensions::UnknownDimension;
+     /* returns the dimension of the component */
+     const virtual OutputHandler::Dimensions GetEquationDimension(integer index) const;
 
-	   switch (index)
-	   {
-		   case 1:
-			   dimension = OutputHandler::Dimensions::MassFlow;
-			   break;
-	   }
-
-	   return dimension;
-   }
-
-   /* describes the dimension of components of equation */
-   virtual std::ostream& DescribeEq(std::ostream& out,
-		  const char *prefix = "",
-		  bool bInitial = false) const {
-
-      integer iIndex = iGetFirstIndex();
-
-      out
-         << prefix << iIndex + 1 << ": " <<
-         "mass flow balance" << std::endl;
-
-      return out;
-   }
+     /* describes the dimension of components of equation */
+     virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix = "", bool bInitial = false) const;
 };
 
 #endif /* PRESNODE_H */

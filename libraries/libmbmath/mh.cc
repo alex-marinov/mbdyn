@@ -43,10 +43,7 @@
 #include "submat.h"
 #include "matvec3.h"
 #include "ac/lapack.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient.h"
-#endif
 
 /* MatrixHandler - begin */
 
@@ -588,7 +585,6 @@ void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::v
      }
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      SP_GRAD_ASSERT(iRow >= 1);
@@ -605,7 +601,6 @@ bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 
      return true; // Note: not thread safe (need to duplicate matrix data for each thread)
 }
-#endif
 
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)

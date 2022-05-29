@@ -43,7 +43,9 @@ ThermalNode::ThermalNode(unsigned int uL,
 	doublereal dx,
 	doublereal dxp,
 	flag fOut)
-: ScalarDifferentialNode(uL, pDO, dx, dxp, fOut)
+     :ScalarNode(uL, pDO, fOut),
+      ScalarDifferentialNode(uL, pDO, dx, dxp, fOut)
+
 {
 	NO_OP;
 }

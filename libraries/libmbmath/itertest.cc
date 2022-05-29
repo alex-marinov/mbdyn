@@ -40,14 +40,12 @@
 #include "dirccmh.h"
 #include "naivemh.h"
 
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
 #include "cscmhtpl.h"
 #ifdef USE_TRILINOS
 #undef HAVE_BLAS
 #include "epetraspmh.h"
 #include "Epetra_SerialComm.h"
-#endif
 #endif
 
 static constexpr doublereal mat[5][5] = {
@@ -76,12 +74,10 @@ main(void)
         NaiveMatrixHandler nm(5);
         NaivePermMatrixHandler npm(5, perm, invperm);
 
-#ifdef USE_SPARSE_AUTODIFF
         SpGradientSparseMatrixHandler spgmh(5, 5);
 #ifdef USE_TRILINOS
         Epetra_SerialComm comm;
         EpetraSparseMatrixHandler epmh(5, 5, 5, comm);
-#endif
 #endif
 
         for (int r = 0; r < 5; r++) {
@@ -91,13 +87,11 @@ main(void)
                                 spm(r + 1, c + 1) = mat[r][c];
                                 nm(r + 1, c + 1) = mat[r][c];
                                 npm(r + 1, c + 1) = mat[r][c];
-#ifdef USE_SPARSE_AUTODIFF
                                 sp_grad::SpGradient g;
                                 g.Reset(0., c + 1, mat[r][c]);
                                 spgmh.AddItem(r + 1, g);
 #ifdef USE_TRILINOS
                                 epmh.AddItem(r + 1, g);
-#endif
 #endif
                         }
                 }
@@ -115,7 +109,6 @@ main(void)
         std::cout << "matrix in naive permuted form: " << std::endl
                 << npm << std::endl;
 
-#ifdef USE_SPARSE_AUTODIFF
         std::cout << "matrix in sparse gradient form: " << std::endl
                   << spgmh << std::endl;
 #ifdef USE_TRILINOS
@@ -124,13 +117,11 @@ main(void)
         std::cout << "matrix in Epetra sparse form:\n"
                   << epmh << std::endl;
 #endif
-#endif
 
         std::vector<doublereal> Ax0;
         std::vector<integer> Ai0, Ap0;
         spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
 
-#ifdef USE_SPARSE_AUTODIFF
         std::vector<doublereal> Ax0g, Ax1g, Ax0gT, Ax1gT;
         std::vector<integer> Ai0g, Ap0g, Ai1g, Ap1g, Ai0gT, Ap0gT, Ai1gT, Ap1gT;
 
@@ -157,8 +148,6 @@ main(void)
         const CSCMatrixHandlerTpl<doublereal, integer, 0> epc0T(&Ax0eT.front(), &Ai0eT.front(), &Ap0eT.front(), epmh.iGetNumRows(), Ai0eT.size());
         const CSCMatrixHandlerTpl<doublereal, integer, 1> epc1T(&Ax1eT.front(), &Ai1eT.front(), &Ap1eT.front(), epmh.iGetNumRows(), Ai1eT.size());
 #endif
-#endif
-
         CColMatrixHandler<0> ccm0(Ax0, Ai0, Ap0);
 
         std::cout << "matrix in cc<0> form: " << std::endl
@@ -315,7 +304,6 @@ main(void)
                 }
         }
 
-#ifdef USE_SPARSE_AUTODIFF
         const SpGradientSparseMatrixHandler& cspgmh(spgmh);
         
         std::cout << "***************************" << std::endl
@@ -432,7 +420,6 @@ main(void)
                         ASSERT(0);                        
                 }
         }
-#endif
 #endif
         return 0;
 }

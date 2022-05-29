@@ -84,10 +84,8 @@ extern "C" {
 #include "ccmh.h"
 #include "dgeequ.h"
 #include "linsol.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
+
 /* KLUSolver - begin */
 
 class KLUSolver: public LinearSolver {

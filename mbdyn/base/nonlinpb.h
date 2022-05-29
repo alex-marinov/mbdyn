@@ -54,9 +54,8 @@ public:
 
 	virtual void Jacobian(MatrixHandler* pJac) const = 0;
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const = 0;
-#endif
+
 	virtual void Update(const VectorHandler* pSol) const = 0;
 
 	/* scale factor for tests */

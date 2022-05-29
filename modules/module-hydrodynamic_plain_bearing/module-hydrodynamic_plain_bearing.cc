@@ -51,11 +51,10 @@
 
 #include <dataman.h>
 #include <userelem.h>
+#include <strnodead.h>
 #include <sp_matvecass.h>
 
 #include "module-hydrodynamic_plain_bearing.h"
-
-#if defined(USE_SPARSE_AUTODIFF)
 
 class HydrodynamicPlainBearing: virtual public Elem, public UserDefinedElem
 {
@@ -187,8 +186,8 @@ private:
           void UpdateBearingForce(OutputData<T>& oOutput) const;
      };
 
-     const StructNode* m_pShaft;
-     const StructNode* m_pBearing;
+     const StructNodeAd* m_pShaft;
+     const StructNodeAd* m_pBearing;
      Vec3 m_o1_R1;
      Vec3 m_o2_R2;
      Bearing2D m_bdat;
@@ -331,7 +330,7 @@ HydrodynamicPlainBearing::HydrodynamicPlainBearing(
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     m_pShaft = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+     m_pShaft = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!m_pShaft) {
           silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -347,7 +346,7 @@ HydrodynamicPlainBearing::HydrodynamicPlainBearing(
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     m_pBearing = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+     m_pBearing = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!m_pBearing) {
           silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -1346,11 +1345,9 @@ void HydrodynamicPlainBearing::Bearing2D::UpdateBearingForce(OutputData<T>& oOut
 
 } /* BearingForce */
 
-#endif
 
 bool hydrodynamic_plain_bearing_set(void)
 {
-#if defined(USE_SPARSE_AUTODIFF)
      UserDefinedElemRead *rf = new UDERead<HydrodynamicPlainBearing>;
 
      if (!SetUDE("hydrodynamic_plain_bearing_with_offset", rf))
@@ -1360,9 +1357,6 @@ bool hydrodynamic_plain_bearing_set(void)
      }
 
      return true;
-#else
-     return false;
-#endif
 }
 
 #ifndef STATIC_MODULES

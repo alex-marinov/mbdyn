@@ -441,10 +441,7 @@ KLUSparseSolutionManager<MatrixHandlerType>::pSolHdl(void) const
 }
 
 template class KLUSparseSolutionManager<SpMapMatrixHandler>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class KLUSparseSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
 
 /* KLUSparseSolutionManager - end */
 

@@ -258,9 +258,7 @@ public:
 
         void Jacobian(MatrixHandler* pJac) const;
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
-#endif
      
         void Update(const VectorHandler* pSol) const;
 
@@ -295,9 +293,7 @@ public:
 
         virtual void Jacobian(MatrixHandler* pJac) const;
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
-#endif
      
         virtual void Update(const VectorHandler* pSol) const;
 
@@ -778,9 +774,7 @@ public:
 
         virtual void Jacobian(MatrixHandler* pJac) const override;
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
-#endif
 
         void Predict(void);
 
@@ -881,9 +875,7 @@ public:
 
         void Jacobian(MatrixHandler* pJac) const ;
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
-#endif
      
         void Update(const VectorHandler* pSol) const  ;
 

@@ -61,12 +61,12 @@ using namespace std;
 #include <dataman.h>
 #include <userelem.h>
 
+#include <strnodead.h>
 #include <sp_gradient.h>
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
 #include "module-uni_in_plane.h"
 
-#ifdef USE_SPARSE_AUTODIFF
 class UniInPlaneFriction: virtual public Elem, public UserDefinedElem
 {
 public:
@@ -228,9 +228,9 @@ private:
      typedef ContactPointVec_t::const_iterator const_ContactPointIter_t;
 
      const DataManager* const pDM;
-     const StructNode* pNode1;
+     const StructNodeAd* pNode1;
      ContactPointVec_t ContactPoints1;
-     const StructNode* pNode2;
+     const StructNodeAd* pNode2;
      sp_grad::SpColVectorA<doublereal, 3> o2;
      sp_grad::SpMatrixA<doublereal, 3, 3> Rp;
      doublereal epsilon, dFmax, tCurr, tPrev;
@@ -364,7 +364,7 @@ UniInPlaneFriction::UniInPlaneFriction(
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pNode1 = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
+     pNode1 = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!pNode1) {
           silent_cerr("unilateral in plane(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -421,7 +421,7 @@ UniInPlaneFriction::UniInPlaneFriction(
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pNode2 = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
+     pNode2 = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!pNode2) {
           silent_cerr("unilateral in plane(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -1058,11 +1058,9 @@ UniInPlaneFriction::InitialAssRes(
 
      return WorkVec;
 }
-#endif
 
 bool uni_in_plane_set(void)
 {
-#ifdef USE_SPARSE_AUTODIFF
      UserDefinedElemRead *rf = new UDERead<UniInPlaneFriction>;
 
      if (!SetUDE("unilateral" "in" "plane",rf))
@@ -1070,7 +1068,6 @@ bool uni_in_plane_set(void)
           delete rf;
           return false;
      }
-#endif
 
      return true;
 }

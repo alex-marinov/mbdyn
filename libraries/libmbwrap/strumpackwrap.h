@@ -53,9 +53,7 @@
 #include "solman.h"
 
 #include "spmapmh.h"
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 
 class StrumpackSolver: public LinearSolver {
 public:

@@ -50,13 +50,7 @@
 #include "solman.h"
 #include "withlab.h"
 
-#ifdef USE_AUTODIFF
-#include <gradient.h>
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
 #include <sp_gradient.h>
-#endif
 
 extern const char* psDriveNames[];
 extern const char* psReadControlDrivers[];
@@ -152,15 +146,8 @@ public:
 	doublereal dGetP(const doublereal& dVar) const;
 	doublereal dGetP(void) const;
 
-#ifdef USE_AUTODIFF
-	inline void dGet(doublereal x, doublereal& y) const;
-	template <int N>
-	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
         inline void dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
         inline void dGetP(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
-#endif
 };
 
 /* DriveOwner - end */
@@ -522,24 +509,12 @@ public:
 	virtual doublereal dGet(const doublereal& dVar) const = 0;
 	virtual inline doublereal dGet(void) const;
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 	inline void dGet(doublereal x, doublereal& y) const;
         inline void dGetP(doublereal x, doublereal& yP) const;
-#endif
-     
-#ifdef USE_AUTODIFF
-	template <int N>
-	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
-        template <int N>
-        inline void dGetP(const grad::Gradient<N>& gx, grad::Gradient<N>& gyP) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
 	inline void dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const;
 	inline void dGetP(const sp_grad::SpGradient& gx, sp_grad::SpGradient& gyP) const;
 	inline void dGet(const sp_grad::GpGradProd& x, sp_grad::GpGradProd& y) const;     
      	inline void dGetP(const sp_grad::GpGradProd& gx, sp_grad::GpGradProd& gyP) const;
-#endif
      
 	/* this is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
@@ -571,7 +546,6 @@ DriveCaller::dGetP(void) const
 	return dGetP(pDrvHdl->dGetTime());
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 inline void DriveCaller::dGet(doublereal x, doublereal& y) const
 {
 	y = dGet(x);
@@ -581,44 +555,7 @@ inline void DriveCaller::dGetP(doublereal x, doublereal& yP) const
 {
 	yP = dGetP(x);
 }
-#endif
 
-#ifdef USE_AUTODIFF
-template <int N>
-inline void DriveCaller::dGet(const grad::Gradient<N>& gx, grad::Gradient<N>& gy) const
-{
-	using namespace grad;
-	const doublereal x = gx.dGetValue();
-	const doublereal y = dGet(x);
-	const doublereal dy_dx = dGetP(x);
-
-	gy.SetValuePreserve(y);
-	gy.DerivativeResizeReset(gx.pGetDofMap(), gx.iGetStartIndexLocal(), gx.iGetEndIndexLocal(), MapVectorBase::LOCAL, 0.);
-
-	for (index_type i = gx.iGetStartIndexLocal(); i < gx.iGetEndIndexLocal(); ++i) {
-		gy.SetDerivativeLocal(i, dy_dx * gx.dGetDerivativeLocal(i));
-	}
-}
-
-template <int N>
-inline void DriveCaller::dGetP(const grad::Gradient<N>& gx, grad::Gradient<N>& gyP) const
-{
-	gyP.SetValue(dGetP(gx.dGetValue()));
-}
-
-inline void DriveOwner::dGet(doublereal x, doublereal& y) const
-{
-	pDriveCaller->dGet(x, y);
-}
-
-template <int N>
-inline void DriveOwner::dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const
-{
-	pDriveCaller->dGet(x, y);
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
 inline void DriveOwner::dGet(const sp_grad::SpGradient& x, sp_grad::SpGradient& y) const
 {
 	pDriveCaller->dGet(x, y);
@@ -657,7 +594,6 @@ inline void DriveCaller::dGetP(const sp_grad::GpGradProd& gx, sp_grad::GpGradPro
 {
      gyP.Reset(dGetP(gx.dGetValue()), 0.); // FIXME: There is no dGetPP needed for the gradient of yP
 }
-#endif
 	
 /* DriveCaller - end */
 

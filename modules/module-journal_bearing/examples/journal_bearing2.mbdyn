@@ -125,6 +125,7 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
+    use automatic differentiation;
     default output: all;
 	structural nodes: 3;
     parameter nodes: 2;

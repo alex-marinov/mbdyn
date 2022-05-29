@@ -51,9 +51,7 @@
 #endif /* HAVE_CONFIG_H */
 #include <dataman.h>
 #include <userelem.h>
-
-#ifdef USE_SPARSE_AUTODIFF
-
+#include <strnodead.h>
 #include <sp_gradient.h>
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
@@ -256,12 +254,12 @@ private:
      };
 
      struct ContactNode {
-	  ContactNode(const StructNode* pNode,
+	  ContactNode(const StructNodeAd* pNode,
 		      std::vector<ContactVertex>&& v,
 		      std::unique_ptr<DriveCaller>&& dr,
 		      integer iNumFaces);
 
-	  const StructNode* const pContNode;
+	  const StructNodeAd* const pContNode;
 	  const std::vector<ContactVertex> rgVertices;
 	  std::unique_ptr<DriveCaller> dr;
 	  std::unordered_map<TargetFace*, ContactPair> rgContCurr, rgContPrev;
@@ -284,7 +282,7 @@ private:
 
      std::vector<TargetFace> rgTargetMesh;
      std::vector<ContactNode> rgContactMesh;
-     const StructNode* pTargetNode;
+     const StructNodeAd* pTargetNode;
      doublereal dSearchRadius;
      const DifferentiableScalarFunction* pCL;
      const DataManager* const pDM;
@@ -505,7 +503,7 @@ TriangularContact::TargetFace::TargetFace(const DataManager* pDM)
 {
 }
 
-TriangularContact::ContactNode::ContactNode(const StructNode* pNode,
+TriangularContact::ContactNode::ContactNode(const StructNodeAd* pNode,
 					    std::vector<ContactVertex>&& rgVert,
 					    std::unique_ptr<DriveCaller>&& dr,
 					    integer iNumFaces)
@@ -583,7 +581,7 @@ TriangularContact::TriangularContact(unsigned uLabel, const DofOwner *pDO,
 	  throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pTargetNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
+     pTargetNode = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!HP.IsKeyWord("penalty" "function")) {
 	  silent_cerr("triangular contact(" << uLabel
@@ -802,7 +800,7 @@ TriangularContact::TriangularContact(unsigned uLabel, const DofOwner *pDO,
      rgContactMesh.reserve(iNumContactNodes);
 
      for (integer i = 0; i < iNumContactNodes; ++i) {
-	  const StructNode* pContNode = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
+	  const StructNodeAd* pContNode = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 	  const ReferenceFrame oRefFrame(pContNode);
 	  std::unique_ptr<DriveCaller> dr{HP.IsKeyWord("normal" "offset") ? HP.GetDriveCaller() : new NullDriveCaller};
 	  const integer iNumVertices = HP.IsKeyWord("number" "of" "contact" "vertices") ? HP.GetInt() : 1;
@@ -1221,11 +1219,9 @@ void TriangularContact::AfterConvergence(const VectorHandler& X,
 	  }
      }
 }
-#endif
 
 bool triangular_contact_set(void)
 {
-#ifdef USE_SPARSE_AUTODIFF
      UserDefinedElemRead *rf = new UDERead<TriangularContact>;
 
      if (!SetUDE("triangular" "contact", rf))
@@ -1233,7 +1229,6 @@ bool triangular_contact_set(void)
 	  delete rf;
 	  return false;
      }
-#endif
 
      return true;
 }
