@@ -719,7 +719,7 @@ namespace sp_grad {
      }
 
      size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
-	  return offsetof(SpDerivData, rgDer[iSizeRes]);
+	  return sizeof(SpDerivData) + sizeof(SpDerivRec) * iSizeRes;
      }
 
      void SpGradient::Cleanup() {
