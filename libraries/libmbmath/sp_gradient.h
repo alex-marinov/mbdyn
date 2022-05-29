@@ -719,6 +719,8 @@ namespace sp_grad {
      }
 
      size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
+          // this should really be offsetof(SpDerivData, rgDer[iSizeRes]);
+	  // but gcc 12.1 complains and we don't understand why
 	  return sizeof(SpDerivData) + sizeof(SpDerivRec) * iSizeRes;
      }
 
