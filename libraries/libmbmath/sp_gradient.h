@@ -718,7 +718,7 @@ namespace sp_grad {
 	  Allocate(pData->iSizeRes, pData->iSizeCurr, pData->uFlags);
      }
 
-     constexpr size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
+     size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
 	  return offsetof(SpDerivData, rgDer[iSizeRes]);
      }
 

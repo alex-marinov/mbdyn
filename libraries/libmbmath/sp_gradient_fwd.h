@@ -290,7 +290,7 @@ namespace sp_grad {
 
           inline void SetValuePreserve(doublereal dVal);
 
-          inline static constexpr size_t uGetAllocSize(index_type iSizeRes);
+          inline static size_t uGetAllocSize(index_type iSizeRes);
 
           inline static SpDerivData* pAllocMem(SpDerivData* ptr, index_type iSize);
 
