@@ -5365,14 +5365,16 @@ Solver::Eig(bool bNewLine)
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
-
+             pMatA->PacMat(); // Needed for Trilinos sparse matrix handler
+             
              pDM->Update();
              Res.Reset();
              oFakeStepIntegrator.SetCoef(h/2.);
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
-
+             pMatB->PacMat(); // Needed for Trilinos sparse matrix handler
+             
              pCurrStepIntegrator = pPrevStepInt;
         }
 
@@ -5655,6 +5657,7 @@ Solver::AllocateNonlinearSolver()
                 case LinSol::SPQR_SOLVER:
                 case LinSol::STRUMPACK_SOLVER:
                 case LinSol::AZTECOO_SOLVER:
+                case LinSol::AMESOS_SOLVER:
                         // All solvers which do not destroy the Jacobian during factorization can be added here.
                         break;
                 default:

@@ -60,6 +60,7 @@ public:
 		STRUMPACK_SOLVER,
 		WATSON_SOLVER,
                 AZTECOO_SOLVER,
+                AMESOS_SOLVER,
 		LAST_SOLVER
 	};
 

@@ -208,6 +208,11 @@ const LinSol::solver_t solver[] = {
          LinSol::SOLVER_FLAGS_PRECOND_MASK,
          LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK,
          -1, -1},
+        {"Amesos", NULL,
+         LinSol::AMESOS_SOLVER,
+         LinSol::SOLVER_FLAGS_PRECOND_MASK,
+         LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK,
+         -1, -1},
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -341,6 +346,10 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif
 #ifdef USE_TRILINOS
         case LinSol::AZTECOO_SOLVER:
+             currSolver = t;
+             return true;
+             
+        case LinSol::AMESOS_SOLVER:
              currSolver = t;
              return true;
 #endif
@@ -600,6 +609,7 @@ bool LinSol::SetVerbose(integer iVerb)
      case LinSol::PASTIX_SOLVER:
      case LinSol::STRUMPACK_SOLVER:
      case LinSol::AZTECOO_SOLVER:
+     case LinSol::AMESOS_SOLVER:
 	  iVerbose = iVerb;
 	  break;
 	  
@@ -992,6 +1002,15 @@ LinSol::GetSolutionManager(integer iNLD,
                   iNLD,
                   iMaxIter,
                   dTolRes,
+                  iVerbose,
+                  solverFlags);
+             break;
+        case LinSol::AMESOS_SOLVER:
+             pCurrSM = pAllocateAmesosSolutionManager(
+#ifdef USE_MPI
+                  oComm,
+#endif
+                  iNLD,
                   iVerbose,
                   solverFlags);
              break;

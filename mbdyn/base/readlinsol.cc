@@ -58,6 +58,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		::solver[LinSol::WATSON_SOLVER].s_name,
                 ::solver[LinSol::AZTECOO_SOLVER].s_name,
+                ::solver[LinSol::AMESOS_SOLVER].s_name,
 		NULL
 	};
 
@@ -80,6 +81,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		STRUMPACK,
 		WATSON,
 		AZTECOO,
+                AMESOS,
 		LASTKEYWORD
 	};
 
@@ -252,7 +254,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
              bGotIt = true;
 #endif
              break;
-             
+        case AMESOS:
+             cs.SetSolver(LinSol::AMESOS_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using Amesos solver\n");
+#ifdef USE_TRILINOS
+             bGotIt = true;
+#endif
+             break;
+
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -775,7 +784,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
-        if (HP.IsKeyWord("preconditioner")) {
+        if (HP.IsKeyWord("preconditioner") || HP.IsKeyWord("solver")) {
              unsigned uPrecondFlag = 0u;
              
              if (HP.IsKeyWord("umfpack")) {
