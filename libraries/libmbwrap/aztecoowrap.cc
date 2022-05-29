@@ -264,7 +264,9 @@ AmesosSolver::AmesosSolver(Epetra_RowMatrix* pA, Epetra_Vector* pX, Epetra_Vecto
       bRebuildNumeric(true)
 {
      if (!pSolver.get()) {
-          throw Teuchos::ExceptionBase("Amesos failed to create linear solver interface");
+          silent_cerr("Trilinos was not compiled with solver " << GetSolverName(uFlags) << " enabled!\n"
+                      "Recompile Trilinos in order to use this solver!\n");
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 }
 
@@ -324,6 +326,30 @@ const char* AmesosSolver::GetSolverName(unsigned uFlags)
      case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK:
           return "Lapack";
 
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SUPERLU:
+          return "Superlu";
+
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_MUMPS:
+          return "Mumps";
+          
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SCALAPACK:
+          return "Scalapack";
+
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_DSCPACK:
+          return "Dscpack";
+          
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARDISO:
+          return "Pardiso";
+
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARAKLETE:
+          return "Paraklete";
+
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_TAUCS:
+          return "Taucs";
+          
+     case LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_CSPARSE:
+          return "CSparse";
+          
      default:
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
@@ -663,7 +689,7 @@ pAllocateAmesosSolutionManager(
 {
      SolutionManager* pCurrSM = nullptr;
 
-     unsigned uPrecondFlag = uSolverFlags & LinSol::SOLVER_FLAGS_PRECOND_MASK;
+     unsigned uSolverFlag = uSolverFlags & LinSol::SOLVER_FLAGS_PRECOND_MASK;
 
      SAFENEWWITHCONSTRUCTOR(pCurrSM,
                             AmesosSolutionManager,
@@ -673,7 +699,7 @@ pAllocateAmesosSolutionManager(
 #endif
                                  iNLD,
                                  iVerbose,
-                                 uPrecondFlag));
+                                 uSolverFlag));
      return pCurrSM;
 }
 

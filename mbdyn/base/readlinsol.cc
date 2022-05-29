@@ -795,8 +795,24 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                   uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK;
              } else if (HP.IsKeyWord("ilut")) {
                   uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_ILUT;
+             } else if (HP.IsKeyWord("superlu")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SUPERLU;
+             } else if (HP.IsKeyWord("mumps")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_MUMPS;
+             } else if (HP.IsKeyWord("scalapack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SCALAPACK;
+             } else if (HP.IsKeyWord("dscpack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_DSCPACK;
+             } else if (HP.IsKeyWord("pardiso")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARDISO;
+             } else if (HP.IsKeyWord("paraklete")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARAKLETE;
+             } else if (HP.IsKeyWord("taucs")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_TAUCS;
+             } else if (HP.IsKeyWord("csparse")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_CSPARSE;
              } else {
-                  silent_cerr("Keywords {umfpack, klu, lapack, ilut} expected at line " << HP.GetLineData() << std::endl);
+                  silent_cerr("Keywords {umfpack, klu, lapack, ilut, superlu, mumps, scalapack, dscpack, pardiso, paraklete, taucs, csparse} expected at line " << HP.GetLineData() << std::endl);
                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
              }
 
