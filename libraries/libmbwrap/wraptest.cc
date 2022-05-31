@@ -120,7 +120,7 @@ void SetupSystem(
         MatrixHandler *const pM,
         VectorHandler *const pV
 ) {
-        VariableSubMatrixHandler SBMH(10, 10);
+        VariableSubMatrixHandlerAd SBMH(10, 10);
         FullSubMatrixHandler& WM = SBMH.SetFull();
 
         std::ifstream ifile;
@@ -223,31 +223,19 @@ void SetupSystem(
                                 for (int i = 0; i < size; i++) {
                                         for (int k = (i - halfband) < 0 ? 0 : i - halfband; k < ((i + halfband) > size ? size : i + halfband); k++) {
                                                 if (((doublereal)rand())/RAND_MAX > sprfct) {
-#ifdef USE_SPARSE_AUTODIFF
                                                      spM->AddItem(i + 1, sp_grad::SpGradient{0., {{k + 1, 2.0*(((doublereal)rand())/RAND_MAX - 0.5)}}});
-#else
-                                                        (*spM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
-#endif
                                                 }
                                         }
                                 }
                                 for (int i = size - activcol; i < size; i++) {
                                         for (int k = 0; k < size; k++) {
                                                 if (((doublereal)rand())/RAND_MAX > sprfct) {
-#ifdef USE_SPARSE_AUTODIFF
                                                      spM->AddItem(k + 1, sp_grad::SpGradient{0., {{k + 1, 2.0*(((doublereal)rand())/RAND_MAX - 0.5)}}});
-#else
-                                                        (*spM)(k+1, i+1) = (*spM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
-#endif
                                                 }
                                         }
                                 }
                                 for (int i = 0; i < size; i++) {
-#ifdef USE_SPARSE_AUTODIFF
                                      spM->AddItem(i + 1, sp_grad::SpGradient{0., {{i + 1, 1.}}});
-#else
-                                        (*spM)(i+1, i+1) = 1;
-#endif
                                 }
                                 spM->MakeIndexForm(x_values, row_values, col_values, acol_values, 1);
                                 if (matrixfilename != 0) {
@@ -445,9 +433,7 @@ main(int argc, char *argv[])
         char *random_args = 0;
         bool cc(false);
         bool dir(false);
-#ifdef USE_SPARSE_AUTODIFF
         bool gradmh(false);
-#endif
         unsigned nt = 1;
         unsigned block_size = 0;
         double dpivot = -1.;
@@ -476,11 +462,9 @@ main(int argc, char *argv[])
                 case 'd':
                         dir = true;
                         break;
-#ifdef USE_SPARSE_AUTODIFF
                 case 'g':
                         gradmh = true;
                         break;
-#endif
                 case 'm':
                         solver = optarg;
                         break;
@@ -759,12 +743,10 @@ main(int argc, char *argv[])
                         std::cerr << " with cc matrix";
                         typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
                         SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, ddroptol, block_size));
-#ifdef USE_SPARSE_AUTODIFF
                 } else if (gradmh) {
                         SAFENEWWITHCONSTRUCTOR(pSM,
                                                UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>,
                                                UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>(size, dpivot, ddroptol, block_size));
-#endif
                 } else {
                         SAFENEWWITHCONSTRUCTOR(pSM,
                                                UmfpackSparseSolutionManager<SpMapMatrixHandler>,
@@ -789,12 +771,10 @@ main(int argc, char *argv[])
                         std::cerr << " with cc matrix";
                         typedef WsmpSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
                         SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size, nt));
-#ifdef USE_SPARSE_AUTODIFF
                 } else if (gradmh) {
                         SAFENEWWITHCONSTRUCTOR(pSM,
                                                WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>,
                                                WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>(size, dpivot, block_size, nt));
-#endif
                 } else {
                         SAFENEWWITHCONSTRUCTOR(pSM,
                                                WsmpSparseSolutionManager<SpMapMatrixHandler>,
@@ -810,15 +790,13 @@ main(int argc, char *argv[])
         } else if (strcasecmp(solver, "pardiso") == 0) {
 #ifdef USE_PARDISO
                         std::cerr << "Pardiso solver";
-#ifdef USE_SPARSE_AUTODIFF
+
                         if (gradmh) {
                                 typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT> PARDISOSM;
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PARDISOSM,
                                                        PARDISOSM(size, dpivot, nt, 0));
-                        } else
-#endif
-                        {
+                        } else {
                                 typedef PardisoSolutionManager<SpMapMatrixHandler, MKL_INT> PARDISOSM;
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PARDISOSM,
@@ -835,15 +813,12 @@ main(int argc, char *argv[])
         } else if (strcasecmp(solver, "pardiso_64") == 0) {
 #ifdef USE_PARDISO
                         std::cerr << "Pardiso_64 solver";
-#ifdef USE_SPARSE_AUTODIFF
                         if (gradmh) {
                                 typedef PardisoSolutionManager<SpGradientSparseMatrixHandler, long long> PARDISOSM;
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PARDISOSM,
                                                        PARDISOSM(size, dpivot, nt, 0));
-                        } else
-#endif
-                        {
+                        } else {
                                 typedef PardisoSolutionManager<SpMapMatrixHandler, long long> PARDISOSM;
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PARDISOSM,
@@ -858,14 +833,11 @@ main(int argc, char *argv[])
                 } else if (strcasecmp(solver, "pastix") == 0) {
 #ifdef USE_PASTIX
                         std::cerr << "Pastix solver";
-#ifdef USE_SPARSE_AUTODIFF
                         if (gradmh) {
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PastixSolutionManager<SpGradientSparseMatrixHandler>,
                                                        PastixSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 0));
-                        } else
-#endif
-                        {
+                        } else {
                                 SAFENEWWITHCONSTRUCTOR(pSM,
                                                        PastixSolutionManager<SpMapMatrixHandler>,
                                                        PastixSolutionManager<SpMapMatrixHandler>(size, nt, 0));
@@ -883,31 +855,23 @@ main(int argc, char *argv[])
 #if defined(USE_SUITESPARSE_QR)
                 } else if (strcasecmp(solver, "spqr") == 0) {
                         std::cerr << "spqr solver" << std::endl;
-#ifdef USE_SPARSE_AUTODIFF
                         if (gradmh) {
                                 SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager<SpGradientSparseMatrixHandler>,
                                                        QrSparseSolutionManager<SpGradientSparseMatrixHandler>(size, 0u));
                         } else {
-#endif
                                 SAFENEWWITHCONSTRUCTOR(pSM, QrSparseSolutionManager<SpMapMatrixHandler>,
                                                        QrSparseSolutionManager<SpMapMatrixHandler>(size, 0u));
-#ifdef USE_SPARSE_AUTODIFF
                         }
-#endif
 #endif
 #if defined(USE_STRUMPACK)
         } else if (strcasecmp(solver, "strumpack") == 0) {
-#ifdef USE_SPARSE_AUTODIFF
              if (gradmh) {
                   SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpGradientSparseMatrixHandler>,
                                          StrumpackSolutionManager<SpGradientSparseMatrixHandler>(size, nt, 10));
              } else {
-#endif
                   SAFENEWWITHCONSTRUCTOR(pSM, StrumpackSolutionManager<SpMapMatrixHandler>,
                                          StrumpackSolutionManager<SpMapMatrixHandler>(size, nt, 10));
-#ifdef USE_SPARSE_AUTODIFF
              }
-#endif
 #endif
         } else if (strcasecmp(solver, "naive") == 0) {
                 std::cerr << "Naive solver";
@@ -974,12 +938,7 @@ main(int argc, char *argv[])
         pM->Reset();
 
                 for (const auto& e: M) {
-#ifdef USE_SPARSE_AUTODIFF
                      pM->AddItem(e.iRow + 1, sp_grad::SpGradient{0., {{e.iCol + 1, e.dCoef}}});
-#else
-                        pM->PutCoef(e.iRow + 1, e.iCol + 1, e.dCoef);
-#endif
-
                 }
 
                 *pV = V;
@@ -1039,11 +998,7 @@ main(int argc, char *argv[])
         pM->Reset();
 
                 for (const auto& e: M) {
-#ifdef USE_SPARSE_AUTODIFF
                      pM->AddItem(e.iRow + 1, sp_grad::SpGradient{0.,{{e.iCol + 1, e.dCoef}}});
-#else
-                        pM->PutCoef(e.iRow + 1, e.iCol + 1, e.dCoef);
-#endif
                 }
 
                 *pV = V;

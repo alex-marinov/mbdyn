@@ -18,7 +18,6 @@ dirccmh.h \
 fullmh.cc \
 fullmh.h \
 geomdata.h \
-gradient.h \
 interp.h \
 interp.cc \
 JacSubMatrix.cc \
@@ -63,16 +62,7 @@ vh.h \
 epetravh.h \
 epetravh.cc \
 epetraspmh.h \
-epetraspmh.cc
-
-if USE_AUTODIFF
-libmbmath_la_SOURCES += \
-gradient.h \
-matvec.h
-endif
-
-if USE_SPARSE_AUTODIFF
-libmbmath_la_SOURCES += \
+epetraspmh.cc \
 sp_exp_dof_map.h \
 sp_gradient_base.h \
 sp_gradient_expr.h \
@@ -86,7 +76,6 @@ sp_matrix_base.h \
 sp_gradient.cc \
 sp_gradient_spmh.h \
 sp_gradient_spmh.cc
-endif
 
 if USE_SCHUR
 libmbmath_la_SOURCES += \
@@ -111,16 +100,8 @@ libmbmath_la_LDFLAGS =
 
 noinst_PROGRAMS = matmultest itertest dgeequtest subtest
 
-if USE_AUTODIFF
-noinst_PROGRAMS += \
-gradienttest \
-matvectest
-endif
-
-if USE_SPARSE_AUTODIFF
 noinst_PROGRAMS += \
 sp_gradient_test
-endif
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
@@ -205,55 +186,6 @@ libmbmath.la \
 @FCLIBS@ \
 @TRILINOS_LIBS@ \
 @LIBS@
-
-gradienttest_SOURCES = gradienttest.cc
-gradienttest_LDADD = \
-libmbmath.la \
-../libmbutil/libmbutil.la \
-../libcolamd/libmbdyncolamd.la \
-../libnaive/libnaive.la \
-@UMFPACK_LIBS@ \
-@HARWELL_LIBS@ \
-@SUPERLU_LIBS@ \
-@TAUCS_LIBS@ \
-@LAPACK_LIBS@ \
-@Y12_LIBS@ \
-@PASTIX_LIBS@ \
-@QRUPDATE_LIBS@ \
-@SUITESPARSEQR_LIBS@ \
-@METIS_LIBS@ \
-@BLAS_LIBS@ \
-@FCLIBS@ \
-@LIBS@ \
-@RT_LIBS@
-
-matvectest_SOURCES = \
-matvectest.cc
-
-if USE_FORTRAN
-matvectest_SOURCES += \
-matvectestfor.f
-endif
-
-matvectest_LDADD = \
-libmbmath.la \
-../libmbutil/libmbutil.la \
-../libcolamd/libmbdyncolamd.la \
-../libnaive/libnaive.la \
-@UMFPACK_LIBS@ \
-@HARWELL_LIBS@ \
-@SUPERLU_LIBS@ \
-@TAUCS_LIBS@ \
-@LAPACK_LIBS@ \
-@Y12_LIBS@ \
-@PASTIX_LIBS@ \
-@QRUPDATE_LIBS@ \
-@SUITESPARSEQR_LIBS@ \
-@METIS_LIBS@ \
-@BLAS_LIBS@ \
-@FCLIBS@ \
-@LIBS@ \
-@RT_LIBS@
 
 sp_gradient_test_SOURCES = \
 sp_gradient_test.cc \

@@ -105,10 +105,7 @@ DataManager::NodeDataInit(void)
 
 	if (iTotNodes > 0) {
 		Nodes.resize(iTotNodes);
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 		NodeIter.Init(&Nodes.front(), iTotNodes);
-#endif
 		
 		for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			*i = 0;

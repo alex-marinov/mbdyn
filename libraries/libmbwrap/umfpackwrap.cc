@@ -581,10 +581,7 @@ UmfpackSparseSolutionManager<SparseMatrixHandlerType>::pSolHdl(void) const
 }
 
 template class UmfpackSparseSolutionManager<SpMapMatrixHandler>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class UmfpackSparseSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
 
 /* UmfpackSparseSolutionManager - end */
 

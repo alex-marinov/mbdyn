@@ -6972,6 +6972,7 @@ The syntax for a driven element is:
     \bnt{elem_type} ::= \kw{driven}
 
     \bnt{normal_arglist} ::= (\hty{DriveCaller}) \bnt{element_driver} ,
+        [ \kw{initial state} , \{ \kw{from drive} | \kw{active} | \kw{inactive} | (\ty{bool}) \bnt{state} \} ]
         [ \kw{hint} , " \bnt{hint} " [ , ... ] ] ,
         \bnt{driven_element}
 
@@ -6990,6 +6991,10 @@ For consistency with the syntax, and for more flexibility,
 even when wrapping an existing element the output flags can be set
 at the end of the card.
 This flag overrides the one set when the driven element was instantiated.
+
+The \kw{initial state} keyword overrides the evaluation of the \nt{element\_driver}
+during the initialization.  The value \kw{from drive} is the default behavior;
+the other keywords and the boolean value \nt{state} are self-explanatory.
 
 Otherwise, a regular element is read after the driving element's declaration;
 it is then instantiated and wrapped by the \kw{driven} element wrapper.

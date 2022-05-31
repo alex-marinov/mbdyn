@@ -42,18 +42,6 @@
 #include "dofown.h"
 #include "simentity.h"
 
-#ifdef USE_AUTODIFF
-#include "gradient.h"
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-#include "sp_gradient.h"
-#endif
-
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
-#include "veciter.h"
-#endif
-
 /*
  * Array dei nomi dei nodi.
  * Usato per output
@@ -79,9 +67,6 @@ extern const char* psReadNodesNodes[];
 
 class Node : public WithLabel, public SimulationEntity,
 public DofOwnerOwner, public ToBeOutput
-#if (defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)) && defined(USE_MULTITHREAD)
-	   , public InUse
-#endif
 {
 public:
 	/* Enumerazione dei tipi di nodi */
@@ -219,12 +204,16 @@ public:
 		return dGetDofValue(i);
 	};
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
+        /* 
+         * Automatic differentiation support:
+         * Called on each node before assembly of the Jacobian 
+         */
         virtual void UpdateJac(doublereal dCoef);
-#endif
-#ifdef USE_SPARSE_AUTODIFF
+        /* 
+         * Automatic differentiation support:
+         * Called on each node before assembly of the Jacobian vector product Jac * Y 
+         */
      virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef);
-#endif
 };
 
 Node::Type str2nodetype(const char *const s);
@@ -286,18 +275,6 @@ public:
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-#ifdef USE_AUTODIFF
-    inline void GetX(doublereal& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-    
-    template <grad::index_type N_SIZE>
-    inline void GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
-    inline void GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;    
-    inline void GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-    inline void GetX(sp_grad::GpGradProd& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const;     
-#endif
-
 	 /* returns the dimension of the component */
 	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 
@@ -305,62 +282,14 @@ public:
     virtual std::ostream& DescribeEq(std::ostream& out,
 		  const char *prefix = "",
 		  bool bInitial = false) const;
-#if defined(USE_SPARSE_AUTODIFF)
-     virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
-#endif
-protected:
-#ifdef USE_SPARSE_AUTODIFF
-     doublereal XY;
-#endif
 };
-
-#ifdef USE_AUTODIFF
-inline void ScalarNode::GetX(doublereal& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-    dX = dGetX();
-}
-    
-template <grad::index_type N_SIZE>
-inline void ScalarNode::GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-    if (func & grad::REGULAR_FLAG) {
-        doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
-        dX.SetValuePreserve(dGetX());
-        dX.DerivativeResizeReset(pDofMap,
-                                 iGetFirstColIndex() + 1,
-                                 grad::MapVectorBase::GLOBAL,
-                                 dDeriv);
-    } else {
-        dX.SetValue(dGetX());
-    }
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-inline void ScalarNode::GetX(doublereal& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     dX = dGetX();
-}
-
-inline void ScalarNode::GetX(sp_grad::SpGradient& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     const doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
-     dX.Reset(dGetX(), iGetFirstColIndex() + 1, dDeriv);
-}
-
-inline void ScalarNode::GetX(sp_grad::GpGradProd& dX, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     const doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
-     dX.Reset(dGetX(), XY * dDeriv);
-}
-#endif
 
 /* ScalarNode - end */
 
 
 /* ScalarDifferentialNode - begin */
 
-class ScalarDifferentialNode : public ScalarNode {
+class ScalarDifferentialNode : virtual public ScalarNode {
 protected:
 	/* Valore del DoF */
 	mutable doublereal dX;
@@ -472,19 +401,6 @@ public:
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
-#ifdef USE_AUTODIFF
-    inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-    
-    template <grad::index_type N_SIZE>
-    inline void GetXPrime(grad::Gradient<N_SIZE>& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-     inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-     inline void GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-     inline void GetXPrime(sp_grad::GpGradProd& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-#endif
-
 	 /* returns the dimension of the component */
 	const virtual MBUnits::Dimensions GetEquationDimension(integer index) const;
 
@@ -506,50 +422,11 @@ ScalarDifferentialNode::dGetXPrime(void) const
 {
 	return dXP;
 }
-
-#ifdef USE_AUTODIFF
-inline void ScalarDifferentialNode::GetXPrime(doublereal& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-    dXPrime = dGetXPrime();
-}
-    
-template <grad::index_type N_SIZE>
-inline void ScalarDifferentialNode::GetXPrime(grad::Gradient<N_SIZE>& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-    if (func & grad::REGULAR_FLAG) {
-        dXPrime.SetValuePreserve(dGetXPrime());
-        dXPrime.DerivativeResizeReset(pDofMap,
-                                      iGetFirstColIndex() + 1,
-                                      grad::MapVectorBase::GLOBAL,
-                                      -1.);
-    } else {
-        dXPrime.SetValue(dGetXPrime());
-    }
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-inline void ScalarDifferentialNode::GetXPrime(doublereal& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     dXPrime = dGetXPrime();
-}
-
-inline void ScalarDifferentialNode::GetXPrime(sp_grad::SpGradient& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     dXPrime.Reset(dGetXPrime(), iGetFirstColIndex() + 1, -1.);
-}
-
-inline void ScalarDifferentialNode::GetXPrime(sp_grad::GpGradProd& dXPrime, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     dXPrime.Reset(dGetXPrime(), -XY);
-}
-#endif
-
 /* ScalarDifferentialNode - end */
 
 /* ScalarAlgebraicNode - begin */
 
-class ScalarAlgebraicNode : public ScalarNode {
+class ScalarAlgebraicNode: virtual public ScalarNode {
 protected:
 	/* Valore del DoF */
 	mutable doublereal dX;

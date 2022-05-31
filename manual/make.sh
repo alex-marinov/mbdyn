@@ -55,7 +55,7 @@ for IN in $TGT; do
 			echo "unable to find latex"
 			exit 1
 		fi
-		latex "$IN" >> "$LOG" 2>&1
+		latex -halt-on-error "$IN" >> "$LOG" 2>&1
 		which bibtex > /dev/null 2>&1
 		RC=$?
 		if [ "$RC" = 0 ] ; then
@@ -63,8 +63,8 @@ for IN in $TGT; do
 		else
 			echo "warning: no bibtex available..."
 		fi
-		latex "$IN" >> "$LOG" 2>&1
-		latex "$IN" >> "$LOG" 2>&1
+		latex -halt-on-error "$IN" >> "$LOG" 2>&1
+		latex -halt-on-error "$IN" >> "$LOG" 2>&1
 
 		echo "making $OUT.ps(.gz)..."
 		which dvips > /dev/null 2>&1

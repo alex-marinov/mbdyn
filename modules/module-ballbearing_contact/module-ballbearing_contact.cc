@@ -56,8 +56,8 @@
 #include <userelem.h>
 
 #include "module-ballbearing_contact.h"
-#ifdef USE_SPARSE_AUTODIFF
 #include <vector>
+#include <strnodead.h>
 #include <sp_gradient.h>
 #include <sp_matrix_base.h>
 #include <sp_matvecass.h>
@@ -125,7 +125,7 @@ public:
 
 private:
      const DataManager* const pDM;
-     const StructNode* pNode1;
+     const StructNodeAd* pNode1;
      doublereal R;
      doublereal k;
      SpMatrixA<doublereal, 2, 2> Mk, Mk2, inv_Mk, inv_Mk_sigma0, Ms, Ms2, sigma0, sigma1;
@@ -152,7 +152,7 @@ private:
                {
 
                }
-          const StructNode* pNode2;
+          const StructNodeAd* pNode2;
           SpMatrixA<doublereal, 3, 3> Rt2;
           SpColVectorA<doublereal, 3> o2;
           doublereal dPrev;
@@ -266,7 +266,7 @@ BallBearingContact::BallBearingContact(
           throw ErrGeneric(MBDYN_EXCEPT_ARGS);
      }
 
-     pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+     pNode1 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
      if (!HP.IsKeyWord("ball" "radius") ) {
           silent_cerr("ball bearing contact(" << GetLabel()
@@ -290,7 +290,7 @@ BallBearingContact::BallBearingContact(
      washers.resize(N);
 
      for (std::vector<Washer>::iterator i = washers.begin(); i != washers.end(); ++i) {
-          i->pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+          i->pNode2 = pDM->ReadNode<const StructNodeAd, Node::STRUCTURAL>(HP);
 
           if ( HP.IsKeyWord("offset") ) {
                i->o2 = HP.GetPosRel(ReferenceFrame(i->pNode2));
@@ -949,11 +949,9 @@ BallBearingContact::InitialAssRes(
 
      return WorkVec;
 }
-#endif
 
 bool ballbearing_contact_set(void)
 {
-#ifdef USE_SPARSE_AUTODIFF
      UserDefinedElemRead *rf = new UDERead<BallBearingContact>;
 
      if (!SetUDE("ball" "bearing" "contact", rf))
@@ -963,9 +961,6 @@ bool ballbearing_contact_set(void)
      }
 
      return true;
-#else
-     return false;
-#endif
 }
 
 #ifndef STATIC_MODULES

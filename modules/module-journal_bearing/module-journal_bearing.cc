@@ -55,10 +55,7 @@
 #include <userelem.h>
 
 #include "module-journal_bearing.h"
-
-#ifdef USE_SPARSE_AUTODIFF
-#include <sp_gradient.h>
-#include <sp_matrix_base.h>
+#include "strnodead.h"
 #include <sp_matvecass.h>
 
 using namespace sp_grad;
@@ -131,10 +128,10 @@ private:
         inline void SaveFriction(const sp_grad::SpGradient&, const sp_grad::SpGradient&) {}
         inline void SaveFriction(const sp_grad::GpGradProd&, const sp_grad::GpGradProd&) {}
 
-        StructNode* pNode1;
+        StructNodeAd* pNode1;
         SpColVectorA<doublereal, 3> o1;
         SpMatrixA<doublereal, 3, 3> e;
-        StructNode* pNode2;
+        StructNodeAd* pNode2;
         SpColVectorA<doublereal, 3> o2;
 
         sp_grad::SpColVectorA<doublereal, 2> lambda;
@@ -209,7 +206,7 @@ JournalBearing::JournalBearing(
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-        pNode1 = dynamic_cast<StructNode*>(pDM->ReadNode(HP,Node::STRUCTURAL));
+        pNode1 = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 
         if (!pNode1) {
                 silent_cerr("journal bearing(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -231,7 +228,7 @@ JournalBearing::JournalBearing(
                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-        pNode2 = dynamic_cast<StructNode*>(pDM->ReadNode(HP,Node::STRUCTURAL));
+        pNode2 = pDM->ReadNode<StructNodeAd, Node::STRUCTURAL>(HP);
 
         if (!pNode2) {
                 silent_cerr("journal bearing(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
@@ -835,11 +832,9 @@ JournalBearing::InitialAssRes(SpGradientAssVec<T>& WorkVec,
                 WorkVec.AddItem(iFirstIndex + i + 2, Dot(e.GetCol(i + 1), aP));
         }
 }
-#endif
 
 bool journal_bearing_set(void)
 {
-#ifdef USE_SPARSE_AUTODIFF
         UserDefinedElemRead *rf = new UDERead<JournalBearing>;
 
         if (!SetUDE("journal" "bearing", rf))
@@ -849,9 +844,6 @@ bool journal_bearing_set(void)
         }
 
         return true;
-#else
-        return false;
-#endif
 }
 
 #ifndef STATIC_MODULES

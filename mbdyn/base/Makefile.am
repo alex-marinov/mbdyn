@@ -108,6 +108,8 @@ nestedelem.h \
 netcdf_output_file.cc \
 node.cc \
 node.h \
+nodead.cc \
+nodead.h \
 nodeman.cc \
 nonlin.cc \
 nonlin.h \

@@ -38,12 +38,6 @@
 #include "strnode.h"
 #include "matvec3.h"
 
-#ifdef USE_SPARSE_AUTODIFF
-#include "sp_gradient.h"
-#include "sp_matrix_base.h"
-#include "sp_matvecass.h"
-#endif
-
 /* AutomaticStructDispElem - begin */
 
 class AutomaticStructDispElem : virtual public Elem {
@@ -259,15 +253,6 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void
-        AssJac(VectorHandler& JacY,
-               const VectorHandler& Y,
-               doublereal dCoef,
-               const VectorHandler& XCurr,
-               const VectorHandler& XPrimeCurr,
-               VariableSubMatrixHandler& WorkMat) override;
-#endif
 	/* assemblaggio eig */
 	void AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
@@ -281,36 +266,6 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-     template <typename T>
-     void
-     AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-            doublereal dCoef,
-            const sp_grad::SpGradientVectorHandler<T>& XCurr,
-            const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-            sp_grad::SpFunctionCall func);
-     
-     inline void
-     UpdateState(const sp_grad::SpColVector<doublereal, 3>& B,
-                 const sp_grad::SpColVector<doublereal, 3>& BP,
-                 const sp_grad::SpColVector<doublereal, 3>& G,
-                 const sp_grad::SpColVector<doublereal, 3>& GP);
-
-     static inline void
-     UpdateState(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& B,
-                 const sp_grad::SpColVector<sp_grad::SpGradient, 3>& BP,
-                 const sp_grad::SpColVector<sp_grad::SpGradient, 3>& G,
-                 const sp_grad::SpColVector<sp_grad::SpGradient, 3>& GP) {
-     }
-
-     static inline void
-     UpdateState(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& B,
-                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& BP,
-                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& G,
-                 const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& GP) {
-     }     
-#endif
-     
 	/* output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output */
 	void OutputPrepare(OutputHandler &OH);

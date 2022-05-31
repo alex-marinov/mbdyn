@@ -40,7 +40,6 @@
 #include "dirccmh.h"
 #include "naivemh.h"
 
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
 #include "cscmhtpl.h"
 #ifdef USE_TRILINOS
@@ -48,7 +47,6 @@
 #include "epetraspmh.h"
 #include "epetravh.h"
 #include <Epetra_SerialComm.h>
-#endif
 #endif
 
 static constexpr doublereal mat[5][5] = {
@@ -135,12 +133,10 @@ main(void)
         NaivePermMatrixHandler npm(5, perm, invperm);
         FullMatrixHandler fm(5, 5);
 
-#ifdef USE_SPARSE_AUTODIFF
         SpGradientSparseMatrixHandler spgmh(5, 5);
 #ifdef USE_TRILINOS
         Epetra_SerialComm comm;
         EpetraSparseMatrixHandler epmh(5, 5, 5, comm);
-#endif
 #endif
         for (int r = 0; r < 5; r++) {
                 for (int c = 0; c < 5; c++) {
@@ -149,13 +145,11 @@ main(void)
                                 nm(r + 1, c + 1) = mat[r][c];
                                 npm(r + 1, c + 1) = mat[r][c];
                                 fm(r + 1, c + 1) = mat[r][c];
-#ifdef USE_SPARSE_AUTODIFF
                                 sp_grad::SpGradient g;
                                 g.Reset(0., c + 1, mat[r][c]);
                                 spgmh.AddItem(r + 1, g);
 #ifdef USE_TRILINOS
                                 epmh.AddItem(r + 1, g);
-#endif
 #endif
                         }
                 }
@@ -173,7 +167,6 @@ main(void)
         std::cout << "matrix in full form: " << std::endl
                 << fm << std::endl;
 
-#ifdef USE_SPARSE_AUTODIFF
         std::cout << "matrix in sparse gradient form: " << std::endl
                 << spgmh << std::endl;
 
@@ -182,7 +175,6 @@ main(void)
         
         std::cout << "matrix in Epetra sparse form: " << std::endl
                   << epmh << std::endl;
-#endif
 #endif
 
         std::vector<doublereal> Ax0;
@@ -247,7 +239,6 @@ main(void)
                 std::cout << std::endl;
         }
 
-#ifdef USE_SPARSE_AUTODIFF
         std::vector<doublereal> Ax0g, Ax1g, Ax0gT, Ax1gT;
         std::vector<integer> Ai0g, Ap0g, Ai1g, Ap1g, Ai0gT, Ap0gT, Ai1gT, Ap1gT;
         spgmh.MakeCompressedColumnForm(Ax0g, Ai0g, Ap0g, 0);
@@ -270,7 +261,6 @@ main(void)
         CSCMatrixHandlerTpl<doublereal, integer, 1> epcsc1(&Ax1e.front(), &Ai1e.front(), &Ap1e.front(), epmh.iGetNumCols(), Ai1e.size());
         CSCMatrixHandlerTpl<doublereal, integer, 0> epcsc0T(&Ax0eT.front(), &Ai0eT.front(), &Ap0eT.front(), epmh.iGetNumRows(), Ai0eT.size());
         CSCMatrixHandlerTpl<doublereal, integer, 1> epcsc1T(&Ax1eT.front(), &Ai1eT.front(), &Ap1eT.front(), epmh.iGetNumRows(), Ai1eT.size());
-#endif
 #endif
 
         MyVectorHandler v(5), out(5);
@@ -327,7 +317,6 @@ main(void)
                         std::cerr << "*** failed!" << std::endl;
                 }
 
-#ifdef USE_SPARSE_AUTODIFF
                 spgmh.MatVecMul(out, v);
                 std::cout << "spgmh*v(" << i << ")=" << std::endl
                         << out << std::endl;
@@ -399,7 +388,6 @@ main(void)
                         std::cerr << "*** failed!" << std::endl;
                 }
 #endif
-#endif
                 ccm0.MatTVecMul(out, v);
                 std::cout << "cc<0>^T*v(" << i << ")=" << std::endl
                         << out << std::endl;
@@ -463,7 +451,6 @@ main(void)
                         std::cerr << "*** failed!" << std::endl;
                 }
 
-#ifdef USE_SPARSE_AUTODIFF
                 spgmh.MatTVecMul(out, v);
                 std::cout << "spgmh^T*v(" << i << ")=" << std::endl
                         << out << std::endl;
@@ -534,7 +521,6 @@ main(void)
                 if (check_vec_transpose(out, i)) {
                         std::cerr << "*** failed!" << std::endl;
                 }
-#endif
 #endif
 
                 v(i) = 0.;

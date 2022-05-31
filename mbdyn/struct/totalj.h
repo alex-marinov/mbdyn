@@ -40,17 +40,11 @@
 #include "friction.h"
 #endif
 
-#if USE_SPARSE_AUTODIFF
-#include <sp_gradient.h>
-#include <sp_matrix_base.h>
-#include <sp_matvecass.h>
-#endif
-
 /* TotalJoint - begin */
 
 class TotalJoint :
 virtual public Elem, public Joint {
-private:
+protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 	Vec3 f1;
@@ -73,6 +67,7 @@ private:
 	TplDriveOwner<Vec3> OmegaDrv;
 	TplDriveOwner<Vec3> OmegaPDrv;
 	
+protected:	
 	unsigned int nConstraints;
 	unsigned int nPosConstraints;
 	unsigned int nRotConstraints;
@@ -98,6 +93,7 @@ private:
 	size_t Var_Omega;
 #endif // USE_NETCDF
 
+protected:
 	mutable Vec3 M;
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
@@ -182,13 +178,8 @@ public:
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12 + nConstraints ;
-
-#ifdef USE_SPARSE_AUTODIFF
-                *piNumCols = 0;
-#else
                 *piNumCols = *piNumRows;
-#endif
-	};
+	}
 
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -196,50 +187,12 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF                
-       virtual void
-       AssJac(VectorHandler& JacY,
-              const VectorHandler& Y,
-              doublereal dCoef,
-              const VectorHandler& XCurr,
-              const VectorHandler& XPrimeCurr,
-              VariableSubMatrixHandler& WorkMat) override;
-#endif
-
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-       template <typename T>
-       void
-       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-              doublereal dCoef,
-              const sp_grad::SpGradientVectorHandler<T>& XCurr,
-              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-              sp_grad::SpFunctionCall func);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDelta);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& ThetaDelta);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& ThetaDelta);                
-       inline void
-       UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr);
-       inline void
-       UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       inline void
-       UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);                
-       inline void
-       UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr);
-       inline void
-       UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       inline void
-       UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);
-#endif
-     
 	/* inverse dynamics capable element */
 	virtual bool bInverseDynamics(void) const;
 
@@ -311,7 +264,7 @@ public:
 
 class TotalPinJoint :
 virtual public Elem, public Joint {
-private:
+protected:
 	const StructNode* pNode;
 	Vec3 Xc;
 	Mat3x3 Rch;
@@ -359,6 +312,7 @@ private:
 	size_t Var_Omega;
 #endif // USE_NETCDF
 
+protected:
 	mutable Vec3 M;
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
@@ -441,12 +395,8 @@ public:
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 6 + nConstraints ;
-#ifndef USE_SPARSE_AUTODIFF
                 *piNumCols = *piNumRows;
-#else
-                *piNumCols = 0;
-#endif
-	};
+	}
 
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -454,50 +404,12 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF                
-        virtual void
-        AssJac(VectorHandler& JacY,
-               const VectorHandler& Y,
-               doublereal dCoef,
-               const VectorHandler& XCurr,
-               const VectorHandler& XPrimeCurr,
-               VariableSubMatrixHandler& WorkMat) override;
-#endif
-                
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-       template <typename T>
-       void
-       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-              doublereal dCoef,
-              const sp_grad::SpGradientVectorHandler<T>& XCurr,
-              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-              sp_grad::SpFunctionCall func);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<doublereal, 3>& ThetaDelta);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& ThetaDelta);
-       inline void
-       UpdateThetaDelta(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& ThetaDelta);                
-       inline void
-       UpdateF(const sp_grad::SpColVector<doublereal, 3>& FCurr);
-       inline void
-       UpdateF(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       inline void
-       UpdateF(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);                
-       inline void
-       UpdateM(const sp_grad::SpColVector<doublereal, 3>& MCurr);
-       inline void
-       UpdateM(const sp_grad::SpColVector<sp_grad::SpGradient, 3>&);
-       inline void
-       UpdateM(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>&);
-#endif
-     
 	/* inverse dynamics capable element */
 	virtual bool bInverseDynamics(void) const;
 

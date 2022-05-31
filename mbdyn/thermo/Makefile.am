@@ -10,6 +10,8 @@ thermalcapacitance.h \
 thermalcapacitance.cc \
 thermalnode.cc \
 thermalnode.h \
+thermalnodead.cc \
+thermalnodead.h \
 thermalresistance.h \
 thermalresistance.cc \
 thermalsource.h \

@@ -73,10 +73,7 @@
 #include "solman.h"
 #include "spmapmh.h"
 #include "ccmh.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 
 /* WsmpSolver: - begin */
 

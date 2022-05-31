@@ -206,9 +206,5 @@ StrumpackSolver* StrumpackSolutionManager<MatrixHandlerType>::pGetSolver() const
 }
 
 template class StrumpackSolutionManager<SpMapMatrixHandler>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class StrumpackSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
-
 #endif

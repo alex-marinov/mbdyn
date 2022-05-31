@@ -38,7 +38,7 @@
 /* Nodo termico, descrive fisicamente un nodo di una rete struttura termica.
  */
 
-class ThermalNode : public ScalarDifferentialNode {
+class ThermalNode : virtual public ScalarDifferentialNode {
 public:
 	/* Costruttore */
 	ThermalNode(unsigned int uL, const DofOwner* pDO, 

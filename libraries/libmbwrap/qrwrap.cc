@@ -1368,8 +1368,5 @@ QrSparseSolutionManager<MatrixHandlerType>::MatVecOp(MatVecOpType op,
 }
 
 template class QrSparseSolutionManager<SpMapMatrixHandler>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class QrSparseSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
 #endif

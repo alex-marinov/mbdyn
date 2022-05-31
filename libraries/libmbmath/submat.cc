@@ -33,7 +33,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <string.h>	/* for memset() */
+#include <string.h>     /* for memset() */
 #include <iomanip>
 
 #include <submat.h>
@@ -42,7 +42,7 @@
 
 SubMatrixHandler::~SubMatrixHandler(void)
 {
-        NO_OP;
+     NO_OP;
 }
 
 SubMatrixHandler* SubMatrixHandler::Copy() const
@@ -61,61 +61,61 @@ void SubMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>& fun
 /* FullSubMatrixHandler - begin */
 
 FullSubMatrixHandler::FullSubMatrixHandler(integer iIntSize,
-                integer* piTmpVec,
-                integer iDoubleSize,
-                doublereal* pdTmpMat,
-                integer iMaxCols,
-                doublereal **ppdCols)
-: FullMatrixHandler(pdTmpMat, ppdCols, iDoubleSize, 1, 1, iMaxCols),
-iVecSize(iIntSize), piRow(0), piRowm1(0), piColm1(0)
+                                           integer* piTmpVec,
+                                           integer iDoubleSize,
+                                           doublereal* pdTmpMat,
+                                           integer iMaxCols,
+                                           doublereal **ppdCols)
+     : FullMatrixHandler(pdTmpMat, ppdCols, iDoubleSize, 1, 1, iMaxCols),
+       iVecSize(iIntSize), piRow(0), piRowm1(0), piColm1(0)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif
 
-        /*
-         * Non posso fare controlli piu' precisi sulla consistenza
-         * delle dimensioni delle aree di lavoro perche' e' legale
-         * che la submatrix sia in seguito ridimensionata nei modi
-         * piu' vari. */
-        ASSERT(piTmpVec);
-        piRow = piTmpVec;
-        piRowm1 = piTmpVec - 1;
-        piColm1 = piRowm1 + iNumRows;
+     /*
+      * Non posso fare controlli piu' precisi sulla consistenza
+      * delle dimensioni delle aree di lavoro perche' e' legale
+      * che la submatrix sia in seguito ridimensionata nei modi
+      * piu' vari. */
+     ASSERT(piTmpVec);
+     piRow = piTmpVec;
+     piRowm1 = piTmpVec - 1;
+     piColm1 = piRowm1 + iNumRows;
 }
 
 FullSubMatrixHandler::FullSubMatrixHandler(integer iNR, integer iNC)
-: FullMatrixHandler(iNR, iNC), iVecSize(iNR + iNC), piRow(0), piRowm1(0), piColm1(0)
+     : FullMatrixHandler(iNR, iNC), iVecSize(iNR + iNC), piRow(0), piRowm1(0), piColm1(0)
 {
-        ASSERT(bOwnsMemory);
-        SAFENEWARR(piRow, integer, iVecSize);
+     ASSERT(bOwnsMemory);
+     SAFENEWARR(piRow, integer, iVecSize);
 
-        piRowm1 = piRow - 1;
-        piColm1 = piRowm1 + iNR;
+     piRowm1 = piRow - 1;
+     piColm1 = piRowm1 + iNR;
 }
 
 
 FullSubMatrixHandler::~FullSubMatrixHandler(void)
 {
-        if (bOwnsMemory) {
-                SAFEDELETEARR(piRow);
-        }
+     if (bOwnsMemory) {
+          SAFEDELETEARR(piRow);
+     }
 }
 
 #ifdef DEBUG
 void
 FullSubMatrixHandler::IsValid(void) const
 {
-        FullMatrixHandler::IsValid();
+     FullMatrixHandler::IsValid();
 
-        ASSERT(iVecSize > 0);
-        ASSERT(iNumRows + iNumCols <= iVecSize);
-        ASSERT(piRowm1 != NULL);
-        ASSERT(piColm1 != NULL);
+     ASSERT(iVecSize > 0);
+     ASSERT(iNumRows + iNumCols <= iVecSize);
+     ASSERT(piRowm1 != NULL);
+     ASSERT(piColm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
-        ASSERT(defaultMemoryManager.fIsValid(piRow,
-                                iVecSize*sizeof(integer)));
+     ASSERT(defaultMemoryManager.fIsValid(piRow,
+                                          iVecSize*sizeof(integer)));
 #endif /* DEBUG_MEMMANAGER */
 }
 #endif /* DEBUG */
@@ -125,19 +125,19 @@ void
 FullSubMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 
-        FullMatrixHandler::Reset();
+     FullMatrixHandler::Reset();
 
 #if 0
-        /*
-         * this is not strictly required, because all the indices should
-         * be explicitly set before the matrix is used
-         */
-        for (integer i = iNumRows + iNumCols; i > 0; i--) {
-                piRowm1[i] = 0;
-        }
+     /*
+      * this is not strictly required, because all the indices should
+      * be explicitly set before the matrix is used
+      */
+     for (integer i = iNumRows + iNumCols; i > 0; i--) {
+          piRowm1[i] = 0;
+     }
 #endif
 }
 
@@ -147,43 +147,43 @@ FullSubMatrixHandler::Reset(void)
 void
 FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 
-        ASSERT(iNewRow > 0);
-        ASSERT(iNewCol > 0);
-        ASSERT(iNewRow + iNewCol <= iVecSize);
-        ASSERT(iNewRow*iNewCol <= iRawSize);
+     ASSERT(iNewRow > 0);
+     ASSERT(iNewCol > 0);
+     ASSERT(iNewRow + iNewCol <= iVecSize);
+     ASSERT(iNewRow*iNewCol <= iRawSize);
 
-        if (iNewRow <= 0
-                        || iNewCol <= 0
-                        || iNewRow + iNewCol > iVecSize
-                        || iNewRow*iNewCol > iRawSize
-                        || iNewCol > iMaxCols) {
-                silent_cerr("FullSubMatrixHandler::Resize() - error"
-                                << std::endl);
+     if (iNewRow <= 0
+         || iNewCol <= 0
+         || iNewRow + iNewCol > iVecSize
+         || iNewRow*iNewCol > iRawSize
+         || iNewCol > iMaxCols) {
+          silent_cerr("FullSubMatrixHandler::Resize() - error"
+                      << std::endl);
 
-                throw SubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
-        }
+          throw SubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
+     }
 
-        iNumRows = iNewRow;
-        iNumCols = iNewCol;
+     iNumRows = iNewRow;
+     iNumCols = iNewCol;
 
-        /*
-         * FIXME: don't call FullMatrixHandler::Resize, because
-         * we know there's room enough and we don't want to
-         * waste time regenerating support stuff; we simply
-         * use a portion of the matrix as is.
-         */
+     /*
+      * FIXME: don't call FullMatrixHandler::Resize, because
+      * we know there's room enough and we don't want to
+      * waste time regenerating support stuff; we simply
+      * use a portion of the matrix as is.
+      */
 #if 0
-        FullMatrixHandler::Resize(iNewRow, iNewCol);
+     FullMatrixHandler::Resize(iNewRow, iNewCol);
 
-        ASSERT(piRowm1 != NULL);
-        piColm1 = piRowm1 + iNewRow;
+     ASSERT(piRowm1 != NULL);
+     piColm1 = piRowm1 + iNewRow;
 #endif
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 }
 
@@ -191,8 +191,8 @@ FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 void
 FullSubMatrixHandler::ResizeReset(integer ir, integer ic)
 {
-        FullSubMatrixHandler::Resize(ir, ic);
-        FullSubMatrixHandler::Reset();
+     FullSubMatrixHandler::Resize(ir, ic);
+     FullSubMatrixHandler::Reset();
 }
 
 /*
@@ -202,53 +202,53 @@ FullSubMatrixHandler::ResizeReset(integer ir, integer ic)
 void
 FullSubMatrixHandler::Attach(int iRows, int iCols, integer* piTmpIndx)
 {
-        iNumRows = iRows;
-        iNumCols = iCols;
+     iNumRows = iRows;
+     iNumCols = iCols;
 
-        if (bOwnsMemory) {
-                if (piRow != 0) {
-                        SAFEDELETEARR(piRow);
-                }
-                piRow = piTmpIndx;
-                piRowm1 = piTmpIndx - 1;
-                piColm1 = piRowm1 + iNumRows;
-        }
+     if (bOwnsMemory) {
+          if (piRow != 0) {
+               SAFEDELETEARR(piRow);
+          }
+          piRow = piTmpIndx;
+          piRowm1 = piTmpIndx - 1;
+          piColm1 = piRowm1 + iNumRows;
+     }
 }
 
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::Add(iRow, iCol, v);
+     FullMatrixHandler::Add(iRow, iCol, v);
 }
 
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::Sub(iRow, iCol, v);
+     FullMatrixHandler::Sub(iRow, iCol, v);
 }
 
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::Put(iRow, iCol, v);
+     FullMatrixHandler::Put(iRow, iCol, v);
 }
 
 void
 FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::AddT(iRow, iCol, v);
+     FullMatrixHandler::AddT(iRow, iCol, v);
 }
 
 void
 FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::SubT(iRow, iCol, v);
+     FullMatrixHandler::SubT(iRow, iCol, v);
 }
 
 void
 FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Vec3& v)
 {
-        FullMatrixHandler::PutT(iRow, iCol, v);
+     FullMatrixHandler::PutT(iRow, iCol, v);
 }
 
 #if 0 /* FIXME: replace original? */
@@ -256,356 +256,356 @@ FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Vec3& v)
 void
 FullSubMatrixHandler::AddDiag(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol][iRow] += pdFrom[V1];
+     ppdColsm1[iCol][iRow] += pdFrom[V1];
 
-        ppdColsm1[iCol + 1][iRow + 1] += pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 1] += pdFrom[V2];
 
-        ppdColsm1[iCol + 2][iRow + 2] += pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 2] += pdFrom[V3];
 }
 
 /* sottrae un vettore di tipo Vec3 in una data posizione in diagonale */
 void
 FullSubMatrixHandler::SubDiag(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol][iRow] -= pdFrom[V1];
+     ppdColsm1[iCol][iRow] -= pdFrom[V1];
 
-        ppdColsm1[iCol + 1][iRow + 1] -= pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 1] -= pdFrom[V2];
 
-        ppdColsm1[iCol + 2][iRow + 2] -= pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 2] -= pdFrom[V3];
 }
 
 /* scrive un vettore di tipo Vec3 in una data posizione in diagonale */
 void
 FullSubMatrixHandler::PutDiag(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol][iRow] = pdFrom[V1];
+     ppdColsm1[iCol][iRow] = pdFrom[V1];
 
-        ppdColsm1[iCol + 1][iRow + 1] = pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 1] = pdFrom[V2];
 
-        ppdColsm1[iCol + 2][iRow + 2] = pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 2] = pdFrom[V3];
 }
 
 /* somma un vettore di tipo Vec3 in una data posizione [ v x ] */
 void
 FullSubMatrixHandler::AddCross(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol + 1][iRow] -= pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow] += pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow] -= pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow] += pdFrom[V2];
 
-        ppdColsm1[iCol][iRow + 1] += pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow + 1] -= pdFrom[V1];
+     ppdColsm1[iCol][iRow + 1] += pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 1] -= pdFrom[V1];
 
-        ppdColsm1[iCol][iRow + 2] -= pdFrom[V2];
-        ppdColsm1[iCol + 1][iRow + 2] += pdFrom[V1];
+     ppdColsm1[iCol][iRow + 2] -= pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 2] += pdFrom[V1];
 }
 
 /* sottrae un vettore di tipo Vec3 in una data posizione [ v x ] */
 void
 FullSubMatrixHandler::SubCross(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol + 1][iRow] += pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow] -= pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow] += pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow] -= pdFrom[V2];
 
-        ppdColsm1[iCol][iRow + 1] -= pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow + 1] += pdFrom[V1];
+     ppdColsm1[iCol][iRow + 1] -= pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 1] += pdFrom[V1];
 
-        ppdColsm1[iCol][iRow + 2] += pdFrom[V2];
-        ppdColsm1[iCol + 1][iRow + 2] -= pdFrom[V1];
+     ppdColsm1[iCol][iRow + 2] += pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 2] -= pdFrom[V1];
 }
 
 /* scrive un vettore di tipo Vec3 in una data posizione [ v x ] */
 void
 FullSubMatrixHandler::PutCross(integer iRow, integer iCol, const Vec3& v)
 {
-        /* iRow e iCol sono gli indici effettivi di riga e colonna
-         * es. per il primo coefficiente:
-         *     iRow = 1, iCol = 1 */
+     /* iRow e iCol sono gli indici effettivi di riga e colonna
+      * es. per il primo coefficiente:
+      *     iRow = 1, iCol = 1 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iRow > 0);
-        ASSERT(iRow <= iNumRows - 2);
-        ASSERT(iCol > 0);
-        ASSERT(iCol <= iNumCols - 2);
+     ASSERT(iRow > 0);
+     ASSERT(iRow <= iNumRows - 2);
+     ASSERT(iCol > 0);
+     ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-        /* Nota: assume che la matrice sia organizzata
-         * "per colonne" (stile FORTRAN)
-         */
-        doublereal* pdFrom = v.pGetVec();
+     /* Nota: assume che la matrice sia organizzata
+      * "per colonne" (stile FORTRAN)
+      */
+     doublereal* pdFrom = v.pGetVec();
 
-        ppdColsm1[iCol + 1][iRow] = -pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow] = pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow] = -pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow] = pdFrom[V2];
 
-        ppdColsm1[iCol][iRow + 1] = pdFrom[V3];
-        ppdColsm1[iCol + 2][iRow + 1] = -pdFrom[V1];
+     ppdColsm1[iCol][iRow + 1] = pdFrom[V3];
+     ppdColsm1[iCol + 2][iRow + 1] = -pdFrom[V1];
 
-        ppdColsm1[iCol][iRow + 2] = -pdFrom[V2];
-        ppdColsm1[iCol + 1][iRow + 2] = pdFrom[V1];
+     ppdColsm1[iCol][iRow + 2] = -pdFrom[V2];
+     ppdColsm1[iCol + 1][iRow + 2] = pdFrom[V1];
 }
 #endif
 
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::Add(iRow, iCol, m);
+     FullMatrixHandler::Add(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::AddT(iRow, iCol, m);
+     FullMatrixHandler::AddT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::Sub(iRow, iCol, m);
+     FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::SubT(iRow, iCol, m);
+     FullMatrixHandler::SubT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::Put(iRow, iCol, m);
+     FullMatrixHandler::Put(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Mat3x3& m)
 {
-        FullMatrixHandler::PutT(iRow, iCol, m);
+     FullMatrixHandler::PutT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::Add(iRow, iCol, m);
+     FullMatrixHandler::Add(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::Sub(iRow, iCol, m);
+     FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::Put(iRow, iCol, m);
+     FullMatrixHandler::Put(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::AddT(iRow, iCol, m);
+     FullMatrixHandler::AddT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::SubT(iRow, iCol, m);
+     FullMatrixHandler::SubT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Mat3xN& m)
 {
-        FullMatrixHandler::PutT(iRow, iCol, m);
+     FullMatrixHandler::PutT(iRow, iCol, m);
 }
 
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)
 {
-        FullMatrixHandler::Add(iRow, iCol, m);
+     FullMatrixHandler::Add(iRow, iCol, m);
 }
 
 /* sottrae una matrice di tipo MatNx3 in una data posizione */
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const MatNx3& m)
 {
-        FullMatrixHandler::Sub(iRow, iCol, m);
+     FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
 /* setta una matrice di tipo MatNx3 in una data posizione */
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const MatNx3& m)
 {
-        FullMatrixHandler::Put(iRow, iCol, m);
+     FullMatrixHandler::Put(iRow, iCol, m);
 }
 
 /* setta una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::PutDiag(integer iFirstRow, integer iFirstCol,
-                const Vec3& v)
+                              const Vec3& v)
 {
-        /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
-         * es. per il primo coefficiente:
-         *     iRow = 0, iCol = 0 */
+     /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+      * es. per il primo coefficiente:
+      *     iRow = 0, iCol = 0 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstRow <= iNumRows - 3);
-        ASSERT(iFirstCol >= 0);
-        ASSERT(iFirstCol <= iNumCols - 3);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstRow <= iNumRows - 3);
+     ASSERT(iFirstCol >= 0);
+     ASSERT(iFirstCol <= iNumCols - 3);
 #endif /* DEBUG */
 
-        const doublereal *pdv = v.pGetVec();
+     const doublereal *pdv = v.pGetVec();
 
-        ppdColsm1[iFirstCol + 1][iFirstRow + 1] = pdv[V1];
-        ppdColsm1[iFirstCol + 2][iFirstRow + 2] = pdv[V2];
-        ppdColsm1[iFirstCol + 3][iFirstRow + 3] = pdv[V3];
+     ppdColsm1[iFirstCol + 1][iFirstRow + 1] = pdv[V1];
+     ppdColsm1[iFirstCol + 2][iFirstRow + 2] = pdv[V2];
+     ppdColsm1[iFirstCol + 3][iFirstRow + 3] = pdv[V3];
 }
 
 
 /* setta una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::PutDiag(integer iFirstRow, integer iFirstCol,
-                const doublereal& d)
+                              const doublereal& d)
 {
-        /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
-         * es. per il primo coefficiente:
-         *     iRow = 0, iCol = 0 */
+     /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+      * es. per il primo coefficiente:
+      *     iRow = 0, iCol = 0 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstRow <= iNumRows - 3);
-        ASSERT(iFirstCol >= 0);
-        ASSERT(iFirstCol <= iNumCols - 3);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstRow <= iNumRows - 3);
+     ASSERT(iFirstCol >= 0);
+     ASSERT(iFirstCol <= iNumCols - 3);
 #endif /* DEBUG */
 
-        ppdColsm1[iFirstCol + 1][iFirstRow + 1] = d;
-        ppdColsm1[iFirstCol + 2][iFirstRow + 2] = d;
-        ppdColsm1[iFirstCol + 3][iFirstRow + 3] = d;
+     ppdColsm1[iFirstCol + 1][iFirstRow + 1] = d;
+     ppdColsm1[iFirstCol + 2][iFirstRow + 2] = d;
+     ppdColsm1[iFirstCol + 3][iFirstRow + 3] = d;
 }
 
 
 /* setta una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::PutCross(integer iFirstRow, integer iFirstCol,
-                const Vec3& v)
+                               const Vec3& v)
 {
-        /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
-         * es. per il primo coefficiente:
-         *     iRow = 0, iCol = 0 */
+     /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+      * es. per il primo coefficiente:
+      *     iRow = 0, iCol = 0 */
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstRow <= iNumRows - 3);
-        ASSERT(iFirstCol >= 0);
-        ASSERT(iFirstCol <= iNumCols - 3);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstRow <= iNumRows - 3);
+     ASSERT(iFirstCol >= 0);
+     ASSERT(iFirstCol <= iNumCols - 3);
 #endif /* DEBUG */
 
-        const doublereal *pdv = v.pGetVec();
+     const doublereal *pdv = v.pGetVec();
 
-        ppdColsm1[iFirstCol + 1][ iFirstRow + 2] = pdv[V3];
-        ppdColsm1[iFirstCol + 1][ iFirstRow + 3] = -pdv[V2];
+     ppdColsm1[iFirstCol + 1][ iFirstRow + 2] = pdv[V3];
+     ppdColsm1[iFirstCol + 1][ iFirstRow + 3] = -pdv[V2];
 
-        ppdColsm1[iFirstCol + 2][ iFirstRow + 1] = -pdv[V3];
-        ppdColsm1[iFirstCol + 2][ iFirstRow + 3] = pdv[V1];
+     ppdColsm1[iFirstCol + 2][ iFirstRow + 1] = -pdv[V3];
+     ppdColsm1[iFirstCol + 2][ iFirstRow + 3] = pdv[V1];
 
-        ppdColsm1[iFirstCol + 3][ iFirstRow + 1] = pdv[V2];
-        ppdColsm1[iFirstCol + 3][ iFirstRow + 2] = -pdv[V1];
+     ppdColsm1[iFirstCol + 3][ iFirstRow + 1] = pdv[V2];
+     ppdColsm1[iFirstCol + 3][ iFirstRow + 2] = -pdv[V1];
 }
 
 
@@ -613,67 +613,29 @@ FullSubMatrixHandler::PutCross(integer iFirstRow, integer iFirstCol,
 MatrixHandler&
 FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("FullSubMatrixHandler::AddTo");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumRows);
-        ASSERT(MH.iGetNumCols() >= iNumCols);
+     ASSERT(MH.iGetNumRows() >= iNumRows);
+     ASSERT(MH.iGetNumCols() >= iNumCols);
 
-#ifdef USE_SPARSE_AUTODIFF
-        sp_grad::SpGradient oRow, oItem;
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumCols());
 
-#ifdef USE_MULTITHREAD
-        std::vector<bool> rgStatus(iNumRows, false);
-        bool bRepeatLoop;
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-        do {
-             bRepeatLoop = false;
-#endif
-             for (integer r = 1; r <= iNumRows; ++r) {
-#ifdef USE_MULTITHREAD
-                  if (rgStatus[r - 1]) {
-                       continue;
-                  }
-#endif
-                  oRow.ResizeReset(0., iNumCols);
+               MH.IncCoef(piRowm1[r], piColm1[c], ppdColsm1[c][r]);
+          }
+     }
 
-                  for (integer c = 1; c <= iNumCols; ++c) {
-                       oItem.Reset(0., piColm1[c], ppdColsm1[c][r]);
-                       oRow += oItem;
-                  }
-
-#ifdef USE_MULTITHREAD
-                  bool bStatus =
-#endif
-                       MH.AddItem(piRowm1[r], oRow);
-
-#ifdef USE_MULTITHREAD
-                  if (bStatus) {
-                       rgStatus[r - 1] = bStatus;
-                  } else {
-                       bRepeatLoop = true;
-                  }
-#endif
-             }
-#ifdef USE_MULTITHREAD
-        } while (bRepeatLoop);
-#endif
-#else
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumCols());
-
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumRows());
-
-                        MH(piRowm1[r], piColm1[c]) += ppdColsm1[c][r];
-                }
-        }
-#endif
-        return MH;
+     return MH;
 }
 
 
@@ -681,27 +643,29 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 MatrixHandler&
 FullSubMatrixHandler::AddToT(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("FullSubMatrixHandler::AddToT");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumCols);
-        ASSERT(MH.iGetNumCols() >= iNumRows);
+     ASSERT(MH.iGetNumRows() >= iNumCols);
+     ASSERT(MH.iGetNumCols() >= iNumRows);
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumRows());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumRows());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumCols());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-                        MH(piColm1[c], piRowm1[r]) += ppdColsm1[c][r];
-                }
-        }
+               MH.IncCoef(piColm1[c], piRowm1[r], ppdColsm1[c][r]);
+          }
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -709,29 +673,31 @@ FullSubMatrixHandler::AddToT(MatrixHandler& MH) const
 MatrixHandler&
 FullSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("FullSubMatrixHandler::AddTo");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumRows);
-        ASSERT(MH.iGetNumCols() >= iNumCols);
+     ASSERT(MH.iGetNumRows() >= iNumRows);
+     ASSERT(MH.iGetNumCols() >= iNumCols);
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumCols());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumCols());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumRows());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-                        ppd[piColm1[c]][piRowm1[r]] += ppdColsm1[c][r];
-                }
-        }
+               ppd[piColm1[c]][piRowm1[r]] += ppdColsm1[c][r];
+          }
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -739,82 +705,82 @@ FullSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 MatrixHandler&
 FullSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("FullSubMatrixHandler::AddToT");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumCols);
-        ASSERT(MH.iGetNumCols() >= iNumRows);
+     ASSERT(MH.iGetNumRows() >= iNumCols);
+     ASSERT(MH.iGetNumCols() >= iNumRows);
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumRows());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumRows());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumCols());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-                        ppd[piRowm1[r]][piColm1[c]] += ppdColsm1[c][r];
-                }
-        }
+               ppd[piRowm1[r]][piColm1[c]] += ppdColsm1[c][r];
+          }
+     }
 
-        return MH;
+     return MH;
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 VectorHandler& FullSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
-        IsValid();
-        A.IsValid();
-        Y.IsValid();
+     IsValid();
+     A.IsValid();
+     Y.IsValid();
 #endif
-        ASSERT(A.iGetSize() == Y.iGetSize());
+     ASSERT(A.iGetSize() == Y.iGetSize());
 
-        for (integer c = 1; c <= iNumCols; ++c) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= Y.iGetSize());
+     for (integer c = 1; c <= iNumCols; ++c) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= Y.iGetSize());
 
-                for (integer r = 1; r <= iNumRows; ++r) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= A.iGetSize());
+          for (integer r = 1; r <= iNumRows; ++r) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= A.iGetSize());
 
-                        A(piRowm1[r]) += ppdColsm1[c][r] * Y(piColm1[c]);
-                }
-        }
+               A(piRowm1[r]) += ppdColsm1[c][r] * Y(piColm1[c]);
+          }
+     }
 
-        return A;
+     return A;
 }
-#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
 FullSubMatrixHandler::SubFrom(MatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumRows);
-        ASSERT(MH.iGetNumCols() >= iNumCols);
+     ASSERT(MH.iGetNumRows() >= iNumRows);
+     ASSERT(MH.iGetNumCols() >= iNumCols);
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumCols());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumCols());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumRows());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-                        MH(piRowm1[r], piColm1[c]) -= ppdColsm1[c][r];
-                }
-        }
+               MH.DecCoef(piRowm1[r], piColm1[c], ppdColsm1[c][r]);
+          }
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -823,26 +789,26 @@ MatrixHandler&
 FullSubMatrixHandler::SubFromT(MatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumCols);
-        ASSERT(MH.iGetNumCols() >= iNumRows);
+     ASSERT(MH.iGetNumRows() >= iNumCols);
+     ASSERT(MH.iGetNumCols() >= iNumRows);
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumRows());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumRows());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumCols());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-                        MH(piColm1[c], piRowm1[r]) -= ppdColsm1[c][r];
-                }
-        }
+               MH.DecCoef(piColm1[c], piRowm1[r], ppdColsm1[c][r]);
+          }
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -851,28 +817,28 @@ MatrixHandler&
 FullSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumRows);
-        ASSERT(MH.iGetNumCols() >= iNumCols);
+     ASSERT(MH.iGetNumRows() >= iNumRows);
+     ASSERT(MH.iGetNumCols() >= iNumCols);
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumCols());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumCols());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumRows());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-                        ppd[piColm1[c]][piRowm1[r]] -= ppdColsm1[c][r];
-                }
-        }
+               ppd[piColm1[c]][piRowm1[r]] -= ppdColsm1[c][r];
+          }
+     }
 
-        return MH;
+     return MH;
 };
 
 
@@ -881,28 +847,28 @@ MatrixHandler&
 FullSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(MH.iGetNumRows() >= iNumCols);
-        ASSERT(MH.iGetNumCols() >= iNumRows);
+     ASSERT(MH.iGetNumRows() >= iNumCols);
+     ASSERT(MH.iGetNumCols() >= iNumRows);
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer c = iNumCols; c > 0; c--) {
-                ASSERT(piColm1[c] > 0);
-                ASSERT(piColm1[c] <= MH.iGetNumRows());
+     for (integer c = iNumCols; c > 0; c--) {
+          ASSERT(piColm1[c] > 0);
+          ASSERT(piColm1[c] <= MH.iGetNumRows());
 
-                for (integer r = iNumRows; r > 0; r--) {
-                        ASSERT(piRowm1[r] > 0);
-                        ASSERT(piRowm1[r] <= MH.iGetNumCols());
+          for (integer r = iNumRows; r > 0; r--) {
+               ASSERT(piRowm1[r] > 0);
+               ASSERT(piRowm1[r] <= MH.iGetNumCols());
 
-                        ppd[piRowm1[r]][piColm1[c]] -= ppdColsm1[c][r];
-                }
-        }
+               ppd[piRowm1[r]][piColm1[c]] -= ppdColsm1[c][r];
+          }
+     }
 
-        return MH;
+     return MH;
 };
 
 
@@ -911,174 +877,239 @@ std::ostream&
 operator << (std::ostream& out, const FullSubMatrixHandler& m)
 {
 #ifdef DEBUG
-        m.IsValid();
+     m.IsValid();
 #endif /* DEBUG */
 
-        ASSERT(m.iNumRows > 0);
-        ASSERT(m.iNumCols > 0);
-        ASSERT(m.piRowm1 != NULL);
-        ASSERT(m.piColm1 != NULL);
-        ASSERT(m.ppdColsm1 != NULL);
+     ASSERT(m.iNumRows > 0);
+     ASSERT(m.iNumCols > 0);
+     ASSERT(m.piRowm1 != NULL);
+     ASSERT(m.piColm1 != NULL);
+     ASSERT(m.ppdColsm1 != NULL);
 
-        out << std::setw(12) << "";
-        for (integer c = 1; c <= m.iNumCols; c++) {
-                out << std::setw(12) << m.piColm1[c];
-        }
-        out << std::endl << std::endl;
+     out << std::setw(12) << "";
+     for (integer c = 1; c <= m.iNumCols; c++) {
+          out << std::setw(12) << m.piColm1[c];
+     }
+     out << std::endl << std::endl;
 
-        for (integer r = 1; r <= m.iNumRows; r++) {
-                out << std::setw(12) << m.piRowm1[r];
-                for (integer c = 1; c <= m.iNumCols; c++) {
-                        out << std::setw(12) << m.ppdColsm1[c][r];
-                }
-                out << std::endl;
-        }
+     for (integer r = 1; r <= m.iNumRows; r++) {
+          out << std::setw(12) << m.piRowm1[r];
+          for (integer c = 1; c <= m.iNumCols; c++) {
+               out << std::setw(12) << m.ppdColsm1[c][r];
+          }
+          out << std::endl;
+     }
 
-        return out << std::endl;
+     return out << std::endl;
 }
 
 void
 FullSubMatrixHandler::Add(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                          integer iCol,
+                          const FullMatrixHandler & source)
 {
-        FullMatrixHandler::Add(iRow, iCol, source);
+     FullMatrixHandler::Add(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::Sub(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                          integer iCol,
+                          const FullMatrixHandler & source)
 {
-        FullMatrixHandler::Sub(iRow, iCol, source);
+     FullMatrixHandler::Sub(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::Put(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                          integer iCol,
+                          const FullMatrixHandler & source)
 {
-        FullMatrixHandler::Put(iRow, iCol, source);
+     FullMatrixHandler::Put(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::Add(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                          integer iCol,
+                          const FullMatrixHandler & source,
+                          const doublereal dCoef)
 {
-        FullMatrixHandler::Add(iRow, iCol, source, dCoef);
+     FullMatrixHandler::Add(iRow, iCol, source, dCoef);
 }
 
 void
 FullSubMatrixHandler::Sub(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                          integer iCol,
+                          const FullMatrixHandler & source,
+                          const doublereal dCoef)
 {
-        FullMatrixHandler::Sub(iRow, iCol, source, dCoef);
+     FullMatrixHandler::Sub(iRow, iCol, source, dCoef);
 }
 
 void
 FullSubMatrixHandler::Put(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                          integer iCol,
+                          const FullMatrixHandler & source,
+                          const doublereal dCoef)
 {
-        FullMatrixHandler::Put(iRow, iCol, source, dCoef);
+     FullMatrixHandler::Put(iRow, iCol, source, dCoef);
 }
 
 void
 FullSubMatrixHandler::AddT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                           integer iCol,
+                           const FullMatrixHandler & source)
 {
-        FullMatrixHandler::AddT(iRow, iCol, source);
+     FullMatrixHandler::AddT(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::SubT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                           integer iCol,
+                           const FullMatrixHandler & source)
 {
-        FullMatrixHandler::SubT(iRow, iCol, source);
+     FullMatrixHandler::SubT(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::PutT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source)
+                           integer iCol,
+                           const FullMatrixHandler & source)
 {
-        FullMatrixHandler::PutT(iRow, iCol, source);
+     FullMatrixHandler::PutT(iRow, iCol, source);
 }
 
 void
 FullSubMatrixHandler::AddT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                           integer iCol,
+                           const FullMatrixHandler & source,
+                           const doublereal dCoef)
 {
-        FullMatrixHandler::AddT(iRow, iCol, source, dCoef);
+     FullMatrixHandler::AddT(iRow, iCol, source, dCoef);
 }
 
 void
 FullSubMatrixHandler::SubT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                           integer iCol,
+                           const FullMatrixHandler & source,
+                           const doublereal dCoef)
 {
-        FullMatrixHandler::SubT(iRow, iCol, source, dCoef);
+     FullMatrixHandler::SubT(iRow, iCol, source, dCoef);
 }
 
 void
 FullSubMatrixHandler::PutT(integer iRow,
-        integer iCol,
-        const FullMatrixHandler & source,
-        const doublereal dCoef)
+                           integer iCol,
+                           const FullMatrixHandler & source,
+                           const doublereal dCoef)
 {
-        FullMatrixHandler::PutT(iRow, iCol, source, dCoef);
+     FullMatrixHandler::PutT(iRow, iCol, source, dCoef);
 }
 
 /* FullSubMatrixHandler - end */
 
+FullSubMatrixHandlerAd::FullSubMatrixHandlerAd(integer iIntSize, integer* piTmpVec,
+                                               integer iDoubleSize, doublereal* pdTmpMat,
+                                               integer iMaxCols, doublereal **ppdCols)
+     :FullSubMatrixHandler(iIntSize, piTmpVec, iDoubleSize, pdTmpMat, iMaxCols, ppdCols)
+{
+}
+
+FullSubMatrixHandlerAd::FullSubMatrixHandlerAd(integer iNR, integer iNC)
+     :FullSubMatrixHandler(iNR, iNC)
+{
+}
+
+MatrixHandler&
+FullSubMatrixHandlerAd::AddTo(MatrixHandler& MH) const
+{
+#ifdef DEBUG
+     IsValid();
+     MH.IsValid();
+#endif
+     ASSERT(MH.iGetNumRows() >= iNumRows);
+     ASSERT(MH.iGetNumCols() >= iNumCols);
+
+     sp_grad::SpGradient oRow, oItem;
+
+#ifdef USE_MULTITHREAD
+     std::vector<bool> rgStatus(iNumRows, false);
+     bool bRepeatLoop;
+
+     do {
+          bRepeatLoop = false;
+#endif
+          for (integer r = 1; r <= iNumRows; ++r) {
+#ifdef USE_MULTITHREAD
+               if (rgStatus[r - 1]) {
+                    continue;
+               }
+#endif
+               oRow.ResizeReset(0., iNumCols);
+
+               for (integer c = 1; c <= iNumCols; ++c) {
+                    oItem.Reset(0., piColm1[c], ppdColsm1[c][r]);
+                    oRow += oItem;
+               }
+
+#ifdef USE_MULTITHREAD
+               bool bStatus =
+#endif
+                    MH.AddItem(piRowm1[r], oRow);
+
+#ifdef USE_MULTITHREAD
+               if (bStatus) {
+                    rgStatus[r - 1] = bStatus;
+               } else {
+                    DEBUGCERR("Failed to lock matrix entry - loop must be repeated\n");
+
+                    bRepeatLoop = true;
+               }
+#endif
+          }
+#ifdef USE_MULTITHREAD
+     } while (bRepeatLoop);
+#endif
+
+     return MH;
+}
 
 /* SparseSubMatrixHandler - begin */
 
 SparseSubMatrixHandler::SparseSubMatrixHandler(integer iTmpInt,
-                integer* piTmpIndex, integer iTmpDouble, doublereal* pdTmpMat)
-: bOwnsMemory(false),
-iIntSize(iTmpInt), iDoubleSize(iTmpDouble),
-iNumItems(iTmpInt/2),
-piRow(0), piRowm1(0), piColm1(0),
-pdMat(0), pdMatm1(0)
+                                               integer* piTmpIndex, integer iTmpDouble, doublereal* pdTmpMat)
+     : bOwnsMemory(false),
+       iIntSize(iTmpInt), iDoubleSize(iTmpDouble),
+       iNumItems(iTmpInt/2),
+       piRow(0), piRowm1(0), piColm1(0),
+       pdMat(0), pdMatm1(0)
 {
-        ASSERT(piTmpIndex);
-        ASSERT(pdTmpMat);
+     ASSERT(piTmpIndex);
+     ASSERT(pdTmpMat);
 
-        piRow = piTmpIndex;
-        piRowm1 = piTmpIndex - 1;
-        piColm1 = piRowm1 + iNumItems;
+     piRow = piTmpIndex;
+     piRowm1 = piTmpIndex - 1;
+     piColm1 = piRowm1 + iNumItems;
 
-        pdMat = pdTmpMat;
-        pdMatm1 = pdTmpMat - 1;
+     pdMat = pdTmpMat;
+     pdMatm1 = pdTmpMat - 1;
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 }
 
 SparseSubMatrixHandler::SparseSubMatrixHandler(integer iTmpInt)
-: iIntSize(2*iTmpInt), iDoubleSize(iTmpInt),
-iNumItems(iTmpInt), piRow(0), piRowm1(0), piColm1(0), pdMat(0), pdMatm1(0)
+     : iIntSize(2*iTmpInt), iDoubleSize(iTmpInt),
+       iNumItems(iTmpInt), piRow(0), piRowm1(0), piColm1(0), pdMat(0), pdMatm1(0)
 {
-        SAFENEWARR(pdMat, doublereal, iNumItems);
-        pdMatm1 = pdMat - 1;
+     SAFENEWARR(pdMat, doublereal, iNumItems);
+     pdMatm1 = pdMat - 1;
 
-        SAFENEWARR(piRow, integer, iIntSize);
-        piRowm1 = piRow - 1;
-        piColm1 = piRowm1 + iNumItems;
+     SAFENEWARR(piRow, integer, iIntSize);
+     piRowm1 = piRow - 1;
+     piColm1 = piRowm1 + iNumItems;
 
-        bOwnsMemory = true;
+     bOwnsMemory = true;
 }
 
 /* Distruttore banale.
@@ -1087,31 +1118,31 @@ iNumItems(iTmpInt), piRow(0), piRowm1(0), piColm1(0), pdMat(0), pdMatm1(0)
  */
 SparseSubMatrixHandler::~SparseSubMatrixHandler(void)
 {
-        if (bOwnsMemory) {
-                SAFEDELETEARR(pdMat);
+     if (bOwnsMemory) {
+          SAFEDELETEARR(pdMat);
 
-                SAFEDELETEARR(piRow);
-        }
+          SAFEDELETEARR(piRow);
+     }
 }
 
 #ifdef DEBUG
 void
 SparseSubMatrixHandler::IsValid(void) const
 {
-        ASSERT(iIntSize > 0);
-        ASSERT(iIntSize%2 == 0);
-        ASSERT(iDoubleSize > 0);
-        ASSERT(iIntSize >= 2*iDoubleSize);
-        ASSERT(iNumItems >= 0);
-        ASSERT(piRowm1 != NULL);
-        ASSERT(piColm1 != NULL);
-        ASSERT(pdMatm1 != NULL);
+     ASSERT(iIntSize > 0);
+     ASSERT(iIntSize%2 == 0);
+     ASSERT(iDoubleSize > 0);
+     ASSERT(iIntSize >= 2*iDoubleSize);
+     ASSERT(iNumItems >= 0);
+     ASSERT(piRowm1 != NULL);
+     ASSERT(piColm1 != NULL);
+     ASSERT(pdMatm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
-        ASSERT(defaultMemoryManager.fIsValid(piRow,
-                                iIntSize*sizeof(integer)));
-        ASSERT(defaultMemoryManager.fIsValid(pdMat,
-                                iDoubleSize*sizeof(doublereal)));
+     ASSERT(defaultMemoryManager.fIsValid(piRow,
+                                          iIntSize*sizeof(integer)));
+     ASSERT(defaultMemoryManager.fIsValid(pdMat,
+                                          iDoubleSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
 #endif /* DEBUG */
@@ -1128,26 +1159,26 @@ void
 SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 
-        ASSERT(iNewRow > 0);
-        ASSERT(2*iNewRow <= iIntSize);
-        ASSERT(iNewRow <= iDoubleSize);
-        ASSERT(piRowm1 != NULL);
+     ASSERT(iNewRow > 0);
+     ASSERT(2*iNewRow <= iIntSize);
+     ASSERT(iNewRow <= iDoubleSize);
+     ASSERT(piRowm1 != NULL);
 
-        if (iNewRow <= 0
-                        || 2*iNewRow > iIntSize
-                        || iNewRow > iDoubleSize) {
-                silent_cerr("SparseSubMatrixHandler::Resize() - error"
-                                << std::endl);
-                throw SparseSubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
-        }
+     if (iNewRow <= 0
+         || 2*iNewRow > iIntSize
+         || iNewRow > iDoubleSize) {
+          silent_cerr("SparseSubMatrixHandler::Resize() - error"
+                      << std::endl);
+          throw SparseSubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
+     }
 
-        iNumItems = iNewRow;
+     iNumItems = iNewRow;
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 }
 
@@ -1158,8 +1189,8 @@ SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
 void
 SparseSubMatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 {
-        Resize(iNewRow, iNewCol);
-        Reset();
+     Resize(iNewRow, iNewCol);
+     Reset();
 }
 
 /*
@@ -1168,213 +1199,213 @@ SparseSubMatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
  */
 void
 SparseSubMatrixHandler::Attach(int iNumEntr, doublereal* pdTmpMat,
-                integer* piTmpIndx)
+                               integer* piTmpIndx)
 {
-        if (bOwnsMemory) {
-                SAFEDELETEARR(piRow);
+     if (bOwnsMemory) {
+          SAFEDELETEARR(piRow);
 
-                SAFEDELETEARR(pdMat);
+          SAFEDELETEARR(pdMat);
 
-                bOwnsMemory = false;
-        }
+          bOwnsMemory = false;
+     }
 
-        ASSERT(iNumEntr > 0);
-        ASSERT(piTmpIndx);
-        ASSERT(pdTmpMat);
+     ASSERT(iNumEntr > 0);
+     ASSERT(piTmpIndx);
+     ASSERT(pdTmpMat);
 
-        iIntSize = iNumEntr*2;
-        iDoubleSize = iNumEntr;
-        iNumItems = iNumEntr;
-        piRow = piTmpIndx;
-        piRowm1 = piTmpIndx - 1;
-        piColm1 = piRowm1 + iNumEntr;
-        pdMat = pdTmpMat;
-        pdMatm1 = pdTmpMat - 1;
+     iIntSize = iNumEntr*2;
+     iDoubleSize = iNumEntr;
+     iNumItems = iNumEntr;
+     piRow = piTmpIndx;
+     piRowm1 = piTmpIndx - 1;
+     piColm1 = piRowm1 + iNumEntr;
+     pdMat = pdTmpMat;
+     pdMatm1 = pdTmpMat - 1;
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 }
 
 void
 SparseSubMatrixHandler::PutDiag(integer iSubIt, integer iFirstRow,
-                integer iFirstCol, const Vec3& v)
+                                integer iFirstCol, const Vec3& v)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iNumItems >= 3);
-        ASSERT(iSubIt > 0);
-        ASSERT(iSubIt <= iNumItems - 2);
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstCol >= 0);
+     ASSERT(iNumItems >= 3);
+     ASSERT(iSubIt > 0);
+     ASSERT(iSubIt <= iNumItems - 2);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstCol >= 0);
 #endif /* DEBUG */
 
-        /*
-         * Attenzione agli argomenti:
-         * iSubIt e' il primo indice della matrice da utilizzare,
-         * con 1 <= iSubit <= iCurSize;
-         * iFirstRow e' il primo indice di riga -1, ovvero il primo indice
-         * di riga della sottomatrice diag(v) piena e' iFirstRow + 1
-         * iFirstCol e' il primo indice di colonna -1, ovvero il primo indice
-         * di colonna della sottomatrice diag(v) piena e' iFirstCol + 1
-         * v e' il vettore che genera diag(v)
-         */
+     /*
+      * Attenzione agli argomenti:
+      * iSubIt e' il primo indice della matrice da utilizzare,
+      * con 1 <= iSubit <= iCurSize;
+      * iFirstRow e' il primo indice di riga -1, ovvero il primo indice
+      * di riga della sottomatrice diag(v) piena e' iFirstRow + 1
+      * iFirstCol e' il primo indice di colonna -1, ovvero il primo indice
+      * di colonna della sottomatrice diag(v) piena e' iFirstCol + 1
+      * v e' il vettore che genera diag(v)
+      */
 
-        /* Matrice diag(v) :
-         *
-         *         1   2   3
-         *
-         * 1    |  v1  0   0  |
-         * 2    |  0   v2  0  |
-         * 3    |  0   0   v3 |
-         */
+     /* Matrice diag(v) :
+      *
+      *         1   2   3
+      *
+      * 1    |  v1  0   0  |
+      * 2    |  0   v2  0  |
+      * 3    |  0   0   v3 |
+      */
 
-        /* assume che il Vec3 sia un'array di 3 reali */
-        const doublereal* pdFrom = v.pGetVec();
+     /* assume che il Vec3 sia un'array di 3 reali */
+     const doublereal* pdFrom = v.pGetVec();
 
-        doublereal* pdm = pdMatm1 + iSubIt;
-        integer* pir = piRowm1 + iSubIt;
-        integer* pic = piColm1 + iSubIt;
+     doublereal* pdm = pdMatm1 + iSubIt;
+     integer* pir = piRowm1 + iSubIt;
+     integer* pic = piColm1 + iSubIt;
 
-        /* Coefficiente 1,1 */
-        pdm[0] = pdFrom[V1];
-        pir[0] = iFirstRow + 1;
-        pic[0] = iFirstCol + 1;
+     /* Coefficiente 1,1 */
+     pdm[0] = pdFrom[V1];
+     pir[0] = iFirstRow + 1;
+     pic[0] = iFirstCol + 1;
 
-        /* Coefficiente 2,2 */
-        pdm[1] = pdFrom[V2];
-        pir[1] = iFirstRow + 2;
-        pic[1] = iFirstCol + 2;
+     /* Coefficiente 2,2 */
+     pdm[1] = pdFrom[V2];
+     pir[1] = iFirstRow + 2;
+     pic[1] = iFirstCol + 2;
 
-        /* Coefficiente 3,3 */
-        pdm[2] = pdFrom[V3];
-        pir[2] = iFirstRow + 3;
-        pic[2] = iFirstCol + 3;
+     /* Coefficiente 3,3 */
+     pdm[2] = pdFrom[V3];
+     pir[2] = iFirstRow + 3;
+     pic[2] = iFirstCol + 3;
 }
 
 
 void
 SparseSubMatrixHandler::PutDiag(integer iSubIt, integer iFirstRow,
-               integer iFirstCol, const doublereal& d)
+                                integer iFirstCol, const doublereal& d)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iNumItems >= 3);
-        ASSERT(iSubIt > 0);
-        ASSERT(iSubIt <= iNumItems - 2);
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstCol >= 0);
+     ASSERT(iNumItems >= 3);
+     ASSERT(iSubIt > 0);
+     ASSERT(iSubIt <= iNumItems - 2);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstCol >= 0);
 #endif /* DEBUG */
 
-        /* Attenzione agli argomenti:
-         * iSubIt e' il primo indice della matrice da utilizzare,
-         * con 1 <= iSubit <= iCurSize;
-         * iFirstRow e' il primo indice di riga -1, ovvero il
-         * primo indice di riga della sottomatrice I*d piena e' iFirstRow+1
-         * iFirstCol e' il primo indice di colonna -1, ovvero il
-         * primo indice di colonna della sottomatrice I*d piena e' iFirstCol+1
-         * v e' il vettore che genera I*d */
+     /* Attenzione agli argomenti:
+      * iSubIt e' il primo indice della matrice da utilizzare,
+      * con 1 <= iSubit <= iCurSize;
+      * iFirstRow e' il primo indice di riga -1, ovvero il
+      * primo indice di riga della sottomatrice I*d piena e' iFirstRow+1
+      * iFirstCol e' il primo indice di colonna -1, ovvero il
+      * primo indice di colonna della sottomatrice I*d piena e' iFirstCol+1
+      * v e' il vettore che genera I*d */
 
-        /* Matrice I*d :
-         *
-         *         1   2   3
-         *
-         * 1    |  d   0   0 |
-         * 2    |  0   d   0 |
-         * 3    |  0   0   d |
-         */
+     /* Matrice I*d :
+      *
+      *         1   2   3
+      *
+      * 1    |  d   0   0 |
+      * 2    |  0   d   0 |
+      * 3    |  0   0   d |
+      */
 
-        doublereal* pdm = pdMatm1 + iSubIt;
-        integer* pir = piRowm1 + iSubIt;
-        integer* pic = piColm1 + iSubIt;
+     doublereal* pdm = pdMatm1 + iSubIt;
+     integer* pir = piRowm1 + iSubIt;
+     integer* pic = piColm1 + iSubIt;
 
-        /* Coefficiente 1,1 */
-        pdm[0] = d;
-        pir[0] = iFirstRow + 1;
-        pic[0] = iFirstCol + 1;
+     /* Coefficiente 1,1 */
+     pdm[0] = d;
+     pir[0] = iFirstRow + 1;
+     pic[0] = iFirstCol + 1;
 
-        /* Coefficiente 2,2 */
-        pdm[1] = d;
-        pir[1] = iFirstRow + 2;
-        pic[1] = iFirstCol + 2;
+     /* Coefficiente 2,2 */
+     pdm[1] = d;
+     pir[1] = iFirstRow + 2;
+     pic[1] = iFirstCol + 2;
 
-        /* Coefficiente 3,3 */
-        pdm[2] = d;
-        pir[2] = iFirstRow + 3;
-        pic[2] = iFirstCol + 3;
+     /* Coefficiente 3,3 */
+     pdm[2] = d;
+     pir[2] = iFirstRow + 3;
+     pic[2] = iFirstCol + 3;
 }
 
 
 void
 SparseSubMatrixHandler::PutCross(integer iSubIt, integer iFirstRow,
-               integer iFirstCol, const Vec3& v)
+                                 integer iFirstCol, const Vec3& v)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iNumItems >= 6);
-        ASSERT(iSubIt > 0);
-        ASSERT(iSubIt <= iNumItems - 5);
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstCol >= 0);
+     ASSERT(iNumItems >= 6);
+     ASSERT(iSubIt > 0);
+     ASSERT(iSubIt <= iNumItems - 5);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstCol >= 0);
 #endif /* DEBUG */
 
-        /* Attenzione agli argomenti:
-         * iSubIt e' il primo indice della matrice da utilizzare,
-         * con 1 <= iSubit <= iCurSize;
-         * iFirstRow e' il primo indice di riga -1, ovvero il
-         * primo indice di riga della sottomatrice v/\ piena e' iFirstRow+1
-         * iFirstCol e' il primo indice di colonna -1, ovvero il
-         * primo indice di colonna della sottomatrice v/\ piena e' iFirstCol+1
-         * v e' il vettore che genera v/\ */
+     /* Attenzione agli argomenti:
+      * iSubIt e' il primo indice della matrice da utilizzare,
+      * con 1 <= iSubit <= iCurSize;
+      * iFirstRow e' il primo indice di riga -1, ovvero il
+      * primo indice di riga della sottomatrice v/\ piena e' iFirstRow+1
+      * iFirstCol e' il primo indice di colonna -1, ovvero il
+      * primo indice di colonna della sottomatrice v/\ piena e' iFirstCol+1
+      * v e' il vettore che genera v/\ */
 
-        /* Matrice v/\ :
-         *
-         *         1   2   3
-         *
-         * 1    |  0  -v3  v2 |
-         * 2    |  v3  0  -v1 |
-         * 3    | -v2  v1  0  |
-         */
+     /* Matrice v/\ :
+      *
+      *         1   2   3
+      *
+      * 1    |  0  -v3  v2 |
+      * 2    |  v3  0  -v1 |
+      * 3    | -v2  v1  0  |
+      */
 
-        /* assume che il Vec3 sia un'array di 3 reali */
-        const doublereal* pdFrom = v.pGetVec();
+     /* assume che il Vec3 sia un'array di 3 reali */
+     const doublereal* pdFrom = v.pGetVec();
 
-        /* Coefficiente 1,2 */
-        doublereal* pdm = pdMatm1 + iSubIt;
-        integer* pir = piRowm1 + iSubIt;
-        integer* pic = piColm1 + iSubIt;
+     /* Coefficiente 1,2 */
+     doublereal* pdm = pdMatm1 + iSubIt;
+     integer* pir = piRowm1 + iSubIt;
+     integer* pic = piColm1 + iSubIt;
 
-        pdm[0] = -pdFrom[V3];               // -v.dGet(3);
-        pir[0] = iFirstRow + 1;
-        pic[0] = iFirstCol + 2;
+     pdm[0] = -pdFrom[V3];               // -v.dGet(3);
+     pir[0] = iFirstRow + 1;
+     pic[0] = iFirstCol + 2;
 
-        /* Coefficiente 1,3 */
-        pdm[1] = pdFrom[V2];                // v.dGet(2);
-        pir[1] = iFirstRow + 1;
-        pic[1] = iFirstCol + 3;
+     /* Coefficiente 1,3 */
+     pdm[1] = pdFrom[V2];                // v.dGet(2);
+     pir[1] = iFirstRow + 1;
+     pic[1] = iFirstCol + 3;
 
-        /* Coefficiente 2,1 */
-        pdm[2] = pdFrom[V3];                // v.dGet(3);
-        pir[2] = iFirstRow + 2;
-        pic[2] = iFirstCol + 1;
+     /* Coefficiente 2,1 */
+     pdm[2] = pdFrom[V3];                // v.dGet(3);
+     pir[2] = iFirstRow + 2;
+     pic[2] = iFirstCol + 1;
 
-        /* Coefficiente 2,3 */
-        pdm[3] = -pdFrom[V1];               // -v.dGet(1);
-        pir[3] = iFirstRow + 2;
-        pic[3] = iFirstCol + 3;
+     /* Coefficiente 2,3 */
+     pdm[3] = -pdFrom[V1];               // -v.dGet(1);
+     pir[3] = iFirstRow + 2;
+     pic[3] = iFirstCol + 3;
 
-        /* Coefficiente 3,1 */
-        pdm[4] = -pdFrom[V2];                // -v.dGet(2);
-        pir[4] = iFirstRow + 3;
-        pic[4] = iFirstCol + 1;
+     /* Coefficiente 3,1 */
+     pdm[4] = -pdFrom[V2];                // -v.dGet(2);
+     pir[4] = iFirstRow + 3;
+     pic[4] = iFirstCol + 1;
 
-        /* Coefficiente 3,2 */
-        pdm[5] = pdFrom[V1];                 // v.dGet(1);
-        pir[5] = iFirstRow + 3;
-        pic[5] = iFirstCol + 2;
+     /* Coefficiente 3,2 */
+     pdm[5] = pdFrom[V1];                 // v.dGet(1);
+     pir[5] = iFirstRow + 3;
+     pic[5] = iFirstCol + 2;
 }
 
 
@@ -1382,17 +1413,17 @@ void
 SparseSubMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 
-        ASSERT(iNumItems > 0);
+     ASSERT(iNumItems > 0);
 
 #if defined HAVE_MEMSET
-        memset(pdMatm1 + 1, 0, iNumItems*sizeof(doublereal));
+     memset(pdMatm1 + 1, 0, iNumItems*sizeof(doublereal));
 #else /* !HAVE_MEMSET */
-        for (integer i = iNumItems; i > 0; i--) {
-                pdMatm1[i] = 0.;
-        }
+     for (integer i = iNumItems; i > 0; i--) {
+          pdMatm1[i] = 0.;
+     }
 #endif /* HAVE_MEMSET */
 }
 
@@ -1404,84 +1435,84 @@ SparseSubMatrixHandler::Reset(void)
  * senza controlli su eventuali duplicazioni. */
 void
 SparseSubMatrixHandler::PutMat3x3(integer iSubIt, integer iFirstRow,
-                integer iFirstCol, const Mat3x3& m)
+                                  integer iFirstCol, const Mat3x3& m)
 {
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 
-        ASSERT(iNumItems >= 9);
-        ASSERT(iSubIt > 0);
-        ASSERT(iSubIt <= iNumItems - 8);
-        ASSERT(iFirstRow >= 0);
-        ASSERT(iFirstCol >= 0);
+     ASSERT(iNumItems >= 9);
+     ASSERT(iSubIt > 0);
+     ASSERT(iSubIt <= iNumItems - 8);
+     ASSERT(iFirstRow >= 0);
+     ASSERT(iFirstCol >= 0);
 #endif /* DEBUG */
 
-        /* Attenzione agli argomenti:
-         * iSubIt e' il primo indice della matrice da utilizzare,
-         * con 1 <= iSubit <= iCurSize;
-         * iFirstRow e' il primo indice di riga -1, ovvero il
-         * primo indice di riga della sottomatrice v/\ piena e' iFirstRow+1
-         * iFirstCol e' il primo indice di colonna -1, ovvero il
-         * primo indice di colonna della sottomatrice m piena e' iFirstCol+1
-         */
+     /* Attenzione agli argomenti:
+      * iSubIt e' il primo indice della matrice da utilizzare,
+      * con 1 <= iSubit <= iCurSize;
+      * iFirstRow e' il primo indice di riga -1, ovvero il
+      * primo indice di riga della sottomatrice v/\ piena e' iFirstRow+1
+      * iFirstCol e' il primo indice di colonna -1, ovvero il
+      * primo indice di colonna della sottomatrice m piena e' iFirstCol+1
+      */
 
-        /* Per efficienza, vengono scritte esplicitamente tutte
-         * le assegnazioni;
-         * la funzione quindi non e' messa in linea intenzionalmente */
+     /* Per efficienza, vengono scritte esplicitamente tutte
+      * le assegnazioni;
+      * la funzione quindi non e' messa in linea intenzionalmente */
 
-        /* Coefficienti 1,1-3,1 */
-        doublereal* pdFrom = (doublereal*)m.pGetMat();
-        doublereal* pdTmpMat = pdMatm1 + iSubIt;
-        integer* piTmpRow = piRowm1 + iSubIt;
-        integer* piTmpCol = piColm1 + iSubIt;
+     /* Coefficienti 1,1-3,1 */
+     doublereal* pdFrom = (doublereal*)m.pGetMat();
+     doublereal* pdTmpMat = pdMatm1 + iSubIt;
+     integer* piTmpRow = piRowm1 + iSubIt;
+     integer* piTmpCol = piColm1 + iSubIt;
 
-        iFirstRow++;
-        iFirstCol++;
+     iFirstRow++;
+     iFirstCol++;
 
-        /* Prima riga */
-        pdTmpMat[0] = pdFrom[M11];
-        piTmpRow[0] = iFirstRow++;
-        piTmpCol[0] = iFirstCol;
+     /* Prima riga */
+     pdTmpMat[0] = pdFrom[M11];
+     piTmpRow[0] = iFirstRow++;
+     piTmpCol[0] = iFirstCol;
 
-        pdTmpMat[1] = pdFrom[M21];
-        piTmpRow[1] = iFirstRow++;
-        piTmpCol[1] = iFirstCol;
+     pdTmpMat[1] = pdFrom[M21];
+     piTmpRow[1] = iFirstRow++;
+     piTmpCol[1] = iFirstCol;
 
-        pdTmpMat[2] = pdFrom[M31];
-        piTmpRow[2] = iFirstRow;
-        piTmpCol[2] = iFirstCol;
+     pdTmpMat[2] = pdFrom[M31];
+     piTmpRow[2] = iFirstRow;
+     piTmpCol[2] = iFirstCol;
 
-        /* Seconda riga */
-        iFirstRow -= 2;
-        iFirstCol++;
+     /* Seconda riga */
+     iFirstRow -= 2;
+     iFirstCol++;
 
-        pdTmpMat[3] = pdFrom[M12];
-        piTmpRow[3] = iFirstRow++;
-        piTmpCol[3] = iFirstCol;
+     pdTmpMat[3] = pdFrom[M12];
+     piTmpRow[3] = iFirstRow++;
+     piTmpCol[3] = iFirstCol;
 
-        pdTmpMat[4] = pdFrom[M22];
-        piTmpRow[4] = iFirstRow++;
-        piTmpCol[4] = iFirstCol;
+     pdTmpMat[4] = pdFrom[M22];
+     piTmpRow[4] = iFirstRow++;
+     piTmpCol[4] = iFirstCol;
 
-        pdTmpMat[5] = pdFrom[M32];
-        piTmpRow[5] = iFirstRow;
-        piTmpCol[5] = iFirstCol;
+     pdTmpMat[5] = pdFrom[M32];
+     piTmpRow[5] = iFirstRow;
+     piTmpCol[5] = iFirstCol;
 
-        /* Terza riga */
-        iFirstRow -= 2;
-        iFirstCol++;
+     /* Terza riga */
+     iFirstRow -= 2;
+     iFirstCol++;
 
-        pdTmpMat[6] = pdFrom[M13];
-        piTmpRow[6] = iFirstRow++;
-        piTmpCol[6] = iFirstCol;
+     pdTmpMat[6] = pdFrom[M13];
+     piTmpRow[6] = iFirstRow++;
+     piTmpCol[6] = iFirstCol;
 
-        pdTmpMat[7] = pdFrom[M23];
-        piTmpRow[7] = iFirstRow++;
-        piTmpCol[7] = iFirstCol;
+     pdTmpMat[7] = pdFrom[M23];
+     piTmpRow[7] = iFirstRow++;
+     piTmpCol[7] = iFirstCol;
 
-        pdTmpMat[8] = pdFrom[M33];
-        piTmpRow[8] = iFirstRow;
-        piTmpCol[8] = iFirstCol;
+     pdTmpMat[8] = pdFrom[M33];
+     piTmpRow[8] = iFirstRow;
+     piTmpCol[8] = iFirstCol;
 }
 
 
@@ -1489,56 +1520,23 @@ SparseSubMatrixHandler::PutMat3x3(integer iSubIt, integer iFirstRow,
 MatrixHandler&
 SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SparseSubMatrixHandler::AddTo");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-#ifdef USE_SPARSE_AUTODIFF
-        sp_grad::SpGradient oItem;
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumRows());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-#ifdef USE_MULTITHREAD
-        std::vector<bool> rgStatus(iNumItems, false);
-        bool bRepeatLoop;
+          MH.IncCoef(piRowm1[i], piColm1[i], pdMatm1[i]);
+     }
 
-        do {
-             bRepeatLoop = false;
-#endif
-             for (integer i = 1; i <= iNumItems; ++i) {
-#ifdef USE_MULTITHREAD
-                  if (rgStatus[i - 1]) {
-                       continue;
-                  }
-#endif
-                  oItem.Reset(0., piColm1[i], pdMatm1[i]);
-
-#ifdef USE_MULTITHREAD
-                  bool bStatus =
-#endif
-                       MH.AddItem(piRowm1[i], oItem);
-
-#ifdef USE_MULTITHREAD
-                  if (bStatus) {
-                       rgStatus[i - 1] = bStatus;
-                  } else {
-                       bRepeatLoop = true;
-                  }
-#endif
-             }
-#ifdef USE_MULTITHREAD
-        } while (bRepeatLoop);
-#endif
-#else
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumRows());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumCols());
-
-                MH(piRowm1[i], piColm1[i]) += pdMatm1[i];
-        }
-#endif
-        return MH;
+     return MH;
 }
 
 
@@ -1546,44 +1544,48 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 MatrixHandler&
 SparseSubMatrixHandler::AddToT(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SparseSubMatrixHandler::AddToT");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumCols());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumRows());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumCols());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-                MH(piColm1[i], piRowm1[i]) += pdMatm1[i];
-        }
+          MH.IncCoef(piColm1[i], piRowm1[i], pdMatm1[i]);
+     }
 
-        return MH;
+     return MH;
 }
 
 /* somma la matrice ad un FullMatrixHandler */
 MatrixHandler&
 SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SparseSubMatrixHandler::AddTo");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumRows());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumCols());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumRows());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-                ppd[piColm1[i]][piRowm1[i]] += pdMatm1[i];
-        }
+          ppd[piColm1[i]][piRowm1[i]] += pdMatm1[i];
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -1591,66 +1593,66 @@ SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 MatrixHandler&
 SparseSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SparseSubMatrixHandler::AddToT");
+
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumCols());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumRows());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumCols());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-                ppd[piRowm1[i]][piColm1[i]] += pdMatm1[i];
-        }
+          ppd[piRowm1[i]][piColm1[i]] += pdMatm1[i];
+     }
 
-        return MH;
+     return MH;
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 VectorHandler& SparseSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
-        IsValid();
-        A.IsValid();
-        Y.IsValid();
+     IsValid();
+     A.IsValid();
+     Y.IsValid();
 #endif
 
-        for (integer i = 1; i <= iNumItems; ++i) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= A.iGetSize());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= Y.iGetSize());
+     for (integer i = 1; i <= iNumItems; ++i) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= A.iGetSize());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= Y.iGetSize());
 
-                A(piRowm1[i]) += pdMatm1[i] * Y(piColm1[i]);
-        }
+          A(piRowm1[i]) += pdMatm1[i] * Y(piColm1[i]);
+     }
 
-        return A;
+     return A;
 }
-#endif
 
 /* sottrae la matrice da un matrix handler usando i metodi generici */
 MatrixHandler&
 SparseSubMatrixHandler::SubFrom(MatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumRows());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumCols());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumRows());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-                MH(piRowm1[i], piColm1[i]) -= pdMatm1[i];
-        }
+          MH.DecCoef(piRowm1[i], piColm1[i], pdMatm1[i]);
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -1659,20 +1661,20 @@ MatrixHandler&
 SparseSubMatrixHandler::SubFromT(MatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumCols());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumRows());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumCols());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-                MH(piColm1[i], piRowm1[i]) -= pdMatm1[i];
-        }
+          MH.DecCoef(piColm1[i], piRowm1[i], pdMatm1[i]);
+     }
 
-        return MH;
+     return MH;
 }
 
 
@@ -1681,22 +1683,22 @@ MatrixHandler&
 SparseSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumRows());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumCols());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumRows());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumCols());
 
-                ppd[piColm1[i]][piRowm1[i]] -= pdMatm1[i];
-        }
+          ppd[piColm1[i]][piRowm1[i]] -= pdMatm1[i];
+     }
 
-        return MH;
+     return MH;
 }
 
 /* sottrae la matrice, trasposta, da un FullMatrixHandler */
@@ -1704,27 +1706,85 @@ MatrixHandler&
 SparseSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
 {
 #ifdef DEBUG
-        IsValid();
-        MH.IsValid();
+     IsValid();
+     MH.IsValid();
 #endif /* DEBUG */
 
-        doublereal **ppd = MH.ppdColsm1;
+     doublereal **ppd = MH.ppdColsm1;
 
-        for (integer i = iNumItems; i > 0; i--) {
-                ASSERT(piRowm1[i] > 0);
-                ASSERT(piRowm1[i] <= MH.iGetNumCols());
-                ASSERT(piColm1[i] > 0);
-                ASSERT(piColm1[i] <= MH.iGetNumRows());
+     for (integer i = iNumItems; i > 0; i--) {
+          ASSERT(piRowm1[i] > 0);
+          ASSERT(piRowm1[i] <= MH.iGetNumCols());
+          ASSERT(piColm1[i] > 0);
+          ASSERT(piColm1[i] <= MH.iGetNumRows());
 
-                ppd[piRowm1[i]][piColm1[i]] -= pdMatm1[i];
-        }
+          ppd[piRowm1[i]][piColm1[i]] -= pdMatm1[i];
+     }
 
-        return MH;
+     return MH;
 }
 
 /* SparseSubMatrixHandler - end */
 
-#ifdef USE_SPARSE_AUTODIFF
+SparseSubMatrixHandlerAd::SparseSubMatrixHandlerAd(integer iTmpInt, integer* piTmpIndex,
+                                                   integer iTmpDouble, doublereal* pdTmpMat)
+     :SparseSubMatrixHandler(iTmpInt, piTmpIndex, iTmpDouble, pdTmpMat)
+{
+}
+
+SparseSubMatrixHandlerAd::SparseSubMatrixHandlerAd(integer iNumItems)
+     :SparseSubMatrixHandler(iNumItems)
+{
+}
+
+MatrixHandler&
+SparseSubMatrixHandlerAd::AddTo(MatrixHandler& MH) const
+{
+     DEBUGCOUTFNAME("SparseSubMatrixHandler::AddTo");
+
+#ifdef DEBUG
+     IsValid();
+     MH.IsValid();
+#endif
+     sp_grad::SpGradient oItem;
+
+#ifdef USE_MULTITHREAD
+     std::vector<bool> rgStatus(iNumItems, false);
+     bool bRepeatLoop;
+
+     do {
+          bRepeatLoop = false;
+#endif
+          for (integer i = 1; i <= iNumItems; ++i) {
+#ifdef USE_MULTITHREAD
+               if (rgStatus[i - 1]) {
+                    continue;
+               }
+#endif
+               oItem.Reset(0., piColm1[i], pdMatm1[i]);
+
+#ifdef USE_MULTITHREAD
+               bool bStatus =
+#endif
+                    MH.AddItem(piRowm1[i], oItem);
+
+#ifdef USE_MULTITHREAD
+               if (bStatus) {
+                    rgStatus[i - 1] = bStatus;
+               } else {
+                    DEBUGCERR("Failed to lock matrix entry - loop must be repeated\n");
+
+                    bRepeatLoop = true;
+               }
+#endif
+          }
+#ifdef USE_MULTITHREAD
+     } while (bRepeatLoop);
+#endif
+
+     return MH;
+}
+
 SpGradientSubMatrixHandler::SpGradientSubMatrixHandler(integer iNumItemsMax) {
      oVec.reserve(iNumItemsMax);
 }
@@ -1790,6 +1850,8 @@ integer SpGradientSubMatrixHandler::iGetColIndex(integer) const
 
 MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SpGradientSubMatrixHandler::AddTo");
+
 #ifdef USE_MULTITHREAD
      for (const auto& oItem: oVec) {
           oItem.bInserted = false;
@@ -1816,6 +1878,8 @@ MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
                if (bStatus) {
                     oItem.bInserted = bStatus;
                } else {
+                    DEBUGCERR("Failed to lock matrix entry - loop must be repeated\n");
+
                     bRepeatLoop = true;
                }
 #endif
@@ -1830,26 +1894,26 @@ MatrixHandler& SpGradientSubMatrixHandler::AddTo(MatrixHandler& MH) const
 VectorHandler& SpGradientSubMatrixHandler::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
 {
 #ifdef DEBUG
-        IsValid();
-        A.IsValid();
-        Y.IsValid();
+     IsValid();
+     A.IsValid();
+     Y.IsValid();
 #endif
 
-        ASSERT(A.iGetSize() == Y.iGetSize());
+     ASSERT(A.iGetSize() == Y.iGetSize());
 
-        for (const auto& oItem: oVec) {
-                ASSERT(oItem.iEquationIdx >= 1);
-                ASSERT(oItem.iEquationIdx <= A.iGetSize());
+     for (const auto& oItem: oVec) {
+          ASSERT(oItem.iEquationIdx >= 1);
+          ASSERT(oItem.iEquationIdx <= A.iGetSize());
 
-                for (const auto& oRec: oItem.oResidual) {
-                        ASSERT(oRec.iDof >= 1);
-                        ASSERT(oRec.iDof <= Y.iGetSize());
+          for (const auto& oRec: oItem.oResidual) {
+               ASSERT(oRec.iDof >= 1);
+               ASSERT(oRec.iDof <= Y.iGetSize());
 
-                        A(oItem.iEquationIdx) += oRec.dDer * Y(oRec.iDof);
-                }
-        }
+               A(oItem.iEquationIdx) += oRec.dDer * Y(oRec.iDof);
+          }
+     }
 
-        return A;
+     return A;
 }
 
 MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const
@@ -1857,7 +1921,7 @@ MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oItem.iEquationIdx, oRec.iDof) -= oRec.dDer;
+                    MH.DecCoef(oItem.iEquationIdx, oRec.iDof, oRec.dDer);
                }
           }
      }
@@ -1867,10 +1931,12 @@ MatrixHandler& SpGradientSubMatrixHandler::SubFrom(MatrixHandler& MH) const
 
 MatrixHandler& SpGradientSubMatrixHandler::AddToT(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SpGradientSubMatrixHandler::AddToT");
+
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oRec.iDof, oItem.iEquationIdx) += oRec.dDer;
+                    MH.IncCoef(oRec.iDof, oItem.iEquationIdx, oRec.dDer);
                }
           }
      }
@@ -1880,10 +1946,12 @@ MatrixHandler& SpGradientSubMatrixHandler::AddToT(MatrixHandler& MH) const
 
 MatrixHandler& SpGradientSubMatrixHandler::SubFromT(MatrixHandler& MH) const
 {
+     DEBUGCOUTFNAME("SpGradientSubMatrixHandler::SubFromT");
+
      for (const auto& oItem: oVec) {
           for (const auto& oRec: oItem.oResidual) {
                if (oRec.dDer) {
-                    MH(oRec.iDof, oItem.iEquationIdx) -= oRec.dDer;
+                    MH.DecCoef(oRec.iDof, oItem.iEquationIdx, oRec.dDer);
                }
           }
      }
@@ -1908,48 +1976,378 @@ void SpGradientSubMatrixHandler::IsValid(void) const
      }
 }
 #endif
-#endif
+
+VariableSubMatrixHandler::VariableSubMatrixHandler()
+     :eStatus(NULLMATRIX)
+{
+}
+
+VariableSubMatrixHandler::~VariableSubMatrixHandler()
+{
+}
+
+VariableSubMatrixHandlerNonAd::VariableSubMatrixHandlerNonAd(integer iIntSize, integer* piInt,
+                                                             integer iDoubleSize, doublereal* pdDouble,
+                                                             integer iMaxRows, integer iMaxCols)
+     :oFullMH(iMaxRows, iMaxCols),
+      oSparseMH(iIntSize, piInt, iDoubleSize, pdDouble)
+{
+}
+
+VariableSubMatrixHandlerNonAd::VariableSubMatrixHandlerNonAd(integer iMaxRows, integer iMaxCols, integer iNumItems)
+     :oFullMH(iMaxRows, iMaxCols),
+      oSparseMH(iNumItems >= 0 ? iNumItems : iMaxRows * iMaxCols)
+{
+
+}
+
+VariableSubMatrixHandlerNonAd::~VariableSubMatrixHandlerNonAd()
+{
+
+}
+
+FullSubMatrixHandler& VariableSubMatrixHandlerNonAd::SetFull()
+{
+     eStatus = FULL;
+
+     return oFullMH;
+}
+
+SparseSubMatrixHandler& VariableSubMatrixHandlerNonAd::SetSparse()
+{
+     eStatus = SPARSE;
+
+     return oSparseMH;
+}
+
+SpGradientSubMatrixHandler& VariableSubMatrixHandlerNonAd::SetSparseGradient()
+{
+     ASSERT(0);
+
+     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const FullSubMatrixHandler& VariableSubMatrixHandlerNonAd::GetFull() const
+{
+     ASSERT(bIsFull());
+
+     return oFullMH;
+}
+
+const SparseSubMatrixHandler& VariableSubMatrixHandlerNonAd::GetSparse() const
+{
+     ASSERT(bIsSparse());
+
+     return oSparseMH;
+}
+
+const SpGradientSubMatrixHandler& VariableSubMatrixHandlerNonAd::GetSparseGradient() const
+{
+     ASSERT(0);
+
+     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+MatrixHandler& VariableSubMatrixHandlerNonAd::AddTo(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.AddTo(MH);
+
+     case SPARSE:
+          return oSparseMH.AddTo(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerNonAd::AddToT(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.AddToT(MH);
+
+     case SPARSE:
+          return oSparseMH.AddToT(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+VectorHandler& VariableSubMatrixHandlerNonAd::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.MultAddTo(A, Y);
+
+     case SPARSE:
+          return oSparseMH.MultAddTo(A, Y);
+
+     case NULLMATRIX:
+          return A;
+
+     default:
+          ASSERT(0);
+
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerNonAd::SubFrom(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.SubFrom(MH);
+
+     case SPARSE:
+          return oSparseMH.SubFrom(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerNonAd::SubFromT(MatrixHandler& MH) const   {
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.SubFromT(MH);
+
+     case SPARSE:
+          return oSparseMH.SubFromT(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+
+VariableSubMatrixHandlerAd::VariableSubMatrixHandlerAd(integer iIntSize, integer* piInt,
+                                                       integer iDoubleSize, doublereal* pdDouble,
+                                                       integer iMaxRows, integer iMaxCols)
+     :oFullMH(iMaxRows, iMaxCols),
+      oSparseMH(iIntSize, piInt, iDoubleSize, pdDouble),
+      oGradMH(iMaxRows)
+{
+}
+
+VariableSubMatrixHandlerAd::VariableSubMatrixHandlerAd(integer iMaxRows, integer iMaxCols, integer iNumItems)
+     :oFullMH(iMaxRows, iMaxCols),
+      oSparseMH(iNumItems >= 0 ? iNumItems : iMaxRows * iMaxCols),
+      oGradMH(iMaxRows)
+{
+}
+
+VariableSubMatrixHandlerAd::~VariableSubMatrixHandlerAd()
+{
+}
+
+FullSubMatrixHandlerAd& VariableSubMatrixHandlerAd::SetFull()
+{
+     eStatus = FULL;
+
+     return oFullMH;
+}
+
+SparseSubMatrixHandlerAd& VariableSubMatrixHandlerAd::SetSparse()
+{
+     eStatus = SPARSE;
+
+     return oSparseMH;
+}
+
+SpGradientSubMatrixHandler& VariableSubMatrixHandlerAd::SetSparseGradient()
+{
+     eStatus = SPARSE_GRADIENT;
+
+     return oGradMH;
+}
+
+const FullSubMatrixHandlerAd& VariableSubMatrixHandlerAd::GetFull() const
+{
+     ASSERT(bIsFull());
+
+     return oFullMH;
+}
+
+const SparseSubMatrixHandlerAd& VariableSubMatrixHandlerAd::GetSparse() const
+{
+     ASSERT(bIsSparse());
+
+     return oSparseMH;
+}
+
+const SpGradientSubMatrixHandler& VariableSubMatrixHandlerAd::GetSparseGradient() const
+{
+     ASSERT(bIsSparseGradient());
+
+     return oGradMH;
+}
+
+MatrixHandler& VariableSubMatrixHandlerAd::AddTo(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.AddTo(MH);
+
+     case SPARSE:
+          return oSparseMH.AddTo(MH);
+
+     case SPARSE_GRADIENT:
+          return oGradMH.AddTo(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerAd::AddToT(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.AddToT(MH);
+
+     case SPARSE:
+          return oSparseMH.AddToT(MH);
+
+     case SPARSE_GRADIENT:
+          return oGradMH.AddToT(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+VectorHandler& VariableSubMatrixHandlerAd::MultAddTo(VectorHandler& A, const VectorHandler& Y) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.MultAddTo(A, Y);
+
+     case SPARSE:
+          return oSparseMH.MultAddTo(A, Y);
+
+     case SPARSE_GRADIENT:
+          return oGradMH.MultAddTo(A, Y);
+
+     case NULLMATRIX:
+          return A;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerAd::SubFrom(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.SubFrom(MH);
+
+     case SPARSE:
+          return oSparseMH.SubFrom(MH);
+
+     case SPARSE_GRADIENT:
+          return oGradMH.SubFrom(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+MatrixHandler& VariableSubMatrixHandlerAd::SubFromT(MatrixHandler& MH) const
+{
+     switch (eStatus) {
+     case FULL:
+          return oFullMH.SubFromT(MH);
+
+     case SPARSE:
+          return oSparseMH.SubFromT(MH);
+
+     case SPARSE_GRADIENT:
+          return oGradMH.SubFromT(MH);
+
+     case NULLMATRIX:
+          return MH;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
 
 /* MySubVectorHandler - begin */
 
 MySubVectorHandler::MySubVectorHandler(integer iSize)
-: MyVectorHandler(), piRow(NULL), piRowm1(NULL) {
-        Resize(iSize);
+     : MyVectorHandler(), piRow(NULL), piRowm1(NULL) {
+     Resize(iSize);
 
 #ifdef DEBUG
-        for (integer i = 1; i <= iMaxSize; ++i) {
-             piRowm1[i] = std::numeric_limits<integer>::max();
-        }
+     for (integer i = 1; i <= iMaxSize; ++i) {
+          piRowm1[i] = std::numeric_limits<integer>::max();
+     }
 
-        IsValid();
+     IsValid();
 #endif
 }
 
 MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
-               doublereal* pdTmpVec)
-: MyVectorHandler(iSize, pdTmpVec), piRow(0), piRowm1(0)
+                                       doublereal* pdTmpVec)
+     : MyVectorHandler(iSize, pdTmpVec), piRow(0), piRowm1(0)
 {
-        if (piTmpRow == 0) {
-                /* ... because set by MyVectorHandler() */
-                ASSERT(bOwnsMemory == true);
+     if (piTmpRow == 0) {
+          /* ... because set by MyVectorHandler() */
+          ASSERT(bOwnsMemory == true);
 
-                if (pdTmpVec == 0) {
-                        silent_cerr("MySubVectorHandler(): illegal args" << std::endl);
-                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                }
+          if (pdTmpVec == 0) {
+               silent_cerr("MySubVectorHandler(): illegal args" << std::endl);
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
 
-                SAFENEWARR(piRow, integer, iSize);
-                piRowm1 = piRow;
-        }
+          SAFENEWARR(piRow, integer, iSize);
+          piRowm1 = piRow;
+     }
 
-        piRowm1--;
+     piRowm1--;
 
 #ifdef DEBUG
-        for (integer i = 1; i <= iMaxSize; ++i) {
-             piRowm1[i] = std::numeric_limits<integer>::max();
-        }
+     for (integer i = 1; i <= iMaxSize; ++i) {
+          piRowm1[i] = std::numeric_limits<integer>::max();
+     }
 
-        IsValid();
+     IsValid();
 #endif /* DEBUG */
 }
 
@@ -1959,83 +2357,83 @@ MySubVectorHandler::Resize(integer iSize)
 #ifdef DEBUG
      IsValid();
 #endif
-        if (iSize < 0) {
-                silent_cerr("Negative size!" << std::endl);
-                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-        }
+     if (iSize < 0) {
+          silent_cerr("Negative size!" << std::endl);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
 
-        ASSERT((piRowm1 == NULL && pdVecm1 == NULL)
-                        || (piRowm1 != NULL && pdVecm1 != NULL));
+     ASSERT((piRowm1 == NULL && pdVecm1 == NULL)
+            || (piRowm1 != NULL && pdVecm1 != NULL));
 
-        if (!bOwnsMemory && piRowm1 != NULL) {
-                if (iSize > iMaxSize) {
-                        silent_cerr("Can't resize to " << iSize
-                                << ": larger than max size " << iMaxSize
-                                << std::endl);
-                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                }
-                iCurSize = iSize;
+     if (!bOwnsMemory && piRowm1 != NULL) {
+          if (iSize > iMaxSize) {
+               silent_cerr("Can't resize to " << iSize
+                           << ": larger than max size " << iMaxSize
+                           << std::endl);
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+          iCurSize = iSize;
 
-        } else {
-                if (piRowm1 != NULL) {
-                        if (iSize <= iMaxSize) {
-                                iCurSize = iSize;
+     } else {
+          if (piRowm1 != NULL) {
+               if (iSize <= iMaxSize) {
+                    iCurSize = iSize;
 
-                        } else {
-                                doublereal* pd = NULL;
-                                SAFENEWARR(pd, doublereal, iSize);
-                                //pd--;
-                                for (integer i = iCurSize-1; i >= 0; i--) {
-                                        pd[i] = pdVec[i];
-                                }
+               } else {
+                    doublereal* pd = NULL;
+                    SAFENEWARR(pd, doublereal, iSize);
+                    //pd--;
+                    for (integer i = iCurSize-1; i >= 0; i--) {
+                         pd[i] = pdVec[i];
+                    }
 
-                                integer* pi = NULL;
-                                SAFENEWARR(pi, integer, iSize);
-                                //pi--;
-                                for (integer i = iCurSize-1; i >= 0; i--) {
-                                        pi[i] = piRow[i];
-                                }
+                    integer* pi = NULL;
+                    SAFENEWARR(pi, integer, iSize);
+                    //pi--;
+                    for (integer i = iCurSize-1; i >= 0; i--) {
+                         pi[i] = piRow[i];
+                    }
 
 #ifdef DEBUG
-                                for (integer i = iCurSize; i < iSize; ++i) {
-                                     pi[i] = std::numeric_limits<integer>::max();
-                                }
+                    for (integer i = iCurSize; i < iSize; ++i) {
+                         pi[i] = std::numeric_limits<integer>::max();
+                    }
 #endif
-                                //pdVecm1++;
-                                SAFEDELETEARR(pdVec);
+                    //pdVecm1++;
+                    SAFEDELETEARR(pdVec);
 
-                                SAFEDELETEARR(piRow);
+                    SAFEDELETEARR(piRow);
 
-                                pdVec = pd;
-                                pdVecm1 = pd - 1;
-                                piRow = pi;
-                                piRowm1 = pi - 1;
-                                iMaxSize = iCurSize = iSize;
-                        }
+                    pdVec = pd;
+                    pdVecm1 = pd - 1;
+                    piRow = pi;
+                    piRowm1 = pi - 1;
+                    iMaxSize = iCurSize = iSize;
+               }
 
-                } else {
-                        if (iSize > 0) {
-                                bOwnsMemory = true;
+          } else {
+               if (iSize > 0) {
+                    bOwnsMemory = true;
 
-                                SAFENEWARR(pdVec, doublereal, iSize);
-                                pdVecm1 = pdVec - 1;
+                    SAFENEWARR(pdVec, doublereal, iSize);
+                    pdVecm1 = pdVec - 1;
 
-                                SAFENEWARR(piRow, integer, iSize);
-                                piRowm1 = piRow - 1;
+                    SAFENEWARR(piRow, integer, iSize);
+                    piRowm1 = piRow - 1;
 
-                                iMaxSize = iCurSize = iSize;
+                    iMaxSize = iCurSize = iSize;
 
 #ifdef DEBUG
-                                for (integer i = 1; i <= iMaxSize; ++i) {
-                                     piRowm1[i] = std::numeric_limits<integer>::max();
-                                }
+                    for (integer i = 1; i <= iMaxSize; ++i) {
+                         piRowm1[i] = std::numeric_limits<integer>::max();
+                    }
 #endif
-                        }
-                }
-        }
+               }
+          }
+     }
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif
 }
 
@@ -2045,49 +2443,49 @@ MySubVectorHandler::Detach(void)
 #ifdef DEBUG
      IsValid();
 #endif
-        if (bOwnsMemory) {
-                if (pdVecm1 != NULL) {
-                        //pdVecm1++;
-                        SAFEDELETEARR(pdVec);
+     if (bOwnsMemory) {
+          if (pdVecm1 != NULL) {
+               //pdVecm1++;
+               SAFEDELETEARR(pdVec);
 
-                        SAFEDELETEARR(piRow);
-                }
+               SAFEDELETEARR(piRow);
+          }
 
-                bOwnsMemory = false;
-        }
+          bOwnsMemory = false;
+     }
 
-        iMaxSize = iCurSize = 0;
-        pdVec = NULL;
-        pdVecm1 = NULL;
-        piRow = NULL;
-        piRowm1 = NULL;
+     iMaxSize = iCurSize = 0;
+     pdVec = NULL;
+     pdVecm1 = NULL;
+     piRow = NULL;
+     piRowm1 = NULL;
 }
 
 void
 MySubVectorHandler::Attach(integer iSize, doublereal* pd,
-                integer* pi, integer iMSize)
+                           integer* pi, integer iMSize)
 {
 #ifdef DEBUG
      IsValid();
 #endif
 
-        if (bOwnsMemory && pdVecm1 != NULL) {
-                Detach();
-                bOwnsMemory = false;
-        }
+     if (bOwnsMemory && pdVecm1 != NULL) {
+          Detach();
+          bOwnsMemory = false;
+     }
 
-        iMaxSize = iCurSize = iSize;
-        if (iMSize >= iSize) {
-                iMaxSize = iMSize;
-        }
+     iMaxSize = iCurSize = iSize;
+     if (iMSize >= iSize) {
+          iMaxSize = iMSize;
+     }
 
-        pdVec = pd;
-        pdVecm1 = pd - 1;
-        piRow = pi;
-        piRowm1 = pi - 1;
+     pdVec = pd;
+     pdVecm1 = pd - 1;
+     piRow = pi;
+     piRowm1 = pi - 1;
 
 #ifdef DEBUG
-        IsValid();
+     IsValid();
 #endif
 }
 
@@ -2095,18 +2493,18 @@ MySubVectorHandler::Attach(integer iSize, doublereal* pd,
 void
 MySubVectorHandler::IsValid(void) const
 {
-        MyVectorHandler::IsValid();
+     MyVectorHandler::IsValid();
 
-        ASSERT((piRowm1 != NULL && iMaxSize > 0) || (piRowm1 == NULL && iMaxSize == 0));
+     ASSERT((piRowm1 != NULL && iMaxSize > 0) || (piRowm1 == NULL && iMaxSize == 0));
 
 #ifdef DEBUG_MEMMANAGER
-        ASSERT(defaultMemoryManager.fIsValid(piRow,
-                                MyVectorHandler::iMaxSize*sizeof(integer)));
+     ASSERT(defaultMemoryManager.fIsValid(piRow,
+                                          MyVectorHandler::iMaxSize*sizeof(integer)));
 #endif /* DEBUG_MEMMANAGER */
 
-        for (integer i = 1; i <= iMaxSize; ++i) {
-             ASSERT(piRowm1[i] > 0);
-        }
+     for (integer i = 1; i <= iMaxSize; ++i) {
+          ASSERT(piRowm1[i] > 0);
+     }
 }
 #endif /* DEBUG */
 
@@ -2114,87 +2512,87 @@ VectorHandler&
 MySubVectorHandler::AddTo(VectorHandler& VH) const
 {
 #ifdef DEBUG
-        IsValid();
-        VH.IsValid();
+     IsValid();
+     VH.IsValid();
 #endif /* DEBUG */
 
-        for (integer i = iGetSize(); i > 0; i--) {
+     for (integer i = iGetSize(); i > 0; i--) {
 #if 0
-                /* FIXME: workaround for SchurVectorHandler... */
-                VH(piRowm1[i]) += pdVecm1[i];
+          /* FIXME: workaround for SchurVectorHandler... */
+          VH(piRowm1[i]) += pdVecm1[i];
 #endif
-                VH.IncCoef(piRowm1[i], pdVecm1[i]);
-        }
+          VH.IncCoef(piRowm1[i], pdVecm1[i]);
+     }
 
-        return VH;
+     return VH;
 }
 
 VectorHandler&
 MySubVectorHandler::AddTo(MyVectorHandler& VH) const
 {
 #ifdef DEBUG
-        IsValid();
-        VH.IsValid();
+     IsValid();
+     VH.IsValid();
 #endif /* DEBUG */
 
-        doublereal* pdm1 = VH.pdGetVec() - 1;
-        for (integer i = iGetSize(); i > 0; i--) {
-                pdm1[piRowm1[i]] += pdVecm1[i];
-        }
-        return VH;
+     doublereal* pdm1 = VH.pdGetVec() - 1;
+     for (integer i = iGetSize(); i > 0; i--) {
+          pdm1[piRowm1[i]] += pdVecm1[i];
+     }
+     return VH;
 }
 
 VectorHandler&
 MySubVectorHandler::AddAbsValuesTo(VectorHandler& VH) const
 {
 #ifdef DEBUG
-        IsValid();
-        VH.IsValid();
+     IsValid();
+     VH.IsValid();
 #endif /* DEBUG */
 
-        for (integer i = iGetSize(); i > 0; i--) {
+     for (integer i = iGetSize(); i > 0; i--) {
 #if 0
-                /* FIXME: workaround for SchurVectorHandler... */
-                VH(piRowm1[i]) += pdVecm1[i];
+          /* FIXME: workaround for SchurVectorHandler... */
+          VH(piRowm1[i]) += pdVecm1[i];
 #endif
-                VH.IncCoef(piRowm1[i], std::abs(pdVecm1[i]));
-        }
+          VH.IncCoef(piRowm1[i], std::abs(pdVecm1[i]));
+     }
 
-        return VH;
+     return VH;
 }
 
 VectorHandler&
 MySubVectorHandler::AddAbsValuesTo(MyVectorHandler& VH) const
 {
 #ifdef DEBUG
-        IsValid();
-        VH.IsValid();
+     IsValid();
+     VH.IsValid();
 #endif /* DEBUG */
 
-        doublereal* pdm1 = VH.pdGetVec() - 1;
-        for (integer i = iGetSize(); i > 0; i--) {
-                pdm1[piRowm1[i]] += std::abs(pdVecm1[i]);
-        }
-        return VH;
+     doublereal* pdm1 = VH.pdGetVec() - 1;
+     for (integer i = iGetSize(); i > 0; i--) {
+          pdm1[piRowm1[i]] += std::abs(pdVecm1[i]);
+     }
+     return VH;
 }
 
 std::ostream&
 operator << (std::ostream& out, const SubVectorHandler& v)
 {
 #ifdef DEBUG
-        v.IsValid();
+     v.IsValid();
 #endif /* DEBUG */
 
-        integer iRow = v.iGetSize();
+     integer iRow = v.iGetSize();
 
-        ASSERT(iRow > 0);
+     ASSERT(iRow > 0);
 
-        for (integer i = 1; i <= iRow; i++) {
-                out << std::setw(12) << v.iGetRowIndex(i)
-                        << " " << std::setw(12) << v(i) << std::endl;
-        }
+     for (integer i = 1; i <= iRow; i++) {
+          out << std::setw(12) << v.iGetRowIndex(i)
+              << " " << std::setw(12) << v(i) << std::endl;
+     }
 
-        return out << std::endl;
+     return out << std::endl;
 }
 
 /* MySubVectorHandler - end */

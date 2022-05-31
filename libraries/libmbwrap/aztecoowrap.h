@@ -55,6 +55,15 @@ pAllocateAztecOOSolutionManager(
      integer iMaxIter,
      doublereal dTolRes,
      integer iVerbose,
-     unsigned uPrecondFlag);
+     unsigned uSolverFlags);
+
+SolutionManager*
+pAllocateAmesosSolutionManager(
+#ifdef USE_MPI
+     MPI::Intracomm& oComm,
+#endif
+     integer iNLD,
+     integer iVerbose,
+     unsigned uSolverFlags);
 #endif
 #endif

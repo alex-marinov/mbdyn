@@ -81,7 +81,7 @@ public:
 
 /* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
 
-class ElectricNode : public ScalarDifferentialNode {
+class ElectricNode : virtual public ScalarDifferentialNode {
 public:
 	/* Costruttore */
 	ElectricNode(unsigned int uL, const DofOwner* pDO,

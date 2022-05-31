@@ -54,10 +54,7 @@
 #include "except.h"
 
 #include "vh.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_base.h"
-#endif
 
 class SubMatrixHandler;
 class VariableSubMatrixHandler;
@@ -227,9 +224,7 @@ public:
 	virtual doublereal Norm(enum Norm_t eNorm = NORM_1) const;
         virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale);
         virtual MatrixHandler* Copy() const=0;
-#ifdef USE_SPARSE_AUTODIFF
         virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem);
-#endif
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */

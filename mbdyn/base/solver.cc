@@ -519,6 +519,14 @@ Solver::Prepare(void)
 		}
 	}
 
+        const unsigned uSolverFlags = CurrLinearSolver.GetSolverFlags();
+
+        if (!pDM->bUseAutoDiff() && (uSolverFlags & LinSol::SOLVER_FLAGS_ALLOWS_GRAD) != 0u) {
+             silent_cerr("warning: sparse matrix handler \"grad\" requires support for automatic differentiation which was not enabled!\n"
+                         "warning: add the statement \"use automatic differentiation;\" inside the control data section to enable it!\n");
+             CurrLinearSolver.SetSolverFlags(uSolverFlags & ~LinSol::SOLVER_FLAGS_ALLOWS_GRAD);
+        }
+
 	// log symbol table
 	std::ostream& log = pDM->GetLogFile();
 	log << "Symbol table:" << std::endl;
@@ -5359,6 +5367,7 @@ Solver::Eig(bool bNewLine)
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
+             pMatA->PacMat(); // Needed for Trilinos sparse matrix handler
              
              pDM->Update();
              Res.Reset();
@@ -5366,6 +5375,7 @@ Solver::Eig(bool bNewLine)
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
+             pMatB->PacMat(); // Needed for Trilinos sparse matrix handler
 
              pCurrStepIntegrator = pPrevStepInt;
         }
@@ -5649,6 +5659,7 @@ Solver::AllocateNonlinearSolver()
                 case LinSol::SPQR_SOLVER:
                 case LinSol::STRUMPACK_SOLVER:
                 case LinSol::AZTECOO_SOLVER:
+                case LinSol::AMESOS_SOLVER:
                         // All solvers which do not destroy the Jacobian during factorization can be added here.
                         break;
                 default:

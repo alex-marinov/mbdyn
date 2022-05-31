@@ -41,7 +41,6 @@
 #ifndef __SP_GRADIENT_SPARSE_MATRIX_HANDLER_H__INCLUDED__
 #define __SP_GRADIENT_SPARSE_MATRIX_HANDLER_H__INCLUDED__
 
-#ifdef USE_SPARSE_AUTODIFF
 #include <vector>
 
 #include "myassert.h"
@@ -90,6 +89,9 @@ public:
      virtual void ResizeReset(integer, integer) override;
 
      virtual void Reset() override;
+
+     virtual void
+     IncCoef(integer iRow, integer iCol, const doublereal& dCoef) override;
 
      virtual const doublereal&
      operator()(integer iRow, integer iCol) const override;
@@ -340,7 +342,5 @@ protected:
 private:
      SpGradientSparseMatrixHandler* pMH;
 };
-#endif
-
 #endif
 #endif

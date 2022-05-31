@@ -76,11 +76,6 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#ifdef USE_AUTODIFF
-#include "gradient.h"
-#include "matvec.h"
-#endif
-
 #include "sp_gradient_test_func.h"
 
 namespace sp_grad_test {
@@ -92,16 +87,6 @@ namespace sp_grad_test {
           return v.size() ? &v.front() : nullptr;
      }
 
-#ifdef USE_AUTODIFF
-     inline void SetDofMap(doublereal& g, grad::LocalDofMap*) {
-          g = 0;
-     }
-
-     template <grad::index_type NSIZE>
-     inline void SetDofMap(grad::Gradient<NSIZE>& g, grad::LocalDofMap* pDofMap) {
-          g = grad::Gradient<NSIZE>(0., pDofMap);
-     }
-#endif
      template <typename RAND_NZ_T, typename RAND_DOF_T, typename RAND_VAL_T, typename GEN_T>
      index_type sp_grad_rand_gen(SpGradient& u, RAND_NZ_T& randnz, RAND_DOF_T& randdof, RAND_VAL_T& randval, GEN_T& gen) {
           std::vector<SpDerivRec> ud;
@@ -1209,12 +1194,6 @@ namespace sp_grad_test {
 
           SpGradient u, v, w, f, fc, f2;
 
-#ifdef USE_AUTODIFF
-          grad::Gradient<0> us, vs, ws, fs;
-          grad::LocalDofMap oDofMap;
-          index_type fsnz = 0;
-#endif
-
           doublereal e = randval(gen), fVal;
           index_type unz = 0, vnz = 0, wnz = 0;
           index_type fnz = 0, f2nz = 0, funz = 0, f2unz = 0, fcnz = 0;
@@ -1240,24 +1219,6 @@ namespace sp_grad_test {
                w.GetDofStat(s);
 
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
-#ifdef USE_AUTODIFF
-               oDofMap.Reset();
-               us.SetValue(u.dGetValue());
-               vs.SetValue(v.dGetValue());
-               ws.SetValue(w.dGetValue());
-
-               if (s.iNumNz) {
-                    us.DerivativeResizeReset(&oDofMap, s.iMinDof, s.iMaxDof + 1, grad::MapVectorBase::GLOBAL, 0.);
-                    vs.DerivativeResizeReset(&oDofMap, s.iMinDof, s.iMaxDof + 1, grad::MapVectorBase::GLOBAL, 0.);
-                    ws.DerivativeResizeReset(&oDofMap, s.iMinDof, s.iMaxDof + 1, grad::MapVectorBase::GLOBAL, 0.);
-
-                    for (index_type i = s.iMinDof; i <= s.iMaxDof; ++i) {
-                         us.SetDerivativeGlobal(i, u.dGetDeriv(i));
-                         vs.SetDerivativeGlobal(i, v.dGetDeriv(i));
-                         ws.SetDerivativeGlobal(i, w.dGetDeriv(i));
-                    }
-               }
-#endif
 
                func_scalar1(u.dGetValue(), v.dGetValue(), w.dGetValue(), e, fVal);
 
@@ -1272,15 +1233,7 @@ namespace sp_grad_test {
                f.Sort();
 
                fnz += f.iGetSize();
-#ifdef USE_AUTODIFF
-               auto sp_grad_s_start = high_resolution_clock::now();
 
-               func_scalar1(us, vs, ws, e, fs);
-
-               sp_grad_s_time += high_resolution_clock::now() - sp_grad_s_start;
-
-               fsnz += fs.iGetLocalSize();
-#endif
                auto sp_grad_compr_start = high_resolution_clock::now();
 
                func_scalar1_compressed(u, v, w, e, fc);
@@ -1351,17 +1304,8 @@ namespace sp_grad_test {
                     assert(fabs(fd[i - 1] - f2.dGetDeriv(i)) < dTol * max(1.0, fabs(fd[i - 1])));
                     SP_GRAD_TRACE(fd[i - 1] << " " << f.dGetDeriv(i) << endl);
                }
-#ifdef USE_AUTODIFF
-               for (index_type i = fs.iGetStartIndexLocal(); i < fs.iGetEndIndexLocal(); ++i) {
-                    index_type iDof = fs.pGetDofMap()->iGetGlobalDof(i);
-                    assert(fabs(fd[iDof - 1] - fs.dGetDerivativeLocal(i)) < dTol * max(1.0, fabs(fd[iDof - 1])));
-               }
-#endif
           }
 
-#ifdef USE_AUTODIFF
-          auto sp_grad_s_time_ns = duration_cast<nanoseconds>(sp_grad_s_time).count();
-#endif
           auto sp_grad_time_ns = duration_cast<nanoseconds>(sp_grad_time).count();
           auto sp_grad_compr_time_ns = duration_cast<nanoseconds>(sp_grad_compr_time).count();
           auto sp_grad2_time_ns = duration_cast<nanoseconds>(sp_grad2_time).count();
@@ -1375,12 +1319,7 @@ namespace sp_grad_test {
                << " vnz=" << fixed << setprecision(0) << ceil(static_cast<doublereal>(vnz) / inumloops)
                << " wnz=" << fixed << setprecision(0) << ceil(static_cast<doublereal>(wnz) / inumloops)
                << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test2: sp_grad_s_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad_s_time_ns) / 1e9
-               << " nz=" << fixed << setprecision(0) << ceil(static_cast<doublereal>(fsnz) / inumloops)
-               << endl;
-#endif
+
           cerr << "test2: sp_grad_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(sp_grad_time_ns) / 1e9
                << " nz=" << fixed << setprecision(0) << ceil(static_cast<doublereal>(fnz) / inumloops)
@@ -1398,11 +1337,6 @@ namespace sp_grad_test {
                << endl;
           cerr << "test2: c_full_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(c_full_time_ns) / 1e9 << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test2: sp_grad_s_time / c_full_time = "
-               << static_cast<doublereal>(sp_grad_s_time_ns) / max<int64_t>(1L, c_full_time_ns) // Avoid division by zero
-               << endl;
-#endif
           cerr << "test2: sp_grad_time / c_full_time = "
                << static_cast<doublereal>(sp_grad_time_ns) / max<int64_t>(1L, c_full_time_ns) // Avoid division by zero
                << endl;
@@ -1645,51 +1579,7 @@ namespace sp_grad_test {
                << static_cast<doublereal>(sp_grad3_time_ns) / max<int64_t>(1L, c_full_time_ns) // Avoid division by zero
                << endl;
      }
-#ifdef USE_AUTODIFF
-     template <typename T>
-     struct SpGradient2SliceGradient;
 
-     template <>
-     struct SpGradient2SliceGradient<sp_grad::SpGradient> {
-          typedef grad::Gradient<0> Type;
-
-          static void Copy(const sp_grad::SpGradient& g1, Type& g2, grad::LocalDofMap& oDofMap) {
-               sp_grad::SpGradDofStat s;
-               g1.GetDofStat(s);
-
-               g2.SetValue(g1.dGetValue());
-
-               if (s.iNumNz) {
-                    g2.DerivativeResizeReset(&oDofMap, s.iMinDof, s.iMaxDof + 1, grad::MapVectorBase::GLOBAL, 0.);
-
-                    for (const auto& d: g1) {
-                         g2.SetDerivativeGlobal(d.iDof, d.dDer);
-                    }
-               }
-          }
-
-          static doublereal dGetDerivativeGlobal(const grad::Gradient<0>& g, index_type iDof) {
-               if (g.pGetDofMap()->iGetLocalIndex(iDof) >= 0) {
-                    return g.dGetDerivativeGlobal(iDof);
-               } else {
-                    return 0.;
-               }
-          }
-     };
-
-     template <>
-     struct SpGradient2SliceGradient<doublereal> {
-          typedef doublereal Type;
-
-          static void Copy(doublereal g1, doublereal& g2, grad::LocalDofMap&) {
-               g2 = g1;
-          }
-
-          static doublereal dGetDerivativeGlobal(doublereal, index_type) {
-               return 0.;
-          }
-     };
-#endif
      template <typename TA, typename TX>
      void test4(const index_type inumloops,
                 const index_type inumnz,
@@ -1715,18 +1605,7 @@ namespace sp_grad_test {
           vector<TA> A;
           vector<TX> x;
           vector<TB> b4, b5, b6, b7;
-#ifdef USE_AUTODIFF
-          typedef typename SpGradient2SliceGradient<TA>::Type TAS;
-          typedef typename SpGradient2SliceGradient<TX>::Type TXS;
-          typedef typename util::ResultType<TAS, TXS>::Type TBS;
-          vector<TAS> As;
-          vector<TXS> xs;
-          vector<TBS> bs;
-          grad::LocalDofMap oDofMap;
-          As.resize(imatrows * imatcols);
-          xs.resize(imatcols);
-          bs.resize(imatrows);
-#endif
+
           vector<doublereal> Av, Ad, xv, bv, xd, bd;
           index_type xnz = 0, anz = 0, b4nz = 0, b5unz = 0, b5nz = 0;
 
@@ -1745,9 +1624,6 @@ namespace sp_grad_test {
                sp_grad4m_time(0),
                sp_grad4sp_time(0),
                sp_grad4sm_time(0),
-#ifdef USE_AUTODIFF
-               sp_grad4s_time(0),
-#endif
                c_full_time(0);
 
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
@@ -1760,15 +1636,7 @@ namespace sp_grad_test {
                     sp_grad_rand_gen(xi, randnz, randdof, randval, gen);
                     xnz += SpGradientTraits<TX>::iGetSize(xi);
                }
-#ifdef USE_AUTODIFF
-               for (index_type i = 0; i < imatrows * imatcols; ++i) {
-                    SpGradient2SliceGradient<TA>::Copy(A[i], As[i], oDofMap);
-               }
 
-               for (index_type i = 0; i < imatcols; ++i) {
-                    SpGradient2SliceGradient<TX>::Copy(x[i], xs[i], oDofMap);
-               }
-#endif
                auto sp_grad4_start = high_resolution_clock::now();
 
                func_mat_mul4(A, x, b4);
@@ -1796,13 +1664,7 @@ namespace sp_grad_test {
                func_mat_mul4sm(A, x, b7);
 
                sp_grad4sm_time += high_resolution_clock::now() - sp_grad4sm_start;
-#ifdef USE_AUTODIFF
-               auto sp_grad4s_start = high_resolution_clock::now();
 
-               func_mat_mul4s(As, xs, bs);
-
-               sp_grad4s_time += high_resolution_clock::now() - sp_grad4s_start;
-#endif
                for (const auto& b5i: b5) {
                     b5unz += SpGradientTraits<TB>::iGetSize(b5i);
                }
@@ -1863,9 +1725,6 @@ namespace sp_grad_test {
                          assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b5[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
                          assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b6[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
                          assert(fabs(bd[i + (j - 1) * imatrows] - SpGradientTraits<TB>::dGetDeriv(b7[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
-#ifdef USE_AUTODIFF
-                         assert(fabs(bd[i + (j - 1) * imatrows] - SpGradient2SliceGradient<TB>::dGetDerivativeGlobal(bs[i], j)) / max(1., fabs(bd[i + (j - 1) * imatrows])) < dTol);
-#endif
                     }
                }
 
@@ -1874,9 +1733,6 @@ namespace sp_grad_test {
                     assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b5[i])) / max(1., fabs(bv[i])) < dTol);
                     assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b6[i])) / max(1., fabs(bv[i])) < dTol);
                     assert(fabs(bv[i] - SpGradientTraits<TB>::dGetValue(b7[i])) / max(1., fabs(bv[i])) < dTol);
-#ifdef USE_AUTODIFF
-                    assert(fabs(bv[i] - grad::dGetValue(bs[i])) / max(1., fabs(bv[i])) < dTol);
-#endif
                }
           }
 
@@ -1884,9 +1740,6 @@ namespace sp_grad_test {
           auto sp_grad4m_time_ns = duration_cast<nanoseconds>(sp_grad4m_time).count();
           auto sp_grad4sp_time_ns = duration_cast<nanoseconds>(sp_grad4sp_time).count();
           auto sp_grad4sm_time_ns = duration_cast<nanoseconds>(sp_grad4sm_time).count();
-#ifdef USE_AUTODIFF
-          auto sp_grad4s_time_ns = duration_cast<nanoseconds>(sp_grad4s_time).count();
-#endif
           auto c_full_time_ns = duration_cast<nanoseconds>(c_full_time).count();
 
           cerr << "test4: sp_grad4_time = " << fixed << setprecision(6)
@@ -1906,11 +1759,6 @@ namespace sp_grad_test {
           cerr << "test4: sp_grad4sm_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(sp_grad4sm_time_ns) / 1e9
                << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test4: sp_grad4s_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad4s_time_ns) / 1e9
-               << endl;
-#endif
           cerr << "test4: c_full_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(c_full_time_ns) / 1e9
                << endl;
@@ -1926,11 +1774,6 @@ namespace sp_grad_test {
           cerr << "test4: sp_grad4sm_time / c_full_time = "
                << static_cast<doublereal>(sp_grad4sm_time_ns) / max<int64_t>(1L, c_full_time_ns) // Avoid division by zero
                << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test4: sp_grad4s_time / c_full_time = "
-               << static_cast<doublereal>(sp_grad4s_time_ns) / max<int64_t>(1L, c_full_time_ns) // Avoid division by zero
-               << endl;
-#endif
      }
 
      void test6(index_type inumloops, index_type inumnz, index_type inumdof, index_type imatrows, index_type imatcols)
@@ -2425,31 +2268,11 @@ namespace sp_grad_test {
           const doublereal dTol = pow(numeric_limits<doublereal>::epsilon(), 0.5);
 
           typedef typename util::ResultType<TA, TB>::Type TC;
-#ifdef USE_AUTODIFF
-          typedef typename SpGradient2SliceGradient<TA>::Type TAs;
-          typedef typename SpGradient2SliceGradient<TB>::Type TBs;
-          typedef typename util::ResultType<TAs, TBs>::Type TCs;
-#endif
           SpMatrixBase<TA> A(iamatrows, iamatcols, inumnz);
           SpMatrixBase<TB> B(iamatcols, ibmatcols, inumnz);
           SpMatrixBase<TC> C(iamatrows, ibmatcols, 2 * inumnz);
           SpMatrixBase<TC> C_T(iamatrows, ibmatcols, 2 * inumnz);
           SpMatrixBase<TC> C_TA(iamatrows, ibmatcols, 2 * inumnz);
-#ifdef USE_AUTODIFF
-          grad::Matrix<TAs, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> As(iamatrows, iamatcols);
-          grad::Matrix<TBs, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> Bs(iamatcols, ibmatcols);
-          grad::Matrix<TCs, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> Cs(iamatrows, ibmatcols);
-          grad::Matrix<TCs, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> Cs_TAs(iamatrows, ibmatcols);
-          grad::Matrix<TCs, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> Cs_dof_map(iamatrows, ibmatcols);
-          grad::LocalDofMap oDofMap;
-
-          for (index_type j = 1; j <= Cs_dof_map.iGetNumCols(); ++j) {
-               for (index_type i = 1; i <= Cs_dof_map.iGetNumRows(); ++i) {
-                    TCs& Csij = Cs_dof_map(i, j);
-                    sp_grad_test::SetDofMap(Csij, &oDofMap);
-               }
-          }
-#endif
           vector<doublereal> Av(iamatrows * iamatcols), Ad,
                Bv(iamatcols * ibmatcols), Bd,
                Cv(iamatrows * ibmatcols), Cd;
@@ -2461,11 +2284,6 @@ namespace sp_grad_test {
           duration<long long, ratio<1L, 1000000000L> > sp_grad_time(0),
                sp_grad_trans_time(0),
                sp_grad_trans_add_time(0),
-#ifdef USE_AUTODIFF
-               sp_grad_s_time(0),
-               sp_grad_s_trans_add_time(0),
-               sp_grad_s_dof_map_time(0),
-#endif
                c_full_time(0);
 
           for (index_type iloop = 0; iloop < inumloops; ++iloop) {
@@ -2480,19 +2298,7 @@ namespace sp_grad_test {
                     sp_grad_rand_gen(bi, randnz, randdof, randval, gen);
                     SpGradientTraits<TB>::GetDofStat(bi, s);
                }
-#ifdef USE_AUTODIFF
-               for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
-                    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
-                         SpGradient2SliceGradient<TA>::Copy(A.GetElem(i, j), As(i, j), oDofMap);
-                    }
-               }
 
-               for (index_type j = 1; j <= B.iGetNumCols(); ++j) {
-                    for (index_type i = 1; i <= B.iGetNumRows(); ++i) {
-                         SpGradient2SliceGradient<TB>::Copy(B.GetElem(i, j), Bs(i, j), oDofMap);
-                    }
-               }
-#endif
                const index_type nbdirs = s.iNumNz ? s.iMaxDof : 0;
 
                Ad.resize(iamatrows * iamatcols * nbdirs);
@@ -2547,25 +2353,7 @@ namespace sp_grad_test {
                func_mat_mul10_trans_add(A, B, C_TA);
 
                sp_grad_trans_add_time += high_resolution_clock::now() - start;
-#ifdef USE_AUTODIFF
-               start = high_resolution_clock::now();
 
-               func_mat_mul10(As, Bs, Cs);
-
-               sp_grad_s_time += high_resolution_clock::now() - start;
-
-               start = high_resolution_clock::now();
-
-               func_mat_mul10_trans_add(As, Bs, Cs_TAs);
-
-               sp_grad_s_trans_add_time += high_resolution_clock::now() - start;
-
-               start = high_resolution_clock::now();
-
-               func_mat_mul10_dof_map(As, Bs, Cs_dof_map);
-
-               sp_grad_s_dof_map_time += high_resolution_clock::now() - start;
-#endif
                for (index_type j = 1; j <= ibmatcols; ++j) {
                     for (index_type i = 1; i <= iamatrows; ++i) {
                          const doublereal cij1 = SpGradientTraits<TC>::dGetValue(C.GetElem(i, j));
@@ -2589,41 +2377,11 @@ namespace sp_grad_test {
                          }
                     }
                }
-#ifdef USE_AUTODIFF
-               for (index_type j = 1; j <= Cs.iGetNumCols(); ++j) {
-                    for (index_type i = 1; i <= Cs.iGetNumRows(); ++i) {
-                         const doublereal cij1 = Cv[(j - 1) * iamatrows + i - 1];
-                         const doublereal cij2 = grad::dGetValue(Cs(i, j));
-                         const doublereal cij4 = grad::dGetValue(Cs_TAs(i, j));
-                         const doublereal cij5 = grad::dGetValue(Cs_dof_map(i, j));
-
-                         assert(fabs(cij2 - cij1) / std::max(1., fabs(cij1)) < dTol);
-                         assert(fabs(cij4 - cij1) / std::max(1., fabs(cij1)) < dTol);
-                         assert(fabs(cij5 - cij1) / std::max(1., fabs(cij1)) < dTol);
-
-                         for (index_type k = 1; k <= nbdirs; ++k) {
-                              const doublereal dcij1 = Cd[((j - 1) * iamatrows + (i - 1) + (k - 1) * iamatrows * ibmatcols)];
-                              const doublereal dcij2 = SpGradient2SliceGradient<TC>::dGetDerivativeGlobal(Cs(i, j), k);
-                              const doublereal dcij4 = SpGradient2SliceGradient<TC>::dGetDerivativeGlobal(Cs_TAs(i, j), k);
-                              const doublereal dcij5 = SpGradient2SliceGradient<TC>::dGetDerivativeGlobal(Cs_dof_map(i, j), k);
-
-                              assert(fabs(dcij2 - dcij1) / std::max(1., fabs(dcij1)) < dTol);
-                              assert(fabs(dcij4 - dcij1) / std::max(1., fabs(dcij1)) < dTol);
-                              assert(fabs(dcij5 - dcij1) / std::max(1., fabs(dcij1)) < dTol);
-                         }
-                    }
-               }
-#endif
           }
 
           auto sp_grad_time_ns = duration_cast<nanoseconds>(sp_grad_time).count();
           auto sp_grad_trans_time_ns = duration_cast<nanoseconds>(sp_grad_trans_time).count();
           auto sp_grad_trans_add_time_ns = duration_cast<nanoseconds>(sp_grad_trans_add_time).count();
-#ifdef USE_AUTODIFF
-          auto sp_grad_s_time_ns = duration_cast<nanoseconds>(sp_grad_s_time).count();
-          auto sp_grad_s_trans_add_time_ns = duration_cast<nanoseconds>(sp_grad_s_trans_add_time).count();
-          auto sp_grad_s_dof_map_time_ns = duration_cast<nanoseconds>(sp_grad_s_dof_map_time).count();
-#endif
           auto c_full_time_ns = duration_cast<nanoseconds>(c_full_time).count();
 
           cerr << "test10: sp_grad_time = " << fixed << setprecision(6)
@@ -2637,19 +2395,7 @@ namespace sp_grad_test {
           cerr << "test10: sp_grad_trans_add_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(sp_grad_trans_add_time_ns) / 1e9
                << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test10: sp_grad_s_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad_s_time_ns) / 1e9
-               << endl;
 
-          cerr << "test10: sp_grad_s_trans_add_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad_s_trans_add_time_ns) / 1e9
-               << endl;
-
-          cerr << "test10: sp_grad_s_dof_map_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad_s_dof_map_time_ns) / 1e9
-               << endl;
-#endif
           cerr << "test10: c_full_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(c_full_time_ns) / 1e9
                << endl;
@@ -2665,11 +2411,6 @@ namespace sp_grad_test {
           cerr << "test10: sp_grad_trans_add_time / c_full_time = " << fixed << setprecision(6)
                << static_cast<doublereal>(sp_grad_trans_add_time_ns) / static_cast<doublereal>(c_full_time_ns)
                << endl;
-#ifdef USE_AUTODIFF
-          cerr << "test10: sp_grad_s_time / c_full_time = " << fixed << setprecision(6)
-               << static_cast<doublereal>(sp_grad_s_time_ns) / static_cast<doublereal>(c_full_time_ns)
-               << endl;
-#endif
      }
 
 

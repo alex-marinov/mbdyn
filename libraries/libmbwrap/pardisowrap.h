@@ -51,11 +51,7 @@
 #include "ls.h"
 #include "solman.h"
 #include "spmapmh.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
-
 #include <mkl/mkl_pardiso.h>
 
 template <typename MKL_INT_TYPE>

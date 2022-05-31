@@ -52,7 +52,7 @@ protected:
 	bool bActive;
 
 public:
-	DrivenElem(DataManager *pDM, const DriveCaller* pDC,
+	DrivenElem(DataManager *pDM, const DriveCaller* pDC, bool b_active,
 			const Elem* pE, SimulationEntity::Hints *ph = 0);
 	~DrivenElem(void);
 

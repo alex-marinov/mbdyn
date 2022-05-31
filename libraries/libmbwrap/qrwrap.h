@@ -63,9 +63,7 @@
 
 #if defined(USE_SUITESPARSE_QR)
 #include "spmapmh.h"
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 #endif
 
 class QrDenseSolver: public LinearSolver {

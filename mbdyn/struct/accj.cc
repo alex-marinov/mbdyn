@@ -121,17 +121,17 @@ LinearAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iIndex = iGetFirstIndex();
       
    doublereal d = Dir.dGet(1);
-   WorkMat.PutItem(1, iIndex+1, iNodeColIndex+1, d);
-   WorkMat.PutItem(2, iNodeRowIndex+1, iIndex+2, d);
+   WM.PutItem(1, iIndex+1, iNodeColIndex+1, d);
+   WM.PutItem(2, iNodeRowIndex+1, iIndex+2, d);
    d = Dir.dGet(2);
-   WorkMat.PutItem(3, iIndex+1, iNodeColIndex+2, d);
-   WorkMat.PutItem(4, iNodeRowIndex+2, iIndex+2, d);
+   WM.PutItem(3, iIndex+1, iNodeColIndex+2, d);
+   WM.PutItem(4, iNodeRowIndex+2, iIndex+2, d);
    d = Dir.dGet(3);
-   WorkMat.PutItem(5, iIndex+1, iNodeColIndex+3, d);
-   WorkMat.PutItem(6, iNodeRowIndex+3, iIndex+2, d);
+   WM.PutItem(5, iIndex+1, iNodeColIndex+3, d);
+   WM.PutItem(6, iNodeRowIndex+3, iIndex+2, d);
    
-   WorkMat.PutItem(7, iIndex+1, iIndex+1, -dCoef);
-   WorkMat.PutItem(8, iIndex+2, iIndex+1, 1.);   
+   WM.PutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WM.PutItem(8, iIndex+2, iIndex+1, 1.);
    
    return WorkMat;
 }
@@ -405,17 +405,17 @@ AngularAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 TmpDir = pNode->GetRRef()*Dir;
    
    doublereal d = TmpDir.dGet(1);
-   WorkMat.PutItem(1, iIndex+1, iNodeColIndex+4, d);
-   WorkMat.PutItem(2, iNodeRowIndex+4, iIndex+2, d);
+   WM.PutItem(1, iIndex+1, iNodeColIndex+4, d);
+   WM.PutItem(2, iNodeRowIndex+4, iIndex+2, d);
    d = TmpDir.dGet(2);
-   WorkMat.PutItem(3, iIndex+1, iNodeColIndex+5, d);
-   WorkMat.PutItem(4, iNodeRowIndex+5, iIndex+2, d);
+   WM.PutItem(3, iIndex+1, iNodeColIndex+5, d);
+   WM.PutItem(4, iNodeRowIndex+5, iIndex+2, d);
    d = TmpDir.dGet(3);
-   WorkMat.PutItem(5, iIndex+1, iNodeColIndex+6, d);
-   WorkMat.PutItem(6, iNodeRowIndex+6, iIndex+2, d);     
+   WM.PutItem(5, iIndex+1, iNodeColIndex+6, d);
+   WM.PutItem(6, iNodeRowIndex+6, iIndex+2, d);
    
-   WorkMat.PutItem(7, iIndex+1, iIndex+1, -dCoef);
-   WorkMat.PutItem(8, iIndex+2, iIndex+1, 1.);      
+   WM.PutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WM.PutItem(8, iIndex+2, iIndex+1, 1.);
    
    return WorkMat;
 }

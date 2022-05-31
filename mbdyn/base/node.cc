@@ -33,6 +33,7 @@
 
 #include "mynewmem.h"
 #include "node.h"
+#include "nodead.h"
 #include "solman.h"
 
 
@@ -102,7 +103,6 @@ str2nodetype(const char *const s)
 	return Node::UNKNOWN;
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
 void Node::UpdateJac(doublereal dCoef)
 {
 }
@@ -110,7 +110,6 @@ void Node::UpdateJac(doublereal dCoef)
 void Node::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 {
 }
-#endif
 
 /* Node - end */
 
@@ -119,9 +118,6 @@ void Node::UpdateJac(const VectorHandler& Y, doublereal dCoef)
 
 ScalarNode::ScalarNode(unsigned int uL, const DofOwner* pDO, flag fOut)
 : Node(uL, pDO, fOut)
-#ifdef USE_SPARSE_AUTODIFF
-,XY(0.)
-#endif
 {
 	NO_OP;
 }
@@ -184,14 +180,6 @@ ScalarNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) con
 
 	return out;
 }
-
-#if defined(USE_SPARSE_AUTODIFF)
-void ScalarNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
-{
-     XY = Y(iGetFirstIndex() + 1);
-}
-#endif
-
 /* ScalarNode - end */
 
 
@@ -573,7 +561,9 @@ ParameterNode::ParameterNode(unsigned int uL,
 	const DofOwner* pDO,
 	doublereal dx,
 	flag fOut)
-: ScalarAlgebraicNode(uL, pDO, dx, fOut)
+     : ScalarNode(uL, pDO, fOut),
+       ScalarAlgebraicNode(uL, pDO, dx, fOut)
+       
 {
 	NO_OP;
 }

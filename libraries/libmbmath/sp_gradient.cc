@@ -38,17 +38,19 @@
         in the GNU Public License version 2.1
 */
 
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+
 #include <cstdlib>
 #include <algorithm>
+
+#include "sp_gradient.h"
+#include "sp_matrix_base.h"
+#include "sp_gradient_op.h"
 
 #ifdef SP_GRAD_DEBUG
 #include <cmath>
 #include <vector>
 #endif
-
-#include "sp_gradient.h"
-#include "sp_matrix_base.h"
-#include "sp_gradient_op.h"
 
 namespace sp_grad {
      SpDerivData SpGradient::oNullData{0., 0, 0, SpDerivData::DER_UNIQUE | SpDerivData::DER_SORTED, 1, nullptr};

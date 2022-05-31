@@ -36,6 +36,7 @@
 #include <limits>
 
 #include "body.h"
+#include "bodyad.h"
 #include "body_vm.h"
 #include "dataman.h"
 
@@ -924,54 +925,6 @@ Body::AssVecRBK_int(SubVectorHandler& WorkVec)
 	WorkVec.Sub(iIdx + 3 + 1, m);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-void
-Body::AssVecRBK_int(const sp_grad::SpColVector<T, 3>& STmp,
-                    const sp_grad::SpMatrix<T, 3, 3>& JTmp,
-                    sp_grad::SpGradientAssVec<T>& WorkVec,
-                    doublereal dCoef,
-                    sp_grad::SpFunctionCall func)
-{
-     using namespace sp_grad;
-
-     const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-
-     SpColVector<T, 3> X(3, 1), V(3, 1), W(3, 0);
-
-     pNode->GetXCurr(X, dCoef, func);
-     pNode->GetVCurr(V, dCoef, func);
-     pNode->GetWCurr(W, dCoef, func);
-
-     SpColVector<T, 3> s0 = X * dMass + STmp;
-
-     // force
-     SpColVector<T, 3> F = pRBK->GetXPP() * -dMass
-          - Cross(pRBK->GetWP(), s0)
-          - Cross(pRBK->GetW(), Cross(pRBK->GetW(), s0));
-
-     // moment
-     SpColVector<T, 3> a = pRBK->GetXPP()
-          + Cross(pRBK->GetWP(), X)
-          + Cross(pRBK->GetW(), Cross(pRBK->GetW(), X))
-          + Cross(pRBK->GetW(), V);
-
-     const SpColVector<T, 3> JTmpWRBK = JTmp * pRBK->GetW();
-
-     SpColVector<T, 3> M = -Cross(STmp, a)
-          - Cross(pRBK->GetW(), JTmpWRBK)
-          - JTmp * pRBK->GetWP()
-          - Cross(W, JTmpWRBK)
-          + JTmp * Cross(W, pRBK->GetW())
-          - Cross(V, Cross(pRBK->GetW(), STmp));
-
-     const integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-
-     WorkVec.AddItem(iFirstMomentumIndex + 1, F);
-     WorkVec.AddItem(iFirstMomentumIndex + 4, M);
-}
-#endif
-
 void
 Body::AssMatsRBK_int(
 	FullSubMatrixHandler& WMA,
@@ -1041,38 +994,6 @@ Body::AssMatsRBK_int(
 	// m: delta omega
 	WMB.Add(iIdx + 3 + 1, 3 + 1, MTmp2);
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-void Body::UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& S,
-                         const sp_grad::SpMatrix<doublereal, 3, 3>& J) const
-{
-        const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode*>(pNode);
-
-        ASSERT(pDN != 0);
-
-        for (integer i = 1; i <= 3; ++i) {
-                STmp(i) = S(i);
-        }
-
-        for (integer j = 1; j <= 3; ++j) {
-                for (integer i = 1; i <= 3; ++i) {
-                        JTmp(i, j) = J(i, j);
-                }
-        }
-
-        pDN->AddInertia(dMass, STmp, JTmp);
-}
-
-void Body::UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const
-{
-}
-
-void Body::UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const
-{
-}
-#endif
 /* Body - end */
 
 
@@ -1119,7 +1040,6 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 {
 	DEBUGCOUTFNAME("DynamicBody::AssJac");
 
-#ifndef USE_SPARSE_AUTODIFF
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -1158,41 +1078,8 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	AssMats(WM, WM, dCoef, g, GravityAcceleration);
 
-#else
-        using namespace sp_grad;
-
-        SpGradientAssVec<SpGradient>::AssJac(this,
-                                             WorkMat.SetSparseGradient(),
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_JAC);
-#endif
-
 	return WorkMat;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-void
-DynamicBody::AssJac(VectorHandler& JacY,
-                    const VectorHandler& Y,
-                    doublereal dCoef,
-                    const VectorHandler& XCurr,
-                    const VectorHandler& XPrimeCurr,
-                    VariableSubMatrixHandler& WorkMat)
-{
-     using namespace sp_grad;
-     
-     SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          JacY,
-                                          Y,
-                                          dCoef,
-                                          XCurr,
-                                          XPrimeCurr,
-                                          SpFunctionCall::REGULAR_JAC);
-}
-#endif
-
 
 void
 DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -1308,7 +1195,6 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUTFNAME("DynamicBody::AssRes");
 
-#ifndef USE_SPARSE_AUTODIFF
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration;
@@ -1358,16 +1244,6 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	ASSERT(pDN != 0);
 
 	pDN->AddInertia(dMass, STmp, JTmp);
-#else
-        using namespace sp_grad;
-
-        SpGradientAssVec<doublereal>::AssRes(this,
-                                             WorkVec,
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_RES);
-#endif
 
 	return WorkVec;
 }
@@ -1540,58 +1416,6 @@ DynamicBody::GetG_int(void) const
 	return (STmp + X*dMass).Cross(V) + R*(J0*(R.MulTV(W)))
 		- X.Cross(STmp.Cross(W));
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-void
-DynamicBody::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-                    doublereal dCoef,
-                    const sp_grad::SpGradientVectorHandler<T>& XCurr,
-                    const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-                    sp_grad::SpFunctionCall func)
-{
-        using namespace sp_grad;
-
-        Vec3 GravityAcceleration;
-        bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
-                                           GravityAcceleration);
-
-        const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-
-        const integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-
-        SpColVectorA<T, 3> V;
-        SpColVectorA<T, 3> W;
-        SpMatrixA<T, 3, 3> R;
-
-        pNode->GetVCurr(V, dCoef, func);
-        pNode->GetWCurr(W, dCoef, func);
-        pNode->GetRCurr(R, dCoef, func);
-
-        SpColVector<T, 3> STmp = R * S0;
-        SpMatrix<T, 3, 3> JTmp = R * J0 * Transpose(R);
-        SpColVector<T, 3> f1 = V * -dMass - Cross(W, STmp);
-        SpColVector<T, 3> f2 = -Cross(STmp, V) - JTmp * W;
-
-        WorkVec.AddItem(iFirstPositionIndex + 1, f1);
-        WorkVec.AddItem(iFirstPositionIndex + 4, f2);
-
-        if (g) {
-                SpColVector<T, 3> f3 = GravityAcceleration * dMass;
-                SpColVector<T, 3> f4 = Cross(STmp, GravityAcceleration);
-
-                WorkVec.AddItem(iFirstPositionIndex + 7, f3);
-                WorkVec.AddItem(iFirstPositionIndex + 10, f4);
-        }
-
-        if (pRBK) {
-                AssVecRBK_int(STmp, JTmp, WorkVec, dCoef, func);
-        }
-
-        UpdateInertia(STmp, JTmp);
-}
-#endif
-
 /* DynamicBody - end */
 
 
@@ -1604,10 +1428,10 @@ ModalBody::ModalBody(unsigned int uL,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-DynamicBody(uL, pNode, dMass, Xgc, J, fOut)
-#ifndef USE_SPARSE_AUTODIFF
-,XPP(::Zero3), WP(::Zero3)
-#endif
+  Body(uL, pNode, dMass, Xgc, J, fOut),
+  DynamicBody(uL, pNode, dMass, Xgc, J, fOut),
+  XPP(::Zero3),
+  WP(::Zero3)
 {
 	NO_OP;
 }
@@ -1621,13 +1445,8 @@ ModalBody::~ModalBody(void)
 void
 ModalBody::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-#ifndef USE_SPARSE_AUTODIFF
 	*piNumRows = 12;
 	*piNumCols = 12;
-#else
-        *piNumRows = 6;
-        *piNumCols = 0;
-#endif
 }
 
 VariableSubMatrixHandler&
@@ -1638,7 +1457,6 @@ ModalBody::AssJac(VariableSubMatrixHandler& WorkMat,
 {
 	DEBUGCOUTFNAME("ModalBody::AssJac");
         
-#ifndef USE_SPARSE_AUTODIFF        
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -1669,40 +1487,10 @@ ModalBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	AssMats(WM, WM, dCoef, XCurr, XPrimeCurr, g, GravityAcceleration);
-#else
-        sp_grad::SpGradientAssVec<sp_grad::SpGradient>::AssJac(this,
-                                                               WorkMat.SetSparseGradient(),
-                                                               dCoef,
-                                                               XCurr,
-                                                               XPrimeCurr,
-                                                               sp_grad::SpFunctionCall::REGULAR_JAC);
-#endif
         
 	return WorkMat;
 }
 
-#ifdef USE_SPARSE_AUTODIFF
-void
-ModalBody::AssJac(VectorHandler& JacY,
-                  const VectorHandler& Y,
-                  doublereal dCoef,
-                  const VectorHandler& XCurr,
-                  const VectorHandler& XPrimeCurr,
-                  VariableSubMatrixHandler& WorkMat)
-{
-        using namespace sp_grad;
-     
-        SpGradientAssVec<GpGradProd>::AssJac(this,
-                                             JacY,
-                                             Y,
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_JAC);
-}
-#endif
-
-#ifndef USE_SPARSE_AUTODIFF
 void
 ModalBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	VariableSubMatrixHandler& WorkMatB,
@@ -1794,7 +1582,6 @@ ModalBody::AssMats(FullSubMatrixHandler& WMA,
 		AssMatsRBK_int(WMA, WMB, dCoef, Sc);
 	}
 }
-#endif
 
 SubVectorHandler&
 ModalBody::AssRes(SubVectorHandler& WorkVec,
@@ -1804,7 +1591,6 @@ ModalBody::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUTFNAME("ModalBody::AssRes");
         
-#ifndef USE_SPARSE_AUTODIFF
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration;
@@ -1857,112 +1643,16 @@ ModalBody::AssRes(SubVectorHandler& WorkVec,
 	ASSERT(pDN != 0);
 
 	pDN->AddInertia(dMass, STmp, JTmp);
-#else
-        sp_grad::SpGradientAssVec<doublereal>::AssRes(this,
-                                                      WorkVec,
-                                                      dCoef,
-                                                      XCurr,
-                                                      XPrimeCurr,
-                                                      sp_grad::SpFunctionCall::REGULAR_RES);
-#endif
+
 	return WorkVec;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-void
-ModalBody::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-                  doublereal dCoef,
-                  const sp_grad::SpGradientVectorHandler<T>& XCurr,
-                  const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-                  sp_grad::SpFunctionCall func)
-{
-     using namespace sp_grad;
-
-     const auto pModalNode = dynamic_cast<const ModalNode*>(pNode);
-     
-     ASSERT(pModalNode != nullptr);
-          
-     Vec3 GravityAcceleration;
-     const bool g = GravityOwner::bGetGravity(pModalNode->GetXCurr(),
-                                              GravityAcceleration);
-
-     if (pModalNode->pGetRBK()) {
-          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-     }
-     
-     SpColVector<T, 3> W(3, 3);
-
-     pModalNode->GetWCurr(W, dCoef, func);
-
-     SpMatrix<T, 3, 3> R(3, 3, 3);
-
-     pModalNode->GetRCurr(R, dCoef, func);
-
-     SpColVector<T, 3> STmp = R * S0;
-     SpMatrix<T, 3, 3> JTmp = R * J0 * Transpose(R);
-
-     SpColVector<T, 3> XPP(3, 1), WP(3, 1);
-     
-     pModalNode->GetXPPCurr(XPP, dCoef, func);
-     pModalNode->GetWPCurr(WP, dCoef, func);
-
-     SpColVector<T, 3> F = XPP * -dMass - Cross(WP, STmp) - Cross(W, Cross(W, STmp));
-     SpColVector<T, 3> M = -Cross(STmp, XPP) - Cross(W, JTmp * W) - JTmp * WP;
-
-     if (g) {
-             F += GravityAcceleration * dMass;
-             M += Cross(STmp, GravityAcceleration);
-     }
-
-     const integer iFirstPositionIndex = pModalNode->iGetFirstPositionIndex();
-
-     WorkVec.AddItem(iFirstPositionIndex + 7, F);
-     WorkVec.AddItem(iFirstPositionIndex + 10, M);
-
-     UpdateInertia(STmp, JTmp);
-}
-
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmpCurr,
-                         const sp_grad::SpMatrix<doublereal, 3, 3>& JTmpCurr)
-{
-     for (integer i = 1; i <= 3; ++i) {
-          STmp(i) = STmpCurr(i);
-     }
-
-     for (integer j = 1; j <= 3; ++j) {
-          for (integer i = 1; i <= 3; ++i) {
-               JTmp(i, j) = JTmpCurr(i, j);
-          }
-     }
-     
-     auto pDN = dynamic_cast<const DynamicStructNode *>(pNode);
-     
-     ASSERT(pDN != nullptr);
-
-     pDN->AddInertia(dMass, STmp, JTmp);     
-}
-                
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp)
-{
-}
-
-void
-ModalBody::UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                         const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp)
-{
-}
-#endif
 
 void
 ModalBody::SetValue(DataManager *pDM,
                     VectorHandler& X, VectorHandler& XP,
                     SimulationEntity::Hints *ph)
 {
-        // Attention! We must overwrite DynamicBody::SetValue here!
+        // Attention! We must override DynamicBody::SetValue here!
         // Depending on the order of our elements,
         // it is possible to get an incorrect
         // initial velocity and initial angular velocity!
@@ -2001,7 +1691,6 @@ StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
 {
 	DEBUGCOUTFNAME("StaticBody::AssJac");
 
-#ifndef USE_SPARSE_AUTODIFF
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -2027,39 +1716,8 @@ StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		WorkMat.SetNullMatrix();
 	}
 
-#else
-        using namespace sp_grad;
-
-        SpGradientAssVec<SpGradient>::AssJac(this,
-                                             WorkMat.SetSparseGradient(),
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_JAC);
-#endif
 	return WorkMat;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-void
-StaticBody::AssJac(VectorHandler& JacY,
-                   const VectorHandler& Y,
-                   doublereal dCoef,
-                   const VectorHandler& XCurr,
-                   const VectorHandler& XPrimeCurr,
-                   VariableSubMatrixHandler& WorkMat)
-{
-     using namespace sp_grad;
-     
-     SpGradientAssVec<GpGradProd>::AssJac(this,
-                                          JacY,
-                                          Y,
-                                          dCoef,
-                                          XCurr,
-                                          XPrimeCurr,
-                                          SpFunctionCall::REGULAR_JAC);
-}
-#endif
 
 void
 StaticBody::AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -2146,7 +1804,6 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUTFNAME("StaticBody::AssRes");
 
-#ifndef USE_SPARSE_AUTODIFF
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(Zero3);
@@ -2180,63 +1837,9 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	if (pRBK) {
 		AssVecRBK_int(WorkVec);
 	}
-#else
-        using namespace sp_grad;
 
-        SpGradientAssVec<doublereal>::AssRes(this,
-                                             WorkVec,
-                                             dCoef,
-                                             XCurr,
-                                             XPrimeCurr,
-                                             SpFunctionCall::REGULAR_RES);        
-#endif
 	return WorkVec;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-void
-StaticBody::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-                   doublereal dCoef,
-                   const sp_grad::SpGradientVectorHandler<T>& XCurr,
-                   const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-                   sp_grad::SpFunctionCall func)
-{
-        using namespace sp_grad;
-     
-	Vec3 Acceleration(Zero3);
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
-
-	/* W is uninitialized because its use is conditioned by w */
-	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-
-	if (!g && !pRBK) {
-                return;
-	}
-
-	SpMatrixA<T, 3, 3> R;
-
-        pNode->GetRCurr(R, dCoef, func);
-        
-	SpColVector<T, 3> STmp = R * S0;
-	SpMatrix<T, 3, 3> JTmp = R * J0 * Transpose(R);
-
-	if (g) {
-                integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-                SpColVector<T, 3> FTmp = Acceleration * dMass;
-                SpColVector<T, 3> MTmp = Cross(STmp, Acceleration);
-             
-                WorkVec.AddItem(iFirstMomentumIndex + 1, FTmp);
-                WorkVec.AddItem(iFirstMomentumIndex + 4, MTmp);
-	}
-
-	if (pRBK) {
-		AssVecRBK_int(STmp, JTmp, WorkVec, dCoef, func);
-	}
-
-        UpdateInertia(STmp, JTmp);
-}
-#endif
 
 /* inverse dynamics capable element */
 bool
@@ -2244,7 +1847,6 @@ StaticBody::bInverseDynamics(void) const
 {
 	return true;
 }
-
 
 SubVectorHandler&
 StaticBody::AssRes(SubVectorHandler& WorkVec,
@@ -2562,9 +2164,15 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 		/* static */
 		if (pStrNode) {
-			SAFENEWWITHCONSTRUCTOR(pSB, StaticBody,
-				StaticBody(uLabel, dynamic_cast<const StaticStructNode *>(pStaticDispNode),
-					dm, Xgc, J, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pSB, StaticBodyAd,
+                                                       StaticBodyAd(uLabel, dynamic_cast<const StaticStructNodeAd*>(pStaticDispNode),
+                                                                    dm, Xgc, J, fOut));
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pSB, StaticBody,
+                                                       StaticBody(uLabel, dynamic_cast<const StaticStructNode *>(pStaticDispNode),
+                                                                  dm, Xgc, J, fOut));
+                        }
 			pEl = pSB;
 
 		} else {
@@ -2623,12 +2231,22 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 
 			if (pModalNode) {
-				SAFENEWWITHCONSTRUCTOR(pEl, ModalBody,
-					ModalBody(uLabel, pModalNode, dm, Xgc, J, fOut));
+                                if (pDM->bUseAutoDiff()) {
+                                        SAFENEWWITHCONSTRUCTOR(pEl, ModalBodyAd,
+                                                               ModalBodyAd(uLabel, dynamic_cast<const ModalNodeAd*>(pModalNode), dm, Xgc, J, fOut));                                        
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pEl, ModalBody,
+                                                               ModalBody(uLabel, pModalNode, dm, Xgc, J, fOut));
+                                }
 
 			} else {
-				SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
-					DynamicBody(uLabel, pDynamicStructNode, dm, Xgc, J, fOut));
+                                if (pDM->bUseAutoDiff()) {
+                                        SAFENEWWITHCONSTRUCTOR(pEl, DynamicBodyAd,
+                                                               DynamicBodyAd(uLabel, dynamic_cast<const DynamicStructNodeAd*>(pDynamicStructNode), dm, Xgc, J, fOut));                                        
+                                } else {
+                                        SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
+                                                               DynamicBody(uLabel, pDynamicStructNode, dm, Xgc, J, fOut));
+                                }
 			}
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl, DynamicMass,
