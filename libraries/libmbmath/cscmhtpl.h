@@ -330,7 +330,7 @@ private:
           ASSERT(it >= pRowStart);
           ASSERT(it <= pRowEnd);
      
-          if (*it != iRow + offset - 1) {
+          if (it == pRowEnd || *it != iRow + offset - 1) {
                static constexpr doublereal dZero = 0.;
                // Return address of write protected memory
                // Depending on the platform it may cause a SIGSEGV
