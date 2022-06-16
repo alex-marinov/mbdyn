@@ -49,19 +49,10 @@ set: real J33 = 1;
 set: real g = 9.81;
 set: real l = 0.5;
 
-set: real mus = 0.7;
-set: real muc = 0.7;
-set: real vs = 1;
-set: real kv = 0;
-set: real i = 1;
-set: real sigma0x = 1e6;
-set: real sigma0y = 1e6;
-set: real sigma1x = 0;
-set: real sigma1y = 0;
-set: real epsilon = 1e-6;
 set: real deltaz = 500e-3;
-set: real theta_y = 1.3*atan(mus);
+set: real theta_y = 1.3*atan(0.7);
 set: real theta_z = 20*pi/180;
+
 set: integer node_id_slider = 1001;
 set: integer node_id_ground = 1002;
 
@@ -103,13 +94,12 @@ begin: initial value;
         final time: 1;
         time step: 1e-4;
 
-
         max iterations: 100;
         tolerance: 1e-6;
         method: implicit euler;
 
-        linear solver: umfpack, grad;
-        nonlinear solver: nox;
+        linear solver: siconos dense;
+        nonlinear solver: siconos mcp, lambda min, 1e-10;
 
     derivatives tolerance: 1e-5;
     derivatives max iterations: 10;
@@ -207,20 +197,11 @@ begin: elements;
                 reference, ref_id_slider, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz,
                 reference, ref_id_slider, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz,
                 reference, ref_id_slider, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz,
-            epsilon, epsilon,
+            enable mcp,
         node2,
             node_id_ground,
             offset, reference, ref_id_slider, null,
-            hinge, reference, ref_id_slider, eye,
-        coulomb friction coefficient, muc,
-        static friction coefficient, mus,
-        sliding velocity coefficient, vs,
-        sliding velocity exponent, i,
-        micro slip stiffness x, sigma0x,
-        micro slip stiffness y, sigma0y,
-        micro slip damping x, sigma1x,
-        micro slip damping y, sigma1y,
-        viscous friction coefficient, kv;
+            hinge, reference, ref_id_slider, eye;
 
     bind: joint_id_slider, user defined, prm_node_id_lambda_1, string, "lambda[1]";
     bind: joint_id_slider, user defined, prm_node_id_lambda_2, string, "lambda[2]";
@@ -245,7 +226,6 @@ begin: elements;
     bind: joint_id_slider, user defined, prm_node_id_M2x, string, "M2x[1]";
     bind: joint_id_slider, user defined, prm_node_id_M2y, string, "M2y[1]";
     bind: joint_id_slider, user defined, prm_node_id_M2z, string, "M2z[1]";
-
 
         gravity: 0., 0., -1.,
         const, g;

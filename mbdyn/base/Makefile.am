@@ -148,6 +148,8 @@ shape_impl.h \
 shdrive.cc \
 shdrive.h \
 shockabsorber.h \
+siconosmcp.h \
+siconosmcp.cc \
 simentity.cc \
 simentity.h \
 sockdrv.cc \

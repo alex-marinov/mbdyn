@@ -59,6 +59,16 @@ SimulationEntity::bIsValidIndex(unsigned int i) const
         return false;
 }
 
+DofOrder::Order SimulationEntity::GetEqType(unsigned int i) const
+{
+     return DofOrder::DIFFERENTIAL;
+}
+
+DofOrder::Complementarity SimulationEntity::GetCompType(unsigned int i) const
+{
+     return DofOrder::EQUALITY;
+}
+
 SolverBase::StepIntegratorType SimulationEntity::GetStepIntegrator(unsigned int i) const
 {
      return SolverBase::INT_DEFAULT;

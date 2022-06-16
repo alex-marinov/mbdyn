@@ -71,6 +71,9 @@
 #ifdef USE_TRILINOS
 #include "noxsolver.h"
 #endif
+#ifdef USE_SICONOS
+#include "siconosmcp.h"
+#endif
 #include "bicg.h"
 #include "gmres.h"
 #include "solman.h"
@@ -1992,6 +1995,7 @@ Solver::ReadData(MBDynParser& HP)
                         "line" "search",
                         "bfgs",
                         "nox",
+                        "siconos" "mcp",
                         "matrix" "free",
                                 "bicgstab",
                                 "gmres",
@@ -2103,6 +2107,7 @@ Solver::ReadData(MBDynParser& HP)
                         LINESEARCH,
                         BFGS,
                         NOX,
+                        SICONOS_MCP,
                         MATRIXFREE,
                                 BICGSTAB,
                                 GMRES,
@@ -3411,6 +3416,10 @@ Solver::ReadData(MBDynParser& HP)
                                 NonlinearSolverType = NonlinearSolver::NOX;
                                 break;
 
+                        case SICONOS_MCP:
+                                NonlinearSolverType = NonlinearSolver::SICONOS_MCP;
+                                break;
+
                         case MATRIXFREE:
                                 NonlinearSolverType = NonlinearSolver::MATRIXFREE;
                                 break;
@@ -3966,7 +3975,25 @@ Solver::ReadData(MBDynParser& HP)
                                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
                                 break;
+                        case NonlinearSolver::SICONOS_MCP:
+#ifdef USE_SICONOS
+                                bTrueNewtonRaphson = true;
+                                oNoxSolverParam.bKeepJacAcrossSteps = false;
+                                oNoxSolverParam.iIterationsBeforeAssembly = 0;
 
+                                if (HP.IsKeyWord("lambda" "min")) {
+                                     oLineSearchParam.dLambdaMin = HP.GetReal();
+                                     if (oLineSearchParam.dLambdaMin <= 0.) {
+                                          silent_cerr("lambda min must be greater than zero at line " << HP.GetLineData() << std::endl);
+                                          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                     }
+                                }
+#else
+                                silent_cerr("siconos solver is not available!\n"
+                                            "configure with --with-siconos in order to use siconos!\n");
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif
+                                break;
                         case NonlinearSolver::MATRIXFREE:
                                 switch (KeyWords(HP.GetWord())) {
                                 case DEFAULT:
@@ -5658,6 +5685,7 @@ Solver::AllocateNonlinearSolver()
                 case LinSol::STRUMPACK_SOLVER:
                 case LinSol::AZTECOO_SOLVER:
                 case LinSol::AMESOS_SOLVER:
+                case LinSol::SICONOS_SPARSE_SOLVER:
                         // All solvers which do not destroy the Jacobian during factorization can be added here.
                         break;
                 default:
@@ -5686,6 +5714,13 @@ Solver::AllocateNonlinearSolver()
                 }
                 
                 pNLS = pAllocateNoxNonlinearSolver(*this, oNoxSolverParam);
+                break;
+#endif
+#ifdef USE_SICONOS
+        case NonlinearSolver::SICONOS_MCP:
+                SAFENEWWITHCONSTRUCTOR(pNLS,
+                                       SiconosMCPSolver,
+                                       SiconosMCPSolver(*this, oLineSearchParam));
                 break;
 #endif
         }

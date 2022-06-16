@@ -344,6 +344,7 @@ public:
 		LINESEARCH,
                 BFGS,
                 NOX,
+                SICONOS_MCP,
 		DEFAULT = NEWTONRAPHSON,
 
 		LASTSOLVERTYPE

@@ -75,7 +75,9 @@ sp_matrix_base_fwd.h \
 sp_matrix_base.h \
 sp_gradient.cc \
 sp_gradient_spmh.h \
-sp_gradient_spmh.cc
+sp_gradient_spmh.cc \
+siconosmh.h \
+siconosmh.cc
 
 if USE_SCHUR
 libmbmath_la_SOURCES += \

@@ -59,6 +59,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::WATSON_SOLVER].s_name,
                 ::solver[LinSol::AZTECOO_SOLVER].s_name,
                 ::solver[LinSol::AMESOS_SOLVER].s_name,
+                ::solver[LinSol::SICONOS_SPARSE_SOLVER].s_name,
+                ::solver[LinSol::SICONOS_DENSE_SOLVER].s_name,
 		NULL
 	};
 
@@ -82,6 +84,8 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		WATSON,
 		AZTECOO,
                 AMESOS,
+                SICONOS_SPARSE,
+                SICONOS_DENSE,
 		LASTKEYWORD
 	};
 
@@ -261,7 +265,20 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
              bGotIt = true;
 #endif
              break;
-
+        case SICONOS_SPARSE:
+             cs.SetSolver(LinSol::SICONOS_SPARSE_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using Siconos sparse solver\n");
+#ifdef USE_SICONOS
+             bGotIt = true;
+#endif
+             break;
+        case SICONOS_DENSE:
+             cs.SetSolver(LinSol::SICONOS_DENSE_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using Siconos dense solver\n");
+#ifdef USE_SICONOS
+             bGotIt = true;
+#endif
+             break;
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -522,16 +539,10 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			iWorkSpaceSize = 0;
 		}
 
-		switch (cs.GetSolver()) {
-		case LinSol::Y12_SOLVER:
-			cs.SetWorkSpaceSize(iWorkSpaceSize);
-			break;
-
-		default:
+		if (!cs.SetWorkSpaceSize(iWorkSpaceSize)) {
 			pedantic_cerr("workspace size is meaningless for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
-			break;
 		}
 	}
 

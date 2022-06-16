@@ -57,6 +57,9 @@
 #ifdef USE_TRILINOS
 #include "aztecoowrap.h"
 #endif
+#ifdef USE_SICONOS
+#include "siconoswrap.h"
+#endif
 #include "linsol.h"
 
 /* solver data */
@@ -213,6 +216,16 @@ const LinSol::solver_t solver[] = {
          LinSol::SOLVER_FLAGS_PRECOND_MASK,
          LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_UMFPACK,
          -1, -1},
+        {"Siconos" "sparse", NULL,
+         LinSol::SICONOS_SPARSE_SOLVER,
+         0u,
+         0u,
+         -1, -1},
+        {"Siconos" "dense", NULL,
+         LinSol::SICONOS_DENSE_SOLVER,
+         0u,
+         0u,
+         -1, -1},
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -353,6 +366,15 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
              currSolver = t;
              return true;
 #endif
+#ifdef USE_SICONOS
+        case LinSol::SICONOS_SPARSE_SOLVER:
+             currSolver = t;
+             return true;
+
+        case LinSol::SICONOS_DENSE_SOLVER:
+             currSolver = t;
+             return true;
+#endif
 	case LinSol::NAIVE_SOLVER:
 		currSolver = t;
 		return true;
@@ -463,6 +485,7 @@ LinSol::SetWorkSpaceSize(integer i)
 {
 	switch (currSolver) {
 	case LinSol::Y12_SOLVER:
+        case LinSol::SICONOS_SPARSE_SOLVER:
 		iWorkSpaceSize = i;
 		break;
 
@@ -1013,6 +1036,19 @@ LinSol::GetSolutionManager(integer iNLD,
                   iNLD,
                   iVerbose,
                   solverFlags);
+             break;
+#endif
+#ifdef USE_SICONOS
+        case LinSol::SICONOS_SPARSE_SOLVER:
+             SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                    SiconosSparseSolutionManager,
+                                    SiconosSparseSolutionManager(iNLD, iLWS));
+             break;
+
+        case LinSol::SICONOS_DENSE_SOLVER:
+             SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                    SiconosDenseSolutionManager,
+                                    SiconosDenseSolutionManager(iNLD));
              break;
 #endif
 	case LinSol::NAIVE_SOLVER:

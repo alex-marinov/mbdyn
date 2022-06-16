@@ -51,6 +51,13 @@ class DofOrder {
 
         LASTORDER
    };
+
+   enum Complementarity {
+      EQUALITY = 0,
+      COMPLEMENTARY,
+
+      LASTCOMP
+   };
 };
 
 
@@ -62,6 +69,7 @@ struct Dof {
    integer iIndex;
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
+   DofOrder::Complementarity Complementarity;
    // Data used for the HybridStepIntegrator
    SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
    std::string Description;
@@ -128,9 +136,9 @@ class DofOwnerOwner {
     * questa convenzione e' stata assunta per compatibilita' con le
     * porzioni di codice scritte in FORTRAN
     */
-   virtual inline integer iGetFirstIndex(void) const {
-      return pDofOwner->iFirstIndex;
-   };
+      virtual inline integer iGetFirstIndex() const {
+         return pDofOwner->iFirstIndex;
+      }
 
         /**
          * Initialize state vector used in initial assembly.
