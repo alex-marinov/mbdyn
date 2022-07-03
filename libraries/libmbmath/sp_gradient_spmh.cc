@@ -102,7 +102,11 @@ void SpGradientSparseMatrixHandler::Resize(integer, integer)
 
 void SpGradientSparseMatrixHandler::ResizeReset(integer iNumRows, integer iNumCols)
 {
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     oRows.resize(iNumRows);
+     Reset();
+     
+     NRows = iNumRows;
+     NCols = iNumCols;
 }
 
 void SpGradientSparseMatrixHandler::Reset()
@@ -214,6 +218,59 @@ doublereal&
 SpGradientSparseMatrixHandler::operator()(integer iRow, integer iCol)
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
+template <typename Operation>
+bool SpGradientSparseMatrixHandler::ItemOperation(integer iRow, const Operation& oper, const sp_grad::SpGradient& oItem)
+{
+     SP_GRAD_ASSERT(iRow >= 1);
+     SP_GRAD_ASSERT(iRow <= iGetNumRows());
+     SP_GRAD_ASSERT(oRows.size() == static_cast<size_t>(iGetNumRows()));
+
+#ifdef SP_GRAD_DEBUG
+     for (const auto& r: oItem) {
+	  SP_GRAD_ASSERT(r.iDof >= 1);
+	  SP_GRAD_ASSERT(r.iDof <= iGetNumCols());
+     }
+#endif
+
+     SparseRow& oRow = oRows[iRow - 1];
+
+#ifdef USE_MULTITHREAD
+     if (std::atomic_exchange(&oRow.bLocked, true)) {
+	  return false;
+     }
+#endif
+     const integer iSizeRowPrev = oRow.iGetSize();
+
+     oper(oRow, oItem);
+
+     SP_GRAD_ASSERT(oRow.bIsUnique());
+
+     NZ += oRow.iGetSize() - iSizeRowPrev;
+
+#ifdef SP_GRAD_DEBUG
+     for (const auto& r: oRows[iRow - 1]) {
+	  SP_GRAD_ASSERT(r.iDof >= 1);
+	  SP_GRAD_ASSERT(r.iDof <= iGetNumCols());
+     }
+#endif
+
+#ifdef USE_MULTITHREAD
+     std::atomic_exchange(&oRow.bLocked, false);
+#endif
+
+     return true;     
+}
+
+void SpGradientSparseMatrixHandler::AddCoef(sp_grad::SpGradient& a, const sp_grad::SpGradient& b)
+{
+     a += sp_grad::EvalUnique(b);
+}
+
+void SpGradientSparseMatrixHandler::SubCoef(sp_grad::SpGradient& a, const sp_grad::SpGradient& b)
+{
+     a -= sp_grad::EvalUnique(b);
 }
 
 template <typename idx_type>
@@ -332,46 +389,13 @@ int64_t SpGradientSparseMatrixHandler::MakeCompressedColumnForm(doublereal *cons
 
 bool SpGradientSparseMatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
-     SP_GRAD_ASSERT(iRow >= 1);
-     SP_GRAD_ASSERT(iRow <= iGetNumRows());
-     SP_GRAD_ASSERT(oRows.size() == static_cast<size_t>(iGetNumRows()));
-
-#ifdef SP_GRAD_DEBUG
-     for (const auto& r: oItem) {
-	  SP_GRAD_ASSERT(r.iDof >= 1);
-	  SP_GRAD_ASSERT(r.iDof <= iGetNumCols());
-     }
-#endif
-
-     SparseRow& oRow = oRows[iRow - 1];
-
-#ifdef USE_MULTITHREAD
-     if (std::atomic_exchange(&oRow.bLocked, true)) {
-	  return false;
-     }
-#endif
-     const integer iSizeRowPrev = oRow.iGetSize();
-
-     oRow += sp_grad::EvalUnique(oItem);
-
-     SP_GRAD_ASSERT(oRow.bIsUnique());
-
-     NZ += oRow.iGetSize() - iSizeRowPrev;
-
-#ifdef SP_GRAD_DEBUG
-     for (const auto& r: oRows[iRow - 1]) {
-	  SP_GRAD_ASSERT(r.iDof >= 1);
-	  SP_GRAD_ASSERT(r.iDof <= iGetNumCols());
-     }
-#endif
-
-#ifdef USE_MULTITHREAD
-     std::atomic_exchange(&oRow.bLocked, false);
-#endif
-
-     return true;
+     return ItemOperation(iRow, AddCoef, oItem);
 }
 
+bool SpGradientSparseMatrixHandler::SubItem(integer iRow, const sp_grad::SpGradient& oItem)
+{
+     return ItemOperation(iRow, SubCoef, oItem);
+}
 
 int32_t SpGradientSparseMatrixHandler::MakeIndexForm(doublereal *const Ax,
 						     int32_t *const Arow, int32_t *const Acol,

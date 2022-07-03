@@ -52,11 +52,11 @@ class DofOrder {
         LASTORDER
    };
 
-   enum Complementarity {
+   enum Equality {
       EQUALITY = 0,
-      COMPLEMENTARY,
+      INEQUALITY,
 
-      LASTCOMP
+      LASTEQUALITY
    };
 };
 
@@ -69,7 +69,7 @@ struct Dof {
    integer iIndex;
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
-   DofOrder::Complementarity Complementarity;
+   DofOrder::Equality Equality;
    // Data used for the HybridStepIntegrator
    SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
    std::string Description;

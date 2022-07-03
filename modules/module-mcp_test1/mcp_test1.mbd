@@ -1,0 +1,162 @@
+/*
+ * MBDyn (C) is a multibody analysis code.
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2022
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ *
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+        Copyright (C) 2022(-2022) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
+*/
+
+set: real omega = 2 * pi;
+set: real m1 = 1.;
+set: real g = 9.81;
+set: real omega1 = 2 * pi;
+set: real k1 = omega1^2 * m1;
+set: real q1_0 = 1.;
+set: real qdot1_0 = 1.;
+
+set: real m2 = 1.;
+set: real omega2 = 120 * pi;
+set: real k2 = omega2^2 * m2;
+set: real q2_0 = 1.;
+set: real qdot2_0 = 1.;
+
+begin: data;
+        problem: initial value;	# the default
+end: data;
+
+begin: initial value;
+    initial time: 0.;
+    final time: 10;
+    time step: 1e-3;
+
+    max iterations: 100;
+    tolerance: 1e-6;
+    method: implicit euler;
+
+    linear solver: umfpack, grad, scale, row max column max, always, max iterations, 3;
+    nonlinear solver: mcp newton min fb, lambda min, 0., tolerance x, 1e-7;
+
+    derivatives tolerance: 1e-5;
+    derivatives max iterations: 10;
+    derivatives coefficient: 1e-6;
+    threads: assembly, 1;
+    threads: solver, 1;
+    output: iterations;
+end: initial value;
+
+begin: control data;
+    print: dof description;
+    use automatic differentiation;
+    output meter: closest next, 0, forever, const, 1e-3;
+    default output: all;
+    loadable elements: 16;
+    genels: 1;
+    abstract nodes: 1;
+end: control data;
+
+begin: nodes;
+    abstract: 1;
+end: nodes;
+
+begin: elements;
+    module load: "libmodule-mcp_test1.la";
+
+    user defined: 1, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "-m1 * g * sin(omega * Time)",
+    output, yes;
+
+    user defined: 2, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "-m1 * g * cos(omega * Time)",
+    output, yes;
+
+    user defined: 3, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "m1 * g * sin(omega * Time)",
+    output, yes;
+
+    user defined: 4, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "m1 * g * cos(omega * Time)",
+    output, yes;
+
+    user defined: 5, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "m1 * g * cos(omega * Time)^2",
+    output, yes;
+
+    user defined: 6, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "m1 * g * sin(omega * Time)^2",
+    output, yes;
+
+    user defined: 7, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "-m1 * g * cos(omega * Time)^2",
+    output, yes;
+
+    user defined: 8, mcp test2,
+    m1, k1, q1_0, qdot1_0, string, "-m1 * g * sin(omega * Time)^2",
+    output, yes;
+
+    user defined: 9, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "-m2 * g * sin(omega * Time)",
+    output, yes;
+
+    user defined: 10, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "-m2 * g * cos(omega * Time)",
+    output, yes;
+
+    user defined: 11, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "m2 * g * sin(omega * Time)",
+    output, yes;
+
+    user defined: 12, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "m2 * g * cos(omega * Time)",
+    output, yes;
+
+    user defined: 13, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "m2 * g * cos(omega * Time)^2",
+    output, yes;
+
+    user defined: 14, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "m2 * g * sin(omega * Time)^2",
+    output, yes;
+
+    user defined: 15, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "-m2 * g * cos(omega * Time)^2",
+    output, yes;
+
+    user defined: 16, mcp test2,
+    m2, k2, q2_0, qdot2_0, string, "-m2 * g * sin(omega * Time)^2",
+    output, yes;
+
+    genel: 2, clamp,
+           1, abstract, algebraic, 0.;
+end: elements;

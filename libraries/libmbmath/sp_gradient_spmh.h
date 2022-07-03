@@ -130,9 +130,17 @@ public:
      VectorHandler& GetCol(integer icol,
 			   VectorHandler& out) const override;
 
+     const sp_grad::SpGradient& GetRow(integer iRow) const {
+          ASSERT(iRow >= 1);
+          ASSERT(static_cast<size_t>(iRow) <= oRows.size());
+          return oRows[iRow - 1];
+     }
+
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
+
+     virtual bool SubItem(integer iRow, const sp_grad::SpGradient& oItem) override;
 
      virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
 
@@ -162,6 +170,12 @@ protected:
 	  VectorHandler& out, const VectorHandler& in) const override;
 
 private:
+     template <typename Operation>
+     inline bool ItemOperation(integer iRow, const Operation& oper, const sp_grad::SpGradient& oItem);
+     
+     static inline void AddCoef(sp_grad::SpGradient& a, const sp_grad::SpGradient& b);
+     static inline void SubCoef(sp_grad::SpGradient& a, const sp_grad::SpGradient& b);
+     
      template <typename idx_type>
      idx_type MakeCompressedColumnFormTpl(doublereal *const Ax,
 					  idx_type *const Ai,
@@ -177,9 +191,14 @@ private:
 
      struct SparseRow: sp_grad::SpGradient {
 #ifdef USE_MULTITHREAD
-	  SparseRow() {
-	       bLocked = false;
+	  SparseRow()
+               :bLocked(false) {
 	  }
+
+          SparseRow(const SparseRow& oRow)
+               :SpGradient(oRow), bLocked(false) {
+               ASSERT(!oRow.bLocked);
+          }
 
 	  mutable std::atomic<bool> bLocked;
 #endif

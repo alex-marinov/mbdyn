@@ -64,7 +64,7 @@ DofOrder::Order SimulationEntity::GetEqType(unsigned int i) const
      return DofOrder::DIFFERENTIAL;
 }
 
-DofOrder::Complementarity SimulationEntity::GetCompType(unsigned int i) const
+DofOrder::Equality SimulationEntity::GetEqualityType(unsigned int i) const
 {
      return DofOrder::EQUALITY;
 }

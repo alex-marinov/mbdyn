@@ -1994,8 +1994,11 @@ Solver::ReadData(MBDynParser& HP)
                         "newton" "raphson",
                         "line" "search",
                         "bfgs",
+                        "mcp" "newton" "fb",
+                        "mcp" "newton" "min" "fb",
+                        "siconos" "mcp" "newton" "fb",
+                        "siconos" "mcp" "newton" "min" "fb",
                         "nox",
-                        "siconos" "mcp",
                         "matrix" "free",
                                 "bicgstab",
                                 "gmres",
@@ -2106,8 +2109,11 @@ Solver::ReadData(MBDynParser& HP)
                         NEWTONRAPHSON,
                         LINESEARCH,
                         BFGS,
+                        MCP_NEWTON_FB,
+                        MCP_NEWTON_MIN_FB,
+                        SICONOS_MCP_NEWTON_FB,
+                        SICONOS_MCP_NEWTON_MIN_FB,
                         NOX,
-                        SICONOS_MCP,
                         MATRIXFREE,
                                 BICGSTAB,
                                 GMRES,
@@ -3412,14 +3418,26 @@ Solver::ReadData(MBDynParser& HP)
                                 NonlinearSolverType = NonlinearSolver::BFGS;
                                 break;
 
+                        case MCP_NEWTON_FB:
+                                NonlinearSolverType = NonlinearSolver::MCP_NEWTON_FB;
+                                break;
+
+                        case MCP_NEWTON_MIN_FB:
+                                NonlinearSolverType = NonlinearSolver::MCP_NEWTON_MIN_FB;
+                                break;
+                                
                         case NOX:
                                 NonlinearSolverType = NonlinearSolver::NOX;
                                 break;
 
-                        case SICONOS_MCP:
-                                NonlinearSolverType = NonlinearSolver::SICONOS_MCP;
+                        case SICONOS_MCP_NEWTON_FB:
+                                NonlinearSolverType = NonlinearSolver::SICONOS_MCP_NEWTON_FB;
                                 break;
-
+                                
+                        case SICONOS_MCP_NEWTON_MIN_FB:
+                                NonlinearSolverType = NonlinearSolver::SICONOS_MCP_NEWTON_MIN_FB;
+                                break;
+                                
                         case MATRIXFREE:
                                 NonlinearSolverType = NonlinearSolver::MATRIXFREE;
                                 break;
@@ -3432,9 +3450,18 @@ Solver::ReadData(MBDynParser& HP)
                         }
 
                         switch (NonlinearSolverType) {
+                        case NonlinearSolver::SICONOS_MCP_NEWTON_FB:
+                        case NonlinearSolver::SICONOS_MCP_NEWTON_MIN_FB:
+#ifndef USE_SICONOS
+                                silent_cerr("siconos solver is not available!\n"
+                                            "configure with --with-siconos in order to use siconos!\n");
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif
                         case NonlinearSolver::NEWTONRAPHSON:
                         case NonlinearSolver::LINESEARCH:
                         case NonlinearSolver::BFGS:
+                        case NonlinearSolver::MCP_NEWTON_FB:
+                        case NonlinearSolver::MCP_NEWTON_MIN_FB:
                                 bTrueNewtonRaphson = true;
                                 oLineSearchParam.bKeepJacAcrossSteps = false;
                                 oLineSearchParam.iIterationsBeforeAssembly = 0;
@@ -3475,188 +3502,216 @@ Solver::ReadData(MBDynParser& HP)
                                         }
                                 }
 
-                                switch (NonlinearSolverType) {
-                                case NonlinearSolver::BFGS:
+                                if (NonlinearSolverType == NonlinearSolver::BFGS) {
                                         oLineSearchParam.dAlphaModified = oLineSearchParam.dAlphaFull; // Lower number of jacobians achieved with this settings
-                                case NonlinearSolver::LINESEARCH:
-                                        while (HP.IsArg()) {
-                                                if (HP.IsKeyWord("default" "solver" "options")) {
-                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
-                                                        oLineSearchParam.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
-                                                        oLineSearchParam.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+                                }
+
+                                while (HP.IsArg()) {
+                                        if (HP.IsKeyWord("default" "solver" "options")) {
+                                                oLineSearchParam.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                                                oLineSearchParam.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
+                                                oLineSearchParam.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+                                                oLineSearchParam.uFlags |= LineSearchParameters::DIVERGENCE_CHECK;
+                                                oLineSearchParam.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
+
+                                                if (HP.IsKeyWord("moderate" "nonlinear")) {
+                                                        oLineSearchParam.dLambdaMin = 0.1;
+                                                        oLineSearchParam.dDivergenceCheck = 10;
+                                                } else if (HP.IsKeyWord("heavy" "nonlinear")) {
+                                                        oLineSearchParam.dLambdaMin = 1e-4;
+                                                        oLineSearchParam.dDivergenceCheck = 1.5;
+                                                } else {
+                                                        silent_cerr("keyword \"moderate nonlinear\" or \"heavy nonlinear\" expected at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("tolerance" "x")) {
+                                                oLineSearchParam.dTolX = HP.GetReal();
+                                                if (oLineSearchParam.dTolX < 0.) {
+                                                        silent_cerr("tolerance x must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("tolerance" "min")) {
+                                                oLineSearchParam.dTolMin = HP.GetReal();
+                                                if (oLineSearchParam.dTolMin < 0.) {
+                                                        silent_cerr("tolerance min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("max" "iterations")) {
+                                                oLineSearchParam.iMaxIterations = HP.GetInt();
+                                                if (oLineSearchParam.iMaxIterations < 0) {
+                                                        silent_cerr("max iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("alpha") || HP.IsKeyWord("alpha" "full")) {
+                                                oLineSearchParam.dAlphaFull = HP.GetReal();
+                                                if (oLineSearchParam.dAlphaFull < 0.) {
+                                                        silent_cerr("alpha full must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("alpha" "modified")) {
+                                                oLineSearchParam.dAlphaModified = HP.GetReal();
+                                                if (oLineSearchParam.dAlphaModified < 0.) {
+                                                        silent_cerr("alpha modified must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("lambda" "min")) {
+                                                oLineSearchParam.dLambdaMin = HP.GetReal();
+                                                if (oLineSearchParam.dLambdaMin < 0.) {
+                                                        silent_cerr("lambda min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                                if (HP.IsKeyWord("relative")) {
+                                                        if (HP.GetYesNoOrBool()) {
+                                                                oLineSearchParam.uFlags |= LineSearchParameters::RELATIVE_LAMBDA_MIN;
+                                                        } else {
+                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::RELATIVE_LAMBDA_MIN;
+                                                        }
+                                                }
+                                        } else if (HP.IsKeyWord("lambda" "factor" "min")) {
+                                                oLineSearchParam.dLambdaFactMin = HP.GetReal();
+                                                if (oLineSearchParam.dLambdaFactMin <= 0. || oLineSearchParam.dLambdaFactMin >= 1.) {
+                                                        silent_cerr("lambda factor min must be in between zero and one at line" << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("max" "step")) {
+                                                oLineSearchParam.dMaxStep = HP.GetReal();
+                                                if (oLineSearchParam.dMaxStep <= 0.) {
+                                                        silent_cerr("max step must be greater than zero at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("zero" "gradient")) {
+                                                if (HP.IsKeyWord("continue")) {
+                                                        if (HP.GetYesNoOrBool()) {
+                                                                oLineSearchParam.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+                                                        } else {
+                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+                                                        }
+                                                }
+                                                else {
+                                                        silent_cerr("Keyword \"continue\" expected at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("divergence" "check")) {
+                                                if (HP.GetYesNoOrBool()) {
                                                         oLineSearchParam.uFlags |= LineSearchParameters::DIVERGENCE_CHECK;
+                                                } else {
+                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::DIVERGENCE_CHECK;
+                                                }
+                                                if (HP.IsKeyWord("factor")) {
+                                                        oLineSearchParam.dDivergenceCheck = HP.GetReal();
+                                                        if (oLineSearchParam.dDivergenceCheck < 1.) {
+                                                                silent_cerr("divergence check factor must be greater than one at line "
+                                                                            << HP.GetLineData() << std::endl);
+                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                        }
+                                                }
+                                        } else if (HP.IsKeyWord("algorithm")) {
+                                                oLineSearchParam.uFlags &= ~LineSearchParameters::ALGORITHM;
+                                                if (HP.IsKeyWord("cubic")) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::ALGORITHM_CUBIC;
+                                                } else if (HP.IsKeyWord("factor")) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::ALGORITHM_FACTOR;
+                                                } else {
+                                                        silent_cerr("Keyword \"cubic\" or \"factor\" expected at line " << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("scale" "newton" "step")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::SCALE_NEWTON_STEP;
+                                                } else {
                                                         oLineSearchParam.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
+                                                }
+                                                if (HP.IsKeyWord("min" "scale")) {
+                                                        oLineSearchParam.dMinStepScale = HP.GetReal();
+                                                        if (oLineSearchParam.dMinStepScale < 0. || oLineSearchParam.dMinStepScale > 1.) {
+                                                                silent_cerr("min scale must be in range [0-1] at line " << HP.GetLineData() << std::endl);
+                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                        }
+                                                }
+                                        } else if (HP.IsKeyWord("print" "convergence" "info")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::PRINT_CONVERGENCE_INFO;
+                                                } else {
+                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::PRINT_CONVERGENCE_INFO;
+                                                }
+                                        } else if (HP.IsKeyWord("verbose")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::VERBOSE_MODE;
+                                                } else {
+                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::VERBOSE_MODE;
+                                                }
+                                        } else if (HP.IsKeyWord("abort" "at" "lambda" "min")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                                                } else {
+                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                                                }
+                                        } else if (HP.IsKeyWord("non" "negative" "slope" "continue")) {
+                                                if (HP.GetYesNoOrBool()) {
+                                                        oLineSearchParam.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
+                                                } else {
+                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
+                                                }
+                                        } else if (HP.IsKeyWord("time" "step" "tolerance")) {
+                                                oLineSearchParam.dTimeStepTol = HP.GetReal();
 
-                                                        if (HP.IsKeyWord("moderate" "nonlinear")) {
-                                                               oLineSearchParam.dLambdaMin = 0.1;
-                                                               oLineSearchParam.dDivergenceCheck = 10;
-                                                        } else if (HP.IsKeyWord("heavy" "nonlinear")) {
-                                                               oLineSearchParam.dLambdaMin = 1e-4;
-                                                               oLineSearchParam.dDivergenceCheck = 1.5;
-                                                        } else {
-                                                                silent_cerr("keyword \"moderate nonlinear\" or \"heavy nonlinear\" expected at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("tolerance" "x")) {
-                                                        oLineSearchParam.dTolX = HP.GetReal();
-                                                        if (oLineSearchParam.dTolX < 0.) {
-                                                                silent_cerr("tolerance x must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("tolerance" "min")) {
-                                                        oLineSearchParam.dTolMin = HP.GetReal();
-                                                        if (oLineSearchParam.dTolMin < 0.) {
-                                                                silent_cerr("tolerance min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("max" "iterations")) {
-                                                        oLineSearchParam.iMaxIterations = HP.GetInt();
-                                                        if (oLineSearchParam.iMaxIterations < 0) {
-                                                                silent_cerr("max iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("alpha") || HP.IsKeyWord("alpha" "full")) {
-                                                        oLineSearchParam.dAlphaFull = HP.GetReal();
-                                                        if (oLineSearchParam.dAlphaFull < 0.) {
-                                                                silent_cerr("alpha full must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("alpha" "modified")) {
-                                                        oLineSearchParam.dAlphaModified = HP.GetReal();
-                                                        if (oLineSearchParam.dAlphaModified < 0.) {
-                                                                silent_cerr("alpha modified must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("lambda" "min")) {
-                                                        oLineSearchParam.dLambdaMin = HP.GetReal();
-                                                        if (oLineSearchParam.dLambdaMin < 0.) {
-                                                                silent_cerr("lambda min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                        if (HP.IsKeyWord("relative")) {
-                                                                if (HP.GetYesNoOrBool()) {
-                                                                        oLineSearchParam.uFlags |= LineSearchParameters::RELATIVE_LAMBDA_MIN;
-                                                                } else {
-                                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::RELATIVE_LAMBDA_MIN;
-                                                                }
-                                                        }
-                                                } else if (HP.IsKeyWord("lambda" "factor" "min")) {
-                                                        oLineSearchParam.dLambdaFactMin = HP.GetReal();
-                                                        if (oLineSearchParam.dLambdaFactMin <= 0. || oLineSearchParam.dLambdaFactMin >= 1.) {
-                                                                silent_cerr("lambda factor min must be in between zero and one at line" << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("max" "step")) {
-                                                        oLineSearchParam.dMaxStep = HP.GetReal();
-                                                        if (oLineSearchParam.dMaxStep <= 0.) {
-                                                                silent_cerr("max step must be greater than zero at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("zero" "gradient")) {
-                                                        if (HP.IsKeyWord("continue")) {
-                                                                if (HP.GetYesNoOrBool()) {
-                                                                        oLineSearchParam.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
-                                                                } else {
-                                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::ZERO_GRADIENT_CONTINUE;
-                                                                }
-                                                        }
-                                                        else {
-                                                                silent_cerr("Keyword \"continue\" expected at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("divergence" "check")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::DIVERGENCE_CHECK;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::DIVERGENCE_CHECK;
-                                                        }
-                                                        if (HP.IsKeyWord("factor")) {
-                                                                oLineSearchParam.dDivergenceCheck = HP.GetReal();
-                                                                if (oLineSearchParam.dDivergenceCheck < 1.) {
-                                                                        silent_cerr("divergence check factor must be greater than one at line "
-                                                                                    << HP.GetLineData() << std::endl);
-                                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                                }
-                                                        }
-                                                } else if (HP.IsKeyWord("algorithm")) {
-                                                        oLineSearchParam.uFlags &= ~LineSearchParameters::ALGORITHM;
-                                                        if (HP.IsKeyWord("cubic")) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::ALGORITHM_CUBIC;
-                                                        } else if (HP.IsKeyWord("factor")) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::ALGORITHM_FACTOR;
-                                                        } else {
-                                                                silent_cerr("Keyword \"cubic\" or \"factor\" expected at line " << HP.GetLineData() << std::endl);
-                                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                        }
-                                                } else if (HP.IsKeyWord("scale" "newton" "step")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::SCALE_NEWTON_STEP;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
-                                                        }
-                                                        if (HP.IsKeyWord("min" "scale")) {
-                                                                oLineSearchParam.dMinStepScale = HP.GetReal();
-                                                                if (oLineSearchParam.dMinStepScale < 0. || oLineSearchParam.dMinStepScale > 1.) {
-                                                                        silent_cerr("min scale must be in range [0-1] at line " << HP.GetLineData() << std::endl);
-                                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                                }
-                                                        }
-                                                } else if (HP.IsKeyWord("print" "convergence" "info")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::PRINT_CONVERGENCE_INFO;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::PRINT_CONVERGENCE_INFO;
-                                                        }
-                                                } else if (HP.IsKeyWord("verbose")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::VERBOSE_MODE;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::VERBOSE_MODE;
-                                                        }
-                                                } else if (HP.IsKeyWord("abort" "at" "lambda" "min")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
-                                                        }
-                                                } else if (HP.IsKeyWord("non" "negative" "slope" "continue")) {
-                                                        if (HP.GetYesNoOrBool()) {
-                                                                oLineSearchParam.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
-                                                        } else {
-                                                                oLineSearchParam.uFlags &= ~LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
-                                                        }
-                                                } else if (HP.IsKeyWord("time" "step" "tolerance")) {
-                                                    oLineSearchParam.dTimeStepTol = HP.GetReal();
-
-                                                    if (oLineSearchParam.dTimeStepTol < 0) {
+                                                if (oLineSearchParam.dTimeStepTol < 0) {
                                                         silent_cerr("time step tolerance must not be smaller than zero at line "
                                                                     << HP.GetLineData()
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                    }
-                                                } else if (HP.IsKeyWord("update" "ratio")) {
-                                                    oLineSearchParam.dUpdateRatio = HP.GetReal();
+                                                }
+                                        } else if (HP.IsKeyWord("update" "ratio")) {
+                                                oLineSearchParam.dUpdateRatio = HP.GetReal();
 
-                                                    if (oLineSearchParam.dUpdateRatio <= 0) {
+                                                if (oLineSearchParam.dUpdateRatio <= 0) {
                                                         silent_cerr("update ratio must be a value greater than zero at line "
                                                                     << HP.GetLineData()
                                                                     << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                                    }
-                                                } else {
-                                                        silent_cerr("Keyword \"default solver options\", \"tolerance x\", "
-                                                                "\"tolerance min\", \"max iterations\", \"alpha\", "
-                                                                "\"lambda min\" \"lambda factor min\", \"max step\" "
-                                                                "\"divergence check\", \"algorithm\", \"scale newton step\" "
-                                                                "\"print convergence info\", \"verbose\", "
-                                                                "\"abort at lambda min\", \"time step tolerance\", \"update ratio\", "
-                                                                "or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
+                                                }
+                                        } else if (HP.IsKeyWord("mcp" "tolerance")) {
+                                                oLineSearchParam.dMcpTol = HP.GetReal();
+
+                                                if (oLineSearchParam.dMcpTol <= 0.) {
+                                                        silent_cerr("mcp tolerance must be greater than zero at line "
+                                                                    << HP.GetLineData() << std::endl);
                                                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                                 }
+                                        } else if (HP.IsKeyWord("mcp" "sigma")) {
+                                                oLineSearchParam.dMcpSigma = HP.GetReal();
+
+                                                if (!(oLineSearchParam.dMcpSigma <= 1. && oLineSearchParam.dMcpSigma >= 0.)) {
+                                                        silent_cerr("mcp sigma must be between zero and one at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("mcp" "rho")) {
+                                                oLineSearchParam.dMcpRho = HP.GetReal();
+
+                                                if (!(oLineSearchParam.dMcpRho <= 1. && oLineSearchParam.dMcpRho >= 0.)) {
+                                                        silent_cerr("mcp rho must be between zero and one at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else if (HP.IsKeyWord("mcp" "p")) {
+                                                oLineSearchParam.dMcpP = HP.GetReal();
+
+                                                if (!(oLineSearchParam.dMcpP > 0.)) {
+                                                        silent_cerr("mcp p must be greater than zero at line "
+                                                                    << HP.GetLineData() << std::endl);
+                                                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                                                }
+                                        } else {
+                                                silent_cerr("Keyword \"default solver options\", \"tolerance x\", "
+                                                            "\"tolerance min\", \"max iterations\", \"alpha\", "
+                                                            "\"lambda min\" \"lambda factor min\", \"max step\" "
+                                                            "\"divergence check\", \"algorithm\", \"scale newton step\" "
+                                                            "\"print convergence info\", \"verbose\", "
+                                                            "\"abort at lambda min\", \"time step tolerance\", \"update ratio\", "
+                                                            "\"zero gradient\", \"mcp tolerance\", \"mcp sigma\", \"mcp rho\" or \"mcp p\" expected at line " << HP.GetLineData() << std::endl);
+                                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                                         }
-                                        break;
-                                default:
-                                        NO_OP;
                                 }
                                 break;
 
@@ -3972,25 +4027,6 @@ Solver::ReadData(MBDynParser& HP)
 #else
                                 silent_cerr("nox solver is not available!\n"
                                             "configure with --with-trilinos in order to use nox!\n");
-                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif
-                                break;
-                        case NonlinearSolver::SICONOS_MCP:
-#ifdef USE_SICONOS
-                                bTrueNewtonRaphson = true;
-                                oNoxSolverParam.bKeepJacAcrossSteps = false;
-                                oNoxSolverParam.iIterationsBeforeAssembly = 0;
-
-                                if (HP.IsKeyWord("lambda" "min")) {
-                                     oLineSearchParam.dLambdaMin = HP.GetReal();
-                                     if (oLineSearchParam.dLambdaMin <= 0.) {
-                                          silent_cerr("lambda min must be greater than zero at line " << HP.GetLineData() << std::endl);
-                                          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                                     }
-                                }
-#else
-                                silent_cerr("siconos solver is not available!\n"
-                                            "configure with --with-siconos in order to use siconos!\n");
                                 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
                                 break;
@@ -5670,6 +5706,16 @@ Solver::AllocateNonlinearSolver()
                         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
                 break;
+        case NonlinearSolver::MCP_NEWTON_FB:
+                SAFENEWWITHCONSTRUCTOR(pNLS,
+                                       MCPNewtonFB,
+                                       MCPNewtonFB(pDM, *this, oLineSearchParam));
+                break;
+        case NonlinearSolver::MCP_NEWTON_MIN_FB:
+                SAFENEWWITHCONSTRUCTOR(pNLS,
+                                       MCPNewtonMinFB,
+                                       MCPNewtonMinFB(pDM, *this, oLineSearchParam));
+                break;
 #ifdef USE_TRILINOS
         case NonlinearSolver::NOX:
                 // FIXME: Since access to the Jacobian matrix through the Trilinos library is not under our control,
@@ -5717,11 +5763,16 @@ Solver::AllocateNonlinearSolver()
                 break;
 #endif
 #ifdef USE_SICONOS
-        case NonlinearSolver::SICONOS_MCP:
+        case NonlinearSolver::SICONOS_MCP_NEWTON_FB:
                 SAFENEWWITHCONSTRUCTOR(pNLS,
-                                       SiconosMCPSolver,
-                                       SiconosMCPSolver(*this, oLineSearchParam));
+                                       SiconosMCPNewton,
+                                       SiconosMCPNewton(*this, oLineSearchParam));
                 break;
+        case NonlinearSolver::SICONOS_MCP_NEWTON_MIN_FB:
+                SAFENEWWITHCONSTRUCTOR(pNLS,
+                                       SiconosMCPNewtonMin,
+                                       SiconosMCPNewtonMin(*this, oLineSearchParam));
+                break;                
 #endif
         }
         return pNLS;

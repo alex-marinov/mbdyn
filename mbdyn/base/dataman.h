@@ -889,7 +889,7 @@ public:
         virtual const std::string& GetEqDescription(int iDof) const;
         virtual DofOrder::Order GetDofType(int iDof) const;
         virtual DofOrder::Order GetEqType(int iDof) const;
-        virtual DofOrder::Complementarity GetCompType(int iDof) const;
+        virtual DofOrder::Equality GetEqualityType(int iDof) const;
         SolverBase::StepIntegratorType GetStepIntegratorType(unsigned int iDof) const;
         doublereal dGetStepIntegratorCoef(unsigned int iDof) const;
         bool bUseAutoDiff() const { return bAutoDiff; }

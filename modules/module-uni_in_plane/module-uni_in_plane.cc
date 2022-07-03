@@ -76,7 +76,7 @@ public:
      virtual unsigned int iGetNumDof(void) const override;
      virtual DofOrder::Order GetDofType(unsigned int i) const override;
      virtual DofOrder::Order GetEqType(unsigned int i) const override;
-     virtual DofOrder::Complementarity GetCompType(unsigned int i) const override;
+     virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
      virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
      virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
      virtual unsigned int iGetNumPrivData(void) const override;
@@ -403,7 +403,10 @@ UniInPlaneFriction::UniInPlaneFriction(
      }
 
      if (HP.IsKeyWord("enable" "mcp")) {
-          bEnableMCP = true;
+          bEnableMCP = HP.GetYesNoOrBool();
+     }
+     
+     if (bEnableMCP) {
           epsilon = 0.;
      } else {
           if ( !HP.IsKeyWord("epsilon") )
@@ -612,7 +615,7 @@ DofOrder::Order UniInPlaneFriction::GetEqType(unsigned int i) const
      return GetDofType(i);
 }
 
-DofOrder::Complementarity UniInPlaneFriction::GetCompType(unsigned int i) const
+DofOrder::Equality UniInPlaneFriction::GetEqualityType(unsigned int i) const
 {
      if (!bEnableMCP) {
           return DofOrder::EQUALITY;
@@ -620,7 +623,7 @@ DofOrder::Complementarity UniInPlaneFriction::GetCompType(unsigned int i) const
 
      switch (GetDofType(i)) {
      case DofOrder::ALGEBRAIC:
-          return DofOrder::COMPLEMENTARY;
+          return DofOrder::INEQUALITY;
      default:
           return DofOrder::EQUALITY;
      }
@@ -903,7 +906,7 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
           if (bEnableMCP)
           {
-               WorkVec.AddItem(iDofIndex, -dXn / dCoef);
+               WorkVec.AddItem(iDofIndex, dXn / dCoef);
           }
           else if (alpha != 0.)
           {

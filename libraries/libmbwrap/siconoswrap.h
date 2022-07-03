@@ -67,10 +67,9 @@ public:
      virtual void MatrInitialize() override final;
      virtual void Solve() override final;
 
-     SiconosRowMap* pGetRowMap() { return &oRowMap; }
-
+     SiconosIndexMap* pGetIndexMap() { return &oRowMap; }
 protected:
-     SiconosRowMap oRowMap;
+     SiconosIndexMap oRowMap;
      mutable SiconosVectorHandler x;
      mutable SiconosMatrixHandler A;
 };

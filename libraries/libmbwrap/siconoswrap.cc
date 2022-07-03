@@ -44,7 +44,9 @@
 #include "siconoswrap.h"
 
 SiconosSolutionManager::SiconosSolutionManager(NumericsMatrix_types eMatType, integer iDim, integer iNumNz)
-     :oRowMap(iDim), x(iDim, nullptr, &oRowMap), A(eMatType, iDim, iDim, iNumNz, &oRowMap)
+     :oRowMap(iDim),
+      x(iDim, nullptr, &oRowMap),
+      A(eMatType, iDim, iDim, iNumNz, &oRowMap)
 {
 }
 

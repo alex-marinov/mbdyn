@@ -47,9 +47,9 @@
 #include "mh.h"
 #include <numerics/NumericsMatrix.h>
 
-class SiconosRowMap {
+class SiconosIndexMap {
 public:
-     explicit SiconosRowMap(integer iSize);
+     explicit SiconosIndexMap(integer iSize);
 
 #ifdef DEBUG
      void IsValid() const;
@@ -58,6 +58,11 @@ public:
      void SetIndex(std::vector<integer>&& rgIndex);
 
      integer iGetIndex(integer iIndex) const {
+          ASSERT(iIndex >= 1);
+          ASSERT(iIndex <= iGetSize());
+          ASSERT(rgRowMap[iIndex - 1] >= 1);
+          ASSERT(rgRowMap[iIndex - 1] <= iGetSize());
+          
           return rgRowMap[iIndex - 1];
      }
 
@@ -70,12 +75,18 @@ private:
 
 class SiconosVectorHandler: public MyVectorHandler {
 public:
-     SiconosVectorHandler(integer iSize = 0, doublereal* pdTmpVec = nullptr, const SiconosRowMap* pRowMap = nullptr);
+     SiconosVectorHandler(integer iSize = 0, doublereal* pdTmpVec = nullptr, const SiconosIndexMap* pIndexMap = nullptr);
      virtual ~SiconosVectorHandler();
 
-     virtual void Resize(integer iNewSize) override;
+     virtual SiconosVectorHandler& operator=(const VectorHandler& VH) override final;
 
-     virtual void ResizeReset(integer) override;
+     virtual SiconosVectorHandler& ScalarAddMul(const VectorHandler& VH, const doublereal& d) override final;
+     
+     virtual SiconosVectorHandler& ScalarAddMul(const VectorHandler& VH1, const VectorHandler& VH2, const doublereal& d) override final;
+     
+     virtual void Resize(integer iNewSize) override final;
+
+     virtual void ResizeReset(integer) override final;
 
      virtual void PutCoef(integer iRow, const doublereal& dCoef) override final;
 
@@ -89,11 +100,11 @@ public:
 
      virtual doublereal& operator()(integer iRow) override final;
 
-     void SetRowMap(const SiconosRowMap* pRowMapNew);
+     void SetIndexMap(const SiconosIndexMap* pIndexMapNew);
 
-     const SiconosRowMap* pGetRowMap() const { return pRowMap; }
+     const SiconosIndexMap* pGetIndexMap() const { return pIndexMap; }
 private:
-     const SiconosRowMap* pRowMap;
+     const SiconosIndexMap* pIndexMap;
 };
 
 class SiconosMatrixHandler: public MatrixHandler {
@@ -101,7 +112,7 @@ private:
      SiconosMatrixHandler(const SiconosMatrixHandler& oMH);
 
 public:
-     SiconosMatrixHandler(NM_types eStorageType, integer iNumRows, integer iNumCols, integer iNumNz, const SiconosRowMap* pRowMap);
+     SiconosMatrixHandler(NM_types eStorageType, integer iNumRows, integer iNumCols, integer iNumNz, const SiconosIndexMap* pIndexMap);
      virtual ~SiconosMatrixHandler();
 
 #ifdef DEBUG
@@ -168,9 +179,9 @@ public:
 
      NumericsMatrix* pGetMatrix() { return pMatrix; }
 
-     void SetRowMap(const SiconosRowMap* pRowMapNew);
+     void SetIndexMap(const SiconosIndexMap* pIndexMapNew);
 
-     const SiconosRowMap* pGetRowMap() const { return pRowMap; }
+     const SiconosIndexMap* pGetIndexMap() const { return pIndexMap; }
 
 private:
      virtual VectorHandler&
@@ -184,7 +195,7 @@ private:
 private:
      const integer iNumNz;
      NumericsMatrix* pMatrix;
-     const SiconosRowMap* pRowMap;
+     const SiconosIndexMap* pIndexMap;
 };
 
 #endif

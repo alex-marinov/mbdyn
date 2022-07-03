@@ -69,7 +69,7 @@ public:
      virtual unsigned int iGetNumDof() const override;
      virtual DofOrder::Order GetDofType(unsigned int i) const override;
      virtual DofOrder::Order GetEqType(unsigned int i) const override;
-     virtual DofOrder::Complementarity GetCompType(unsigned int i) const override;
+     virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
      virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
      virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
      virtual unsigned int iGetNumPrivData(void) const override;
@@ -220,7 +220,7 @@ DofOrder::Order MCPTest1::GetEqType(unsigned int i) const
      }
 }
 
-DofOrder::Complementarity MCPTest1::GetCompType(unsigned int i) const
+DofOrder::Equality MCPTest1::GetEqualityType(unsigned int i) const
 {
      switch (i) {
      case 0:
@@ -230,7 +230,7 @@ DofOrder::Complementarity MCPTest1::GetCompType(unsigned int i) const
           return DofOrder::EQUALITY;
 
      case 4:
-          return DofOrder::COMPLEMENTARY;
+          return DofOrder::INEQUALITY;
 
      default:
           ASSERT(0);
@@ -417,7 +417,7 @@ MCPTest1::AssRes(SpGradientAssVec<T>& WorkVec,
      T f2 = m[1] * vdot[1] + k[1] * (q[1] - q[0]) - lambda;
      T f3 = qdot[0] - v[0];
      T f4 = qdot[1] - v[1];
-     T f5 = -q[1];
+     T f5 = q[1] / dCoef;
 
      WorkVec.AddItem(iFirstIndex + 1, f1);
      WorkVec.AddItem(iFirstIndex + 2, f2);
@@ -503,16 +503,435 @@ MCPTest1::InitialAssRes(
      return WorkVec;
 }
 
-bool mcp_test1_set(void)
+class MCPTest2: virtual public Elem, public UserDefinedElem
 {
-     UserDefinedElemRead *rf = new UDERead<MCPTest1>;
+public:
+     MCPTest2(unsigned uLabel, const DofOwner *pDO,
+              DataManager* pDM, MBDynParser& HP);
+     virtual ~MCPTest2();
+     virtual unsigned int iGetNumDof() const override;
+     virtual DofOrder::Order GetDofType(unsigned int i) const override;
+     virtual DofOrder::Order GetEqType(unsigned int i) const override;
+     virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
+     virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
+     virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
+     virtual unsigned int iGetNumPrivData(void) const override;
+     virtual unsigned int iGetPrivDataIdx(const char *s) const override;
+     virtual doublereal dGetPrivData(unsigned int i) const override;
+     virtual void Output(OutputHandler& OH) const override;
+     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
+     virtual VariableSubMatrixHandler&
+     AssJac(VariableSubMatrixHandler& WorkMat,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr) override;
+     virtual void
+     AssJac(VectorHandler& JacY,
+            const VectorHandler& Y,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr,
+            VariableSubMatrixHandler& WorkMat) override;
+     SubVectorHandler&
+     AssRes(SubVectorHandler& WorkVec,
+            doublereal dCoef,
+            const VectorHandler& XCurr,
+            const VectorHandler& XPrimeCurr) override;
+     template <typename T>
+     inline void
+     AssRes(SpGradientAssVec<T>& WorkVec,
+            doublereal dCoef,
+            const SpGradientVectorHandler<T>& XCurr,
+            const SpGradientVectorHandler<T>& XPrimeCurr,
+            enum SpFunctionCall func);
+     int iGetNumConnectedNodes(void) const;
+     void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const override;
+     void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
+                   SimulationEntity::Hints *ph) override;
+     std::ostream& Restart(std::ostream& out) const override;
+     virtual unsigned int iGetInitialNumDof(void) const override;
+     virtual void
+     InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
+     VariableSubMatrixHandler&
+     InitialAssJac(VariableSubMatrixHandler& WorkMat,
+                   const VectorHandler& XCurr) override;
+     SubVectorHandler&
+     InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr) override;
+     template <typename T>
+     inline void
+     InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                   const SpGradientVectorHandler<T>& XCurr,
+                   enum SpFunctionCall func);
 
-     if (!SetUDE("mcp" "test1", rf))
+private:
+     void SaveVar(sp_grad::SpGradient& vg, doublereal& v) {}
+     void SaveVar(sp_grad::GpGradProd& vg, doublereal& v) {}
+     void SaveVar(doublereal vg, doublereal& v) {
+          v = vg;
+     }
+     doublereal m, k, q, qdot, qddot, lambda;
+     DriveOwner f;
+};
+
+MCPTest2::MCPTest2(unsigned uLabel, const DofOwner *pDO,
+                   DataManager* pDM, MBDynParser& HP)
+     :Elem(uLabel, flag(0)),
+      UserDefinedElem(uLabel, pDO)
+{
+     // help
+     if (HP.IsKeyWord("help")) {
+          silent_cout(
+               "\n"
+               "Module:        mcp_test1\n"
+               "\n"
+               "	This element implements a mixed complementarity problem\n"
+               " (real) m\n"
+               " (real) k\n"
+               " (real) q\n"
+               " (real) qdot\n"
+               " (DriveCaller) f\n"
+               "\n"
+               << std::endl);
+
+          if (!HP.IsArg()) {
+               /*
+                * Exit quietly if nothing else is provided
+                */
+               throw NoErr(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     m = HP.GetReal();
+     k = HP.GetReal();
+     q = HP.GetReal();
+     qdot = HP.GetReal();
+     f.Set(HP.GetDriveCaller());
+
+     SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
+
+     lambda = 0.;
+     qddot = 0.;
+     qddot = 0.;
+}
+
+MCPTest2::~MCPTest2(void)
+{
+     // destroy private data
+}
+
+unsigned int MCPTest2::iGetNumDof(void) const
+{
+     return 3u;
+}
+
+DofOrder::Order MCPTest2::GetDofType(unsigned int i) const
+{
+     switch (i) {
+     case 0:
+     case 1:
+          return DofOrder::DIFFERENTIAL;
+
+     case 2:
+          return DofOrder::ALGEBRAIC;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+DofOrder::Order MCPTest2::GetEqType(unsigned int i) const
+{
+     switch (i) {
+     case 0:
+     case 1:
+          return DofOrder::DIFFERENTIAL;
+
+     case 2:
+          return DofOrder::ALGEBRAIC;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+DofOrder::Equality MCPTest2::GetEqualityType(unsigned int i) const
+{
+     switch (i) {
+     case 0:
+     case 1:
+          return DofOrder::EQUALITY;
+
+     case 2:
+          return DofOrder::INEQUALITY;
+
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+std::ostream& MCPTest2::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+{
+     const integer iFirstIndex = iGetFirstIndex();
+
+     out << prefix << iFirstIndex + 1 << ": displacement [q]" << std::endl;
+     out << prefix << iFirstIndex + 2 << ": velocity [v]" << std::endl;
+     out << prefix << iFirstIndex + 3 << ": reaction force [lambda]" << std::endl;
+     return out;
+}
+
+std::ostream& MCPTest2::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+     const integer iFirstIndex = iGetFirstIndex();
+
+     out << prefix << iFirstIndex + 1 << ": equation of motion [f1]" << std::endl;
+     out << prefix << iFirstIndex + 2 << ": definition of acceleration [f2]" << std::endl;
+     out << prefix << iFirstIndex + 3 << ": definition of reaction force [f3]" << std::endl;
+
+     return out;
+}
+
+unsigned int MCPTest2::iGetNumPrivData(void) const
+{
+     return 4u;
+}
+
+unsigned int MCPTest2::iGetPrivDataIdx(const char *s) const
+{
+     static const struct {
+          unsigned int index;
+          char name[8];
+     } data[] = {
+          { 1u, "q" },
+          { 2u, "qP" },
+          { 3u, "qPP" },
+          { 4u, "lambda" }
+     };
+
+     const unsigned N = iGetNumPrivData();
+
+     ASSERT(N <= sizeof(data) / sizeof(data[0]));
+
+     for (unsigned i = 0; i < N; ++i) {
+          if (0 == strcmp(data[i].name, s)) {
+               return data[i].index;
+          }
+     }
+
+     return 0;
+}
+
+doublereal MCPTest2::dGetPrivData(unsigned int i) const
+{
+     switch (i) {
+     case 1:
+          return q;
+     case 2:
+          return qdot;
+     case 3:
+          return qddot;
+     case 4:
+          return lambda;
+
+     default:
+          silent_cerr("mcp_test2(" << GetLabel() << "): invalid private data index " << i << std::endl);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
+}
+
+void
+MCPTest2::Output(OutputHandler& OH) const
+{
+     if ( bToBeOutput() )
      {
-          delete rf;
+          if ( OH.UseText(OutputHandler::LOADABLE) )
+          {
+               std::ostream& os = OH.Loadable();
+
+               os << std::setw(8) << GetLabel()  << ' ' << q << ' ' << qdot << ' ' << qddot << ' ' << lambda << '\n';
+          }
+     }
+}
+
+void
+MCPTest2::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+     *piNumRows = 3;
+     *piNumCols = 0;
+}
+
+VariableSubMatrixHandler&
+MCPTest2::AssJac(VariableSubMatrixHandler& WorkMat,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr)
+{
+     SpGradientAssVec<SpGradient>::AssJac(this,
+                                          WorkMat.SetSparseGradient(),
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          REGULAR_JAC);
+
+     return WorkMat;
+}
+
+void
+MCPTest2::AssJac(VectorHandler& JacY,
+                 const VectorHandler& Y,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr,
+                 VariableSubMatrixHandler& WorkMat)
+{
+     using namespace sp_grad;
+
+     SpGradientAssVec<GpGradProd>::AssJac(this,
+                                          JacY,
+                                          Y,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          SpFunctionCall::REGULAR_JAC);
+}
+
+SubVectorHandler&
+MCPTest2::AssRes(SubVectorHandler& WorkVec,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr)
+{
+     SpGradientAssVec<doublereal>::AssRes(this,
+                                          WorkVec,
+                                          dCoef,
+                                          XCurr,
+                                          XPrimeCurr,
+                                          REGULAR_RES);
+
+     return WorkVec;
+}
+
+template <typename T>
+inline void
+MCPTest2::AssRes(SpGradientAssVec<T>& WorkVec,
+                 doublereal dCoef,
+                 const SpGradientVectorHandler<T>& XCurr,
+                 const SpGradientVectorHandler<T>& XPrimeCurr,
+                 enum SpFunctionCall func) {
+
+     const integer iFirstIndex = iGetFirstIndex();
+
+     T q, qdot, v, vdot, lambda;
+
+     XCurr.dGetCoef(iFirstIndex + 1, q, dCoef);
+     XPrimeCurr.dGetCoef(iFirstIndex + 1, qdot, 1.);
+     XCurr.dGetCoef(iFirstIndex + 2, v, dCoef);
+     XPrimeCurr.dGetCoef(iFirstIndex + 2, vdot, 1.);
+
+     XCurr.dGetCoef(iFirstIndex + 3, lambda, 1.);
+
+     T f1 = m * vdot + k * q - f.dGet() - lambda;
+     T f2 = qdot - v;
+     T f3 = q / dCoef;
+
+     WorkVec.AddItem(iFirstIndex + 1, f1);
+     WorkVec.AddItem(iFirstIndex + 2, f2);
+     WorkVec.AddItem(iFirstIndex + 3, f3);
+
+     SaveVar(q, this->q);
+     SaveVar(qdot, this->qdot);
+     SaveVar(vdot, this->qddot);
+     SaveVar(lambda, this->lambda);
+}
+
+int
+MCPTest2::iGetNumConnectedNodes(void) const
+{
+     return 0;
+}
+
+void
+MCPTest2::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+     connectedNodes.resize(iGetNumConnectedNodes());
+}
+
+void
+MCPTest2::SetValue(DataManager *pDM,
+                   VectorHandler& X, VectorHandler& XP,
+                   SimulationEntity::Hints *ph)
+{
+     const integer iFirstIndex = iGetFirstIndex();
+
+     X.PutCoef(iFirstIndex + 1, q);
+     XP.PutCoef(iFirstIndex + 1, qdot);
+     X.PutCoef(iFirstIndex + 2, qdot);
+     XP.PutCoef(iFirstIndex + 2, qddot);
+     X.PutCoef(iFirstIndex + 3, lambda);
+ }
+
+std::ostream&
+MCPTest2::Restart(std::ostream& out) const
+{
+     return out;
+}
+
+unsigned int
+MCPTest2::iGetInitialNumDof(void) const
+{
+     return 0u;
+}
+
+void
+MCPTest2::InitialWorkSpaceDim(
+     integer* piNumRows,
+     integer* piNumCols) const
+{
+     *piNumRows = 0;
+     *piNumCols = 0;
+}
+
+VariableSubMatrixHandler&
+MCPTest2::InitialAssJac(
+     VariableSubMatrixHandler& WorkMat,
+     const VectorHandler& XCurr)
+{
+
+     WorkMat.SetNullMatrix();
+
+     return WorkMat;
+}
+
+SubVectorHandler&
+MCPTest2::InitialAssRes(
+     SubVectorHandler& WorkVec,
+     const VectorHandler& XCurr)
+{
+     WorkVec.ResizeReset(0);
+
+     return WorkVec;
+}
+
+bool mcp_test_set(void)
+{
+     UserDefinedElemRead *rf1 = new UDERead<MCPTest1>;
+
+     if (!SetUDE("mcp" "test1", rf1))
+     {
+          delete rf1;
           return false;
      }
 
+     UserDefinedElemRead *rf2 = new UDERead<MCPTest2>;
+
+     if (!SetUDE("mcp" "test2", rf2))
+     {
+          delete rf2;
+          return false;
+     }
+     
      return true;
 }
 
@@ -521,7 +940,7 @@ extern "C"
 
      int module_init(const char *module_name, void *pdm, void *php)
      {
-          if (!mcp_test1_set())
+          if (!mcp_test_set())
           {
                silent_cerr("journal_bearing: "
                            "module_init(" << module_name << ") "

@@ -587,6 +587,17 @@ void MatrixHandler::Scale(const std::vector<doublereal>& oRowScale, const std::v
 
 bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
+     return ItemOperation(iRow, &MatrixHandler::IncCoef, oItem);
+}
+
+bool MatrixHandler::SubItem(integer iRow, const sp_grad::SpGradient& oItem)
+{
+     return ItemOperation(iRow, &MatrixHandler::DecCoef, oItem);
+}
+
+template <typename Operation>
+bool MatrixHandler::ItemOperation(integer iRow, const Operation oper, const sp_grad::SpGradient& oItem)
+{
      SP_GRAD_ASSERT(iRow >= 1);
      SP_GRAD_ASSERT(iRow <= iGetNumRows());
 
@@ -594,12 +605,10 @@ bool MatrixHandler::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
           SP_GRAD_ASSERT(oRec.iDof >= 1);
           SP_GRAD_ASSERT(oRec.iDof <= iGetNumCols());
 
-          if (oRec.dDer) {
-               (*this)(iRow, oRec.iDof) += oRec.dDer;
-          }
+          (this->*oper)(iRow, oRec.iDof, oRec.dDer);
      }
 
-     return true; // Note: not thread safe (need to duplicate matrix data for each thread)
+     return true; // Note: not thread safe (need to duplicate matrix data for each thread)     
 }
 
 std::ostream&

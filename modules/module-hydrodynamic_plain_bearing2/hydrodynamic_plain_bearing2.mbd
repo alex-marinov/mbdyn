@@ -42,35 +42,44 @@ end: data;
 begin: initial value;
 	initial time: (-0.040678);
 	final time: (0.040678);
-	
+
 	time step: (5.66893e-05);
 
 	max iterations: 100;
-	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: ms, 0.6;
-	enforce constraint equations: constraint violations;
-	derivatives tolerance: 1e-4, 1e-3;
-	derivatives max iterations: 10;
-	derivatives coefficient: 1e-6;
-        linear solver: umfpack, grad;
+	tolerance: 1e-6, test, norm;
+        method: hybrid, ms, 0.;
+
+        derivatives tolerance: 1e-3, 1e-3;
+	derivatives max iterations: 20;
+	derivatives coefficient: 1e-5;
+
+        linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
+        nonlinear solver: mcp newton min fb, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
+
+        ## linear solver: siconos dense;
+        ## nonlinear solver: siconos mcp newton min, lambda min, 1e-16;
         
-        nonlinear solver: nox,
-        modified, 100,
-        keep jacobian matrix,
-        inner iterations before assembly, 10,
-        jacobian operator, newton krylov,
-        solver, line search based,
-        linesearch method, backtrack,
-        direction, newton,
-        forcing term, type 2,
-        print convergence info, no,
-        verbose, yes,
-        minimum step, 1e-12,
-        linear solver tolerance, 1e-12,
-        linear solver max iterations, 20,
-        krylov subspace size, 20;
+        ## linear solver: umfpack, grad;
+        
+        ## nonlinear solver: nox,
+        ## modified, 100,
+        ## keep jacobian matrix,
+        ## inner iterations before assembly, 10,
+        ## jacobian operator, newton,
+        ## solver, line search based,
+        ## linesearch method, backtrack,
+        ## direction, newton,
+        ## forcing term, type 2,
+        ## print convergence info, no,
+        ## verbose, yes,
+        ## minimum step, 1e-12,
+        ## linear solver tolerance, 1e-12,
+        ## linear solver max iterations, 20,
+        ## krylov subspace size, 20;
+        
         threads: assembly, 1;
         threads: solver, 1;
+        output: iterations, solver condition number, stat, yes;
 end: initial value;
 
 begin: control data;
@@ -80,7 +89,7 @@ begin: control data;
     tolerance: 1e-10;
     initial stiffness: 1e10;
     use: loadable elements, in assembly;
-	output meter: closest next, (0), forever, const, (5.66893e-05);
+	#output meter: closest next, (0), forever, const, (5.66893e-05);
 	structural nodes: 3;
 	rigid bodies: 2;
 	loadable elements: 1;
@@ -655,16 +664,25 @@ begin: elements;
                 null,
 		orientation, reference, (5004), eye;
 
-    hydraulic fluid: (6001), incompressible, 
+    ## hydraulic fluid: (6001), incompressible, 
+    ##     density, (950),
+    ##     viscosity, (0.0015),
+    ##     pressure, (10000);
+
+    hydraulic fluid: (6001), linear compressible, 
         density, (950),
-        viscosity, (0.0015),
-        pressure, (10000);
+        1.,
+        0.,
+        viscosity, (0.0015);
 
     user defined: (7001), 
         hydrodynamic plain bearing2,
             hydraulic fluid, reference, (6001),
             viscosity vapor, (1.5e-06),
             mesh, linear finite difference,
+            enable mcp, yes,
+            pressure step integrator, implicit euler,
+            density step integrator, implicit euler,
             geometry, cylindrical,
                 mesh position, at shaft,
                 bearing width, (0.0062),
@@ -686,8 +704,9 @@ begin: elements;
                     pressure, (10000),
                     position, (0.01) * pi * 71. / 360., 0.,
                     rectangle, width, 1.38e-3, height, 0.8 * (0.0062),
-            pressure dof scale, 1e9,
-            equation scale, (5.66893e-05),
+            pressure dof scale, 1e11,
+            theta dof scale, 1e6,
+            equation scale, 1e-4,
             output pressure, yes,
             output density, yes,
             output friction loss, yes,

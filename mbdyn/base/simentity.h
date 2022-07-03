@@ -137,7 +137,7 @@ public:
          */
         virtual DofOrder::Order GetEqType(unsigned int i) const;
 
-        virtual DofOrder::Complementarity GetCompType(unsigned int i) const;
+        virtual DofOrder::Equality GetEqualityType(unsigned int i) const;
 
         virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
 

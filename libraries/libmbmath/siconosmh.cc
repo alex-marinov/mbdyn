@@ -41,12 +41,11 @@
 #include "mbconfig.h"
 
 #ifdef USE_SICONOS
-#include <iomanip>
 #include "sp_gradient.h"
 #include "myassert.h"
 #include "siconosmh.h"
 
-SiconosRowMap::SiconosRowMap(integer iSize)
+SiconosIndexMap::SiconosIndexMap(integer iSize)
 {
      rgRowMap.reserve(iSize);
 
@@ -56,7 +55,7 @@ SiconosRowMap::SiconosRowMap(integer iSize)
 }
 
 #ifdef DEBUG
-void SiconosRowMap::IsValid() const
+void SiconosIndexMap::IsValid() const
 {
      std::vector<bool> rgFlags(iGetSize(), false);
 
@@ -70,7 +69,7 @@ void SiconosRowMap::IsValid() const
 }
 #endif
 
-void SiconosRowMap::SetIndex(std::vector<integer>&& rgIndex)
+void SiconosIndexMap::SetIndex(std::vector<integer>&& rgIndex)
 {
 #ifdef DEBUG
      IsValid();
@@ -83,14 +82,54 @@ void SiconosRowMap::SetIndex(std::vector<integer>&& rgIndex)
 #endif
 }
 
-SiconosVectorHandler::SiconosVectorHandler(integer iSize, doublereal* pdTmpVec, const SiconosRowMap* pRowMap)
-     :MyVectorHandler(iSize, pdTmpVec), pRowMap(pRowMap)
+SiconosVectorHandler::SiconosVectorHandler(integer iSize, doublereal* pdTmpVec, const SiconosIndexMap* pIndexMap)
+     :MyVectorHandler(iSize, pdTmpVec), pIndexMap(pIndexMap)
 {
 
 }
 
 SiconosVectorHandler::~SiconosVectorHandler()
 {
+}
+
+SiconosVectorHandler& SiconosVectorHandler::operator=(const VectorHandler& VH)
+{
+     ASSERT(iGetSize() == VH.iGetSize());
+
+     const integer iSize = iGetSize();
+     
+     for (integer i = 1; i <= iSize; ++i) {
+          (*this)(i) = VH(i);
+     }
+
+     return *this;
+}
+
+SiconosVectorHandler& SiconosVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
+{
+     ASSERT(iGetSize() == VH.iGetSize());
+
+     const integer iSize = iGetSize();
+
+     for (integer i = 1; i <= iSize; ++i) {
+          (*this)(i) += d * VH(i);
+     }
+
+     return *this;
+}
+
+SiconosVectorHandler& SiconosVectorHandler::ScalarAddMul(const VectorHandler& VH1, const VectorHandler& VH2, const doublereal& d)
+{
+     ASSERT(iGetSize() == VH1.iGetSize());
+     ASSERT(iGetSize() == VH2.iGetSize());
+
+     const integer iSize = iGetSize();
+
+     for (integer i = 1; i <= iSize; ++i) {
+          (*this)(i) = VH1(i) + d * VH2(i);
+     }
+
+     return *this;
 }
 
 void SiconosVectorHandler::Resize(integer iNewSize)
@@ -143,31 +182,31 @@ const doublereal& SiconosVectorHandler::operator() (integer iRow) const
 {
      ASSERT(iRow >= 1);
      ASSERT(iRow <= iGetSize());
-     ASSERT(pRowMap->iGetSize() == iGetSize());
-     ASSERT(pRowMap->iGetIndex(iRow) >= 1);
-     ASSERT(pRowMap->iGetIndex(iRow) <= iGetSize());
+     ASSERT(pIndexMap->iGetSize() == iGetSize());
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetSize());
 
-     return MyVectorHandler::operator()(pRowMap->iGetIndex(iRow));
+     return MyVectorHandler::operator()(pIndexMap->iGetIndex(iRow));
 }
 
 doublereal& SiconosVectorHandler::operator() (integer iRow)
 {
      ASSERT(iRow >= 1);
      ASSERT(iRow <= iGetSize());
-     ASSERT(pRowMap->iGetSize() == iGetSize());
-     ASSERT(pRowMap->iGetIndex(iRow) >= 1);
-     ASSERT(pRowMap->iGetIndex(iRow) <= iGetSize());
+     ASSERT(pIndexMap->iGetSize() == iGetSize());
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetSize());
 
-     return MyVectorHandler::operator()(pRowMap->iGetIndex(iRow));
+     return MyVectorHandler::operator()(pIndexMap->iGetIndex(iRow));
 }
 
-void SiconosVectorHandler::SetRowMap(const SiconosRowMap* pRowMapNew)
+void SiconosVectorHandler::SetIndexMap(const SiconosIndexMap* pIndexMapNew)
 {
 #ifdef DEBUG
      IsValid();
 #endif
 
-     pRowMap = pRowMapNew;
+     pIndexMap = pIndexMapNew;
 
 #ifdef DEBUG
      IsValid();
@@ -176,7 +215,7 @@ void SiconosVectorHandler::SetRowMap(const SiconosRowMap* pRowMapNew)
 
 SiconosMatrixHandler::SiconosMatrixHandler(const SiconosMatrixHandler& oMH)
      :iNumNz(oMH.iNumNz),
-      pRowMap(oMH.pRowMap)
+      pIndexMap(oMH.pIndexMap)
 {
      pMatrix = static_cast<NumericsMatrix*>(malloc(sizeof(*pMatrix)));
 
@@ -189,8 +228,8 @@ SiconosMatrixHandler::SiconosMatrixHandler(const SiconosMatrixHandler& oMH)
      NM_copy(oMH.pMatrix, pMatrix);
 }
 
-SiconosMatrixHandler::SiconosMatrixHandler(NM_types eStorageType, integer iNumRows, integer iNumCols, integer iNumNz, const SiconosRowMap* pRowMap)
-     :iNumNz(iNumNz), pRowMap(pRowMap)
+SiconosMatrixHandler::SiconosMatrixHandler(NM_types eStorageType, integer iNumRows, integer iNumCols, integer iNumNz, const SiconosIndexMap* pIndexMap)
+     :iNumNz(iNumNz), pIndexMap(pIndexMap)
 {
      pMatrix = NM_create(eStorageType, iNumRows, iNumCols);
 
@@ -217,10 +256,10 @@ void SiconosMatrixHandler::IsValid() const
 {
      ASSERT(NM_check(pMatrix) == 0);
 
-     pRowMap->IsValid();
+     pIndexMap->IsValid();
 
-     ASSERT(iGetNumRows() == pRowMap->iGetSize());
-     ASSERT(iGetNumCols() == pRowMap->iGetSize());
+     ASSERT(iGetNumRows() == pIndexMap->iGetSize());
+     ASSERT(iGetNumCols() == pIndexMap->iGetSize());
 }
 #endif
 
@@ -270,11 +309,12 @@ SiconosMatrixHandler::PutCoef(integer iRow, integer iCol, const doublereal& dCoe
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
 
-     ASSERT(pRowMap->iGetSize() == iGetNumRows());
-     ASSERT(pRowMap->iGetIndex(iRow) >= 1);
-     ASSERT(pRowMap->iGetIndex(iRow) <= iGetNumRows());
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetNumRows());
+     ASSERT(pIndexMap->iGetIndex(iCol) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iCol) <= iGetNumCols());
 
-     pMatrix->matrix0[pRowMap->iGetIndex(iRow) - 1 + (iCol - 1) * pMatrix->size0] = dCoef;
+     pMatrix->matrix0[pIndexMap->iGetIndex(iRow) - 1 + (pIndexMap->iGetIndex(iCol) - 1) * pMatrix->size0] = dCoef;
 
 #ifdef DEBUG
      IsValid();
@@ -292,18 +332,23 @@ SiconosMatrixHandler::IncCoef(integer iRow, integer iCol, const doublereal& dCoe
      ASSERT(iCol >= 1);
      ASSERT(iRow <= iGetNumRows());
      ASSERT(iCol <= iGetNumCols());
-     ASSERT(pRowMap->iGetSize() == iGetNumRows());
-
-     DEBUGCERR("IncCoef(" << iRow << ", " << iCol << ", " << dCoef << ") -> " << pRowMap->iGetIndex(iRow) << "\n") ;
+     
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetNumRows());
+     ASSERT(pIndexMap->iGetIndex(iCol) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iCol) <= iGetNumCols());
+     
+     DEBUGCERR("IncCoef(" << iRow << ", " << iCol << ", " << dCoef
+               << ") -> (" << pIndexMap->iGetIndex(iRow) << "," << pIndexMap->iGetIndex(iCol) << ")\n") ;
 
      switch (pMatrix->storageType) {
      case NM_SPARSE:
-          NM_entry(pMatrix, pRowMap->iGetIndex(iRow) - 1, iCol - 1, dCoef);
+          NM_entry(pMatrix, pIndexMap->iGetIndex(iRow) - 1, pIndexMap->iGetIndex(iCol) - 1, dCoef);
           break;
 
      case NM_DENSE:
           // FIXME: NM_entry is equivalent to PutCoef in case dense matrices
-          pMatrix->matrix0[pRowMap->iGetIndex(iRow) - 1 + (iCol - 1) * pMatrix->size0] += dCoef;
+          pMatrix->matrix0[pIndexMap->iGetIndex(iRow) - 1 + (pIndexMap->iGetIndex(iCol) - 1) * pMatrix->size0] += dCoef;
           break;
 
      default:
@@ -325,33 +370,49 @@ SiconosMatrixHandler::DecCoef(integer iRow, integer iCol, const doublereal& dCoe
 const doublereal&
 SiconosMatrixHandler::operator()(integer iRow, integer iCol) const
 {
+#ifdef DEBUG
+     IsValid();
+#endif
+     
      ASSERT(iRow >= 1);
      ASSERT(iCol >= 1);
      ASSERT(iRow <= iGetNumRows());
      ASSERT(iCol <= iGetNumCols());
-     ASSERT(pRowMap->iGetSize() == iGetNumRows());
-
+     
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetNumRows());
+     ASSERT(pIndexMap->iGetIndex(iCol) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iCol) <= iGetNumCols());
+     
      if (pMatrix->storageType != NM_DENSE) {
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
 
-     return pMatrix->matrix0[pRowMap->iGetIndex(iRow) - 1 + (iCol - 1) * pMatrix->size0];
+     return pMatrix->matrix0[pIndexMap->iGetIndex(iRow) - 1 + (pIndexMap->iGetIndex(iCol) - 1) * pMatrix->size0];
 }
 
 doublereal&
 SiconosMatrixHandler::operator()(integer iRow, integer iCol)
 {
+#ifdef DEBUG
+     IsValid();
+#endif
+     
      ASSERT(iRow >= 1);
      ASSERT(iCol >= 1);
      ASSERT(iRow <= iGetNumRows());
      ASSERT(iCol <= iGetNumCols());
-     ASSERT(pRowMap->iGetSize() == iGetNumRows());
-
+     
+     ASSERT(pIndexMap->iGetIndex(iRow) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iRow) <= iGetNumRows());
+     ASSERT(pIndexMap->iGetIndex(iCol) >= 1);
+     ASSERT(pIndexMap->iGetIndex(iCol) <= iGetNumCols());
+     
      if (pMatrix->storageType != NM_DENSE) {
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
 
-     return pMatrix->matrix0[pRowMap->iGetIndex(iRow) - 1 + (iCol - 1) * pMatrix->size0];
+     return pMatrix->matrix0[pIndexMap->iGetIndex(iRow) - 1 + (pIndexMap->iGetIndex(iCol) - 1) * pMatrix->size0];
 }
 
 integer SiconosMatrixHandler::iGetNumRows() const
@@ -396,15 +457,16 @@ void SiconosMatrixHandler::EnumerateNz(const std::function<EnumerateNzCallback>&
 {
      switch (pMatrix->storageType) {
      case NM_DENSE:
-          for (int j = 0; j < pMatrix->size1; ++j) {
-               for (int i = 0; i < pMatrix->size0; ++i) {
-                    const doublereal dCoef = pMatrix->matrix0[pRowMap->iGetIndex(i + 1) - 1 + j * pMatrix->size0];
+          for (integer j = 1; j <= pMatrix->size1; ++j) {
+               for (integer i = 1; i <= pMatrix->size0; ++i) {
+                    const doublereal dCoef = pMatrix->matrix0[pIndexMap->iGetIndex(i) - 1 + (pIndexMap->iGetIndex(j) - 1) * pMatrix->size0];
 
                     if (dCoef) {
-                         func(i + 1, j + 1, dCoef);
+                         func(i, j, dCoef);
                     }
                }
           }
+          break;
      default:
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
@@ -480,15 +542,15 @@ SiconosMatrixHandler::MatTVecDecMul(VectorHandler& y, const VectorHandler& x) co
      return y;
 }
 
-void SiconosMatrixHandler::SetRowMap(const SiconosRowMap* pRowMapNew)
+void SiconosMatrixHandler::SetIndexMap(const SiconosIndexMap* pIndexMapNew)
 {
-     ASSERT(pRowMapNew->iGetSize() == iGetNumRows());
+     ASSERT(pIndexMapNew->iGetSize() == iGetNumRows());
 
 #ifdef DEBUG
      IsValid();
 #endif
 
-     pRowMap = pRowMapNew;
+     pIndexMap = pIndexMapNew;
 
 #ifdef DEBUG
      IsValid();

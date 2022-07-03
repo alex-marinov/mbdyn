@@ -46,10 +46,10 @@
 #include "linesearch.h"
 #include "siconosmh.h"
 
-class SiconosMCPSolver: public NonlinearSolver, private LineSearchParameters
+class SiconosMCPSolver: public NonlinearSolver, protected LineSearchParameters
 {
 public:
-     explicit SiconosMCPSolver(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch);
+     explicit SiconosMCPSolver(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch, integer iSolverId);
      virtual ~SiconosMCPSolver();
 
      virtual void Solve(const NonlinearProblem *pNLP,
@@ -67,16 +67,30 @@ private:
      static void compute_nabla_Fmcp(void *env, int n, doublereal *z, struct NumericsMatrix *F);
      static void collectStatsIteration(void *env, int size, double *reaction, double *velocity, double error, void *extra_data);
 
+     SiconosIndexMap* pIndexMap;
      SiconosVectorHandler* pRes;
-     VectorHandler* pAbsRes;
      SiconosVectorHandler* pSol;
-     SiconosVectorHandler W, XPrev, DeltaX;
+     SiconosVectorHandler W;
+     SiconosVectorHandler zPrev, zDelta;
      SiconosMatrixHandler* pJac;
      const NonlinearProblem* pNLP;
      Solver* pSolver;
      struct MixedComplementarityProblem* pMCP;
      struct SolverOptions* pOptions;
      integer iJacPrev, iIterCurr;
+     const integer iSolverId;
+};
+
+class SiconosMCPNewton: public SiconosMCPSolver {
+public:
+     explicit SiconosMCPNewton(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch);
+     virtual ~SiconosMCPNewton();
+};
+
+class SiconosMCPNewtonMin: public SiconosMCPSolver {
+public:
+     explicit SiconosMCPNewtonMin(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch);
+     virtual ~SiconosMCPNewtonMin();
 };
 
 #endif

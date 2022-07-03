@@ -30,7 +30,7 @@
 
 /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
-        Copyright (C) 2011(-2022) all rights reserved.
+        Copyright (C) 2022(-2022) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -50,11 +50,13 @@ set: real g = 9.81;
 set: real l = 0.5;
 
 set: real deltaz = 500e-3;
-set: real theta_y = 1.3*atan(0.7);
-set: real theta_z = 20*pi/180;
+set: real theta_y = 10. * pi / 180.;
+set: real theta_z = 0.;
+
+set: real sn = 1e300;
 
 set: integer node_id_slider = 1001;
-set: integer node_id_ground = 1002;
+set: integer node_id_ground = 1003;
 
 set: integer prm_node_id_lambda_1 = 1101;
 set: integer prm_node_id_lambda_2 = 1102;
@@ -86,54 +88,61 @@ set: integer joint_id_slider = 3002;
 set: integer ref_id_slider = 4001;
 
 begin: data;
-        problem: initial value;	# the default
+    problem: initial value;     # the default
 end: data;
 
 begin: initial value;
-        initial time: 0.;
-        final time: 1;
-        time step: 1e-4;
+    initial time: 0.;
+    final time: 1;
+    time step: 1e-3;
 
-        max iterations: 100;
-        tolerance: 1e-6;
-        method: implicit euler;
-
-        linear solver: siconos dense;
-        nonlinear solver: siconos mcp, lambda min, 1e-10;
-
-    derivatives tolerance: 1e-5;
-    derivatives max iterations: 10;
-    derivatives coefficient: 1e-6;
+    max iterations: 100;
+    tolerance: 1e-6, test, norm, 1e-6, test, norm;
+    method: implicit euler;
 
     threads: assembly, 1;
     threads: solver, 1;
+
+    linear solver: umfpack, grad, scale, row max column max, always, max iterations, 3;
+    nonlinear solver: mcp newton min fb, lambda min, 0., tolerance x, 1e-7;
+    
+    derivatives tolerance: 1e-2, 1e-3;
+    derivatives max iterations: 10;
+    derivatives coefficient: 1e-2;
+    output: iterations;
 end: initial value;
 
 begin: control data;
     use automatic differentiation;
-        output meter: closest next, 0, forever, const, 1e-3;
+    output meter: closest next, 0, forever, const, 1e-3;
     default output: all;
-        structural nodes: 2;
+    structural nodes: 3;
     parameter nodes: 23;
-    rigid bodies: 1;
-    loadable elements: 1;
+    rigid bodies: 2;
+    loadable elements: 2;
     joints: 1;
-        max iterations: 10;
-        tolerance: 1e-15;
-        gravity;
+    max iterations: 10;
+    tolerance: 1e-15;
+    gravity;
     print: dof description;
     use: loadable elements, in assembly;
 end: control data;
 
 reference: ref_id_slider,
     position, reference, global, X0, Y0, Z0,
-    orientation, reference, global, matr,       cos(theta_y) * cos(theta_z),	-sin(theta_z),	sin(theta_y) * cos(theta_z),
-                                                                            cos(theta_y) * sin(theta_z),	 cos(theta_z),	sin(theta_y) * sin(theta_z),
-                                                                            -sin(theta_y),		                                           0.,					cos(theta_y),
+    orientation, reference, global, matr,       cos(theta_y) * cos(theta_z),    -sin(theta_z),  sin(theta_y) * cos(theta_z),
+                                                                            cos(theta_y) * sin(theta_z),         cos(theta_z),  sin(theta_y) * sin(theta_z),
+                                                                            -sin(theta_y),                                                         0.,                                  cos(theta_y),
     velocity,         reference, global, null,
     angular velocity, reference, global, null;
 
 begin: nodes;
+
+structural: node_id_ground, static,
+    position, reference, global, 1e-3, -5e-3, -1e-3,
+        orientation, reference, global, euler123, -60*pi/180, -30*pi/180, 3*pi/180,
+        velocity, reference, global, null,
+        angular velocity, reference, global, null;
 
 structural: node_id_slider, dynamic,
     position, reference, ref_id_slider, 0., 0., 0.,
@@ -142,11 +151,12 @@ structural: node_id_slider, dynamic,
         angular velocity, reference, ref_id_slider, 0., 0., 0.,
     accelerations, yes;
 
-structural: node_id_ground, static,
-    position, reference, global, 1e-3, -5e-3, -1e-3,
-        orientation, reference, global, euler123, -60*pi/180, -30*pi/180, 3*pi/180,
-        velocity, reference, global, null,
-        angular velocity, reference, global, null;
+structural: node_id_slider+1, dynamic,
+    position, reference, ref_id_slider, 0., 0., 0.,
+        orientation, reference, ref_id_slider, eye,
+        velocity, reference, ref_id_slider, 0., 0., 0.,
+        angular velocity, reference, ref_id_slider, 0., 0., 0.,
+    accelerations, yes;
 
 
 parameter: prm_node_id_lambda_1, element;
@@ -176,7 +186,6 @@ parameter: prm_node_id_M2z, element;
 end: nodes;
 
 begin: elements;
-
         body: body_id_slider,
                 # node
                 node_id_slider,
@@ -188,16 +197,41 @@ begin: elements;
                 diag, J11, J22, J33,
                 inertial, reference, node, eye;
 
+
+        body: body_id_slider + 1,
+                # node
+                node_id_slider + 1,
+                # mass
+                m,
+                # relative center of mass
+                reference, node, null,
+                # inertia matrix
+                diag, J11, J22, J33,
+                inertial, reference, node, eye;
+                
     joint: joint_id_ground, clamp, node_id_ground, node, node;
 
     user defined: joint_id_slider, unilateral in plane,
         node1,
             node_id_slider,
             offset, 3,
-                reference, ref_id_slider, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz,
-                reference, ref_id_slider, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz,
-                reference, ref_id_slider, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz,
-            enable mcp,
+                reference, global, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz, stiffness, sn,
+            enable mcp, yes,
+        node2,
+            node_id_ground,
+            offset, reference, ref_id_slider, null,
+            hinge, reference, ref_id_slider, eye;
+
+    user defined: joint_id_slider + 1, unilateral in plane,
+        node1,
+            node_id_slider + 1,
+            offset, 3,
+                reference, global, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz, stiffness, sn,
+            enable mcp, yes,
         node2,
             node_id_ground,
             offset, reference, ref_id_slider, null,
@@ -226,7 +260,7 @@ begin: elements;
     bind: joint_id_slider, user defined, prm_node_id_M2x, string, "M2x[1]";
     bind: joint_id_slider, user defined, prm_node_id_M2y, string, "M2y[1]";
     bind: joint_id_slider, user defined, prm_node_id_M2z, string, "M2z[1]";
-
-        gravity: 0., 0., -1.,
-        const, g;
+            
+    gravity: 0., 0., -1.,
+    const, g;
 end: elements;

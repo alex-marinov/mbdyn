@@ -53,11 +53,12 @@
 #include "solver.h"
 
 SiconosMCPSolver::SiconosMCPSolver(const NonlinearSolverTestOptions& options,
-                                   const LineSearchParameters& oLineSearch)
+                                   const LineSearchParameters& oLineSearch,
+                                   integer iSolverId)
      :NonlinearSolver(options),
       LineSearchParameters(oLineSearch),
+      pIndexMap(nullptr),
       pRes(nullptr),
-      pAbsRes(nullptr),
       pSol(nullptr),
       pJac(nullptr),
       pNLP(nullptr),
@@ -65,7 +66,8 @@ SiconosMCPSolver::SiconosMCPSolver(const NonlinearSolverTestOptions& options,
       pMCP(nullptr),
       pOptions(nullptr),
       iJacPrev(-1),
-      iIterCurr(-1)
+      iIterCurr(-1),
+      iSolverId(iSolverId)
 {
 }
 
@@ -90,8 +92,26 @@ void SiconosMCPSolver::Solve(const NonlinearProblem *pNLPCurr,
      pOptions->iparam[SICONOS_IPARAM_MAX_ITER] = iMaxIter;
      pOptions->dparam[SICONOS_DPARAM_TOL] = Tol;
 
+     const DataManager* const pDM = pS->pGetDataManager();
+
+     const VectorHandler& X = *pDM->GetpXCurr();
+     const VectorHandler& XP = *pDM->GetpXPCurr();
+     const integer iNumDof = pSol->iGetSize();
+
+     ASSERT(X.iGetSize() == iNumDof);
+     ASSERT(XP.iGetSize() == iNumDof);
+
      pSol->Reset();
+     zPrev.Reset();
+
+     for (integer i = 1; i <= iNumDof; ++i) {
+          if (pDM->GetEqualityType(i) == DofOrder::INEQUALITY) {
+               zPrev(i) = (*pSol)(i) = X(i);
+          }
+     }
+
      W.Reset();
+
      iJacPrev = TotJac;
      iIterCurr = 0;
 
@@ -134,22 +154,20 @@ void SiconosMCPSolver::Attach(const NonlinearProblem* pNLPCurr, Solver* pS)
      pMCP->compute_Fmcp = &compute_Fmcp;
      pMCP->compute_nabla_Fmcp = &compute_nabla_Fmcp;
      pMCP->env = this;
-     pOptions = solver_options_create(SICONOS_MCP_NEWTON_MIN_FBLSA);
+     pOptions = solver_options_create(iSolverId);
      pOptions->callback = static_cast<Callback*>(malloc(sizeof(Callback)));
      pOptions->callback->collectStatsIteration = &collectStatsIteration;
      pOptions->callback->env = this;
-     pOptions->iparam[SICONOS_IPARAM_STOPPING_CRITERION] = SICONOS_STOPPING_CRITERION_USER_ROUTINE;
      pOptions->dparam[SICONOS_DPARAM_LSA_ALPHA_MIN] = dLambdaMin;
 
      auto* const pSM = dynamic_cast<SiconosDenseSolutionManager*>(pS->pGetSolutionManager());
 
      if (!pSM) {
-          silent_cerr("For the siconos nonlinear solver the linear solver type must be \"siconos dense\"\n");
+          silent_cerr("Use linear solver \"siconos dense\" for nonlinear solver \"siconos mcp\"!\n");
           throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
      }
 
      pRes = pSM->pResHdl();
-     pAbsRes = pGetResTest()->GetAbsRes();
      pSol = pSM->pSolHdl();
      pJac = pSM->pMatHdl();
 
@@ -162,26 +180,31 @@ void SiconosMCPSolver::Attach(const NonlinearProblem* pNLPCurr, Solver* pS)
      ASSERT(iNumDofsTot == pJac->iGetNumCols());
      ASSERT(iNumDofsTot == pRes->iGetSize());
      ASSERT(iNumDofsTot == pSol->iGetSize());
-     ASSERT(pAbsRes == nullptr || iNumDofsTot == pAbsRes->iGetSize());
 
-     std::array<integer, DofOrder::LASTCOMP> rgNumDofs{0};
+     std::array<integer, DofOrder::LASTEQUALITY> rgNumDofs{0};
 
      for (integer i = 1; i <= iNumDofsTot; ++i) {
-          ++rgNumDofs[pDM->GetCompType(i)];
+          ++rgNumDofs[pDM->GetEqualityType(i)];
      }
 
      pMCP->n1 = rgNumDofs[DofOrder::EQUALITY];
-     pMCP->n2 = rgNumDofs[DofOrder::COMPLEMENTARY];
+     pMCP->n2 = rgNumDofs[DofOrder::INEQUALITY];
+
+     if (!(pMCP->n1 > 0 && pMCP->n2 > 0)) {
+          silent_cerr("Warning: nonlinear solver \"siconos mcp\" requires at least one equation and one inequality!\n");
+     }
 
      std::vector<integer> rgRowMap(iNumDofsTot);
 
-     std::array<integer, DofOrder::LASTCOMP> rgCurrIndex{0, rgNumDofs[DofOrder::EQUALITY]};
+     std::array<integer, DofOrder::LASTEQUALITY> rgCurrIndex{0, pMCP->n1};
 
      for (integer i = 1; i <= iNumDofsTot; ++i) {
-          rgRowMap[i - 1] = ++rgCurrIndex[pDM->GetCompType(i)];
+          rgRowMap[i - 1] = ++rgCurrIndex[pDM->GetEqualityType(i)];
      }
 
-     pSM->pGetRowMap()->SetIndex(std::move(rgRowMap));
+     pIndexMap = pSM->pGetIndexMap();
+
+     pIndexMap->SetIndex(std::move(rgRowMap));
 
      pMCP->nabla_Fmcp = pJac->pGetMatrix();
 
@@ -190,56 +213,71 @@ void SiconosMCPSolver::Attach(const NonlinearProblem* pNLPCurr, Solver* pS)
      ASSERT(pSol->iGetSize() == pJac->iGetNumCols());
      ASSERT(pRes->iGetSize() == pJac->iGetNumRows());
 
-     W.SetRowMap(pSol->pGetRowMap());
-     XPrev.SetRowMap(pSol->pGetRowMap());
-     DeltaX.SetRowMap(pSol->pGetRowMap());
-
+     W.SetIndexMap(pIndexMap);
      W.ResizeReset(pSol->iGetSize());
 
-     if (pSol->iGetSize() != XPrev.iGetSize()) {
-          XPrev.ResizeReset(pSol->iGetSize()); // Preserve previous state!
-     }
-
-     DeltaX.ResizeReset(pSol->iGetSize());
+     zPrev.SetIndexMap(pIndexMap);
+     zDelta.SetIndexMap(pIndexMap);
+     zPrev.ResizeReset(pSol->iGetSize());
+     zDelta.ResizeReset(pSol->iGetSize());
 }
 
 void SiconosMCPSolver::compute_Fmcp(void *env, int n, doublereal *z, doublereal *F)
 {
+     DEBUGCOUTFNAME("compute_Fmcp");
+
+#ifdef DEBUG
+     for (int i = 0; i < n; ++i) {
+          DEBUGCOUT("z(" << i + 1 << ")=" << z[i] << "\n");
+     }
+#endif
+
      SiconosMCPSolver* const pSiconosMCP = static_cast<SiconosMCPSolver*>(env);
 
      ASSERT(n == pSiconosMCP->pSol->iGetSize());
 
-     const SiconosVectorHandler zhdl(n, z, pSiconosMCP->pSol->pGetRowMap());
-     SiconosVectorHandler Fhdl(n, F, pSiconosMCP->pRes->pGetRowMap());
+     const SiconosVectorHandler zhdl(n, z, pSiconosMCP->pIndexMap);
+     SiconosVectorHandler Fhdl(n, F, pSiconosMCP->pIndexMap);
 
-     pSiconosMCP->DeltaX.ScalarAddMul(zhdl, pSiconosMCP->XPrev, -1.); // Convert to incremental solution
+     pSiconosMCP->zDelta.ScalarAddMul(zhdl, pSiconosMCP->zPrev, -1.);
+     pSiconosMCP->zPrev = zhdl;
 
-     pSiconosMCP->XPrev = zhdl;
-
-     pSiconosMCP->pNLP->Update(&pSiconosMCP->DeltaX);
+     pSiconosMCP->pNLP->Update(&pSiconosMCP->zDelta);
 
      Fhdl.Reset();
 
-     if (pSiconosMCP->pAbsRes) {
-          pSiconosMCP->pAbsRes->Reset();
-     }
+     pSiconosMCP->pNLP->Residual(&Fhdl);
 
-     pSiconosMCP->pNLP->Residual(&Fhdl, pSiconosMCP->pAbsRes);
+     if (pSiconosMCP->outputSol()) {
+          DataManager* pDM = pSiconosMCP->pSolver->pGetDataManager();
+          const VectorHandler& X = *pDM->GetpXCurr();
+          const VectorHandler& XP = *pDM->GetpXPCurr();
+
+          pSiconosMCP->pSolver->PrintSolution(zhdl, pSiconosMCP->iIterCurr);
+     }
 
      if (pSiconosMCP->outputRes()) {
-          pSiconosMCP->pSolver->PrintResidual(*pSiconosMCP->pRes, pSiconosMCP->iIterCurr);
+          pSiconosMCP->pSolver->PrintResidual(Fhdl, pSiconosMCP->iIterCurr);
      }
-
-     Fhdl *= -1;
 }
 
 void SiconosMCPSolver::compute_nabla_Fmcp(void *env, int n, doublereal *z, NumericsMatrix *F)
 {
+     DEBUGCOUTFNAME("compute_nabla_Fmcp");
+
+#ifdef DEBUG
+     for (int i = 0; i < n; ++i) {
+          DEBUGCOUT("z(" << i + 1 << ")=" << z[i] << "\n");
+     }
+#endif
+
      SiconosMCPSolver* const pSiconosMCP = static_cast<SiconosMCPSolver*>(env);
 
      ASSERT(F == pSiconosMCP->pMCP->nabla_Fmcp);
 
      pSiconosMCP->pNLP->Jacobian(pSiconosMCP->pJac);
+
+     NM_scal(-1., pSiconosMCP->pJac->pGetMatrix()); // Allow us to state the complementarity condition with correct sign
 
      pSiconosMCP->TotJac++;
 
@@ -273,6 +311,24 @@ void SiconosMCPSolver::collectStatsIteration(void *env, int size, double *reacti
      if (mbdyn_stop_at_end_of_iteration()) {
           throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
      }
+}
+
+SiconosMCPNewton::SiconosMCPNewton(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch)
+     :SiconosMCPSolver(options, oLineSearch, SICONOS_MCP_NEWTON_FB_FBLSA)
+{
+}
+
+SiconosMCPNewton::~SiconosMCPNewton()
+{
+}
+
+SiconosMCPNewtonMin::SiconosMCPNewtonMin(const NonlinearSolverTestOptions& options, const LineSearchParameters& oLineSearch)
+     :SiconosMCPSolver(options, oLineSearch, SICONOS_MCP_NEWTON_MIN_FBLSA)
+{
+}
+
+SiconosMCPNewtonMin::~SiconosMCPNewtonMin()
+{
 }
 
 #endif
