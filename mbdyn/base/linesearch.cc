@@ -1539,6 +1539,8 @@ void LineSearchMCP::ComputeH(const VectorHandler& z, const VectorHandler& F, Mat
           }
      }
 
+     H.PacMat();
+
      H.Scale(rgRowScale, rgColScale);
 
      sp_grad::SpGradient g;
@@ -1576,6 +1578,8 @@ void LineSearchMCP::ComputeHDesc(const SpGradientSparseMatrixHandler& nablaFMCP,
                H.SubItem(i, nablaFMCP.GetRow(i));
           }
      }
+
+     H.PacMat();
 }
 
 void LineSearchMCP::ComputeRHSDesc(const VectorHandler& z, const VectorHandler& F, VectorHandler& Fmin) const
