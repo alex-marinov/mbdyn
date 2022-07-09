@@ -109,7 +109,7 @@ begin: initial value;
         method: implicit euler;
 
         linear solver: umfpack, grad;
-        nonlinear solver: nox;
+        nonlinear solver: mcp newton fb, lambda min, 0., tolerance x, 1e-6;
 
     derivatives tolerance: 1e-5, 1e-4;
     derivatives max iterations: 30;
@@ -208,7 +208,7 @@ begin: elements;
                 reference, ref_id_slider, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz,
                 reference, ref_id_slider, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz,
                 reference, ref_id_slider, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz,
-            epsilon, epsilon,
+            enable mcp, yes,
         node2,
             node_id_ground,
             offset, reference, ref_id_slider, null,
