@@ -92,7 +92,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 
 			uint32_ptr[1] = uModes;
 
-			ssize_t rc = send(pEFH->GetOutFileDes(),
+			ssize_t rc = sendn(pEFH->GetOutFileDes(),
 				(const char *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 			if (rc == -1) {
@@ -132,7 +132,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
-			ssize_t rc = recv(pEFH->GetInFileDes(),
+			ssize_t rc = recvn(pEFH->GetInFileDes(),
 				buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == -1) {
@@ -258,11 +258,11 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
 		size = 3*sizeof(doublereal);
 
-		rc = recv(infd, (char*)f.pGetVec(), size, recv_flags);
+		rc = recvn(infd, (char*)f.pGetVec(), size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
-		rc = recv(infd, (char*)m.pGetVec(), size, recv_flags);
+		rc = recvn(infd, (char*)m.pGetVec(), size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
@@ -270,7 +270,7 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
 		size = fv.size()*sizeof(doublereal);
-		rc = recv(infd, (char*)&fv[0], size, recv_flags);
+		rc = recvn(infd, (char*)&fv[0], size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
@@ -312,15 +312,15 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 {
 #ifdef USE_SOCKET
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
-		send(outfd, (const char*)x.pGetVec(), 3*sizeof(doublereal), send_flags);
-		send(outfd, (const char*)R.pGetMat(), 9*sizeof(doublereal), send_flags);
-		send(outfd, (const char*)v.pGetVec(), 3*sizeof(doublereal), send_flags);
-		send(outfd, (const char*)w.pGetVec(), 3*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)x.pGetVec(), 3*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)R.pGetMat(), 9*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)v.pGetVec(), 3*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)w.pGetVec(), 3*sizeof(doublereal), send_flags);
 	}
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
-		send(outfd, (const char*)&q[0], q.size()*sizeof(doublereal), send_flags);
-		send(outfd, (const char*)&qP[0], qP.size()*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)&q[0], q.size()*sizeof(doublereal), send_flags);
+		sendn(outfd, (const char*)&qP[0], qP.size()*sizeof(doublereal), send_flags);
 	}
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
