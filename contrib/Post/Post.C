@@ -417,7 +417,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 
 static struct argp argp_s = { options, parse_opt, args_doc, doc };
 
-struct allocate_file : public std::unary_function<OutputFile&, std::istream *> {
+struct allocate_file {
 	std::string basename;
 	bool success;
 	allocate_file(std::string bs) : basename(bs), success(true) {};
@@ -463,7 +463,7 @@ struct allocate_file : public std::unary_function<OutputFile&, std::istream *> {
 		it.file = file;
 	}
 };
-struct skip_time_step : public std::unary_function<OutputFile&, void> {
+struct skip_time_step {
 	mutable bool success;
 	mutable bool last;
 	skip_time_step(bool l) : success(true), last(l) {};
@@ -482,7 +482,7 @@ struct skip_time_step : public std::unary_function<OutputFile&, void> {
 	}
 };
 
-struct read_time_step : public std::unary_function<OutputFile&, void> {
+struct read_time_step {
 	mutable bool success;
 	mutable bool last;
 	read_time_step(bool l) : success(true), last(l) {};
@@ -536,7 +536,7 @@ struct read_time_step : public std::unary_function<OutputFile&, void> {
 	}
 };
  
-struct write_time_step : public std::unary_function<OutputFile&, void> {
+struct write_time_step {
 	mutable bool success;
 	mutable std::ostream * file;
 	write_time_step(std::ostream * f) : success(true), file(f) {};
@@ -550,7 +550,7 @@ struct write_time_step : public std::unary_function<OutputFile&, void> {
 	}
 };
  
-struct close_file : public std::unary_function<OutputFile&, void> {
+struct close_file {
 	void operator()(OutputFile& it) const {
 		if (it.file != 0) {
 			static_cast<std::ifstream*>(it.file)->close();
