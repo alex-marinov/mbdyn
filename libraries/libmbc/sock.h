@@ -50,6 +50,10 @@ typedef int SOCKET;
 #endif /* SOCKET_TYPEDEF */
 #endif /* ! _WIN32 */
 
+#include <sys/types.h>
+extern ssize_t recvn(int fd, char *vptr, size_t n, int flags);
+extern ssize_t sendn(int fd, const char* vptr, size_t n, int flags);
+
 /** Creates an inet socket of default type (SOCK_STREAM)
  *
  *  param name Output sockaddr_in structure which will have a name of the socket added

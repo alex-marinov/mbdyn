@@ -66,6 +66,8 @@
 #include "usesock.h"
 #include "sock.h"
 
+#include "mbc.h"
+
 #define DEFAULT_PORT	5500 /* FIXME: da definire meglio */
 #define DEFAULT_HOST 	"127.0.0.1"
 
@@ -331,7 +333,7 @@ UseSocket::recv(void *buf, size_t len, int flags, bool bMsgDontWait)
 	switch (socket_type) {
 	case SOCK_STREAM:
 
-	    result = ::recv(sock, (char *)buf, len, flags);
+	    result = recvn(sock, (char *)buf, len, flags);
 
 		break;
 

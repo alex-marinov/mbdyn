@@ -160,7 +160,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		pSOE->Echo((doublereal *)pSC->GetBuf(), pSC->GetNumChannels());
 	}
 
-	// int rc = send(pUS->GetSock(), pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
+	// int rc = sendn(pUS->GetSock(), pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
 	ssize_t rc = pUS->send(pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
 	if (rc == -1 || rc != pSC->GetOutSize()) {
 		int save_errno = WSAGetLastError();

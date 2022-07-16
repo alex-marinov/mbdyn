@@ -314,7 +314,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 			uint32_ptr[1] = m_Points.size();
 
-			ssize_t rc = send(pEFH->GetOutFileDes(),
+			ssize_t rc = sendn(pEFH->GetOutFileDes(),
 				(const char *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 
@@ -355,7 +355,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
-			ssize_t rc = recv(pEFH->GetInFileDes(),
+			ssize_t rc = recvn(pEFH->GetInFileDes(),
 				(char *)buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == SOCKET_ERROR) {
@@ -711,36 +711,36 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			uint32_t l[2];
 			l[0] = pRefNode->GetLabel();
 			l[1] = 0;
-         		send(outfd, (const char *)&l[0], sizeof(l), 0);
+			sendn(outfd, (const char *)&l[0], sizeof(l), 0);
 		}
 
-		send(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
 		switch (uRot) {
 		case MBC_ROT_NONE:
 			break;
 
 		case MBC_ROT_MAT:
-			send(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
 			break;
 
 		case MBC_ROT_THETA: {
 			Vec3 Theta(RotManip::VecRot(RRef));
-			send(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 
 		case MBC_ROT_EULER_123: {
 			Vec3 E(MatR2EulerAngles123(RRef)*dRaDegr);
-			send(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 		}
-		send(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
 		if (uRot != MBC_ROT_NONE) {
-			send(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
 		}
 		if (bOutputAccelerations) {
-			send(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
 			if (uRot != MBC_ROT_NONE) {
-				send(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+				sendn(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
 			}
 		}
 
@@ -866,7 +866,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		}
 	}
 
-	send(outfd, &iobuf[0], iobuf.size(), 0);
+	sendn(outfd, &iobuf[0], iobuf.size(), 0);
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
@@ -1050,7 +1050,7 @@ StructExtForce::RecvFromFileDes(int infd)
 			ulen += 3*sizeof(doublereal);
 		}
 
-		len = recv(infd, (char *)buf, ulen, 0);
+		len = recvn(infd, (char *)buf, ulen, 0);
 		if (len == -1) {
 			int save_errno = WSAGetLastError();
 			char *err_msg = strerror(save_errno);
@@ -1088,7 +1088,7 @@ StructExtForce::RecvFromFileDes(int infd)
 		}
 	}
 
-	ssize_t len = recv(infd, (char *)&iobuf[0], dynamics_nbytes, 0);
+	ssize_t len = recvn(infd, (char *)&iobuf[0], dynamics_nbytes, 0);
 	if (len == -1) {
 		int save_errno = WSAGetLastError();
 		char *err_msg = strerror(save_errno);

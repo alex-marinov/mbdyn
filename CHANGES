@@ -45,6 +45,8 @@ MBDyn 1.X-Devel
 	Known issues:
 		- gravity not used in assembly
 	Bug fixes:
+		- send and recv now retry whenever the required number of bytes was not
+			sent/received (#78, Marco Morandini)
 		- fix and document ViscoelasticBeam Jacobian matrix (Marco Morandini & Wenguo Zhu)
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives

@@ -61,6 +61,7 @@
 
 #include "extsocket.h"
 
+
 ExtSocketHandler::ExtSocketHandler(UseSocket *pUS, mbsleep_t SleepTime,
 	int recv_flags, int send_flags)
 : ExtRemoteHandler(SleepTime, true, false),
@@ -77,7 +78,7 @@ ExtSocketHandler::~ExtSocketHandler(void)
 		uint8_t u = ES_ABORT;
 
 		// ignore result
-		(void)send(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
+		(void)sendn(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
 	}
 	SAFEDELETE(pUS);
 }
@@ -110,7 +111,7 @@ ExtSocketHandler::Prepare_pre(void)
 
 		pedantic_cout("ExtSocketHandler::Prepare_pre -- NEGOTIATE_CLIENT -- sending negotiation request" << std::endl);
 
-		rc = send(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
+		rc = sendn(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
 
 		pedantic_cout("ExtSocketHandler::Prepare_pre -- NEGOTIATE_CLIENT -- negotiation request sent" << std::endl);
 
@@ -134,7 +135,7 @@ ExtSocketHandler::Prepare_pre(void)
         /* This the client, check if negotiation request has been sent */
 	    pedantic_cout("ExtSocketHandler::Prepare_pre -- NEGOTIATE_SERVER -- trying to receive negotiation request" << std::endl);
 
-		rc = recv(pUS->GetSock(), (char *)&u, sizeof(u), recv_flags);
+		rc = recvn(pUS->GetSock(), (char *)&u, sizeof(u), recv_flags);
 
 		if (rc == SOCKET_ERROR) {
 			return (bOK = false);
@@ -166,7 +167,7 @@ ExtSocketHandler::Prepare_post(bool ok)
 	if (NegotiateRequest()) {
 		uint8_t u = ok ? ES_OK : ES_ABORT;
         pedantic_cout("ExtSocketHandler: sending negotiation response" << std::endl);
-		ssize_t rc = send(pUS->GetSock(), (const char *)&u, sizeof(u),
+		ssize_t rc = sendn(pUS->GetSock(), (const char *)&u, sizeof(u),
 			send_flags);
 		if (rc == SOCKET_ERROR) {
 			int save_errno = WSAGetLastError();
@@ -187,7 +188,7 @@ ExtSocketHandler::Prepare_post(bool ok)
 	} else {
 		uint8_t u;
 		pedantic_cout("ExtSocketHandler: receiving negotiation response" << std::endl);
-		ssize_t rc = recv(pUS->GetSock(), (char *)&u, sizeof(u),
+		ssize_t rc = recvn(pUS->GetSock(), (char *)&u, sizeof(u),
 			recv_flags);
 		if (rc == SOCKET_ERROR) {
 			int save_errno = WSAGetLastError();
@@ -234,7 +235,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 		u = ES_REGULAR_DATA;
 	}
 	pedantic_cout("ExtSocketHandler: sending when to send data" << std::endl);
-	ssize_t rc = send(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
+	ssize_t rc = sendn(pUS->GetSock(), (const char *)&u, sizeof(u), send_flags);
 	if (rc == SOCKET_ERROR) {
 		int save_errno = WSAGetLastError();
 		silent_cerr("ExtSocketHandler: send() failed "
@@ -297,7 +298,7 @@ ExtSocketHandler::Recv_pre(void)
                 unsigned long mode = 1;
                 int result = ioctlsocket(pUS->GetSock(), FIONBIO, &mode);
             }
-            rc = recv(pUS->GetSock(), (char *)&u, sizeof(u),
+            rc = recvn(pUS->GetSock(), (char *)&u, sizeof(u),
 				recv_flags );
             save_errno = WSAGetLastError();
             if (pUS->IsBlocking()){
@@ -306,7 +307,7 @@ ExtSocketHandler::Recv_pre(void)
                 int result = ioctlsocket(pUS->GetSock(), FIONBIO, &mode);
             }
 #else
-			rc = recv(pUS->GetSock(), (char *)&u, sizeof(u),
+			rc = recvn(pUS->GetSock(), (char *)&u, sizeof(u),
 				recv_flags | MSG_DONTWAIT);
             save_errno = WSAGetLastError();
 #endif /* _WIN32 */
@@ -332,7 +333,7 @@ ExtSocketHandler::Recv_pre(void)
 
 	} else {
 	    // wait (block) until the status code is returned
-		ssize_t rc = recv(pUS->GetSock(), (char *)&u, sizeof(u), recv_flags);
+		ssize_t rc = recvn(pUS->GetSock(), (char *)&u, sizeof(u), recv_flags);
 
 		if (rc == SOCKET_ERROR) {
 			int save_errno = WSAGetLastError();
