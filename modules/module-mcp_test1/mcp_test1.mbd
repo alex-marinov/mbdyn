@@ -81,7 +81,7 @@ begin: control data;
     use automatic differentiation;
     output meter: closest next, 0, forever, const, 1e-3;
     default output: all;
-    loadable elements: 16;
+    loadable elements: 17;
     genels: 1;
     abstract nodes: 1;
 end: control data;
@@ -92,6 +92,9 @@ end: nodes;
 
 begin: elements;
     module load: "libmodule-mcp_test1.la";
+
+    user defined: 0, mcp test1,
+    m1, k1, q1_0, qdot1_0, m2, k2, q2_0, qdot2_0;
 
     user defined: 1, mcp test2,
     m1, k1, q1_0, qdot1_0, string, "-m1 * g * sin(omega * Time)",
