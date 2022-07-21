@@ -64,6 +64,47 @@
 
 #include "sock.h"
 
+
+ssize_t recvn(int fd, char *vptr, size_t n, int flags) {
+    size_t  nleft;
+    ssize_t nread;
+    char   *ptr;
+
+    ptr = vptr;
+    nleft = n;
+    while (nleft > 0) {
+	if ( (nread = recv(fd, ptr, nleft, flags)) < 0) {
+	    if (errno == EINTR)
+		nread = 0;	/* and call recv() again */
+	    else
+		return (-1);
+	} else if (nread == 0)
+	    break;		/* EOF */
+	nleft -= nread;
+	ptr += nread;
+    }
+    return (n - nleft); 	/* return >= 0 */
+};
+
+ssize_t sendn(int fd, const char* vptr, size_t n, int flags) {
+    size_t nleft;
+    ssize_t nwritten;
+    const char* ptr;
+    ptr = vptr;
+    nleft = n;
+    while(nleft > 0) {
+        if ((nwritten = send(fd, ptr, nleft, flags)) <= 0) {
+            if (nwritten < 0 && errno == EINTR)
+                nwritten = 0;  /* and call send() again */
+            else
+                return -1;     /* error */
+        }
+        nleft -= nwritten;
+        ptr += nwritten;
+    }
+    return n;
+};
+
 int
 mbdyn_make_inet_socket(SOCKET* sock, struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int dobind, int *perrno)
