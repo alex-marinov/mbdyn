@@ -269,7 +269,7 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
 
       Vec3 e3a(RvTmp.GetVec(3));
       v = (pNode1->GetVCurr()-pNode2->GetVCurr()).Dot(e3a);
-      displ = x2mx1.Dot(e3a);
+      displ = -x2mx1.Dot(e3a);
       doublereal modF = std::max(F.Norm(), preF);
       try {
           fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
