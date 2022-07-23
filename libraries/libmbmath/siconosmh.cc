@@ -40,6 +40,10 @@
 
 #include "mbconfig.h"
 
+// This code provides interfaces to INRIA's Siconos library
+// https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html
+// https://github.com/siconos/siconos
+
 #ifdef USE_SICONOS
 #include "sp_gradient.h"
 #include "myassert.h"

@@ -81,6 +81,7 @@ libmbwrap_la_LIBADD = \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @TRILINOS_LIBS@ \
+@SICONOS_LIBS@ \
 @LIBS@ \
 @FCLIBS@
 

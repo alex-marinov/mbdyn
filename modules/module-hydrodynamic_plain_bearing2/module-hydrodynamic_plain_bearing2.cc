@@ -11200,12 +11200,12 @@ namespace {
      }
 
      HydroActiveComprNodeMCP::HydroActiveComprNodeMCP(integer iNodeNo,
-                                                const SpColVector<doublereal, 2>& x,
-                                                HydroMesh* pParent,
-                                                ContactModel* pContactModel,
-                                                std::unique_ptr<FrictionModel>&& pFrictionModel,
-                                                SolverBase::StepIntegratorType eIntegPressure,
-                                                SolverBase::StepIntegratorType eIntegDensity)
+                                                      const SpColVector<doublereal, 2>& x,
+                                                      HydroMesh* pParent,
+                                                      ContactModel* pContactModel,
+                                                      std::unique_ptr<FrictionModel>&& pFrictionModel,
+                                                      SolverBase::StepIntegratorType eIntegPressure,
+                                                      SolverBase::StepIntegratorType eIntegDensity)
           :HydroCompressibleNode(iNodeNo,
                                  x,
                                  pParent,
@@ -11238,7 +11238,7 @@ namespace {
 
      HydroFluid::CavitationState HydroActiveComprNodeMCP::GetCavitationState() const
      {
-          return Theta[0] > 0. ? HydroFluid::FULL_FILM_REGION : HydroFluid::CAVITATION_REGION;
+          return eCavitationState;
      }
 
      void HydroActiveComprNodeMCP::GetTheta(std::array<doublereal, iNumDofMax>& ThetaArg, doublereal) const
@@ -11439,7 +11439,7 @@ namespace {
      {
           UpdateTheta(X, XP);
           UpdateCavitationState();
-          //ResolveCavitationState(X, XP);
+          ResolveCavitationState(X, XP);
      }
      
      void
@@ -11448,6 +11448,11 @@ namespace {
                                      doublereal dCoef,
                                      SpFunctionCall func)
      {
+          if (func & SpFunctionCall::INITIAL_ASS_FLAG) {
+               Theta[0] = s[0] * XCurr(iGetFirstDofIndex(func));
+               HYDRO_ASSERT(std::isfinite(Theta[0]));
+          }
+          
           HYDRO_ASSERT(eCurrFunc == (func & sp_grad::STATE_MASK));
 
           switch (func) {
@@ -19254,7 +19259,7 @@ namespace {
           rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
           pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
 
-          if (func & SpFunctionCall::REGULAR_FLAG) {
+          if (bRegularFlag) {
                rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
           } else {
                SpGradientTraits<G>::ResizeReset(drho_dt, 0., 0);

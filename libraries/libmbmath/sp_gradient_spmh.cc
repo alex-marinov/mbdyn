@@ -126,7 +126,25 @@ SpGradientSparseMatrixHandler::IncCoef(integer iRow, integer iCol, const doubler
 
      g.Reset(0., iCol, dCoef);
 
-     AddItem(iRow, g);
+     while (!AddItem(iRow, g)) {
+          // Will not be efficient but safe
+          ASSERT(0);
+     }
+}
+
+void
+SpGradientSparseMatrixHandler::DecCoef(integer iRow, integer iCol, const doublereal& dCoef)
+{
+     // Not recommended for general use
+     // Needed for DataManager::InitialJointAssembly to make it independent from the bUseAutoDiff() flag
+     sp_grad::SpGradient g;
+
+     g.Reset(0., iCol, dCoef);
+
+     while (!SubItem(iRow, g)) {
+          // Will not be efficient but safe
+          ASSERT(0);
+     }
 }
 
 MatrixHandler&
@@ -642,6 +660,11 @@ void SpGradientSparseMatrixWrapper::Scale(const std::vector<doublereal>& oRowSca
 bool SpGradientSparseMatrixWrapper::AddItem(integer iRow, const sp_grad::SpGradient& oItem)
 {
      return pMH->SpGradientSparseMatrixHandler::AddItem(iRow, oItem);
+}
+
+bool SpGradientSparseMatrixWrapper::SubItem(integer iRow, const sp_grad::SpGradient& oItem)
+{
+     return pMH->SpGradientSparseMatrixHandler::SubItem(iRow, oItem);
 }
 
 void SpGradientSparseMatrixWrapper::EnumerateNz(const std::function<EnumerateNzCallback>& func) const

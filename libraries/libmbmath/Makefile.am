@@ -97,7 +97,7 @@ libmbmath_la_SOURCES += \
 ldl_.c
 endif
 
-libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@ @TRILINOS_LIBS@
+libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@ @TRILINOS_LIBS@ @SICONOS_LIBS@
 libmbmath_la_LDFLAGS =
 
 noinst_PROGRAMS = matmultest itertest dgeequtest subtest

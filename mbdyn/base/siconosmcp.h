@@ -41,6 +41,14 @@
 #ifndef __SICONOS_MCP_SOLVER_H__INCLUDED__
 #define __SICONOS_MCP_SOLVER_H__INCLUDED__
 
+// This code provides interfaces to INRIA's Siconos library
+// https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html
+// https://github.com/siconos/siconos
+
+// It is a reference implementation for the solution of Mixed (nonlinear) Complementarity Problems (MCP).
+// See https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/users_guide/problems_and_solvers/mcp.html#mixed-non-linear-complementarity-problem-mcp
+// Right now only dense matrices are supported for MCP problems by the Siconos library.
+
 #ifdef USE_SICONOS
 #include "nonlin.h"
 #include "linesearch.h"

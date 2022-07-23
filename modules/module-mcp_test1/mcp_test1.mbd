@@ -62,11 +62,14 @@ begin: initial value;
     time step: 1e-3;
 
     max iterations: 100;
-    tolerance: 1e-6;
+    tolerance: 1e-4, test, norm, 1e-4, test, none;
     method: implicit euler;
 
     linear solver: umfpack, grad, scale, row max column max, always, max iterations, 3;
-    nonlinear solver: mcp newton min fb, lambda min, 0., tolerance x, 1e-7;
+    nonlinear solver: mcp newton min fb, lambda min, 1e-6, tolerance x, 1e-10;
+
+    ## linear solver: siconos dense;
+    ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-6;
 
     derivatives tolerance: 1e-5;
     derivatives max iterations: 10;

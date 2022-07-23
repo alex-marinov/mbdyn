@@ -40,6 +40,10 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+// This code provides interfaces to INRIA's Siconos library
+// https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html
+// https://github.com/siconos/siconos
+
 #ifdef USE_SICONOS
 #include <numerics/SolverOptions.h>
 #include <numerics/MCP_cst.h>
@@ -160,6 +164,27 @@ void SiconosMCPSolver::Attach(const NonlinearProblem* pNLPCurr, Solver* pS)
      pOptions->callback->env = this;
      pOptions->dparam[SICONOS_DPARAM_LSA_ALPHA_MIN] = dLambdaMin;
 
+     const bool bResTest = pGetResTest()->GetType() != NonlinearSolverTest::NONE;
+     const bool bSolTest = pGetSolTest()->GetType() != NonlinearSolverTest::NONE;
+
+     SICONOS_STOPPING_CRITERION eCriterion = SICONOS_STOPPING_CRITERION_RESIDU;
+     
+     if (bResTest && bSolTest) {
+          eCriterion = SICONOS_STOPPING_CRITERION_RESIDU_AND_STATIONARITY;
+     } else if (!bResTest && bSolTest) {
+          eCriterion = SICONOS_STOPPING_CRITERION_STATIONARITY;
+     }
+
+     pOptions->iparam[SICONOS_IPARAM_STOPPING_CRITERION] = eCriterion;
+     
+     auto* params = static_cast<newton_LSA_param*>(calloc(1, sizeof(newton_LSA_param)));
+
+     pOptions->solverParameters = params;
+     params->rho = dMcpRho;
+     params->p = dMcpP;
+     params->sigma = dMcpSigma;
+     params->check_dir_quality = true;
+     
      auto* const pSM = dynamic_cast<SiconosDenseSolutionManager*>(pS->pGetSolutionManager());
 
      if (!pSM) {

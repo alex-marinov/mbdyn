@@ -93,6 +93,9 @@ public:
      virtual void
      IncCoef(integer iRow, integer iCol, const doublereal& dCoef) override;
 
+     virtual void
+     DecCoef(integer iRow, integer iCol, const doublereal& dCoef) override;
+     
      virtual const doublereal&
      operator()(integer iRow, integer iCol) const override;
 
@@ -331,6 +334,8 @@ public:
      virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale) override;
 
      virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem) override;
+
+     virtual bool SubItem(integer iRow, const sp_grad::SpGradient& oItem) override;     
 
      virtual void EnumerateNz(const std::function<EnumerateNzCallback>& func) const override;
      

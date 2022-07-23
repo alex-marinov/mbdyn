@@ -5712,6 +5712,12 @@ Solver::AllocateNonlinearSolver()
                                        MCPNewtonFB(pDM, *this, oLineSearchParam));
                 break;
         case NonlinearSolver::MCP_NEWTON_MIN_FB:
+                if (!pDM->bUseAutoDiff()) {
+                        silent_cerr("nonlinear solver \"mcp newton min fb\" requires support for automatic differentiation which was not enabled!\n"
+                                    "add the statement \"use automatic differentiation;\" inside the control data section to enable it!\n");
+                        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
+                
                 SAFENEWWITHCONSTRUCTOR(pNLS,
                                        MCPNewtonMinFB,
                                        MCPNewtonMinFB(pDM, *this, oLineSearchParam));

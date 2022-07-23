@@ -199,7 +199,8 @@ protected:
                            doublereal dLambda,
                            doublereal dSlope) const;
      void Residual(doublereal& f, integer iIterCnt);
-     void Jacobian(MatrixHandler* pJac);
+     void Jacobian();
+     void OutputJacobian(const MatrixHandler& J) const;
 };
 
 class LineSearchFull: public LineSearchSolver
@@ -267,8 +268,12 @@ public:
 };
 
 // Newton Fischer Burmeister solver for Mixed (nonlinear) Complementarity Problems (MCP)
-// This solver is based on code from INRIA's Siconos library
-// (https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html).
+// This code is basically a re-implementation of Newton_methods.c from INRIA's Siconos library.
+// https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html
+// https://github.com/siconos/siconos
+
+// However this particular solver is built solely on top of MBDyn's native libraries.
+// So, there is no need to link with the Siconos library in order to use it.
 
 class LineSearchMCP: public LineSearchSolver
 {
@@ -280,19 +285,29 @@ public:
 
 protected:
      void Attach(const NonlinearProblem* pNLP, Solver* pS);
+     void ComputeHInt(const VectorHandler& z,
+                      const VectorHandler& F,
+                      const SpGradientSparseMatrixHandler& nablaFMCP,
+                      MatrixHandler& H);
      void ComputeH(const VectorHandler& z,
                    const VectorHandler& F,
-                   const SpGradientSparseMatrixHandler& nablaFMCP,
-                   MatrixHandler& H);
+                   const SpGradientSparseMatrixHandler& nablaFMCP);     
+     void ComputeHInt(const VectorHandler& z,
+                      const VectorHandler& F,
+                      MatrixHandler& H,
+                      std::vector<doublereal>& rgRowScale,
+                      std::vector<doublereal>& rgColScale);
      void ComputeH(const VectorHandler& z,
                    const VectorHandler& F,
-                   MatrixHandler& H,
                    std::vector<doublereal>& rgRowScale,
-                   std::vector<doublereal>& rgColScale);
+                   std::vector<doublereal>& rgColScale);     
+     void ComputeHDescInt(const SpGradientSparseMatrixHandler& nablaFMCP,
+                          const VectorHandler& z,
+                          const VectorHandler& F,
+                          MatrixHandler& H) const;
      void ComputeHDesc(const SpGradientSparseMatrixHandler& nablaFMCP,
                        const VectorHandler& z,
-                       const VectorHandler& F,
-                       MatrixHandler& H) const;
+                       const VectorHandler& F) const;
      void ComputeRHSDesc(const VectorHandler& z, const VectorHandler& F, VectorHandler& Fmin) const;
      void ComputeFMCP(VectorHandler& F);
      doublereal ComputeFMerit(const VectorHandler& z, const VectorHandler& F, VectorHandler& FMerit) const;
@@ -303,6 +318,14 @@ protected:
                          VectorHandler& DeltaZ,
                          const VectorHandler& d,
                          doublereal dInc);
+     void CheckLineSearch(doublereal& dThetaCurr,
+                          const doublereal dThetaPrev,
+                          const VectorHandler& JacThetaFMerit,
+                          VectorHandler& z,
+                          VectorHandler& F,
+                          VectorHandler& FMerit,
+                          VectorHandler& DeltaZ,
+                          const integer iIterCnt);
      doublereal LineSearch(doublereal theta,
                            doublereal preRHS,
                            VectorHandler& z,

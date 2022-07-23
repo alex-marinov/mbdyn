@@ -46,7 +46,7 @@ begin: initial value;
 	time step: (5.66893e-05);
 
 	max iterations: 100;
-	tolerance: 1e-6, test, norm;
+	tolerance: 1e-6, test, norm, 1e-6, test, norm;
         method: hybrid, ms, 0.;
 
         derivatives tolerance: 1e-3, 1e-3;
@@ -56,8 +56,11 @@ begin: initial value;
         linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
         nonlinear solver: mcp newton min fb, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
 
+        ## linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
+        ## nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
+
         ## linear solver: siconos dense;
-        ## nonlinear solver: siconos mcp newton min, lambda min, 1e-16;
+        ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
         
         ## linear solver: umfpack, grad;
         

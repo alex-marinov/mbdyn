@@ -463,7 +463,12 @@ This nonlinear solver is well tested.
 \paragraph{Line search.}
 \emph{Author: Reinhard Resch}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_name} ::= \kw{line search | bfgs}
+    \bnt{nonlinear_solver_name} ::= \{\kw{line search} |
+                                 \kw{bfgs} |
+                                 \kw{mcp newton fb} |
+                                 \kw{mcp newton min fb} |
+                                 \kw{siconos newton fb} |
+                                 \kw{siconos newton min fb}\}
 
     \bnt{nonlinear_solver_data} ::= 
         [ \{ \kw{true}
@@ -486,7 +491,11 @@ This nonlinear solver is well tested.
             [ , \kw{min scale} , \bnt{min_scale} ] ]
         [ , \kw{print convergence info} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{print_convergence_info} \} ]
         [ , \kw{verbose} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{verbose} \} ]
-        [ , \kw{abort at lambda min} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{abort_at_lambda_min} \} ] ;
+        [ , \kw{abort at lambda min} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{abort_at_lambda_min} \} ]
+        [ , \kw{mcp tolerance}, (\ty{real}) \bnt{mcp_tolerance} ]
+        [ , \kw{mcp sigma} , (\ty{real}) \bnt{mcp_sigma} ]
+        [ , \kw{mcp rho} , (\ty{real}) \bnt{mcp_rho} ]
+        [ , \kw{mcp p} , (\ty{real}) \bnt{mcp_p} ] ;
 \end{Verbatim}
 \begin{itemize}
 \item $\nt{tolerance\_x} \ge 0$; default: $\nt{tolerance\_x}=10^{-7}$
@@ -498,10 +507,24 @@ This nonlinear solver is well tested.
 \item $\nt{max\_step} \ge 0$; default: $\nt{max\_step} = 100$
 \item $\nt{factor} \ge 0$; default: $\nt{factor} = 1$
 \item $0 \le \nt{min\_scale} \le 1$; default: $\nt{min\_scale}=10^{-3}$
+\item $\nt{mcp\_tolerance} \ge 0$; default: $\nt{mcp\_tolerance}=2.2\,10^{-16}$
+\item $1 \ge \nt{mcp\_sigma} \ge 0$; default: $\nt{mcp\_sigma}=0.9$
+\item $1 \ge \nt{mcp\_rho} \ge 0$; default: $\nt{mcp\_rho}=10^{-8}$
+\item $\nt{mcp\_p} \ge 0$; default: $\nt{mcp\_p}=2.1$
 \end{itemize}
 
 \subparagraph{Brief description of the solver}
 The line search solver should be used mainly if the Newton Raphson solver diverges and further reduction of the time step is not possible or not available. In many situations this solver is able to handle larger time steps or load increments than the ordinary Newton Raphson solver. However the total number of iterations can increase for large time steps.
+There are different variants of the line search solver.
+\begin{itemize}
+\item \kw{line search}; This is the original implementation based on \cite{NUMERICAL-RECIPES-IN-C}
+\item \kw{bfgs}; Another line search variant using Broyden updates which is also based on \cite{NUMERICAL-RECIPES-IN-C}
+\item \kw{mcp newton fb}; A line search solver which supports Mixed (nonlinear) Complementarity Problems based on a Fischer Burmeister reformulation. It is a re-implementation of \cite{SICONOS-WEBSITE}.
+\item \kw{mcp newton min fb}; Another MCP solver based on a Fischer Burmeister reformulation which uses a min reformulation of the descent direction. It is also a re-implementation of \cite{SICONOS-WEBSITE}.
+\item \kw{siconos mcp newton fb}; This MCP solver is equivalent to \kw{mcp newton fb} and is a wrapper for INRIA's Siconos library \cite{SICONOS-WEBSITE}.
+\item \kw{siconos mcp newton min fb}; A MCP solver equivalent to \kw{mcp newton min fb} which is also a wrapper for INRIA's Siconos library \cite{SICONOS-WEBSITE}.
+\end{itemize}
+MBDyn must be configured with \verb;--with-siconos; in order to use the \kw{siconos mcp newton fb} or \kw{siconos mcp newton min fb} solver.
 
 \subparagraph{The ordinary Newton Raphson strategy}
 The Newton Raphson Solver solves a problem of the form $\boldsymbol{F}\left(\boldsymbol{x}\right)=\boldsymbol{0}$ by means of the iteration $\delta\boldsymbol{x}=\boldsymbol{J}^{-1}\,\boldsymbol{F}$.
@@ -607,6 +630,39 @@ algorithm and QR updates of the Jacobian. The \kw{bfgs} algorithm has also been 
 It can be used only together with the \kw{qr} or the \kw{spqr} linear solvers. If the solution is highly nonlinear but
 sufficiently continuous, then the number of Jacobian evaluations of the \kw{bfgs} solver is usually significanlty lower
 than the \kw{line search} solver.
+
+\subparagraph{MCP solvers}
+A Mixed (nonlinear) Complementarity problem involves the solution of a combined system of equations and inequalities.
+\begin{eqnarray}
+  \bold{F}_e\left(\bold{x}\right) & = & \bold{0} \\
+  \bold{F}_i\left(\bold{x}\right) & \ge & \bold{0} \\
+  \bold{x}_i & \ge & \bold{0} \\
+  \bold{F}_i\left(\bold{x}\right)^T \, \bold{x}_i & = & 0 \\
+  \bold{F}\left(\bold{x}\right) & = & \begin{pmatrix}
+    \bold{F}_e\left(\bold{x}\right) \\
+    \bold{F}_i\left(\bold{x}\right)
+  \end{pmatrix} \\
+  \bold{x} & = & \begin{pmatrix}
+    \bold{x}_e \\
+    \bold{x}_i
+  \end{pmatrix}
+\end{eqnarray}
+\begin{itemize}
+\item $\bold{F}_e$ \dots equations
+\item $\bold{F}_i$ \dots inequalities
+\item $\bold{x}_e$ \dots regular variables
+\item $\bold{x}_i$ \dots complementary variables
+\end{itemize}
+Typical applications involve unilateral contact between rigid bodies \verb;(module-uni_in_plane); or the solution of the Reynolds equation based on a mass conserving cavitation model \verb;(module-hydrodynamic_plain_bearing2);.
+In order to solve a MCP problem, it is required to add the statement \kw{enable mcp}, \kw{yes} to MCP capable elements and to use a MCP capable nonlinear solver.
+Nevertheless, MCP solvers could be used also to solve non MCP problems.
+All MCP capable solvers allow the following additional arguments:
+\begin{itemize}
+\item \kw{mcp\_tolerance} If the magnitude of a complementary variable is smaller than \kw{mcp\_tolerance}, it is considered as zero.
+\item \kw{mcp\_rho} Threshold for choosing the descent direction
+\item \kw{mcp\_sigma} Threshold for backtracking
+\item \kw{mcp\_p} Coefficient for choosing the descent direction
+\end{itemize}
 
 \paragraph{Trilinos NOX solver}
 \emph{Author: Reinhard Resch}

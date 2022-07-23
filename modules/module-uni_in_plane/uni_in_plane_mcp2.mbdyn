@@ -65,7 +65,7 @@ begin: initial value;
      method: implicit euler;
 
      linear solver: siconos dense;
-     nonlinear solver: siconos mcp newton fb, lambda min, 1e-16;
+     nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
 
      output: iterations;
      derivatives tolerance: 1e-2;

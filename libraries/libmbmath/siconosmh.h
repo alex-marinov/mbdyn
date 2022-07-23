@@ -44,8 +44,17 @@
 #ifdef USE_SICONOS
 #include <vector>
 
+// This code provides interfaces to INRIA's Siconos library
+// https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/index.html
+// https://github.com/siconos/siconos
+
 #include "mh.h"
 #include <numerics/NumericsMatrix.h>
+
+// All MCP solvers from Siconos require that all inequalities are located at the end of the functional vector.
+// Furthermore all inequalities must have the same index as the corresponding complementary variables.
+// See https://nonsmooth.gricad-pages.univ-grenoble-alpes.fr/siconos/users_guide/problems_and_solvers/mcp.html#mixed-non-linear-complementarity-problem-mcp
+// The purpose of SiconosIndexMap is to reorder the Jacobian matrix and the functional vector accordingly.
 
 class SiconosIndexMap {
 public:
