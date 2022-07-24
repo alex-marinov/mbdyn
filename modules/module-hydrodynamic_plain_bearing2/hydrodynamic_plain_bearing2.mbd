@@ -47,7 +47,7 @@ begin: initial value;
 
 	max iterations: 100;
 	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: hybrid, ms, 0.;
+        method: hybrid, ms, 0.6;
 
         derivatives tolerance: 1e-3, 1e-3;
 	derivatives max iterations: 20;
@@ -92,7 +92,7 @@ begin: control data;
     tolerance: 1e-10;
     initial stiffness: 1e10;
     use: loadable elements, in assembly;
-	#output meter: closest next, (0), forever, const, (5.66893e-05);
+	output meter: closest next, (0), forever, const, (5.66893e-05);
 	structural nodes: 3;
 	rigid bodies: 2;
 	loadable elements: 1;
@@ -684,8 +684,8 @@ begin: elements;
             viscosity vapor, (1.5e-06),
             mesh, linear finite difference,
             enable mcp, yes,
-            pressure step integrator, implicit euler,
-            density step integrator, implicit euler,
+            pressure step integrator, ms,
+            density step integrator, ms,
             geometry, cylindrical,
                 mesh position, at shaft,
                 bearing width, (0.0062),

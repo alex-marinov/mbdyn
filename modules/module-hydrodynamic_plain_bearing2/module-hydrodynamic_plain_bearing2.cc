@@ -11439,7 +11439,7 @@ namespace {
      {
           UpdateTheta(X, XP);
           UpdateCavitationState();
-          ResolveCavitationState(X, XP);
+          // ResolveCavitationState(X, XP);
      }
      
      void
@@ -21589,8 +21589,10 @@ namespace {
 
           oThermModel.GetViscosityLiquid(T, eta);
 
-          if (rho < rholiq) {
+          if (rho >= 0. && rho < rholiq) {
                eta *= ((1. - etavap_etaliq) * rho / rholiq + etavap_etaliq);
+          } else if (rho < 0.) {
+               eta *= etavap_etaliq;
           }
      }
 
