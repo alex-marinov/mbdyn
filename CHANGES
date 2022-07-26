@@ -36,6 +36,7 @@ MBDyn 1.X-Devel
 		- added support for NetCDF4 (Louis Gagnon)
 		- improve diagnostics when input file cannot be opened (#40)
 	Backward compatibility issues:
+		- fixed Front1D gust element
 		- get rid of third order stepsol; (Marco Morandini)
 		- now escape sequences are honored in "hints"
 		- conditional compilation of aerod2.f

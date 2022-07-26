@@ -681,38 +681,42 @@ The syntax of the \kw{front 1D} gust model is:
 %\end{verbatim}
 This model consists in a uniform front, defined as
 \begin{displaymath}
-	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{\T{f} \cdot \T{x} + V_\mathrm{ref} \cdot t}
+	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{V_\mathrm{ref} \cdot t - \T{f} \cdot \T{x}}
 \end{displaymath}
 where
 \begin{itemize}
-\item $\T{v}$ is the velocity perturbation;
-\item $\T{x}$ is the position of the point whose airstream velocity
-is being computed;
+\item $\T{v}$ is the velocity perturbation in the global frame;
+\item $\T{x}$ is the position, in the global frame, of the point whose airstream velocity
+is being evaluated;
 \item $t$ is the current time;
 \item $\T{n}$ is the unit vector \nt{perturbation\_direction}
-that defines the direction of the velocity perturbation;
+that defines the direction of the velocity perturbation in the global frame;
 \item $g\plbr{\cdot}$ is the function \nt{front\_profile}
-that defines the gust profile;
+that defines the gust profile as a function of $x = V_\mathrm{ref} \cdot t - \T{f} \cdot \T{x}$, i.e., the local position (in units of length) of the measure point in a frame moving with the gust front along the $\T{f}$ direction;
 \item $\T{f}$ is the unit vector \nt{front\_direction}
-that defines the direction of propagation of the front;
-\item $V_\mathrm{ref}$ is the velocity \nt{front\_velocity}
+that defines the direction of propagation of the front in the global frame;
+\item $V_\mathrm{ref}$ is the constant velocity \nt{front\_velocity}
 of propagation of the front in direction $\T{f}$.
 \end{itemize}
 As an example, a transverse cosine-shaped gust, with a wavelength of 100 m
 and a peak velocity of 5 m/s moving downstream at the airstream speed,
-100 m/s, in standard air, is presented:
+100 m/s, in standard air, starting along axis $x$ of the global frame at $-200$ m with respect to the origin of the global frame, is presented:
 \begin{verbatim}
     set: real waveLength = 100.; # m
     set: real V_inf = 100.;      # m/s
     set: real V_g = 5.;          # m/s
+    set: real x_0 = -200;         # m, position of the gust's local frame at Time = 0.
     air properties: std, SI,
         1.,0.,0., const, V_inf,  # reference airstream along X
         gust, front 1D,
             1.,0.,0.,            # front moving along X
             0.,0.,1.,            # gust along Z
             V_inf,               # front moving at V_inf
-            cosine, 0., pi/waveLength, V_g/2., one, 0.;
+            cosine, -x_0, pi/waveLength, V_g/2., one, 0.;
+            # step, -x_0, V_g, 0.;
 \end{verbatim}
+% set: real T_0 = 2;           # s, time at which the gust origin passes from the global origin
+% cosine, V_inf*T_0, pi/waveLength, V_g/2., one, 0.;
 
 
 
