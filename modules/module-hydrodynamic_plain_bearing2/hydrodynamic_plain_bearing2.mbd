@@ -47,23 +47,32 @@ begin: initial value;
 
 	max iterations: 100;
 	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: hybrid, ms, 0.6;
+        method: hybrid, ms, 0.;
 
+	enforce constraint equations: constraint violations;
+        
         derivatives tolerance: 1e-3, 1e-3;
 	derivatives max iterations: 20;
 	derivatives coefficient: 1e-5;
 
+        set: bool enable_mcp = TRUE;
         linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
         nonlinear solver: mcp newton min fb, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
 
+        ## set: bool enable_mcp = TRUE;
+        ## linear solver: siconos dense;
+        ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
+
+        ## set: bool enable_mcp = FALSE;
         ## linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
         ## nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
 
         ## linear solver: siconos dense;
         ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
-        
+
+        ## set: bool enable_mcp = FALSE;
         ## linear solver: umfpack, grad;
-        
+
         ## nonlinear solver: nox,
         ## modified, 100,
         ## keep jacobian matrix,
@@ -91,7 +100,7 @@ begin: control data;
     max iterations: 10;
     tolerance: 1e-10;
     initial stiffness: 1e10;
-    use: loadable elements, in assembly;
+    #use: loadable elements, in assembly;
 	output meter: closest next, (0), forever, const, (5.66893e-05);
 	structural nodes: 3;
 	rigid bodies: 2;
@@ -634,20 +643,45 @@ begin: elements;
 						    const, 0.,
 						    const, 0.;
 					   
-					   
-	joint: (3003), revolute hinge,
+
+
+	joint: (3003), total joint,
+			(1004),
+				position,				reference, (5004), null,
+				position orientation, 	reference, (5004), eye,
+				rotation orientation, 	reference, (5004), eye,
+                        (1003),
+			position, 			 reference, (5004), null,
+			position orientation, reference, (5004), eye,
+			rotation orientation, reference, (5004), eye,				
+			position constraint, 
+					active, 
+					active, 
+					active,
+				component, const, 0.,
+				           const, 0.,
+					   const, 0.,
+			orientation constraint,
+					active,
+					active,
+					inactive,
+				component, const, 0.,
+					   const, 0.,
+					   const, 0.;
+
+	## joint: (3003), revolute hinge,
 		
-		(1004),
+	## 	(1004),
 			
-			reference, (5004), null,
-			hinge,
-				1,1.,0.,0.,3,0.,0.,1.,
+	## 		reference, (5004), null,
+	## 		hinge,
+	## 			1,1.,0.,0.,3,0.,0.,1.,
 		
-		(1003),
+	## 	(1003),
 			
-			reference, (5004), null,
-			hinge,
-				1,1.,0.,0.,3,0.,0.,1.;					   
+	## 		reference, (5004), null,
+	## 		hinge,
+	## 			1,1.,0.,0.,3,0.,0.,1.;					   
 
 	body: (2001), (1003), 
                 
@@ -683,7 +717,7 @@ begin: elements;
             hydraulic fluid, reference, (6001),
             viscosity vapor, (1.5e-06),
             mesh, linear finite difference,
-            enable mcp, yes,
+            enable mcp, enable_mcp,
             pressure step integrator, ms,
             density step integrator, ms,
             geometry, cylindrical,
@@ -707,9 +741,9 @@ begin: elements;
                     pressure, (10000),
                     position, (0.01) * pi * 71. / 360., 0.,
                     rectangle, width, 1.38e-3, height, 0.8 * (0.0062),
-            pressure dof scale, 1e11,
             theta dof scale, 1e6,
-            equation scale, 1e-4,
+            pressure dof scale, 1e9,
+            equation scale, 5e-5,            
             output pressure, yes,
             output density, yes,
             output friction loss, yes,
