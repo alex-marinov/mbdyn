@@ -38,19 +38,7 @@
 #include "invdyn.h"
 #include "output.h"
 
-#ifdef USE_AUTODIFF
-#include "gradient.h"
-#include "matvec.h"
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-#include "sp_gradient.h"
-#include "sp_gradient_op.h"
-#include "sp_matrix_base.h"
-#endif
-
 extern const char* psStructNodeNames[];
-
 
 class StructDispNode;
 
@@ -99,9 +87,6 @@ protected:
 	mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
 	mutable Vec3 XPPPrev;   /* Accelerazione lineare  al passo prec. */
 
-#ifdef USE_SPARSE_AUTODIFF
-        mutable Vec3 XY;
-#endif
 	const StructNode *pRefNode;	/* Reference node for relative prediction
 					WARNING: used only if the relative macro is
 					active (not default, see configuration options!) */
@@ -127,13 +112,6 @@ protected:
 	// makes sense also for dummy nodes, as they may inherit
 	// accelerations from the parent node
 	bool bOutputAccels;
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	/*
-	 * Returns the dof index -1 of VCurr during initial assembly
-	 */
-	virtual integer iGetInitialFirstIndexPrime() const=0;
-#endif
 
 public:
 	/* Costruttore definitivo */
@@ -216,34 +194,6 @@ public:
 
 	virtual inline const Vec3& GetXPPPrev(void) const;
 	virtual inline const Vec3& GetXPPCurr(void) const;
-
-#ifdef USE_AUTODIFF
-	inline void GetXCurr(grad::Vector<doublereal, 3>& X, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	template <grad::index_type N_SIZE>
-	inline void GetXCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& X, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	inline void GetVCurr(grad::Vector<doublereal, 3>& V, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	template <grad::index_type N_SIZE>
-	inline void GetVCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& V, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-     	inline void GetXCurr(sp_grad::SpColVector<doublereal, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetXCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetVCurr(sp_grad::SpColVector<doublereal, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetXCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetVCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
-#endif
      
 	virtual inline const doublereal& dGetPositionStiffness(void) const;
 	virtual inline const doublereal& dGetVelocityStiffness(void) const;
@@ -364,166 +314,6 @@ StructDispNode::GetXPPCurr(void) const
 	return XPPCurr;
 }
 
-#ifdef USE_AUTODIFF
-inline void
-StructDispNode::GetXCurr(grad::Vector<doublereal, 3>& X, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	X = XCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void
-StructDispNode::GetXCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& X, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g = X(i);
-		g.SetValuePreserve(XCurr(i));
-		g.DerivativeResizeReset(pDofMap,
-					iFirstDofIndex + 1,
-					iFirstDofIndex + 4,
-					MapVectorBase::GLOBAL,
-					0.);
-		g.SetDerivativeGlobal(iFirstDofIndex + i, -dCoef);
-	}
-}
-
-inline void
-StructDispNode::GetVCurr(grad::Vector<doublereal, 3>& V, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	V = VCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void
-StructDispNode::GetVCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& V, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-		iFirstDofIndex = iGetInitialFirstIndexPrime();
-		break;
-
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g = V(i);
-		g.SetValuePreserve(VCurr(i));
-		g.DerivativeResizeReset(pDofMap,
-					iFirstDofIndex + 1,
-					iFirstDofIndex + 4,
-					MapVectorBase::GLOBAL,
-					0.);
-		g.SetDerivativeGlobal(iFirstDofIndex + i, -1.);
-	}
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-inline void StructDispNode::GetXCurr(sp_grad::SpColVector<doublereal, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     X = XCurr;
-}
-
-inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  SP_GRAD_ASSERT(dCoef == 1.);
-     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-     case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex();
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-     
-     X.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  X(i).Reset(XCurr(i), iFirstDofIndex + i, -dCoef);
-     }
-}
-
-inline void StructDispNode::GetXCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& X, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     X.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          X(i).Reset(XCurr(i), -dCoef * XY(i));
-     }
-}
-
-inline void StructDispNode::GetVCurr(sp_grad::SpColVector<doublereal, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     V = VCurr;
-}
-
-inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  SP_GRAD_ASSERT(dCoef == 1.);
-	  iFirstDofIndex = iGetInitialFirstIndexPrime();
-	  break;
-
-     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-     case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex();
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-     
-     V.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  V(i).Reset(VCurr(i), iFirstDofIndex + i, -1.);
-     }
-}
-
-inline void StructDispNode::GetVCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& V, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     V.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          V(i).Reset(VCurr(i), -XY(i));
-     }
-}
-#endif
-
 inline const doublereal&
 StructDispNode::dGetPositionStiffness(void) const
 {
@@ -589,10 +379,6 @@ protected:
 	// "mutable" because it can be set in iGetPrivDataIdx
 	mutable bool bComputeAccels;
 	mutable AutomaticStructDispElem *pAutoStr;
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
@@ -714,15 +500,6 @@ DynamicStructDispNode::iGetFirstMomentumIndex(void) const
 	return DofOwnerOwner::iGetFirstIndex() + 3;
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-DynamicStructDispNode::iGetInitialFirstIndexPrime() const
-{
-	// FIXME: Is it correct this way?
-	return iGetFirstIndex() + 3;
-}
-#endif
-
 /* DynamicStructDispNode - end */
 
 
@@ -739,12 +516,6 @@ DynamicStructDispNode::iGetInitialFirstIndexPrime() const
 
 /* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
 class StaticStructDispNode : virtual public StructDispNode {
-protected:
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
-
 public:
 	/* Costruttore definitivo */
 	StaticStructDispNode(unsigned int uL,
@@ -785,14 +556,6 @@ StaticStructDispNode::iGetFirstMomentumIndex(void) const
 {
 	return DofOwnerOwner::iGetFirstIndex();
 }
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-StaticStructDispNode::iGetInitialFirstIndexPrime() const
-{
-	// FIXME: Is it correct this way?
-	return iGetFirstIndex() + 3;
-}
-#endif
 
 /* StaticStructDispNode - end */
 
@@ -812,9 +575,6 @@ StaticStructDispNode::iGetInitialFirstIndexPrime() const
  * (non ancora implementate). */
 
 class StructNode : virtual public StructDispNode
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-, public grad::AlignedAlloc
-#endif
 {
 public:
 	class ErrGeneric : public MBDynErrBase {
@@ -872,45 +632,6 @@ protected:
 	// accelerations from the parent node
 	// FIXME: qui o in StructDispNode	
 	// bool bOutputAccels;
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-private:
-       mutable bool bNeedRotation, bUpdateRotation, bUpdateRotationGradProd;
-#endif
-
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-	grad::FunctionCall eCurrFunc;
-        void UpdateRotation(doublereal dCoef) const;
-		
-	static const grad::index_type iNumADVars = 3; // Account for the initial assembly phase
-	mutable grad::Matrix<grad::Gradient<iNumADVars>, 3, 3> RCurr_grad;
-	mutable grad::Vector<grad::Gradient<iNumADVars>, 3> WCurr_grad;
-
-	template <typename T>
-	inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& RCurr, grad::Vector<T, 3>& WCurr, doublereal dCoef, enum grad::FunctionCall func) const;
-
-	inline void GetgCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const;
-
-	inline void GetgPCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const;
-        inline void GetWCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-        sp_grad::SpFunctionCall eCurrFunc;
-        mutable sp_grad::SpMatrixA<sp_grad::SpGradient, 3, 3, 3> RCurr_grad;
-        mutable sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 3> WCurr_grad;
-        mutable sp_grad::SpMatrixA<sp_grad::GpGradProd, 3, 3> RCurr_gradp;
-        mutable sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> WCurr_gradp;
-        mutable Vec3 gY;
-        void UpdateRotation(doublereal dCoef) const;
-        void UpdateRotation(const VectorHandler& Y, doublereal dCoef) const;
-        template <typename T>
-        inline void UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& RCurr, sp_grad::SpColVector<T, 3>& WCurr, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-        inline void GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-        inline void GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-        inline void GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-#endif
-
 public:
 	/* Costruttore definitivo */
 	StructNode(unsigned int uL,
@@ -995,60 +716,6 @@ public:
 	virtual inline const Vec3& GetWPCurr(void) const;
 	virtual inline const Vec3& GetWPPrev(void) const;
 
-#ifdef USE_AUTODIFF
-	inline void GetgCurr(grad::Vector<doublereal, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	template <grad::index_type N_SIZE>
-	inline void GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-        inline void GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
-	template <grad::index_type N_SIZE>
-	inline void GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	inline void GetRCurr(grad::Matrix<doublereal, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	template <grad::index_type N_SIZE>
-	inline void GetRCurr(grad::Matrix<grad::Gradient<N_SIZE>, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	inline void GetWCurr(grad::Vector<doublereal, 3>& W, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-	template <grad::index_type N_SIZE>
-	inline void GetWCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& W, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-     	inline void GetgCurr(sp_grad::SpColVector<doublereal, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-        inline void GetgPCurr(sp_grad::SpColVector<doublereal, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-                
-	inline void GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetRCurr(sp_grad::SpMatrix<doublereal, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetRCurr(sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetWCurr(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetgCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetgPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetRCurr(sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void GetWCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const;     
-#endif
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-        virtual void UpdateJac(doublereal dCoef) override;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
-#endif
 	virtual inline bool bOmegaRotates(void) const;
 
 	virtual void OutputPrepare(OutputHandler &OH);
@@ -1205,393 +872,6 @@ StructNode::GetWPCurr(void) const
 	return WPCurr;
 }
 
-#ifdef USE_AUTODIFF
-inline void StructNode::GetgCurr(grad::Vector<doublereal, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	g = gCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g_i = g(i);
-		g_i.SetValuePreserve(gCurr(i));
-		g_i.DerivativeResizeReset(pDofMap,
-					  iFirstDofIndex + 4,
-					  iFirstDofIndex + 7,
-					  MapVectorBase::GLOBAL,
-					  0.);
-		g_i.SetDerivativeGlobal(iFirstDofIndex + i + 3, -dCoef);
-	}
-}
-
-inline void StructNode::GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const
-{
-        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
-        
-        gP = gPCurr;
-}
-        
-template <grad::index_type N_SIZE>
-inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-	     gP = gPCurr;
-	     return;
-	     
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-	     iFirstDofIndex = iGetFirstIndex() + 3;
-	     break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g_i = gP(i);
-		g_i.SetValuePreserve(gPCurr(i));
-		g_i.DerivativeResizeReset(pDofMap,
-                                          iFirstDofIndex + 1,
-                                          iFirstDofIndex + 3,
-                                          MapVectorBase::GLOBAL,
-                                          0.);
-		g_i.SetDerivativeGlobal(iFirstDofIndex + i, -1.);
-	}
-}
-
-inline void StructNode::GetRCurr(grad::Matrix<doublereal, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	bNeedRotation = true;
-	R = RCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void StructNode::GetRCurr(grad::Matrix<grad::Gradient<N_SIZE>, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-     GRADIENT_ASSERT(bNeedRotation);
-     GRADIENT_ASSERT(!bUpdateRotation);
-     
-     using namespace grad;
-
-#if !defined(USE_SPARSE_AUTODIFF)
-     index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case INITIAL_ASS_JAC:
-	  GRADIENT_ASSERT(dCoef == 1.);
-     case INITIAL_DER_JAC:
-     case REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 4;
-	  break;
-
-     default:
-	  GRADIENT_ASSERT(false);
-     }
-#endif
-     
-     for (index_type i = 1; i <= 3; ++i) {
-	  for (index_type j = 1; j <= 3; ++j) {
-	       const auto& RCurr_ij = RCurr_grad(i, j);	       
-	       Gradient<N_SIZE>& R_ij = R(i, j);
-
-	       R_ij.SetValuePreserve(RCurr_ij.dGetValue());
-	       
-#if !defined(USE_SPARSE_AUTODIFF)
-	       R_ij.DerivativeResizeReset(pDofMap,
-					  iFirstDofIndex + RCurr_ij.iGetStartIndexLocal(),
-					  iFirstDofIndex + RCurr_ij.iGetEndIndexLocal(),
-					  MapVectorBase::GLOBAL,
-					  0.);
-	       
-	       for (index_type k = RCurr_ij.iGetStartIndexLocal(); k < RCurr_ij.iGetEndIndexLocal(); ++k) {
-		    R_ij.SetDerivativeGlobal(iFirstDofIndex + k, RCurr_ij.dGetDerivativeLocal(k));
-	       }
-#else
-	       sp_grad::SpGradDofStat oDofStat;
-
-	       RCurr_ij.GetDofStat(oDofStat);
-	       
-	       R_ij.DerivativeResizeReset(pDofMap,
-					  oDofStat.iMinDof,
-					  oDofStat.iMaxDof + 1,
-					  MapVectorBase::GLOBAL,
-					  0.);
-	       
-	       for (const auto& r:RCurr_ij) {
-		    R_ij.SetDerivativeGlobal(r.iDof, r.dDer);
-	       }
-#endif
-	  }
-     }
-}
-
-inline void StructNode::GetWCurr(grad::Vector<doublereal, 3>& W, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	bNeedRotation = true;
-	W = WCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void StructNode::GetWCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& W, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
-{
-	using namespace grad;
-
-	GRADIENT_ASSERT(bNeedRotation);
-	GRADIENT_ASSERT(!bUpdateRotation);
-
-#if !defined(USE_SPARSE_AUTODIFF)
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-		/*
-		 * XCurr = [X1,		#1
-		 * 			X2,		#2
-		 * 			X3,		#3
-		 * 			g1,		#4
-		 * 			g2,		#5
-		 * 			g3,		#6
-		 * 			V1,		#7
-		 * 			V2,		#8
-		 * 			V3,		#9
-		 * 			W1,		#10
-		 * 			W2,		#11
-		 * 			W3];	#12
-		 */
-		iFirstDofIndex = iGetFirstIndex() + 10;
-		break;
-
-	case REGULAR_JAC:
-		/*
-		 * XCurr = [X1,		#1
-		 * 			X2,		#2
-		 * 			X3,		#3
-		 * 			g1		#4
-		 * 			g2		#5
-		 * 			g3];	#6
-		 */
-		iFirstDofIndex = iGetFirstIndex() + 4;
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-#endif
-	
-    for (int i = 1; i <= 3; ++i) {
-    	Gradient<N_SIZE>& W_i = W(i);
-    	const auto& WCurr_i = WCurr_grad(i);
-
-        W_i.SetValuePreserve(WCurr_i.dGetValue());
-
-#if !defined(USE_SPARSE_AUTODIFF)
-        W_i.DerivativeResizeReset(pDofMap,
-				  iFirstDofIndex + WCurr_i.iGetStartIndexLocal(),
-				  iFirstDofIndex + WCurr_i.iGetEndIndexLocal(),
-				  MapVectorBase::GLOBAL,
-				  0.);
-
-        for (index_type j = WCurr_i.iGetStartIndexLocal(); j < WCurr_i.iGetEndIndexLocal(); ++j) {
-	     W_i.SetDerivativeGlobal(iFirstDofIndex + j, WCurr_i.dGetDerivativeLocal(j));
-        }
-#else
-	sp_grad::SpGradDofStat oDofStat;
-
-	WCurr_i.GetDofStat(oDofStat);
-	       
-	W_i.DerivativeResizeReset(pDofMap,
-				  oDofStat.iMinDof,
-				  oDofStat.iMaxDof + 1,
-				  MapVectorBase::GLOBAL,
-				  0.);
-	       
-	for (const auto& r:WCurr_i) {
-	     W_i.SetDerivativeGlobal(r.iDof, r.dDer);
-	}
-#endif
-    }
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-inline void StructNode::GetgCurr(sp_grad::SpColVector<doublereal, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     g = gCurr;
-}
-     
-inline void StructNode::GetgCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  SP_GRAD_ASSERT(dCoef == 1.);
-
-     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-     case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex();
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-
-     g.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  g(i).Reset(gCurr(i), iFirstDofIndex + i + 3, -dCoef);
-     }
-}
-
-inline void StructNode::GetgPCurr(sp_grad::SpColVector<doublereal, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     gP = gPCurr;
-}
-                
-inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  gP = gPCurr;
-	  return;
-	  
-     case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-     case sp_grad::SpFunctionCall::REGULAR_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 3;
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-
-     gP.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  gP(i).Reset(gPCurr(i), iFirstDofIndex + i, -1.);
-     }
-}
-
-
-inline void StructNode::GetgCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& g, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     g.ResizeReset(3, 1);
-     
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          g(i).Reset(gCurr(i), -dCoef * gY(i));
-     }
-}
-
-inline void StructNode::GetgPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& gP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     gP.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          gP(i).Reset(gPCurr(i), -gY(i));
-     }
-}
-
-inline void StructNode::GetRCurr(sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     SP_GRAD_ASSERT(!bUpdateRotationGradProd);
-     
-     R = RCurr_gradp;
-}
-
-inline void StructNode::GetWCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     SP_GRAD_ASSERT(!bUpdateRotationGradProd);
-     
-     W = WCurr_gradp;
-}
-
-inline void StructNode::GetRCurr(sp_grad::SpMatrix<doublereal, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     bNeedRotation = true;
-     R = RCurr;
-}
-
-inline void StructNode::GetRCurr(sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& R, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     SP_GRAD_ASSERT(!bUpdateRotation);
-     
-     R = RCurr_grad;
-}
-
-inline void StructNode::GetWCurr(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     bNeedRotation = true;
-     W = WCurr;
-}
-
-inline void StructNode::GetWCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     SP_GRAD_ASSERT(!bUpdateRotation);
-
-     W = WCurr_grad;
-}
-
-inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<doublereal, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     W = WCurr;
-}
-
-inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::SpGradient, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     sp_grad::index_type iFirstDofIndex = -1;
-
-     switch (func) {
-     case sp_grad::SpFunctionCall::INITIAL_ASS_JAC:
-	  iFirstDofIndex = iGetFirstIndex() + 9;
-	  break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }
-
-     W.ResizeReset(3, 1);
-
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	  W(i).Reset(WCurr(i), iFirstDofIndex + i, -1.);
-     }     
-}
-
-inline void StructNode::GetWCurrInitAss(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-}
-#endif
-
 inline bool
 StructNode::bOmegaRotates(void) const
 {
@@ -1621,17 +901,9 @@ StructNode::bOmegaRotates(void) const
 /* Forward declaration */
 class AutomaticStructElem;
 
-class DynamicStructNode
-: virtual public StructDispNode,
-public DynamicStructDispNode,
-public StructNode
+class DynamicStructNode: virtual public DynamicStructDispNode,
+                         virtual public StructNode
 {
-protected:
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
-
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	/* I dati sono passati a mezzo di reference, quindi i relativi oggetti
@@ -1738,14 +1010,6 @@ DynamicStructNode::iGetFirstMomentumIndex(void) const
 	return DofOwnerOwner::iGetFirstIndex() + 6;
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-DynamicStructNode::iGetInitialFirstIndexPrime() const
-{
-	return iGetFirstIndex() + 6;
-}
-#endif
-
 /* DynamicStructNode - end */
 
 
@@ -1761,16 +1025,9 @@ DynamicStructNode::iGetInitialFirstIndexPrime() const
  *   la cui non-singolarita' sia garantita da elementi elastici
  *   o da vincoli */
 
-class StaticStructNode
-: virtual public StructDispNode,
-public StaticStructDispNode,
-public StructNode
+class StaticStructNode: virtual public StaticStructDispNode,
+                        virtual public StructNode
 {
-protected:
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
-
 public:
 	/* Costruttore definitivo */
 	StaticStructNode(unsigned int uL,
@@ -1815,25 +1072,12 @@ StaticStructNode::iGetFirstMomentumIndex(void) const
 	return DofOwnerOwner::iGetFirstIndex();
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-StaticStructNode::iGetInitialFirstIndexPrime() const
-{
-	return iGetFirstIndex() + 6;
-}
-#endif
-
 /* StaticStructNode - end */
 
 
 /* classe ModalNode derivato da Dynamic */
 
-class ModalNode : virtual public StructDispNode, public DynamicStructNode {
-protected:
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
-
+class ModalNode: public DynamicStructNode {
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	/* I dati sono passati a mezzo di reference, quindi i relativi oggetti
@@ -1894,55 +1138,8 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-       using StructNode::GetXPPCurr;
-       using StructNode::GetWPCurr;
-#endif
-
-#ifdef USE_AUTODIFF                
-       inline void
-       GetXPPCurr(grad::Vector<doublereal, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
-       template <grad::index_type N_SIZE>
-       inline void
-       GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-
-       inline void
-       GetWPCurr(grad::Vector<doublereal, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-                
-       template <grad::index_type N_SIZE>
-       inline void
-       GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF                
-	inline void
-	GetXPPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-                
-	inline void
-	GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void
-	GetWPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-                
-	inline void
-	GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void
-	GetXPPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-	inline void
-	GetWPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const;
-
-        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
-#endif
-
 	/* to get dimension of equations */
 	const virtual OutputHandler::Dimensions GetEquationDimension (integer index) const;
-private:
-#ifdef USE_SPARSE_AUTODIFF
-        Vec3 XPPY, WPY;
-#endif
 };
 
 
@@ -1955,164 +1152,6 @@ ModalNode::iGetFirstMomentumIndex(void) const
 }
 #endif
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-ModalNode::iGetInitialFirstIndexPrime() const
-{
-	// FIXME: Don't know how it should be implemented!
-	silent_cerr("ModalNode::iGetInitialFirstIndexPrime() not supported yet!" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-#endif
-
-#if defined(USE_AUTODIFF)
-inline void
-ModalNode::GetXPPCurr(grad::Vector<doublereal, 3>& XPP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const {
-        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
-        XPP = XPPCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void
-ModalNode::GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g = XPP(i);
-		g.SetValuePreserve(XPPCurr(i));
-		g.DerivativeResizeReset(pDofMap,
-                                        iFirstDofIndex + 7,
-                                        iFirstDofIndex + 10,
-                                        MapVectorBase::GLOBAL,
-                                        0.);
-		g.SetDerivativeGlobal(iFirstDofIndex + i + 6, -1.);
-	}
-}
-
-inline void
-ModalNode::GetWPCurr(grad::Vector<doublereal, 3>& WP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const {
-        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
-        WP = WPCurr;
-}
-
-template <grad::index_type N_SIZE>
-inline void
-ModalNode::GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
-	using namespace grad;
-
-	index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<N_SIZE>& g = WP(i);
-		g.SetValuePreserve(WPCurr(i));
-		g.DerivativeResizeReset(pDofMap,
-                                        iFirstDofIndex + 10,
-                                        iFirstDofIndex + 13,
-                                        MapVectorBase::GLOBAL,
-                                        0.);
-		g.SetDerivativeGlobal(iFirstDofIndex + i + 9, -1.);
-	}        
-}
-        
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF                
-inline void
-ModalNode::GetXPPCurr(sp_grad::SpColVector<doublereal, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-	XPP = XPPCurr;
-}
-                
-inline void
-ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-	sp_grad::index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-	case sp_grad::SpFunctionCall::REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		SP_GRAD_ASSERT(false);
-	}
-
-	XPP.ResizeReset(3, 1);
-	
-	for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	     XPP(i).Reset(XPPCurr(i), iFirstDofIndex + i + 6, -1.);
-	}		
-}
-
-inline void
-ModalNode::GetXPPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& XPP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          XPP(i).Reset(XPPCurr(i), -XPPY(i));
-     }
-}
-                
-
-inline void
-ModalNode::GetWPCurr(sp_grad::SpColVector<doublereal, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-	WP = WPCurr;
-}
-                
-inline void
-ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::SpGradient, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-	sp_grad::index_type iFirstDofIndex = -1;
-
-	switch (func) {
-	case sp_grad::SpFunctionCall::INITIAL_DER_JAC:
-	case sp_grad::SpFunctionCall::REGULAR_JAC:
-		iFirstDofIndex = iGetFirstIndex();
-		break;
-
-	default:
-		SP_GRAD_ASSERT(false);
-	}
-
-	WP.ResizeReset(3, 1);
-	
-	for (sp_grad::index_type i = 1; i <= 3; ++i) {
-	     WP(i).Reset(WPCurr(i), iFirstDofIndex + i + 9, -1.);
-	}
-}
-
-inline void
-ModalNode::GetWPCurr(sp_grad::SpColVector<sp_grad::GpGradProd, 3>& WP, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     for (sp_grad::index_type i = 1; i <= 3; ++i) {
-          WP(i).Reset(WPCurr(i), -WPY(i));
-     }
-}
-#endif
-	
 /* ModalNode - end */
 
 
@@ -2134,11 +1173,6 @@ protected:
 	const StructNode* pNode;
 
 	virtual void Update_int(void) = 0;
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	virtual inline integer iGetInitialFirstIndexPrime() const;
-#endif
-
 public:
 	/* Costruttore definitivo */
 	DummyStructNode(unsigned int uL,
@@ -2206,13 +1240,6 @@ public:
 
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual bool ComputeAccelerations(bool b);
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-        virtual void UpdateJac(doublereal dCoef) override;
-#endif
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void UpdateJac(const VectorHandler& Y, doublereal dCoef) override;
-#endif     
 };
 
 /* DummyStructNode - end */

@@ -203,7 +203,6 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) = 0;
 
-#ifdef USE_SPARSE_AUTODIFF
         // Used by Newton Krylov solvers only
         // JacY += Jac * Y
         virtual void
@@ -213,7 +212,7 @@ public:
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr,
                VariableSubMatrixHandler& WorkMat);
-#endif
+
 	/* inverse dynamics capable element */
 	virtual bool bInverseDynamics(void) const;
 

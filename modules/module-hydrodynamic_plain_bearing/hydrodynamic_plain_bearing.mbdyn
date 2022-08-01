@@ -199,35 +199,13 @@ begin: initial value;
 
 	time step: (final_time-initial_time)/number_of_time_steps;
         
-        ## min time step: (final_time-initial_time)/number_of_time_steps/1000;
-        ## max time step: (final_time-initial_time)/number_of_time_steps;
-	
-        ## strategy: factor, 
-	## 		# reduction_factor
-	## 			0.5, 
-	## 		# steps_before_reduction
-	## 			5,
-	## 		# raise_factor
-	## 			2, 
-	## 		# steps_before_raise
-	## 			5, 
-	## 		# min_iterations
-	## 			5, 
-	## 		# max_iterations
-	## 			20;
-        
 	max iterations: 10;
 	tolerance: 1.e-8;
-	#~ method: bdf;
-	#~ method: crank nicolson;
-	#~ method: hope, 0.4,0.4;
-	#~ method: implicit euler;
         derivatives tolerance: 1e-6;
         derivatives max iterations: 1000;
         derivatives coefficient: 1e-6;
         threads: assembly, 1;	
 	linear solver: naive, colamd, mt, 1;
-        #nonlinear solver: newton raphson;
 
         nonlinear solver: nox,
               modified, 1000,
@@ -241,7 +219,8 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
-	#~ model: static;
+       use automatic differentiation;
+       
 	structural nodes: 7;
 	rigid bodies: 5;
 	loadable elements: 2;

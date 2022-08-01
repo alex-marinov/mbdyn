@@ -40,11 +40,6 @@
 #include "strnode.h"
 #include "gravity.h"
 
-#ifdef USE_SPARSE_AUTODIFF
-#include "sp_gradient.h"
-#include "sp_matrix_base.h"
-#include "sp_matvecass.h"
-#endif
 /* Mass - begin */
 
 class Mass :
@@ -298,16 +293,6 @@ protected:
 	void
 	AssVecRBK_int(SubVectorHandler& WorkVec);
 
-#ifdef USE_SPARSE_AUTODIFF
-       template <typename T>
-       void
-       AssVecRBK_int(const sp_grad::SpColVector<T, 3>& STmp,
-                     const sp_grad::SpMatrix<T, 3, 3>& JTmp,
-                     sp_grad::SpGradientAssVec<T>& WorkVec,
-                     doublereal dCoef,
-                     sp_grad::SpFunctionCall func);
-#endif
-     
 	void
 	AssMatsRBK_int(
 		FullSubMatrixHandler& WMA,
@@ -369,35 +354,6 @@ public:
                 connectedNodes[0] = pNode;
         };
         /**************************************************/
-protected:
-#ifdef USE_SPARSE_AUTODIFF
-       void
-       UpdateInertia(const sp_grad::SpColVector<doublereal, 3>& STmp,
-                     const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp) const;
-
-       void
-       UpdateInertia(const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                     const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp) const;
-
-       void
-       UpdateInertia(const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                     const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp) const;
-
-       void
-       AddInertia(doublereal dMass,
-                  const sp_grad::SpColVector<doublereal, 3>& STmp,
-                  const sp_grad::SpMatrix<doublereal, 3, 3>& JTmp);
-
-       void
-       AddInertia(doublereal dMass,
-                  const sp_grad::SpColVector<sp_grad::SpGradient, 3>& STmp,
-                  const sp_grad::SpMatrix<sp_grad::SpGradient, 3, 3>& JTmp);
-
-       void
-       AddInertia(doublereal dMass,
-                  const sp_grad::SpColVector<sp_grad::GpGradProd, 3>& STmp,
-                  const sp_grad::SpMatrix<sp_grad::GpGradProd, 3, 3>& JTmp);
-#endif
 };
 
 /* Body - end */
@@ -406,7 +362,7 @@ protected:
 /* DynamicBody - begin */
 
 class DynamicBody :
-virtual public Elem, public Body {
+virtual public Elem, virtual public Body {
 private:
 
         Vec3 GetB_int(void) const;
@@ -436,16 +392,6 @@ public:
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void
-        AssJac(VectorHandler& JacY,
-               const VectorHandler& Y,
-               doublereal dCoef,
-               const VectorHandler& XCurr,
-               const VectorHandler& XPrimeCurr,
-               VariableSubMatrixHandler& WorkMat) override;
-#endif
-     
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
@@ -479,16 +425,6 @@ public:
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
-
-#ifdef USE_SPARSE_AUTODIFF     
-       template <typename T>
-       void
-       AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-              doublereal dCoef,
-              const sp_grad::SpGradientVectorHandler<T>& XCurr,
-              const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-              sp_grad::SpFunctionCall func);
-#endif
 };
 
 /* DynamicBody - end */
@@ -497,9 +433,8 @@ public:
 /* ModalBody - begin */
 
 class ModalBody :
-virtual public Elem, public DynamicBody {
+virtual public Elem, virtual public DynamicBody {
 private:
-#ifndef USE_SPARSE_AUTODIFF
         Vec3 XPP, WP;
 
         /* Assembla le due matrici necessarie per il calcolo degli
@@ -511,7 +446,6 @@ private:
                      const VectorHandler& XPrimeCurr,
                      bool bGravity,
                      const Vec3& GravityAcceleration);
-#endif
 public:
         /* Costruttore definitivo (da mettere a punto) */
         ModalBody(unsigned int uL, const ModalNode* pNodeTmp,
@@ -528,38 +462,16 @@ public:
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void
-        AssJac(VectorHandler& JacY,
-               const VectorHandler& Y,
-               doublereal dCoef,
-               const VectorHandler& XCurr,
-               const VectorHandler& XPrimeCurr,
-               VariableSubMatrixHandler& WorkMat) override;
-#endif
-     
-#ifndef USE_SPARSE_AUTODIFF
         void AssMats(VariableSubMatrixHandler& WorkMatA,
                      VariableSubMatrixHandler& WorkMatB,
                      const VectorHandler& XCurr,
                      const VectorHandler& XPrimeCurr);
-#endif
                 
         virtual SubVectorHandler&
         AssRes(SubVectorHandler& WorkVec,
                doublereal dCoef,
                const VectorHandler& XCurr,
                const VectorHandler& XPrimeCurr);
-
-#ifdef USE_SPARSE_AUTODIFF
-        template <typename T>
-        void
-        AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-               doublereal dCoef,
-               const sp_grad::SpGradientVectorHandler<T>& XCurr,
-               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-               sp_grad::SpFunctionCall func);
-#endif
 
         virtual void
         SetValue(DataManager *pDM,
@@ -573,7 +485,7 @@ public:
 /* StaticBody - begin */
 
 class StaticBody :
-virtual public Elem, public Body {
+virtual public Elem, virtual public Body {
 private:
         /* Assembla le due matrici necessarie per il calcolo degli
          * autovalori e per lo jacobiano */
@@ -600,16 +512,6 @@ public:
                 const VectorHandler& XCurr,
                 const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-        virtual void
-        AssJac(VectorHandler& JacY,
-               const VectorHandler& Y,
-               doublereal dCoef,
-               const VectorHandler& XCurr,
-               const VectorHandler& XPrimeCurr,
-               VariableSubMatrixHandler& WorkMat) override;
-#endif
-     
         void AssMats(VariableSubMatrixHandler& WorkMatA,
                 VariableSubMatrixHandler& WorkMatB,
                 const VectorHandler& XCurr,
@@ -621,16 +523,6 @@ public:
                 const VectorHandler& XCurr,
                 const VectorHandler& XPrimeCurr);
 
-#ifdef USE_SPARSE_AUTODIFF
-        template <typename T>
-        void
-        AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
-               doublereal dCoef,
-               const sp_grad::SpGradientVectorHandler<T>& XCurr,
-               const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
-               sp_grad::SpFunctionCall func);
-#endif
-     
         /* inverse dynamics capable element */
         virtual bool bInverseDynamics(void) const;
 

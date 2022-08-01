@@ -83,10 +83,7 @@ extern "C" {
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dgeequ.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
-#endif
 
 /* UmfpackSolver - begin */
 

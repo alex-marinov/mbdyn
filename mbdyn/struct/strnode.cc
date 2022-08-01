@@ -37,6 +37,7 @@
 
 #include "mynewmem.h"
 #include "strnode.h"
+#include "strnodead.h"
 #include "body.h"
 #include "autostr.h"
 #include "dataman.h"
@@ -181,17 +182,6 @@ StructDispNode::GetWP(void) const
 {
 	return ::Zero3;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-void StructDispNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
-{
-     integer iFirstDofIndex = iGetFirstIndex();
-
-     for (integer i = 1; i <= 3; ++i) {
-          XY(i) = Y(iFirstDofIndex + i);
-     }
-}
-#endif
 
 bool
 StructDispNode::ComputeAccelerations(bool b)
@@ -1526,16 +1516,6 @@ WCurr(W0),
 WPCurr(Zero3),
 WPPrev(Zero3),
 bOmegaRot(bOmRot)
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-,bNeedRotation(false)
-,bUpdateRotation(true)
-,bUpdateRotationGradProd(true)
-#endif
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-,eCurrFunc(grad::UNKNOWN_FUNC)
-#elif defined(USE_SPARSE_AUTODIFF)
-,eCurrFunc(sp_grad::UNKNOWN_FUNC)
-#endif
 {
 
 }
@@ -1933,31 +1913,6 @@ StructNode::OutputPrepare(OutputHandler &OH)
 	}
 }
 
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-void StructNode::UpdateJac(doublereal dCoef)
-{
-	if (bNeedRotation) {
-		UpdateRotation(dCoef);
-	}
-}
-
-void StructNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
-{
-     bUpdateRotationGradProd = true;
-     StructDispNode::UpdateJac(Y, dCoef);
-
-     if (bNeedRotation) {
-          integer iFirstIndex = iGetFirstIndex();
-
-          for (integer i = 1; i <= 3; ++i) {
-               gY(i) = Y(iFirstIndex + i + 3);
-          }
-          
-          UpdateRotation(Y, dCoef);
-     }
-}
-#endif
-
 /* Output del nodo strutturale (da mettere a punto) */
 void
 StructNode::Output(OutputHandler& OH) const
@@ -2056,10 +2011,6 @@ StructNode::Output(OutputHandler& OH) const
 void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
-
 	integer iFirstIndex = iGetFirstIndex();
 
 	XCurr = Vec3(X, iFirstIndex + 1);
@@ -2103,437 +2054,10 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 #endif
 }
 
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-inline void StructNode::GetgCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const {
-	using namespace grad;
-
-	integer iFirstIndexLocal;
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		iFirstIndexLocal = -1; // Always start from zero in order to save memory
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<iNumADVars>& g_i = g(i);
-		g_i.SetValuePreserve(gCurr(i));
-		g_i.DerivativeResizeReset(0,
-					  iFirstIndexLocal + i,
-					  MapVectorBase::LOCAL,
-					  -dCoef);
-	}
-}
-
-inline void StructNode::GetgPCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const {
-	using namespace grad;
-
-	integer iFirstIndexLocal = -1; // Always start from zero in order to save memory
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		// gPCurr is unused during initial assembly
-		GRADIENT_ASSERT(dCoef == 1.);
-		gP = gPCurr;
-		return;
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-		Gradient<iNumADVars>& gP_i = gP(i);
-		gP_i.SetValuePreserve(gPCurr(i));
-		gP_i.DerivativeResizeReset(0,
-					   iFirstIndexLocal + i,
-					   MapVectorBase::LOCAL,
-					   -1.);
-	}
-}
-
-inline void StructNode::GetWCurrInt(grad::Vector<grad::Gradient<iNumADVars>, 3>& W, doublereal dCoef, enum grad::FunctionCall func) const
-{
-	using namespace grad;
-
-	integer iFirstIndexLocal = -1; // Always start from zero in order to save memory
-
-	switch (func) {
-	case INITIAL_ASS_JAC:
-		GRADIENT_ASSERT(dCoef == 1.);
-		break;
-	case INITIAL_DER_JAC:
-	case REGULAR_JAC:
-		break;
-
-	default:
-		GRADIENT_ASSERT(false);
-	}
-
-	for (index_type i = 1; i <= 3; ++i) {
-	     Gradient<iNumADVars>& W_i = W(i);
-	     W_i.SetValuePreserve(WCurr(i));
-	     W_i.DerivativeResizeReset(0,
-				       iFirstIndexLocal + i,
-				       MapVectorBase::LOCAL,
-				       -1.);
-	}
-}
-#endif
-
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-template <typename T>
-void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& R, grad::Vector<T, 3>& W, doublereal dCoef, enum grad::FunctionCall func) const
-{
-    GRADIENT_ASSERT(bNeedRotation);
-    
-    using namespace grad;
-
-    const T d = 4. / (4. + Dot(g, g));
-
-    Matrix<T, 3, 3> RDelta;
-
-    const T tmp1 = -g(3) * g(3);
-    const T tmp2 = -g(2) * g(2);
-    const T tmp3 = -g(1) * g(1);
-    const T tmp4 = g(1) * g(2) * 0.5;
-    const T tmp5 = g(2) * g(3) * 0.5;
-    const T tmp6 = g(1) * g(3) * 0.5;
-
-    RDelta(1,1) = (tmp1 + tmp2) * d * 0.5 + 1;
-    RDelta(1,2) = (tmp4 - g(3)) * d;
-    RDelta(1,3) = (tmp6 + g(2)) * d;
-    RDelta(2,1) = (g(3) + tmp4) * d;
-    RDelta(2,2) = (tmp1 + tmp3) * d * 0.5 + 1.;
-    RDelta(2,3) = (tmp5 - g(1)) * d;
-    RDelta(3,1) = (tmp6 - g(2)) * d;
-    RDelta(3,2) = (tmp5 + g(1)) * d;
-    RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
-
-    R = RDelta * RRef;
-
-    switch (func) {
-    case INITIAL_ASS_JAC:
-	GetWCurrInt(W, dCoef, func);
-    	break;
-
-    case INITIAL_DER_JAC:
-    case REGULAR_JAC:
-		{
-			Matrix<T, 3, 3> G;
-
-			const T tmp7 = 0.5 * g(1) * d;
-			const T tmp8 = 0.5 * g(2) * d;
-			const T tmp9 = 0.5 * g(3) * d;
-
-			G(1,1) = d;
-			G(1,2) = -tmp9;
-			G(1,3) = tmp8;
-			G(2,1) = tmp9;
-			G(2,2) = d;
-			G(2,3) = -tmp7;
-			G(3,1) = -tmp8;
-			G(3,2) = tmp7;
-			G(3,3) = d;
-
-			W = G * gP + RDelta * WRef; // Note that the first index of gP and g must be the same in order to work!
-		}
-    	break;
-
-    default:
-    	GRADIENT_ASSERT(false);
-    }
-
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-template <typename T>
-inline void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const sp_grad::SpColVector<T, 3>& g, const sp_grad::SpColVector<T, 3>& gP, sp_grad::SpMatrix<T, 3, 3>& R, sp_grad::SpColVector<T, 3>& W, doublereal dCoef, sp_grad::SpFunctionCall func) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     
-     using namespace sp_grad;
-
-     const T d = 4. / (4. + Dot(g, g));
-
-     SpMatrix<T, 3, 3> RDelta(3, 3, 8);
-
-     const T tmp1 = -g(3) * g(3);
-     const T tmp2 = -g(2) * g(2);
-     const T tmp3 = -g(1) * g(1);
-     const T tmp4 = g(1) * g(2) * 0.5;
-     const T tmp5 = g(2) * g(3) * 0.5;
-     const T tmp6 = g(1) * g(3) * 0.5;
-
-     RDelta(1,1) = (tmp1 + tmp2) * d * 0.5 + 1;
-     RDelta(1,2) = (tmp4 - g(3)) * d;
-     RDelta(1,3) = (tmp6 + g(2)) * d;
-     RDelta(2,1) = (g(3) + tmp4) * d;
-     RDelta(2,2) = (tmp1 + tmp3) * d * 0.5 + 1.;
-     RDelta(2,3) = (tmp5 - g(1)) * d;
-     RDelta(3,1) = (tmp6 - g(2)) * d;
-     RDelta(3,2) = (tmp5 + g(1)) * d;
-     RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
-
-     R = EvalUnique(RDelta * RRef);
-
-     switch (func) {
-     case SpFunctionCall::INITIAL_ASS_JAC:
-	  GetWCurrInitAss(W, dCoef, func);
-	  break;
-
-     case SpFunctionCall::INITIAL_DER_JAC:
-     case SpFunctionCall::REGULAR_JAC:
-     {
-	  SpMatrix<T, 3, 3> G(3, 3, 8);
-
-	  const T tmp7 = 0.5 * g(1) * d;
-	  const T tmp8 = 0.5 * g(2) * d;
-	  const T tmp9 = 0.5 * g(3) * d;
-
-	  G(1,1) = d;
-	  G(1,2) = -tmp9;
-	  G(1,3) = tmp8;
-	  G(2,1) = tmp9;
-	  G(2,2) = d;
-	  G(2,3) = -tmp7;
-	  G(3,1) = -tmp8;
-	  G(3,2) = tmp7;
-	  G(3,3) = d;
-
-	  W = EvalUnique(G * gP + RDelta * WRef); // Note that the first index of gP and g must be the same in order to work!
-     }
-     break;
-
-     default:
-	  SP_GRAD_ASSERT(false);
-     }	  
-}
-#endif
-
-#if defined(USE_AUTODIFF) && !defined(USE_SPARSE_AUTODIFF)
-void StructNode::UpdateRotation(doublereal dCoef) const
-{
-     GRADIENT_ASSERT(bNeedRotation);
-     
-     using namespace grad;
-
-     if (bUpdateRotation) {
-	  Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
-
-	  GetgCurrInt(gCurr_grad, dCoef, eCurrFunc);
-	  GetgPCurrInt(gPCurr_grad, dCoef, eCurrFunc);
-
-	  UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
-#if GRADIENT_DEBUG > 0
-	  {
-	       const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
-
-	       Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
-
-	       Mat3x3 RCurr_tmp = RDelta * RRef;
-
-	       bool bErr = false;
-
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
-	       }
-
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
-
-		    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
-			 bErr = true;
-		    }
-	       }
-
-	       if (bErr) {
-		    std::cerr << "gCurr=" << gCurr << std::endl;
-		    std::cerr << "RCurr=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RCurr_grad=" << std::endl;
-
-		    std::cerr << "RRef=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RRef(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RPrev=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RPrev(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RCurr_grad=" << std::endl;
-
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr_grad(i, j).dGetValue() << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "WCurr=" << WCurr << std::endl;
-		    std::cerr << "WCurr_grad=";
-		    for (integer i = 1; i <= 3; ++i) {
-			 std::cerr << WCurr_grad(i).dGetValue() << " ";
-		    }
-		    std::cerr << std::endl;
-		    GRADIENT_ASSERT(false);
-	       }
-	  }
-#endif
-
-	  bUpdateRotation = false;
-     }
-}
-#endif
-
-#if defined(USE_SPARSE_AUTODIFF)
-void StructNode::UpdateRotation(doublereal dCoef) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     
-     if (bUpdateRotation) {
-	  sp_grad::SpColVectorA<sp_grad::SpGradient, 3, 1> gCurr_grad, gPCurr_grad;
-
-	  GetgCurr(gCurr_grad, dCoef, eCurrFunc);
-	  GetgPCurr(gPCurr_grad, dCoef, eCurrFunc);
-
-	  UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, dCoef, eCurrFunc);
-#if defined(DEBUG)
-	  {
-	       using sp_grad::index_type;
-			 
-	       const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
-
-	       Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
-
-	       Mat3x3 RCurr_tmp = RDelta * RRef;
-
-	       bool bErr = false;
-
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
-	       }
-
-	       for (index_type i = 1; i <= 3; ++i) {
-		    for (index_type j = 1; j <= 3; ++j) {
-			 if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
-			      bErr = true;
-			 }
-		    }
-
-		    if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
-			 bErr = true;
-		    }
-	       }
-
-	       if (bErr) {
-		    std::cerr << "gCurr=" << gCurr << std::endl;
-		    std::cerr << "RCurr=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RRef=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RRef(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RPrev=" << std::endl;
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RPrev(i, j) << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "RCurr_grad=" << std::endl;
-
-		    for (integer i = 1; i <= 3; ++i) {
-			 for (integer j = 1; j <= 3; ++j) {
-			      std::cerr << RCurr_grad(i, j).dGetValue() << " ";
-			 }
-			 std::cerr << std::endl;
-		    }
-
-		    std::cerr << "WCurr=" << WCurr << std::endl;
-		    std::cerr << "WCurr_grad=";
-		    for (integer i = 1; i <= 3; ++i) {
-			 std::cerr << WCurr_grad(i).dGetValue() << " ";
-		    }
-		    std::cerr << std::endl;
-		    SP_GRAD_ASSERT(false);
-	       }
-	  }
-#endif
-	  bUpdateRotation = false;
-     }
-}
-
-void StructNode::UpdateRotation(const VectorHandler& Y, doublereal dCoef) const
-{
-     SP_GRAD_ASSERT(bNeedRotation);
-     
-     if (bUpdateRotationGradProd) {
-	  sp_grad::SpColVectorA<sp_grad::GpGradProd, 3> gCurr_gradp, gPCurr_gradp;
-
-	  GetgCurr(gCurr_gradp, dCoef, eCurrFunc);
-	  GetgPCurr(gPCurr_gradp, dCoef, eCurrFunc);
-
-	  UpdateRotation(RRef, WRef, gCurr_gradp, gPCurr_gradp, RCurr_gradp, WCurr_gradp, dCoef, eCurrFunc);
-	  bUpdateRotationGradProd = false;
-     }
-}
-#endif
-
 /* Aggiorna dati in base alla soluzione */
 void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
-
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Forza configurazione e velocita' al valore iniziale */
@@ -2548,9 +2072,6 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
 	integer iFirstIndex = iGetFirstIndex();
 
 	XCurr = Vec3(X, iFirstIndex + 1);
@@ -2569,10 +2090,6 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void 
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
-
 	integer iFirstIndex = iGetFirstIndex();
 	switch (iOrder)	{
 	case InverseDynamics::POSITION: {
@@ -2615,12 +2132,6 @@ StructNode::SetInitialValue(VectorHandler& X)
 	X.Put(iIndex + 4, Zero3);
 	X.Put(iIndex + 7, VCurr);
 	X.Put(iIndex + 10, WCurr);
-
-#if defined(USE_SPARSE_AUTODIFF)
-	eCurrFunc = sp_grad::INITIAL_ASS_JAC;
-#elif defined(USE_AUTODIFF)
-	eCurrFunc = grad::INITIAL_ASS_JAC;
-#endif	
 }
 
 
@@ -2629,10 +2140,6 @@ StructNode::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
-
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	if (pRefNode) {
 		Vec3 Xtmp = XPrev - pRefNode->GetXCurr();
@@ -2678,12 +2185,6 @@ StructNode::SetValue(DataManager *pDM,
 	gRef = gCurr = gPRef = gPCurr = Zero3;
 	XP.Put(iFirstIndex + 1, VPrev);
 	XP.Put(iFirstIndex + 4, WPrev);
-
-#if defined(USE_SPARSE_AUTODIFF)
-	eCurrFunc = sp_grad::REGULAR_JAC;
-#elif defined(USE_AUTODIFF)
-	eCurrFunc = grad::REGULAR_JAC;
-#endif	
 }
 
 
@@ -2793,10 +2294,6 @@ StructNode::BeforePredict(VectorHandler& X,
 void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
-
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Spostamento e velocita' aggiornati */
@@ -2895,9 +2392,6 @@ StructNode::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP, 
 			const VectorHandler& XPP)
 {
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-	bUpdateRotationGradProd = bUpdateRotation = true;
-#endif
 /* Right now, AfterConvergence is performed only on position 
  * to reset orientation parameters. XPrime and XPrimePrime are 
  * left for compatibility with the virtual method in 
@@ -3706,13 +3200,12 @@ ModalNode::ModalNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-:
-StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
-DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
-                  dPosStiff, dVelStiff, bOmRot, ood, fOut)
-#ifdef USE_SPARSE_AUTODIFF
-,XPPY(::Zero3), WPY(::Zero3)
-#endif
+:StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ DynamicStructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
+ StructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
+            dPosStiff, dVelStiff, bOmRot, ood, fOut),
+ DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
+                   dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
 	/* XPP and WP are not known in ModalNode */
 	ComputeAccelerations(false);
@@ -3964,21 +3457,6 @@ ModalNode::GetEquationDimension(integer index) const {
 
 	return dimension;
 }
-
-#ifdef USE_SPARSE_AUTODIFF
-void ModalNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
-{
-        DynamicStructNode::UpdateJac(Y, dCoef);
-        
-     	const integer iFirstIndex = iGetFirstIndex();
-
-        for (sp_grad::index_type i = 1; i <= 3; ++i) {
-                XPPY(i) = Y(iFirstIndex + i + 6);
-                WPY(i) = Y(iFirstIndex + i + 9);
-        }
-}
-#endif
-
 /* ModalNode - end */
 
 
@@ -4044,16 +3522,6 @@ DummyStructNode::iGetFirstMomentumIndex(void) const
 		<< std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-inline integer
-DummyStructNode::iGetInitialFirstIndexPrime() const
-{
-	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
-		<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-#endif
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
 inline unsigned int
@@ -4167,20 +3635,6 @@ DummyStructNode::ComputeAccelerations(bool b)
 {
 	return const_cast<StructNode *>(pNode)->ComputeAccelerations(b);
 }
-
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
-void DummyStructNode::UpdateJac(doublereal dCoef)
-{
-     // We must not call iGetFirstIndex() here
-}
-#endif
-
-#ifdef USE_SPARSE_AUTODIFF
-void DummyStructNode::UpdateJac(const VectorHandler& Y, doublereal dCoef)
-{
-     // We must not call iGetFirstIndex() here
-}
-#endif
 /* DummyStructNode - end */
 
 
@@ -4902,63 +4356,174 @@ ReadStructNode(DataManager* pDM,
 		/* costruzione del nodo */
 		switch (CurrType) {
 		case STATIC_DISP:
-			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructDispNode,
-				StaticStructDispNode(uLabel, pDO,
-					X0,
-					XPrime0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructDispNodeAd,
+                                                       StaticStructDispNodeAd(uLabel,
+                                                                              pDO,
+                                                                              X0,
+                                                                              XPrime0,
+                                                                              pRefNode,
+                                                                              pRBK,
+                                                                              dPosStiff,
+                                                                              dVelStiff,
+                                                                              od,
+                                                                              fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructDispNode,
+                                                       StaticStructDispNode(uLabel,
+                                                                            pDO,
+                                                                            X0,
+                                                                            XPrime0,
+                                                                            pRefNode,
+                                                                            pRBK,
+                                                                            dPosStiff,
+                                                                            dVelStiff,
+                                                                            od,
+                                                                            fOut));
+                        }
 			break;
 
 		case DYNAMIC_DISP:
-			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructDispNode,
-				DynamicStructDispNode(uLabel, pDO,
-					X0,
-					XPrime0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					od, fOut));
-
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructDispNodeAd,
+                                                       DynamicStructDispNodeAd(uLabel,
+                                                                               pDO,
+                                                                               X0,
+                                                                               XPrime0,
+                                                                               pRefNode,
+                                                                               pRBK,
+                                                                               dPosStiff,
+                                                                               dVelStiff,
+                                                                               od,
+                                                                               fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructDispNode,
+                                                       DynamicStructDispNode(uLabel,
+                                                                             pDO,
+                                                                             X0,
+                                                                             XPrime0,
+                                                                             pRefNode,
+                                                                             pRBK,
+                                                                             dPosStiff,
+                                                                             dVelStiff,
+                                                                             od,
+                                                                             fOut));
+                        }
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 			break;
 
 		case STATIC:
-			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructNode,
-				StaticStructNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructNodeAd,
+                                                       StaticStructNodeAd(uLabel,
+                                                                          pDO,
+                                                                          X0,
+                                                                          R0,
+                                                                          XPrime0,
+                                                                          Omega0,
+                                                                          pRefNode,
+                                                                          pRBK,
+                                                                          dPosStiff,
+                                                                          dVelStiff,
+                                                                          bOmRot,
+                                                                          od,
+                                                                          fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       StaticStructNode,
+                                                       StaticStructNode(uLabel,
+                                                                        pDO,
+                                                                        X0,
+                                                                        R0,
+                                                                        XPrime0,
+                                                                        Omega0,
+                                                                        pRefNode,
+                                                                        pRBK,
+                                                                        dPosStiff,
+                                                                        dVelStiff,
+                                                                        bOmRot,
+                                                                        od,
+                                                                        fOut));
+                        }
 			break;
 
 		case DYNAMIC:
-			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
-				DynamicStructNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRefNode,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructNodeAd,
+                                                       DynamicStructNodeAd(uLabel,
+                                                                           pDO,
+                                                                           X0,
+                                                                           R0,
+                                                                           XPrime0,
+                                                                           Omega0,
+                                                                           pRefNode,
+                                                                           pRBK,
+                                                                           dPosStiff,
+                                                                           dVelStiff,
+                                                                           bOmRot,
+                                                                           od,
+                                                                           fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       DynamicStructNode,
+                                                       DynamicStructNode(uLabel,
+                                                                         pDO,
+                                                                         X0,
+                                                                         R0,
+                                                                         XPrime0,
+                                                                         Omega0,
+                                                                         pRefNode,
+                                                                         pRBK,
+                                                                         dPosStiff,
+                                                                         dVelStiff,
+                                                                         bOmRot,
+                                                                         od,
+                                                                         fOut));
+                        }
 
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 			break;
 
 		case MODAL:
-			SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,
-				ModalNode(uLabel, pDO,
-					X0, R0,
-					XPrime0, Omega0,
-					pRBK,
-					dPosStiff, dVelStiff,
-					bOmRot, od, fOut));
+                        if (pDM->bUseAutoDiff()) {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       ModalNodeAd,
+                                                       ModalNodeAd(uLabel,
+                                                                   pDO,
+                                                                   X0,
+                                                                   R0,
+                                                                   XPrime0,
+                                                                   Omega0,
+                                                                   pRBK,
+                                                                   dPosStiff,
+                                                                   dVelStiff,
+                                                                   bOmRot,
+                                                                   od,
+                                                                   fOut));                                
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pNd,
+                                                       ModalNode,
+                                                       ModalNode(uLabel,
+                                                                 pDO,
+                                                                 X0,
+                                                                 R0,
+                                                                 XPrime0,
+                                                                 Omega0,
+                                                                 pRBK,
+                                                                 dPosStiff,
+                                                                 dVelStiff,
+                                                                 bOmRot,
+                                                                 od,
+                                                                 fOut));
+                        }
 			break;
 
 		default:

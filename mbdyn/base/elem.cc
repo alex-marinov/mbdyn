@@ -61,7 +61,6 @@ Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		"AssMats() not implemented yet" << std::endl);
 }
 
-#ifdef USE_SPARSE_AUTODIFF
 void
 Elem::AssJac(VectorHandler& JacY,
              const VectorHandler& Y,
@@ -79,7 +78,6 @@ Elem::AssJac(VectorHandler& JacY,
 
      WorkMat.MultAddTo(JacY, Y);
 }
-#endif
 
 bool
 Elem::bInverseDynamics(void) const

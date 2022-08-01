@@ -36,6 +36,7 @@ MBDyn 1.X-Devel
 		- added support for NetCDF4 (Louis Gagnon)
 		- improve diagnostics when input file cannot be opened (#40)
 	Backward compatibility issues:
+		- fixed Front1D gust element
 		- get rid of third order stepsol; (Marco Morandini)
 		- now escape sequences are honored in "hints"
 		- conditional compilation of aerod2.f
@@ -45,6 +46,8 @@ MBDyn 1.X-Devel
 	Known issues:
 		- gravity not used in assembly
 	Bug fixes:
+		- send and recv now retry whenever the required number of bytes was not
+			sent/received (#78, Marco Morandini)
 		- fix and document ViscoelasticBeam Jacobian matrix (Marco Morandini & Wenguo Zhu)
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives

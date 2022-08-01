@@ -39,10 +39,6 @@
 */
 
 #include "mbconfig.h"
-#ifdef USE_AUTODIFF
-#include "gradient.h"
-#include "matvec.h"
-#endif
 #include "sp_gradient.h"
 #include "sp_gradient_op.h"
 #include "sp_gradient_test_func.h"
@@ -62,10 +58,6 @@ namespace sp_grad_test {
      template
      void func_scalar1<GpGradProd>(const GpGradProd& u, const GpGradProd& v, const GpGradProd& w, doublereal e, GpGradProd& f);
 
-#ifdef USE_AUTODIFF
-     template
-     void func_scalar1<grad::Gradient<0> >(const grad::Gradient<0>& u, const grad::Gradient<0>& v, const grad::Gradient<0>& w, doublereal e, grad::Gradient<0>& f);
-#endif
      template <typename T>
      void func_scalar1_compressed(const T& u, const T& v, const T& w, doublereal e, T& f) {
           f = EvalUnique(((((3 * u + 2 * v) * (u - v) / (1 - w) * pow(fabs(u/w), v - 1) * sin(v) * cos(w) * (1 - tan(-w + v))) * e + 1. - 11. + 4.5 - 1.) * 3.5 / 2.8 + u - v) * w / u);
@@ -857,16 +849,6 @@ namespace sp_grad_test {
           }
      }
      
-#ifdef USE_AUTODIFF
-     template
-     void func_mat_mul4s<grad::Gradient<0>, grad::Gradient<0> >(const std::vector<grad::Gradient<0> >&, const std::vector<grad::Gradient<0> >&, std::vector<grad::Gradient<0> >&);
-
-     template
-     void func_mat_mul4s<grad::Gradient<0>, doublereal>(const std::vector<grad::Gradient<0> >&, const std::vector<doublereal>&, std::vector<grad::Gradient<0> >&);
-
-     template
-     void func_mat_mul4s<doublereal, grad::Gradient<0> >(const std::vector<doublereal>&, const std::vector<grad::Gradient<0> >&, std::vector<grad::Gradient<0> >&);
-#endif
      template
      void func_mat_mul4s<SpGradient, SpGradient >(const std::vector<SpGradient >&, const std::vector<SpGradient >&, std::vector<SpGradient >&);
 
@@ -2300,136 +2282,7 @@ namespace sp_grad_test {
                }
           }
      }
-#ifdef USE_AUTODIFF
-     template <typename TA, typename TB>
-     void func_mat_mul10(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-                         const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-                         grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C) {
-          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumRows());
 
-          C = A * B;
-     }
-
-     template
-     void func_mat_mul10(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                         grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-
-     template <typename TA, typename TB>
-     void func_mat_mul10_dof_map(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-                                 const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-                                 grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C) {
-          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumRows());
-
-          for (grad::index_type j = 1; j <= C.iGetNumCols(); ++j) {
-               for (grad::index_type i = 1; i <= C.iGetNumRows(); ++i) {
-                    grad::Reset(C(i, j));
-               }
-
-               for (grad::index_type k = 1; k <= A.iGetNumCols(); ++k) {
-                    for (grad::index_type i = 1; i <= C.iGetNumRows(); ++i) {
-                         C(i, j) += A(i, k) * B(k, j);
-                    }
-               }
-          }
-     }
-
-     template <>
-     void func_mat_mul10_dof_map<doublereal, grad::Gradient<0>>(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-                                                                const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-                                                                grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C) {
-          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumRows());
-
-          grad::LocalDofMap oDofMap;
-          grad::Gradient<0> Bkj;
-
-          for (grad::index_type j = 1; j <= C.iGetNumCols(); ++j) {
-               for (grad::index_type i = 1; i <= C.iGetNumRows(); ++i) {
-                    grad::Reset(C(i, j));
-               }
-
-               for (grad::index_type k = 1; k <= A.iGetNumCols(); ++k) {
-                    oDofMap.Reset();
-                    Copy(Bkj, B(k, j), &oDofMap);
-
-                    for (grad::index_type i = 1; i <= C.iGetNumRows(); ++i) {
-                         C(i, j) += A(i, k) * Bkj;
-                    }
-               }
-          }
-     }
-
-     template
-     void func_mat_mul10_dof_map(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_dof_map(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_dof_map(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_dof_map(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                 grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template <typename TA, typename TB>
-     void func_mat_mul10_trans_add(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-                                   const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-                                   grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C) {
-          SP_GRAD_ASSERT(A.iGetNumCols() == B.iGetNumRows());
-
-          typedef typename util::ResultType<TA, TB>::Type TC;
-          typedef grad::Matrix<TC, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE> MatProdType;
-
-          const MatProdType AB = A * B;
-          const MatProdType B_TA_T = Transpose(B) * Transpose(A);
-          const MatProdType AB_T = (Transpose(AB) + B_TA_T) * 0.5;
-          C = Transpose(AB_T);
-     }
-
-     template
-     void func_mat_mul10_trans_add(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_trans_add(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_trans_add(const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-
-     template
-     void func_mat_mul10_trans_add(const grad::Matrix<doublereal, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   const grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&,
-                                   grad::Matrix<grad::Gradient<0>, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>&);
-#endif
      template <typename TA, typename TB, typename TC>
      void func_mat_mul11(const SpMatrixBase<TA>& A,
                          const SpMatrixBase<TB>& B,

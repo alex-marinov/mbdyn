@@ -62,6 +62,7 @@
 #include "mbc.h"
 #include "sock.h"
 
+
 /* private flags for internal use */
 enum sock_flags_t {
 	MBC_SF_VALID = 0x1U
@@ -126,7 +127,7 @@ mbc_get_cmd(mbc_t *mbc)
 	}
 #endif /* _WIN32 */
 
-	rc = recv(mbc->sock, (char *)&mbc->cmd, sizeof(mbc->cmd),
+	rc = recvn(mbc->sock, (char *)&mbc->cmd, sizeof(mbc->cmd),
 		  mbc->recv_flags);
 
 	if (rc == SOCKET_ERROR) {
@@ -186,7 +187,7 @@ mbc_put_cmd(mbc_t *mbc)
 			(unsigned long)mbc->cmd, mbc_cmd2str(mbc->cmd));
 	}
 
-	rc = send(mbc->sock, (const char *)&mbc->cmd, sizeof(mbc->cmd),
+	rc = sendn(mbc->sock, (const char *)&mbc->cmd, sizeof(mbc->cmd),
 		mbc->send_flags);
 
 	if (rc == SOCKET_ERROR){
@@ -512,7 +513,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 			unsigned long mode = 0;
 			int ioctlresult = ioctlsocket(mbc->mbc.sock, FIONBIO, &mode);
 #endif
-			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
+			rc = recvn(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
 				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 
 			if (rc == SOCKET_ERROR){
@@ -542,7 +543,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 			unsigned long mode = 0;
 			int ioctlresult = ioctlsocket(mbc->mbc.sock, FIONBIO, &mode);
 #endif
-			rc = recv(mbc->mbc.sock, (void *)MBC_N_KINEMATICS(mbc),
+			rc = recvn(mbc->mbc.sock, (void *)MBC_N_KINEMATICS(mbc),
 				MBC_N_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc == SOCKET_ERROR){
 				int save_errno = WSAGetLastError();
@@ -609,7 +610,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
 
 			ssize_t	rc;
 
-			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
+			rc = sendn(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
 				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 
 			if (rc != MBC_R_DYNAMICS_SIZE(mbc)) {
@@ -629,7 +630,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
 
 			ssize_t	rc;
 
-			rc = send(mbc->mbc.sock, (const void *)MBC_N_DYNAMICS(mbc),
+			rc = sendn(mbc->mbc.sock, (const void *)MBC_N_DYNAMICS(mbc),
 				MBC_N_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 
 		if (mbc->mbc.verbose)
@@ -870,7 +871,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	uint32_ptr[0] = MBC_F(mbc);
 	uint32_ptr[1] = mbc->nodes;
 
-	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
+	rc = sendn(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
 	if (rc != sizeof(buf)) {
 		fprintf(stderr, "send negotiate request failed (%ld)\n", (long)rc);
@@ -931,7 +932,7 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 		return -1;
 	}
 
-	rc = recv(mbc->mbc.sock, (void *)buf, sizeof(buf), mbc->mbc.recv_flags);
+	rc = recvn(mbc->mbc.sock, (void *)buf, sizeof(buf), mbc->mbc.recv_flags);
 	if (rc != sizeof(buf)) {
 		fprintf(stderr, "recv negotiate request failed\n");
 		return -1;
@@ -1037,7 +1038,7 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 		if (MBC_F_REF_NODE(mbc)) {
 			ssize_t rc;
 
-			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
+			rc = recvn(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
 				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc == -1) {
 				int save_errno = WSAGetLastError();
@@ -1059,7 +1060,7 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 		if (mbc->modes > 0) {
 			ssize_t rc;
 
-			rc = recv(mbc->mbc.sock, (void *)MBC_M_KINEMATICS(mbc),
+			rc = recvn(mbc->mbc.sock, (void *)MBC_M_KINEMATICS(mbc),
 				MBC_M_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc == -1) {
 				int save_errno = WSAGetLastError();
@@ -1113,7 +1114,7 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 		if (MBC_F_REF_NODE(mbc)) {
 			ssize_t	rc;
 
-			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
+			rc = sendn(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
 				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 			if (rc == -1) {
 				int save_errno = WSAGetLastError();
@@ -1136,7 +1137,7 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 		if (mbc->modes > 0) {
 			ssize_t	rc;
 
-			rc = send(mbc->mbc.sock, (const void *)MBC_M_DYNAMICS(mbc),
+			rc = sendn(mbc->mbc.sock, (const void *)MBC_M_DYNAMICS(mbc),
 				MBC_M_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 			if (rc == -1) {
 				int save_errno = WSAGetLastError();
@@ -1233,7 +1234,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	uint32_ptr[0] = (uint32_t)MBC_F(mbc);
 	uint32_ptr[1] = mbc->modes;
 
-	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
+	rc = sendn(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
 	if (rc != sizeof(buf)) {
 		fprintf(stderr, "send negotiate request failed (%ld)\n", (long)rc);
@@ -1292,7 +1293,7 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 		return -1;
 	}
 
-	rc = recv(mbc->mbc.sock, (void *)buf, sizeof(buf), mbc->mbc.recv_flags);
+	rc = recvn(mbc->mbc.sock, (void *)buf, sizeof(buf), mbc->mbc.recv_flags);
 	if (rc != sizeof(buf)) {
 		fprintf(stderr, "recv negotiate request failed\n");
 		return -1;

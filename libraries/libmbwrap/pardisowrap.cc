@@ -268,10 +268,6 @@ VectorHandler* PardisoSolutionManager<MatrixHandlerType, MKL_INT_TYPE>::pSolHdl(
 
 template class PardisoSolutionManager<SpMapMatrixHandler, MKL_INT>;
 template class PardisoSolutionManager<SpMapMatrixHandler, long long>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class PardisoSolutionManager<SpGradientSparseMatrixHandler, MKL_INT>;
 template class PardisoSolutionManager<SpGradientSparseMatrixHandler, long long>;
-#endif
-
 #endif

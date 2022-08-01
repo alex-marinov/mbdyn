@@ -19,6 +19,9 @@ pipe.h \
 preselem.cc \
 preselem.h \
 presnode.h \
+presnode.cc \
+presnodead.cc \
+presnodead.h \
 valve.cc \
 valve.h
 

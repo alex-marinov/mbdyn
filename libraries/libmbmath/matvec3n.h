@@ -219,10 +219,7 @@ VecN::operator () (integer i) const
 
 /* Mat3xN - begin */
 
-class Mat3xN
-#ifdef USE_SPARSE_AUTODIFF
-     :public sp_grad::SpConstMatElemAdapter<Mat3xN>
-#endif
+class Mat3xN: public sp_grad::SpConstMatElemAdapter<Mat3xN>
 {
 
  friend class MatNx3;
@@ -297,7 +294,6 @@ class Mat3xN
    inline doublereal & operator () (integer i, integer j);
    inline const doublereal & operator () (integer i, integer j) const;
 
-#ifdef USE_SPARSE_AUTODIFF
      static constexpr sp_grad::index_type iNumRowsStatic = 3;
      static constexpr sp_grad::index_type iNumColsStatic = sp_grad::SpMatrixSize::DYNAMIC;
      inline sp_grad::index_type iGetRowOffset() const noexcept { return iGetNumCols(); }
@@ -305,7 +301,6 @@ class Mat3xN
      inline const doublereal* begin() const noexcept { return &pdRows[0][0]; }
      inline const doublereal* end() const noexcept { return &pdRows[0][iGetNumRows() * iGetNumCols()]; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
-#endif
 };
 
 
@@ -386,10 +381,7 @@ Mat3xN::operator () (integer i, integer j) const
  /* classe aggiunta per gestire operazioni con matrici Nx3. Per adesso
     sono memorizzate come tre array Nx1  */
 
-class MatNx3
-#ifdef USE_SPARSE_AUTODIFF
-     :public sp_grad::SpConstMatElemAdapter<MatNx3>
-#endif
+class MatNx3: public sp_grad::SpConstMatElemAdapter<MatNx3>
 {
 
  friend class VecN;
@@ -448,7 +440,6 @@ class MatNx3
    inline doublereal & operator () (integer i, integer j);
    inline const doublereal & operator () (integer i, integer j) const;
 
-#ifdef USE_SPARSE_AUTODIFF
      static constexpr sp_grad::index_type iNumRowsStatic = sp_grad::SpMatrixSize::DYNAMIC;
      static constexpr sp_grad::index_type iNumColsStatic = 3;
      inline constexpr sp_grad::index_type iGetNumCols() const noexcept { return 3; }
@@ -457,7 +448,6 @@ class MatNx3
      inline const doublereal* begin() const noexcept { return &pdCols[0][0]; }
      inline const doublereal* end() const noexcept { return &pdCols[0][iGetNumRows() * iGetNumCols()]; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
-#endif     
 };
 
 
@@ -545,10 +535,7 @@ MatNx3::operator () (integer i, integer j) const
    In verita' queste matrici devono comunque essere diagonali (o non si riesce a escludere i
    modi rigidi quando si esportano i modi nel multi-corpo) quindi non dovrebbe servire piu' */
 
-class MatNxN
-#ifdef USE_SPARSE_AUTODIFF
-     :public sp_grad::SpConstMatElemAdapter<MatNxN>
-#endif
+class MatNxN: public sp_grad::SpConstMatElemAdapter<MatNxN>
 {
    friend class Mat3xN;
    friend class MatNx3;
@@ -599,7 +586,6 @@ class MatNxN
    inline doublereal& operator () (integer i, integer j);
    inline const doublereal& operator () (integer i, integer j) const;
 
-#ifdef USE_SPARSE_AUTODIFF
      static constexpr sp_grad::index_type iNumRowsStatic = sp_grad::SpMatrixSize::DYNAMIC;
      static constexpr sp_grad::index_type iNumColsStatic = sp_grad::SpMatrixSize::DYNAMIC;
      inline constexpr sp_grad::index_type iGetRowOffset() const noexcept { return 1; }
@@ -607,7 +593,6 @@ class MatNxN
      inline const doublereal* begin() const noexcept { return &pdMat[0][0]; }
      inline const doublereal* end() const noexcept { return &pdMat[0][iGetNumRows() * iGetNumCols()]; }
      doublereal inline dGetValue(sp_grad::index_type i, sp_grad::index_type j) const noexcept { return (*this)(i, j); }
-#endif     
 };
 
 

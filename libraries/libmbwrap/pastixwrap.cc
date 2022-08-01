@@ -391,9 +391,5 @@ VectorHandler* PastixSolutionManager<MatrixHandlerType>::pSolHdl(void) const
 }
 
 template class PastixSolutionManager<SpMapMatrixHandler>;
-
-#ifdef USE_SPARSE_AUTODIFF
 template class PastixSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
-
 #endif

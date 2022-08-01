@@ -718,8 +718,10 @@ namespace sp_grad {
 	  Allocate(pData->iSizeRes, pData->iSizeCurr, pData->uFlags);
      }
 
-     constexpr size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
-	  return offsetof(SpDerivData, rgDer[iSizeRes]);
+     size_t SpGradient::uGetAllocSize(index_type iSizeRes) {
+          // this should really be offsetof(SpDerivData, rgDer[iSizeRes]);
+	  // but gcc 12.1 complains and we don't understand why
+	  return sizeof(SpDerivData) + sizeof(SpDerivRec) * iSizeRes;
      }
 
      void SpGradient::Cleanup() {

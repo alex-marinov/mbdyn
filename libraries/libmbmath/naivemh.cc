@@ -240,11 +240,10 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 MatrixHandler&
 NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 {
-        switch (SubMH.eStatus) {
+        switch (SubMH.GetStatus()) {
         case VariableSubMatrixHandler::FULL:
         {
-                const FullSubMatrixHandler& SMH =
-                        *dynamic_cast<const FullSubMatrixHandler *>(&SubMH);
+                const FullSubMatrixHandler& SMH = SubMH.GetFull();
                 /* NOTE: pirm1 is 1-based, for optimization purposes */
                 integer *pirm1 = SMH.piRowm1;
                 /* NOTE: pic is 0-based, for optimization purposes */
@@ -279,8 +278,7 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 
         case VariableSubMatrixHandler::SPARSE:
         {
-                const SparseSubMatrixHandler& SMH =
-                        *dynamic_cast<const SparseSubMatrixHandler *>(&SubMH);
+               const SparseSubMatrixHandler& SMH = SubMH.GetSparse();
 
                 for (integer i = 1; i <= SMH.iNumItems; i++) {
                         doublereal d = SMH.pdMatm1[i];
@@ -311,11 +309,10 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 MatrixHandler&
 NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 {
-        switch (SubMH.eStatus) {
+        switch (SubMH.GetStatus()) {
         case VariableSubMatrixHandler::FULL:
         {
-                const FullSubMatrixHandler& SMH =
-                        *dynamic_cast<const FullSubMatrixHandler *>(&SubMH);
+                const FullSubMatrixHandler& SMH = SubMH.GetFull();
                 integer *pirm1 = SMH.piRowm1;
                 integer *pic = SMH.piColm1 + 1;
                 doublereal **ppd = SMH.ppdCols;
@@ -343,8 +340,7 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 
         case VariableSubMatrixHandler::SPARSE:
         {
-                const SparseSubMatrixHandler& SMH =
-                        *dynamic_cast<const SparseSubMatrixHandler *>(&SubMH);
+             const SparseSubMatrixHandler& SMH = SubMH.GetSparse();
 
                 for (integer i = 1; i <= SMH.iNumItems; i++) {
                         doublereal d = SMH.pdMatm1[i];

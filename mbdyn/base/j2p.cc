@@ -38,7 +38,7 @@
 /* Elem2Param - begin */
 
 Elem2Param::Elem2Param(unsigned int uL, const DofOwner* pDO, flag fOut)
-: ParameterNode(uL, pDO, 0., fOut), pElem(0), iNum(0) 
+     :ScalarNode(uL, pDO, fOut), ParameterNode(uL, pDO, 0., fOut), pElem(0), iNum(0) 
 {
 	NO_OP;
 }
@@ -133,7 +133,7 @@ Elem2Param::SetValue(DataManager *pDM,
 
 StrainGageParam::StrainGageParam(unsigned int uL, const DofOwner* pDO,
 		doublereal dy, doublereal dz, flag fOut)
-: Elem2Param(uL, pDO, fOut), dY(dy), dZ(dz) 
+     :ScalarNode(uL, pDO, fOut), Elem2Param(uL, pDO, fOut), dY(dy), dZ(dz) 
 {
 	NO_OP;
 }

@@ -43,27 +43,6 @@
 
 #include "sp_gradient.h"
 
-namespace sp_grad {
-     namespace util {
-#ifdef USE_AUTODIFF
-	  template <>
-	  struct ResultType<grad::Gradient<0>, grad::Gradient<0> > {
-	       typedef grad::Gradient<0> Type;
-	  };
-
-	  template <>
-	  struct ResultType<grad::Gradient<0>, doublereal> {
-	       typedef grad::Gradient<0> Type;
-	  };
-
-	  template <>
-	  struct ResultType<doublereal, grad::Gradient<0> > {
-	       typedef grad::Gradient<0> Type;
-	  };
-#endif
-     }
-}
-
 namespace sp_grad_test {
      using namespace sp_grad;
 
@@ -254,12 +233,7 @@ namespace sp_grad_test {
      void func_mat_mul10(const SpMatrixBase<TA>& A,
 			 const SpMatrixBase<TB>& B,
 			 SpMatrixBase<typename util::ResultType<TA, TB>::Type>& C);
-#ifdef USE_AUTODIFF
-     template <typename TA, typename TB>
-     void func_mat_mul10(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-			 const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-			 grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C);
-#endif
+     
      void func_mat_mul10(index_type nra,
 			 index_type nca,
 			 index_type ncb,
@@ -280,17 +254,7 @@ namespace sp_grad_test {
      void func_mat_mul10_trans_add(const SpMatrixBase<TA>& A,
 				   const SpMatrixBase<TB>& B,
 				   SpMatrixBase<typename util::ResultType<TA, TB>::Type>& C);
-#ifdef USE_AUTODIFF
-     template <typename TA, typename TB>
-     void func_mat_mul10_trans_add(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-				   const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-				   grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C);
-
-     template <typename TA, typename TB>
-     void func_mat_mul10_dof_map(const grad::Matrix<TA, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& A,
-				 const grad::Matrix<TB, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& B,
-				 grad::Matrix<typename util::ResultType<TA, TB>::Type, grad::DYNAMIC_SIZE, grad::DYNAMIC_SIZE>& C);
-#endif
+     
      template <typename TA, typename TB, typename TC>
      void func_mat_mul11(const SpMatrixBase<TA>& A,
 			 const SpMatrixBase<TB>& B,

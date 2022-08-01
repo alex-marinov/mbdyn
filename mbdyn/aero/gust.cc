@@ -116,7 +116,7 @@ Gust1D::Restart(std::ostream& out) const
 bool
 Gust1D::GetVelocity(const Vec3& X, Vec3& V) const
 {
-	doublereal x = FrontDir*X + dVRef*Time.dGet();
+	doublereal x = dVRef*Time.dGet() - FrontDir*X;
 	doublereal v = GustProfile.dGet(x);
 	V = GustDir*v;
 	return true;

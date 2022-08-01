@@ -69,6 +69,7 @@
 #include "spherj.h"
 #include "totalequation.h"
 #include "totalj.h"
+#include "totaljad.h"
 #include "univj.h"
 #include "vehj.h"      /* Giunti deformabili */
 #include "vehj2.h"     /* "" */
@@ -112,11 +113,11 @@ Joint::OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string
 
 	Var_F_local = OH.CreateVar<Vec3>(name + "f",
 		OutputHandler::Dimensions::Force,
-		"local reaction force (Fx, Fy, Fz)");
+		"local reaction force (fx, fy, fz)");
 
 	Var_M_local = OH.CreateVar<Vec3>(name + "m",
 		OutputHandler::Dimensions::Moment,
-		"local reaction moment (Mx, My, Mz)");
+		"local reaction moment (mx, my, mz)");
 
 	Var_F_global = OH.CreateVar<Vec3>(name + "F",
 		OutputHandler::Dimensions::Force,
@@ -2787,14 +2788,25 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			TotalJoint,
-			TotalJoint(uLabel, pDO,
-				bXActive, bVActive, pXDC,
-				bRActive, bWActive, pTDC,
-				pNode1, f1, R1h, R1hr,
-				pNode2, f2, R2h, R2hr,
-				fOut));
+                if (pDM->bUseAutoDiff()) {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalJointAd,
+                                               TotalJointAd(uLabel, pDO,
+                                                            bXActive, bVActive, pXDC,
+                                                            bRActive, bWActive, pTDC,
+                                                            dynamic_cast<const StructNodeAd*>(pNode1), f1, R1h, R1hr,
+                                                            dynamic_cast<const StructNodeAd*>(pNode2), f2, R2h, R2hr,
+                                                            fOut));                        
+                } else {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalJoint,
+                                               TotalJoint(uLabel, pDO,
+                                                          bXActive, bVActive, pXDC,
+                                                          bRActive, bWActive, pTDC,
+                                                          pNode1, f1, R1h, R1hr,
+                                                          pNode2, f2, R2h, R2hr,
+                                                          fOut));
+                }
 
 		std::ostream& out = pDM->GetLogFile();
 		out << "totaljoint: " << uLabel
@@ -2850,14 +2862,25 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			TotalPinJoint,
-			TotalPinJoint(uLabel, pDO,
-				bXActive, bVActive, pXDC,
-				bRActive, bWActive, pTDC,
-				Xc, Rch, Rchr,
-				pNode, fn, Rnh, Rnhr,
-				fOut));
+                if (pDM->bUseAutoDiff()) {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalPinJointAd,
+                                               TotalPinJointAd(uLabel, pDO,
+                                                               bXActive, bVActive, pXDC,
+                                                               bRActive, bWActive, pTDC,
+                                                               Xc, Rch, Rchr,
+                                                               dynamic_cast<const StructNodeAd*>(pNode), fn, Rnh, Rnhr,
+                                                               fOut));
+                } else {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalPinJoint,
+                                               TotalPinJoint(uLabel, pDO,
+                                                             bXActive, bVActive, pXDC,
+                                                             bRActive, bWActive, pTDC,
+                                                             Xc, Rch, Rchr,
+                                                             pNode, fn, Rnh, Rnhr,
+                                                             fOut));
+                }
 
 		std::ostream& out = pDM->GetLogFile();
 		out << "totalpinjoint: " << uLabel
@@ -2908,14 +2931,25 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			TotalJoint,
-			TotalJoint(uLabel, pDO,
-				bXActive, bVActive, pXDC,
-				bRActive, bWActive, pTDC,
-				pNode1, f1, R1h, R1hr,
-				pNode2, f2, R2h, R2hr,
-				fOut));
+                if (pDM->bUseAutoDiff()) {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalJointAd,
+                                               TotalJointAd(uLabel, pDO,
+                                                          bXActive, bVActive, pXDC,
+                                                          bRActive, bWActive, pTDC,
+                                                          dynamic_cast<const StructNodeAd*>(pNode1), f1, R1h, R1hr,
+                                                          dynamic_cast<const StructNodeAd*>(pNode2), f2, R2h, R2hr,
+                                                          fOut));                        
+                } else {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalJoint,
+                                               TotalJoint(uLabel, pDO,
+                                                          bXActive, bVActive, pXDC,
+                                                          bRActive, bWActive, pTDC,
+                                                          pNode1, f1, R1h, R1hr,
+                                                          pNode2, f2, R2h, R2hr,
+                                                          fOut));
+                }
 
 		std::ostream& out = pDM->GetLogFile();
 		out << "totaljoint: " << uLabel
@@ -3385,14 +3419,25 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			TotalJoint,
-			TotalJoint(uLabel, pDO,
-				bXActive, bVActive, pXDC,
-				bRActive, bWActive, pTDC,
-				pNode1, f1, R1h, R1hr,
-				pNode2, f2, R2h, R2hr,
-				fOut));
+                if (pDM->bUseAutoDiff()) {
+		        SAFENEWWITHCONSTRUCTOR(pEl,
+			                       TotalJointAd,
+			                       TotalJointAd(uLabel, pDO,
+				               bXActive, bVActive, pXDC,
+				               bRActive, bWActive, pTDC,
+				               dynamic_cast<const StructNodeAd*>(pNode1), f1, R1h, R1hr,
+				               dynamic_cast<const StructNodeAd*>(pNode2), f2, R2h, R2hr,
+				               fOut));
+                } else {
+		        SAFENEWWITHCONSTRUCTOR(pEl,
+                                               TotalJoint,
+			                       TotalJoint(uLabel, pDO,
+				               bXActive, bVActive, pXDC,
+				               bRActive, bWActive, pTDC,
+				               pNode1, f1, R1h, R1hr,
+				               pNode2, f2, R2h, R2hr,
+				               fOut));
+                }
 
 		std::ostream& out = pDM->GetLogFile();
 		out << "totaljoint: " << uLabel
@@ -3561,14 +3606,25 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			TotalPinJoint,
-			TotalPinJoint(uLabel, pDO,
-				bXActive, bVActive, pXDC,
-				bRActive, bWActive, pTDC,
-				Xc, Rch, Rchr,
-				pNode, fn, Rnh, Rnhr,
-				fOut));
+                if (pDM->bUseAutoDiff()) {
+                        SAFENEWWITHCONSTRUCTOR(pEl,
+			                       TotalPinJointAd,
+                                               TotalPinJointAd(uLabel, pDO,
+                                                               bXActive, bVActive, pXDC,
+				                               bRActive, bWActive, pTDC,
+                                                               Xc, Rch, Rchr,
+                                                               dynamic_cast<const StructNodeAd*>(pNode), fn, Rnh, Rnhr,
+				                               fOut));
+                } else {
+		        SAFENEWWITHCONSTRUCTOR(pEl,
+			                       TotalPinJoint,
+			                       TotalPinJoint(uLabel, pDO,
+				                             bXActive, bVActive, pXDC,
+				                             bRActive, bWActive, pTDC,
+				                             Xc, Rch, Rchr,
+				                             pNode, fn, Rnh, Rnhr,
+				                             fOut));
+                }
 
 		std::ostream& out = pDM->GetLogFile();
 		out << "totalpinjoint: " << uLabel

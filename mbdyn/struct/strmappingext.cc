@@ -272,7 +272,7 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 			uint32_ptr[1] = uPoints;
 
-			ssize_t rc = send(pEFH->GetOutFileDes(),
+			ssize_t rc = sendn(pEFH->GetOutFileDes(),
 				(const char *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 			if (rc == -1) {
@@ -313,7 +313,7 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
-			ssize_t rc = recv(pEFH->GetInFileDes(),
+			ssize_t rc = recvn(pEFH->GetInFileDes(),
 				(char *)buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == -1) {
@@ -610,30 +610,30 @@ StructMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen whe
 
 		if (bLabels) {
 			uint32_t l = pRefNode->GetLabel();
-			send(outfd, (const char *)&l, sizeof(l), 0);
+			sendn(outfd, (const char *)&l, sizeof(l), 0);
 		}
 
-		send(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
 		switch (uRRot) {
 		case MBC_ROT_MAT:
-			send(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
 			break;
 
 		case MBC_ROT_THETA: {
 			Vec3 Theta(RotManip::VecRot(RRef));
-			send(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 
 		case MBC_ROT_EULER_123: {
 			Vec3 E(MatR2EulerAngles123(RRef)*dRaDegr);
-			send(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 		}
-		send(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
-		send(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
 		if (bOutputAccelerations) {
-			send(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
-			send(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
 		}
 
 		for (unsigned p3 = 0, n = 0; n < Nodes.size(); n++) {
@@ -732,27 +732,27 @@ StructMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen whe
 	}
 
 	if (bLabels) {
-		send(outfd, (const char *)&m_qlabels[0], sizeof(uint32_t)*m_qlabels.size(), 0);
+		sendn(outfd, (const char *)&m_qlabels[0], sizeof(uint32_t)*m_qlabels.size(), 0);
 	}
 
 	if (pH) {
 		pH->MatVecMul(m_q, m_x);
 		pH->MatVecMul(m_qP, m_xP);
 
-		send(outfd, (const char *)&m_q[0], sizeof(double)*m_q.size(), 0);
-		send(outfd, (const char *)&m_qP[0], sizeof(double)*m_qP.size(), 0);
+		sendn(outfd, (const char *)&m_q[0], sizeof(double)*m_q.size(), 0);
+		sendn(outfd, (const char *)&m_qP[0], sizeof(double)*m_qP.size(), 0);
 
 		if (bOutputAccelerations) {
 			pH->MatVecMul(m_qPP, m_xPP);
-			send(outfd, (const char *)&m_qPP[0], sizeof(double)*m_qPP.size(), 0);
+			sendn(outfd, (const char *)&m_qPP[0], sizeof(double)*m_qPP.size(), 0);
 		}
 
 	} else {
-		send(outfd, (const char *)&m_x[0], sizeof(double)*m_x.size(), 0);
-		send(outfd, (const char *)&m_xP[0], sizeof(double)*m_xP.size(), 0);
+		sendn(outfd, (const char *)&m_x[0], sizeof(double)*m_x.size(), 0);
+		sendn(outfd, (const char *)&m_xP[0], sizeof(double)*m_xP.size(), 0);
 
 		if (bOutputAccelerations) {
-			send(outfd, (const char *)&m_xPP[0], sizeof(double)*m_xPP.size(), 0);
+			sendn(outfd, (const char *)&m_xPP[0], sizeof(double)*m_xPP.size(), 0);
 		}
 	}
 
@@ -842,7 +842,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 
 		ulen += 6*sizeof(doublereal);
 
-		len = recv(infd, (char *)buf, ulen, pEFH->GetRecvFlags());
+		len = recvn(infd, (char *)buf, ulen, pEFH->GetRecvFlags());
 		if (len == -1) {
 			int save_errno = WSAGetLastError();
 			char *err_msg = strerror(save_errno);
@@ -880,7 +880,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 
 	if (bLabels) {
 		// Hack!
-		ssize_t len = recv(infd, (char *)&m_p[0], sizeof(uint32_t)*m_p.size(),
+		ssize_t len = recvn(infd, (char *)&m_p[0], sizeof(uint32_t)*m_p.size(),
 			pEFH->GetRecvFlags());
 		if (len == -1) {
 			int save_errno = WSAGetLastError();
@@ -920,7 +920,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 		fsize = sizeof(double)*m_f.size();
 	}
 
-	ssize_t len = recv(infd, (char *)fp, fsize, pEFH->GetRecvFlags());
+	ssize_t len = recvn(infd, (char *)fp, fsize, pEFH->GetRecvFlags());
 	if (len == -1) {
 		int save_errno = WSAGetLastError();
 		char *err_msg = strerror(save_errno);
@@ -1371,30 +1371,30 @@ StructMembraneMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::Send
 
 		if (bLabels) {
 			uint32_t l = pRefNode->GetLabel();
-			send(outfd, (const char *)&l, sizeof(l), 0);
+			sendn(outfd, (const char *)&l, sizeof(l), 0);
 		}
 
-		send(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
 		switch (uRRot) {
 		case MBC_ROT_MAT:
-			send(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
 			break;
 
 		case MBC_ROT_THETA: {
 			Vec3 Theta(RotManip::VecRot(RRef));
-			send(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 
 		case MBC_ROT_EULER_123: {
 			Vec3 E(MatR2EulerAngles123(RRef)*dRaDegr);
-			send(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)E.pGetVec(), 3*sizeof(doublereal), 0);
 			} break;
 		}
-		send(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
-		send(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
+		sendn(outfd, (const char *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
 		if (bOutputAccelerations) {
-			send(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
-			send(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
+			sendn(outfd, (const char *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
 		}
 
 		for (unsigned p3 = 0, n = 0; n < Nodes.size(); n++) {
@@ -1542,27 +1542,27 @@ StructMembraneMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::Send
 	}
 
 	if (bLabels) {
-		send(outfd, (const char *)&m_qlabels[0], sizeof(uint32_t)*m_qlabels.size(), 0);
+		sendn(outfd, (const char *)&m_qlabels[0], sizeof(uint32_t)*m_qlabels.size(), 0);
 	}
 
 	if (pH) {
 		pH->MatVecMul(m_q, m_x);
 		pH->MatVecMul(m_qP, m_xP);
 
-		send(outfd, (const char *)&m_q[0], sizeof(double)*m_q.size(), 0);
-		send(outfd, (const char *)&m_qP[0], sizeof(double)*m_qP.size(), 0);
+		sendn(outfd, (const char *)&m_q[0], sizeof(double)*m_q.size(), 0);
+		sendn(outfd, (const char *)&m_qP[0], sizeof(double)*m_qP.size(), 0);
 
 		if (bOutputAccelerations) {
 			pH->MatVecMul(m_qPP, m_xPP);
-			send(outfd, (const char *)&m_qPP[0], sizeof(double)*m_qPP.size(), 0);
+			sendn(outfd, (const char *)&m_qPP[0], sizeof(double)*m_qPP.size(), 0);
 		}
 
 	} else {
-		send(outfd, (const char *)&m_x[0], sizeof(double)*m_x.size(), 0);
-		send(outfd, (const char *)&m_xP[0], sizeof(double)*m_xP.size(), 0);
+		sendn(outfd, (const char *)&m_x[0], sizeof(double)*m_x.size(), 0);
+		sendn(outfd, (const char *)&m_xP[0], sizeof(double)*m_xP.size(), 0);
 
 		if (bOutputAccelerations) {
-			send(outfd, (const char *)&m_xPP[0], sizeof(double)*m_xPP.size(), 0);
+			sendn(outfd, (const char *)&m_xPP[0], sizeof(double)*m_xPP.size(), 0);
 		}
 	}
 
@@ -1640,7 +1640,7 @@ StructMembraneMappingExtForce::RecvFromFileDes(int infd)
 
 		ulen += 6*sizeof(doublereal);
 
-		len = recv(infd, (char *)buf, ulen, pEFH->GetRecvFlags());
+		len = recvn(infd, (char *)buf, ulen, pEFH->GetRecvFlags());
 		if (len == -1) {
 			int save_errno = WSAGetLastError();
 			char *err_msg = strerror(save_errno);
@@ -1678,7 +1678,7 @@ StructMembraneMappingExtForce::RecvFromFileDes(int infd)
 
 	if (bLabels) {
 		// Hack!
-		ssize_t len = recv(infd, (char *)&m_p[0], sizeof(uint32_t)*m_p.size(),
+		ssize_t len = recvn(infd, (char *)&m_p[0], sizeof(uint32_t)*m_p.size(),
 			pEFH->GetRecvFlags());
 		if (len == -1) {
 			int save_errno = WSAGetLastError();
@@ -1718,7 +1718,7 @@ StructMembraneMappingExtForce::RecvFromFileDes(int infd)
 		fsize = sizeof(double)*m_f.size();
 	}
 
-	ssize_t len = recv(infd, (char *)fp, fsize, pEFH->GetRecvFlags());
+	ssize_t len = recvn(infd, (char *)fp, fsize, pEFH->GetRecvFlags());
 	if (len == -1) {
 		int save_errno = WSAGetLastError();
 		char *err_msg = strerror(save_errno);

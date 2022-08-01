@@ -40,8 +40,6 @@
 
 #include "mbconfig.h"
 
-#ifdef USE_SPARSE_AUTODIFF
-
 #include <iomanip>
 
 #include "sp_gradient_spmh.h"
@@ -113,6 +111,18 @@ void SpGradientSparseMatrixHandler::Reset()
      for (auto& oRow: oRows) {
 	  oRow.ResetNumeric();
      }
+}
+
+void
+SpGradientSparseMatrixHandler::IncCoef(integer iRow, integer iCol, const doublereal& dCoef)
+{
+     // Not recommended for general use
+     // Needed for DataManager::InitialJointAssembly to make it independent from the bUseAutoDiff() flag
+     sp_grad::SpGradient g;
+
+     g.Reset(0., iCol, dCoef);
+
+     AddItem(iRow, g);
 }
 
 MatrixHandler&
@@ -656,6 +666,4 @@ SpGradientSparseMatrixWrapper::MatTVecMul_base(
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
-#endif
-
 #endif

@@ -459,9 +459,7 @@ WsmpSparseCCSolutionManager<CC>::pMatHdl(void) const
 }
 
 template class WsmpSparseSolutionManager<SpMapMatrixHandler>;
-#ifdef USE_SPARSE_AUTODIFF
 template class WsmpSparseSolutionManager<SpGradientSparseMatrixHandler>;
-#endif
 template class WsmpSparseCCSolutionManager<CColMatrixHandler<0> >;
 template class WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> >;
 

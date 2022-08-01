@@ -229,6 +229,8 @@ SocketDrive::~SocketDrive(void)
    	if (auth != NULL) {
       		SAFEDELETE(auth);
    	}
+
+        SAFEDELETEARR(pFlags);
 }
 
 static char *
@@ -332,7 +334,7 @@ void
 SocketDrive::ServePending(const doublereal& /* t */ )
 {
    	struct sockaddr_in client_name;
-   	socklen_t socklen;
+        socklen_t socklen = sizeof(client_name);
 
    	/* prova */
    	for (integer iCnt = 1; iCnt <= iNumDrives; iCnt++) {

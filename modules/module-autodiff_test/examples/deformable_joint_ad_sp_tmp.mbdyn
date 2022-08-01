@@ -53,7 +53,7 @@ end: initial value;
 begin: control data;
 
 include: "deformable_joint_ad.cod";
-
+use automatic differentiation;
 end: control data;
 
 include: "deformable_joint_ad.ref";

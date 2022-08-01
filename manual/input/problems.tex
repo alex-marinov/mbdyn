@@ -1044,7 +1044,7 @@ usually output.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{linear solver} :
             \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} 
-                    | \kw{pardiso} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr}\}
+                    | \kw{pardiso} | \kw{watson} | \kw{pastix} | \kw{qr} | \kw{spqr} | \kw{aztecoo} | \kw{amesos} \}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
         [ , \{ \kw{colamd} | \kw{mmdata} | \kw{amd} | \kw{given} | \kw{metis} \} ]
         [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
@@ -1057,7 +1057,10 @@ usually output.
             [ , \kw{scale tolerance}, (\ty{real}) \bnt{scale_tolerance} ]
             [ , \kw{scale iterations}, (\ty{integer}) \bnt{scale_max_iter} ]
         ]
+        [ , \kw{tolerance}, (\ty{real}) \bnt{refine_tolerance} ]
         [ , \kw{max iterations}, (\ty{integer}) \bnt{refine_max_iter} ]
+        [ , \kw{preconditioner}, \{ \kw{umfpack} | \kw{klu} | \kw{lapack} | \kw{ilut} | \kw{superlu} | \kw{mumps} | 
+            \kw{scalapack} | \kw{dscpack} | \kw{pardiso} | \kw{paraklete} | \kw{taucs} | \kw{csparse} \} ]
     ;
 \end{Verbatim}
 %\end{verbatim}
@@ -1185,6 +1188,17 @@ of the Jacobian and it's $Q\,R$ factors as long as no BFGS update is applied.
 Once an BFGS update is applied to the $Q\,R$ factors, a dense upper triangular solver
 from Lapack is used until the Jacobian is rebuild. However, usually the most expensive
 part is the $Q\,R$ decomposition of the sparse Jacobian.
+
+\paragraph{Aztecoo}
+In contrast to most other solvers, \kw{aztecoo} is an iterative linear solver based on
+Sandia's Trilinos library \cite{TRILINOS-WEBSITE}. Different preconditioners are supported.
+However the incomplete LU~factorization option \kw{ilut} cannot be used if there are any
+joints in the model. This solver accepts a tolerance defined by $\bnt{refine\_tolerance}$ and
+a maximum number of iterations $\bnt{refine\_max\_iter}$.
+
+\paragraph{Amesos}
+Amesos is also based on Sandia's Trilinos library~\cite{TRILINOS-WEBSITE}.
+It provides interfaces to several direct linear solvers.
 
 \begin{comment}
 Another linear solver, that is available mostly for historical reasons, 

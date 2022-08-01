@@ -58,6 +58,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::STRUMPACK_SOLVER].s_name,
 		::solver[LinSol::WATSON_SOLVER].s_name,
                 ::solver[LinSol::AZTECOO_SOLVER].s_name,
+                ::solver[LinSol::AMESOS_SOLVER].s_name,
 		NULL
 	};
 
@@ -80,6 +81,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		STRUMPACK,
 		WATSON,
 		AZTECOO,
+                AMESOS,
 		LASTKEYWORD
 	};
 
@@ -252,7 +254,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
              bGotIt = true;
 #endif
              break;
-             
+        case AMESOS:
+             cs.SetSolver(LinSol::AMESOS_SOLVER);
+             DEBUGLCOUT(MYDEBUG_INPUT, "Using Amesos solver\n");
+#ifdef USE_TRILINOS
+             bGotIt = true;
+#endif
+             break;
+
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -295,7 +304,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
-#ifdef USE_SPARSE_AUTODIFF
 	} else if (HP.IsKeyWord("sparse" "gradient") || HP.IsKeyWord("grad")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_GRAD) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK, LinSol::SOLVER_FLAGS_ALLOWS_GRAD);
@@ -308,7 +316,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
-#endif
 	/* direct? */
 	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
@@ -777,7 +784,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
-        if (HP.IsKeyWord("preconditioner")) {
+        if (HP.IsKeyWord("preconditioner") || HP.IsKeyWord("solver")) {
              unsigned uPrecondFlag = 0u;
              
              if (HP.IsKeyWord("umfpack")) {
@@ -788,8 +795,24 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
                   uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_LAPACK;
              } else if (HP.IsKeyWord("ilut")) {
                   uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_ILUT;
+             } else if (HP.IsKeyWord("superlu")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SUPERLU;
+             } else if (HP.IsKeyWord("mumps")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_MUMPS;
+             } else if (HP.IsKeyWord("scalapack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_SCALAPACK;
+             } else if (HP.IsKeyWord("dscpack")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_DSCPACK;
+             } else if (HP.IsKeyWord("pardiso")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARDISO;
+             } else if (HP.IsKeyWord("paraklete")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_PARAKLETE;
+             } else if (HP.IsKeyWord("taucs")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_TAUCS;
+             } else if (HP.IsKeyWord("csparse")) {
+                  uPrecondFlag = LinSol::SOLVER_FLAGS_ALLOWS_PRECOND_CSPARSE;
              } else {
-                  silent_cerr("Keywords {umfpack, klu, lapack, ilut} expected at line " << HP.GetLineData() << std::endl);
+                  silent_cerr("Keywords {umfpack, klu, lapack, ilut, superlu, mumps, scalapack, dscpack, pardiso, paraklete, taucs, csparse} expected at line " << HP.GetLineData() << std::endl);
                   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
              }
 

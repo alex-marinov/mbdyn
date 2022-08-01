@@ -105,6 +105,8 @@ nestedelem.cc \
 nestedelem.h \
 node.cc \
 node.h \
+nodead.cc \
+nodead.h \
 nodeman.cc \
 nonlin.cc \
 nonlin.h \

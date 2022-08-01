@@ -43,11 +43,8 @@
 #include "ccmh.h"
 #include "dirccmh.h"
 #include "naivemh.h"
-
-#ifdef USE_SPARSE_AUTODIFF
 #include "sp_gradient_spmh.h"
 #include "cscmhtpl.h"
-#endif
 
 #ifdef USE_TRILINOS
 #undef HAVE_BLAS
@@ -208,13 +205,11 @@ main(int argc, char* argv[])
                MatrixScale<CColMatrixHandler<1> >* pCCol1;
                MatrixScale<DirCColMatrixHandler<0> >* pDirCCol0;
                MatrixScale<DirCColMatrixHandler<1> >* pDirCCol1;
-#ifdef USE_SPARSE_AUTODIFF
                MatrixScale<SpGradientSparseMatrixHandler>* pGrad;
                MatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >* pCSC0;
                MatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >* pCSC1;
 #ifdef USE_TRILINOS
                MatrixScale<EpetraSparseMatrixHandler>* pEpetra;
-#endif
 #endif
                MatrixScale<SpMapMatrixHandler>* pMap;
           } matScale[] = {
@@ -225,13 +220,11 @@ main(int argc, char* argv[])
                  new RowMaxMatrixScale<CColMatrixHandler<1> >(scale),
                  new RowMaxMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new RowMaxMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new RowMaxMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new RowMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new RowMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new RowMaxMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new RowMaxMatrixScale<SpMapMatrixHandler>(scale)},
                { new RowSumMatrixScale<NaiveMatrixHandler>(scale),
@@ -241,13 +234,11 @@ main(int argc, char* argv[])
                  new RowSumMatrixScale<CColMatrixHandler<1> >(scale),
                  new RowSumMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new RowSumMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new RowSumMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new RowSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new RowSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new RowSumMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new RowSumMatrixScale<SpMapMatrixHandler>(scale)},
                { new ColMaxMatrixScale<NaiveMatrixHandler>(scale),
@@ -257,13 +248,11 @@ main(int argc, char* argv[])
                  new ColMaxMatrixScale<CColMatrixHandler<1> >(scale),
                  new ColMaxMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new ColMaxMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new ColMaxMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new ColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new ColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new ColMaxMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new ColMaxMatrixScale<SpMapMatrixHandler>(scale)},
                { new ColSumMatrixScale<NaiveMatrixHandler>(scale),
@@ -273,13 +262,11 @@ main(int argc, char* argv[])
                  new ColSumMatrixScale<CColMatrixHandler<1> >(scale),
                  new ColSumMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new ColSumMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new ColSumMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new ColSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new ColSumMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new ColSumMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new ColSumMatrixScale<SpMapMatrixHandler>(scale)},
                { new LapackMatrixScale<NaiveMatrixHandler>(scale),
@@ -289,13 +276,11 @@ main(int argc, char* argv[])
                  new LapackMatrixScale<CColMatrixHandler<1> >(scale),
                  new LapackMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new LapackMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new LapackMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new LapackMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new LapackMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new LapackMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new LapackMatrixScale<SpMapMatrixHandler>(scale)},
                { new IterativeMatrixScale<NaiveMatrixHandler>(scale),
@@ -305,13 +290,11 @@ main(int argc, char* argv[])
                  new IterativeMatrixScale<CColMatrixHandler<1> >(scale),
                  new IterativeMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new IterativeMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new IterativeMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new IterativeMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new IterativeMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new IterativeMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new IterativeMatrixScale<SpMapMatrixHandler>(scale)},
                { new RowMaxColMaxMatrixScale<NaiveMatrixHandler>(scale),
@@ -321,13 +304,11 @@ main(int argc, char* argv[])
                  new RowMaxColMaxMatrixScale<CColMatrixHandler<1> >(scale),
                  new RowMaxColMaxMatrixScale<DirCColMatrixHandler<0> >(scale),
                  new RowMaxColMaxMatrixScale<DirCColMatrixHandler<1> >(scale),
-#ifdef USE_SPARSE_AUTODIFF
                  new RowMaxColMaxMatrixScale<SpGradientSparseMatrixHandler>(scale),
                  new RowMaxColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 0> >(scale),
                  new RowMaxColMaxMatrixScale<CSCMatrixHandlerTpl<doublereal, integer, 1> >(scale),
 #ifdef USE_TRILINOS
                  new RowMaxColMaxMatrixScale<EpetraSparseMatrixHandler>(scale),
-#endif
 #endif
                  new RowMaxColMaxMatrixScale<SpMapMatrixHandler>(scale)}
           };
@@ -350,10 +331,7 @@ main(int argc, char* argv[])
                FullMatrixHandler fm(5);
                SpMapMatrixHandler spm(5, 5);
                MyVectorHandler x(5), b(5);
-
-#ifdef USE_SPARSE_AUTODIFF
                SpGradientSparseMatrixHandler spgmh(5, 5);
-#endif
 
 #ifdef USE_TRILINOS
                Epetra_SerialComm oComm;
@@ -373,13 +351,11 @@ main(int argc, char* argv[])
                               npm(ir + 1, ic + 1) = mat[ir][ic];
                               fm(ir + 1, ic + 1) = mat[ir][ic];
                               spm(ir + 1, ic + 1) = mat[ir][ic];
-#ifdef USE_SPARSE_AUTODIFF
                               sp_grad::SpGradient g;
                               g.Reset(0., ic + 1, mat[ir][ic]);
                               spgmh.AddItem(ir + 1, g);
 #ifdef USE_TRILINOS
                               epmh.AddItem(ir + 1, g);
-#endif
 #endif
                          }
                     }
@@ -403,7 +379,6 @@ main(int argc, char* argv[])
                DirCColMatrixHandler<0> dirccm0(Axd0, Aid0, Apd0);
                DirCColMatrixHandler<1> dirccm1(Axd1, Aid1, Apd1);
 
-#ifdef USE_SPARSE_AUTODIFF
                std::vector<doublereal> Ax0g, Ax1g, Ax0gT, Ax1gT;
                std::vector<integer> Ai0g, Ap0g, Ai1g, Ap1g, Ai0gT, Ap0gT, Ai1gT, Ap1gT;
                spgmh.MakeCompressedColumnForm(Ax0g, Ai0g, Ap0g, 0);
@@ -427,7 +402,6 @@ main(int argc, char* argv[])
                CSCMatrixHandlerTpl<doublereal, integer, 0> epcsc0T(&Axepr0.front(), &Aiepr0.front(), &Apepr0.front(), epmh.iGetNumRows(), Aiepr0.size());
                CSCMatrixHandlerTpl<doublereal, integer, 1> epcsc1T(&Axepr1.front(), &Aiepr1.front(), &Apepr1.front(), epmh.iGetNumRows(), Aiepr1.size());
 #endif
-#endif
                ScaleMatrix("Naive", *matScale[iMatScale].pNaive, nm, x, b);
                ScaleMatrix("NaivePerm", *matScale[iMatScale].pNaivePerm, npm, x, b);
                ScaleMatrix("Full", *matScale[iMatScale].pFull, fm, x, b);
@@ -436,7 +410,6 @@ main(int argc, char* argv[])
                ScaleMatrix("CC0", *matScale[iMatScale].pCCol0, ccm0, x, b);
                ScaleMatrix("CC1", *matScale[iMatScale].pCCol1, ccm1, x, b);
                ScaleMatrix("Map", *matScale[iMatScale].pMap, spm, x, b);
-#ifdef USE_SPARSE_AUTODIFF
                ScaleMatrix("Grad", *matScale[iMatScale].pGrad, spgmh, x, b);
                ScaleMatrix("csc0", *matScale[iMatScale].pCSC0, csc0, x, b);
                ScaleMatrix("csc1", *matScale[iMatScale].pCSC1, csc1, x, b);
@@ -449,7 +422,6 @@ main(int argc, char* argv[])
                ScaleMatrix("epcsc^T", *matScale[iMatScale].pCSC0, epcsc0T, x, b, true);
                ScaleMatrix("epcsc^T", *matScale[iMatScale].pCSC1, epcsc1T, x, b, true);
 #endif
-#endif
           }
 
           for (unsigned i = 0; i < sizeof(matScale)/sizeof(matScale[0]); ++i) {
@@ -461,13 +433,11 @@ main(int argc, char* argv[])
                delete matScale[i].pDirCCol0;
                delete matScale[i].pDirCCol1;
                delete matScale[i].pMap;
-#ifdef USE_SPARSE_AUTODIFF
                delete matScale[i].pGrad;
                delete matScale[i].pCSC0;
                delete matScale[i].pCSC1;
 #ifdef USE_TRILINOS
                delete matScale[i].pEpetra;
-#endif
 #endif
           }
      }

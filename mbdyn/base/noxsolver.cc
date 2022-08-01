@@ -163,7 +163,6 @@ namespace {
           doublereal dTolSol;
      };
 
-#ifdef USE_SPARSE_AUTODIFF
      class NoxMatrixFreeJacOper: public Epetra_Operator, public NOX::Epetra::Interface::Jacobian {
           friend NoxNonlinearSolver;
 
@@ -190,7 +189,6 @@ namespace {
           mutable MyVectorHandler AX;
 #endif
      };
-#endif
 
      class NoxNonlinearSolver : public NonlinearSolver,
                                 private NoxSolverParameters,
@@ -202,9 +200,8 @@ namespace {
                                 private NOX::Epetra::LinearSystem
      {
      public:
-#ifdef USE_SPARSE_AUTODIFF
           friend NoxMatrixFreeJacOper;
-#endif
+
           NoxNonlinearSolver(const NonlinearSolverTestOptions& oSolverOpt,
                              const NoxSolverParameters& oParam);
 
@@ -349,9 +346,7 @@ namespace {
           mutable MyVectorHandler DeltaX, XPrev, TmpRes;
           NoxResidualTest oResTest;
           NoxSolutionTest oSolTest;
-#ifdef USE_SPARSE_AUTODIFF
           NoxMatrixFreeJacOper oMatFreeJacOper;
-#endif
           NOX::Epetra::Interface::Jacobian* pJacInt;
           Teuchos::RCP<Epetra_Operator> pJacOper;
           NOX::Epetra::Interface::Preconditioner* pPrecInt;
@@ -580,7 +575,6 @@ namespace {
           return dErrSol;
      }
 
-#ifdef USE_SPARSE_AUTODIFF
      NoxMatrixFreeJacOper::NoxMatrixFreeJacOper(NoxNonlinearSolver& oNoxSolver)
           :oNoxSolver(oNoxSolver)
 #ifdef DEBUG_JACOBIAN
@@ -746,7 +740,6 @@ namespace {
 #endif
           return true;
      }
-#endif
 
      NoxNonlinearSolver::NoxNonlinearSolver(const NonlinearSolverTestOptions& oSolverOpt,
                                             const NoxSolverParameters& oParam)
@@ -757,9 +750,7 @@ namespace {
            pSolutionManager(nullptr),
            oResTest(*this),
            oSolTest(*this),
-#ifdef USE_SPARSE_AUTODIFF
            oMatFreeJacOper(*this),
-#endif
            pJacInt(nullptr),
            pJacOper(nullptr),
            pPrecInt(nullptr),
@@ -1011,18 +1002,15 @@ namespace {
           NOX::Epetra::Interface::Required& oResidualInt = *this;
           Teuchos::RCP<NOX::Epetra::Interface::Required> pResidualInt{Teuchos::rcpFromRef(oResidualInt)};
 
-#ifdef USE_SPARSE_AUTODIFF
           if (uFlags & JACOBIAN_NEWTON_KRYLOV) {
                pJacOper = Teuchos::rcpFromRef(oMatFreeJacOper);
                pJacInt = &oMatFreeJacOper;
           } else {
-#endif
                Epetra_Operator& oJacOper = *this;
                pJacOper = Teuchos::rcpFromRef(oJacOper);
                pJacInt = this;
-#ifdef USE_SPARSE_AUTODIFF
           }
-#endif
+
           pPrecInt = this;
           oIterativeLinSol.SetUserOperator(pJacOper.get());
           oIterativeLinSol.SetPrecOperator(this);
@@ -1662,9 +1650,7 @@ namespace {
      {
           DEBUGCERR("setJacobianOperatorForSolve()\n");
 
-#ifdef USE_SPARSE_AUTODIFF
           ASSERT(solveJacOp.get() == this || solveJacOp.get() == &oMatFreeJacOper);
-#endif
      }
 
      bool

@@ -348,9 +348,7 @@ public:
         /* Assembla lo jacobiano */
         virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void AssJac(VectorHandler& JacY, const VectorHandler& Y, doublereal dCoef);
-#endif
                 
         /* Assembla le matrici per gli autovalori */
         virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
@@ -375,12 +373,9 @@ public:
         // end of inverse dynamics
 
 protected:
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         void NodesUpdateJac(doublereal dCoef, VecIter<Node *>& Iter);
-#endif
-#ifdef USE_SPARSE_AUTODIFF
         void NodesUpdateJac(const VectorHandler& Y, doublereal dCoef, VecIter<Node *>& Iter);
-#endif
+     
         /* specialized functions, called by above general helpers */
         virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
                         VecIter<Elem *> &Iter,
@@ -394,13 +389,12 @@ protected:
                         SubVectorHandler& WorkVec,
                         VectorHandler*const pAbsResHdl = 0);
 
-#ifdef USE_SPARSE_AUTODIFF
         virtual void AssJac(VectorHandler& JacY,
                             const VectorHandler& Y,
                             doublereal dCoef,
                             VecIter<Elem *> &Iter,
                             VariableSubMatrixHandler& WorkMat);
-#endif
+
         // inverse dynamics
         void AssConstrJac(MatrixHandler& JacHdl,
                 VecIter<Elem *> &Iter,
@@ -632,9 +626,7 @@ protected:
         ElemVecType Elems;
 
         /* NOTE: will be removed? */
-#if defined(USE_AUTODIFF) || defined(USE_SPARSE_AUTODIFF)
         mutable VecIter<Node *> NodeIter;
-#endif
         mutable VecIter<Elem *> ElemIter;
         /* end of NOTE: will be removed? */
 
@@ -900,6 +892,9 @@ public:
 
         SolverBase::StepIntegratorType GetStepIntegratorType(unsigned int iDof) const;
         doublereal dGetStepIntegratorCoef(unsigned int iDof) const;
+        bool bUseAutoDiff() const { return bAutoDiff; }
+private:
+        bool bAutoDiff; // Create nodes and elements with support for automatic differentiation if applicable
 };
 
 // if bActive is true, the cast only succeeds when driven element is active
