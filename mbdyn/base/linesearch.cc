@@ -179,9 +179,9 @@ doublereal LineSearchSolver::dGetMinNewtonInc(const VectorHandler& dX) const {
 
      for (integer i = 1; i <= Size; ++i) {
           const doublereal Xi = pDM->GetDofType(i) == DofOrder::ALGEBRAIC ? X(i) : XP(i);
-          
+
           const doublereal dTemp = std::abs(dX(i)) / std::max(std::abs(Xi), 1.);
-          
+
           if (dTemp > dTest) {
                dTest = dTemp;
           }
@@ -486,7 +486,7 @@ void
 LineSearchSolver::Jacobian()
 {
      bool bInitMat = false;
-     
+
      pSM->MatrReset();
 
      while (true) {
@@ -497,7 +497,7 @@ LineSearchSolver::Jacobian()
                if (bInitMat) {
                     throw;
                }
-               
+
                silent_cout("LineSearchSolver: rebuilding matrix ...\n");
                /* need to rebuild the matrix... */
                pSM->MatrInitialize();
@@ -505,7 +505,7 @@ LineSearchSolver::Jacobian()
                continue;
           }
           break;
-     } 
+     }
 
      TotJac++;
 
@@ -529,7 +529,7 @@ void LineSearchSolver::OutputJacobian(const MatrixHandler& Jac) const
           if (outputMatrixConditionNumber()) {
                silent_cout(" cond=" << Jac.ConditionNumber(GetCondMatNorm()) << '\n');
           }
-     }     
+     }
 }
 
 LineSearchFull::LineSearchFull(DataManager* pDM,
@@ -1515,7 +1515,7 @@ void LineSearchMCP::ComputeHInt(const VectorHandler& z, const VectorHandler& F, 
 void LineSearchMCP::ComputeH(const VectorHandler& z, const VectorHandler& F, const SpGradientSparseMatrixHandler& nablaFMCP)
 {
      bool bInitMat = false;
-     
+
      while (true) {
           try {
                ComputeHInt(z, F, nablaFMCP, *pSM->pMatHdl());
@@ -1523,15 +1523,15 @@ void LineSearchMCP::ComputeH(const VectorHandler& z, const VectorHandler& F, con
                if (bInitMat) {
                     throw;
                }
-               
+
                silent_cout("LineSearchSolver: rebuilding matrix...\n");
-               /* need to rebuild the matrix... */                    
+               /* need to rebuild the matrix... */
                pSM->MatrInitialize();
                bInitMat = true;
                continue;
           }
           break;
-     }     
+     }
 }
 
 void LineSearchMCP::ComputeHInt(const VectorHandler& z, const VectorHandler& F, MatrixHandler& H, std::vector<doublereal>& rgRowScale, std::vector<doublereal>& rgColScale)
@@ -1585,7 +1585,7 @@ void LineSearchMCP::ComputeHInt(const VectorHandler& z, const VectorHandler& F, 
                g.Reset(0., i, z(i) / normi - 1.);
                H.AddItem(i, g);
           }
-     }     
+     }
 }
 
 void LineSearchMCP::ComputeH(const VectorHandler& z,
@@ -1594,7 +1594,7 @@ void LineSearchMCP::ComputeH(const VectorHandler& z,
                              std::vector<doublereal>& rgColScale)
 {
      bool bInitMat = false;
-     
+
      pSM->MatrReset();
 
      while (true) {
@@ -1602,13 +1602,13 @@ void LineSearchMCP::ComputeH(const VectorHandler& z,
                pNLP->Jacobian(pSM->pMatHdl());
 
                OutputJacobian(*pSM->pMatHdl());
-               
+
                ComputeHInt(z, F, *pSM->pMatHdl(), rgRowScale, rgColScale);
           } catch (const MatrixHandler::ErrRebuildMatrix&) {
                if (bInitMat) {
                     throw;
                }
-               
+
                pSM->MatrInitialize();
                bInitMat = true;
                continue;
@@ -1642,7 +1642,7 @@ void LineSearchMCP::ComputeHDescInt(const SpGradientSparseMatrixHandler& nablaFM
 void LineSearchMCP::ComputeHDesc(const SpGradientSparseMatrixHandler& nablaFMCP, const VectorHandler& z, const VectorHandler& F) const
 {
      bool bInitMat = false;
-     
+
      pSM->MatrReset();
 
      while (true) {
@@ -1652,7 +1652,7 @@ void LineSearchMCP::ComputeHDesc(const SpGradientSparseMatrixHandler& nablaFMCP,
                if (bInitMat) {
                     throw;
                }
-               
+
                silent_cout("LineSearchSolver: rebuilding matrix...\n");
                /* need to rebuild the matrix... */
                pSM->MatrInitialize();
@@ -1755,7 +1755,7 @@ doublereal LineSearchMCP::LineSearch(const doublereal dThetaPrev,
                     silent_cerr("line search warning: residual test failed (residual=" << dErr << ")\n");
                }
           }
-          
+
           OutputLineSearch(iIterCnt, iLineSearchIter, dThetaCurr / dThetaPrev, dErr, dLambda, preRHS);
 
           if (dThetaCurr < dThetaPrev + dLambda * dAlphaFull * preRHS) {
@@ -1785,7 +1785,7 @@ void LineSearchMCP::CheckLineSearch(doublereal& dThetaCurr,
      if (dThetaCurr <= dMcpSigma * dThetaPrev) {
           return;
      }
-     
+
      doublereal preRHS = JacThetaFMerit.InnerProd(DeltaZ);
      const doublereal threshold = -dMcpRho * std::pow(DeltaZ.Norm(), dMcpP);
 
@@ -1863,18 +1863,18 @@ void MCPNewtonMinFB::Solve(const NonlinearProblem *pNLP,
      MakeResTest(pS, pNLP, FMeritH, Tol, dErr, dErrDiff);
 
      OutputIteration(dErr, iIterCnt, false, oCPU);
-     
+
      while (true) {
           ComputeRHSDesc(zH, FH, Fmin);
-          
+
           oCPU.Jacobian.Tic(oCPU.Residual);
-          
+
           pNLP->Jacobian(&nablaFMCPH);
 
           ++TotJac;
-          
+
           OutputJacobian(nablaFMCPH);
-          
+
           ComputeHDesc(nablaFMCPH, zH, FH);
 
           oCPU.LinearSolver.Tic(oCPU.Jacobian);
@@ -1890,9 +1890,9 @@ void MCPNewtonMinFB::Solve(const NonlinearProblem *pNLP,
           const bool bSolConverged = MakeSolTest(pS, DeltaZ, SolTol, dSolErr);
 
           doublereal dThetaCurr = ComputeFMerit(zH, FH, FMeritH);
-          
+
           ComputeH(zH, FH, nablaFMCPH);
-                    
+
           pSM->pMatHdl()->MatTVecMul(JacThetaFMeritH, FMeritH);
           Update(DeltaZ, zH);
 
@@ -1901,7 +1901,7 @@ void MCPNewtonMinFB::Solve(const NonlinearProblem *pNLP,
           dThetaCurr = ComputeFMerit(zH, FH, FMeritH);
 
           CheckLineSearch(dThetaCurr, dThetaPrev, JacThetaFMeritH, zH, FH, FMeritH, DeltaZ, iIterCnt);
-          
+
           const bool bResConverged = MakeResTest(pS, pNLP, FMeritH, Tol, dErr, dErrDiff);
 
           ++iIterCnt;
@@ -1920,6 +1920,8 @@ void MCPNewtonMinFB::Solve(const NonlinearProblem *pNLP,
                     silent_cout("\t\tSolErr " << dSolErr << '\n');
                }
           }
+
+          pS->CheckTimeStepLimit(dErr, dErrDiff);
 
           if (bResConverged && bSolConverged) {
                break;
@@ -1994,15 +1996,15 @@ void MCPNewtonFB::Solve(const NonlinearProblem *pNLP,
           pS->PrintResidual(FMeritH, iIterCnt);
      }
 
-     MakeResTest(pS, pNLP, FMeritH, Tol, dErr, dErrDiff);     
+     MakeResTest(pS, pNLP, FMeritH, Tol, dErr, dErrDiff);
 
      OutputIteration(dErr, iIterCnt, false, oCPU);
-     
+
      while (true) {
           oCPU.Jacobian.Tic(oCPU.Residual);
-          
+
           ComputeH(zH, FH, rgRowScale, rgColScale);
-          
+
           pSM->pMatHdl()->MatTVecMul(JacThetaFMeritH, FMeritH);
 
           Fmin.ScalarMul(FMeritH, -1.);
@@ -2022,11 +2024,11 @@ void MCPNewtonFB::Solve(const NonlinearProblem *pNLP,
           Update(DeltaZ, zH);
 
           ComputeFMCP(FH);
-          
+
           doublereal dThetaCurr = ComputeFMerit(zH, FH, FMeritH);
 
           CheckLineSearch(dThetaCurr, dThetaPrev, JacThetaFMeritH, zH, FH, FMeritH, DeltaZ, iIterCnt);
-          
+
           const bool bResConverged = MakeResTest(pS, pNLP, FMeritH, Tol, dErr, dErrDiff);
 
           ++iIterCnt;
@@ -2045,6 +2047,8 @@ void MCPNewtonFB::Solve(const NonlinearProblem *pNLP,
                     silent_cout("\t\tSolErr " << dSolErr << '\n');
                }
           }
+
+          pS->CheckTimeStepLimit(dErr, dErrDiff);
 
           if (bResConverged && bSolConverged) {
                break;
