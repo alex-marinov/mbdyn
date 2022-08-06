@@ -10865,24 +10865,29 @@ namespace {
 
      void HydroActiveComprNode::ResolveCavitationState(VectorHandler& X, VectorHandler& XP)
      {
-          if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
-               rgState[0].Theta[0] = 0.;
-               rgState[0].dTheta_dt[0] = 0.;
+          std::array<doublereal, iNumDofMax> dCoef;
 
-               const doublereal dCoef1 = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc) + 1);
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               dCoef[i] = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc) + i);
+          }
+          
+          if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
+               rgState[0].dTheta_dt[0] -= rgState[0].Theta[0] / dCoef[0];
+               rgState[0].Theta[0] = 0.;
+
                const doublereal Theta1Prev = rgState[0].Theta[1];
 
                rgState[0].Theta[1] = std::max(0., std::min(1., rgState[0].Theta[1]));
-               rgState[0].dTheta_dt[1] += (rgState[0].Theta[1] - Theta1Prev) / dCoef1;
+               rgState[0].dTheta_dt[1] += (rgState[0].Theta[1] - Theta1Prev) / dCoef[1];
           } else {
-               rgState[0].Theta[1] = 1.;
-               rgState[0].dTheta_dt[1] = 0.;
+               rgState[0].dTheta_dt[1] += (1. - rgState[0].Theta[1]) / dCoef[1];
 
-               const doublereal dCoef0 = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc));
+               rgState[0].Theta[1] = 1.;
+
                const doublereal Theta0Prev = rgState[0].Theta[0];
 
                rgState[0].Theta[0] = std::max(0., rgState[0].Theta[0]);
-               rgState[0].dTheta_dt[0] += (rgState[0].Theta[0] - Theta0Prev) / dCoef0;
+               rgState[0].dTheta_dt[0] += (rgState[0].Theta[0] - Theta0Prev) / dCoef[0];
           }
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
