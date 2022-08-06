@@ -67,6 +67,7 @@ begin: initial value;
         ## linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
         ## nonlinear solver: line search, modified, 0, default solver options, heavy nonlinear, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
 
+        ## set: bool enable_mcp = TRUE;
         ## linear solver: siconos dense;
         ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
 
@@ -718,8 +719,8 @@ begin: elements;
             viscosity vapor, (1.5e-06),
             mesh, linear finite difference,
             enable mcp, enable_mcp,
-            pressure step integrator, ms,
-            density step integrator, ms,
+            pressure step integrator, implicit euler,
+            density step integrator, implicit euler,
             geometry, cylindrical,
                 mesh position, at shaft,
                 bearing width, (0.0062),
