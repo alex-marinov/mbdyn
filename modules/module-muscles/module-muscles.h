@@ -41,6 +41,177 @@
 #include "dataman.h"
 #include "constltp_impl.h"
 
+
+class MuscleErfCL
+: public ElasticConstitutiveLaw<doublereal, doublereal> {
+protected:
+	doublereal Li;
+	doublereal L0;
+	doublereal V0;
+	doublereal F0;
+	
+	doublereal f1;
+	doublereal f2;
+	doublereal f3;
+	doublereal df1dx;
+	doublereal df2dv;
+	doublereal df3dx;
+	
+	DriveOwner Activation;
+	bool bActivationOverflow;
+	bool bActivationOverflowWarn;
+	doublereal a;
+	doublereal aReq;	// requested activation: for output only
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		return out;
+	};
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dAct;
+	MBDynNcVar Var_dActReq;
+	MBDynNcVar Var_dAref;
+	MBDynNcVar Var_f1;
+	MBDynNcVar Var_f2;
+	MBDynNcVar Var_f3;
+	MBDynNcVar Var_df1dx;
+	MBDynNcVar Var_df2dv;
+	MBDynNcVar Var_df3dx;
+#endif // USE_NETCDF
+public:
+	MuscleErfCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn)
+	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
+	Li(Li), L0(L0), V0(V0), F0(F0), f1(0), f2(0), f3(0), df1dx(0), df2dv(0), df3dx(0),
+	Activation(pAct), bActivationOverflow(bActivationOverflow), bActivationOverflowWarn(bActivationOverflowWarn)
+	{
+		NO_OP;
+	};
+
+	virtual ~MusclePennestriCL(void) {
+		NO_OP;
+	};
+
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MuscleErfCL,
+			MuscleErfCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow, 
+				bActivationOverflowWarn));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+};
+
+class MuscleErfErgoCL
+: public MuscleErfCL {
+public:
+	MuscleErfErgoCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn)
+	: MuscleErfCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn)
+	{
+		NO_OP;
+	};
+
+	virtual ~MuscleErfErgoCL(void) {
+		NO_OP;
+	};
+
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MuscleErfErgoCL,
+			MuscleErfErgoCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow, 
+				bActivationOverflowWarn));
+		return pCL;
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
+		MuscleErfCL::Update(Eps, 0.);
+	};
+
+protected:
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		out << ", ergonomy, yes";
+		return out;
+	};
+};
+
+class MuscleErfReflexiveCL
+: public MuscleErfCL {
+protected:
+	DriveOwner Kp;
+	DriveOwner Kd;
+	DriveOwner ReferenceLength;
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dKp;
+	MBDynNcVar Var_dKd;
+	MBDynNcVar Var_dReferenceLength;
+#endif // USE_NETCDF
+public:
+	MuscleErfReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow, bool bActivationOverflowWarn,
+		const DriveCaller *pKp, const DriveCaller *pKd, const DriveCaller *pReferenceLength)
+	: MuscleErfCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow, bActivationOverflowWarn),
+	Kp(pKp), Kd(pKd), ReferenceLength(pReferenceLength)
+	{
+		NO_OP;
+	};
+
+	virtual ~MuscleErfReflexiveCL(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MuscleErfReflexiveCL,
+			MuscleErfReflexiveCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow,
+				bActivationOverflowWarn,
+				Kp.pGetDriveCaller()->pCopy(), Kd.pGetDriveCaller()->pCopy(),
+				ReferenceLength.pGetDriveCaller()->pCopy()));
+		return pCL;
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime);
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
+	virtual void NetCDFOutputAppend(OutputHandler& OH) const;
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name);
+
+protected:
+	virtual std::ostream& Restart_int(std::ostream& out) const;
+};
+
 class MusclePennestriCL
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 protected:
