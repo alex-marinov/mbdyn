@@ -798,18 +798,18 @@ RotorDisc::AssRes(SubVectorHandler& WorkVec,
     F = R*OutputThrust;
     M = R*HubNodeArm.Cross(OutputThrust);
 
-    std::cout        << " " << F            	// 2-4: force
-            << " " << M            	// 5-7: moment
-            << " " << Thrust            //   8: thrust value [N]
-            << " " << DragInduced       //   9: induced drag [N]
-            << " " << PowerInduced      //  10:induced power [W]
-            << " " << thetaColl  	//  11: pitch control input [rad]
-            << " " << rho          	//  12: air density [kg/m3]
-            << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
-            << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
-            << " " << lambda  		//  15: inflow ratio [-]
-            << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
-	<< std::endl;
+    //std::cout        << " " << F            	// 2-4: force
+    //        << " " << M            	// 5-7: moment
+    //        << " " << Thrust            //   8: thrust value [N]
+    //        << " " << DragInduced       //   9: induced drag [N]
+    //        << " " << PowerInduced      //  10:induced power [W]
+    //        << " " << thetaColl  	//  11: pitch control input [rad]
+    //        << " " << rho          	//  12: air density [kg/m3]
+    //        << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
+    //        << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
+    //        << " " << lambda  		//  15: inflow ratio [-]
+    //        << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
+	//<< std::endl;
     WorkVec.Add(1, F);
     WorkVec.Add(4, M);
 
