@@ -61,6 +61,8 @@ private:
     doublereal PowerInduced;
     // elements of thrust for jacobian assembly
     doublereal dThrust[5];
+    // alpha tippatplane
+    doublereal alphaTPP;
 
     // air properties from the properties of the aerodynamic element (inherited)
     doublereal rho; // density
@@ -184,6 +186,9 @@ public:
         THETA0,
         RHO,
         OMEGA,
+	ATPP,
+	LAMBDA,
+	VIND,	
 
         LASTPRIVDATA
     };
@@ -222,11 +227,6 @@ public:
                                     const VectorHandler& /* XCurr */ );
 
     //#########################################################################
-    // in fase di compilazione chiede il tipo di elemento
-    //virtual Elem::Type e(void) const
-    //{
-    //    return InducedVelocity::NO;
-    //}
 
 };
 

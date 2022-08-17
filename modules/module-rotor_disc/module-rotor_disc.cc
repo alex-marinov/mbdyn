@@ -99,6 +99,11 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "   9)  induced drag  [N]\n"
         "   10) induced power [W]\n"
         "   11) pitch control input [rad]\n"
+        "   12) air densty [kg/m3]\n"
+        "   13) rotor angular speed [rad/s]\n"
+        "   14) alpha tippatplane [rad]\n"
+        "   15) inflow ratio [-]\n"
+        "   16) constant induced velocity on rotor [m/s]\n"
         << std::endl);
 
         if (!HP.IsArg()){
@@ -367,14 +372,17 @@ void RotorDisc::Output(OutputHandler& OH) const
     {
         std::ostream& out = OH.Loadable();
         out << std::setw(8) << GetLabel() // 1: label
-            << " " << F            // 2-4: force
-            << " " << M            // 5-7: moment
-            << " " << Thrust              //   8: thrust value [N]
-            << " " << DragInduced         //   9: induced drag [N]
-            << " " << PowerInduced        //  10:induced power [W]
-            << " " << thetaColl  //  11: pitch control input [rad]
-            << " " << rho          //  12: air density [kg/m3]
-            << " " << RotorOmega  //  13: rotor angular speed [rad/s]
+            << " " << F            	// 2-4: force
+            << " " << M            	// 5-7: moment
+            << " " << Thrust            //   8: thrust value [N]
+            << " " << DragInduced       //   9: induced drag [N]
+            << " " << PowerInduced      //  10:induced power [W]
+            << " " << thetaColl  	//  11: pitch control input [rad]
+            << " " << rho          	//  12: air density [kg/m3]
+            << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
+            << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
+            << " " << lambda  		//  15: inflow ratio [-]
+            << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
             << std::endl;
     }
 }
@@ -515,7 +523,6 @@ void RotorDisc::updateStatesDeps()
     w = VTrHub[2];
 
     Vtot = sqrt(pow(u, 2.0) + pow(v, 2.0) + pow(w, 2.0));
-
     Vtot2 = pow(Vtot, 2.0);
     // Vtip
     Vtip = RotorOmega*RotorRadius;
@@ -529,7 +536,8 @@ void RotorDisc::updateStatesDeps()
     // CONSTANT MOMENTUM INDUCED VELOCITY
     a_v1 = sqrt(pow(0.5*Vtot2,2.0) + pow(v1h, 4.0));
     V1 = sqrt(-0.5*Vtot2 + a_v1);
-
+    // alpha tip path plane
+    alphaTPP = atan2(w,u);
     // inflow ratio
     lambda = -(V1/Vtip);
 
@@ -647,7 +655,10 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
     // thetaColl
     // rho
     // RotorOmega
-    return 6;
+    // alphatpp
+    // lambda
+    // vind
+    return 9;
 }
 
 unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
@@ -666,6 +677,9 @@ unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
         {"theta0", THETA0},
         {"rho", RHO},
         {"omega", OMEGA},
+        {"alphatpp", ATPP},
+        {"lambda", LAMBDA},
+        {"vind", VIND},
         {0}
     };
 
@@ -699,6 +713,9 @@ doublereal RotorDisc::dGetPrivData(unsigned int i) const
             case THETA0         : return thetaColl;
             case RHO            : return rho;
             case OMEGA          : return RotorOmega;
+            case ATPP           : return alphaTPP;
+            case LAMBDA         : return lambda;
+            case VIND           : return V1;
         }
     }
 
@@ -759,7 +776,6 @@ RotorDisc::AssRes(SubVectorHandler& WorkVec,
     rho = dGetAirDensity(pHubNode->GetXCurr());
     // rotor collective pitch input
     thetaColl   = pXColl->dGet();
-
     // check for saturation
     inputSaturation();
     // update state-dependent parameters (lambda, mu, ecc)
@@ -782,6 +798,18 @@ RotorDisc::AssRes(SubVectorHandler& WorkVec,
     F = R*OutputThrust;
     M = R*HubNodeArm.Cross(OutputThrust);
 
+    std::cout        << " " << F            	// 2-4: force
+            << " " << M            	// 5-7: moment
+            << " " << Thrust            //   8: thrust value [N]
+            << " " << DragInduced       //   9: induced drag [N]
+            << " " << PowerInduced      //  10:induced power [W]
+            << " " << thetaColl  	//  11: pitch control input [rad]
+            << " " << rho          	//  12: air density [kg/m3]
+            << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
+            << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
+            << " " << lambda  		//  15: inflow ratio [-]
+            << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
+	<< std::endl;
     WorkVec.Add(1, F);
     WorkVec.Add(4, M);
 
