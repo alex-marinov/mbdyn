@@ -128,6 +128,85 @@ DEFUN_DLD(rotation_vector_to_rotation_matrix,args,nargout,"[R] = rotation_vector
     return retval;
 }
 
+DEFUN_DLD(rotation_matrix_to_rotation_param,args,nargout,"[g] = rotation_matrix_to_rotation_param(R)\n")
+{
+    octave_value_list retval;
+
+    int nargin = args.length();
+
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
+
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 || args(0).columns() != 3 )
+    {
+	error("R must be a 3x3xN matrix!");
+	return retval;
+    }
+
+    const NDArray R_oct = args(0).array_value();
+    const octave_idx_type N = R_oct.ndims() >= 3 ? R_oct.dim3() : 1;
+    Matrix g_oct(3, N);
+
+    Mat3x3 R;
+
+    for (octave_idx_type k = 0; k < N; ++k) {
+	for ( int i = 0; i < 3; ++i )
+	    for ( int j = 0; j < 3; ++j )
+		R(i + 1, j + 1) = R_oct.xelem(i, j, k);
+
+        Vec3 g(CGR_Rot::Param, R);
+
+	for ( int i = 0; i < 3; ++i )
+	    g_oct.xelem(i, k) = g(i + 1);
+    }
+
+    retval.append(octave_value(g_oct));
+
+    return retval;
+}
+
+DEFUN_DLD(rotation_param_to_rotation_matrix,args,nargout,"[R] = rotation_param_to_rotation_matrix(g)\n")
+{
+    octave_value_list retval;
+
+    int nargin = args.length();
+
+    if ( nargin < 1 )
+    {
+	print_usage();
+	return retval;
+    }
+
+    if ( !args(0).is_matrix_type() || args(0).rows() != 3 )
+    {
+	error("g must be a 3x1 matrix!");
+	return retval;
+    }
+
+    Vec3 g;
+    const Matrix g_oct = args(0).matrix_value();
+    const octave_idx_type N = g_oct.columns();
+    NDArray R_oct(dim_vector(3, 3, N));
+
+    for (octave_idx_type k = 0; k < N; ++k) {
+	for ( int i = 0; i < 3; ++i )
+	    g(i + 1) = g_oct.xelem(i, k);
+
+	Mat3x3 R(CGR_Rot::MatR, g);
+
+	for ( int i = 0; i < 3; ++i )
+	    for ( int j = 0; j < 3; ++j )
+		R_oct.xelem(i, j, k) = R(i + 1, j + 1);
+    }
+
+    retval.append(octave_value(R_oct));
+
+    return retval;
+}
+
 DEFUN_DLD(rotation_matrix_to_euler123,args,nargout,"[phi] = rotation_matrix_to_euler123(R)\n")
 {
     octave_value_list retval;
