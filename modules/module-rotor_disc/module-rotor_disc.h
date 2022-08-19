@@ -63,6 +63,8 @@ private:
     doublereal dThrust[5];
     // alpha tippatplane
     doublereal alphaTPP;
+    // ct, cp, fom
+    doublereal CT, CP, FOM;
 
     // air properties from the properties of the aerodynamic element (inherited)
     doublereal rho; // density
@@ -94,20 +96,24 @@ private:
     // state-dependent variable calculation
     void updateStatesDeps(void);
 
-
+    void computeLambdaNewman();
 
     // dimensional data of the  rotor
     doublereal RotorRadius;           //  rotor radius [m]
     doublereal Chord;           // blade chord [m]
     int NBlades;                // blade number
-    doublereal DiscArea;           //  rotor disc area [m^2]
-    doublereal RotorSolidity;       //  rotor solidity [-]
-    doublereal ClAlpha ;     // lift slope curve [1/rad]
-    doublereal BladeTwist;    // twist angle at tip [rad]
+    doublereal DiscArea;        //  rotor disc area [m^2]
+    doublereal RotorSolidity;   //  rotor solidity [-]
+    doublereal Cl0;             // lift slope at alpha=0 [-]
+    doublereal ClAlpha;         // lift slope curve [1/rad]
+    doublereal Cl;              // lift coefficient
+    doublereal BladeTwist;      // twist angle at tip [rad]
 
     // Cl stall angle [rad]
     doublereal AOAStallMin = std::numeric_limits<doublereal>::min();
     doublereal AOAStallMax = std::numeric_limits<doublereal>::max();
+    doublereal clMax;
+    doublereal clMin;
 
     // main rotor data for v1hover
     doublereal hubs_distance;           // distance between mr and tr hub [m]
@@ -124,7 +130,9 @@ private:
     // part of v1h depending only on the constant factors:
     // v1hPart = sqrt(Th/2A), where Th is the required rotor
     // thrust in hover to compensate for nominal rotor torque
+    // induced power in hover
     doublereal Th;
+    doublereal Wh;
     doublereal v1hPart;
 
     // airspeed in body frame acting on  rotor center node (x pointing towards nose, z pointing outwards)
@@ -151,8 +159,10 @@ private:
     // CONSTANT MOMENTUM INDUCED VELOCITY
     doublereal a_v1; // sqrt((vtot/2)^2+v1h^4)
     doublereal V1;
-    // inflow ratio
+    // inflow ratio - base case
     doublereal lambda;
+    // inflow ratio - newman
+    doublereal lambdaNewman;
 
     // pedal input [rad]
     doublereal thetaColl;
@@ -163,6 +173,14 @@ private:
     Vec3 F;
     Vec3 M;
 
+    // for stall effect
+    doublereal  xpMin,ypMin,xpMax,ypMax,
+                x0Min,y0Min,x0Max,y0Max,
+                xbMin,ybMin,xbMax,ybMax,
+                RDecay, a1,
+                mb, qbMin, qbMax,
+                AOAAfterDecayMin, AOAAfterDecayMax;
+
 public:
 
     // constructor inherits FollowerForceClass constructor
@@ -172,6 +190,9 @@ public:
 
     // update inputs - check saturation limits
     void inputSaturation();
+    // calculate cl (with stall effects)
+    void computeCLInit(doublereal RDecayDeg=1.0);
+    void computeCL();
     // compute thrust
     void computeRotorThrust();
     // method to build partial derivatives and jacobians
@@ -186,10 +207,10 @@ public:
         THETA0,
         RHO,
         OMEGA,
-	ATPP,
-	LAMBDA,
-	VIND,	
-
+	    ATPP,
+	    LAMBDA,
+	    VIND,	
+        VINDH,
         LASTPRIVDATA
     };
 

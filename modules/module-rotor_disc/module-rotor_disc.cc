@@ -76,6 +76,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "   rotor angular velocity driver [rad/s],\n"
         "   rotor radius [m],\n"
         "   rotor solidity [-],\n"
+        "   blade Cl0 [1/rad],\n"
         "   blade ClAlpha [1/rad],\n"
         "   blade twist [rad],\n"
         "   rotor distance wrt reference point [m]\n"
@@ -92,18 +93,25 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "   |____ MTOW\n"
         "\n"
         "Output:\n"
-        "   1)  element label\n"
-        "   2-4)forces\n"
-        "   5-7)moments\n"
-        "   8)  thrust value  [N]\n"
-        "   9)  induced drag  [N]\n"
-        "   10) induced power [W]\n"
-        "   11) pitch control input [rad]\n"
-        "   12) air densty [kg/m3]\n"
-        "   13) rotor angular speed [rad/s]\n"
-        "   14) alpha tippatplane [rad]\n"
-        "   15) inflow ratio [-]\n"
-        "   16) constant induced velocity on rotor [m/s]\n"
+        "   1)      element label\n"
+        "   2-4)    forces\n"
+        "   5-7)    moments\n"
+        "   8)      thrust value [N]\n"
+        "   9)      induced drag [N]\n"
+        "  10)      induced power [W]\n"
+        "  11)      pitch control input [rad]\n"
+        "  12)      air density [kg/m3]\n"
+        "  13)      rotor angular speed [rad/s]\n"
+        "  14)      alpha tip pat plane [rad]\n"
+        "  15)      inflow ratio [-]\n"
+        "  16)      inflow ratio - iterative [-]\n"
+        "  17)      constant induced velocity on rotor disc [m/s]\n"
+        "  18-20)   hub velocity [m/s]\n"
+        "  21)      rotor induced velocity in hover [m/s]\n"
+        "  22)      rotor induced power in hover [W]\n"
+        "  23)      CT [-]\n"
+        "  24)      CP [-]\n"
+        "  25)      FOM [-]\n"
         << std::endl);
 
         if (!HP.IsArg()){
@@ -202,6 +210,14 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         RotorSolidity = HP.GetReal();
     }
 
+    if (HP.IsKeyWord("cl0")){
+        Cl0 = HP.GetReal();
+    }
+    else { 
+        std::cout << "rotordisc(" << uLabel << "): Cl0 not provided, assuming null Cl0"<< std::endl;
+        Cl0 = 0.0;
+    }
+
     if (HP.IsKeyWord("clalpha")){
         ClAlpha = HP.GetReal();
     }
@@ -232,6 +248,9 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
 
     // disc area
     DiscArea = M_PI*pow(RotorRadius, 2.0);
+
+    // initialize the stall effects on the rotor
+    computeCLInit();
 
     bool bGotTailRotor = false;
     bool bGotMainRotor = false;
@@ -277,31 +296,14 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
     // v1h depending on costant rotor parameters
     v1hPart             = sqrt(Th/(2.0*DiscArea));
     doublereal v1hInit  = v1hPart/sqrt(1.225);
-
-    //DiscArea                = HP.GetReal();
-    //RotorSolidity           = HP.GetReal();
-    //ClAlpha                 = HP.GetReal();
-    //BladeTwist              = HP.GetReal();
-    //AOAStallMin             = HP.GetReal();
-    //AOAStallMax             = HP.GetReal();
-    //thetaCollMin            = HP.GetReal();
-    //thetaCollMax            = HP.GetReal();
-    //hubs_distance           = HP.GetReal();
-    //mr_nominal_power_shp    = HP.GetReal();
-    //mr_nominal_omega        = HP.GetReal();
-
-    // // compute nominal main rotor torque in hover
-    // doublereal mr_nominal_power_w   = mr_nominal_power_shp*sHP2W;
-    // doublereal mr_nominal_torque_Nm = mr_nominal_power_w/mr_nominal_omega;
-    // Th                              = mr_nominal_torque_Nm/hubs_distance;
-    // // v1h depending on costant rotor parameters
-    // v1hPart             = sqrt(Th/(2.0*DiscArea));
-    // doublereal v1hInit  = v1hPart/sqrt(1.225);
+    // induced power in hover
+    Wh                  = Th*v1hInit;
 
     DEBUGCOUT("Tail rotor initialized:" << std::endl);
     DEBUGCOUT("Radius [m]: " << RotorRadius << std::endl);
     DEBUGCOUT("Area [m2]: " << DiscArea << std::endl);
     DEBUGCOUT("Sigma [-]: " << RotorSolidity << std::endl);
+    DEBUGCOUT("Cl0 [-]: " << Cl0 << std::endl);
     DEBUGCOUT("ClAlpha [1/rad]: " << ClAlpha << std::endl);
     DEBUGCOUT("twist [rad]: " << BladeTwist << std::endl);
     DEBUGCOUT("AOAStallMin [rad]: " << AOAStallMin << std::endl);
@@ -332,6 +334,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
             << " " << RotorRadius
             << " " << DiscArea
             << " " << RotorSolidity
+            << " " << Cl0
             << " " << ClAlpha
             << " " << BladeTwist
             << " " << AOAStallMin
@@ -350,6 +353,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
             << " " << RotorRadius
             << " " << DiscArea
             << " " << RotorSolidity
+            << " " << Cl0
             << " " << ClAlpha
             << " " << BladeTwist
             << " " << AOAStallMin
@@ -374,15 +378,22 @@ void RotorDisc::Output(OutputHandler& OH) const
         out << std::setw(8) << GetLabel() // 1: label
             << " " << F            	// 2-4: force
             << " " << M            	// 5-7: moment
-            << " " << Thrust            //   8: thrust value [N]
-            << " " << DragInduced       //   9: induced drag [N]
-            << " " << PowerInduced      //  10:induced power [W]
+            << " " << Thrust        //   8: thrust value [N]
+            << " " << DragInduced   //   9: induced drag [N]
+            << " " << PowerInduced  //  10: induced power [W]
             << " " << thetaColl  	//  11: pitch control input [rad]
             << " " << rho          	//  12: air density [kg/m3]
             << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
             << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
             << " " << lambda  		//  15: inflow ratio [-]
-            << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
+            << " " << lambdaNewman	//  16: inflow ratio - iterative [-]
+            << " " << V1  		    //  17: constant induced velocity on rotor disc [m/s]
+            << " " << VTrHub        //  18-20: hub velocity [m/s]
+            << " " << v1h           //  21: rotor induced velocity in hover [m/s]
+            << " " << Wh            //  22: rotor induced power in hover [W]
+            << " " << CT            //  23: CT [-]
+            << " " << CP            //  24: CP [-]
+            << " " << FOM           //  25: FOM [-]
             << std::endl;
     }
 }
@@ -416,14 +427,14 @@ void RotorDisc::dLambdaCalc()
 void RotorDisc::dT0Calc()
 {
     // advance ratio
-    doublereal c0 = 0.5*rho*Vtip2*DiscArea*RotorSolidity*ClAlpha;
+    doublereal c0 = 0.5*rho*Vtip2*DiscArea*RotorSolidity*Cl;
     doublereal c1Num = -(3.0*mu);
     doublereal c1Den = pow((1.0+1.5*mu2),2.0);
     doublereal c1 = c1Num/c1Den;
     doublereal c2 = c0*c1;
 
     // for dT0dOmega and dT0dRho
-    doublereal c3 = 0.5*DiscArea*RotorSolidity*ClAlpha;
+    doublereal c3 = 0.5*DiscArea*RotorSolidity*Cl;
     doublereal c4 = 1.0+1.5*mu2;
     doublereal c5 = c4*2.0*Vtip*RotorRadius;
     doublereal c6 = -3.0*Vtip2*mu;
@@ -464,7 +475,7 @@ void RotorDisc::dTLambdaCalc()
 
 void RotorDisc::T0Calc()
 {
-    doublereal t0 = 0.5*rho*Vtip2*DiscArea*RotorSolidity*ClAlpha;
+    doublereal t0 = 0.5*rho*Vtip2*DiscArea*RotorSolidity*Cl;
 
     doublereal t1 = 1.0 + 1.5*mu2;
     // update T0
@@ -500,6 +511,11 @@ void RotorDisc::ThrustCalc()
     // WARNING: THRUST IS APPLIED AS A FOLLOWER FORCE APPLIED ON THE LOCAL Z AXIS,
     // THE SIGN HAS BE CHANGED TO TAKE INTO ACCOUNT THE CORRECT DIRECTION OF APPLICATION
     OutputThrust[2] = - Thrust;
+
+    CT      = abs(Thrust)/(rho*DiscArea*Vtip2);
+    CP      = pow(CT,1.5)/sqrt(2.0);
+    CP == 0.0 ? FOM = 0.0 : FOM = pow(CT,1.5)/(CP*sqrt(2.0));
+
 }
 
 void RotorDisc::dTCalc()
@@ -528,7 +544,7 @@ void RotorDisc::updateStatesDeps()
     Vtip = RotorOmega*RotorRadius;
     Vtip2 = pow(Vtip,2.0);
     // adv ratio
-    mu = Vtot/Vtip;
+    mu  = Vtot/Vtip;
     mu2 = pow(mu,2.0);
     mu4 = pow(mu,4.0);
     // v1h: induced velocity in hover = sqrt(Th/2A)*sqrt(1/rho)
@@ -540,6 +556,124 @@ void RotorDisc::updateStatesDeps()
     alphaTPP = atan2(w,u);
     // inflow ratio
     lambda = -(V1/Vtip);
+
+}
+
+void RotorDisc::computeLambdaNewman(){
+
+    
+    doublereal vsx,vsz; // components of the inflow along x,z
+    doublereal dfdl, f, lambdaIt, lambdaItPrev; // function used to find lamba in newton iterations
+    
+    doublereal tollLNMax = 1.e-5; // tolerance
+    int nMax = 15;      // max number of iterations
+    
+    doublereal ct2 = 0.5*CT;
+    // initial guess is lambda just found out
+    lambdaItPrev = 0.0;
+    lambdaIt = lambda;
+    vsx = mu*cos(alphaTPP);
+
+    doublereal tollLn = 1.0;
+    int it=0;
+    while ((it<nMax) and (tollLn>=tollLNMax)){
+        
+        vsz = mu*sin(alphaTPP)+lambdaIt;
+        f = lambdaIt-ct2*pow((pow(vsx,2.0)+pow(vsz,2.0)),-0.5);
+        dfdl = 1+ct2*vsz*pow((pow(vsx,2.0)+pow(vsz,2.0)),-1.5);
+        
+        lambdaIt = lambdaItPrev - f/dfdl;
+
+        tollLn = abs(lambdaIt-lambdaItPrev);
+        lambdaItPrev = lambdaIt;
+        it++;
+        
+    }
+
+    lambdaNewman = lambdaIt;
+
+    //std::cout << "LAMBDA\tLAMBDA_NEWMAN" << std::endl;
+    //std::cout << lambda << "\t" << lambdaNewman << std::endl;
+
+}
+
+// compute cl with stall effects
+void RotorDisc::computeCLInit(doublereal RDecayIn)
+{
+    Cl = ClAlpha*thetaColl+Cl0;
+
+    // stall effect: circumference tangent to linear cl in clmax point
+    clMax = ClAlpha*AOAStallMax+Cl0;
+    clMin = ClAlpha*AOAStallMin+Cl0;
+
+    xpMin = AOAStallMin;
+    ypMin = clMin;
+    xpMax = AOAStallMax;
+    ypMax = clMax;
+
+    // stall decay + "delay" modeled by circumference of radius R (assigned here)
+    RDecay=RDecayIn*acos(-1.0)/180.0;
+    // TODO: perfezionare stall decay+delay
+    a1=atan(-1/ClAlpha);
+    // circ center (max alpha)
+    x0Min = xpMin-RDecay*cos(a1);
+    y0Min = ypMin-RDecay*sin(a1);
+
+    x0Max = xpMax+RDecay*cos(a1);
+    y0Max = ypMax+RDecay*sin(a1);
+
+    xbMin = xpMin-2*RDecay*cos(a1);
+    ybMin = ypMin;
+
+    xbMax = xpMax+2*RDecay*cos(a1);
+    ybMax = ypMax;
+
+    mb = 1/tan(a1);
+    qbMin = ybMin-mb*xbMin;
+    qbMax = ybMax-mb*xbMax;
+
+    AOAAfterDecayMin = xbMin;
+    AOAAfterDecayMax = xbMax;
+    
+}
+
+void RotorDisc::computeCL(){
+
+    // for simplicity, the input is thetacoll
+    if (thetaColl < AOAAfterDecayMin){
+        // after decay min phase
+        Cl=mb*thetaColl+qbMin;
+    }
+    else if ((AOAAfterDecayMin <= thetaColl) and (thetaColl < AOAStallMin)){
+        // decay min phase
+        Cl=y0Min-sqrt(pow(RDecay,2.0)-pow((thetaColl-x0Min),2.0));
+    }
+    else if (thetaColl > AOAAfterDecayMax){
+        // after decay max phase
+        Cl=mb*thetaColl+qbMax;
+    }
+    else if ((AOAStallMax < thetaColl) and (thetaColl <= AOAAfterDecayMax)){
+        // decay max phase
+        Cl=y0Max+sqrt(pow(RDecay,2.0)-pow((thetaColl-x0Max),2.0));
+    }
+    else {
+        // linear field
+        Cl=ClAlpha*thetaColl+Cl0;
+    }
+
+    // Cl=ClAlpha*thetaColl+Cl0;
+
+    
+    //std::cout << " " << thetaColl << 
+    //            //" " << ClAlpha <<
+    //            //" " << Cl0 <<
+    //            //" " << x0Max <<" " << x0Min <<
+    //            //" " << y0Max <<" " << y0Min <<
+    //            " " << AOAAfterDecayMin <<
+    //            " " << AOAAfterDecayMax <<
+    //            " " << AOAStallMin <<
+    //            " " << AOAStallMax <<
+    //            " " << Cl << std::endl;
 
 }
 
@@ -658,7 +792,8 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
     // alphatpp
     // lambda
     // vind
-    return 9;
+    // vindh
+    return 10;
 }
 
 unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
@@ -680,6 +815,7 @@ unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
         {"alphatpp", ATPP},
         {"lambda", LAMBDA},
         {"vind", VIND},
+        {"vinh", VINDH},
         {0}
     };
 
@@ -778,38 +914,22 @@ RotorDisc::AssRes(SubVectorHandler& WorkVec,
     thetaColl   = pXColl->dGet();
     // check for saturation
     inputSaturation();
+    // compute CL with stall effects
+    computeCL();
     // update state-dependent parameters (lambda, mu, ecc)
     updateStatesDeps();
     // compute rotor thrust (direction wrt to node hub given by constructor)
     computeRotorThrust();
+    // compute lambda newman (as reference)
+    computeLambdaNewman();
     // OutputThrust = Zero3;
     const Mat3x3& R(pHubNode->GetRCurr());
-    //Vec3 TmpDir = f.Get();
-    //Vec3 F(R*TmpDir);
-    //Vec3 M(R*HubNodeArm.Cross(TmpDir));
     // bring back rotor disc forces to node reference frame
     OutputThrust = RThrustOrientation.MulTV(OutputThrust);
-    // std::cout<< "T0 = "<< T0 << std::endl;
-    // std::cout<< "TTheta = "<< TTheta << std::endl;
-    // std::cout<< "TLambda = "<< TLambda << std::endl;
-
-    //OutputThrust = RThrustOrientation*OutputThrust;
     // from node reference frame to global reference frame
     F = R*OutputThrust;
     M = R*HubNodeArm.Cross(OutputThrust);
 
-    //std::cout        << " " << F            	// 2-4: force
-    //        << " " << M            	// 5-7: moment
-    //        << " " << Thrust            //   8: thrust value [N]
-    //        << " " << DragInduced       //   9: induced drag [N]
-    //        << " " << PowerInduced      //  10:induced power [W]
-    //        << " " << thetaColl  	//  11: pitch control input [rad]
-    //        << " " << rho          	//  12: air density [kg/m3]
-    //        << " " << RotorOmega  	//  13: rotor angular speed [rad/s]
-    //        << " " << alphaTPP  	//  14: alpha tip pat plane [rad]
-    //        << " " << lambda  		//  15: inflow ratio [-]
-    //        << " " << V1  		//  16: constant induced velocity ont rotor disc [m/s]
-	//<< std::endl;
     WorkVec.Add(1, F);
     WorkVec.Add(4, M);
 
