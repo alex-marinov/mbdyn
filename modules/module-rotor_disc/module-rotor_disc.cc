@@ -70,8 +70,8 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "Implementation of a disc rotor model with closed form inflow calculation\n"
         "Input:\n"
         "   hub structural node label,\n"
-        "   rotor relative arm wrt structural node,\n"
-        "   (the rotor force is always oriented as the Z of the node),\n"
+        "   rotor relative position wrt structural node,\n"
+        "   (the rotor force is always oriented as the Z of the reference frame considered),\n"
         "   control input driver (collective input [rad]),\n"
         "   rotor angular velocity driver [rad/s],\n"
         "   rotor radius [m],\n"
@@ -79,8 +79,6 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         "   blade Cl0 [1/rad],\n"
         "   blade ClAlpha [1/rad],\n"
         "   blade twist [rad],\n"
-        "   rotor distance wrt reference point [m]\n"
-        "   (e.g.: for tail rotor, the distance between main and tail hub centers),\n"
         "   alpha stall min (stall) [rad],\n"
         "   alpha stall max (stall) [rad],\n"
         "   control input minvalue (saturation) [rad],\n"
@@ -509,7 +507,7 @@ void RotorDisc::ThrustCalc()
     OutputThrust[0] = 0.0;
     OutputThrust[1] = 0.0;
     // WARNING: THRUST IS APPLIED AS A FOLLOWER FORCE APPLIED ON THE LOCAL Z AXIS,
-    // THE SIGN HAS BE CHANGED TO TAKE INTO ACCOUNT THE CORRECT DIRECTION OF APPLICATION
+    // THE SIGN HAS YO BE CHANGED TO TAKE INTO ACCOUNT THE CORRECT DIRECTION OF APPLICATION
     OutputThrust[2] = - Thrust;
 
     CT      = abs(Thrust)/(rho*DiscArea*Vtip2);
@@ -784,16 +782,20 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
 {
     // number of private data that can be extracted from the module
     // Thrust
-    // DragInduced
-    // PowerInduced
-    // thetaColl
+    // DragInd
+    // PowerInd
+    // theta0
     // rho
-    // RotorOmega
+    // omega
     // alphatpp
     // lambda
     // vind
-    // vindh
-    return 10;
+    // vinh
+    // pindh
+    // ct
+    // cp
+    // fom
+    return 14;
 }
 
 unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
@@ -816,6 +818,10 @@ unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
         {"lambda", LAMBDA},
         {"vind", VIND},
         {"vinh", VINDH},
+        {"pindh", PINDH},
+        {"ct", CTPRIV},
+        {"cp", CPPRIV},
+        {"fom", FOMPRIV},
         {0}
     };
 
