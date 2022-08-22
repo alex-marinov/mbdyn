@@ -99,7 +99,7 @@ void SiconosMCPSolver::Solve(const NonlinearProblem *pNLPCurr,
      const DataManager* const pDM = pS->pGetDataManager();
 
      const VectorHandler& X = *pDM->GetpXCurr();
-     const VectorHandler& XP = *pDM->GetpXPCurr();
+     //const VectorHandler& XP = *pDM->GetpXPCurr();
      const integer iNumDof = pSol->iGetSize();
 
      ASSERT(X.iGetSize() == iNumDof);
@@ -274,9 +274,9 @@ void SiconosMCPSolver::compute_Fmcp(void *env, int n, doublereal *z, doublereal 
      pSiconosMCP->pNLP->Residual(&Fhdl);
 
      if (pSiconosMCP->outputSol()) {
-          DataManager* pDM = pSiconosMCP->pSolver->pGetDataManager();
-          const VectorHandler& X = *pDM->GetpXCurr();
-          const VectorHandler& XP = *pDM->GetpXPCurr();
+          //DataManager* pDM = pSiconosMCP->pSolver->pGetDataManager();
+          //const VectorHandler& X = *pDM->GetpXCurr();
+          //const VectorHandler& XP = *pDM->GetpXPCurr();
 
           pSiconosMCP->pSolver->PrintSolution(zhdl, pSiconosMCP->iIterCurr);
      }
