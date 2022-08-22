@@ -1,0 +1,155 @@
+/*
+ * MBDyn (C) is a multibody analysis code.
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2013
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ *
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+        Copyright (C) 2022(-2022) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
+*/
+
+set: real m = 2;
+set: real J11 = 1;
+set: real J22 = 1;
+set: real J33 = 1;
+set: real g = 9.81;
+set: real l = 1.5;
+set: real sn = 1e5;
+
+set: real deltaz = 500e-3;
+set: integer node_id_slider = 1001;
+set: integer node_id_ground = 1003;
+
+set: integer body_id_slider = 2001;
+set: integer joint_id_ground = 3001;
+set: integer joint_id_slider = 3002;
+set: integer ref_id_slider = 4001;
+set: integer drive_id_Wtot = 5001;
+
+begin: data;
+    problem: initial value;     # the default
+end: data;
+
+begin: initial value;
+    initial time: 0.;
+    final time: 1;
+    time step: 1e-4;
+
+    max iterations: 100;
+    tolerance: 1e-6;
+    method: bdf;
+
+    linear solver: siconos dense;
+    nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
+
+    derivatives tolerance: 1e-2;
+    derivatives max iterations: 10;
+    derivatives coefficient: 1e-2;
+    output: iterations;
+    threads: assembly, 1;
+    threads: solver, 1;
+end: initial value;
+
+begin: control data;
+    use automatic differentiation;
+    output meter: closest next, 0, forever, const, 1e-3;
+    default output: all;
+    structural nodes: 2;
+    rigid bodies: 1;
+    loadable elements: 1;
+    joints: 1;
+    max iterations: 10;
+    tolerance: 1e-15;
+    gravity;
+    print: dof description;
+    use: loadable elements, in assembly;
+end: control data;
+
+reference: ref_id_slider,
+    position, reference, global, 0., 0., deltaz,
+    orientation, reference, global, euler123, 0., -asin(deltaz / l), 0.,
+    velocity,         reference, global, null,
+    angular velocity, reference, global, null;
+
+begin: nodes;
+
+structural: node_id_ground, static,
+    position, reference, global, null,
+        orientation, reference, global, eye,
+        velocity, reference, global, null,
+        angular velocity, reference, global, null;
+
+structural: node_id_slider, dynamic,
+    position, reference, ref_id_slider, null,
+        orientation, reference, ref_id_slider, eye,
+        velocity, reference, ref_id_slider, null,
+        angular velocity, reference, ref_id_slider, null,
+    accelerations, yes;
+end: nodes;
+
+begin: elements;
+        body: body_id_slider,
+                # node
+                node_id_slider,
+                # mass
+                m,
+                # relative center of mass
+                reference, node, null,
+                # inertia matrix
+                diag, J11, J22, J33,
+                inertial, reference, node, eye;
+
+    joint: joint_id_ground, clamp, node_id_ground, node, node;
+
+    user defined: joint_id_slider, unilateral in plane,
+        node1,
+            node_id_slider,
+            offset, 3,
+                reference, ref_id_slider, l * cos(60*pi/180), l * sin(60 * pi / 180), 0., stiffness, sn,
+                reference, ref_id_slider, l * cos(-60*pi/180), l * sin(-60 * pi / 180), 0., stiffness, sn,
+                reference, ref_id_slider, l * cos(180*pi/180), l * sin(180 * pi / 180), 0., stiffness, sn,
+            enable mcp, yes,
+        node2,
+            node_id_ground,
+            offset, reference, global, null,
+            hinge, reference, global, eye;
+
+    gravity: 0., 0., -1.,
+    const, g;
+
+    drive caller: drive_id_Wtot,
+      array, 2,
+        element, body_id_slider, body, string, "E", direct,
+        element, body_id_slider, body, string, "V", direct,
+      output, yes;
+end: elements;

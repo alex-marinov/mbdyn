@@ -1373,6 +1373,7 @@ namespace {
           virtual unsigned int iGetInitialNumDof(void) const=0;
           virtual DofOrder::Order GetDofType(unsigned int i) const=0;
           virtual DofOrder::Order GetEqType(unsigned int i) const=0;
+          virtual DofOrder::Equality GetEqualityType(unsigned int i) const;
           virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
           virtual std::ostream&
           DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const=0;
@@ -2099,6 +2100,8 @@ namespace {
 
      class HydroCompressibleNode: public HydroUpdatedNode {
      public:
+          static constexpr index_type iNumDofMax = 2;
+
           HydroCompressibleNode(integer iNodeNo,
                                 const SpColVector<doublereal, 2>& x,
                                 HydroMesh* pParent,
@@ -2106,12 +2109,32 @@ namespace {
                                 std::unique_ptr<FrictionModel>&& pFrictionModel,
                                 integer iNodeFlags);
           virtual ~HydroCompressibleNode();
+
+     protected:
+          template <typename G>
+          struct FluidState {
+               FluidState()
+                    :T{},
+                     dT_dt{},
+                     p{},
+                     rho{},
+                     drho_dt{} {
+                          std::fill(Theta.begin(), Theta.end(), G{}); // backward compatible with g++-4.8
+                          std::fill(dTheta_dt.begin(), dTheta_dt.end(), G{});
+                     }
+               std::array<G, iNumDofMax> Theta;
+               std::array<G, iNumDofMax> dTheta_dt;
+               G T;
+               G dT_dt;
+               G p;
+               G dp_dt;
+               G rho;
+               G drho_dt;
+          };
      };
 
      class HydroActiveComprNode: public HydroCompressibleNode, public HydroDofOwner {
      public:
-          static constexpr index_type iNumDofMax = 2;
-
           HydroActiveComprNode(integer iNodeNo,
                                const SpColVector<doublereal, 2>& x,
                                HydroMesh* pParent,
@@ -2179,29 +2202,7 @@ namespace {
      private:
           inline void UpdateTheta(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr);
           inline void UpdateCavitationState();
-          inline void ResolveDofDerivative(index_type iDofIndex);
           inline void ResolveCavitationState(VectorHandler& X, VectorHandler& XP);
-
-          template <typename G>
-          struct FluidState {
-               FluidState()
-                    :T{},
-                     dT_dt{},
-                     p{},
-                     rho{},
-                     drho_dt{} {
-                          std::fill(Theta.begin(), Theta.end(), G{}); // backward compatible with g++-4.8
-                          std::fill(dTheta_dt.begin(), dTheta_dt.end(), G{});
-                     }
-               std::array<G, iNumDofMax> Theta;
-               std::array<G, iNumDofMax> dTheta_dt;
-               G T;
-               G dT_dt;
-               G p;
-               G dp_dt;
-               G rho;
-               G drho_dt;
-          };
 
           inline void GetTheta(std::array<doublereal, iNumDofMax>& Theta, doublereal dCoef) const;
           inline void GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoef) const;
@@ -2230,6 +2231,84 @@ namespace {
           HydroFluid::CavitationState ePrevCavitationState;
           const std::array<SolverBase::StepIntegratorType, iNumDofMax> rgStepInteg;
           const bool bLineSearchControl;
+     };
+
+     class HydroActiveComprNodeMCP: public HydroCompressibleNode, public HydroDofOwner {
+     public:
+          HydroActiveComprNodeMCP(integer iNodeNo,
+                                  const SpColVector<doublereal, 2>& x,
+                                  HydroMesh* pParent,
+                                  ContactModel* pContactModel,
+                                  std::unique_ptr<FrictionModel>&& pFrictionModel,
+                                  SolverBase::StepIntegratorType eIntegPressure,
+                                  SolverBase::StepIntegratorType eIntegDensity);
+          virtual ~HydroActiveComprNodeMCP();
+
+          virtual integer iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const override;
+          virtual integer iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const override;
+          virtual integer iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const override;
+
+          virtual void DofUpdate(VectorHandler& X, VectorHandler& XP) override;
+          virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) override;
+
+          virtual void
+          Update(const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr,
+                 doublereal dCoef,
+                 SpFunctionCall func) override;
+
+          virtual void
+          Update(const VectorHandler& Y, doublereal dCoef) override;
+
+          virtual void SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr) override;
+          virtual void GetPressure(doublereal& p, doublereal=0.) const override;
+          virtual void GetPressure(SpGradient& p, doublereal dCoef) const override;
+          virtual void GetPressure(GpGradProd& p, doublereal dCoef) const override;
+          virtual void GetPressureDerTime(doublereal& dp_dt, doublereal=0.) const override;
+          virtual void GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef=0.) const override;
+          virtual void GetPressureDerTime(GpGradProd& dp_dt, doublereal dCoef=0.) const override;
+          virtual void GetDensity(doublereal& rho, doublereal=0.) const override;
+          virtual void GetDensity(SpGradient& rho, doublereal dCoef) const override;
+          virtual void GetDensity(GpGradProd& rho, doublereal dCoef) const override;
+          virtual HydroFluid::CavitationState GetCavitationState() const override;
+          virtual void GetDensityDerTime(doublereal& drho_dt, doublereal=0.) const override;
+          virtual void GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const override;
+          virtual void GetDensityDerTime(GpGradProd& drho_dt, doublereal dCoef) const override;
+          virtual unsigned int iGetInitialNumDof(void) const override;
+          virtual unsigned int iGetNumDof(void) const override;
+
+          virtual DofOrder::Order GetDofType(unsigned int i) const override;
+          virtual DofOrder::Order GetEqType(unsigned int i) const override;
+          virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
+          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
+
+          virtual std::ostream&
+          DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
+
+          virtual std::ostream&
+          DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
+
+     private:
+          void UpdateCavitationState();
+          void ResolveCavitationState(VectorHandler& X, VectorHandler& XP);
+          inline void UpdateTheta(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr);
+          inline void GetTheta(std::array<doublereal, iNumDofMax>& Theta, doublereal dCoef) const;
+          inline void GetTheta(std::array<SpGradient, iNumDofMax>& Theta, doublereal dCoef) const;
+          inline void GetTheta(std::array<GpGradProd, iNumDofMax>& Theta, doublereal dCoef) const;
+          inline void GetThetaDerTime(std::array<doublereal, iNumDofMax>& dTheta_dt, doublereal dCoef) const;
+          inline void GetThetaDerTime(std::array<SpGradient, iNumDofMax>& dTheta_dt, doublereal dCoef) const;
+          inline void GetThetaDerTime(std::array<GpGradProd, iNumDofMax>& dTheta_dt, doublereal dCoef) const;
+          template <typename G>
+          inline void UpdateState(FluidState<G>& oState, doublereal dCoef = 0.) const;
+
+          FluidState<doublereal> oState;
+          FluidState<SpGradient> oState_grad;
+          FluidState<GpGradProd> oState_gradp;
+          std::array<doublereal, iNumDofMax> Theta, dTheta_dt;
+          std::array<doublereal, iNumDofMax> s, ThetaY;
+          SpFunctionCall eCurrFunc;
+          const std::array<SolverBase::StepIntegratorType, iNumDofMax> rgStepInteg;
+          HydroFluid::CavitationState eCavitationState;
      };
 
      class HydroPassiveComprNode: public HydroCompressibleNode {
@@ -3430,8 +3509,13 @@ namespace {
           virtual void Initialize();
 
      protected:
-          static const int iNumNodes = 5;
-          static const int iNumFluxNodes = 4;
+          static constexpr int iNumNodes = 5;
+          static constexpr int iNumFluxNodes = 4;
+
+          inline void SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const;
+          inline void SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const;
+          inline void SetMaxTimeStep(const std::array<GpGradProd, iNumFluxNodes>&) const;
+
           std::array<HydroNode*, iNumNodes> rgHydroNodes;
           std::array<FluxNode*, iNumFluxNodes> rgFluxNodes;
           std::array<SpColVectorA<doublereal, 2>, iNumNodes> x;
@@ -3786,10 +3870,65 @@ namespace {
                           const SpGradientVectorHandler<T>& XCurr,
                           SpFunctionCall func);
      private:
-          inline void SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const;
-          inline void SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const;
-          inline void SetMaxTimeStep(const std::array<GpGradProd, iNumFluxNodes>&) const;
+          static const index_type iNumDofMax = HydroActiveComprNode::iNumDofMax;
+     };
 
+     class LinFD5ComprReynoldsElemMCP: public LinFD5Elem {
+     public:
+          explicit LinFD5ComprReynoldsElemMCP(HydroMesh* pMesh);
+          virtual ~LinFD5ComprReynoldsElemMCP();
+
+          virtual void
+          AssRes(SubVectorHandler& WorkVec,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr,
+                 SpGradientAssVecBase::SpAssMode mode) override;
+
+          virtual void
+          AssJac(SpGradientSubMatrixHandler& WorkMat,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr,
+                 SpGradientAssVecBase::SpAssMode mode) override;
+
+          virtual void
+          AssJac(VectorHandler& JacY,
+                 const VectorHandler& Y,
+                 doublereal dCoef,
+                 const VectorHandler& XCurr,
+                 const VectorHandler& XPrimeCurr) override;
+
+          virtual void
+          InitialAssRes(SubVectorHandler& WorkVec,
+                        const VectorHandler& XCurr,
+                        SpGradientAssVecBase::SpAssMode mode);
+
+          virtual void
+          InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
+                        const VectorHandler& XCurr,
+                        SpGradientAssVecBase::SpAssMode mode);
+
+          virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const;
+
+          template <typename T>
+          void AssRes(SpGradientAssVec<T>& WorkVec,
+                      doublereal dCoef,
+                      const SpGradientVectorHandler<T>& XCurr,
+                      const SpGradientVectorHandler<T>& XPrimeCurr,
+                      SpFunctionCall func);
+
+          template <typename T>
+          void InitialAssRes(SpGradientAssVec<T>& WorkVec,
+                             const SpGradientVectorHandler<T>& XCurr,
+                             SpFunctionCall func);
+
+          template <typename T>
+          void UnivAssRes(SpGradientAssVec<T>& WorkVec,
+                          doublereal dCoef,
+                          const SpGradientVectorHandler<T>& XCurr,
+                          SpFunctionCall func);
+     private:
           static const index_type iNumDofMax = HydroActiveComprNode::iNumDofMax;
      };
 
@@ -4442,6 +4581,7 @@ namespace {
           } eElemType;
 
           bool bLineSearchControl;
+          bool bEnableMCP;
      };
 
      class QuadFeIso9Mesh: public HydroMesh {
@@ -5367,6 +5507,7 @@ namespace {
 
           enum ScaleType {
                SCALE_REYNOLDS_EQU = 0,
+               SCALE_COMPLEMENTARITY_COND,
                SCALE_ELASTICITY_EQU,
                SCALE_ENERGY_EQ,
                SCALE_PRESSURE_DOF,
@@ -5391,6 +5532,7 @@ namespace {
           virtual unsigned int iGetNumDof(void) const override;
           virtual DofOrder::Order GetDofType(unsigned int i) const override;
           virtual DofOrder::Order GetEqType(unsigned int i) const override;
+          virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
           virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
           virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
           virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
@@ -5805,6 +5947,8 @@ namespace {
                     rgScale[SCALE_ELASTICITY_EQU] = HP.GetReal();
                } else if (HP.IsKeyWord("energy" "balance" "scale")) {
                     rgScale[SCALE_ENERGY_EQ] = HP.GetReal();
+               } else if (HP.IsKeyWord("complementarity" "condition" "scale")) {
+                    rgScale[SCALE_COMPLEMENTARITY_COND] = HP.GetReal();
                } else if (HP.IsKeyWord("max" "cfl" "number")) {
                     dCFL = HP.GetReal();
                } else if (HP.IsKeyWord("output" "pressure")) {
@@ -6219,6 +6363,15 @@ namespace {
           const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
           HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
           return pDO->GetEqType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
+     }
+
+     DofOrder::Equality HydroRootElement::GetEqualityType(unsigned int i) const
+     {
+          // RebuildDofMap(REGULAR_RES);
+          ++i; // we are using one based indices
+          const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
+          HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
+          return pDO->GetEqualityType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
      }
 
      SolverBase::StepIntegratorType HydroRootElement::GetStepIntegrator(unsigned int i) const
@@ -8254,6 +8407,11 @@ namespace {
      HydroDofOwner::~HydroDofOwner()
      {
 
+     }
+
+     DofOrder::Equality HydroDofOwner::GetEqualityType(unsigned int i) const
+     {
+          return DofOrder::EQUALITY;
      }
 
      SolverBase::StepIntegratorType HydroDofOwner::GetStepIntegrator(unsigned int i) const
@@ -10705,75 +10863,31 @@ namespace {
           }
      }
 
-     void HydroActiveComprNode::ResolveDofDerivative(const index_type iDofIndex)
-     {
-          const doublereal dt1 = rgState[0].t - rgState[1].t;
-
-          if (dt1 == 0.) {
-               rgState[0].dTheta_dt[iDofIndex] = 0.;
-               return;
-          }
-
-#ifdef DEBUG
-          static constexpr doublereal dTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.5);
-#endif
-          const integer iDofIndexGlobal = iGetFirstDofIndex(eCurrFunc) + iDofIndex;
-
-          switch (pGetMesh()->pGetParent()->GetStepIntegratorType(iDofIndexGlobal)) {
-          case SolverBase::INT_IMPLICITEULER:
-               rgState[0].dTheta_dt[iDofIndex] = (rgState[0].Theta[iDofIndex] - rgState[1].Theta[iDofIndex]) / dt1;
-               break;
-          case SolverBase::INT_CRANKNICOLSON:
-               crank_nicolson_integrator:
-               rgState[0].dTheta_dt[iDofIndex] = 2. / dt1 * (rgState[0].Theta[iDofIndex] - rgState[1].Theta[iDofIndex]) - rgState[1].dTheta_dt[iDofIndex];
-
-               HYDRO_ASSERT(std::fabs(0.5 * dt1 * (rgState[0].dTheta_dt[iDofIndex] + rgState[1].dTheta_dt[iDofIndex]) + rgState[1].Theta[iDofIndex] - rgState[0].Theta[iDofIndex]) < dTol * (1. + std::fabs(rgState[0].Theta[iDofIndex] - rgState[1].Theta[iDofIndex])));
-               break;
-          case SolverBase::INT_MS2:
-          case SolverBase::INT_HOPE:
-          case SolverBase::INT_DEFAULT: {
-               const doublereal dt2 = rgState[0].t - rgState[2].t;
-
-               if (dt2 == dt1) {
-                    goto crank_nicolson_integrator;
-               }
-
-               const doublereal c = (rgState[1].Theta[iDofIndex] - rgState[0].Theta[iDofIndex] - dt1 / dt2 * (rgState[2].Theta[iDofIndex] - rgState[0].Theta[iDofIndex])) / (dt1 * (dt1 - dt2));
-               const doublereal b = (rgState[2].Theta[iDofIndex] - rgState[0].Theta[iDofIndex]) / dt2 - c * dt2;
-
-               rgState[0].dTheta_dt[iDofIndex] = b;
-
-               HYDRO_ASSERT(std::fabs(rgState[0].Theta[iDofIndex] + b * dt1 + c * dt1 * dt1 - rgState[1].Theta[iDofIndex]) < dTol);
-               HYDRO_ASSERT(std::fabs(rgState[0].Theta[iDofIndex] + b * dt2 + c * dt2 * dt2 - rgState[2].Theta[iDofIndex]) < dTol);
-          } break;
-          default:
-               throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-          }
-     }
-
      void HydroActiveComprNode::ResolveCavitationState(VectorHandler& X, VectorHandler& XP)
      {
-          if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
-               rgState[0].Theta[0] = 0.;
-               rgState[0].dTheta_dt[0] = 0.;
-               rgState[0].Theta[1] = std::min(1., rgState[0].Theta[1]);
+          std::array<doublereal, iNumDofMax> dCoef;
 
-               if (rgState[0].eCavitationState != ePrevCavitationState) {
-                    ResolveDofDerivative(1);
-               }
-          } else {
-               rgState[0].Theta[1] = 1.;
-               rgState[0].dTheta_dt[1] = 0.;
-               rgState[0].Theta[0] = std::max(0., rgState[0].Theta[0]);
-
-               if (rgState[0].eCavitationState != ePrevCavitationState) {
-                    ResolveDofDerivative(0);
-               }
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               dCoef[i] = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc) + i);
           }
+          
+          if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
+               rgState[0].dTheta_dt[0] -= rgState[0].Theta[0] / dCoef[0];
+               rgState[0].Theta[0] = 0.;
 
-          if (rgState[0].Theta[1] < 0.) {
-               rgState[0].Theta[1] = 0.;
-               ResolveDofDerivative(1);
+               const doublereal Theta1Prev = rgState[0].Theta[1];
+
+               rgState[0].Theta[1] = std::max(0., std::min(1., rgState[0].Theta[1]));
+               rgState[0].dTheta_dt[1] += (rgState[0].Theta[1] - Theta1Prev) / dCoef[1];
+          } else {
+               rgState[0].dTheta_dt[1] += (1. - rgState[0].Theta[1]) / dCoef[1];
+
+               rgState[0].Theta[1] = 1.;
+
+               const doublereal Theta0Prev = rgState[0].Theta[0];
+
+               rgState[0].Theta[0] = std::max(0., rgState[0].Theta[0]);
+               rgState[0].dTheta_dt[0] += (rgState[0].Theta[0] - Theta0Prev) / dCoef[0];
           }
 
           for (index_type i = 0; i < iNumDofMax; ++i) {
@@ -11080,6 +11194,493 @@ namespace {
           static const char szEqName[][31] = {
                "compressible Reynolds equation",
                "equation of fluid state"
+          };
+
+          const index_type iNumDof = bInitial ? iGetInitialNumDof() : iGetNumDof();
+
+          for (index_type i = 0; i < iNumDof; ++i) {
+               out << prefix << iIndex + i << ": " << szEqName[i] << " " << iGetNodeNumber() + 1 << std::endl;
+          }
+
+          return out;
+     }
+
+     HydroActiveComprNodeMCP::HydroActiveComprNodeMCP(integer iNodeNo,
+                                                      const SpColVector<doublereal, 2>& x,
+                                                      HydroMesh* pParent,
+                                                      ContactModel* pContactModel,
+                                                      std::unique_ptr<FrictionModel>&& pFrictionModel,
+                                                      SolverBase::StepIntegratorType eIntegPressure,
+                                                      SolverBase::StepIntegratorType eIntegDensity)
+          :HydroCompressibleNode(iNodeNo,
+                                 x,
+                                 pParent,
+                                 pContactModel,
+                                 std::move(pFrictionModel),
+                                 ACTIVE_NODE),
+           eCurrFunc(SpFunctionCall::INITIAL_ASS_FLAG),
+           rgStepInteg{eIntegPressure, eIntegDensity},
+           eCavitationState(HydroFluid::FULL_FILM_REGION)
+     {
+          std::array<HydroRootElement::ScaleType, iNumDofMax> rgScale = {
+               HydroRootElement::SCALE_PRESSURE_DOF,
+               HydroRootElement::SCALE_THETA_DOF
+          };
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               Theta[i] = pGetFluid()->GetTheta0(i);
+               dTheta_dt[i] = 0.;
+               s[i] = pParent->pGetParent()->dGetScale(rgScale[i]);
+               ThetaY[i] = 0.;
+          }
+
+          UpdateState(oState);
+     }
+
+     HydroActiveComprNodeMCP::~HydroActiveComprNodeMCP()
+     {
+
+     }
+
+     HydroFluid::CavitationState HydroActiveComprNodeMCP::GetCavitationState() const
+     {
+          return eCavitationState;
+     }
+
+     void HydroActiveComprNodeMCP::GetTheta(std::array<doublereal, iNumDofMax>& ThetaArg, doublereal) const
+     {
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               ThetaArg[i] = Theta[i];
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetTheta(std::array<SpGradient, iNumDofMax>& ThetaArg, doublereal dCoef) const
+     {
+          HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
+
+          switch (eCurrFunc)
+          {
+          case SpFunctionCall::REGULAR_FLAG:
+               for (index_type i = 0; i < iNumDofMax; ++i) {
+                    const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+                    dCoef = GetDofType(i) == DofOrder::ALGEBRAIC ? 1. : pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
+
+                    ThetaArg[i].Reset(Theta[i], iDofIndex, -dCoef * s[i]);
+               }
+               break;
+          case SpFunctionCall::INITIAL_ASS_FLAG: {
+               HYDRO_ASSERT(dCoef == 1.);
+
+               const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc);
+               ThetaArg[0].Reset(Theta[0], iDofIndex, -s[0]);
+               ThetaArg[1].ResizeReset(Theta[1], 0);
+          } break;
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetTheta(std::array<GpGradProd, iNumDofMax>& ThetaArg, doublereal dCoef) const
+     {
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+               dCoef = GetDofType(i) == DofOrder::ALGEBRAIC ? 1. : pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex);
+
+               ThetaArg[i].Reset(Theta[i], -dCoef * s[i] * ThetaY[i]);
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetThetaDerTime(std::array<doublereal, iNumDofMax>& dThetaArg_dt, doublereal) const
+     {
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               dThetaArg_dt[i] = dTheta_dt[i];
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetThetaDerTime(std::array<SpGradient, iNumDofMax>& dThetaArg_dt, doublereal dCoef) const
+     {
+          HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG || eCurrFunc == SpFunctionCall::REGULAR_FLAG);
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               if (eCurrFunc & SpFunctionCall::REGULAR_FLAG) {
+                    const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+                    dCoef = GetDofType(i) == DofOrder::ALGEBRAIC ? pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex) : 1.;
+                    dThetaArg_dt[i].Reset(dTheta_dt[i], iGetFirstDofIndex(eCurrFunc) + i, -s[i] * dCoef);
+               } else {
+                    dThetaArg_dt[i].ResizeReset(dTheta_dt[i], 0);
+               }
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetThetaDerTime(std::array<GpGradProd, iNumDofMax>& dThetaArg_dt, doublereal dCoef) const
+     {
+          HYDRO_ASSERT(eCurrFunc == SpFunctionCall::REGULAR_FLAG);
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               const index_type iDofIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+               dCoef = GetDofType(i) == DofOrder::ALGEBRAIC ? pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iDofIndex) : 1.;
+
+               dThetaArg_dt[i].Reset(dTheta_dt[i], -s[i] * dCoef * ThetaY[i]);
+          }
+     }
+
+     template <typename G>
+     inline void HydroActiveComprNodeMCP::UpdateState(FluidState<G>& oState, doublereal dCoef) const
+     {
+          GetTheta(oState.Theta, dCoef);
+          GetThetaDerTime(oState.dTheta_dt, dCoef);
+          GetTemperature(oState.T, dCoef);
+          GetTemperatureDerTime(oState.dT_dt, dCoef);
+
+          pGetFluid()->ThetaToPhysical(oState.Theta,
+                                       oState.dTheta_dt,
+                                       oState.T,
+                                       oState.dT_dt,
+                                       oState.p,
+                                       oState.dp_dt,
+                                       oState.rho,
+                                       oState.drho_dt);
+
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.Theta[0])));
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.Theta[1])));
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dTheta_dt[0])));
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dTheta_dt[1])));
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.T)));
+          HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(oState.dT_dt)));
+     }
+
+     integer HydroActiveComprNodeMCP::iGetFirstEquationIndex(sp_grad::SpFunctionCall eFunc) const
+     {
+          return iGetFirstDofIndex(eFunc);
+     }
+
+     integer HydroActiveComprNodeMCP::iGetFirstDofIndex(sp_grad::SpFunctionCall eFunc) const
+     {
+          HYDRO_ASSERT(iGetOffsetIndex(eFunc) != HydroDofOwner::UNKNOWN_OFFSET);
+
+          return pGetMesh()->pGetParent()->iGetFirstIndex() + iGetOffsetIndex(eFunc);
+     }
+
+     integer HydroActiveComprNodeMCP::iGetNumColsWorkSpace(sp_grad::SpFunctionCall eFunc) const
+     {
+          integer iNumCols = HydroCompressibleNode::iGetNumColsWorkSpace(eFunc);
+
+          if (eFunc & SpFunctionCall::REGULAR_FLAG) {
+               iNumCols += iGetNumDof();
+          } else {
+               iNumCols += iGetInitialNumDof();
+          }
+
+          return iNumCols;
+     }
+
+     void HydroActiveComprNodeMCP::ResolveCavitationState(VectorHandler& X, VectorHandler& XP)
+     {
+          if (eCavitationState == HydroFluid::CAVITATION_REGION) {
+               Theta[0] = 0.;
+               dTheta_dt[0] = 0.;
+
+               const doublereal dCoef1 = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc) + 1);
+               const doublereal Theta1Prev = Theta[1];
+
+               Theta[1] = std::max(0., std::min(1., Theta[1]));
+               dTheta_dt[1] += (Theta[1] - Theta1Prev) / dCoef1;
+          } else {
+               Theta[1] = 1.;
+               dTheta_dt[1] = 0.;
+
+               const doublereal dCoef0 = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc));
+               const doublereal Theta0Prev = Theta[0];
+
+               Theta[0] = std::max(0., Theta[0]);
+               dTheta_dt[0] += (Theta[0] - Theta0Prev) / dCoef0;
+          }
+
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+               HYDRO_ASSERT(iIndex > 0);
+               HYDRO_ASSERT(iIndex <= X.iGetSize());
+
+               X.PutCoef(iIndex, Theta[i] / s[i]);
+               XP.PutCoef(iIndex, dTheta_dt[i] / s[i]);
+          }
+
+          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (Theta[0] == 0.) : (Theta[0] >= 0.));
+          HYDRO_ASSERT(GetCavitationState() == HydroFluid::CAVITATION_REGION ? (Theta[1] <= 1.) : (Theta[1] == 1.));
+          HYDRO_ASSERT(Theta[1] >= 0.);
+     }
+
+     void HydroActiveComprNodeMCP::UpdateCavitationState()
+     {
+          if (eCavitationState == HydroFluid::FULL_FILM_REGION) {
+               if (Theta[0] < 0.) {
+                    eCavitationState = HydroFluid::CAVITATION_REGION;
+               }
+          } else {
+               if (Theta[1] > 1.) {
+                    eCavitationState = HydroFluid::FULL_FILM_REGION;
+               }
+          }
+     }
+
+     void HydroActiveComprNodeMCP::UpdateTheta(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
+     {
+          HYDRO_ASSERT(iGetOffsetIndex(eCurrFunc) > 0);
+
+          if (eCurrFunc & SpFunctionCall::INITIAL_ASS_FLAG) {
+               Theta[0] = s[0] * XCurr(iGetFirstDofIndex(eCurrFunc));
+               HYDRO_ASSERT(std::isfinite(Theta[0]));
+          } else {
+               for (index_type i = 0; i < iNumDofMax; ++i) {
+                    const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+                    HYDRO_ASSERT(iIndex > 0);
+                    HYDRO_ASSERT(iIndex <= XCurr.iGetSize());
+
+                    Theta[i] = s[i] * XCurr(iIndex);
+                    dTheta_dt[i] = s[i] * XPrimeCurr(iIndex);
+               }
+          }
+     }
+
+     void HydroActiveComprNodeMCP::DofUpdate(VectorHandler& X, VectorHandler& XP)
+     {
+          UpdateTheta(X, XP);
+          UpdateCavitationState();
+     }
+
+     void HydroActiveComprNodeMCP::AfterPredict(VectorHandler& X, VectorHandler& XP)
+     {
+          UpdateTheta(X, XP);
+          UpdateCavitationState();
+          // ResolveCavitationState(X, XP);
+     }
+
+     void
+     HydroActiveComprNodeMCP::Update(const VectorHandler& XCurr,
+                                     const VectorHandler& XPrimeCurr,
+                                     doublereal dCoef,
+                                     SpFunctionCall func)
+     {
+          if (func & SpFunctionCall::INITIAL_ASS_FLAG) {
+               Theta[0] = s[0] * XCurr(iGetFirstDofIndex(func));
+               HYDRO_ASSERT(std::isfinite(Theta[0]));
+          }
+
+          HYDRO_ASSERT(eCurrFunc == (func & sp_grad::STATE_MASK));
+
+          switch (func) {
+          case SpFunctionCall::INITIAL_ASS_RES:
+          case SpFunctionCall::REGULAR_RES:
+               UpdateState(oState, dCoef);
+               break;
+
+          case SpFunctionCall::INITIAL_ASS_JAC:
+          case SpFunctionCall::REGULAR_JAC:
+               UpdateState(oState_grad, dCoef);
+               break;
+
+          default:
+               NO_OP;
+          }
+
+          HydroCompressibleNode::Update(XCurr, XPrimeCurr, dCoef, func);
+     }
+
+     void
+     HydroActiveComprNodeMCP::Update(const VectorHandler& Y, doublereal dCoef)
+     {
+          HYDRO_ASSERT(eCurrFunc & SpFunctionCall::REGULAR_FLAG);
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
+               ThetaY[i] = Y(iIndex);
+          }
+
+          UpdateState(oState_gradp, dCoef);
+
+          HydroCompressibleNode::Update(Y, dCoef);
+     }
+
+     void HydroActiveComprNodeMCP::SetValue(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
+     {
+          HYDRO_ASSERT(eCurrFunc == SpFunctionCall::INITIAL_ASS_FLAG);
+
+          eCurrFunc = SpFunctionCall::REGULAR_FLAG;
+
+          for (index_type i = 0; i < iNumDofMax; ++i) {
+               const integer iIndex = iGetFirstDofIndex(eCurrFunc) + i;
+
+               XCurr(iIndex) = Theta[i] / s[i];
+               XPrimeCurr(iIndex) = dTheta_dt[i] / s[i];
+          }
+     }
+
+     void HydroActiveComprNodeMCP::GetPressure(doublereal& p, doublereal) const
+     {
+          p = oState.p;
+     }
+
+     void HydroActiveComprNodeMCP::GetPressure(SpGradient& p, doublereal dCoef) const
+     {
+          p = oState_grad.p;
+     }
+
+     void HydroActiveComprNodeMCP::GetPressure(GpGradProd& p, doublereal dCoef) const
+     {
+          p = oState_gradp.p;
+     }
+
+     void HydroActiveComprNodeMCP::GetPressureDerTime(doublereal& dp_dt, doublereal) const
+     {
+          dp_dt = oState.dp_dt;
+     }
+
+     void HydroActiveComprNodeMCP::GetPressureDerTime(SpGradient& dp_dt, doublereal dCoef) const
+     {
+          dp_dt = oState_grad.dp_dt;
+     }
+
+     void HydroActiveComprNodeMCP::GetPressureDerTime(GpGradProd& dp_dt, doublereal dCoef) const
+     {
+          dp_dt = oState_gradp.dp_dt;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensity(doublereal& rho, doublereal) const
+     {
+          rho = oState.rho;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensity(SpGradient& rho, doublereal dCoef) const
+     {
+          rho = oState_grad.rho;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensity(GpGradProd& rho, doublereal dCoef) const
+     {
+          rho = oState_gradp.rho;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensityDerTime(doublereal& drho_dt, doublereal) const
+     {
+          drho_dt = oState.drho_dt;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensityDerTime(SpGradient& drho_dt, doublereal dCoef) const
+     {
+          drho_dt = oState_grad.drho_dt;
+     }
+
+     void HydroActiveComprNodeMCP::GetDensityDerTime(GpGradProd& drho_dt, doublereal dCoef) const
+     {
+          drho_dt = oState_gradp.drho_dt;
+     }
+
+     unsigned int HydroActiveComprNodeMCP::iGetNumDof() const
+     {
+          return iNumDofMax;
+     }
+
+     unsigned int HydroActiveComprNodeMCP::iGetInitialNumDof(void) const
+     {
+          static_assert(iNumDofMax >= 1, "not enough degrees of freedom");
+
+          return 1u;
+     }
+
+     DofOrder::Order HydroActiveComprNodeMCP::GetDofType(unsigned int i) const
+     {
+          HYDRO_ASSERT(i >= 0);
+          HYDRO_ASSERT(i < iNumDofMax);
+
+          switch (i) {
+          case 0:
+               return DofOrder::ALGEBRAIC;
+
+          case 1:
+               return DofOrder::DIFFERENTIAL;
+
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     DofOrder::Order HydroActiveComprNodeMCP::GetEqType(unsigned int i) const
+     {
+          HYDRO_ASSERT(i >= 0);
+          HYDRO_ASSERT(i < iNumDofMax);
+
+          switch (i) {
+          case 0:
+               return DofOrder::ALGEBRAIC;
+
+          case 1:
+               return DofOrder::DIFFERENTIAL;
+
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     DofOrder::Equality HydroActiveComprNodeMCP::GetEqualityType(unsigned int i) const
+     {
+          HYDRO_ASSERT(i >= 0);
+          HYDRO_ASSERT(i < iNumDofMax);
+
+          switch (i) {
+          case 0:
+               return DofOrder::INEQUALITY;
+
+          case 1:
+               return DofOrder::EQUALITY;
+
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     SolverBase::StepIntegratorType HydroActiveComprNodeMCP::GetStepIntegrator(unsigned int i) const
+     {
+          HYDRO_ASSERT(i >= 0);
+          HYDRO_ASSERT(i < iNumDofMax);
+
+          switch (i) {
+          case 0:
+          case 1:
+               return rgStepInteg[i];
+
+          default:
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
+     }
+
+     std::ostream&
+     HydroActiveComprNodeMCP::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+     {
+          const integer iIndex = iGetFirstDofIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
+
+          const index_type iNumDof = bInitial ? iGetInitialNumDof() : iGetNumDof();
+
+          for (index_type i = 0; i < iNumDof; ++i) {
+               out << prefix << iIndex + i << ": Theta" << iGetNodeNumber() + 1 << "[" << i << "]" << std::endl;
+          }
+
+          return out;
+     }
+
+     std::ostream&
+     HydroActiveComprNodeMCP::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+     {
+          const integer iIndex = iGetFirstDofIndex(bInitial ? SpFunctionCall::INITIAL_ASS_FLAG : SpFunctionCall::REGULAR_FLAG);
+
+          static const char szEqName[][31] = {
+               "complementarity condition",
+               "compressible Reynolds equation"
           };
 
           const index_type iNumDof = bInitial ? iGetInitialNumDof() : iGetNumDof();
@@ -17486,6 +18087,36 @@ namespace {
           HYDRO_ASSERT(x[iNodeCenter](1) > x[iNodeWest](1));
      }
 
+     void LinFD5Elem::SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const
+     {
+          // Do not cause SIGFPE if wx and wz are exactly zero.
+          doublereal wx = std::numeric_limits<doublereal>::min(), wz = std::numeric_limits<doublereal>::min();
+
+          static const index_type rgNodeIdxFlx[2] = {iNodeFlxWest, iNodeFlxEast};
+          static const index_type rgNodeIdxFlz[2] = {iNodeFlzSouth, iNodeFlzNorth};
+
+          for (index_type i = 0; i < 2; ++i) {
+               wx = std::max(wx, std::abs(w[rgNodeIdxFlx[i]]));
+               wz = std::max(wz, std::abs(w[rgNodeIdxFlz[i]]));
+          }
+
+          HydroRootElement* const pParent = pGetMesh()->pGetParent();
+          const doublereal CFL = pParent->dGetMaxCFL();
+          const doublereal dtMax = CFL / (wx / dx + wz / dz);
+
+          pParent->SetMaxTimeStep(dtMax);
+     }
+
+     void LinFD5Elem::SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const
+     {
+          // Do nothing
+     }
+
+     void LinFD5Elem::SetMaxTimeStep(const std::array<GpGradProd, iNumFluxNodes>&) const
+     {
+          // Do nothing
+     }
+
      constexpr int LinFD4Elem::iNumNodes;
 
      LinFD4Elem::LinFD4Elem(HydroMesh* pMesh, ElementType eType)
@@ -18443,10 +19074,12 @@ namespace {
           const integer iFirstIndex = rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func);
 
           const HydroRootElement* const pParent = pGetMesh()->pGetParent();
-          const doublereal dEquationScale = pParent->dGetScale(HydroRootElement::SCALE_REYNOLDS_EQU);
+          const doublereal dEquationScaleReynolds = pParent->dGetScale(HydroRootElement::SCALE_REYNOLDS_EQU);
+          const doublereal dEquationScaleComp = pParent->dGetScale(HydroRootElement::SCALE_COMPLEMENTARITY_COND);
 
           G rho, drho_dt, h, dh_dt;
-          std::array<G, iNumFluxNodes> mdot, w;
+          std::array<G, iNumFluxNodes> mdot;
+          std::array<doublereal, iNumFluxNodes> w;
 
           for (index_type i = 0; i < iNumFluxNodes; ++i) {
                if (std::is_same<G, doublereal>::value) {
@@ -18468,7 +19101,7 @@ namespace {
 
           const G Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
                                    + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
-                                   + (drho_dt * h + rho * dh_dt)) * dEquationScale);
+                                   + (drho_dt * h + rho * dh_dt)) * dEquationScaleReynolds);
 
           SetMaxTimeStep(w);
 
@@ -18497,13 +19130,15 @@ namespace {
 
                     HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(rhoc)));
 
-                    f = EvalUnique((rho - rhoc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
+                    const doublereal rho_ref = pGetFluid()->dGetRefDensity();
+
+                    f = EvalUnique((rho - rhoc) * (dEquationScaleComp / (rho_ref * dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
 
                     HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(f)));
                } else {
                     HYDRO_ASSERT(p <= pc);
 
-                    f = EvalUnique((p - pc) * (dEquationScale / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
+                    f = EvalUnique((p - pc) * (dEquationScaleComp / (dCoef * pParent->dGetScale(HydroRootElement::SCALE_PRESSURE_DOF))));
 
                     HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(f)));
                }
@@ -18514,34 +19149,182 @@ namespace {
           }
      }
 
-     void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<doublereal, iNumFluxNodes>& w) const
+     LinFD5ComprReynoldsElemMCP::LinFD5ComprReynoldsElemMCP(HydroMesh* pMesh)
+          :LinFD5Elem(pMesh, REYNOLDS_ELEM)
      {
-          // Do not cause SIGFPE if wx and wz are exactly zero.
-          doublereal wx = std::numeric_limits<doublereal>::min(), wz = std::numeric_limits<doublereal>::min();
 
-          static const index_type rgNodeIdxFlx[2] = {iNodeFlxWest, iNodeFlxEast};
-          static const index_type rgNodeIdxFlz[2] = {iNodeFlzSouth, iNodeFlzNorth};
+     }
 
-          for (index_type i = 0; i < 2; ++i) {
-               wx = std::max(wx, std::abs(w[rgNodeIdxFlx[i]]));
-               wz = std::max(wz, std::abs(w[rgNodeIdxFlz[i]]));
+     LinFD5ComprReynoldsElemMCP::~LinFD5ComprReynoldsElemMCP()
+     {
+
+     }
+
+     void
+     LinFD5ComprReynoldsElemMCP::AssRes(SubVectorHandler& WorkVec,
+                                     doublereal dCoef,
+                                     const VectorHandler& XCurr,
+                                     const VectorHandler& XPrimeCurr,
+                                     SpGradientAssVecBase::SpAssMode mode)
+     {
+          SpGradientAssVec<doublereal>::AssRes(this,
+                                               WorkVec,
+                                               dCoef,
+                                               XCurr,
+                                               XPrimeCurr,
+                                               SpFunctionCall::REGULAR_RES,
+                                               mode);
+     }
+
+     void
+     LinFD5ComprReynoldsElemMCP::AssJac(SpGradientSubMatrixHandler& WorkMat,
+                                     doublereal dCoef,
+                                     const VectorHandler& XCurr,
+                                     const VectorHandler& XPrimeCurr,
+                                     SpGradientAssVecBase::SpAssMode mode)
+     {
+          SpGradientAssVec<SpGradient>::AssJac(this,
+                                                WorkMat,
+                                                dCoef,
+                                                XCurr,
+                                                XPrimeCurr,
+                                                SpFunctionCall::REGULAR_JAC,
+                                                mode);
+     }
+
+     void
+     LinFD5ComprReynoldsElemMCP::AssJac(VectorHandler& JacY,
+                                     const VectorHandler& Y,
+                                     doublereal dCoef,
+                                     const VectorHandler& XCurr,
+                                     const VectorHandler& XPrimeCurr)
+     {
+          SpGradientAssVec<GpGradProd>::AssJac(this,
+                                               JacY,
+                                               Y,
+                                               dCoef,
+                                               XCurr,
+                                               XPrimeCurr,
+                                               SpFunctionCall::REGULAR_JAC);
+     }
+
+     void
+     LinFD5ComprReynoldsElemMCP::InitialAssRes(SubVectorHandler& WorkVec,
+                                            const VectorHandler& XCurr,
+                                            SpGradientAssVecBase::SpAssMode mode)
+     {
+          SpGradientAssVec<doublereal>::InitialAssRes(this,
+                                                      WorkVec,
+                                                      XCurr,
+                                                      SpFunctionCall::INITIAL_ASS_RES,
+                                                      mode);
+     }
+
+     void
+     LinFD5ComprReynoldsElemMCP::InitialAssJac(SpGradientSubMatrixHandler& WorkMat,
+                                            const VectorHandler& XCurr,
+                                            SpGradientAssVecBase::SpAssMode mode)
+     {
+          SpGradientAssVec<SpGradient>::InitialAssJac(this,
+                                                       WorkMat,
+                                                       XCurr,
+                                                       SpFunctionCall::INITIAL_ASS_JAC,
+                                                       mode);
+     }
+
+     void LinFD5ComprReynoldsElemMCP::WorkSpaceDim(integer* piNumRows, integer* piNumCols, sp_grad::SpFunctionCall eFunc) const
+     {
+          *piNumRows = eFunc & SpFunctionCall::REGULAR_FLAG ? iNumDofMax : 1;
+          *piNumCols = iGetNumColsWorkSpace(eFunc, iGetNumNodes());
+     }
+
+     template <typename G>
+     void LinFD5ComprReynoldsElemMCP::AssRes(SpGradientAssVec<G>& WorkVec,
+                                          doublereal dCoef,
+                                          const SpGradientVectorHandler<G>& XCurr,
+                                          const SpGradientVectorHandler<G>& XPrimeCurr,
+                                          SpFunctionCall func)
+     {
+          UnivAssRes(WorkVec, dCoef, XCurr, func);
+     }
+
+     template <typename G>
+     void LinFD5ComprReynoldsElemMCP::InitialAssRes(SpGradientAssVec<G>& WorkVec,
+                                                 const SpGradientVectorHandler<G>& XCurr,
+                                                 SpFunctionCall func)
+     {
+          UnivAssRes(WorkVec, 1., XCurr, func);
+     }
+
+     template <typename G>
+     void LinFD5ComprReynoldsElemMCP::UnivAssRes(SpGradientAssVec<G>& WorkVec,
+                                              doublereal dCoef,
+                                              const SpGradientVectorHandler<G>& XCurr,
+                                              SpFunctionCall func)
+     {
+          const integer iFirstIndex = rgHydroNodes[iNodeCenter]->iGetFirstEquationIndex(func);
+          const bool bRegularFlag = func & SpFunctionCall::REGULAR_FLAG;
+          const HydroRootElement* const pParent = pGetMesh()->pGetParent();
+          const doublereal dEquationScale = pParent->dGetScale(HydroRootElement::SCALE_REYNOLDS_EQU);
+
+          G rho, drho_dt, h, dh_dt;
+          std::array<G, iNumFluxNodes> mdot;
+          std::array<doublereal, iNumFluxNodes> w;
+
+          for (index_type i = 0; i < iNumFluxNodes; ++i) {
+               if (std::is_same<G, doublereal>::value) {
+                    rgFluxNodes[i]->GetVelocityAvg(w[i]);
+               }
+
+               rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
           }
 
-          HydroRootElement* const pParent = pGetMesh()->pGetParent();
-          const doublereal CFL = pParent->dGetMaxCFL();
-          const doublereal dtMax = CFL / (wx / dx + wz / dz);
+          rgHydroNodes[iNodeCenter]->GetDensity(rho, dCoef);
+          rgHydroNodes[iNodeCenter]->GetClearance(h);
+          rgHydroNodes[iNodeCenter]->GetClearanceDerTime(dh_dt);
+          pGetMesh()->pGetGeometry()->GetNonNegativeClearance(h, h, &dh_dt, &dh_dt);
 
-          pParent->SetMaxTimeStep(dtMax);
-     }
+          if (bRegularFlag) {
+               rgHydroNodes[iNodeCenter]->GetDensityDerTime(drho_dt, dCoef);
+          } else {
+               SpGradientTraits<G>::ResizeReset(drho_dt, 0., 0);
+          }
 
-     void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<SpGradient, iNumFluxNodes>&) const
-     {
-          // Do nothing
-     }
+          const G Re = EvalUnique(((mdot[iNodeFlxEast] - mdot[iNodeFlxWest]) / dx
+                                   + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
+                                   + (drho_dt * h + rho * dh_dt)) * dEquationScale);
 
-     void LinFD5ComprReynoldsElem::SetMaxTimeStep(const std::array<GpGradProd, iNumFluxNodes>&) const
-     {
-          // Do nothing
+          SetMaxTimeStep(w);
+
+          CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex + bRegularFlag);
+
+          WorkVec.AddItem(iFirstIndex + bRegularFlag, Re);
+
+          if (bRegularFlag) {
+               G pc{pGetFluid()->dGetRefPressure()}; // Assume that pc is the cavitation pressure
+
+               HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(pc)));
+
+               G T, rhoc;
+
+               rgHydroNodes[iNodeCenter]->GetTemperature(T, dCoef);
+
+               HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(T)));
+
+               pGetFluid()->GetDensity(pc, T, rhoc);
+
+               const doublereal rho_ref = pGetFluid()->dGetRefDensity();
+
+               HYDRO_ASSERT(std::isfinite(SpGradientTraits<G>::dGetValue(rhoc)));
+
+               const doublereal dEquationScaleComp = pParent->dGetScale(HydroRootElement::SCALE_COMPLEMENTARITY_COND);
+
+               G f = EvalUnique((rhoc - rho) * (dEquationScaleComp / (rho_ref * dCoef * pParent->dGetScale(HydroRootElement::SCALE_THETA_DOF))));
+
+               CHECK_NUM_COLS_WORK_SPACE(this, func, f, iFirstIndex + 1);
+
+               WorkVec.AddItem(iFirstIndex, f);
+          }
      }
 
      LinFD5ThermalElem::LinFD5ThermalElem(HydroMesh* pMesh)
@@ -20833,8 +21616,10 @@ namespace {
 
           oThermModel.GetViscosityLiquid(T, eta);
 
-          if (rho < rholiq) {
+          if (rho >= 0. && rho < rholiq) {
                eta *= ((1. - etavap_etaliq) * rho / rholiq + etavap_etaliq);
+          } else if (rho < 0.) {
+               eta *= etavap_etaliq;
           }
      }
 
@@ -22135,7 +22920,8 @@ namespace {
            M(0),
            N(0),
            eElemType(CENT_DIFF_5),
-           bLineSearchControl(false)
+           bLineSearchControl(false),
+           bEnableMCP(false)
      {
      }
 
@@ -22155,6 +22941,10 @@ namespace {
                                 << HP.GetLineData() << std::endl);
                     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                }
+          }
+
+          if (HP.IsKeyWord("enable" "mcp")) {
+               bEnableMCP = HP.GetYesNoOrBool();
           }
 
           ParseStepIntegrator(pDM, HP);
@@ -22554,6 +23344,14 @@ namespace {
                                                               this,
                                                               pContact.get(),
                                                               std::move(pFrictionNode)));
+                         } else if (bEnableMCP) {
+                              pNode.reset(new HydroActiveComprNodeMCP(iNodeIndex,
+                                                                      x,
+                                                                      this,
+                                                                      pContact.get(),
+                                                                      std::move(pFrictionNode),
+                                                                      rgStepInteg[INT_PRESSURE],
+                                                                      rgStepInteg[INT_DENSITY]));
                          } else {
                               pNode.reset(new HydroActiveComprNode(iNodeIndex,
                                                                    x,
@@ -22888,6 +23686,8 @@ namespace {
                          pElement.reset(new LinFD5ReynoldsElem(this));
                     } else if (typeid(*pCenterNode) == typeid(HydroActiveComprNode)) {
                          pElement.reset(new LinFD5ComprReynoldsElem(this));
+                    } else if (typeid(*pCenterNode) == typeid(HydroActiveComprNodeMCP)) {
+                         pElement.reset(new LinFD5ComprReynoldsElemMCP(this));
                     } else if (typeid(*pCenterNode) == typeid(HydroCoupledNode) ||
                                typeid(*pCenterNode) == typeid(HydroCoupledComprNode)) {
                          if (bThermalModel) {

@@ -135,13 +135,9 @@ public:
          * Complementare di GetDofType(); dice che tipo di equazione
          * corrisponde al dof i (ALGEBRAIC o DIFFERENTIAL).
          */
-        virtual DofOrder::Order GetEqType(unsigned int i) const
-#if 0
-                = 0
-#else
-        { return DofOrder::DIFFERENTIAL; }
-#endif
-        ;
+        virtual DofOrder::Order GetEqType(unsigned int i) const;
+
+        virtual DofOrder::Equality GetEqualityType(unsigned int i) const;
 
         virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
 

@@ -3497,7 +3497,7 @@ DummyStructNode::iGetInitialNumDof(void) const
 }
 
 inline integer
-DummyStructNode::iGetFirstIndex(void) const
+DummyStructNode::iGetFirstIndex() const
 {
 	DEBUGCERR("DummyStructNode(" << GetLabel() << ") has no dofs\n");
 

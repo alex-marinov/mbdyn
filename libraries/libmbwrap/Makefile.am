@@ -43,7 +43,9 @@ qrwrap.cc \
 strumpackwrap.h \
 strumpackwrap.cc \
 aztecoowrap.h \
-aztecoowrap.cc
+aztecoowrap.cc \
+siconoswrap.h \
+siconoswrap.cc
 
 if USE_CHACO
 libmbwrap_la_SOURCES += \
@@ -79,6 +81,7 @@ libmbwrap_la_LIBADD = \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @TRILINOS_LIBS@ \
+@SICONOS_LIBS@ \
 @LIBS@ \
 @FCLIBS@
 

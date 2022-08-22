@@ -1210,7 +1210,7 @@ public:
 	/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
 	virtual inline unsigned int iGetInitialNumDof(void) const;
 
-     	virtual inline integer iGetFirstIndex(void) const;
+        virtual inline integer iGetFirstIndex() const override;
 
 	/* Ritorna il primo indice (-1) di posizione */
 	virtual inline integer iGetFirstPositionIndex(void) const;

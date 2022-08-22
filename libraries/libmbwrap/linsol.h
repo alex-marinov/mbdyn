@@ -61,6 +61,8 @@ public:
 		WATSON_SOLVER,
                 AZTECOO_SOLVER,
                 AMESOS_SOLVER,
+                SICONOS_SPARSE_SOLVER,
+                SICONOS_DENSE_SOLVER,
 		LAST_SOLVER
 	};
 
