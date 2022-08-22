@@ -242,6 +242,8 @@ OCTAVE_XLIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lm
 OCTAVE_XFUNCS = \
 rotation_matrix_to_rotation_vector.oct \
 rotation_vector_to_rotation_matrix.oct \
+rotation_matrix_to_rotation_param.oct \
+rotation_param_to_rotation_matrix.oct \
 rotation_matrix_to_euler123.oct \
 euler123_to_rotation_matrix.oct \
 rotation_matrix_to_euler313.oct \
