@@ -1639,7 +1639,7 @@ Solver::Start(void)
 			&& *EigAn.currAnalysis <= dTime)
 		{
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+				EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
 			if (i != EigAn.Analyses.end()) {
 				EigAn.currAnalysis = --i;
 			}
@@ -1889,7 +1889,7 @@ Solver::Start(void)
 			&& *EigAn.currAnalysis <= dTime)
 		{
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+				EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
 			if (i != EigAn.Analyses.end()) {
 				EigAn.currAnalysis = --i;
 			}
@@ -2143,7 +2143,7 @@ Solver::Start(void)
 			&& *EigAn.currAnalysis <= dTime)
 		{
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+				EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
 			if (i != EigAn.Analyses.end()) {
 				EigAn.currAnalysis = --i;
 			}
@@ -2413,7 +2413,7 @@ IfStepIsToBeRepeated:
 		&& *EigAn.currAnalysis <= dTime)
 	{
 		std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-			EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+			EigAn.Analyses.end(), std::bind(std::greater<doublereal>(), std::placeholders::_1, dTime));
 		if (i != EigAn.Analyses.end()) {
 			EigAn.currAnalysis = --i;
 		}
