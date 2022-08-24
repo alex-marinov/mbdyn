@@ -890,6 +890,7 @@ public:
 	virtual const std::string& GetEqDescription(int i) const;
 	virtual DofOrder::Order GetDofType(int i) const;
 	virtual DofOrder::Order GetEqType(int i) const;
+        virtual DofOrder::Equality GetEqualityType(int iDof) const;
         bool bUseAutoDiff() const { return bAutoDiff; }
 private:
         bool bAutoDiff; // Create nodes and elements with support for automatic differentiation if applicable

@@ -484,6 +484,7 @@ DataManager::DofOwnerInit(void)
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 				pDf[iCnt].Order = (*i)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*i)->GetEqType(iCnt);
+                                pDf[iCnt].Equality = (*i)->GetEqualityType(iCnt);
 			}
 		}
 	}
@@ -587,6 +588,7 @@ DataManager::DofOwnerInit(void)
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
+                                        pDf[iCnt].Equality = pEWD->GetEqualityType(iCnt);
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
@@ -2602,6 +2604,13 @@ DataManager::GetEqType(int i) const
 {
 	ASSERT(i > 0 && i <= iTotDofs);
 	return Dofs[i - 1].EqOrder;
+}
+
+DofOrder::Equality
+DataManager::GetEqualityType(int i) const
+{
+        ASSERT(i > 0 && i <= iTotDofs);
+        return Dofs[i - 1].Equality;
 }
 
 bool
