@@ -44,16 +44,31 @@
 
 struct SolverBase {
         enum StepIntegratorType {
-                        INT_CRANKNICOLSON,
-                        INT_IMPLICITEULER,
-                        INT_MS2,
-                        INT_HOPE,
-                        INT_DEFAULT,
-                        INT_DERIVATIVE,
-                        INT_UNKNOWN,
+		INT_CRANKNICOLSON,
+		INT_MODCRANKNICOLSON,
+		INT_MS2,
+		INT_MS3,
+		INT_MS4,
+		INT_SS2,
+		INT_SS3,
+		INT_SS4,
+		INT_HOPE,
+		INT_BATHE,
+		INT_MSSTC3,
+		INT_MSSTH3,
+		INT_MSSTC4,
+		INT_MSSTH4,
+		INT_MSSTC5,
+		INT_MSSTH5,
+		INT_DIRK33,
+		INT_DIRK43,
+		INT_DIRK54,
+		INT_THIRDORDER,
+		INT_IMPLICITEULER,
+		INT_UNKNOWN
         };
 
-        static constexpr auto INT_COUNT = INT_DEFAULT + 1;
+        static constexpr auto INT_COUNT = INT_UNKNOWN + 1;
 };
 
 #endif
