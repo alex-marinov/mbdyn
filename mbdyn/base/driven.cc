@@ -117,12 +117,12 @@ DrivenElem::Restart(std::ostream& out) const
 void
 DrivenElem::BeforePredict(VectorHandler& X,
 		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const
+		std::deque<VectorHandler*>& qXPr,
+		std::deque<VectorHandler*>& qXPPr) const
 {
 	ASSERT(pElem != 0);
 	if (bIsActive()) {
-     		pElem->BeforePredict(X, XP, XPrev, XPPrev);
+     		pElem->BeforePredict(X, XP, qXPr, qXPPr);
 	}
 }
 
@@ -343,7 +343,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XPrimeCurr)
 {
 	ASSERT(pElem != 0);
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return pElem->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr);
 	}
 
@@ -372,7 +372,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 doublereal
 DrivenElem::dGetPrivData(unsigned int i) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return pElem->dGetPrivData(i);
 	}
 
@@ -384,7 +384,7 @@ DrivenElem::dGetPrivData(unsigned int i) const
 unsigned int
 DrivenElem::iGetInitialNumDof(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::iGetInitialNumDof();
 	}
 
@@ -394,7 +394,7 @@ DrivenElem::iGetInitialNumDof(void) const
 void
 DrivenElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		NestedElem::InitialWorkSpaceDim(piNumRows, piNumCols);
 	}
 }
@@ -403,7 +403,7 @@ VariableSubMatrixHandler&
 DrivenElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::InitialAssJac(WorkMat, XCurr);
 	}
 
@@ -415,7 +415,7 @@ SubVectorHandler&
 DrivenElem::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::InitialAssRes(WorkVec, XCurr);
 	}
 
@@ -427,7 +427,7 @@ DrivenElem::InitialAssRes(SubVectorHandler& WorkVec,
 Vec3
 DrivenElem::GetS_int(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetS_int();
 	}
 
@@ -437,7 +437,7 @@ DrivenElem::GetS_int(void) const
 Mat3x3
 DrivenElem::GetJ_int(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetJ_int();
 	}
 
@@ -447,7 +447,7 @@ DrivenElem::GetJ_int(void) const
 Vec3
 DrivenElem::GetB_int(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetB_int();
 	}
 
@@ -459,7 +459,7 @@ DrivenElem::GetB_int(void) const
 Vec3
 DrivenElem::GetG_int(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetG_int();
 	}
 
@@ -469,7 +469,7 @@ DrivenElem::GetG_int(void) const
 doublereal
 DrivenElem::dGetM(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::dGetM();
 	}
 
@@ -479,7 +479,7 @@ DrivenElem::dGetM(void) const
 Vec3
 DrivenElem::GetS(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetS();
 	}
 
@@ -489,7 +489,7 @@ DrivenElem::GetS(void) const
 Mat3x3
 DrivenElem::GetJ(void) const
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::GetJ();
 	}
 
@@ -500,7 +500,7 @@ DrivenElem::GetJ(void) const
 void
 DrivenElem::SetInitialValue(VectorHandler& X)
 {
-	if (bIsActive()) {
+	if (dGet() != 0.) {
 		return NestedElem::SetInitialValue(X);
 	}
 }

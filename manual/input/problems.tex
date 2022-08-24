@@ -358,13 +358,18 @@ The first is Crank-Nicolson:
 \end{Verbatim}
 %\end{verbatim}
 
-The second and the third are original 
-methods; the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001},
+The following are original methods:
+\begin{itemize}
+\item \kw{ms} (\kw{ms2} is an alias) is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001},
 see also
 \begin{quote}
 \htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/publications.html}}{http://www.aero.polimi.it/mbdyn/publications.html}
-\end{quote} 
-Those methods are unconditionally stable and can be tuned to give 
+\end{quote}
+\item \kw{ms3} is a three-step method, discussed in \cite{ZHANG-2021-COMPMECH-MS34}
+\item \kw{ms4} is a four-step method, discussed in \cite{ZHANG-2021-COMPMECH-MS34}
+\item \kw{hope} is a multi-stage method, in which a step is performed using Crank-Nicolson's method, and the following with the \kw{ms} method.
+\end{itemize}
+Those methods are unconditionally stable, second-order accurate, and can be tuned to give 
 the desired algorithmic dissipation
 by setting the value of the asymptotic spectral radius.
 The radius can be set independently for the differential
@@ -372,19 +377,19 @@ and the algebraic variables, and a driver is used, to allow parameter
 dependent radius variation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \{ \kw{ms} | \kw{hope} \} ,
+    \bnt{method_data} ::= \{ \{ \kw{ms} | \kw{ms2} \} | \kw{ms3} | \kw{ms4} | \kw{hope} \} ,
         (\hty{DriveCaller}) \bnt{differential_radius}
         [ , (\hty{DriveCaller}) \bnt{algebraic_radius} ]
 \end{Verbatim}
 %\end{verbatim}
-The first method proved to be more accurate at high values of asymptotic
-radius (low dissipation), while the second proved to be more accurate
+The \kw{ms} method proved to be more accurate at high values of asymptotic
+radius (low dissipation), while \kw{hope} shows some greater more accuracy
 at low values of the radius (high dissipation).
 They look nearly equivalent at radii close to 0.4, with the former
-giving the best compromise between algorithmic dissipation and accuracy 
+giving the best trade-off between algorithmic dissipation and accuracy 
 at about 0.6.
-The \nt{algebraic\_radius} can be omitted, defaulting to the same 
-as the differential one.
+The \nt{algebraic\_radius} can be omitted, defaulting to the same value used for 
+the differential one.
 It is unclear whether a different spectral radius can help in increasing
 accuracy or dissipation of the algebraic unknowns.
 

@@ -99,8 +99,13 @@ modelns.cc \
 modelns.h \
 modules.cc \
 modules.h \
+ms34stepsol.cc \
+ms34stepsol.h \
 mtdataman.cc \
 mtdataman.h \
+multistagestepsol_impl.cc \
+multistagestepsol_impl.h \
+multistagestepsol_tpl.h \
 nestedelem.cc \
 nestedelem.h \
 node.cc \
@@ -152,6 +157,9 @@ siconosmcp.h \
 siconosmcp.cc \
 simentity.cc \
 simentity.h \
+singlestepsol_impl.cc \
+singlestepsol_impl.h \
+singlestepsol_tpl.h \
 sockdrv.cc \
 sockdrv.h \
 socketstreamdrive.cc \
@@ -170,6 +178,9 @@ solverdiagnostics.h \
 stepsol.cc \
 stepsol.h \
 stepsol.hc \
+stepsol_impl.cc \
+stepsol_impl.h \
+stepsol_tpl.h \
 symcltp.h \
 tpldrive.cc \
 tpldrive.h \
