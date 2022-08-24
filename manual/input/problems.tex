@@ -409,18 +409,6 @@ It can also be selected using the shortcut
 \end{Verbatim}
 %\end{verbatim}
 
-The \kw{hybrid} method allows elements to select different integration methods for specific degrees of freedom.
-By default, the integration method defined after the \kw{hybrid} keyword is used for all other degrees of freedom.
-For example a model for elastohydrodynamic lubricated bearings could use the \kw{ms} method for all structural
-degrees of freedom, and the \kw{crank nicolson} method for the mass conserving cavitation model.
-At the moment only module-hydrodynamic\_plain\_bearing2 supports this option.
-
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \kw{hybrid} , \bnt{method_data}
-\end{Verbatim}
-%\end{verbatim}
-
 \subsubsection{Nonlinear Solver}
 The nonlinear solver solves a nonlinear problem $F(x)=0$.
 The syntax is
