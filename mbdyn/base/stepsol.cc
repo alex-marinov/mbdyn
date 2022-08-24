@@ -129,11 +129,6 @@ doublereal FakeStepIntegrator::dGetCoef(unsigned int iDof) const
      return dCoef;
 }
 
-SolverBase::StepIntegratorType FakeStepIntegrator::GetType(unsigned int) const
-{
-     return SolverBase::INT_UNKNOWN;
-}
-
 doublereal
 FakeStepIntegrator::Advance(Solver* pS,
                const doublereal TStep,
@@ -301,11 +296,6 @@ DerivativeSolver::~DerivativeSolver(void)
 doublereal DerivativeSolver::dGetCoef(unsigned int) const
 {
      return dCoef;
-}
-
-SolverBase::StepIntegratorType DerivativeSolver::GetType(unsigned int) const
-{
-     return SolverBase::INT_DERIVATIVE;
 }
 
 doublereal
@@ -938,185 +928,6 @@ Step2Integrator::Advance(Solver* pS,
 /* Step2Integrator - end */
 
 
-HybridStepIntegrator::HybridStepIntegrator(const SolverBase::StepIntegratorType eDefaultIntegrator,
-                                           const doublereal dTol,
-                                           const doublereal dSolutionTol,
-                                           const integer iMaxIterations,
-                                           const DriveCaller* pRho,
-                                           const DriveCaller* pAlgRho,
-                                           const bool bModResTest)
-     :ImplicitStepIntegrator(iMaxIterations, dTol, dSolutionTol, 2, 1, bModResTest),
-      rgInteg{nullptr},
-      oImplicitEulerIntegrator(dTol,
-                               dSolutionTol,
-                               iMaxIterations,
-                               bModResTest),
-      oCrankNicolsonIntegrator(dTol,
-                               dSolutionTol,
-                               iMaxIterations,
-                               bModResTest),
-      oMultistepSolver(dTol,
-                       dSolutionTol,
-                       iMaxIterations,
-                       pRho,
-                       pAlgRho,
-                       bModResTest),
-      oHopeSolver(dTol,
-                  dSolutionTol,
-                  iMaxIterations,
-                  pRho->pCopy(),
-                  pAlgRho->pCopy(),
-                  bModResTest)
-{
-     rgInteg[SolverBase::INT_IMPLICITEULER] = &oImplicitEulerIntegrator;
-     rgInteg[SolverBase::INT_CRANKNICOLSON] = &oCrankNicolsonIntegrator;
-     rgInteg[SolverBase::INT_MS2] = &oMultistepSolver;
-     rgInteg[SolverBase::INT_HOPE] = &oHopeSolver;
-     rgInteg[SolverBase::INT_DEFAULT] = rgInteg[eDefaultIntegrator];
-}
-
-HybridStepIntegrator::~HybridStepIntegrator()
-{
-}
-
-void HybridStepIntegrator::SetDataManager(DataManager* pDataMan)
-{
-     ImplicitStepIntegrator::SetDataManager(pDataMan);
-     
-     for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
-          rgInteg[i]->SetDataManager(pDataMan);
-     }
-}
-
-void HybridStepIntegrator::SetDriveHandler(const DriveHandler* pDH)
-{
-     ImplicitStepIntegrator::SetDriveHandler(pDH);
-     
-     for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
-          rgInteg[i]->SetDriveHandler(pDH);
-     }
-}
-
-doublereal HybridStepIntegrator::dGetCoef(unsigned int iDof) const
-{
-     ASSERT(iDof > 0);
-     ASSERT(iDof <= pDofs->size());
-
-     const SolverBase::StepIntegratorType eInteg = (*pDofs)[iDof - 1].StepIntegrator;
-
-     ASSERT(eInteg >= 0);
-     ASSERT(eInteg < SolverBase::INT_COUNT);
-     ASSERT(rgInteg[eInteg] != nullptr);
-
-     return rgInteg[eInteg]->dGetCoef(iDof);
-}
-
-SolverBase::StepIntegratorType HybridStepIntegrator::GetType(unsigned int iDof) const
-{
-     ASSERT(iDof > 0);
-     ASSERT(iDof <= pDofs->size());
-
-     const SolverBase::StepIntegratorType eInteg = (*pDofs)[iDof - 1].StepIntegrator;
-
-     ASSERT(eInteg >= 0);
-     ASSERT(eInteg < SolverBase::INT_COUNT);
-     ASSERT(rgInteg[eInteg] != nullptr);
-
-     return rgInteg[eInteg]->GetType(iDof);
-}
-
-doublereal
-HybridStepIntegrator::Advance(Solver* pS,
-                              const doublereal TStep,
-                              const doublereal dAph, const StepChange StType,
-                              std::deque<MyVectorHandler*>& qX,
-                              std::deque<MyVectorHandler*>& qXPrime,
-                              MyVectorHandler*const pX,
-                              MyVectorHandler*const pXPrime,
-                              integer& EffIter,
-                              doublereal& Err,
-                              doublereal& SolErr)
-{
-        ASSERT(pDM != NULL);
-
-        pXCurr = pX;
-        pXPrimeCurr = pXPrime;
-
-        for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
-             rgInteg[i]->SetSolution(qX, qXPrime, pX, pXPrime);
-        }
-
-        SetCoef(TStep, dAph, StType);
-        Predict();
-        pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-        pDM->AfterPredict();
-
-        Err = 0.;
-        pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
-                        EffIter, Err, dSolTol, SolErr);
-
-        pDM->AfterConvergence();
-
-        return Err;
-}
-
-void HybridStepIntegrator::UpdateLoop(void (StepNIntegrator::*pUpdate)(const int DCount,
-                                                                       const DofOrder::Order Order,
-                                                                       const VectorHandler* const pSol) const,
-                                      const VectorHandler* const pSol) const
-{
-     DataManager::DofIterator_const CurrDof = pDofs->begin();
-     const integer iNumDofs = pDofs->size();
-
-     for (integer iDof = 1; iDof <= iNumDofs; ++iDof, ++CurrDof)
-     {
-          ASSERT(CurrDof != pDofs->end());
-
-          const SolverBase::StepIntegratorType eInteg = CurrDof->StepIntegrator;
-
-          ASSERT(eInteg >= 0);
-          ASSERT(eInteg < SolverBase::INT_COUNT);
-          ASSERT(rgInteg[eInteg] != nullptr);
-
-          ((*rgInteg[eInteg]).*pUpdate)(iDof, CurrDof->Order, pSol);
-     }
-}
-
-void HybridStepIntegrator::Update(const VectorHandler* pSol) const
-{
-     UpdateLoop(&StepNIntegrator::UpdateDof, pSol);
-     pDM->Update();
-}
-
-void HybridStepIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
-{
-     rgInteg[SolverBase::INT_DEFAULT]->Residual(pRes, pAbsRes);
-}
-
-void HybridStepIntegrator::Jacobian(MatrixHandler* pJac) const
-{
-     rgInteg[SolverBase::INT_DEFAULT]->Jacobian(pJac);
-}
-
-void HybridStepIntegrator::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
-{
-     rgInteg[SolverBase::INT_DEFAULT]->Jacobian(pJac, pY);
-}
-
-void HybridStepIntegrator::Predict(void)
-{
-     UpdateLoop(&StepNIntegrator::PredictDof);
-}
-
-void HybridStepIntegrator::SetCoef(doublereal dT,
-                                   doublereal dAlpha,
-                                   enum StepChange NewStep)
-{
-     for (integer i = 0; i < SolverBase::INT_DEFAULT; ++i) {
-          rgInteg[i]->SetCoef(dT, dAlpha, NewStep);
-     }
-}
-
 /* CrankNicolson - begin */
 
 CrankNicolsonIntegrator::CrankNicolsonIntegrator(const doublereal dTl,
@@ -1131,11 +942,6 @@ CrankNicolsonIntegrator::CrankNicolsonIntegrator(const doublereal dTl,
 CrankNicolsonIntegrator::~CrankNicolsonIntegrator(void)
 {
         NO_OP;
-}
-
-SolverBase::StepIntegratorType CrankNicolsonIntegrator::GetType(unsigned int) const
-{
-     return SolverBase::INT_CRANKNICOLSON;
 }
 
 void
@@ -1214,11 +1020,6 @@ ImplicitEulerIntegrator::ImplicitEulerIntegrator(const doublereal dTl,
 ImplicitEulerIntegrator::~ImplicitEulerIntegrator(void)
 {
         NO_OP;
-}
-
-SolverBase::StepIntegratorType ImplicitEulerIntegrator::GetType(unsigned int) const
-{
-     return SolverBase::INT_IMPLICITEULER;
 }
 
 void
@@ -1301,11 +1102,6 @@ Rho(pRho), AlgebraicRho(pAlgRho)
 MultistepSolver::~MultistepSolver(void)
 {
         NO_OP;
-}
-
-SolverBase::StepIntegratorType MultistepSolver::GetType(unsigned int) const
-{
-     return SolverBase::INT_MS2;
 }
 
 void
@@ -1489,11 +1285,6 @@ Rho(pRho), AlgebraicRho(pAlgRho), bStep(0)
 HopeSolver::~HopeSolver(void)
 {
         NO_OP;
-}
-
-SolverBase::StepIntegratorType HopeSolver::GetType(unsigned int) const
-{
-     return SolverBase::INT_HOPE;
 }
 
 void
@@ -1831,11 +1622,6 @@ InverseDynamicsStepSolver::bJacobian(void) const
 }
 
 doublereal InverseDynamicsStepSolver::dGetCoef(unsigned int) const
-{
-     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
-}
-
-SolverBase::StepIntegratorType InverseDynamicsStepSolver::GetType(unsigned int) const
 {
      throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }

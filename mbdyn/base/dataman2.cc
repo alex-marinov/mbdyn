@@ -2799,12 +2799,6 @@ DataManager::SetBufOutRaw(unsigned uL, integer n, const doublereal *p)
         pBSE->SetBufRaw(n, p);
 }
 
-SolverBase::StepIntegratorType DataManager::GetStepIntegratorType(unsigned int iDof) const {
-     ASSERT(iDof > 0 && iDof <= Dofs.size());
-
-     return GetSolver()->pGetStepIntegrator()->GetType(iDof);
-}
-
 doublereal DataManager::dGetStepIntegratorCoef(unsigned int iDof) const {
      ASSERT(iDof > 0 && iDof <= Dofs.size());
 

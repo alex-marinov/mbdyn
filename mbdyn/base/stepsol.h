@@ -135,8 +135,6 @@ public:
         virtual void SetDriveHandler(const DriveHandler* pDH);
 
         virtual doublereal dGetCoef(unsigned int iDof) const=0;
-
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const=0;
      
         virtual doublereal
         Advance(Solver* pS,
@@ -150,36 +148,6 @@ public:
                         integer& EffIter,
                         doublereal& Err,
                         doublereal& SolErr) = 0;
-};
-
-// Needed for elements using the hybrid step integrator interface
-// which relies on StepIntegrator::dGetCoef also during initial assembly and for the eigensolver
-class FakeStepIntegrator: public StepIntegrator {
-public:
-       explicit FakeStepIntegrator(doublereal dCoef);
-
-       virtual doublereal dGetCoef(unsigned int iDof) const override;
-
-       virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
-     
-       void SetCoef(doublereal dCoefCurr) {
-               dCoef = dCoefCurr;
-       }
-
-       virtual doublereal
-       Advance(Solver* pS,
-               const doublereal TStep,
-               const doublereal dAlph,
-               const StepChange StType,
-               std::deque<MyVectorHandler*>& qX,
-               std::deque<MyVectorHandler*>& qXPrime,
-               MyVectorHandler*const pX,
-               MyVectorHandler*const pXPrime,
-               integer& EffIter,
-               doublereal& Err,
-               doublereal& SolErr) override;
-private:
-      doublereal dCoef;
 };
 
 class ImplicitStepIntegrator:
@@ -238,8 +206,6 @@ public:
         ~DerivativeSolver(void);
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
      
         doublereal
         Advance(Solver* pS,
@@ -395,8 +361,6 @@ public:
                         const bool bmod_res_test);
 
         ~CrankNicolsonIntegrator(void);
-
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
      
 protected:
         void SetCoef(doublereal dT,
@@ -446,7 +410,6 @@ public:
 
         ~ImplicitEulerIntegrator(void);
 
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
 protected:
         void SetCoef(doublereal dT,
                         doublereal dAlpha,
@@ -594,7 +557,6 @@ public:
 
         ~MultistepSolver(void);
 
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
 protected:
         virtual void
         SetCoef(doublereal dT,
@@ -676,7 +638,6 @@ public:
 
         ~HopeSolver(void);
 
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
 protected:
         void SetCoef(doublereal dT,
                      doublereal dAlpha,
@@ -729,71 +690,6 @@ protected:
 
 /* Hope - end */
 
-// The hybrid step integrator allows elements to choose different integration methods for each degree of freedom.
-// Simulation entities using this integrator must overwrite SimulationEntity::GetStepIntegrator.
-// In that case it is required to call DataManager::dGetStepIntegratorCoef in order to obtain the correct value for dCoef.
-
-class HybridStepIntegrator: public ImplicitStepIntegrator
-{
-public:
-        HybridStepIntegrator(const SolverBase::StepIntegratorType eDefaultIntegrator,
-                             const doublereal dTol,
-                             const doublereal dSolutionTol,
-                             const integer iMaxIterations,
-                             const DriveCaller* pRho,
-                             const DriveCaller* pAlgRho,
-                             const bool bModResTest);
-
-        virtual ~HybridStepIntegrator();
-
-        virtual void
-        SetDataManager(DataManager* pDataMan) override;
-
-        virtual void
-        SetDriveHandler(const DriveHandler* pDH) override;
-
-        virtual doublereal dGetCoef(unsigned int iDof) const override;
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
-     
-        virtual doublereal
-        Advance(Solver* pS,
-                const doublereal TStep,
-                const doublereal dAlph,
-                const StepChange StType,
-                std::deque<MyVectorHandler*>& qX,
-                std::deque<MyVectorHandler*>& qXPrime,
-                MyVectorHandler*const pX,
-                MyVectorHandler*const pXPrime,
-                integer& EffIter,
-                doublereal& Err,
-                doublereal& SolErr) override;
-
-        virtual void Update(const VectorHandler* pSol) const override;
-
-        virtual void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const override;
-
-        virtual void Jacobian(MatrixHandler* pJac) const override;
-
-        virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
-
-        void Predict(void);
-
-        void SetCoef(doublereal dT,
-                     doublereal dAlpha,
-                     enum StepChange NewStep);
-private:
-        inline void UpdateLoop(void (StepNIntegrator::*pUpdate)(const int DCount,
-                                                                const DofOrder::Order Order,
-                                                                const VectorHandler* const pSol) const,
-                               const VectorHandler* const pSol = 0
-                              ) const;
-
-        std::array<StepNIntegrator*, SolverBase::INT_COUNT> rgInteg;
-        ImplicitEulerIntegrator oImplicitEulerIntegrator;
-        CrankNicolsonIntegrator oCrankNicolsonIntegrator;
-        MultistepSolver oMultistepSolver;
-        HopeSolver oHopeSolver;
-};
 
 /* InverseDynamics - Begin*/
 
@@ -856,7 +752,6 @@ public:
         };
 
         virtual doublereal dGetCoef(unsigned int iDof) const override;
-        virtual SolverBase::StepIntegratorType GetType(unsigned int iDof) const override;
      
         /* Real Advancer */
         virtual doublereal

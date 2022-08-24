@@ -269,7 +269,6 @@ protected:
 
         /* Parametri per il metodo */
         StepIntegratorType RegularType, DummyType;
-        FakeStepIntegrator oFakeStepIntegrator; // needed for hybrid step integrator only
         StepIntegrator* pDerivativeSteps;
         StepIntegrator* pFirstDummyStep;
         StepIntegrator* pDummySteps;
