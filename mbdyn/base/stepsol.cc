@@ -926,6 +926,11 @@ InverseDynamicsStepSolver::Jacobian(MatrixHandler* pJac) const
 	pDM->AssConstrJac(*pJac);
 }
 
+void InverseDynamicsStepSolver::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
+{
+	throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+}
+
 void
 InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 {

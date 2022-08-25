@@ -64,6 +64,11 @@ DofOrder::Order SimulationEntity::GetEqType(unsigned int i) const
      return DofOrder::DIFFERENTIAL;
 }
 
+DofOrder::Equality SimulationEntity::GetEqualityType(unsigned int i) const
+{
+     return DofOrder::EQUALITY;
+}
+
 void 
 SimulationEntity::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
