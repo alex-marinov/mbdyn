@@ -220,6 +220,8 @@ public:
  	void Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const;
 
 	void Jacobian(MatrixHandler* pJac) const;
+
+	void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const;
 	
 	void Update(const VectorHandler* pSol) const;
 
