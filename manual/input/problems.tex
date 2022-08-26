@@ -352,16 +352,16 @@ modify the residual test taking in account the rate of change of the status.
 \} ;
 \end{Verbatim}
 %\end{verbatim}
-modify the residual test for the algebrainc constraint equations only:
-if the \kw{constraint violations} option is chosen then the algebraic equations
+modify the residual test for the algebraic constraint equations only:
+if the option \kw{constraint violations} is chosen then the algebraic equations
 residual is multiplied by \bnt{dCoef} when computing the residual test.
-This compensated the fact that the algebraic equations are divided by 
-\bnt{dCoef} in order to improve the linear system comdition number (cfr. MBDyn's
-technical manual), so that the residual tends to become bigger for very samll time steps. 
-If the optional \kw{scale factor} keyword is chosen then 
-the constraint equations are scaled by \bnt{scale\_factor}. The default is 
-to scale by \bnt{scale\_factor}=1./\bnt{initial\_time\_step}.
-If, instead, the \kw{constraint violation rates} is chosen, then nothing changes.
+This compensated the fact, that the algebraic equations are divided by 
+\bnt{dCoef} in order to improve the linear system condition number (cfr. MBDyn's
+technical manual), so that the residual tends to become bigger for very small time steps.
+If the optional keyword \kw{scale factor} is chosen then 
+the constraint equations are scaled by \bnt{scale\_factor} when computing the residual test.
+The default is to scale by \bnt{scale\_factor}=1./\bnt{initial\_time\_step}.
+If, instead, the option \kw{constraint violation rates} is chosen, then nothing changes.
 
 \subsubsection{Method}
 %\begin{verbatim}
