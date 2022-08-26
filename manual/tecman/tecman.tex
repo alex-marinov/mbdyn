@@ -39,6 +39,7 @@
 \usepackage{comment}
 \usepackage{color}
 \usepackage{cancel}
+\usepackage{pdfpages}
 
 \input{../stdmacro}
 %poor man's bold symbol
@@ -642,6 +643,9 @@ so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{\mathrm{ref}}\times\Del
 and so $\Delta \T \omega = \Delta \dot{\T g}-
 \T \omega_{\mathrm{ref}}\times\Delta \dot{\T g} * \texttt{dCoef}$.
 
+\section{Integrators}
+Most of MBDyn's integrators are documented in \cite{zhang_performance_2022}, 
+that is distributed verbatim in Appendix~\ref{appendix:integrators}.
 
 \chapter{Solution Phases}
 \section{Initial Assembly}
@@ -9805,6 +9809,30 @@ Note: $\T{e}_z \T{e}_z^T \T{\omega}_2\times{} = \T{e}_z \plbr{\T{e}_z\times\T{\o
 \bibliographystyle{unsrt}
 \bibliography{../mybib,../mbdyn}
 
+\appendix
+\chapter{Performance of implicit A-stable time integration methods
+for multibody system dynamics}
+\label{appendix:integrators}
+This appendix includes a verbatim copy of the paper "Performance of implicit A-stable time integration methods
+for multibody system dynamics``, written by Huimin Zhang,
+Runsen Zhang, Andrea Zanoni and Pierangelo Masarati and published in
+Multibody System Dynamics. 
+
+The paper gives the most recent description of
+MBDyn's different integrators properties.
+
+The paper is licensed under a Creative Commons Attribution 4.0
+International License, which permits use, sharing, adaptation, distribution and
+reproduction in any medium or format, as long as you give appropriate credit to
+the original author(s) and the source, provide a link to the Creative Commons
+licence, and indicate if changes were made. The images or other third party
+material in this article are included in the article's Creative Commons licence,
+unless indicated otherwise in a credit line to the material. If material is not
+included in the article's Creative Commons licence and your intended use is not
+permitted by statutory regulation or exceeds the permitted use, you will need
+to obtain permission directly from the copyright holder. To view a copy of this
+licence, visit \href{https://creativecommons.org/licenses/by/4.0/}{https://creativecommons.org/licenses/by/4.0/} .
+\includepdf[pages=-]{s11044-021-09806-9.pdf}
 
 \pagebreak
 \noindent
