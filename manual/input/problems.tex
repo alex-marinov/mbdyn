@@ -368,18 +368,44 @@ see also
 \item \kw{ms3} is a three-step method, discussed in \cite{ZHANG-2021-COMPMECH-MS34}
 \item \kw{ms4} is a four-step method, discussed in \cite{ZHANG-2021-COMPMECH-MS34}
 \item \kw{hope} is a multi-stage method, in which a step is performed using Crank-Nicolson's method, and the following with the \kw{ms} method.
+\item \kw{ss2}, \kw{ss3} and \kw{ss4} are single step methods equivalent to the corresponding multi steps
+\item \kw{Bathe} is a 3-stage singly diagonally-implicit Runge--Kutta method with
+second-order accuracy, A-stability and tunable algorithmic dissipation
+\item \kw{msstc3}, \kw{msstc4} and \kw{msstc5} are $(n + 1)$-stage (with $n=3,4,5$ respecively) 
+singly diagonally-implicit Runge--Kutta methods with second-order accuracy, 
+tunable algorithmic dissipation, preserving low-frequency dynamics as much as
+possible. They employ the trapezoidal rule from the second to the nth stage, and a general
+formula in the last one. See \cite{zhang_optimization_2020, zhang_performance_2022} and MBDyn's technical manual for details.
+\item \kw{mssth3}, \kw{mssth4} and \kw{mssth5} are  $(n + 1)$-stage  (with $n=3,4,5$ respecively)
+singly diagonally-implicit Runge--Kutta methods designed to have $n$th-order accuracy, A-stability, and tunable algorithmic
+dissipation. They are designed so that
+\begin{itemize}
+\item each stage, from the second-one, has at least second-order accuracy;
+\item the overall accuracy is nth-order, and on this basis, the local truncation error is mini-
+mized;
+\item A-stability and tunable algorithmic dissipation for linear analysis are achieved.
 \end{itemize}
-Those methods are unconditionally stable, second-order accurate, and can be tuned to give 
+See \cite{zhang_optimization_2020, zhang_performance_2022} and MBDyn's technical manual for details.
+\end{itemize}
+The methods are unconditionally stable, at least second-order accurate, and can be tuned to give 
 the desired algorithmic dissipation
 by setting the value of the asymptotic spectral radius.
 The radius can be set independently for the differential
 and the algebraic variables, and a driver is used, to allow parameter 
 dependent radius variation.
+\begin{itemize}
+\item \kw{DIRK33}, \kw{DIRK34} and \kw{DIRK54} are third-order  four-stages, third-order 
+five stages and fouth-order six stages, L-stable stiffly-accurate methods from 
+\cite{kennedy_diagonally_2019}.
+\end{itemize}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \{ \{ \kw{ms} | \kw{ms2} \} | \kw{ms3} | \kw{ms4} | \kw{hope} \} ,
+    \bnt{method_data} ::= \{ \{ \{ \kw{ms} | \kw{ms2} \} | \kw{ms3} | \kw{ms4} | \kw{hope} 
+    \kw{ss2} | \kw{ss3} | \kw{ss4} | \kw{Bathe} | \kw{msstc3} | 
+    \kw{mssth3} | \kw{msstc4} | \kw{mssth4} | \kw{msstc5} | \kw{mssth5},
         (\hty{DriveCaller}) \bnt{differential_radius}
-        [ , (\hty{DriveCaller}) \bnt{algebraic_radius} ]
+        [ , (\hty{DriveCaller}) \bnt{algebraic_radius} ] \} | 
+    \{ \kw{DIRK33} | \kw{DIRK43} | \kw{DIRK54} \}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{ms} method proved to be more accurate at high values of asymptotic
