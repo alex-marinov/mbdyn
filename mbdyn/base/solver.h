@@ -267,7 +267,53 @@ protected:
 	};
 	AbortAfter eAbortAfter;
 
-   	/* Parametri per il metodo */
+	// Needed for elements using the hybrid step integrator interface
+	// which relies on StepIntegrator::dGetCoef also during initial assembly and for the eigensolver
+	class FakeStepIntegrator: public StepIntegrator {
+	public:
+             explicit FakeStepIntegrator(doublereal dCoef);
+
+             virtual doublereal dGetCoef(unsigned int iDof) const override;
+
+             void SetCoef(doublereal dCoefCurr) {
+                  dCoef = dCoefCurr;
+             }
+                        
+             virtual doublereal
+             Advance(Solver* pS,
+                     const doublereal TStep,
+                     const doublereal dAlph,
+                     const StepChange StType,
+                     std::deque<VectorHandler*>& qX,
+                     std::deque<VectorHandler*>& qXPrime,
+                     MyVectorHandler*const pX,
+                     MyVectorHandler*const pXPrime,
+                     integer& EffIter,
+                     doublereal& Err,
+                     doublereal& SolErr) override;
+	private:
+             doublereal dCoef;
+	} oFakeStepIntegrator;
+
+        friend class StepIntegratorGuard;
+        
+	class StepIntegratorGuard {
+	public:
+             explicit StepIntegratorGuard(Solver& oSolver)
+                  :oSolver(oSolver),
+                   pCurrStepIntegrator(oSolver.pCurrStepIntegrator) {
+             }
+
+             ~StepIntegratorGuard() {
+                  oSolver.pCurrStepIntegrator = pCurrStepIntegrator;
+             }
+             
+        private:
+             StepIntegrator* const pCurrStepIntegrator;
+             Solver& oSolver;
+	};
+
+	/* Parametri per il metodo */
 	StepIntegratorType RegularType, DummyType;
 
    	StepIntegrator* pDerivativeSteps;

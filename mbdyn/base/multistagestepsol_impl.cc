@@ -3403,7 +3403,7 @@ DIRK33Solver::SetCoefForStageS(unsigned uStage,
 		DEBUGCOUT("PredictForStageS(1)" << std::endl
 			<< "Alpha = " << dAlpha << std::endl
 			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
+                        //<< "Asymptotic rho =" << m_dRho << std::endl 
 			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 			<< "a2    = not needed" << std::endl
 			<< "a3    = not needed" << std::endl
@@ -3450,7 +3450,7 @@ DIRK33Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(2)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = not needed" << std::endl
@@ -3521,7 +3521,7 @@ DIRK33Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(3)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                  //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -3545,7 +3545,7 @@ DIRK33Solver::SetCoefForStageS(unsigned uStage,
 	m_b[IDX_B3][ALGEBRAIC] = m_b[IDX_B3][DIFFERENTIAL];
 
 	DEBUGCOUT("Algebraic coefficients:" << std::endl
-		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+                //<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
 		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
 		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
 		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl
@@ -3716,7 +3716,7 @@ DIRK43Solver::SetCoefForStageS(unsigned uStage,
 		DEBUGCOUT("PredictForStageS(1)" << std::endl
 			<< "Alpha = " << dAlpha << std::endl
 			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
+                        //<< "Asymptotic rho =" << m_dRho << std::endl 
 			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 			<< "a2    = not needed" << std::endl
 			<< "a3    = not needed" << std::endl
@@ -3771,7 +3771,7 @@ DIRK43Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(2)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = not needed" << std::endl
@@ -3829,7 +3829,7 @@ DIRK43Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(3)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -3956,7 +3956,7 @@ DIRK43Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(4)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -3984,7 +3984,7 @@ DIRK43Solver::SetCoefForStageS(unsigned uStage,
 	m_b[IDX_B4][ALGEBRAIC] = m_b[IDX_B4][DIFFERENTIAL];
 
 	DEBUGCOUT("Algebraic coefficients:" << std::endl
-		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+                //<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
 		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
 		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
 		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl
@@ -4195,7 +4195,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 		DEBUGCOUT("PredictForStageS(1)" << std::endl
 			<< "Alpha = " << dAlpha << std::endl
 			<< "Differential coefficients:" << std::endl
-			<< "Asymptotic rho =" << m_dRho << std::endl 
+                        //<< "Asymptotic rho =" << m_dRho << std::endl 
 			<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 			<< "a2    = not needed" << std::endl
 			<< "a3    = not needed" << std::endl
@@ -4258,7 +4258,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(2)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = not needed" << std::endl
@@ -4323,7 +4323,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(3)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -4389,7 +4389,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(4)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -4524,7 +4524,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 			DEBUGCOUT("PredictForStageS(5)" << std::endl
 											<< "Alpha = " << dAlpha << std::endl
 											<< "Differential coefficients:" << std::endl
-											<< "Asymptotic rho =" << m_dRho << std::endl
+                                                                                        //<< "Asymptotic rho =" << m_dRho << std::endl
 											<< "a1    = " << m_a[IDX_A1][DIFFERENTIAL] << std::endl
 											<< "a2    = " << m_a[IDX_A2][DIFFERENTIAL] << std::endl
 											<< "a3    = " << m_a[IDX_A3][DIFFERENTIAL] << std::endl
@@ -4556,7 +4556,7 @@ DIRK54Solver::SetCoefForStageS(unsigned uStage,
 	m_b[IDX_B5][ALGEBRAIC] = m_b[IDX_B5][DIFFERENTIAL];
 
 	DEBUGCOUT("Algebraic coefficients:" << std::endl
-		<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
+                //<< "Asymptotic rho =" << m_dAlgebraicRho << " (ignored)" << std::endl 
 		<< "a1    = " << m_a[IDX_A1][ALGEBRAIC] << std::endl
 		<< "a2    = " << m_a[IDX_A2][ALGEBRAIC] << std::endl
 		<< "a3    = " << m_a[IDX_A3][ALGEBRAIC] << std::endl

@@ -129,7 +129,9 @@ public:
 	virtual doublereal GetIntegratorDTol(void) const;
 	
 	virtual doublereal GetIntegratorDSolTol(void) const;
-	
+
+        virtual doublereal dGetCoef(unsigned int iDof) const=0;
+     
 	virtual void OutputTypes(const bool fpred);
 	
 	virtual void SetDriveHandler(const DriveHandler* pDH);
@@ -225,6 +227,8 @@ public:
 	
 	void Update(const VectorHandler* pSol) const;
 
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+     
 	/* scale factor for tests */
 	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
 };
@@ -279,6 +283,8 @@ public:
      
 	virtual void Update(const VectorHandler* pSol) const;
 
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+     
 	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
 
 protected:
@@ -368,7 +374,9 @@ public:
         virtual void Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
 	
 	void Update(const VectorHandler* pSol) const  ;
-	
+
+        virtual doublereal dGetCoef(unsigned int iDof) const override;
+     
 	void SetOrder(InverseDynamics::Order iOrder);
 
 	InverseDynamics::Order GetOrder(void) const;

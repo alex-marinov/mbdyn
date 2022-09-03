@@ -47,7 +47,7 @@ begin: initial value;
 
 	max iterations: 100;
 	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: ms, 0.;
+        method: ss4, 0.;
 
 	enforce constraint equations: constraint violations;
         
@@ -55,9 +55,9 @@ begin: initial value;
 	derivatives max iterations: 20;
 	derivatives coefficient: 1e-5;
 
-        set: bool enable_mcp = TRUE;
-        linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
-        nonlinear solver: mcp newton min fb, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
+        ## set: bool enable_mcp = TRUE;
+        ## linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;
+        ## nonlinear solver: mcp newton min fb, print convergence info, yes, lambda min, 0., tolerance x, 1e-7;
 
         ## set: bool enable_mcp = TRUE;
         ## linear solver: siconos dense;
@@ -71,24 +71,24 @@ begin: initial value;
         ## linear solver: siconos dense;
         ## nonlinear solver: siconos mcp newton min fb, lambda min, 1e-16;
 
-        ## set: bool enable_mcp = FALSE;
-        ## linear solver: umfpack, grad;
+        set: bool enable_mcp = FALSE;
+        linear solver: umfpack, grad;
 
-        ## nonlinear solver: nox,
-        ## modified, 100,
-        ## keep jacobian matrix,
-        ## inner iterations before assembly, 10,
-        ## jacobian operator, newton,
-        ## solver, line search based,
-        ## linesearch method, backtrack,
-        ## direction, newton,
-        ## forcing term, type 2,
-        ## print convergence info, no,
-        ## verbose, yes,
-        ## minimum step, 1e-12,
-        ## linear solver tolerance, 1e-12,
-        ## linear solver max iterations, 20,
-        ## krylov subspace size, 20;
+        nonlinear solver: nox,
+        modified, 100,
+        keep jacobian matrix,
+        inner iterations before assembly, 10,
+        jacobian operator, newton,
+        solver, line search based,
+        linesearch method, backtrack,
+        direction, newton,
+        forcing term, type 2,
+        print convergence info, no,
+        verbose, yes,
+        minimum step, 1e-12,
+        linear solver tolerance, 1e-12,
+        linear solver max iterations, 20,
+        krylov subspace size, 20;
         
         threads: assembly, 1;
         threads: solver, 1;

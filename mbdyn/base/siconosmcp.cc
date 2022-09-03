@@ -99,11 +99,9 @@ void SiconosMCPSolver::Solve(const NonlinearProblem *pNLPCurr,
      const DataManager* const pDM = pS->pGetDataManager();
 
      const VectorHandler& X = *pDM->GetpXCurr();
-     //const VectorHandler& XP = *pDM->GetpXPCurr();
      const integer iNumDof = pSol->iGetSize();
 
      ASSERT(X.iGetSize() == iNumDof);
-     ASSERT(XP.iGetSize() == iNumDof);
 
      pSol->Reset();
      zPrev.Reset();

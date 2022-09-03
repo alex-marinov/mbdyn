@@ -463,6 +463,11 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 	pDM->DerivativesUpdate();
 }
 
+doublereal DerivativeSolver::dGetCoef(unsigned int iDof) const
+{
+     return dCoef;
+}
+
 /* scale factor for tests */
 doublereal
 DerivativeSolver::TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const
@@ -576,6 +581,22 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 
 	UpdateLoop(this, &StepNIntegrator::UpdateDof, pSol);
 	pDM->Update();
+}
+
+doublereal StepNIntegrator::dGetCoef(unsigned int iDof) const
+{
+     ASSERT(iDof > 0);
+     ASSERT(iDof <= pDofs->size());
+
+     switch ((*pDofs)[iDof - 1].Order) {
+     case DofOrder::DIFFERENTIAL:
+          return db0Differential;
+     case DofOrder::ALGEBRAIC:
+          return db0Algebraic;
+     default:
+          ASSERT(0);
+          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     }
 }
 
 doublereal StepNIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const
@@ -1008,6 +1029,11 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 	default:
 		break;
 	}
+}
+
+doublereal InverseDynamicsStepSolver::dGetCoef(unsigned int) const
+{
+     throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 }
 
 /* Inverse Dynamics - End */

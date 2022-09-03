@@ -65,7 +65,8 @@ struct SolverBase {
 		INT_DIRK54,
 		INT_THIRDORDER,
 		INT_IMPLICITEULER,
-		INT_UNKNOWN
+		INT_UNKNOWN,
+                INT_DEFAULT
         };
 
         static constexpr auto INT_COUNT = INT_UNKNOWN + 1;

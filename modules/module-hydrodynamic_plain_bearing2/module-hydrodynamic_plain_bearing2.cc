@@ -1121,8 +1121,8 @@ namespace {
 
           virtual void BeforePredict(VectorHandler& X,
                                      VectorHandler& XP,
-                                     VectorHandler& XPrev,
-                                     VectorHandler& XPPrev) const;
+                                     std::deque<VectorHandler*>& qXPrev,
+                                     std::deque<VectorHandler*>& qXPPrev) const;
           virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
           virtual void DofUpdate(VectorHandler& X, VectorHandler& XP);
           virtual void AfterConvergence(const VectorHandler& X,
@@ -2160,8 +2160,8 @@ namespace {
 
           virtual void BeforePredict(VectorHandler& X,
                                      VectorHandler& XP,
-                                     VectorHandler& XPrev,
-                                     VectorHandler& XPPrev) const override;
+                                     std::deque<VectorHandler*>& qXPrev,
+                                     std::deque<VectorHandler*>& qXPPrev) const override;
           virtual void
           AfterPredict(VectorHandler& X, VectorHandler& XP) override;
 
@@ -5533,7 +5533,6 @@ namespace {
           virtual DofOrder::Order GetDofType(unsigned int i) const override;
           virtual DofOrder::Order GetEqType(unsigned int i) const override;
           virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
-          virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const override;
           virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
           virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
           VariableSubMatrixHandler&
@@ -5571,8 +5570,8 @@ namespace {
           InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr) override;
           virtual void BeforePredict(VectorHandler& X,
                                      VectorHandler& XP,
-                                     VectorHandler& XPrev,
-                                     VectorHandler& XPPrev) const override;
+                                     std::deque<VectorHandler*>& pXPrev,
+                                     std::deque<VectorHandler*>& pXPPrev) const override;
           virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) override;
           virtual void Update(const VectorHandler& XCurr,
                               const VectorHandler& XPrimeCurr) override;
@@ -5610,9 +5609,6 @@ namespace {
                return pDM->dGetStepIntegratorCoef(iDof);
           }
 
-          SolverBase::StepIntegratorType GetStepIntegratorType(unsigned int iDof) const {
-               return pDM->GetStepIntegratorType(iDof);
-          }
 #ifdef DEBUG
 #define HYDRO_DUMP_VAR(pRootElem, Expr) \
           (pRootElem)->DumpVar(__FILE__, __LINE__, __PRETTY_FUNCTION__,  #Expr, Expr)
@@ -6374,14 +6370,6 @@ namespace {
           return pDO->GetEqualityType(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
      }
 
-     SolverBase::StepIntegratorType HydroRootElement::GetStepIntegrator(unsigned int i) const
-     {
-          ++i; // we are using one based indices
-          const HydroDofOwner* const pDO = pFindDofOwner(i, SpFunctionCall::REGULAR_RES);
-          HYDRO_ASSERT(i >= unsigned(pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES)));
-          return pDO->GetStepIntegrator(i - pDO->iGetOffsetIndex(SpFunctionCall::REGULAR_RES));
-     }
-
      const HydroDofOwner* HydroRootElement::pFindDofOwner(unsigned int i, sp_grad::SpFunctionCall eFunc) const
      {
           const DofOwnerMap& oDofOwnerMap = (eFunc & SpFunctionCall::REGULAR_FLAG)
@@ -6824,11 +6812,11 @@ namespace {
 
      void HydroRootElement::BeforePredict(VectorHandler& X,
                                           VectorHandler& XP,
-                                          VectorHandler& XPrev,
-                                          VectorHandler& XPPrev) const
+                                          std::deque<VectorHandler*>& qXPrev,
+                                          std::deque<VectorHandler*>& qXPPrev) const
      {
-          for (auto i = rgNodes.cbegin(); i != rgNodes.cend(); ++i) {
-               (*i)->BeforePredict(X, XP, XPrev, XPPrev);
+          for (const auto& pNode: rgNodes) {
+               pNode->BeforePredict(X, XP, qXPrev, qXPPrev);
           }
      }
 
@@ -8503,8 +8491,8 @@ namespace {
 
      void Node2D::BeforePredict(VectorHandler& X,
                                 VectorHandler& XP,
-                                VectorHandler& XPrev,
-                                VectorHandler& XPPrev) const
+                                std::deque<VectorHandler*>& qXPrev,
+                                std::deque<VectorHandler*>& qXPPrev) const
      {
      }
 
@@ -10953,8 +10941,8 @@ namespace {
 
      void HydroActiveComprNode::BeforePredict(VectorHandler& X,
                                               VectorHandler& XP,
-                                              VectorHandler& XPrev,
-                                              VectorHandler& XPPrev) const
+                                              std::deque<VectorHandler*>& qXPrev,
+                                              std::deque<VectorHandler*>& qXPPrev) const
      {
           const integer iDof = rgState[0].eCavitationState == HydroFluid::FULL_FILM_REGION ? 1 : 0;
           const integer iIndex = iGetFirstDofIndex(eCurrFunc);
@@ -10966,8 +10954,16 @@ namespace {
 
           HYDRO_ASSERT((iDof == 0 ? rgState[0].Theta[iDof] == 0. : rgState[0].Theta[iDof] >= 1.));
 
-          X(iIndex + iDof) = XPrev(iIndex + iDof) = rgState[0].Theta[iDof] / s[iDof];
-          XP(iIndex + iDof) = XPPrev(iIndex + iDof) = rgState[0].dTheta_dt[iDof] / s[iDof];
+          X(iIndex + iDof) = rgState[0].Theta[iDof] / s[iDof];
+          XP(iIndex + iDof) = rgState[0].dTheta_dt[iDof] / s[iDof];
+
+          for (VectorHandler* pXPrev: qXPrev) {
+               (*pXPrev)(iIndex + iDof) = rgState[0].Theta[iDof] / s[iDof];
+          }
+
+          for (VectorHandler* pXPPrev: qXPPrev) {
+               (*pXPPrev)(iIndex + iDof) = rgState[0].dTheta_dt[iDof] / s[iDof];
+          }
      }
 
      void HydroActiveComprNode::AfterPredict(VectorHandler& X, VectorHandler& XP)

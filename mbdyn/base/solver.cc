@@ -283,6 +283,35 @@ mbdyn_reserve_stack(unsigned long size)
 #endif /* !HAVE_MLOCKALL */
 }
 
+Solver::FakeStepIntegrator::FakeStepIntegrator(doublereal dCoef)
+     :StepIntegrator(-1, dCoef, -1., 1, 1),
+      dCoef(dCoef)
+{
+}
+
+doublereal Solver::FakeStepIntegrator::dGetCoef(unsigned int iDof) const
+{
+     return dCoef;
+}
+
+doublereal
+Solver::FakeStepIntegrator::Advance(Solver* pS,
+                                    const doublereal TStep,
+                                    const doublereal dAlph,
+                                    const StepChange StType,
+                                    std::deque<VectorHandler*>& qX,
+                                    std::deque<VectorHandler*>& qXPrime,
+                                    MyVectorHandler*const pX,
+                                    MyVectorHandler*const pXPrime,
+                                    integer& EffIter,
+                                    doublereal& Err,
+                                    doublereal& SolErr)
+{
+     ASSERT(0);
+
+     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
 		const std::string& sInFName,
@@ -323,6 +352,7 @@ eTimeStepLimit(TS_SOFT_LIMIT),
 iDummyStepsNumber(::iDefaultDummyStepsNumber),
 dDummyStepsRatio(::dDefaultDummyStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
+oFakeStepIntegrator(1.), // dCoef == 1 needed for initial assembly
 RegularType(INT_UNKNOWN),
 DummyType(INT_UNKNOWN),
 pDerivativeSteps(0),
@@ -334,7 +364,7 @@ pFirstRegularStep(0),
 pSecondRegularStep(0),
 pThirdRegularStep(0),
 pRegularSteps(0),
-pCurrStepIntegrator(0),
+pCurrStepIntegrator(&oFakeStepIntegrator), // Used for initial assembly
 pRhoRegular(0),
 pRhoAlgebraicRegular(0),
 //pFirstRhoRegular(0),
@@ -1480,8 +1510,10 @@ Solver::Prepare(void)
 			<< std::endl;
 	}
 
-	SAFEDELETE(pDummySteps);
-	pDummySteps = 0;
+        if (pDummySteps) {
+             SAFEDELETE(pDummySteps);
+             pDummySteps = 0;
+        }
 
 
 	if (eAbortAfter == AFTER_DUMMY_STEPS) {
@@ -6842,8 +6874,13 @@ Solver::Eig(bool bNewLine)
         {
              MyVectorHandler Res(iNumDofs);
              
+             StepIntegratorGuard oGuard{*this};
+             
+             pCurrStepIntegrator = &oFakeStepIntegrator; // Needed for hybrid step integrator only
+             
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(-h/2.);             
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
@@ -6851,11 +6888,11 @@ Solver::Eig(bool bNewLine)
              
              pDM->Update();
              Res.Reset();
+             oFakeStepIntegrator.SetCoef(h/2.);             
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
              pMatB->PacMat(); // Needed for Trilinos sparse matrix handler
-             
         }
         
 #ifdef DEBUG
