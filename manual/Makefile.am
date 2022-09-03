@@ -57,7 +57,7 @@ EXTRA_DIST += \
 tecman/invdyn.tex \
 tecman/tecman-aero.tex \
 tecman/tecman-modal.tex \
-tecman/tecman-vb.tex
+tecman/tecman-vb.tex \
 s11044-021-09806-9.pdf \
 tecman/shellPic.eps \
 tecman/tecman-aero-unsteady.tex \
@@ -66,7 +66,7 @@ tecman/tecman-beam.tex \
 tecman/tecman-screw.tex \
 tecman/tecman-aero-modal.tex \
 tecman/tecman-forces.tex \
-tecman/tecman-shell.tex
+tecman/tecman-shell.tex \
 tecman/Screw_sketch.eps \
 tecman/tecman-aero-rotor.tex \
 tecman/tecman-hydr.tex \
@@ -76,5 +76,3 @@ tecman/tecman.tex
 
 
 include $(top_srcdir)/build/bot.mk
-
-
