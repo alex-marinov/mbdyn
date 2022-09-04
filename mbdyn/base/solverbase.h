@@ -21,29 +21,29 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307	 USA
  */
 
  /*
  AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
   Copyright (C) 2022(-2022) all rights reserved.
 
-        The copyright of this code is transferred
-        to Pierangelo Masarati and Paolo Mantegazza
-        for use in the software MBDyn as described
-        in the GNU Public License version 2.1
+	The copyright of this code is transferred
+	to Pierangelo Masarati and Paolo Mantegazza
+	for use in the software MBDyn as described
+	in the GNU Public License version 2.1
   */
 
 #ifndef __SOLVER_BASE_H__INCLUDED__
 #define __SOLVER_BASE_H__INCLUDED__
 
 struct SolverBase {
-        enum StepIntegratorType {
+	enum StepIntegratorType {
 		INT_CRANKNICOLSON,
 		INT_MODCRANKNICOLSON,
 		INT_MS2,
@@ -66,7 +66,8 @@ struct SolverBase {
 		INT_THIRDORDER,
 		INT_IMPLICITEULER,
 		INT_UNKNOWN,
-                INT_DEFAULT
+		INT_DEFAULT = INT_UNKNOWN,
+		INT_HYBRID
         };
 
         static constexpr auto INT_COUNT = INT_UNKNOWN + 1;

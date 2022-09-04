@@ -7111,6 +7111,9 @@ namespace {
      }
 
      inline void HydroRootElement::InitPrivData() {
+#ifdef DEBUG
+          std::memset(&PrivData, 0xFF, sizeof(PrivData));
+#endif
           for (int i = 0; i < iNumPrivData; ++i) {
                PrivData.a[i].dPrev = PrivData.a[i].dCurr = rgPrivData[i].dDefault;
           }
@@ -10858,7 +10861,7 @@ namespace {
           for (index_type i = 0; i < iNumDofMax; ++i) {
                dCoef[i] = pGetMesh()->pGetParent()->dGetStepIntegratorCoef(iGetFirstDofIndex(eCurrFunc) + i);
           }
-          
+
           if (rgState[0].eCavitationState == HydroFluid::CAVITATION_REGION) {
                rgState[0].dTheta_dt[0] -= rgState[0].Theta[0] / dCoef[0];
                rgState[0].Theta[0] = 0.;
@@ -19076,9 +19079,10 @@ namespace {
           G rho, drho_dt, h, dh_dt;
           std::array<G, iNumFluxNodes> mdot;
           std::array<doublereal, iNumFluxNodes> w;
+          constexpr bool bSetMaxTimeStep = std::is_same<G, doublereal>::value;
 
           for (index_type i = 0; i < iNumFluxNodes; ++i) {
-               if (std::is_same<G, doublereal>::value) {
+               if (bSetMaxTimeStep) {
                     rgFluxNodes[i]->GetVelocityAvg(w[i]);
                }
                rgFluxNodes[i]->GetMassFluxDens(mdot[i]);
@@ -19099,7 +19103,9 @@ namespace {
                                    + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
                                    + (drho_dt * h + rho * dh_dt)) * dEquationScaleReynolds);
 
-          SetMaxTimeStep(w);
+          if (bSetMaxTimeStep) {
+               SetMaxTimeStep(w);
+          }
 
           CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex);
 
@@ -19266,9 +19272,10 @@ namespace {
           G rho, drho_dt, h, dh_dt;
           std::array<G, iNumFluxNodes> mdot;
           std::array<doublereal, iNumFluxNodes> w;
+          constexpr bool bSetMaxTimeStep = std::is_same<G, doublereal>::value;
 
           for (index_type i = 0; i < iNumFluxNodes; ++i) {
-               if (std::is_same<G, doublereal>::value) {
+               if (bSetMaxTimeStep) {
                     rgFluxNodes[i]->GetVelocityAvg(w[i]);
                }
 
@@ -19290,7 +19297,9 @@ namespace {
                                    + (mdot[iNodeFlzNorth] - mdot[iNodeFlzSouth]) / dz
                                    + (drho_dt * h + rho * dh_dt)) * dEquationScale);
 
-          SetMaxTimeStep(w);
+          if (bSetMaxTimeStep) {
+               SetMaxTimeStep(w);
+          }
 
           CHECK_NUM_COLS_WORK_SPACE(this, func, Re, iFirstIndex + bRegularFlag);
 

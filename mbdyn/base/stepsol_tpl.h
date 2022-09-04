@@ -60,11 +60,32 @@
 #include "stepsol.h"
 #include "stepsol.hc"
 
+class tplStepNIntegratorBase: public StepNIntegrator {
+public:
+     tplStepNIntegratorBase(const integer MaxIt,
+                            const doublereal dT,
+                            const doublereal dSolutionTol,
+                            const integer stp,
+                            const bool bmod_res_test)
+          :StepNIntegrator(MaxIt, dT, dSolutionTol, stp, bmod_res_test) {
+     }
+
+     virtual void
+     SetSolution(std::deque<VectorHandler*>& qX,
+                 std::deque<VectorHandler*>& qXPrime,
+                 VectorHandler* pX,
+                 VectorHandler* pXPrime) = 0;
+
+     virtual void
+     PredictDof(const int DCount,
+                const DofOrder::Order Order,
+                const VectorHandler* const pSol = 0) const = 0;
+};
 
 /* Base class for multistep integrators using templates */ 
 template <unsigned N>
 class tplStepNIntegrator :   
-	public StepNIntegrator
+	public tplStepNIntegratorBase
 {
 public:
 	// helper indexes
@@ -126,10 +147,15 @@ public:
 		doublereal& Err,
 		doublereal& SolErr);
 
+        virtual void
+        SetSolution(std::deque<VectorHandler*>& qX,
+                    std::deque<VectorHandler*>& qXPrime,
+                    VectorHandler* pX,
+                    VectorHandler* pXPrime) override;
 protected:
-	void PredictDof(const int DCount,
-		const DofOrder::Order Order,
-		const VectorHandler* const pSol = 0) const;
+	virtual void PredictDof(const int DCount,
+                                const DofOrder::Order Order,
+                                const VectorHandler* const pSol = 0) const override;
 
 	virtual void Predict(void);
 
@@ -167,7 +193,7 @@ tplStepNIntegrator<N>::tplStepNIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
 		const bool bmod_res_test)
-: StepNIntegrator(MaxIt, dT, dSolutionTol, N, bmod_res_test)
+: tplStepNIntegratorBase(MaxIt, dT, dSolutionTol, N, bmod_res_test)
 {
 	for (unsigned i = 0; i < N; i++) {
 		m_pXPrev[i] = 0;
@@ -248,13 +274,8 @@ tplStepNIntegrator<N>::Advance(Solver* pS,
 	doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
-	pXCurr  = pX;
-	pXPrimeCurr  = pXPrime;
 
-	for (unsigned i = 0; i < N; i++) {
-		m_pXPrev[i] = qX[i];
-		m_pXPrimePrev[i]  = qXPrime[i];
-	}
+        SetSolution(qX, qXPrime, pX, pXPrime);
 
 	/* predizione */
 	SetCoef(TStep, dAph, StType);
@@ -300,6 +321,22 @@ tplStepNIntegrator<N>::Advance(Solver* pS,
 	pDM->AfterConvergence();
 
 	return Err;
+}
+
+template <unsigned N>
+void
+tplStepNIntegrator<N>::SetSolution(std::deque<VectorHandler*>& qX,
+                                   std::deque<VectorHandler*>& qXPrime,
+                                   VectorHandler* pX,
+                                   VectorHandler* pXPrime)
+{
+	pXCurr  = pX;
+	pXPrimeCurr  = pXPrime;
+
+	for (unsigned i = 0; i < N; i++) {
+		m_pXPrev[i] = qX[i];
+		m_pXPrimePrev[i]  = qXPrime[i];
+	}
 }
 
 #endif /* STEPSOL_TPL_H */

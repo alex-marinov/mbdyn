@@ -464,3 +464,264 @@ HopeSolver::dPredStateAlg(const doublereal dXm1mN[2],
 
 /* Hope - end */
 
+HybridStepIntegrator::HybridStepIntegrator(const SolverBase::StepIntegratorType eDefaultIntegrator,
+                                           const doublereal dTol,
+                                           const doublereal dSolutionTol,
+                                           const integer iMaxIterations,
+                                           const DriveCaller* pRho,
+                                           const DriveCaller* pAlgRho,
+                                           const bool bModResTest)
+     :ImplicitStepIntegrator(iMaxIterations,
+                             dTol,
+                             dSolutionTol,
+                             2,
+                             1,
+                             bModResTest),
+      pDefaultInteg(nullptr),
+      eDefaultIntegrator(eDefaultIntegrator),
+      m_Rho(pRho),
+      m_AlgebraicRho(pAlgRho)
+{
+     std::fill(std::begin(rgIntegPtr), std::end(rgIntegPtr), nullptr);
+}
+
+HybridStepIntegrator::~HybridStepIntegrator()
+{
+}
+
+void
+HybridStepIntegrator::SetDataManager(DataManager* pDM)
+{
+     ImplicitStepIntegrator::SetDataManager(pDM);
+
+     rgIntegItems.clear();
+     rgIntegItems.reserve(SolverBase::INT_COUNT);
+
+     std::fill(rgIntegPtr.begin(), rgIntegPtr.end(), nullptr);
+
+     for (const auto& oDof: pDM->GetDofs()) {
+          pAllocateStepIntegrator(oDof.StepIntegrator);
+     }
+
+#ifdef DEBUG
+     for (const auto& oItem: rgIntegItems) {
+          ASSERT(oItem.pInteg.get() != nullptr);
+          ASSERT(oItem.eType >= 0);
+          ASSERT(oItem.eType < rgIntegPtr.size());
+          ASSERT(oItem.pInteg.get() == rgIntegPtr[oItem.eType]);
+     }
+#endif
+
+     ASSERT(eDefaultIntegrator >= 0);
+     ASSERT(eDefaultIntegrator < SolverBase::INT_COUNT);
+     ASSERT(eDefaultIntegrator < rgIntegPtr.size());
+
+     pDefaultInteg = pAllocateStepIntegrator(eDefaultIntegrator);
+
+     ASSERT(pDefaultInteg != nullptr);
+
+     for (const auto& oItem: rgIntegItems) {
+          oItem.pInteg->SetDataManager(pDM);
+     }
+}
+
+tplStepNIntegratorBase*
+HybridStepIntegrator::pAllocateStepIntegrator(const SolverBase::StepIntegratorType eStepIntegrator)
+{
+     tplStepNIntegratorBase* pInteg = rgIntegPtr[eStepIntegrator];
+
+     if (pInteg) {
+          return pInteg;
+     }
+
+     SolverBase::StepIntegratorType eStepIntegAlloc = eStepIntegrator;
+
+     if (eStepIntegrator == SolverBase::INT_DEFAULT) {
+          eStepIntegAlloc = eDefaultIntegrator;
+          pInteg = rgIntegPtr[eStepIntegAlloc];
+     }
+
+     if (pInteg) {
+          rgIntegPtr[eStepIntegrator] = pInteg;
+          return pInteg;
+     }
+
+     switch (eStepIntegAlloc) {
+     case SolverBase::INT_CRANKNICOLSON:
+          SAFENEWWITHCONSTRUCTOR(pInteg,
+                                 CrankNicolsonIntegrator,
+                                 CrankNicolsonIntegrator(dTol,
+                                                         dSolTol,
+                                                         MaxIters,
+                                                         bModResTest));
+          break;
+
+     case SolverBase::INT_MS2:
+          SAFENEWWITHCONSTRUCTOR(pInteg,
+                                 Multistep2Solver,
+                                 Multistep2Solver(dTol,
+                                                  dSolTol,
+                                                  MaxIters,
+                                                  m_Rho.pGetDriveCaller()->pCopy(),
+                                                  m_AlgebraicRho.pGetDriveCaller()->pCopy(),
+                                                  bModResTest));
+          break;
+
+     case SolverBase::INT_HOPE:
+          SAFENEWWITHCONSTRUCTOR(pInteg,
+                                 HopeSolver,
+                                 HopeSolver(dTol,
+                                            dSolTol,
+                                            MaxIters,
+                                            m_Rho.pGetDriveCaller()->pCopy(),
+                                            m_AlgebraicRho.pGetDriveCaller()->pCopy(),
+                                            bModResTest));
+          break;
+
+     case SolverBase::INT_IMPLICITEULER:
+          SAFENEWWITHCONSTRUCTOR(pInteg,
+                                 ImplicitEulerIntegrator,
+                                 ImplicitEulerIntegrator(dTol,
+                                                         dSolTol,
+                                                         MaxIters,
+                                                         bModResTest));
+          break;
+     default:
+          ASSERT(0);
+          throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+     }
+
+     rgIntegPtr[eStepIntegrator] = pInteg;
+
+     rgIntegItems.emplace_back(eStepIntegrator, pInteg);
+
+     return pInteg;
+}
+
+void
+HybridStepIntegrator::SetDriveHandler(const DriveHandler* pDH)
+{
+     ImplicitStepIntegrator::SetDriveHandler(pDH);
+
+     for (const auto& oItem: rgIntegItems) {
+          oItem.pInteg->SetDriveHandler(pDH);
+     }
+}
+
+void HybridStepIntegrator::SetSolution(std::deque<VectorHandler*>& qX,
+                                       std::deque<VectorHandler*>& qXPrime,
+                                       MyVectorHandler* pX,
+                                       MyVectorHandler* pXPrime)
+{
+     for (const auto& oItem: rgIntegItems) {
+          oItem.pInteg->SetSolution(qX, qXPrime, pX, pXPrime);
+     }
+}
+
+doublereal HybridStepIntegrator::dGetCoef(unsigned int iDof) const
+{
+     ASSERT(iDof > 0);
+     ASSERT(iDof <= pDofs->size());
+
+     const SolverBase::StepIntegratorType eInteg = (*pDofs)[iDof - 1].StepIntegrator;
+
+     ASSERT(eInteg >= 0);
+     ASSERT(eInteg < SolverBase::INT_COUNT);
+     ASSERT(eInteg < rgIntegPtr.size());
+     ASSERT(rgIntegPtr[eInteg] != nullptr);
+
+     return rgIntegPtr[eInteg]->dGetCoef(iDof);
+}
+
+doublereal
+HybridStepIntegrator::Advance(Solver* pS,
+                              const doublereal TStep,
+                              const doublereal dAlph,
+                              const StepChange StType,
+                              std::deque<VectorHandler*>& qX,
+                              std::deque<VectorHandler*>& qXPrime,
+                              MyVectorHandler*const pX,
+                              MyVectorHandler*const pXPrime,
+                              integer& EffIter,
+                              doublereal& Err,
+                              doublereal& SolErr)
+{
+     ASSERT(pDM != NULL);
+
+     pXCurr = pX;
+     pXPrimeCurr = pXPrime;
+
+     SetSolution(qX, qXPrime, pX, pXPrime);
+     SetCoef(TStep, dAlph, StType);
+     Predict();
+     pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+     pDM->AfterPredict();
+
+     Err = 0.;
+     pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
+                                      EffIter, Err, dSolTol, SolErr);
+
+     pDM->AfterConvergence();
+
+     return Err;
+}
+
+void HybridStepIntegrator::Update(const VectorHandler* pSol) const
+{
+     UpdateLoop(&StepNIntegrator::UpdateDof, pSol);
+     pDM->Update();
+}
+
+void HybridStepIntegrator::Residual(VectorHandler* pRes, VectorHandler* pAbsRes) const
+{
+     ASSERT(pDefaultInteg != nullptr);
+     pDefaultInteg->Residual(pRes, pAbsRes);
+}
+
+void HybridStepIntegrator::Jacobian(MatrixHandler* pJac) const
+{
+     ASSERT(pDefaultInteg != nullptr);
+     pDefaultInteg->Jacobian(pJac);
+}
+
+void HybridStepIntegrator::Jacobian(VectorHandler* pJac, const VectorHandler* pY) const
+{
+     ASSERT(pDefaultInteg != nullptr);
+     pDefaultInteg->Jacobian(pJac, pY);
+}
+
+void HybridStepIntegrator::Predict()
+{
+     DEBUGCOUTFNAME("HybridStepIntegrator::Predict");
+     ASSERT(pDM != 0);
+     UpdateLoop(&tplStepNIntegratorBase::PredictDof);
+}
+
+void HybridStepIntegrator::SetCoef(doublereal dT,
+                                   doublereal dAlpha,
+                                   StepChange NewStep)
+{
+     for (const auto& oItem: rgIntegItems) {
+          oItem.pInteg->SetCoef(dT, dAlpha, NewStep);
+     }
+}
+
+void HybridStepIntegrator::UpdateLoop(UpdateFunctionType pfnUpdateFunc, const VectorHandler* const pSol) const
+{
+     DataManager::DofIterator_const CurrDof = pDofs->begin();
+     const integer iNumDofs = pDofs->size();
+
+     for (integer iDof = 1; iDof <= iNumDofs; ++iDof, ++CurrDof)
+     {
+          ASSERT(CurrDof != pDofs->end());
+
+          SolverBase::StepIntegratorType eInteg = CurrDof->StepIntegrator;
+
+          ASSERT(eInteg >= 0);
+          ASSERT(eInteg < SolverBase::INT_COUNT);
+          ASSERT(eInteg < rgIntegPtr.size());
+          ASSERT(rgIntegPtr[eInteg] != nullptr);
+
+          ((*rgIntegPtr[eInteg]).*pfnUpdateFunc)(iDof, CurrDof->Order, pSol);
+     }
+}

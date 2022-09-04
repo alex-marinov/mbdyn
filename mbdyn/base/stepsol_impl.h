@@ -237,4 +237,97 @@ protected:
 
 /* Hope - end */
 
+// The hybrid step integrator allows elements to choose different integration methods for each degree of freedom.
+// Simulation entities using this integrator must overwrite SimulationEntity::GetStepIntegrator.
+// In that case it is required to call DataManager::dGetStepIntegratorCoef in order to obtain the correct value for dCoef.
+
+class HybridStepIntegrator: public ImplicitStepIntegrator
+{
+public:
+     HybridStepIntegrator(const SolverBase::StepIntegratorType eDefaultIntegrator,
+                          const doublereal dTol,
+                          const doublereal dSolutionTol,
+                          const integer iMaxIterations,
+                          const DriveCaller* pRho,
+                          const DriveCaller* pAlgRho,
+                          const bool bModResTest);
+
+     virtual ~HybridStepIntegrator();
+
+     virtual void
+     SetDataManager(DataManager* pDataMan) override;
+
+     virtual void
+     SetDriveHandler(const DriveHandler* pDH) override;
+
+     virtual doublereal
+     dGetCoef(unsigned int iDof) const override;
+
+     virtual doublereal
+     Advance(Solver* pS,
+             const doublereal TStep,
+             const doublereal dAlph,
+             const StepChange StType,
+             std::deque<VectorHandler*>& qX,
+             std::deque<VectorHandler*>& qXPrime,
+             MyVectorHandler*const pX,
+             MyVectorHandler*const pXPrime,
+             integer& EffIter,
+             doublereal& Err,
+             doublereal& SolErr) override;
+
+     virtual void
+     Update(const VectorHandler* pSol) const override;
+
+     virtual void
+     Residual(VectorHandler* pRes, VectorHandler* pAbsRes=0) const override;
+
+     virtual void
+     Jacobian(MatrixHandler* pJac) const override;
+
+     virtual void
+     Jacobian(VectorHandler* pJac, const VectorHandler* pY) const override;
+
+private:
+     void
+     SetSolution(std::deque<VectorHandler*>& qX,
+                 std::deque<VectorHandler*>& qXPrime,
+                 MyVectorHandler* pX,
+                 MyVectorHandler* pXPrime);
+
+     struct IntegratorItem {
+          IntegratorItem(SolverBase::StepIntegratorType eType,
+                         tplStepNIntegratorBase* pInteg)
+               :eType(eType),
+                pInteg(pInteg) {
+          }
+
+          SolverBase::StepIntegratorType eType;
+          std::unique_ptr<tplStepNIntegratorBase> pInteg;
+     };
+
+     void
+     Predict();
+
+     void
+     SetCoef(doublereal dT, doublereal dAlpha, StepChange NewStep);
+
+     tplStepNIntegratorBase*
+     pAllocateStepIntegrator(SolverBase::StepIntegratorType eStepIntegrator);
+
+     typedef void (tplStepNIntegratorBase::*UpdateFunctionType)(const int DCount,
+                                                                const DofOrder::Order Order,
+                                                                const VectorHandler* const pSol) const;
+
+     inline void
+     UpdateLoop(UpdateFunctionType pfnUpdateFunc, const VectorHandler* const pSol = nullptr) const;
+
+     std::vector<IntegratorItem> rgIntegItems;
+     std::array<tplStepNIntegratorBase*, SolverBase::INT_COUNT> rgIntegPtr;
+     tplStepNIntegratorBase* pDefaultInteg;
+     const SolverBase::StepIntegratorType eDefaultIntegrator;
+     DriveOwner m_Rho;
+     DriveOwner m_AlgebraicRho;
+};
+
 #endif /* STEPSOL_IMPL_H */

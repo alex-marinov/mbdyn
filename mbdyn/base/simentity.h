@@ -136,7 +136,10 @@ public:
 	 * corrisponde al dof i (ALGEBRAIC o DIFFERENTIAL).
 	 */
         virtual DofOrder::Order GetEqType(unsigned int i) const;
+
         virtual DofOrder::Equality GetEqualityType(unsigned int i) const;
+
+        virtual SolverBase::StepIntegratorType GetStepIntegrator(unsigned int i) const;
 
 	/* Metodi legati all'integrazione */
 	

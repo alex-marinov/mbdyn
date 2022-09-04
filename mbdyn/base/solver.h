@@ -275,8 +275,8 @@ protected:
 
              virtual doublereal dGetCoef(unsigned int iDof) const override;
 
-             void SetCoef(doublereal dCoefCurr) {
-                  dCoef = dCoefCurr;
+             void SetCoef(doublereal dCoefNew) {
+                  dCoef = dCoefNew;
              }
                         
              virtual doublereal

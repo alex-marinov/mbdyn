@@ -118,7 +118,7 @@ public:
 	
 	virtual ~StepIntegrator(void);
 
-	void SetDataManager(DataManager* pDatMan);
+	virtual void SetDataManager(DataManager* pDatMan);
 		
 	virtual integer GetIntegratorNumPreviousStates(void) const;
 	
@@ -130,7 +130,7 @@ public:
 	
 	virtual doublereal GetIntegratorDSolTol(void) const;
 
-        virtual doublereal dGetCoef(unsigned int iDof) const=0;
+	virtual doublereal dGetCoef(unsigned int iDof) const=0;
      
 	virtual void OutputTypes(const bool fpred);
 	
@@ -227,7 +227,7 @@ public:
 	
 	void Update(const VectorHandler* pSol) const;
 
-        virtual doublereal dGetCoef(unsigned int iDof) const override;
+	virtual doublereal dGetCoef(unsigned int iDof) const override;
      
 	/* scale factor for tests */
 	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
@@ -262,11 +262,11 @@ public:
 		// add as needed
 	};
 
-protected:
+public:
 	void UpdateDof(const int DCount,
 		const DofOrder::Order Order,
 		const VectorHandler* const pSol = 0) const;
-public:
+     
 	StepNIntegrator(const integer MaxIt,
 			const doublereal dT,
 			const doublereal dSolutionTol,
@@ -283,11 +283,10 @@ public:
      
 	virtual void Update(const VectorHandler* pSol) const;
 
-        virtual doublereal dGetCoef(unsigned int iDof) const override;
+	virtual doublereal dGetCoef(unsigned int iDof) const override;
      
 	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
 
-protected:
 	virtual void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep) = 0;

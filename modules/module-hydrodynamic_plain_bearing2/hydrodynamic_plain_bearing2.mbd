@@ -47,7 +47,7 @@ begin: initial value;
 
 	max iterations: 100;
 	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: ss4, 0.;
+        method: hybrid, ms, 0.;
 
 	enforce constraint equations: constraint violations;
         

@@ -70,6 +70,8 @@ struct Dof {
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
    DofOrder::Equality Equality;
+   // Data used for the HybridStepIntegrator
+   SolverBase::StepIntegratorType StepIntegrator; // index of step integrator used for this degree of freedom
    std::string Description;
    std::string EqDescription;
 };

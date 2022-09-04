@@ -915,7 +915,7 @@ Solver::Prepare(void)
 		pDummySteps->SetDataManager(pDM);
 		pDummySteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 	}
-	if (RegularType == StepIntegratorType::INT_MS2 || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS2 || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4 || RegularType == StepIntegratorType::INT_HYBRID)
 	{
 	pFirstRegularStep->SetDataManager(pDM);
 	pFirstRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
@@ -1561,7 +1561,7 @@ Solver::Start(void)
 
 	//DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 	//First start-up step for MS2, HOPE, MS3 and MS4
-	if (RegularType == StepIntegratorType::INT_MS2  || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4)
+	if (RegularType == StepIntegratorType::INT_MS2  || RegularType == StepIntegratorType::INT_HOPE || RegularType == StepIntegratorType::INT_MS3 || RegularType == StepIntegratorType::INT_MS4 || RegularType == StepIntegratorType::INT_HYBRID)
 	{
 		lStep++;
 		pDM->BeforePredict(*pX, *pXPrime, qX, qXPrime);
@@ -2878,6 +2878,7 @@ Solver::ReadData(MBDynParser& HP)
 			"DIRK54",
 			"bdf",
 			"implicit" "euler",
+                        "hybrid",
 
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
@@ -3008,6 +3009,7 @@ Solver::ReadData(MBDynParser& HP)
 		DIRK54,
 		BDF,
 		IMPLICITEULER,
+                HYBRID,
 
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
@@ -3086,6 +3088,7 @@ Solver::ReadData(MBDynParser& HP)
 
 	bool bMethod(false);
 	bool bDummyStepsMethod(false);
+	StepIntegratorType eHybridDefaultIntRegular(INT_MS2);
 
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
@@ -3550,6 +3553,48 @@ Solver::ReadData(MBDynParser& HP)
 			case IMPLICITEULER:
 				RegularType = INT_IMPLICITEULER;
 				break;
+			case HYBRID: {
+				const KeyWords KMethod = KeyWords(HP.GetWord());
+
+				switch (KMethod) {
+				case IMPLICITEULER:
+					eHybridDefaultIntRegular = INT_IMPLICITEULER;
+					break;
+
+				case CRANKNICOLSON:
+					eHybridDefaultIntRegular = INT_CRANKNICOLSON;
+					break;
+
+				case MS:
+				case MS2:
+					eHybridDefaultIntRegular = INT_MS2;
+					break;
+
+				case HOPE:
+					eHybridDefaultIntRegular = INT_HOPE;
+					break;
+
+				default:
+					silent_cerr("Default method \"" << K.pGetDescription(KMethod)
+						    << "\" not implemented for hybrid integrator at line "
+						    << HP.GetLineData() << std::endl);
+					throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (HP.IsArg()) {
+					pRhoRegular = HP.GetDriveCaller(true);
+				} else {
+					SAFENEW(pRhoRegular, NullDriveCaller);
+				}
+
+				if (HP.IsArg()) {
+					pRhoAlgebraicRegular = HP.GetDriveCaller(true);
+				} else {
+					pRhoAlgebraicRegular = pRhoRegular->pCopy();
+				}
+
+				RegularType = INT_HYBRID;
+			} break;
 
 			default:
 				silent_cerr("Unknown integration method at line "
@@ -5587,6 +5632,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	switch (RegularType)
 	{
 		case INT_MS2:
+		case INT_HOPE:
+		case INT_HYBRID:
 			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
 					CrankNicolsonIntegrator,
 					CrankNicolsonIntegrator(dTol,
@@ -5594,15 +5641,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						iMaxIterations,
 						bModResTest));
 				break;		
-
-		case INT_HOPE:
-	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicolsonIntegrator,
-			CrankNicolsonIntegrator(dTol,
-				dSolutionTol,
-				iMaxIterations,
-				bModResTest));
-				break;
 
 		case INT_MS3:
 			SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
@@ -5851,7 +5889,17 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					iMaxIterations,
 					bModResTest));
 		break;
-
+	case INT_HYBRID:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				       HybridStepIntegrator,
+				       HybridStepIntegrator(eHybridDefaultIntRegular,
+							    dTol,
+							    dSolutionTol,
+							    iMaxIterations,
+							    pRhoRegular,
+							    pRhoAlgebraicRegular,
+							    bModResTest));
+		break;
 	default:
 		silent_cerr("Unknown integration method" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -6867,34 +6915,34 @@ Solver::Eig(bool bNewLine)
 	// Matrices assembly (see eig.ps)
 	const doublereal h = EigAn.dParam;
 
-        /* 
-	 * Call AssRes before AssJac in order to be sure that all 
-	 * the elements have updated the internal data
-	 */
+        /*
+         * Call AssRes before AssJac in order to be sure that all
+         * the elements have updated the internal data
+         */
         {
              MyVectorHandler Res(iNumDofs);
-             
-             StepIntegratorGuard oGuard{*this};
-             
+
+             StepIntegratorGuard oRestoreCurrentStepIntegrator{*this};
+
              pCurrStepIntegrator = &oFakeStepIntegrator; // Needed for hybrid step integrator only
-             
+
              pDM->Update();
              Res.Reset();
-             oFakeStepIntegrator.SetCoef(-h/2.);             
+             oFakeStepIntegrator.SetCoef(-h/2.);
              pDM->AssRes(Res, -h/2.);
              pMatA->Reset();
              pDM->AssJac(*pMatA, -h/2.);
              pMatA->PacMat(); // Needed for Trilinos sparse matrix handler
-             
+
              pDM->Update();
              Res.Reset();
-             oFakeStepIntegrator.SetCoef(h/2.);             
+             oFakeStepIntegrator.SetCoef(h/2.);
              pDM->AssRes(Res, h/2.);
              pMatB->Reset();
              pDM->AssJac(*pMatB, h/2.);
              pMatB->PacMat(); // Needed for Trilinos sparse matrix handler
         }
-        
+
 #ifdef DEBUG
 	DEBUGCOUT(std::endl
 		<< "Matrix A:" << std::endl << *pMatA << std::endl
