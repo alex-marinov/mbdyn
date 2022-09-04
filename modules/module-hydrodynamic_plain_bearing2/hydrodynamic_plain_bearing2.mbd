@@ -47,7 +47,7 @@ begin: initial value;
 
 	max iterations: 100;
 	tolerance: 1e-6, test, norm, 1e-6, test, norm;
-        method: hybrid, ms, 0.;
+        method: ss4, 0.0;
 
 	enforce constraint equations: constraint violations;
         
@@ -78,7 +78,7 @@ begin: initial value;
         modified, 100,
         keep jacobian matrix,
         inner iterations before assembly, 10,
-        jacobian operator, newton,
+        jacobian operator, newton krylov,
         solver, line search based,
         linesearch method, backtrack,
         direction, newton,
@@ -87,7 +87,7 @@ begin: initial value;
         verbose, yes,
         minimum step, 1e-12,
         linear solver tolerance, 1e-12,
-        linear solver max iterations, 20,
+        linear solver max iterations, 300,
         krylov subspace size, 20;
         
         threads: assembly, 1;
@@ -96,18 +96,17 @@ begin: initial value;
 end: initial value;
 
 begin: control data;
-    use automatic differentiation;
-    skip initial joint assembly;
-    max iterations: 10;
-    tolerance: 1e-10;
-    initial stiffness: 1e10;
-    #use: loadable elements, in assembly;
-	output meter: closest next, (0), forever, const, (5.66893e-05);
-	structural nodes: 3;
-	rigid bodies: 2;
-	loadable elements: 1;
-	joints: 3;
-	forces: 1;
+       use automatic differentiation;
+       skip initial joint assembly;
+       max iterations: 10;
+       tolerance: 1e-10;
+       initial stiffness: 1e10;
+       output meter: closest next, (0), forever, const, (5.66893e-05);
+       structural nodes: 3;
+       rigid bodies: 2;
+       loadable elements: 1;
+       joints: 3;
+       forces: 1;
 end: control data;
 
 reference: (5001),
@@ -670,19 +669,6 @@ begin: elements;
 					   const, 0.,
 					   const, 0.;
 
-	## joint: (3003), revolute hinge,
-		
-	## 	(1004),
-			
-	## 		reference, (5004), null,
-	## 		hinge,
-	## 			1,1.,0.,0.,3,0.,0.,1.,
-		
-	## 	(1003),
-			
-	## 		reference, (5004), null,
-	## 		hinge,
-	## 			1,1.,0.,0.,3,0.,0.,1.;					   
 
 	body: (2001), (1003), 
                 
@@ -702,25 +688,26 @@ begin: elements;
                 null,
 		orientation, reference, (5004), eye;
 
-    ## hydraulic fluid: (6001), incompressible, 
-    ##     density, (950),
-    ##     viscosity, (0.0015),
-    ##     pressure, (10000);
-
-    hydraulic fluid: (6001), linear compressible, 
+    hydraulic fluid: (6001), incompressible, 
         density, (950),
-        1.,
-        0.,
-        viscosity, (0.0015);
+        viscosity, (0.0015),
+        pressure, (10000);
+
+    ## hydraulic fluid: (6001), linear compressible, 
+    ##     density, (950),
+    ##     1.,
+    ##     0.,
+    ##     viscosity, (0.0015);
 
     user defined: (7001), 
         hydrodynamic plain bearing2,
             hydraulic fluid, reference, (6001),
             viscosity vapor, (1.5e-06),
-            mesh, linear finite difference,
-            enable mcp, enable_mcp,
-            pressure step integrator, implicit euler,
-            density step integrator, implicit euler,
+            ##mesh, linear finite difference,
+            mesh, quadratic finite element,
+            ## enable mcp, enable_mcp,
+            ## pressure step integrator, implicit euler,
+            ## density step integrator, implicit euler,
             geometry, cylindrical,
                 mesh position, at shaft,
                 bearing width, (0.0062),
