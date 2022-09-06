@@ -355,7 +355,7 @@ modify the residual test taking in account the rate of change of the status.
 modify the residual test for the algebraic constraint equations only:
 if the option \kw{constraint violations} is chosen then the algebraic equations
 residual is multiplied by \bnt{dCoef} when computing the residual test.
-This compensated the fact, that the algebraic equations are divided by 
+This compensates the fact that the algebraic equations are divided by 
 \bnt{dCoef} in order to improve the linear system condition number (cfr. MBDyn's
 technical manual), so that the residual tends to become bigger for very small time steps.
 If the optional keyword \kw{scale factor} is chosen then 
@@ -416,8 +416,8 @@ singly diagonally-implicit Runge--Kutta methods designed to have $n$th-order acc
 dissipation. They are designed so that
 \begin{itemize}
 \item each stage, from the second-one, has at least second-order accuracy;
-\item the overall accuracy is nth-order, and on this basis, the local truncation error is mini-
-mized;
+\item the overall accuracy is nth-order, and on this basis, the local truncation error is 
+minimized;
 \item A-stability and tunable algorithmic dissipation for linear analysis are achieved.
 \end{itemize}
 See \cite{zhang_optimization_2020, zhang_performance_2022} and MBDyn's technical manual for details.
