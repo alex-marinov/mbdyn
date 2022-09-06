@@ -369,9 +369,24 @@ If, instead, the option \kw{constraint violation rates} is chosen, then nothing 
     \bnt{card} ::= \kw{method} : \bnt{method_data} ;
 \end{Verbatim}
 %\end{verbatim}
-there are three multistep methods at present. 
 
-The first is Crank-Nicolson:
+where
+
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \{ \{ \{ \kw{ms} | \kw{ms2} \} | \kw{ms3} | \kw{ms4} | \kw{hope} 
+    \kw{ss2} | \kw{ss3} | \kw{ss4} | \kw{Bathe} | \kw{msstc3} | 
+    \kw{mssth3} | \kw{msstc4} | \kw{mssth4} | \kw{msstc5} | \kw{mssth5} |
+        \{\kw{hybrid}, \bnt{defaul_hybrid_method} \} 
+        (\hty{DriveCaller}) \bnt{differential_radius}
+        [ , (\hty{DriveCaller}) \bnt{algebraic_radius} ] \} | 
+    \{ \kw{DIRK33} | \kw{DIRK43} | \kw{DIRK54} \} |
+    \kw{crank nicolson} | 
+    \kw{implicit euler} | 
+    \kw{bdf} [ , \kw{order} , \bnt{order} ]\end{Verbatim}
+%\end{verbatim}
+
+The first implemented method is Crank-Nicolson:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{method_data} ::= \kw{crank nicolson}
@@ -418,16 +433,7 @@ dependent radius variation.
 five stages and fouth-order six stages, L-stable stiffly-accurate methods from 
 \cite{kennedy_diagonally_2019}.
 \end{itemize}
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{method_data} ::= \{ \{ \{ \kw{ms} | \kw{ms2} \} | \kw{ms3} | \kw{ms4} | \kw{hope} 
-    \kw{ss2} | \kw{ss3} | \kw{ss4} | \kw{Bathe} | \kw{msstc3} | 
-    \kw{mssth3} | \kw{msstc4} | \kw{mssth4} | \kw{msstc5} | \kw{mssth5},
-        (\hty{DriveCaller}) \bnt{differential_radius}
-        [ , (\hty{DriveCaller}) \bnt{algebraic_radius} ] \} | 
-    \{ \kw{DIRK33} | \kw{DIRK43} | \kw{DIRK54} \}
-\end{Verbatim}
-%\end{verbatim}
+
 The \kw{ms} method proved to be more accurate at high values of asymptotic
 radius (low dissipation), while \kw{hope} shows some greater more accuracy
 at low values of the radius (high dissipation).
@@ -457,6 +463,18 @@ It can also be selected using the shortcut
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{method_data} ::= \kw{implicit euler}
+\end{Verbatim}
+%\end{verbatim}
+
+The \kw{hybrid} method allows elements to select different integration methods for specific degrees of freedom.
+By default, the integration method defined after the \kw{hybrid} keyword is used for all other degrees of freedom.
+For example a model for elastohydrodynamic lubricated bearings could use the \kw{ms} method for all structural
+degrees of freedom, and the \kw{crank nicolson} method for the mass conserving cavitation model.
+At the moment only module-hydrodynamic\_plain\_bearing2 supports this option.
+
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{default_hybrid_method} ::= \kw{implicit euler} | \kw{crank nicolson} | \kw{ms2} | \kw{hope}
 \end{Verbatim}
 %\end{verbatim}
 
