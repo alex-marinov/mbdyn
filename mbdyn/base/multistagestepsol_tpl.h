@@ -174,6 +174,13 @@ protected:
 	virtual void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep);
+
+
+        void
+        ResetSolution(Solver* pS,
+                      std::deque<VectorHandler*>& qX,
+                      std::deque<VectorHandler*>& qXPrime,
+                      doublereal dPrevTime);
 };
 
 
@@ -314,7 +321,7 @@ tplStageNIntegrator<N>::PredictForStageS(unsigned S)
 template <unsigned N>
 doublereal
 tplStageNIntegrator<N>::Advance(Solver* pS,
-	const doublereal TStep,
+	doublereal TStep,
 	const doublereal dAph, const StepChange StType,
 	std::deque<VectorHandler*>& qX,
 	std::deque<VectorHandler*>& qXPrime,
@@ -326,6 +333,16 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 {
 	ASSERT(pDM != 0);
 
+        TStep *= dAph; // FIXME: This is just a quick fix; need to check the impact
+        
+        const doublereal dPrevTime = pDM->dGetTime();
+
+        DEBUGCERR("pX=\n" << *pX << "\n");
+        DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
+
+        DEBUGCERR("qX[0]=\n" << *qX[0] << "\n");
+        DEBUGCERR("qXPrime[0]=\n" << *qXPrime[0] << "\n");
+        
 	pXCurr = pX;
 	pXPrimeCurr = pXPrime;
 
@@ -333,6 +350,9 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 	m_pX[0] = qX[0];
 	m_pXP[0] = qXPrime[0];
 
+        m_qXPr.clear();
+        m_qXPPr.clear();
+        
 	ASSERT(m_qXPr.empty());
 	ASSERT(m_qXPPr.empty());
 
@@ -402,73 +422,111 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 	// if it gets here, it surely converged
 	pDM->AfterConvergence();
 
-	// Second-stage (and subsequent)
-	for (unsigned S = 2; S <= N; S++) {
-		// pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *m_pX[S - 2], *m_pXP[S - 2]);
+        try {
+             // Second-stage (and subsequent)
+             for (unsigned S = 2; S <= N; S++) {
+                  // pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *m_pX[S - 2], *m_pXP[S - 2]);
+                  m_qXPr.push_front(m_pX[S - 2]);
+                  m_qXPPr.push_front(m_pXP[S - 2]);
+                  pDM->BeforePredict(*pXCurr, *pXPrimeCurr, m_qXPr, m_qXPPr);
 
-		m_qXPr.push_front(m_pX[S - 2]);
-		m_qXPPr.push_front(m_pXP[S - 2]);
-		pDM->BeforePredict(*pXCurr, *pXPrimeCurr, m_qXPr, m_qXPPr);
+                  // copy from pX, pXPrime to m_pX, m_pXP
+                  for (integer i = 1; i <= pDM->iGetNumDofs(); i++) {
+                       m_pX[S - 1]->PutCoef(i, pXCurr->operator()(i));
+                       m_pXP[S - 1]->PutCoef(i, pXPrimeCurr->operator()(i));
+                  }
 
-		// copy from pX, pXPrime to m_pX, m_pXP
-		for (integer i = 1; i <= pDM->iGetNumDofs(); i++) {
-			m_pX[S - 1]->PutCoef(i, pXCurr->operator()(i));
-			m_pXP[S - 1]->PutCoef(i, pXPrimeCurr->operator()(i));
-		}
-
-		SetCoefForStageS(S, TStep, dAph, StType);
-		PredictForStageS(S);
-		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-     	 	pDM->AfterPredict();
+                  SetCoefForStageS(S, TStep, dAph, StType);
+                  PredictForStageS(S);
+                  pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+                  pDM->AfterPredict();
 
 #ifdef DEBUG
-		integer iNumDofs = pDM->iGetNumDofs();
-		if (outputPred) {
-			std::cout << "After prediction, stage " << S << " of " << N << " time=" << pDM->dGetTime() << std::endl;
-			std::cout << "Dof:      |    XCurr  ";
-			for (unsigned idx = 0; idx < qX.size(); idx++) {
-				std::cout << "|  XPrev[" << idx << "] ";
-			}
-			std::cout << "|   XPrime  ";
-			for (unsigned idx = 0; idx < qXPrime.size(); idx++) {
-				std::cout << "| XPPrev[" << idx << "] ";
-			}
-			std::cout << "|" << std::endl;
-			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-    				std::cout << std::setw(8) << iTmpCnt << ": ";
-				std::cout << std::setw(12) << pX->operator()(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
-					std::cout << std::setw(12)
-						<< (qX[ivec])->operator()(iTmpCnt);
-				}
-				std::cout << std::setw(12) << pXPrime->operator()(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {
-					std::cout << std::setw(12)
-						<< (qXPrime[ivec])->operator()(iTmpCnt);
-				}
-				std::cout << " " << pDM->DataManager::GetDofDescription(iTmpCnt) << std::endl;
- 			}
-		}
+                  integer iNumDofs = pDM->iGetNumDofs();
+                  if (outputPred) {
+                       std::cout << "After prediction, stage " << S << " of " << N << " time=" << pDM->dGetTime() << std::endl;
+                       std::cout << "Dof:      |    XCurr  ";
+                       for (unsigned idx = 0; idx < qX.size(); idx++) {
+                            std::cout << "|  XPrev[" << idx << "] ";
+                       }
+                       std::cout << "|   XPrime  ";
+                       for (unsigned idx = 0; idx < qXPrime.size(); idx++) {
+                            std::cout << "| XPPrev[" << idx << "] ";
+                       }
+                       std::cout << "|" << std::endl;
+                       for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+                            std::cout << std::setw(8) << iTmpCnt << ": ";
+                            std::cout << std::setw(12) << pX->operator()(iTmpCnt);
+                            for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
+                                 std::cout << std::setw(12)
+                                           << (qX[ivec])->operator()(iTmpCnt);
+                            }
+                            std::cout << std::setw(12) << pXPrime->operator()(iTmpCnt);
+                            for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {
+                                 std::cout << std::setw(12)
+                                           << (qXPrime[ivec])->operator()(iTmpCnt);
+                            }
+                            std::cout << " " << pDM->DataManager::GetDofDescription(iTmpCnt) << std::endl;
+                       }
+                  }
 #endif /* DEBUG */
 
-		tmpErr = 0.;
-		tmpEffIter = 0;
-		pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
-    			tmpEffIter, tmpErr, dSolTol, SolErr);
-		EffIter += tmpEffIter;
-		Err += tmpErr;
+                  tmpErr = 0.;
+                  tmpEffIter = 0;
+                  pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
+                                                   tmpEffIter, tmpErr, dSolTol, SolErr);
+                  EffIter += tmpEffIter;
+                  Err += tmpErr;
 
-		// if it gets here, it surely converged
-		pDM->AfterConvergence();
-	}
+#ifdef DEBUG_VAR_TIME_STEP
+                  #warning This code is only for testing
+                  if (pDM->dGetTime() > 0.9) {
+                          static bool bDoThrow = true;
 
-	while (!m_qXPr.empty()) {
-		m_qXPr.pop_back();
-		m_qXPPr.pop_back();
-	}
+                          if (bDoThrow) {
+                                  bDoThrow = false;
+                                  DEBUGCERR("throwing test exception ...\n");
+                                  throw NonlinearSolver::NoConvergence(MBDYN_EXCEPT_ARGS);
+                          }
+                  }
+#endif
+                  // if it gets here, it surely converged
+                  pDM->AfterConvergence();
+             }
 
-	ASSERT(m_qXPr.empty());
-	ASSERT(m_qXPPr.empty());
+        } catch (const NonlinearSolver::NoConvergence&) {
+                ASSERT(m_qXPr.back() == qX.front());
+                ASSERT(m_qXPPr.back() == qXPrime.front());
+                ResetSolution(pS, qX, qXPrime, dPrevTime);
+
+                DEBUGCERR("pX=\n" << *pX << "\n");
+                DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
+
+                DEBUGCERR("qX[0]=\n" << *qX[0] << "\n");
+                DEBUGCERR("qXPrime[0]=\n" << *qXPrime[0] << "\n");
+                
+                throw;
+        } catch (const NonlinearSolver::ErrSimulationDiverged&) {
+                ASSERT(m_qXPr.back() == qX.front());
+                ASSERT(m_qXPPr.back() == qXPrime.front());                
+                ResetSolution(pS, qX, qXPrime, dPrevTime);
+
+                DEBUGCERR("pX=\n" << *pX << "\n");
+                DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
+
+                DEBUGCERR("qX[0]=\n" << *qX[0] << "\n");
+                DEBUGCERR("qXPrime[0]=\n" << *qXPrime[0] << "\n");
+                
+                throw;                
+        }
+             
+	// while (!m_qXPr.empty()) {
+	// 	m_qXPr.pop_back();
+	// 	m_qXPPr.pop_back();
+	// }
+
+	// ASSERT(m_qXPr.empty());
+	// ASSERT(m_qXPPr.empty());
 
 	return Err;
 }
@@ -483,6 +541,31 @@ tplStageNIntegrator<N>::SetCoef(doublereal dT,
 	NO_OP;
 }
 
+template <unsigned N>
+void
+tplStageNIntegrator<N>::ResetSolution(Solver* pS, std::deque<VectorHandler*>& qX, std::deque<VectorHandler*>& qXPrime, doublereal dPrevTime)
+{
+        SolutionManager* const pSM = pS->pGetSolutionManager();
+        VectorHandler* const pRes = pSM->pResHdl();
+
+        *pXCurr = *qX[0];
+        *pXPrimeCurr = *qXPrime[0];
+        
+        pDM->Update();
+        pDM->AssRes(*pRes, db0Differential);
+        pDM->AfterConvergence();
+        pDM->BeforePredict(*pXCurr, *pXPrimeCurr, qX, qXPrime);
+
+	qX.push_front(qX.back());
+	qX.pop_back();
+	qXPrime.push_front(qXPrime.back());
+	qXPrime.pop_back();
+
+	*qX[0] = *pXCurr;
+	*qXPrime[0] = *pXPrimeCurr;
+
+        pDM->SetTime(dPrevTime);
+}
 /* tplStageNIntegrator - end */
 
 #endif // MULTISTAGESTEPSOL_TPL_H
