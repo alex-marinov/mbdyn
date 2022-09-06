@@ -309,8 +309,8 @@ protected:
              }
              
         private:
-             StepIntegrator* const pCurrStepIntegrator;
              Solver& oSolver;
+             StepIntegrator* const pCurrStepIntegrator;
 	};
 
 	/* Parametri per il metodo */
