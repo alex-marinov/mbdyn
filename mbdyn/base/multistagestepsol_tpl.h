@@ -178,6 +178,7 @@ protected:
 
         void
         ResetSolution(Solver* pS,
+                      unsigned S,
                       std::deque<VectorHandler*>& qX,
                       std::deque<VectorHandler*>& qXPrime,
                       doublereal dPrevTime);
@@ -336,7 +337,7 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
         TStep *= dAph; // FIXME: This is just a quick fix; need to check the impact
         
         const doublereal dPrevTime = pDM->dGetTime();
-
+        DEBUGCOUTFNAME("tplStageNIntegrator::Advance()");
         DEBUGCERR("pX=\n" << *pX << "\n");
         DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
 
@@ -422,9 +423,11 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
 	// if it gets here, it surely converged
 	pDM->AfterConvergence();
 
+        unsigned S = 1;
+        
         try {
              // Second-stage (and subsequent)
-             for (unsigned S = 2; S <= N; S++) {
+             for (S = 2; S <= N; S++) {
                   // pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *m_pX[S - 2], *m_pXP[S - 2]);
                   m_qXPr.push_front(m_pX[S - 2]);
                   m_qXPPr.push_front(m_pXP[S - 2]);
@@ -497,7 +500,7 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
         } catch (const NonlinearSolver::NoConvergence&) {
                 ASSERT(m_qXPr.back() == qX.front());
                 ASSERT(m_qXPPr.back() == qXPrime.front());
-                ResetSolution(pS, qX, qXPrime, dPrevTime);
+                ResetSolution(pS, S, qX, qXPrime, dPrevTime);
 
                 DEBUGCERR("pX=\n" << *pX << "\n");
                 DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
@@ -509,7 +512,7 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
         } catch (const NonlinearSolver::ErrSimulationDiverged&) {
                 ASSERT(m_qXPr.back() == qX.front());
                 ASSERT(m_qXPPr.back() == qXPrime.front());                
-                ResetSolution(pS, qX, qXPrime, dPrevTime);
+                ResetSolution(pS, S, qX, qXPrime, dPrevTime);
 
                 DEBUGCERR("pX=\n" << *pX << "\n");
                 DEBUGCERR("pXPrime=\n" << *pXPrime << "\n");
@@ -520,14 +523,6 @@ tplStageNIntegrator<N>::Advance(Solver* pS,
                 throw;                
         }
              
-	// while (!m_qXPr.empty()) {
-	// 	m_qXPr.pop_back();
-	// 	m_qXPPr.pop_back();
-	// }
-
-	// ASSERT(m_qXPr.empty());
-	// ASSERT(m_qXPPr.empty());
-
 	return Err;
 }
 
@@ -543,18 +538,31 @@ tplStageNIntegrator<N>::SetCoef(doublereal dT,
 
 template <unsigned N>
 void
-tplStageNIntegrator<N>::ResetSolution(Solver* pS, std::deque<VectorHandler*>& qX, std::deque<VectorHandler*>& qXPrime, doublereal dPrevTime)
+tplStageNIntegrator<N>::ResetSolution(Solver* pS, unsigned S, std::deque<VectorHandler*>& qX, std::deque<VectorHandler*>& qXPrime, doublereal dPrevTime)
 {
         SolutionManager* const pSM = pS->pGetSolutionManager();
         VectorHandler* const pRes = pSM->pResHdl();
+        
+        pDM->AfterConvergence();
+        ASSERT(S - 1 < N);
+        m_qXPr.push_front(m_pX[S - 1]);
+        m_qXPPr.push_front(m_pXP[S - 1]);        
+        pDM->BeforePredict(*pXCurr, *pXPrimeCurr, m_qXPr, m_qXPPr); // qX[0] = gPrev
 
-        *pXCurr = *qX[0];
+        ASSERT(qX[0] == m_qXPr.back());
+        ASSERT(qXPrime[0] == m_qXPPr.back());
+
+        // Reset to previous time step
+        pDM->SetTime(dPrevTime);
+        *pXCurr = *qX[0]; 
         *pXPrimeCurr = *qXPrime[0];
         
+        pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+        pDM->AfterPredict();
         pDM->Update();
         pDM->AssRes(*pRes, db0Differential);
         pDM->AfterConvergence();
-        pDM->BeforePredict(*pXCurr, *pXPrimeCurr, qX, qXPrime);
+        pDM->BeforePredict(*pXCurr, *pXPrimeCurr, qX, qXPrime); // qX[0] = gPrev
 
 	qX.push_front(qX.back());
 	qX.pop_back();
@@ -562,9 +570,7 @@ tplStageNIntegrator<N>::ResetSolution(Solver* pS, std::deque<VectorHandler*>& qX
 	qXPrime.pop_back();
 
 	*qX[0] = *pXCurr;
-	*qXPrime[0] = *pXPrimeCurr;
-
-        pDM->SetTime(dPrevTime);
+	*qXPrime[0] = *pXPrimeCurr;        
 }
 /* tplStageNIntegrator - end */
 
