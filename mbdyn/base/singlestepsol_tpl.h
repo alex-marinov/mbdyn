@@ -317,7 +317,7 @@ tplSingleStepIntegrator<N>::UpdateInte(void)
 template <unsigned N>
 doublereal
 tplSingleStepIntegrator<N>::Advance(Solver* pS, 
-		doublereal TStep, 
+		const doublereal TStep, 
 		const doublereal dAlph, 
 		const StepChange StType,
 		std::deque<VectorHandler*>& qX,
@@ -330,8 +330,6 @@ tplSingleStepIntegrator<N>::Advance(Solver* pS,
 {
 	ASSERT(pDM != NULL);
 
-        TStep *= dAlph; // FIXME: This is just a quick fix; need to check the impact
-        
 	pXCurr  = pX;
 	pXPrimeCurr  = pXPrime;
 
@@ -404,19 +402,6 @@ tplSingleStepIntegrator<N>::Advance(Solver* pS,
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
 
-#ifdef DEBUG_VAR_TIME_STEP
-#warning This code is only for testing
-        if (pDM->dGetTime() > 0.9) {
-             static bool bDoThrow = true;
-
-             if (bDoThrow) {
-                  bDoThrow = false;
-                  DEBUGCERR("throwing test exception ...\n");
-                  throw NonlinearSolver::NoConvergence(MBDYN_EXCEPT_ARGS);
-             }
-        }
-#endif
-        
 	/* if it gets here, it surely converged */
 	pDM->AfterConvergence();                                                                                                                                                                 
 
