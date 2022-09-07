@@ -477,10 +477,6 @@ Solver::Prepare(void)
 		pRTSolver->Setup();
 	}
 
-#ifdef USE_MPI
-	int mpi_finalize = 0;
-#endif
-
 #ifdef USE_SCHUR
 	if (bParallel) {
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
@@ -1536,6 +1532,10 @@ bool
 Solver::Start(void)
 {
 	DEBUGCOUTFNAME("Solver::Start");
+
+#ifdef USE_MPI
+        int mpi_finalize = 0;
+#endif
 
 	// consistency check
 	if (eStatus != SOLVER_STATUS_PREPARED) {
