@@ -1,5 +1,7 @@
 autoload("rotation_matrix_to_rotation_vector", "mbdyn_util_oct.oct");
 autoload("rotation_vector_to_rotation_matrix", "mbdyn_util_oct.oct");
+autoload("rotation_matrix_to_rotation_param", "mbdyn_util_oct.oct");
+autoload("rotation_param_to_rotation_matrix", "mbdyn_util_oct.oct");
 autoload("rotation_matrix_to_euler123", "mbdyn_util_oct.oct");
 autoload("euler123_to_rotation_matrix", "mbdyn_util_oct.oct");
 autoload("rotation_matrix_to_euler313", "mbdyn_util_oct.oct");

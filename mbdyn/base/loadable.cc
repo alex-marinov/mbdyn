@@ -107,10 +107,10 @@ int_ass_res(LoadableElem* /* pEl */ ,
 
 static void
 int_before_predict(const LoadableElem* /* pEl */ ,
-		 VectorHandler& /* X */ ,
-		 VectorHandler& /* XP */ ,
-		 VectorHandler& /* XPrev */ ,
-		 VectorHandler& /* XPPrev */ )
+		VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ ,
+		std::deque<VectorHandler*>& /* qXPr */ ,
+		std::deque<VectorHandler*>& /* qXPPr */ )
 {
    	NO_OP;
 }
@@ -261,7 +261,7 @@ handle(0),
 #endif // USE_RUNTIME_LOADING
 calls(const_cast<LoadableCalls *>(c))
 {
-   	ASSERT(pDM != NULL);
+   	ASSERT(pDM != 0);
 
 	BindCalls(pDM, HP);
 }
@@ -272,7 +272,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 #ifdef USE_RUNTIME_LOADING
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
-	if (s == NULL) {
+	if (s == 0) {
 		silent_cerr("Loadable(" << GetLabel()
 			<< "): unable to get module name" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -281,7 +281,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
    	SAFESTRDUP(module_name, s);
 	handle = lt_dlopenext(module_name);
 
-	if (handle == NULL) {
+	if (handle == 0) {
 		const char *err = lt_dlerror();
 		if (err == 0) {
 			err = "";
@@ -297,7 +297,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	/* default LoadableCalls struct */
 	const char *data_name = "calls";
 
-	LoadableCalls **tmpcalls = NULL;
+	LoadableCalls **tmpcalls = 0;
 	if (HP.IsKeyWord("name")) {
 		data_name = HP.GetStringWithDelims();
 	}
@@ -305,9 +305,9 @@ LoadableElem::GetCalls(MBDynParser& HP)
      		<< "\" (must be def'd!)" << std::endl);
 	tmpcalls = (LoadableCalls **)lt_dlsym(handle, data_name);
 
-   	if (tmpcalls == NULL) {
+   	if (tmpcalls == 0) {
       		const char* err = lt_dlerror();
-      		if (err == NULL) {
+      		if (err == 0) {
 	 		silent_cerr("Loadable(" << uLabel
 	   			<< "): data \"" << data_name
 	   			<< "\" must be defined in module <"
@@ -344,26 +344,26 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (calls->read == NULL) {
+	if (calls->read == 0) {
 		silent_cerr("Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
 			<< module_name << "> data" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (calls->name == NULL) {
+	if (calls->name == 0) {
 		calls->name = module_name;
 	}
 
-	if (calls->version == NULL) {
+	if (calls->version == 0) {
 		calls->version = "(undefined)";
 	}
 
-	if (calls->vendor == NULL) {
+	if (calls->vendor == 0) {
 		calls->vendor = "(undefined)";
 	}
 
-	if (calls->description == NULL) {
+	if (calls->description == 0) {
 		calls->description = "";
 	}
 
@@ -376,99 +376,99 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 	/*
 	 * Mette i default ove servono
 	 */
-	if (calls->i_get_num_dof == NULL) {
+	if (calls->i_get_num_dof == 0) {
 		calls->i_get_num_dof = int_i_get_num_dof;
 	}
 
-	if (calls->set_dof == NULL) {
+	if (calls->set_dof == 0) {
 		calls->set_dof = int_set_dof;
 	}
 
-	if (calls->output == NULL) {
+	if (calls->output == 0) {
 		calls->output = int_output;
 	}
 
-	if (calls->restart == NULL) {
+	if (calls->restart == 0) {
 		calls->restart = int_restart;
 	}
 
-	if (calls->work_space_dim == NULL) {
+	if (calls->work_space_dim == 0) {
 		calls->work_space_dim = int_work_space_dim;
 	}
 
-	if (calls->ass_jac == NULL) {
+	if (calls->ass_jac == 0) {
 		calls->ass_jac = int_ass_jac;
 	}
 
-	if (calls->ass_mats == NULL) {
+	if (calls->ass_mats == 0) {
 		calls->ass_mats = int_ass_mats;
 	}
 
-	if (calls->ass_res == NULL) {
+	if (calls->ass_res == 0) {
 		calls->ass_res = int_ass_res;
 	}
 
-	if (calls->before_predict == NULL) {
+	if (calls->before_predict == 0) {
 		calls->before_predict = int_before_predict;
 	}
 
-	if (calls->after_predict == NULL) {
+	if (calls->after_predict == 0) {
 		calls->after_predict = int_after_predict;
 	}
 
-	if (calls->update == NULL) {
+	if (calls->update == 0) {
 		calls->update = int_update;
 	}
 
-	if (calls->after_convergence == NULL) {
+	if (calls->after_convergence == 0) {
 		calls->after_convergence = int_after_convergence;
 	}
 
-	if (calls->i_get_initial_num_dof == NULL) {
+	if (calls->i_get_initial_num_dof == 0) {
 		calls->i_get_initial_num_dof = int_i_get_initial_num_dof;
 	}
 
-	if (calls->initial_work_space_dim == NULL) {
+	if (calls->initial_work_space_dim == 0) {
 		calls->initial_work_space_dim = int_initial_work_space_dim;
 	}
 
-	if (calls->initial_ass_jac == NULL) {
+	if (calls->initial_ass_jac == 0) {
 		calls->initial_ass_jac = int_initial_ass_jac;
 	}
 
-	if (calls->initial_ass_res == NULL) {
+	if (calls->initial_ass_res == 0) {
 		calls->initial_ass_res = int_initial_ass_res;
 	}
 
-	if (calls->set_value == NULL) {
+	if (calls->set_value == 0) {
 		calls->set_value = int_set_value;
 	}
 
-	if (calls->set_initial_value == NULL) {
+	if (calls->set_initial_value == 0) {
 		calls->set_initial_value = int_set_initial_value;
 	}
 
-	if (calls->i_get_num_priv_data == NULL) {
+	if (calls->i_get_num_priv_data == 0) {
 		calls->i_get_num_priv_data = int_i_get_num_priv_data;
 	}
 
-	if (calls->i_get_priv_data_idx == NULL) {
+	if (calls->i_get_priv_data_idx == 0) {
 		calls->i_get_priv_data_idx = int_i_get_priv_data_idx;
 	}
 
-	if (calls->d_get_priv_data == NULL) {
+	if (calls->d_get_priv_data == 0) {
 		calls->d_get_priv_data = int_d_get_priv_data;
 	}
 
-	if (calls->i_get_num_connected_nodes == NULL) {
+	if (calls->i_get_num_connected_nodes == 0) {
 		calls->i_get_num_connected_nodes = int_i_get_num_connected_nodes;
 	}
 
-	if (calls->get_connected_nodes == NULL) {
+	if (calls->get_connected_nodes == 0) {
 		calls->get_connected_nodes = int_get_connected_nodes;
 	}
 
-	if (calls->destroy == NULL) {
+	if (calls->destroy == 0) {
 		calls->destroy = int_destroy;
 	}
 
@@ -478,11 +478,11 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 
 LoadableElem::~LoadableElem(void)
 {
-	ASSERT(calls->destroy != NULL);
+	ASSERT(calls->destroy != 0);
    	calls->destroy(this);
 
 #ifdef USE_RUNTIME_LOADING
-   	if (handle != NULL) {
+   	if (handle != 0) {
    		if (lt_dlclose(handle) != 0) {
 			silent_cerr("unable to close module "
 				"\"" << module_name << "\"" << std::endl);
@@ -496,7 +496,7 @@ LoadableElem::~LoadableElem(void)
 unsigned int
 LoadableElem::iGetNumDof(void) const
 {
-	ASSERT(calls->i_get_num_dof != NULL);
+	ASSERT(calls->i_get_num_dof != 0);
    	return calls->i_get_num_dof(this);
 }
 
@@ -504,21 +504,21 @@ DofOrder::Order
 LoadableElem::GetDofType(unsigned int i) const
 {
    	ASSERT(i < iGetNumDof());
-	ASSERT(calls->set_dof != NULL);
+	ASSERT(calls->set_dof != 0);
    	return calls->set_dof(this, i);
 }
 
 void
 LoadableElem::Output(OutputHandler& OH) const
 {
-	ASSERT(calls->output != NULL);
+	ASSERT(calls->output != 0);
    	calls->output(this, OH);
 }
 
 std::ostream&
 LoadableElem::Restart(std::ostream& out) const
 {
-	ASSERT(calls->restart != NULL);
+	ASSERT(calls->restart != 0);
    	out << "    loadable: " << GetLabel() << ", \""
 		<< module_name << "\", ";
    	return calls->restart(this, out) << ';' << std::endl;
@@ -527,7 +527,7 @@ LoadableElem::Restart(std::ostream& out) const
 void
 LoadableElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	ASSERT(calls->work_space_dim != NULL);
+	ASSERT(calls->work_space_dim != 0);
    	calls->work_space_dim(this, piNumRows, piNumCols);
 }
 
@@ -537,7 +537,7 @@ LoadableElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-	ASSERT(calls->ass_jac != NULL);
+	ASSERT(calls->ass_jac != 0);
    	return calls->ass_jac(this, WorkMat, dCoef, XCurr, XPCurr);
 }
 
@@ -547,7 +547,7 @@ LoadableElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(calls->ass_mats != NULL);
+   	ASSERT(calls->ass_mats != 0);
    	calls->ass_mats(this, WorkMatA, WorkMatB, XCurr, XPCurr);
 }
 
@@ -557,26 +557,26 @@ LoadableElem::AssRes(SubVectorHandler& WorkVec,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(calls->ass_res != NULL);
+   	ASSERT(calls->ass_res != 0);
    	return calls->ass_res(this, WorkVec,
 					    dCoef, XCurr, XPCurr);
 }
 
 void
 LoadableElem::BeforePredict(VectorHandler& X,
-			    VectorHandler& XP,
-			    VectorHandler& XPrev,
-			    VectorHandler& XPPrev) const
+	VectorHandler& XP,
+	std::deque<VectorHandler*>& qXPr,
+	std::deque<VectorHandler*>& qXPPr) const
 {
-   	ASSERT(calls->before_predict != NULL);
-   	calls->before_predict(this, X, XP, XPrev, XPPrev);
+   	ASSERT(calls->before_predict != 0);
+   	calls->before_predict(this, X, XP, qXPr, qXPPr);
 }
 
 void
 LoadableElem::AfterPredict(VectorHandler& X,
 			   VectorHandler& XP)
 {
-   	ASSERT(calls->after_predict != NULL);
+   	ASSERT(calls->after_predict != 0);
    	calls->after_predict(this, X, XP);
 }
 
@@ -584,7 +584,7 @@ void
 LoadableElem::Update(const VectorHandler& XCurr,
 		     const VectorHandler& XPrimeCurr)
 {
-   	ASSERT(calls->update != NULL);
+   	ASSERT(calls->update != 0);
    	calls->update(this, XCurr, XPrimeCurr);
 }
 
@@ -592,21 +592,21 @@ void
 LoadableElem::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
-   	ASSERT(calls->after_convergence != NULL);
+   	ASSERT(calls->after_convergence != 0);
    	calls->after_convergence(this, X, XP);
 }
 
 unsigned int
 LoadableElem::iGetInitialNumDof(void) const
 {
-   	ASSERT(calls->i_get_initial_num_dof != NULL);
+   	ASSERT(calls->i_get_initial_num_dof != 0);
    	return calls->i_get_initial_num_dof(this);
 }
 
 void
 LoadableElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-   	ASSERT(calls->initial_work_space_dim != NULL);
+   	ASSERT(calls->initial_work_space_dim != 0);
    	calls->initial_work_space_dim(this, piNumRows, piNumCols);
 }
 
@@ -614,7 +614,7 @@ VariableSubMatrixHandler&
 LoadableElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& XCurr)
 {
-   	ASSERT(calls->initial_ass_jac != NULL);
+   	ASSERT(calls->initial_ass_jac != 0);
    	return calls->initial_ass_jac(this, WorkMat, XCurr);
 }
 
@@ -622,14 +622,14 @@ SubVectorHandler&
 LoadableElem::InitialAssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr)
 {
-   	ASSERT(calls->initial_ass_res != NULL);
+   	ASSERT(calls->initial_ass_res != 0);
    	return calls->initial_ass_res(this, WorkVec, XCurr);
 }
 
 void
 LoadableElem::SetInitialValue(VectorHandler& X)
 {
-   	ASSERT(calls->set_initial_value != NULL);
+   	ASSERT(calls->set_initial_value != 0);
    	calls->set_initial_value(this, X);
 }
 
@@ -638,41 +638,41 @@ LoadableElem::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
-   	ASSERT(calls->set_value != NULL);
+   	ASSERT(calls->set_value != 0);
    	calls->set_value(this, pDM, X, XP, ph);
 }
 
 unsigned int
 LoadableElem::iGetNumPrivData(void) const
 {
-   	ASSERT(calls->i_get_num_priv_data != NULL);
+   	ASSERT(calls->i_get_num_priv_data != 0);
    	return calls->i_get_num_priv_data(this);
 }
 
 unsigned int
 LoadableElem::iGetPrivDataIdx(const char *s) const
 {
-   	ASSERT(calls->i_get_priv_data_idx != NULL);
+   	ASSERT(calls->i_get_priv_data_idx != 0);
    	return calls->i_get_priv_data_idx(this, s);
 }
 
 doublereal
 LoadableElem::dGetPrivData(unsigned int i) const
 {
-   	ASSERT(calls->d_get_priv_data != NULL);
+   	ASSERT(calls->d_get_priv_data != 0);
    	return calls->d_get_priv_data(this, i);
 }
 
 int
 LoadableElem::GetNumConnectedNodes(void) const
 {
-	ASSERT(calls->i_get_num_connected_nodes != NULL);
+	ASSERT(calls->i_get_num_connected_nodes != 0);
 	return calls->i_get_num_connected_nodes(this);
 }
 
 void
 LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-	ASSERT(calls->get_connected_nodes != NULL);
+	ASSERT(calls->get_connected_nodes != 0);
 	return calls->get_connected_nodes(this, connectedNodes);
 }
 
@@ -680,7 +680,7 @@ UserDefinedElem*
 LoadableElemRead::Read(unsigned int uLabel, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP) const
 {
-	UserDefinedElem* pEl = NULL;
+	UserDefinedElem* pEl = 0;
 
 	if (HP.IsKeyWord("reference")) {
 		const char *s = HP.GetStringWithDelims();

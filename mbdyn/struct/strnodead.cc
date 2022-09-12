@@ -323,14 +323,6 @@ void StructNodeAd::UpdateRotation(doublereal dCoef) const
                          std::cerr << std::endl;
                     }
 
-                    std::cerr << "RPrev=" << std::endl;
-                    for (integer i = 1; i <= 3; ++i) {
-                         for (integer j = 1; j <= 3; ++j) {
-                              std::cerr << RPrev(i, j) << " ";
-                         }
-                         std::cerr << std::endl;
-                    }
-
                     std::cerr << "RCurr_grad=" << std::endl;
 
                     for (integer i = 1; i <= 3; ++i) {

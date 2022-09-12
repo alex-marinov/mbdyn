@@ -73,21 +73,22 @@ public:
      UniInPlaneFriction(unsigned uLabel, const DofOwner *pDO,
                         DataManager* pDM, MBDynParser& HP);
      virtual ~UniInPlaneFriction(void);
-     virtual unsigned int iGetNumDof(void) const;
-     virtual DofOrder::Order GetDofType(unsigned int i) const;
-     virtual DofOrder::Order GetEqType(unsigned int i) const;
-     virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
-     virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
-     virtual unsigned int iGetNumPrivData(void) const;
-     virtual unsigned int iGetPrivDataIdx(const char *s) const;
-     virtual doublereal dGetPrivData(unsigned int i) const;
-     virtual void Output(OutputHandler& OH) const;
-     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+     virtual unsigned int iGetNumDof(void) const override;
+     virtual DofOrder::Order GetDofType(unsigned int i) const override;
+     virtual DofOrder::Order GetEqType(unsigned int i) const override;
+     virtual DofOrder::Equality GetEqualityType(unsigned int i) const override;
+     virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const override;
+     virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const override;
+     virtual unsigned int iGetNumPrivData(void) const override;
+     virtual unsigned int iGetPrivDataIdx(const char *s) const override;
+     virtual doublereal dGetPrivData(unsigned int i) const override;
+     virtual void Output(OutputHandler& OH) const override;
+     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
      VariableSubMatrixHandler&
      AssJac(VariableSubMatrixHandler& WorkMat,
             doublereal dCoef,
             const VectorHandler& XCurr,
-            const VectorHandler& XPrimeCurr);
+            const VectorHandler& XPrimeCurr) override;
      virtual void
      AssJac(VectorHandler& JacY,
             const VectorHandler& Y,
@@ -99,7 +100,7 @@ public:
      AssRes(SubVectorHandler& WorkVec,
             doublereal dCoef,
             const VectorHandler& XCurr,
-            const VectorHandler& XPrimeCurr);
+            const VectorHandler& XPrimeCurr) override;
      template <typename T>
      inline void
      AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
@@ -108,20 +109,20 @@ public:
             const sp_grad::SpGradientVectorHandler<T>& XPrimeCurr,
             enum sp_grad::SpFunctionCall func);
      virtual void AfterConvergence(const VectorHandler& X,
-                                   const VectorHandler& XP);
+                                   const VectorHandler& XP) override;
      int iGetNumConnectedNodes(void) const;
-     void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+     void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const override;
      void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
-                   SimulationEntity::Hints *ph);
-     std::ostream& Restart(std::ostream& out) const;
-     virtual unsigned int iGetInitialNumDof(void) const;
+                   SimulationEntity::Hints *ph) override;
+     std::ostream& Restart(std::ostream& out) const override;
+     virtual unsigned int iGetInitialNumDof(void) const override;
      virtual void
-     InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+     InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const override;
      VariableSubMatrixHandler&
      InitialAssJac(VariableSubMatrixHandler& WorkMat,
-                   const VectorHandler& XCurr);
+                   const VectorHandler& XCurr) override;
      SubVectorHandler&
-     InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+     InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr) override;
 
 private:
      static const int iNumDofGradient = 15;
@@ -153,7 +154,7 @@ private:
                          const sp_grad::GpGradProd&) {
 
           }
-          
+
           inline void
           UpdateReaction(const sp_grad::SpColVector<doublereal, 3>& F1,
                          const sp_grad::SpColVector<doublereal, 3>& M1,
@@ -175,7 +176,7 @@ private:
                          const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& z,
                          const sp_grad::SpColVector<sp_grad::GpGradProd, 2>& zP) {
           }
-          
+
           inline void UpdateFriction(const sp_grad::SpColVector<doublereal, 2>& U,
                                      const sp_grad::SpColVector<doublereal, 2>& tau,
                                      const sp_grad::SpColVector<doublereal, 2>& z,
@@ -218,7 +219,7 @@ private:
                M2Y,
                M2Z
           };
-          
+
           char name[10];
      } rgPrivData[iNumPrivData];
 
@@ -239,6 +240,7 @@ private:
      sp_grad::SpMatrixA<doublereal, 2, 2> sigma0, sigma1, sigma2;
      doublereal vs, a;
      DriveOwner m_oInitialAssembly, m_oOffset;
+     bool bEnableMCP;
 };
 
 UniInPlaneFriction::ContactPoint::ContactPoint(const Vec3& offset, doublereal s)
@@ -320,7 +322,8 @@ UniInPlaneFriction::UniInPlaneFriction(
              Rp(Eye3),
              epsilon(0.),
              dFmax(0.),
-             bEnableFriction(false)
+             bEnableFriction(false),
+             bEnableMCP(false)
 {
      tCurr = tPrev = pDM->dGetTime();
 
@@ -399,18 +402,26 @@ UniInPlaneFriction::UniInPlaneFriction(
           ContactPoints1.push_back(ContactPoint(Zero3));
      }
 
-     if ( !HP.IsKeyWord("epsilon") )
-     {
-          silent_cerr("unilateral in plane(" << GetLabel() << "): keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+     if (HP.IsKeyWord("enable" "mcp")) {
+          bEnableMCP = HP.GetYesNoOrBool();
      }
+     
+     if (bEnableMCP) {
+          epsilon = 0.;
+     } else {
+          if ( !HP.IsKeyWord("epsilon") )
+          {
+               silent_cerr("unilateral in plane(" << GetLabel() << "): keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
 
-     epsilon = HP.GetReal();
+          epsilon = HP.GetReal();
 
-     if ( epsilon <= 0 )
-     {
-          silent_cerr("unilateral in plane(" << GetLabel() << "): epsilon must be greater than zero at line " << HP.GetLineData() << std::endl);
-          throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          if ( epsilon <= 0 )
+          {
+               silent_cerr("unilateral in plane(" << GetLabel() << "): epsilon must be greater than zero at line " << HP.GetLineData() << std::endl);
+               throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          }
      }
 
      dFmax = HP.IsKeyWord("max" "force" "increment") ? HP.GetReal() : std::numeric_limits<doublereal>::max();
@@ -604,6 +615,20 @@ DofOrder::Order UniInPlaneFriction::GetEqType(unsigned int i) const
      return GetDofType(i);
 }
 
+DofOrder::Equality UniInPlaneFriction::GetEqualityType(unsigned int i) const
+{
+     if (!bEnableMCP) {
+          return DofOrder::EQUALITY;
+     }
+
+     switch (GetDofType(i)) {
+     case DofOrder::ALGEBRAIC:
+          return DofOrder::INEQUALITY;
+     default:
+          return DofOrder::EQUALITY;
+     }
+}
+
 std::ostream& UniInPlaneFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
      integer iIndex = iGetFirstIndex();
@@ -634,13 +659,13 @@ std::ostream& UniInPlaneFriction::DescribeEq(std::ostream& out, const char *pref
 
      for ( int i = 1; i <= N; ++i )
      {
-          out << prefix << ++iIndex << ": constraint equation [c" << i << "]" << std::endl;
+          out << prefix << ++iIndex << ": constraint equation c[" << i << "]" << std::endl;
 
           if (bEnableFriction)
           {
                for (int j = 1; j <= 2; ++j)
                {
-                    out << prefix << ++iIndex << ": stiction state variation [Phi" << j << "(" << i << ")]" << std::endl;
+                    out << prefix << ++iIndex << ": stiction state variation Phi[" << j << "," << i << "]" << std::endl;
                }
           }
      }
@@ -791,7 +816,7 @@ UniInPlaneFriction::Output(OutputHandler& OH) const
 void
 UniInPlaneFriction::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-     *piNumRows = (ContactPoints1.size() * iNumDofGradient);
+     *piNumRows = ContactPoints1.size() * iNumDofGradient;
      *piNumCols = 0;
 }
 
@@ -817,7 +842,7 @@ UniInPlaneFriction::AssJac(VectorHandler& JacY,
                            VariableSubMatrixHandler& WorkMat)
 {
      using namespace sp_grad;
-     
+
      SpGradientAssVec<GpGradProd>::AssJac(this,
                                           JacY,
                                           Y,
@@ -854,8 +879,7 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
 
      const integer iFirstMomentumIndexNode1 = pNode1->iGetFirstMomentumIndex();
      const integer iFirstMomentumIndexNode2 = pNode2->iGetFirstMomentumIndex();
-     const integer iFirstIndex = iGetFirstIndex();
-     integer iDofIndex = iFirstIndex;
+     integer iDofIndex = iGetFirstIndex();
 
      const integer N = ContactPoints1.size();
      const doublereal alpha = m_oInitialAssembly.dGet();
@@ -868,7 +892,7 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
      for (integer i = 1; i <= N; ++i)
      {
           ContactPoint& cont = ContactPoints1[i - 1];
-          
+
           pNode1->GetXCurr(X1, dCoef, func);
           pNode1->GetRCurr(R1, dCoef, func);
           pNode2->GetXCurr(X2, dCoef, func);
@@ -880,7 +904,11 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           const SpColVector<T, 3> dX = X1 + R1 * o1 - X2 - R2 * o2;
           const T dXn = Dot(Rp.GetCol(3), Transpose(R2) * dX) - m_oOffset.dGet() + lambda / cont.s;
 
-          if (alpha != 0.)
+          if (bEnableMCP)
+          {
+               WorkVec.AddItem(iDofIndex, dXn / dCoef);
+          }
+          else if (alpha != 0.)
           {
                const T d = 0.5 * (dXn - lambda);
                const T c = 0.5 * (dXn + lambda) - sqrt(d * d + epsilon);
@@ -954,7 +982,7 @@ UniInPlaneFriction::AssRes(sp_grad::SpGradientAssVec<T>& WorkVec,
           }
 
           F1p *= alpha;
-          
+
           const SpColVector<T, 3> F1 = R2 * F1p;
           const SpColVector<T, 3> M1 = Cross(R1 * o1, F1);
           const SpColVector<T, 3> F2 = -F1;

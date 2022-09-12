@@ -1,0 +1,266 @@
+/*
+ * MBDyn (C) is a multibody analysis code.
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2013
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ *
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ AUTHOR: Reinhard Resch <mbdyn-user@a1.net>
+        Copyright (C) 2022(-2022) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
+*/
+
+set: real X0 = 20e-3;
+set: real Y0 = 30e-3;
+set: real Z0 = -15e-3;
+
+set: real m = 2;
+set: real J11 = 1;
+set: real J22 = 1;
+set: real J33 = 1;
+set: real g = 9.81;
+set: real l = 0.5;
+
+set: real deltaz = 500e-3;
+set: real theta_y = 10. * pi / 180.;
+set: real theta_z = 0.;
+
+set: real sn = 1e300;
+
+set: integer node_id_slider = 1001;
+set: integer node_id_ground = 1003;
+
+set: integer prm_node_id_lambda_1 = 1101;
+set: integer prm_node_id_lambda_2 = 1102;
+set: integer prm_node_id_lambda_3 = 1103;
+set: integer prm_node_id_tau1 = 1105;
+set: integer prm_node_id_tau2 = 1106;
+set: integer prm_node_id_U1 = 1107;
+set: integer prm_node_id_U2 = 1108;
+set: integer prm_node_id_z1 = 1109;
+set: integer prm_node_id_z2 = 1110;
+set: integer prm_node_id_zP1 = 1111;
+set: integer prm_node_id_zP2 = 1112;
+set: integer prm_node_id_F1x = 1113;
+set: integer prm_node_id_F1y = 1114;
+set: integer prm_node_id_F1z = 1115;
+set: integer prm_node_id_M1x = 1116;
+set: integer prm_node_id_M1y = 1117;
+set: integer prm_node_id_M1z = 1118;
+set: integer prm_node_id_F2x = 1119;
+set: integer prm_node_id_F2y = 1120;
+set: integer prm_node_id_F2z = 1121;
+set: integer prm_node_id_M2x = 1122;
+set: integer prm_node_id_M2y = 1123;
+set: integer prm_node_id_M2z = 1124;
+
+set: integer body_id_slider = 2001;
+set: integer joint_id_ground = 3001;
+set: integer joint_id_slider = 3002;
+set: integer ref_id_slider = 4001;
+
+begin: data;
+    problem: initial value;     # the default
+end: data;
+
+begin: initial value;
+    initial time: 0.;
+    final time: 1;
+    time step: 1e-3;
+
+    max iterations: 100;
+    tolerance: 1e-6, test, norm, 1e-6, test, norm;
+    method: implicit euler;
+
+    threads: assembly, 1;
+    threads: solver, 1;
+
+    linear solver: umfpack, grad, scale, row max column max, always, max iterations, 3;
+    nonlinear solver: mcp newton min fb, lambda min, 0., tolerance x, 1e-7;
+    
+    derivatives tolerance: 1e-2, 1e-3;
+    derivatives max iterations: 10;
+    derivatives coefficient: 1e-2;
+    output: iterations;
+end: initial value;
+
+begin: control data;
+    use automatic differentiation;
+    output meter: closest next, 0, forever, const, 1e-3;
+    default output: all;
+    structural nodes: 3;
+    parameter nodes: 23;
+    rigid bodies: 2;
+    loadable elements: 2;
+    joints: 1;
+    max iterations: 10;
+    tolerance: 1e-15;
+    gravity;
+    print: dof description;
+    use: loadable elements, in assembly;
+end: control data;
+
+reference: ref_id_slider,
+    position, reference, global, X0, Y0, Z0,
+    orientation, reference, global, matr,       cos(theta_y) * cos(theta_z),    -sin(theta_z),  sin(theta_y) * cos(theta_z),
+                                                                            cos(theta_y) * sin(theta_z),         cos(theta_z),  sin(theta_y) * sin(theta_z),
+                                                                            -sin(theta_y),                                                         0.,                                  cos(theta_y),
+    velocity,         reference, global, null,
+    angular velocity, reference, global, null;
+
+begin: nodes;
+
+structural: node_id_ground, static,
+    position, reference, global, 1e-3, -5e-3, -1e-3,
+        orientation, reference, global, euler123, -60*pi/180, -30*pi/180, 3*pi/180,
+        velocity, reference, global, null,
+        angular velocity, reference, global, null;
+
+structural: node_id_slider, dynamic,
+    position, reference, ref_id_slider, 0., 0., 0.,
+        orientation, reference, ref_id_slider, eye,
+        velocity, reference, ref_id_slider, 0., 0., 0.,
+        angular velocity, reference, ref_id_slider, 0., 0., 0.,
+    accelerations, yes;
+
+structural: node_id_slider+1, dynamic,
+    position, reference, ref_id_slider, 0., 0., 0.,
+        orientation, reference, ref_id_slider, eye,
+        velocity, reference, ref_id_slider, 0., 0., 0.,
+        angular velocity, reference, ref_id_slider, 0., 0., 0.,
+    accelerations, yes;
+
+
+parameter: prm_node_id_lambda_1, element;
+parameter: prm_node_id_lambda_2, element;
+parameter: prm_node_id_lambda_3, element;
+parameter: prm_node_id_tau1, element;
+parameter: prm_node_id_tau2, element;
+parameter: prm_node_id_U1, element;
+parameter: prm_node_id_U2, element;
+parameter: prm_node_id_z1, element;
+parameter: prm_node_id_z2, element;
+parameter: prm_node_id_zP1, element;
+parameter: prm_node_id_zP2, element;
+parameter: prm_node_id_F1x, element;
+parameter: prm_node_id_F1y, element;
+parameter: prm_node_id_F1z, element;
+parameter: prm_node_id_M1x, element;
+parameter: prm_node_id_M1y, element;
+parameter: prm_node_id_M1z, element;
+parameter: prm_node_id_F2x, element;
+parameter: prm_node_id_F2y, element;
+parameter: prm_node_id_F2z, element;
+parameter: prm_node_id_M2x, element;
+parameter: prm_node_id_M2y, element;
+parameter: prm_node_id_M2z, element;
+
+end: nodes;
+
+begin: elements;
+        body: body_id_slider,
+                # node
+                node_id_slider,
+                # mass
+                m,
+                # relative center of mass
+                reference, node, null,
+                # inertia matrix
+                diag, J11, J22, J33,
+                inertial, reference, node, eye;
+
+
+        body: body_id_slider + 1,
+                # node
+                node_id_slider + 1,
+                # mass
+                m,
+                # relative center of mass
+                reference, node, null,
+                # inertia matrix
+                diag, J11, J22, J33,
+                inertial, reference, node, eye;
+                
+    joint: joint_id_ground, clamp, node_id_ground, node, node;
+
+    user defined: joint_id_slider, unilateral in plane,
+        node1,
+            node_id_slider,
+            offset, 3,
+                reference, global, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz, stiffness, sn,
+            enable mcp, yes,
+        node2,
+            node_id_ground,
+            offset, reference, ref_id_slider, null,
+            hinge, reference, ref_id_slider, eye;
+
+    user defined: joint_id_slider + 1, unilateral in plane,
+        node1,
+            node_id_slider + 1,
+            offset, 3,
+                reference, global, l * cos(60*pi/180), l * sin(60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(-60*pi/180), l * sin(-60 * pi / 180), deltaz, stiffness, sn,
+                reference, global, l * cos(180*pi/180), l * sin(180 * pi / 180), deltaz, stiffness, sn,
+            enable mcp, yes,
+        node2,
+            node_id_ground,
+            offset, reference, ref_id_slider, null,
+            hinge, reference, ref_id_slider, eye;
+
+    bind: joint_id_slider, user defined, prm_node_id_lambda_1, string, "lambda[1]";
+    bind: joint_id_slider, user defined, prm_node_id_lambda_2, string, "lambda[2]";
+    bind: joint_id_slider, user defined, prm_node_id_lambda_3, string, "lambda[3]";
+    bind: joint_id_slider, user defined, prm_node_id_tau1, string, "tau1[1]";
+    bind: joint_id_slider, user defined, prm_node_id_tau2, string, "tau2[1]";
+    bind: joint_id_slider, user defined, prm_node_id_U1, string, "U1[1]";
+    bind: joint_id_slider, user defined, prm_node_id_U2, string, "U2[1]";
+    bind: joint_id_slider, user defined, prm_node_id_z1, string, "z1[1]";
+    bind: joint_id_slider, user defined, prm_node_id_z2, string, "z2[1]";
+    bind: joint_id_slider, user defined, prm_node_id_zP1, string, "zP1[1]";
+    bind: joint_id_slider, user defined, prm_node_id_zP2, string, "zP2[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F1x, string, "F1x[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F1y, string, "F1y[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F1z, string, "F1z[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M1x, string, "M1x[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M1y, string, "M1y[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M1z, string, "M1z[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F2x, string, "F2x[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F2y, string, "F2y[1]";
+    bind: joint_id_slider, user defined, prm_node_id_F2z, string, "F2z[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M2x, string, "M2x[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M2y, string, "M2y[1]";
+    bind: joint_id_slider, user defined, prm_node_id_M2z, string, "M2z[1]";
+            
+    gravity: 0., 0., -1.,
+    const, g;
+end: elements;

@@ -101,7 +101,6 @@
 
 #ifdef DEBUG
 #define TRACE(msg) ((void)(std::cerr << __FILE__ << ":" << __LINE__ << ":" << __PRETTY_FUNCTION__ << ":" << msg << std::endl))
-#define ASSERT(expr) assert(expr)
 #else
 #define TRACE(msg) ((void)0)
 #endif

@@ -341,9 +341,13 @@ public:
 
 		NEWTONRAPHSON,
 		MATRIXFREE,
+                NOX,
 		LINESEARCH,
                 BFGS,
-                NOX,
+                MCP_NEWTON_FB,     
+                MCP_NEWTON_MIN_FB,
+                SICONOS_MCP_NEWTON_FB,
+                SICONOS_MCP_NEWTON_MIN_FB,
 		DEFAULT = NEWTONRAPHSON,
 
 		LASTSOLVERTYPE

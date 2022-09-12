@@ -11,6 +11,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- many new integrators; (Pierangelo Masarati, Huimin Zhng, Runsen Zang,	...)
+		- experimental hybrid integrator; (Reinard Resch)
 		- Trilinos wrappers; (Reinard Resch)
 		- get rid of legacy NetCDF 3; require NetCDF > 4.3 with c++ wrappers (Marco Morandini)
 		- new "relnorm" and "sepnorm" residual checks (GSOC 2021, Satyam Kumar and Marco Morandini)

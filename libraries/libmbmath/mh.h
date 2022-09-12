@@ -225,6 +225,10 @@ public:
         virtual void Scale(const std::vector<doublereal>& oRowScale, const std::vector<doublereal>& oColScale);
         virtual MatrixHandler* Copy() const=0;
         virtual bool AddItem(integer iRow, const sp_grad::SpGradient& oItem);
+        virtual bool SubItem(integer iRow, const sp_grad::SpGradient& oItem);
+private:
+        template <typename Operation>
+        inline bool ItemOperation(integer iRow, const Operation oper, const sp_grad::SpGradient& oItem);
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */
