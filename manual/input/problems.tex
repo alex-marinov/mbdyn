@@ -1120,6 +1120,14 @@ with
     # to plot the "y" component of each node of each eigenvector,
     # with respect to the reference "x" component of the position of the nodes
     octave:2> plot(X0(1:6:end), VR(idx + 2, :))
+    # to plot all components of eigenvector 5 in 3D,
+    # with an 'x' in the undeformed position
+    # and a 'o' in the deformed position, scaled by 0.1
+    octave:3> mode = 5; scale = 0.1;
+    octave:4> plot3(X0(1:6:end), X0(2:6:end), X0(3:6:end), 'x',
+                    X0(1:6:end) + scale*VR(idx + 1, mode), ...
+                    X0(2:6:end) + scale*VR(idx + 2, mode), ...
+                    X0(3:6:end) + scale*VR(idx + 3, mode), 'o')
 \end{verbatim}
 
 
