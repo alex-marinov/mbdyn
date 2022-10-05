@@ -152,7 +152,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		return;
 	}
 
-	ASSERT(pUS->Connected());
+	ASSERT(pUS->Connected()); // only valid for SOCK_STREAM ?
 	
 	/* read only every InputEvery steps */
 	InputCounter++;
@@ -433,7 +433,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 	if ((socket_type == SOCK_DGRAM) && !bCreate) {
 		silent_cerr("SocketStreamDrive(" << uLabel << ", \"" << name << "\"): "
-			"socket type=udp incompatible with create=no "
+			"socket type = udp incompatible with create = no "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -618,7 +618,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	if ((socket_type == SOCK_STREAM) && bCreate) {
 		const_cast<DataManager *>(pDM)->RegisterSocketUser(pUS);
 
-	} else {
+	} else if (socket_type == SOCK_STREAM) {
 		pUS->Connect();
 	}
 
