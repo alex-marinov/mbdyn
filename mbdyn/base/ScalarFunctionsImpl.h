@@ -252,5 +252,19 @@ public:
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
 
+class PowFunScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	PowFunScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~PowFunScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
 #endif /* ScalarFunctionsImpl_hh */
 

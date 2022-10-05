@@ -49,6 +49,7 @@ set of points $\{a,b\}$
 \item \kw{sub}: $f(x)=f_1(x) - f_2(x)$
 \item \kw{mul}: $f(x)=f_1(x) \cdot f_2(x)$
 \item \kw{div}: $f(x)=f_1(x) / f_2(x)$
+\item \kw{powfun}: $f(x)=f_1(x) ^{f_2(x)}$
 \end{itemize}
 
 \noindent
@@ -414,6 +415,27 @@ Note: division by zero is checked, and an exception is thrown.
     scalar function: "first_function", const, 1.;
     scalar function: "second_function", const, 2.;
     scalar function: "div_function", div, "first_function", "second_function";
+\end{verbatim}
+
+\subsubsection{Powfun Scalar Function}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{powfun}
+
+    \bnt{scalar_func_args} ::= (\hty{ScalarFunction}) \bnt{f1} , (\hty{ScalarFunction}) \bnt{f2}
+\end{Verbatim}
+%\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{f1}\plbr{x} ^{ \nt{f2}\plbr{x} }
+\end{align}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "first_function", const, 1.;
+    scalar function: "second_function", const, 2.;
+    scalar function: "powfun_function", powfun, "first_function", "second_function";
 \end{verbatim}
 
 

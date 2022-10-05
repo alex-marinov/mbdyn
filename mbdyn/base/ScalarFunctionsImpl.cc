@@ -1134,6 +1134,74 @@ struct CosineSFR: public ScalarFunctionRead {
 	};
 };
 
+// PowFunScalarFunction
+PowFunScalarFunction::PowFunScalarFunction(
+	const BasicScalarFunction*const b1,
+	const BasicScalarFunction*const b2)
+: a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)),
+a2(ptr_cast<const DifferentiableScalarFunction*const>(b2))
+{
+	NO_OP;
+}
+
+PowFunScalarFunction::~PowFunScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+PowFunScalarFunction::operator()(const doublereal x) const
+{
+	doublereal base, exponent;
+	base = a1->operator()(x);
+	exponent = a2->operator()(x);
+    doublereal dummy;
+	if ((base < 0) && (modf(exponent, &dummy)!=0.)) {
+		/* TODO: cleanup exception handling */
+		silent_cerr("PowFunScalarFunction: negative base and decimal exponent" << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	return pow(base,exponent);
+}
+
+doublereal
+PowFunScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >= 0, "Error in PowFunScalarFunction::ComputeDiff, order<0");
+	switch (order) {
+	case 0: 
+		return this->operator()(x);
+
+	default:
+        doublereal base, exponent, baseder, exponentder;
+        base = a1->operator()(x);
+        exponent = a2->operator()(x);
+        doublereal dummy;
+        if ((base < 0) && (modf(exponent, &dummy)!=0.)) {
+            /* TODO: cleanup exception handling */
+            silent_cerr("PowFunScalarFunction: negative base and decimal exponent" << std::endl);
+            throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+        }
+        
+        baseder = a1->ComputeDiff(x, order);
+        exponentder = a2->ComputeDiff(x, order);
+        
+		return pow(base,exponent-1)*( exponent*baseder + base*log(base)*exponentder ); // thanks WolframAlpha
+	}
+}
+
+// ScalarFunction parsing functional object
+struct PowFunSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new PowFunScalarFunction(f1, f2);
+	};
+};
+
 //---------------------------------------
 
 typedef std::map<std::string, const ScalarFunctionRead *, ltstrcase> SFReadType;
@@ -1580,6 +1648,8 @@ InitSF(void)
 	b = SetSF("sin", new SineSFR);
 	ASSERT(b);
 	b = SetSF("cos", new CosineSFR);
+	ASSERT(b);
+	b = SetSF("powfun", new PowFunSFR);
 	ASSERT(b);
 
 	/* this is about initializing the scalar function drive */
