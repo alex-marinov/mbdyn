@@ -60,6 +60,14 @@ public:
 		PITCHRATE,
 		YAWRATE,
 
+		NODE_BODY_ACC_X,	// Matteo Daniele edits - node linear accelerations (body accelerations)
+		NODE_BODY_ACC_Y,	// Matteo Daniele edits - node linear accelerations (body accelerations)
+		NODE_BODY_ACC_Z,	// Matteo Daniele edits - node linear accelerations (body accelerations)
+		
+		NODE_BODY_ACC_P,	// Matteo Daniele edits - node angular rate variations (body accelerations)
+		NODE_BODY_ACC_Q,	// Matteo Daniele edits - node angular rate variations (body accelerations)
+		NODE_BODY_ACC_R,	// Matteo Daniele edits - node angular rate variations (body accelerations)
+
 		LASTMEASURE
 	};
 

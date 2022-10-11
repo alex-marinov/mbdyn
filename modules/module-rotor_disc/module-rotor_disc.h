@@ -210,6 +210,7 @@ public:
     enum PrivData {
 
         PRIV_THETACOLL = 1,
+        PRIV_OMEGA,
         PRIV_THRUST,
         PRIV_COUPLEINDUCED,
         PRIV_COUPLEPROFILE,

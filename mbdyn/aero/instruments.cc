@@ -59,6 +59,18 @@ dBankPrev(0.)
 	dMeasure[INIT_X2] = X(2);
 	dMeasure[INIT_X1] = X(1);
 	/*------------------------------------------------------------------------*/
+	/*Matteo Daniele edits--------------------------------------------------------*/
+	const Vec3& LINACC(pNode->GetXPPCurr());
+	const Vec3& ANGACC(pNode->GetWPCurr());
+	dMeasure[NODE_BODY_ACC_X] = LINACC(1);
+	dMeasure[NODE_BODY_ACC_Y] = LINACC(2);
+	dMeasure[NODE_BODY_ACC_Z] = LINACC(3);
+	dMeasure[NODE_BODY_ACC_P] = ANGACC(1);
+	dMeasure[NODE_BODY_ACC_Q] = ANGACC(2);
+	dMeasure[NODE_BODY_ACC_R] = ANGACC(3);
+	/*------------------------------------------------------------------------*/
+
+	
 }
 
 AircraftInstruments::~AircraftInstruments(void)
@@ -206,6 +218,18 @@ AircraftInstruments::Update(void)
 	dMeasure[ROLLRATE] = VecTmp(1);
 	dMeasure[PITCHRATE] = VecTmp(2);
 	dMeasure[YAWRATE] = VecTmp(3);
+
+	/* Matteo Daniele edits */
+	const Vec3& LINACC(pNode->GetXPPCurr());
+	const Vec3& ANGACC(pNode->GetWPCurr());
+	dMeasure[NODE_BODY_ACC_X] = LINACC(1);
+	dMeasure[NODE_BODY_ACC_Y] = LINACC(2);
+	dMeasure[NODE_BODY_ACC_Z] = LINACC(3);
+	dMeasure[NODE_BODY_ACC_P] = ANGACC(1);
+	dMeasure[NODE_BODY_ACC_Q] = ANGACC(2);
+	dMeasure[NODE_BODY_ACC_R] = ANGACC(3);
+	/* ------------------------------------------------------------------ */
+
 }
 
 void
@@ -337,6 +361,13 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 		{ "rollrate", ROLLRATE },
 		{ "pitchrate", PITCHRATE },
 		{ "yawrate", YAWRATE },
+		{ "body_axb", NODE_BODY_ACC_X},	// Matteo Daniele edits
+		{ "body_ayb", NODE_BODY_ACC_Y},	// Matteo Daniele edits
+		{ "body_azb", NODE_BODY_ACC_Z},	// Matteo Daniele edits
+		{ "body_pd", NODE_BODY_ACC_X},	// Matteo Daniele edits
+		{ "body_qd", NODE_BODY_ACC_Y},	// Matteo Daniele edits
+		{ "body_rd", NODE_BODY_ACC_Z},	// Matteo Daniele edits
+
 		{ 0 }
 	};
 
@@ -382,7 +413,7 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 
 		} else if (HP.IsKeyWord("aeroelasticity")) {
 			R = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
-
+		
 		} else {
 			R = HP.GetRotRel(ReferenceFrame(pNode));
 		}

@@ -222,7 +222,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         Cl0 = HP.GetReal();
     }
     else { 
-        std::cout << "rotordisc(" << uLabel << "): Cl0 not provided, assuming null Cl0"<< std::endl;
+        //std::cout << "rotordisc(" << uLabel << "): Cl0 not provided, assuming null Cl0"<< std::endl;
         Cl0 = 0.0;
     }
 
@@ -237,7 +237,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         bWithDrag = true;
     }
     else {
-        std::cout << "rotordisc(" << uLabel << "): drag coefficient not provided, assuming null rotor drag"<< std::endl;
+        //std::cout << "rotordisc(" << uLabel << "): drag coefficient not provided, assuming null rotor drag"<< std::endl;
         bWithDrag = false;
     }
 
@@ -245,7 +245,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         BladeTwist = HP.GetReal();
     }
     else {
-        std::cout << "rotordisc(" << uLabel << "): twist not provided, assuming null twist"<< std::endl;
+        //std::cout << "rotordisc(" << uLabel << "): twist not provided, assuming null twist"<< std::endl;
         BladeTwist = 0.0;
     }
 
@@ -255,7 +255,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         bWithStallLimits = true;
     }
     else {
-        std::cout << "rotordisc(" << uLabel << "): stall limits not provided, stall will not be included in the model"<< std::endl;
+        //std::cout << "rotordisc(" << uLabel << "): stall limits not provided, stall will not be included in the model"<< std::endl;
         bWithStallLimits = false;
     }
 
@@ -265,7 +265,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         bWithCollSaturation = true;
     }
     else {
-        std::cout << "rotordisc(" << uLabel << "): control limits not provided, saturation not included"<< std::endl;
+        //std::cout << "rotordisc(" << uLabel << "): control limits not provided, saturation not included"<< std::endl;
         bWithCollSaturation = false;
     }
 
@@ -291,8 +291,8 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
         if (HP.IsKeyWord("main" "rotor" "nominal" "angular" "speed")){
             mr_nominal_omega        = HP.GetReal();
             if (bGotOmega == false){
-                std::cout << "rotordisc(" << uLabel << "): tail rotor angular speed not provided: "<< std::endl;
-                std::cout << "using as default value: tail_rotor_omega = 4*main_rotor_omega"<< std::endl;
+                //std::cout << "rotordisc(" << uLabel << "): tail rotor angular speed not provided: "<< std::endl;
+                //std::cout << "using as default value: tail_rotor_omega = 4*main_rotor_omega"<< std::endl;
                 RotorOmega = 4.0*mr_nominal_omega;
             }
         }
@@ -308,7 +308,7 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
     // second case: we are dealing with a disc rotor, we need to compute the thrust in hover
     // at sea level to find the induced velocity in hover
     else if (HP.IsKeyWord("MTOW")){
-
+        
         MTOW = HP.GetReal();
         ThrustHover = MTOW*g;
 
@@ -333,19 +333,30 @@ RotorDisc::RotorDisc( unsigned int uLabel, const DofOwner *pDO,
     PowerHover = PowerInducedHover+PowerProfileHover;
 
     if (bGotTailRotor){
-        std::cout <<"ref distance [m]: " << hubs_distance << std::endl;
-        std::cout <<"ref nominal power [rad]: " << mr_nominal_power_shp << std::endl;
-        std::cout <<"ref omega [rad/s]: " << mr_nominal_omega << std::endl;
+        //std::cout <<"ref distance [m]: " << hubs_distance << std::endl;
+        //std::cout <<"ref nominal power [hp]: " << mr_nominal_power_shp << std::endl;
+        //std::cout <<"ref omega [rad/s]: " << mr_nominal_omega << std::endl;
     }
     else if (bGotMainRotor){
-        std::cout <<"MTOW [kg]: " << MTOW << std::endl;
+        //std::cout <<"MTOW [kg]: " << MTOW << std::endl;
     }
-    std::cout <<"rotordisc(" << uLabel << "): Initial Properties"<< std::endl;
-    std::cout <<"###########################" << std::endl;
-    std::cout <<"Induced velocity in Hover [m/s]: " << v1hInit << std::endl;
-    std::cout <<"Thrust required for Hover [N]: " << ThrustHover << std::endl;
-    std::cout <<"Power required for Hover [hp]: " << PowerHover*W2hp << std::endl;
-    std::cout <<"###########################" << std::endl;
+
+    doublereal t0,t1,t2,t3, CtHover;
+    CtHover = ThrustHover/(rho*pow(RotorOmega*RotorRadius,2.0)*DiscArea);
+    t0 = 12.0/(RotorSolidity*ClAlpha);
+    t1 = CtHover/2.0;
+    t2 = RotorSolidity*ClAlpha/8.0*sqrt(t1);
+    t3 = -0.75*BladeTwist;
+
+    doublereal thetaCollHover = t0*(t1+t2)-t3;
+
+    //std::cout <<"rotordisc(" << uLabel << "): Initial Properties"<< std::endl;
+    //std::cout <<"###########################" << std::endl;
+    //std::cout <<"Induced velocity in Hover [m/s]: "     << v1hInit                << std::endl;
+    //std::cout <<"Thrust required for Hover [N]: "       << ThrustHover            << std::endl;
+    //std::cout <<"Power required for Hover [hp]: "       << PowerHover*W2hp        << std::endl;
+    //std::cout <<"Collective required for Hover [deg]: " << thetaCollHover*rad2deg        << std::endl;
+    //std::cout <<"###########################" << std::endl;
 
 
     SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
@@ -403,41 +414,30 @@ void RotorDisc::Output(OutputHandler& OH) const
             << " " << F            	        // 2-4:     force               [N]
             << " " << M            	        // 5-7:     moment              [Nm]
             << " " << thetaColl             // 8:       thetaColl           [rad]
-            << " " << Thrust                // 9:       Thrust              [N]
-            << " " << CoupleInduced         // 10:       CoupleInduced       [Nm]
-            << " " << CoupleProfile         // 11:      CoupleProfile       [Nm]
-            << " " << Couple                // 12:      Couple              [Nm]
-            << " " << PowerInduced          // 13:      PowerInduced        [W]
-            << " " << PowerProfile          // 14:      PowerProfile        [W]
-            << " " << Power                 // 15:      Power               [W]
-            << " " << PowerInducedHover     // 16:      PowerInducedHover   [W]
-            << " " << PowerProfileHover     // 17:      PowerProfileHover   [W]
-            << " " << PowerHover            // 18:      PowerHover          [W]
-            << " " << alphaTPP              // 19:      alphaTPP            [rad]
-            << " " << rho                   // 20:      rho                 [kg/m3]
-            << " " << lambda                // 21:      lambda              [-]
-            << " " << V1                    // 22:      V1                  [m/s]
-            << " " << v1h                   // 23:      v1h                 [m/s]
-            << " " << VTrHub                // 24-26:   VTrHub              [m/s]
-            << " " << CpInduced             // 27:      CpInduced           [-]
-            << " " << CpProfile             // 28:      CpProfile           [-]
-            << " " << Cp                    // 29:      Cp                  [-]
-            << " " << CpSigma               // 30:      CpSigma             [-]
-            << " " << Ct                    // 31:      Ct                  [-]
-            << " " << CtSigma               // 32:      CtSigma             [-]
-            << " " << FOM                   // 33:      FOM                 [-]
-            << " " << thetaColl*rad2deg                 //34
-            << " " << abs(Thrust)                       //35
-            << " " << abs(CoupleInduced)                //36
-            << " " << abs(CoupleProfile)                //37
-            << " " << abs(Couple)                       //38
-            << " " << PowerInduced*W2hp                 //39
-            << " " << PowerProfile*W2hp                 //40
-            << " " << Power*W2hp                        //41
-            << " " << PowerInducedHover*W2hp            //42
-            << " " << PowerProfileHover*W2hp            //43
-            << " " << PowerHover*W2hp                   //44
-            << " " << alphaTPP*rad2deg                  //45
+            << " " << RotorOmega            // 9:       RotorOmega           [rad/s]
+            << " " << Thrust                // 10:       Thrust              [N]
+            << " " << CoupleInduced         // 11:       CoupleInduced       [Nm]
+            << " " << CoupleProfile         // 12:      CoupleProfile       [Nm]
+            << " " << Couple                // 13:      Couple              [Nm]
+            << " " << PowerInduced          // 14:      PowerInduced        [W]
+            << " " << PowerProfile          // 15:      PowerProfile        [W]
+            << " " << Power                 // 16:      Power               [W]
+            << " " << PowerInducedHover     // 17:      PowerInducedHover   [W]
+            << " " << PowerProfileHover     // 18:      PowerProfileHover   [W]
+            << " " << PowerHover            // 19:      PowerHover          [W]
+            << " " << alphaTPP              // 20:      alphaTPP            [rad]
+            << " " << rho                   // 21:      rho                 [kg/m3]
+            << " " << lambda                // 22:      lambda              [-]
+            << " " << V1                    // 23:      V1                  [m/s]
+            << " " << v1h                   // 24:      v1h                 [m/s]
+            << " " << VTrHub                // 25-27:   VTrHub              [m/s]
+            << " " << CpInduced             // 28:      CpInduced           [-]
+            << " " << CpProfile             // 29:      CpProfile           [-]
+            << " " << Cp                    // 30:      Cp                  [-]
+            << " " << CpSigma               // 31:      CpSigma             [-]
+            << " " << Ct                    // 32:      Ct                  [-]
+            << " " << CtSigma               // 33:      CtSigma             [-]
+            << " " << FOM                   // 34:      FOM                 [-]
             << std::endl;
     }
 }
@@ -580,9 +580,13 @@ void RotorDisc::PowerCalc(){
     
     }
     // from L'Elicottero, M. Arra, pp. 50-60
+    computeLambdaNewman();
+    lambda = lambdaNewman;
+
     CoupleInduced   = Thrust*V1/RotorOmega;
     PowerInduced    = pow(Thrust,1.5)/sqrt(2.0*rho*DiscArea);
-    CpInduced       = pow(Ct,1.5)/sqrt(2.0);
+     
+    CpInduced       = Ct*lambda;
 
     Couple = CoupleInduced + CoupleProfile;
     Power  = PowerInduced + PowerProfile;
@@ -594,9 +598,6 @@ void RotorDisc::PowerCalc(){
     CtSigma = Ct/RotorSolidity;
     CpSigma = Cp/RotorSolidity;
 
-    computeLambdaNewman();
-    lambda = lambdaNewman;
-    
     OutputCouple[0] = 0.0;
     OutputCouple[1] = 0.0;
     OutputCouple[2] = Couple;
@@ -652,15 +653,21 @@ void RotorDisc::computeLambdaNewman(int itMax, doublereal tollMax){
     
     doublereal ct2 = 0.5*Ct;
     // initial guess is lambda just found out
-    lambdaItPrev = 0.0;
-    lambdaIt = lambda;
+    isnan(lambda) ? lambdaItPrev = 0.0 : lambdaItPrev=lambda;
+    // lambdaItPrev = lambda;
+    //lambdaIt     = lambda;
     vsx = mu*cos(alphaTPP);
+
+    doublereal b1,c1;
+    //b1 = 0.5*RotorSolidity*Cl/8.0;
+    //c1 = -RotorSolidity*Cl/12.0*(thetaColl+0.75*BladeTwist);
+    //lambdaIt = -b1+sqrt(pow(b1,2.0)-c1);
 
     doublereal tollLn = 10.0;
     int it=0;
     while ((it<=itMax) and (tollLn>=tollMax)){
-        vsz = mu*sin(alphaTPP)+lambdaIt;
-        f = lambdaIt-ct2*pow((pow(vsx,2.0)+pow(vsz,2.0)),-0.5);
+        vsz = mu*sin(alphaTPP)+lambdaItPrev;
+        f = lambdaItPrev-ct2*pow((pow(vsx,2.0)+pow(vsz,2.0)),-0.5);
         dfdl = 1+ct2*vsz*pow((pow(vsx,2.0)+pow(vsz,2.0)),-1.5);
         lambdaIt = lambdaItPrev - f/dfdl;
         tollLn = abs(lambdaIt-lambdaItPrev);
@@ -848,6 +855,7 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
 {
 
     // thetaColl           [rad]
+    // rotorOmega          [rad/s]
     // Thrust              [N]
     // CoupleInduced       [Nm]
     // CoupleProfile       [Nm]
@@ -875,7 +883,7 @@ unsigned int RotorDisc::iGetNumPrivData(void) const
     // FOM                 [-]
 
     // number of private data that can be extracted from the module
-    return 26;
+    return 27;
 }
 
 unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
@@ -890,6 +898,7 @@ unsigned int RotorDisc::iGetPrivDataIdx(const char* s) const
     } sPrivData[] = {
 
         {"theta",             PRIV_THETACOLL},
+        {"omega",             PRIV_OMEGA},
         {"thrust",            PRIV_THRUST},
         {"coupleinduced",     PRIV_COUPLEINDUCED},
         {"coupleprofile",     PRIV_COUPLEPROFILE},
@@ -944,6 +953,7 @@ doublereal RotorDisc::dGetPrivData(unsigned int i) const
         switch (i)
         {
             case PRIV_THETACOLL:            return thetaColl;
+            case PRIV_OMEGA:                return RotorOmega;
             case PRIV_THRUST:               return Thrust;
             case PRIV_COUPLEINDUCED:        return CoupleInduced;
             case PRIV_COUPLEPROFILE:        return CoupleProfile;
