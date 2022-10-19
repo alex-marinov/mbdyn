@@ -1044,7 +1044,7 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	Vec3 GravityAcceleration;
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc,
 		GravityAcceleration);
 
 	integer iNumRows = 6;
@@ -1094,7 +1094,7 @@ DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
 
 	Vec3 GravityAcceleration;
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc,
 		GravityAcceleration);
 
 	integer iNumRows = 6;
@@ -1198,7 +1198,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration;
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc,
 		GravityAcceleration);
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
@@ -1770,7 +1770,7 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(Zero3);
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc, Acceleration);
 
 	/* TODO: reference */
 	Vec3 W(Zero3);
@@ -1807,7 +1807,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(Zero3);
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc, Acceleration);
 
 	/* W is uninitialized because its use is conditioned by w */
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
@@ -1861,7 +1861,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Se e' definita l'accelerazione di gravita', la aggiunge */
 	Vec3 GravityAcceleration;
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr() + pNode->GetRCurr()*Xgc,
 		GravityAcceleration);
 
 	WorkVec.ResizeReset(6);
