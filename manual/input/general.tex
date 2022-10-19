@@ -2463,10 +2463,14 @@ uses the value of the rotation about axis $z$ of a revolute hinge
 as is (that is, in a linear expression with null constant coefficient 
 and unit linear coefficient, while
 \begin{verbatim}
+    element, 1000, joint, string, "rz", linear, 0., -60.
+\end{verbatim}
+multiplies the value by $-60$;
+\begin{verbatim}
     element, 1000, joint, index, 1
         string, "2.*exp(-100.*Var)"
 \end{verbatim}
-uses the same value, addressed in an alternative manner, in computing
+uses the same value, addressed in an alternative manner using the \kw{index} form, to evaluate
 a string expression.
 
 The same effect can be obtained using the \kw{element} plugin as follows:
