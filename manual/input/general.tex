@@ -534,9 +534,17 @@ This string returns the $y$ component of the relative angular velocity between s
 \paragraph{Example 2.} \
 This string returns the absolute $x$ component of the position of node ``\verb;NODENAME;'' at the previous timestep, plus the value of ``\verb;DRIVE_1 * DRIVE_2;'' when time is greater than 5 seconds:
 \begin{verbatim}
-    drive, string, "model::xposition_prev(NODENAME) + \
+    string, "model::xposition_prev(NODENAME) + \
         model::drive(DRIVE_1, Time) * model::drive(DRIVE_2, Time) * (Time > 5.)",
 \end{verbatim}
+
+\paragraph{Example 3.} \
+To extract the current from an electric circuit where a resistor $R$ is defined between electric nodes 1 and 2:
+\begin{verbatim}
+    string, "(model::node::electric(1, \"x\") - model::node::electric(2, \"x\"))/R"
+\end{verbatim}
+
+
 
 \begin{table}
 	\begin{center}
