@@ -30,12 +30,14 @@
 
 
 \subsection{Module-fab-electric}
+\label{sec:MODULE:FAB-ELECTRIC}
 \emph{Author: Eduardo Okabe}
 
 \noindent
 This module implements several electric components.
 
 \subsubsection{Resistor}
+\label{sec:MODULE:FAB-ELECTRIC:RESISTOR}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{name} ::= \kw{resistor}
 
@@ -44,6 +46,16 @@ This module implements several electric components.
         \bnt{electric_node_2_label} ,
         (\hty{real}) \bnt{resistance}
 \end{Verbatim}
+
+\paragraph{Output.}
+\label{sec:MODULE:FAB-ELECTRIC:RESISTOR:OUTPUT}
+The format is:
+\begin{itemize}
+\item the label of the element;
+\item the current in the element;
+\item the voltage on the first node;
+\item the voltage on the second node.
+\end{itemize}
 
 \subsubsection{Capacitor}
 \begin{Verbatim}[commandchars=\\\{\}]
