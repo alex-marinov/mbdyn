@@ -299,7 +299,7 @@ AirProperties::dGetPrivData(unsigned int i) const
 
 	default:
 		silent_cerr("AirProperties(" << GetLabel() << "): "
-			"illegal property " << i << std::endl);
+			"invalid private datum index=" << i << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
